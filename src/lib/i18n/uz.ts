@@ -1,0 +1,200 @@
+export const uz = {
+  // Authentication
+  signIn: "Kirish",
+  signUp: "Ro'yxatdan o'tish",
+  email: "Elektron pochta",
+  password: "Parol",
+  confirmPassword: "Parolni tasdiqlash",
+  firstName: "Ism",
+  lastName: "Familiya",
+  forgotPassword: "Parolni unutdingiz?",
+  createAccount: "Hisob yaratish",
+  alreadyHaveAccount: "Hisobingiz bormi?",
+  dontHaveAccount: "Hisobingiz yo'qmi?",
+  orContinueWith: "Yoki quyidagilar bilan davom eting",
+  signInWithGoogle: "Google orqali kirish",
+
+  // Dashboard
+  dashboard: "Asosiy panel",
+  overview: "Umumiy ko'rinish",
+  welcome: "Xush kelibsiz",
+  iracSolver: "IRAC Tahlili",
+  decisionTree: "Qaror daraxti",
+  scenarioGenerator: "Stsenariy generator",
+  weaknessDetector: "Zaiflik detektori",
+  documentGenerator: "Hujjat generatori",
+  legalDatabase: "Huquqiy bazalar",
+  courtSimulator: "Sud simulyatori",
+  aiChat: "AI yordamchi",
+  community: "Jamiyat",
+  statistics: "Statistika",
+  achievements: "Yutuqlar",
+  profile: "Profil",
+  settings: "Sozlamalar",
+  help: "Yordam",
+  logout: "Chiqish",
+
+  // Billing
+  billing: "To'lovlar",
+  chooseYourPlan: "O'zingizga mos rejangni tanlang",
+  currentPlan: "Joriy reja",
+  upgrade: "Yangilash",
+  cancelSubscription: "Obunani bekor qilish",
+  getStarted: "Boshlang",
+  currentSubscription: "Joriy obuna",
+  status: "Holati",
+  renewsOn: "Qayta yangilanadi",
+  monthlyRevenue: "Oylik daromad",
+  totalRevenue: "Jami daromad",
+
+  // Plans
+  free: "Bepul",
+  basic: "Talabalar",
+  standard: "Yuristlar",
+  pro: "Tadbirkorlar",
+  enterprise: "Korxonalar",
+
+  // Plan Features
+  iracAnalysisFeature: "IRAC tahlili",
+  aiRequestsFeature: "AI so'rovlari",
+  documentGenerationFeature: "Hujjat generatsiyasi",
+  legalDatabaseFeature: "Huquqiy bazalar",
+  prioritySupportFeature: "Prioritet yordam",
+  customBrandingFeature: "Custom brending",
+  unlimitedAccessFeature: "Cheksiz kirish",
+  apiAccessFeature: "API kirish",
+
+  // Admin
+  adminDashboard: "Admin paneli",
+  totalUsersCount: "Jami foydalanuvchilar",
+  activeUsersCount: "Faol foydalanuvchilar",
+  organizationsCount: "Tashkilotlar",
+  usersManagement: "Foydalanuvchilar boshqaruvi",
+  organizationManagement: "Tashkilotlar boshqaruvi",
+  systemStatistics: "Tizim statistikasi",
+  revenueAnalytics: "Daromad analitikasi",
+
+  // User Roles
+  studentRole: "Talaba",
+  teacherRole: "O'qituvchi",
+  adminRole: "Admin",
+  institutionRole: "Tashkilot",
+
+  // Status
+  activeStatus: "Faol",
+  inactiveStatus: "Faol emas",
+  suspendedStatus: "Bloklangan",
+  deletedStatus: "O'chirilgan",
+  pendingStatus: "Kutilmoqda",
+  completedStatus: "Bajarildi",
+  draftStatus: "Qoralama",
+  archivedStatus: "Arxivlangan",
+
+  // Legal Terms
+  civilCase: "Fuqarolik",
+  criminalCase: "Jinoyat",
+  familyCase: "Oila",
+  laborCase: "Mehnat",
+  administrativeCase: "Ma'muriy",
+
+  // Difficulty Levels
+  beginnerLevel: "Boshlang'ich",
+  intermediateLevel: "O'rtacha",
+  advancedLevel: "Yuqori",
+  expertLevel: "Ekspert",
+
+  // Common
+  saveAction: "Saqlash",
+  cancelAction: "Bekor qilish",
+  editAction: "Tahrirlash",
+  deleteAction: "O'chirish",
+  createAction: "Yaratish",
+  updateAction: "Yangilash",
+  searchAction: "Qidirish",
+  filterAction: "Filtr",
+  sortAction: "Saralash",
+  loadingText: "Yuklanmoqda...",
+  errorText: "Xatolik",
+  successText: "Muvaffaqiyatli",
+  warningText: "Ogohlantirish",
+  infoText: "Ma'lumot",
+
+  // Currency
+  uzsCurrency: "so'm",
+  pricePerMonthText: "oyiga",
+  pricePerYearText: "yiliga",
+
+  // AI Chat
+  askLegalQuestionText: "Yuridik savol bering",
+  typeYourQuestionText: "Savolingizni yozing...",
+  sourceText: "Manba",
+  basedOnText: "Asoslanadi",
+  legalDocumentText: "Qonun hujjati",
+  articleText: "Modda",
+  paragraphText: "Band",
+
+  // Document Generation
+  documentGenerationText: "Hujjat generatsiyasi",
+  selectDocumentTypeText: "Hujjat turini tanlang",
+  contractText: "Shartnoma",
+  claimText: "Da'vo arizasi",
+  applicationText: "Ariza",
+  agreementText: "Kelishuv",
+  receiptText: "Kvitansiya",
+  powerOfAttorneyText: "Vakolatnomasi",
+
+  // Form Fields
+  fullNameField: "To'liq ism",
+  passportSeriesField: "Pasport seriyasi",
+  passportNumberField: "Pasport raqami",
+  amountField: "Summa",
+  addressField: "Manzil",
+  phoneField: "Telefon",
+  dateField: "Sana",
+  descriptionField: "Tavsif",
+  titleField: "Sarlavha",
+  contentField: "Mazmun",
+
+  // Messages
+  accountCreatedSuccessfullyText: "Hisob muvaffaqiyatli yaratildi",
+  invalidEmailOrPasswordText: "Noto'g'ri email yoki parol",
+  passwordMismatchText: "Parollar mos emas",
+  fieldRequiredText: "Bu maydon to'ldirilishi shart",
+  emailAlreadyExistsText: "Bu email bilan ro'yxatdan o'tilgan",
+  subscriptionCanceledText: "Obuna bekor qilindi",
+  paymentSuccessfulText: "To'lov muvaffaqiyatli amalga oshirildi",
+  paymentFailedText: "To'lov amalga oshmadi",
+  documentGeneratedText: "Hujjat muvaffaqiyatli yaratildi",
+  dailyLimitReachedText: "Kunlik so'rovlar chegarasiga yetildi",
+  upgradeToProText: "Pro versiyaga yangilang",
+
+  // Navigation
+  homeNav: "Bosh sahifa",
+  aboutNav: "Biz haqimizda",
+  contactNav: "Aloqa",
+  termsNav: "Foydalanish shartlari",
+  privacyNav: "Maxfiylik siyosati",
+  faqNav: "Tez-tez so'raladigan savollar",
+
+  // Time
+  todayTime: "Bugun",
+  yesterdayTime: "Kecha",
+  thisWeekTime: "Shu hafta",
+  thisMonthTime: "Shu oy",
+  thisYearTime: "Shu yil",
+  lastWeekTime: "O'tgan hafta",
+  lastMonthTime: "O'tgan oy",
+  lastYearTime: "O'tgan yil",
+
+  // Numbers
+  oneNumber: "Bir",
+  twoNumber: "Ikki",
+  threeNumber: "Uch",
+  fourNumber: "To'rt",
+  fiveNumber: "Besh",
+  tenNumber: "O'n",
+  hundredNumber: "Yuz",
+  thousandNumber: "Ming",
+  millionNumber: "Million",
+  billionNumber: "Milliard",
+};

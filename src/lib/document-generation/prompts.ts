@@ -1,0 +1,10 @@
+export const getDocumentPrompt = (type: string) => `Generate ${type}`;
+export const getDocumentTitle = (type: string) => type;
+export const getMockDocument = () => ({ content: '', title: '' });
+export const documentPrompts: any = {};
+export const generateShartnomaPrompt = () => '';
+export const generateArizaPrompt = () => '';
+export const generateDavoprompt = () => '';
+export const generateIshHuquqiPrompt = () => '';
+export const generateGenericPrompt = () => '';
+export const generateVozPrompt = () => '';
