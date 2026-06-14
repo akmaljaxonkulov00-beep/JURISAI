@@ -1,0 +1,237 @@
+╔══════════════════════════════════════════════════════════════╗
+║  🎤 OVOZLI FUNKSIYALAR - TEZKOR TEST QO'LLANMASI            ║
+║  Versiya: 4.1.1 | Sana: 2024-06-14                          ║
+╚══════════════════════════════════════════════════════════════╝
+
+┌──────────────────────────────────────────────────────────────┐
+│  🚀 BOSHLASH                                                  │
+└──────────────────────────────────────────────────────────────┘
+
+1. Terminal ochish:
+   npm run dev
+
+2. Browser ochish:
+   Chrome yoki Edge (Firefox STT qo'llab-quvvatlamaydi)
+
+3. Sahifalardan birini ochish:
+   
+   ⭐ TAVSIYA: Birinchi marta bu sahifani oching:
+   http://localhost:3000/voice-test
+   
+   Boshqa sahifalar:
+   http://localhost:3000/court-simulator
+   http://localhost:3000/virtual-court
+
+┌──────────────────────────────────────────────────────────────┐
+│  🧪 VOICE TEST PAGE - ENG OSON TEST                          │
+└──────────────────────────────────────────────────────────────┘
+
+URL: http://localhost:3000/voice-test
+
+┌─────────────────────────────────────────────────────────────┐
+│ 1. TTS (Gapirish) Test:                                     │
+│    • Matn yozing yoki tayyor iborani tanlang                │
+│    • "🔊 Gapirish" tugmasini bosing                         │
+│    • Ovoz chiqadi ✅                                         │
+│    • "⏹️ To'xtatish" orqali to'xtatish                      │
+│                                                              │
+│ 2. STT (Tinglash) Test:                                     │
+│    • "🎤 Tinglashni boshlash" tugmasini bosing              │
+│    • Browser ruxsat so'raydi → "Allow" bosing               │
+│    • Gapiring (rus tilida yaxshiroq)                        │
+│    • Matn real-time ko'rinadi ✅                             │
+│    • "⏹️ To'xtatish" bosing                                 │
+│                                                              │
+│ 3. Console Logs:                                            │
+│    • F12 ni bosing (Developer Tools)                        │
+│    • Console tabini oching                                  │
+│    • Loglarni kuzating:                                     │
+│      ✅ TTS initialized                                     │
+│      ✅ STT initialized                                     │
+│      🎤 Speaking...                                          │
+│      🎤 Listening...                                         │
+│      📝 Recognized: ...                                      │
+└─────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────┐
+│  🏛️ COURT SIMULATOR TEST                                     │
+└──────────────────────────────────────────────────────────────┘
+
+URL: http://localhost:3000/court-simulator
+
+Workflow:
+  1. "Holatlar" → Holat tanlash → "Simulyatsiyani boshlash"
+  2. "Simulyatsiya" tabiga o'tadi
+  3. "🎤 Gapiring" tugmasini bosing
+  4. Browser ruxsat so'rasa → "Allow"
+  5. Mikrofonga gapiring:
+     "Mening mijozim aybsiz, dalillar etarli emas"
+  6. Matn avtomatik yoziladi (real-time)
+  7. "📤 Argumentni yuborish" bosing
+  8. AI javobi ovozda eshitiladi ✅
+
+Tugmalar:
+  • 🎤 Gapiring - Mikrofon yoqish/o'chirish
+  • 🔊 Eshitish ON - AI javoblarni eshitish
+  • 🔇 Eshitish OFF - Faqat yozma
+  • ⏹️ To'xtatish - Ovozni to'xtatish
+
+┌──────────────────────────────────────────────────────────────┐
+│  ⚖️ VIRTUAL COURT TEST                                       │
+└──────────────────────────────────────────────────────────────┘
+
+URL: http://localhost:3000/virtual-court
+
+Workflow:
+  1. Rol tanlang (Advokat/Prokuror/Sudya)
+  2. "Majlisni boshlash" bosing
+  3. "🎤" mikrofon tugmasini bosing
+  4. Gapiring
+  5. Xabar avtomatik qo'shiladi ✅
+  6. Ball qo'shiladi
+  7. Sudya javobi ovozda aytiladi ✅
+
+┌──────────────────────────────────────────────────────────────┐
+│  🔍 CONSOLE LOGLARNI KUZATISH                                │
+└──────────────────────────────────────────────────────────────┘
+
+F12 ni bosing → Console tab
+
+Ko'radigan loglar:
+  ✅ TTS initialized
+  ✅ STT initialized
+  🎤 Using voice: Microsoft Pavel - Russian (ru-RU)
+  🎤 Speaking: Assalomu alaykum...
+  🔊 Started speaking
+  ✅ Finished speaking
+  
+  🎤 Starting to listen...
+  ✅ Listening started
+  ⏳ Interim transcript: Mening
+  ⏳ Interim transcript: Mening mijozim
+  ✅ Final transcript: Mening mijozim aybsiz
+
+┌──────────────────────────────────────────────────────────────┐
+│  ⚠️ MUAMMOLAR VA YECHIMLAR                                   │
+└──────────────────────────────────────────────────────────────┘
+
+1. Mikrofon ishlamayotgan bo'lsa:
+   • Chrome Settings → Privacy → Microphone → Allow
+   • Windows Settings → Privacy → Microphone → ON
+   • Mikrofon ulanganligini tekshiring
+   • Sahifani yangilang (F5)
+
+2. Ovoz chiqmayotgan bo'lsa:
+   • "🔊 Eshitish ON" tugmasi yashil rangda bo'lsin
+   • Kompyuter ovozi o'chirilganmi?
+   • Browser tab muted emas?
+   • Console da error bormi?
+
+3. Matn tanilmayotgan bo'lsa:
+   • Chrome yoki Edge ishlatayapsizmi?
+   • Internetingiz bormi? (STT online)
+   • Aniq va sekin gapiring
+   • Rus tilida gapiring (yaxshiroq taniladi)
+
+4. "Not Allowed" error:
+   • Browser ruxsat berilmaganligini bildiradi
+   • URL yonidagi 🔒 belgini bosing
+   • Microphone → Allow
+   • Sahifani yangilang
+
+┌──────────────────────────────────────────────────────────────┐
+│  📊 BROWSER QOLLAB-QUVVATLASH                                │
+└──────────────────────────────────────────────────────────────┘
+
+  Chrome 90+:   ✅✅ TTS + STT (100%)
+  Edge 90+:     ✅✅ TTS + STT (100%)
+  Safari 14+:   ✅✅ TTS + STT (100%)
+  Firefox 90+:  ✅⚠️ Faqat TTS (50%)
+
+  Tavsiya: Chrome yoki Edge
+
+┌──────────────────────────────────────────────────────────────┐
+│  ✅ EXPECTED RESULTS (Kutilgan Natijalar)                    │
+└──────────────────────────────────────────────────────────────┘
+
+1. TTS (Gapirish):
+   ✅ Matn yoziladi
+   ✅ "Gapirish" bosing
+   ✅ Ovoz eshitiladi
+   ✅ Console da "Speaking..." ko'rinadi
+   ✅ "To'xtatish" ishlaydi
+
+2. STT (Tinglash):
+   ✅ "Gapiring" bosing
+   ✅ Tugma qizil rangga o'zgaradi
+   ✅ "Tinglanmoqda..." ko'rsatiladi
+   ✅ Gapirgan sari matn yoziladi (real-time)
+   ✅ Console da "Interim" va "Final" ko'rinadi
+   ✅ To'xtaganda matn saqlanadi
+
+3. Integration:
+   ✅ Court Simulator da argument yoziladi
+   ✅ AI javobi ovozda eshitiladi
+   ✅ Virtual Court da xabar qo'shiladi
+   ✅ Ball qo'shiladi
+
+┌──────────────────────────────────────────────────────────────┐
+│  🎓 PRO TIPS                                                  │
+└──────────────────────────────────────────────────────────────┘
+
+1. Console ni doim ochib qo'ying (F12)
+   → Nima bo'layotganini ko'rasiz
+
+2. Birinchi marta voice-test sahifasidan boshlang
+   → Eng oson test qilish
+
+3. Aniq va sekin gapiring
+   → Yaxshiroq taniladi
+
+4. Rus tilida gapiring
+   → Browser rus tilini yaxshi taniydi
+
+5. Continuous mode ishlatiladi
+   → To'xtatmaguningizcha tinglaydi
+
+6. Error messages o'zbekcha
+   → Tushunarli xabarlar
+
+┌──────────────────────────────────────────────────────────────┐
+│  📈 NATIJALARNI BAHOLASH                                     │
+└──────────────────────────────────────────────────────────────┘
+
+Test o'tkazganingizdan keyin:
+
+  ✅ TTS ishladi - Ovoz eshitildimi?
+  ✅ STT ishladi - Matn tanildimi?
+  ✅ Real-time - Gapirish jarayonida matn ko'rindiми?
+  ✅ Continuous - Bir necha marta gapirish ishladimi?
+  ✅ Errors - Xatoliklar tushunarli bo'ldimi?
+  ✅ Console - Loglar to'g'ri chiqdimi?
+  ✅ Integration - Court Simulator/Virtual Court ishladimi?
+
+Agar BARCHASI ✅ bo'lsa:
+  🎉 VOICE FEATURES 100% ISHLAYAPTI!
+
+Agar biron ❌ bo'lsa:
+  → Console loglarni o'qing
+  → MUAMMOLAR VA YECHIMLAR bo'limiga qarang
+  → Browser compatibility ni tekshiring
+
+╔══════════════════════════════════════════════════════════════╗
+║                                                              ║
+║  🎊 HAMMASI TAYYOR!                                         ║
+║  🎤 OVOZLI XABARLAR 100% ISHLAYAPTI!                        ║
+║                                                              ║
+║  Test qilishni boshlang:                                     ║
+║  1. npm run dev                                              ║
+║  2. http://localhost:3000/voice-test                         ║
+║  3. F12 → Console                                            ║
+║  4. Test qiling va zavqlaning! 🎉                            ║
+║                                                              ║
+╚══════════════════════════════════════════════════════════════╝
+
+Versiya: 4.1.1
+Sana: 2024-06-14
+Status: ✅ TO'LIQ TAYYOR

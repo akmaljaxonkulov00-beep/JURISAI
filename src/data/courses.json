@@ -1,0 +1,69 @@
+{
+  "courses": [
+    {
+      "id": "course_1",
+      "title": "Fuqarolik huquqi asoslari",
+      "description": "Fuqarolik kodeksining asosiy qoidalari, shartnomalar, mulk huquqi",
+      "instructor": "Prof. Karimov Aziz",
+      "category": "Fuqarolik",
+      "level": "Boshlang'ich",
+      "duration": "4 hafta",
+      "lessons_count": 16,
+      "students_count": 1250,
+      "rating": 4.8,
+      "price": 0,
+      "thumbnail": "/images/courses/fuqarolik.jpg",
+      "status": "active",
+      "lessons": [
+        {
+          "id": "lesson_1",
+          "title": "Fuqarolik huquqi tushunchasi",
+          "duration": "45 min",
+          "type": "video",
+          "completed": false
+        },
+        {
+          "id": "lesson_2",
+          "title": "Jismoniy va yuridik shaxslar",
+          "duration": "40 min",
+          "type": "video",
+          "completed": false
+        }
+      ]
+    }
+  ]
+}
+    {
+      "id": "course_2",
+      "title": "Jinoyat huquqi va jazo",
+      "description": "Jinoyat kodeksi, jinoyat turlari, jazolar tizimi",
+      "instructor": "Dotsent Aliyev Rustam",
+      "category": "Jinoyat",
+      "level": "O'rta",
+      "duration": "6 hafta",
+      "lessons_count": 24,
+      "students_count": 980,
+      "rating": 4.9,
+      "price": 0,
+      "thumbnail": "/images/courses/jinoyat.jpg",
+      "status": "active",
+      "lessons": []
+    },
+    {
+      "id": "course_3",
+      "title": "Oila va nikoh huquqi",
+      "description": "Oila kodeksi, nikoh, ajrashish, bolalar huquqlari",
+      "instructor": "Dotsent Yusupova Dilnoza",
+      "category": "Oila",
+      "level": "Boshlang'ich",
+      "duration": "3 hafta",
+      "lessons_count": 12,
+      "students_count": 1580,
+      "rating": 4.7,
+      "price": 0,
+      "thumbnail": "/images/courses/oila.jpg",
+      "status": "active",
+      "lessons": []
+    }
+  ]
+}

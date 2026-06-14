@@ -1,0 +1,79 @@
+---
+title: JurisAI Legal Education Platform
+emoji: ⚖️
+colorFrom: blue
+colorTo: purple
+sdk: docker
+pinned: false
+license: mit
+app_port: 7860
+---
+
+# JurisAI Legal Education Platform
+
+🏛️ **Dunyodagi eng to'liq yuristlar ta'lim platformasi**
+
+Bu platforma O'zbekiston yuristlari uchun to'liq ta'lim ekosistemasi bo'lib, 15 ta modulni o'z ichiga oladi:
+
+## 🎯 Asosiy xususiyatlar
+
+### 📚 Ta'lim modullari:
+- **Case Solver** - Keys tahlili tizimi
+- **Decision Tree** - Qaror daraxti
+- **Virtual Sud** - Sud simulyatsiyasi
+- **Simulyator** - Mijot bilan suhbat
+- **AI Yordamchi** - Huquqiy yordamchi
+- **Mening kurslarim** - Kurslar boshqaruvi
+- **Pro Vositalar** - Professional uskunalar
+- **Qonunlar bazasi** - Elektron kutubxona
+- **Jamiyat** - Ijtimoiy platforma
+- **Statistika** - Analitika va tahlil
+- **Topshiriqlar** - Nazorat punkti
+- **Yutuqlar** - Motivatsiya markazi
+
+### 🚀 Texnologiyalar:
+- **Next.js 14** - React framework
+- **TypeScript** - Type safety
+- **Tailwind CSS** - Modern styling
+- **Lucide React** - Icon library
+- **Responsive Design** - Mobile-friendly
+
+### 🎨 Dizayn:
+- **Glassmorphism** - Modern UI effects
+- **Dark/Light Theme** - Theme support
+- **Uzbek Language** - Localized interface
+- **Professional Design** - Legal tech aesthetics
+
+## 📦 Deployment
+
+Bu platforma Hugging Face Spaces da avtomatik deployment qilinadi:
+
+```bash
+# Build and deploy
+npm run build
+npm run start
+```
+
+## 🔧 Development
+
+```bash
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+
+# Build for production
+npm run build
+```
+
+## 👥 Team
+
+- **Frontend**: Next.js, React, TypeScript
+- **Backend**: Next.js API Routes
+- **Design**: Tailwind CSS, Glassmorphism
+- **Deployment**: Hugging Face Spaces
+
+## 📄 License
+
+MIT License - Open source huquqiy ta'lim platformasi

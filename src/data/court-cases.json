@@ -1,0 +1,214 @@
+{
+  "categories": [
+    {
+      "id": "criminal",
+      "name": "Jinoyat ishlari",
+      "icon": "⚖️",
+      "color": "red",
+      "count": 15
+    },
+    {
+      "id": "civil",
+      "name": "Fuqarolik ishlari",
+      "icon": "📋",
+      "color": "blue",
+      "count": 20
+    },
+    {
+      "id": "administrative",
+      "name": "Ma'muriy ishlar",
+      "icon": "🏛️",
+      "color": "orange",
+      "count": 12
+    },
+    {
+      "id": "family",
+      "name": "Oilaviy ishlar",
+      "icon": "👨‍👩‍👧",
+      "color": "green",
+      "count": 10
+    },
+    {
+      "id": "labor",
+      "name": "Mehnat ishlari",
+      "icon": "💼",
+      "color": "purple",
+      "count": 8
+    }
+  ]
+}
+  "cases": [
+    {
+      "id": "case_001",
+      "title": "O'g'irlik holati: Supermarketdan mahsulot o'g'irlash",
+      "category": "criminal",
+      "description": "Sudlanuvchi Karimov Aziz 2024-yil 15-martda "Korzinka" supermarketidan umumiy qiymati 2 million so'm turli oziq-ovqat mahsulotlarini yashirincha tortib olgan.",
+      "difficulty": "beginner",
+      "duration": 30,
+      "roles": ["prosecution", "defense", "judge"],
+      "key_issues": [
+        "O'g'irlik faktining isbotlanishi",
+        "Video kuzatuv dalillari",
+        "Guvohlar ko'rsatmalari",
+        "Zarar miqdori",
+        "Jinoiy ta'rif: JK 169-modda"
+      ],
+      "participants": {
+        "plaintiff": "Korzinka supermarket",
+        "defendant": "Karimov Aziz, 28 yosh",
+        "judge": "Hakam Saydullayev R.",
+        "witnesses": ["Maxsus xavfsizlik xodimi", "Kassir", "Xaridor"]
+      },
+      "evidence": [
+        {
+          "id": "ev_001",
+          "type": "video",
+          "title": "Kuzatuv kamerasidan olingan video",
+          "description": "15:30 da sudlanuvchi mahsulotlarni sumkasiga solib chiqib ketgan video",
+          "credibility": 95,
+          "relevance": 100
+        },
+        {
+          "id": "ev_002",
+          "type": "testimony",
+          "title": "Xavfsizlik xodimi ko'rsatmasi",
+          "description": "Xodim sudlanuvchini mahsulot o'g'irlayotganini ko'rgan",
+          "credibility": 85,
+          "relevance": 90
+        },
+        {
+          "id": "ev_003",
+          "type": "document",
+          "title": "Mahsulotlar ro'yxati va qiymati",
+          "description": "O'g'irlangan mahsulotlarning umumiy qiymati: 2,150,000 so'm",
+          "credibility": 100,
+          "relevance": 100
+        }
+      ],
+      "scenario": {
+        "opening": "Sud jarayoni boshlanadi. Hakam ishtirokchilarni taqdim etadi.",
+        "prosecution_opening": "Ayblovchi o'g'irlik faktini dalillar bilan isbotlaydi",
+        "defense_opening": "Himoyachi mijozining pozitsiyasini tushuntiradi",
+        "witness_examination": "Guvohlarni so'roq qilish",
+        "evidence_presentation": "Dalillarni taqdim etish",
+        "closing_arguments": "Yakuniy so'zlar",
+        "verdict": "Hakam hukm chiqaradi"
+      }
+    }
+  ]
+}
+    {
+      "id": "case_002",
+      "title": "Shartnoma buzilishi: Qurilish ishlarini bajarmaslik",
+      "category": "civil",
+      "description": "Da'vogar Toshmatov Akmal podratchi Yusupov Olegga uy qurilishi uchun 50 million so'm to'lagan, lekin podratchi ishlarni to'liq bajarmagan va shartnomani buzgan.",
+      "difficulty": "intermediate",
+      "duration": 45,
+      "roles": ["plaintiff", "defendant", "judge"],
+      "key_issues": [
+        "Shartnoma shartlarining buzilishi",
+        "Bajarilgan ishlar hajmi",
+        "Zarar miqdorini hisoblash",
+        "Pеnya va jarima",
+        "FK 342-modda, Shartnomalar huquqi"
+      ],
+      "participants": {
+        "plaintiff": "Toshmatov Akmal",
+        "defendant": "Yusupov Oleg (podratchi)",
+        "judge": "Hakam Karimova D.",
+        "experts": ["Qurilish eksperti", "Moliyaviy ekspert"]
+      },
+      "evidence": [
+        {
+          "id": "ev_004",
+          "type": "contract",
+          "title": "Qurilish shartnomasi",
+          "description": "2023-yil 10-dekabr sanasida tuzilgan shartnoma",
+          "credibility": 100,
+          "relevance": 100
+        },
+        {
+          "id": "ev_005",
+          "type": "payment",
+          "title": "To'lov cheklari",
+          "description": "Umumiy 50 million so'm to'lovni tasdiqlovchi hujjatlar",
+          "credibility": 100,
+          "relevance": 100
+        },
+        {
+          "id": "ev_006",
+          "type": "expert_report",
+          "title": "Ekspert xulosasi",
+          "description": "Faqat 40% ish bajarilgan, sifati past",
+          "credibility": 90,
+          "relevance": 95
+        }
+      ],
+      "scenario": {
+        "opening": "Fuqarolik ishi bo'yicha sud majlisi",
+        "plaintiff_claims": "Da'vogar o'z da'volarini bayon qiladi",
+        "defendant_response": "Javobgar o'z pozitsiyasini bildiradi",
+        "expert_testimony": "Ekspertlar xulosalarini taqdim etadilar",
+        "damages_calculation": "Zarar miqdorini hisoblash",
+        "verdict": "Hakam qarori"
+      }
+    },
+    {
+      "id": "case_003",
+      "title": "Ajrashish va bolalar ustidan vasilik",
+      "category": "family",
+      "description": "Ergashev va Ergasheva ajrashmoqchi. Ularda 7 yoshli qiz va 5 yoshli o'g'il bola bor. Kim bilan qolishi hal qilinishi kerak.",
+      "difficulty": "intermediate",
+      "duration": 40,
+      "roles": ["plaintiff", "defendant", "judge"],
+      "key_issues": [
+        "Ajrashish asoslari",
+        "Bolalar ustidan vasilik huquqi",
+        "Aliment miqdori",
+        "Umumiy mulkni taqsimlash",
+        "OK 28, 45-moddalar"
+      ],
+      "participants": {
+        "plaintiff": "Ergasheva Dilnoza",
+        "defendant": "Ergashev Rustam",
+        "judge": "Hakam Nazarova S.",
+        "children": ["Qiz 7 yosh", "O'g'il 5 yosh"],
+        "psychologist": "Bolalar psixologi"
+      },
+      "evidence": [
+        {
+          "id": "ev_007",
+          "type": "testimony",
+          "title": "Tomonlarning ko'rsatmalari",
+          "description": "Er va xotinning nikoh buzilishi sabablari",
+          "credibility": 70,
+          "relevance": 80
+        },
+        {
+          "id": "ev_008",
+          "type": "document",
+          "title": "Bolalar psixologi xulosasi",
+          "description": "Bolalar kimning yonida yashashi yaxshiroq",
+          "credibility": 95,
+          "relevance": 100
+        },
+        {
+          "id": "ev_009",
+          "type": "document",
+          "title": "Umumiy mulk ro'yxati",
+          "description": "Uy, mashina, jamg'armalar",
+          "credibility": 100,
+          "relevance": 90
+        }
+      ],
+      "scenario": {
+        "opening": "Oilaviy nizoni hal qilish bo'yicha sud",
+        "mediation": "Yarashuv urinishi",
+        "custody_hearing": "Bolalar ustidan vasilik masalasi",
+        "property_division": "Mulkni taqsimlash",
+        "alimony": "Aliment miqdorini belgilash",
+        "verdict": "Yakuniy qaror"
+      }
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "quizzes": [
+    {
+      "id": "quiz_1",
+      "title": "Fuqarolik huquqi asoslari",
+      "category": "Fuqarolik",
+      "difficulty": "easy",
+      "duration": 15,
+      "questions_count": 10,
+      "description": "Fuqarolik kodeksining asosiy tushunchalari",
+      "passing_score": 70,
+      "questions": [
+        {
+          "id": "q1",
+          "question": "Shartnoma nima?",
+          "options": [
+            "Ikki yoki undan ortiq shaxslar o'rtasidagi kelishuv",
+            "Faqat yozma hujjat",
+            "Faqat notarial tasdiqlangan hujjat",
+            "Sud qarori"
+          ],
+          "correct_answer": 0,
+          "explanation": "Shartnoma - bu ikki yoki undan ortiq shaxslar o'rtasida huquq va majburiyatlarni belgilovchi kelishuv."
+        }
+      ]
+    }
+  ]
+}
+        {
+          "id": "q2",
+          "question": "Mulk huquqi nimani anglatadi?",
+          "options": [
+            "Faqat foydalanish huquqi",
+            "Egalik, foydalanish va tasarruf qilish huquqi",
+            "Faqat sotish huquqi",
+            "Hech narsa emas"
+          ],
+          "correct_answer": 1,
+          "explanation": "Mulk huquqi - bu egalik, foydalanish va tasarruf qilish huquqlarini o'z ichiga oladi."
+        },
+        {
+          "id": "q3",
+          "question": "Jismoniy shaxs deb kimga aytiladi?",
+          "options": [
+            "Faqat erkak kishilarga",
+            "Korxona yoki tashkilotga",
+            "Har qanday insonga",
+            "Faqat voyaga yetganlarga"
+          ],
+          "correct_answer": 2,
+          "explanation": "Jismoniy shaxs - bu huquqiy munosabatlarda ishtirok etuvchi har qanday inson."
+        }

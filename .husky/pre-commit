@@ -1,0 +1,28 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🔍 Running pre-commit checks..."
+
+# Run linting
+echo "📝 Checking code format..."
+npm run format:check || {
+  echo "❌ Format check failed. Running auto-fix..."
+  npm run format
+  git add -A
+}
+
+# Run type checking
+echo "🔷 Type checking..."
+npm run type-check || {
+  echo "❌ Type check failed. Please fix TypeScript errors."
+  exit 1
+}
+
+# Run tests
+echo "🧪 Running tests..."
+npm run test || {
+  echo "❌ Tests failed. Please fix failing tests."
+  exit 1
+}
+
+echo "✅ All pre-commit checks passed!"

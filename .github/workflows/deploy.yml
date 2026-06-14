@@ -1,0 +1,60 @@
+name: Deploy to Hugging Face Spaces
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Build application
+      run: npm run build
+      
+    - name: Deploy to Hugging Face Spaces
+      env:
+        HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        SPACE_NAME: ${{ secrets.SPACE_NAME }}
+      run: |
+        # Install huggingface_hub
+        pip install huggingface_hub
+        
+        # Create deployment script
+        cat > deploy.py << 'EOF'
+        from huggingface_hub import HfApi
+        import os
+        
+        api = HfApi(token=os.environ["HF_TOKEN"])
+        
+        # Create or update space
+        try:
+            space = api.create_repo(
+                repo_id=os.environ["SPACE_NAME"],
+                repo_type="space",
+                space_sdk="docker",
+                private=False,
+                source_repo="https://github.com/akmaljaxonkulov1221-web/jurisai-legal-platform"
+            )
+            print(f"Space created: {space}")
+        except Exception as e:
+            print(f"Space might already exist: {e}")
+        
+        print("Deployment triggered to Hugging Face Spaces")
+        EOF
+        
+        python deploy.py

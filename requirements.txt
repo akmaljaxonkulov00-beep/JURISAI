@@ -1,0 +1,16 @@
+# Hugging Face Spaces Requirements
+# This file contains Python dependencies for Hugging Face Spaces deployment
+# The Next.js application will be served using a Python wrapper
+
+# Core dependencies
+flask==2.3.3
+gunicorn==21.2.0
+python-dotenv==1.0.0
+
+# For serving static files
+waitress==2.1.2
+
+# Development dependencies (optional)
+# requests==2.31.0
+# numpy==1.24.3
+# pandas==1.5.3

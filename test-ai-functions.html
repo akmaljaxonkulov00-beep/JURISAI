@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Funksiyalarni Test Qilish</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-item {
+            background: white;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2563eb;
+            text-align: center;
+        }
+        h3 {
+            color: #1e40af;
+            margin-bottom: 10px;
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .status.ready { background: #dcfce7; color: #166534; }
+        .status.testing { background: #fef3c7; color: #92400e; }
+        .status.success { background: #dbeafe; color: #1e40af; }
+        .link {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 8px 16px;
+            background: #2563eb;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            transition: background 0.3s;
+        }
+        .link:hover {
+            background: #1d4ed8;
+        }
+        .info {
+            color: #64748b;
+            font-size: 14px;
+            margin-top: 8px;
+        }
+        .checklist {
+            list-style: none;
+            padding: 0;
+        }
+        .checklist li {
+            padding: 8px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .checklist li:before {
+            content: "✓ ";
+            color: #10b981;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🤖 AI Funksiyalarni Test Qilish</h1>
+    
+    <div class="test-item">
+        <h3>📋 Test Qilish Bosqichlari</h3>
+        <ul class="checklist">
+            <li>Serverni ishga tushiring: <code>npm run dev</code></li>
+            <li>Browserni oching: <code>http://localhost:3000</code></li>
+            <li>F12 bosing va Console tabni oching</li>
+            <li>Har bir sahifani sinab ko'ring</li>
+            <li>Xatolar bo'lsa Console da ko'ring</li>
+        </ul>
+    </div>
+
+    <div class="test-item">
+        <h3>1. IRAC Tahlil</h3>
+        <span class="status ready">✓ TAYYOR</span>
+        <p class="info">Case matnini tahlil qiladi (Issue, Rule, Application, Conclusion)</p>
+        <a href="http://localhost:3000/irac" class="link" target="_blank">Test qilish →</a>
+    </div>
+
+    <div class="test-item">
+        <h3>2. Document Generator</h3>
+        <span class="status ready">✓ TAYYOR</span>
+        <p class="info">Professional huquqiy hujjatlar yaratadi</p>
+        <a href="http://localhost:3000/document-generator" class="link" target="_blank">Test qilish →</a>
+    </div>
+
+    <div class="test-item">
+        <h3>3. Weakness Detector</h3>
+        <span class="status ready">✓ TAYYOR</span>
+        <p class="info">Argumentdagi zaifliklarni aniqlaydi</p>
+        <a href="http://localhost:3000/weakness-detector" class="link" target="_blank">Test qilish →</a>
+    </div>
+
+    <div class="test-item">
+        <h3>4. Scenario Generator</h3>
+        <span class="status ready">✓ TAYYOR</span>
+        <p class="info">Ta'lim maqsadida huquqiy stsenariylar yaratadi</p>
+        <a href="http://localhost:3000/scenario-generator" class="link" target="_blank">Test qilish →</a>
+    </div>
+
+    <div class="test-item">
+        <h3>5. Court Simulator</h3>
+        <span class="status ready">✓ TAYYOR</span>
+        <p class="info">Sud jarayonini simulyatsiya qiladi</p>
+        <a href="http://localhost:3000/court-simulator" class="link" target="_blank">Test qilish →</a>
+    </div>
+
+    <div class="test-item">
+        <h3>6. AI Chat</h3>
+        <span class="status ready">✓ TAYYOR</span>
+        <p class="info">Real-time huquqiy maslahat</p>
+        <a href="http://localhost:3000/ai-chat" class="link" target="_blank">Test qilish →</a>
+    </div>
+
+    <div class="test-item" style="background: #eff6ff; border: 2px solid #2563eb;">
+        <h3>📝 Qanday Test Qilish Kerak?</h3>
+        <ol style="color: #1e40af; line-height: 1.8;">
+            <li>Har bir sahifaga kiring</li>
+            <li>Forma maydonlarini to'ldiring</li>
+            <li>Submit/Tahlil tugmasini bosing</li>
+            <li>AI javobini kuting (3-10 soniya)</li>
+            <li>Natijani tekshiring</li>
+            <li>Console da xatolar bormi ko'ring</li>
+        </ol>
+    </div>
+
+    <div class="test-item" style="background: #fef3c7;">
+        <h3>⚠️ Agar Xato Bo'lsa</h3>
+        <ul style="color: #92400e; line-height: 1.8;">
+            <li><strong>400 Error:</strong> Input formatini tekshiring</li>
+            <li><strong>401 Error:</strong> API key tekshiring (.env.local)</li>
+            <li><strong>429 Error:</strong> Juda ko'p so'rov, biroz kuting</li>
+            <li><strong>Network Error:</strong> Internet aloqani tekshiring</li>
+        </ul>
+    </div>
+</body>
+</html>
