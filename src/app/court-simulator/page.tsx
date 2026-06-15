@@ -148,7 +148,7 @@ export default function CourtSimulatorPage() {
   // ════════════════════════════ SETUP ════════════════════════════
   if (page === 'setup') return (
     <div style={{ minHeight: '100vh', background: '#F8FAFF', display: 'flex' }}>
-      <aside style={{ width: 240, background: '#fff', borderRight: '1px solid #F1F5F9', minHeight: '100vh', padding: '24px 16px', flexShrink: 0 }}>
+      <aside className="hidden md:block" style={{ width: 240, background: '#fff', borderRight: '1px solid #F1F5F9', minHeight: '100vh', padding: '24px 16px', flexShrink: 0 }}>
         <a href="/" style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#6B7280', textDecoration: 'none', fontSize: 14, marginBottom: 24 }}>
           <ArrowLeft size={16} /> Orqaga
         </a>
@@ -167,7 +167,7 @@ export default function CourtSimulatorPage() {
         <p style={{ fontSize: 14, color: '#6B7280', margin: '0 0 32px' }}>Rol va ishni tanlang — AI sudya bilan ovozli sud jarayonini boshlang</p>
 
         <h2 style={{ fontSize: 15, fontWeight: 700, color: '#374151', margin: '0 0 12px' }}>1. Rolingizni tanlang</h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12, marginBottom: 28, maxWidth: 700 }}>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3" style={{ marginBottom: 28 }}>
           {ROLES.map(r => (
             <button key={r.id} onClick={() => setRole(r)}
               style={{ padding: 18, borderRadius: 14, border: `2px solid ${role.id === r.id ? r.color : '#E5E7EB'}`, background: role.id === r.id ? r.bg : '#fff', cursor: 'pointer', textAlign: 'left' }}>
@@ -228,8 +228,8 @@ export default function CourtSimulatorPage() {
       </header>
 
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
-        {/* Ballar paneli */}
-        <aside style={{ width: 200, background: 'rgba(0,0,0,0.4)', borderRight: '1px solid rgba(255,255,255,0.07)', padding: 18, flexShrink: 0 }}>
+        {/* Ballar paneli — faqat desktop */}
+        <aside className="hidden lg:block" style={{ width: 200, background: 'rgba(0,0,0,0.4)', borderRight: '1px solid rgba(255,255,255,0.07)', padding: 18, flexShrink: 0 }}>
           <p style={{ fontSize: 11, fontWeight: 600, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 12px' }}>Baholash</p>
           {[
             { l: 'Sud etikasi', v: score.etiquette, c: '#22C55E' },
