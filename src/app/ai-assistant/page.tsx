@@ -224,7 +224,7 @@ export default function AIAssistant() {
   return (
     <div style={{ minHeight: '100vh', background: '#F8FAFF', display: 'flex' }}>
       {/* ── Sidebar — faqat desktop da ko'rinadi ── */}
-      <aside className="hidden md:block" style={{ width: 256, background: '#fff', borderRight: '1px solid #F1F5F9', minHeight: '100vh', padding: '24px 16px', flexShrink: 0 }}>
+      <aside className="desktop-sidebar" style={{ width: 256, background: '#fff', borderRight: '1px solid #F1F5F9', minHeight: '100vh', padding: '24px 16px', flexShrink: 0 }}>
         <a href="/" style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#6B7280', textDecoration: 'none', fontSize: 14, marginBottom: 24 }}>
           <ArrowLeft size={16} /> Orqaga
         </a>

@@ -363,7 +363,7 @@ export default function Simulator() {
   return (
     <div className="min-h-screen bg-[#f8faff]">
       <div className="flex">
-        <div className="hidden md:block w-64 bg-white border-r min-h-screen p-6">
+        <div className="desktop-sidebar w-64 bg-white border-r min-h-screen p-6">
           <a href="/" className="flex items-center gap-2 text-gray-600 hover:bg-gray-50 px-3 py-2 rounded-lg mb-6">
             <ArrowLeft className="w-5 h-5" /><span>Orqaga</span>
           </a>

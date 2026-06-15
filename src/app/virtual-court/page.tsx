@@ -175,7 +175,7 @@ export default function VirtualCourt() {
   if (page === 'select') return (
     <div style={{ minHeight: '100vh', background: '#F8FAFF' }}>
       <div style={{ display: 'flex' }}>
-        <aside style={{ width: 240, background: '#fff', borderRight: '1px solid #F1F5F9', minHeight: '100vh', padding: '24px 16px', flexShrink: 0 }}>
+        <aside className="desktop-sidebar" style={{ width: 240, background: '#fff', borderRight: '1px solid #F1F5F9', minHeight: '100vh', padding: '24px 16px', flexShrink: 0 }}>
           <a href="/" style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#6B7280', textDecoration: 'none', fontSize: 14, marginBottom: 24 }}>
             <ArrowLeft size={16} /> Orqaga
           </a>
@@ -273,7 +273,7 @@ export default function VirtualCourt() {
 
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
         {/* Ball paneli */}
-        <aside style={{ width: 200, background: 'rgba(0,0,0,0.4)', borderRight: '1px solid rgba(255,255,255,0.07)', padding: 18, flexShrink: 0 }}>
+        <aside className="desktop-sidebar" style={{ width: 200, background: 'rgba(0,0,0,0.4)', borderRight: '1px solid rgba(255,255,255,0.07)', padding: 18, flexShrink: 0 }}>
           <p style={{ fontSize: 11, fontWeight: 600, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 12px' }}>Ballar</p>
           {[
             { l: 'Etika', v: score.etiquette, c: '#22C55E' },

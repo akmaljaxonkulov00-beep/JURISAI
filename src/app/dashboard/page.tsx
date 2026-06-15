@@ -590,8 +590,8 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-3 md:p-6">
       <div className="max-w-full mx-auto">
-        <div className="flex flex-col md:flex-row gap-6">
-          <div className="hidden md:block">
+        <div className="flex flex-col md:flex-row gap-4 md:gap-6">
+          <div className="desktop-sidebar">
             {renderSidebar()}
           </div>
 
