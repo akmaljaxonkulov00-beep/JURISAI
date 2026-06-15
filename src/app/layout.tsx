@@ -4,6 +4,7 @@ import "./globals.css";
 import { generateSEOMetadata } from "./metadata";
 import Providers from "./providers";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import MobileNav from "@/components/MobileNav";
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -40,6 +41,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <ErrorBoundary>
           <Providers>
+            <MobileNav />
             {children}
           </Providers>
         </ErrorBoundary>
