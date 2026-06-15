@@ -413,7 +413,7 @@ export default function Dashboard() {
       </div>
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
         <Card className="bg-white/90 backdrop-blur-md rounded-2xl shadow-xl border border-white/20">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -588,10 +588,12 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-3 md:p-6">
       <div className="max-w-full mx-auto">
-        <div className="flex gap-6">
-          {renderSidebar()}
+        <div className="flex flex-col md:flex-row gap-6">
+          <div className="hidden md:block">
+            {renderSidebar()}
+          </div>
 
           <div className="flex-1">
             {renderOverview()}
