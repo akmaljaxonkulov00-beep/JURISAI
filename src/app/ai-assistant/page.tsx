@@ -1,7 +1,10 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { ArrowLeft, MessageCircle, FileText, Mic, Send, BookOpen, Scale, HelpCircle, Volume2, Lightbulb, Copy, ClipboardList, Info, Gavel, Sparkles, History, Trash2, ChevronRight, Clock, X } from 'lucide-react';
+import { 
+  ArrowLeft, MessageCircle, FileText, Mic, Send, BookOpen, Scale, 
+  HelpCircle, Volume2, Lightbulb, Copy, History, Trash2, X, Clock 
+} from 'lucide-react';
 
 interface Message {
   id: string;
@@ -11,132 +14,51 @@ interface Message {
   suggestions?: string[];
 }
 
-interface ChatSession {
+interface SavedChat {
   id: string;
   title: string;
-  preview: string;
   date: string;
-  messageCount: number;
-  messages: Message[];
+  messages: { id: string; text: string; type: string; timestamp: string; suggestions?: string[] }[];
 }
 
-// ── AI javobini rangli bo'limlarda ko'rsatuvchi komponent ──────────────────
+// ── AI response formatter ──
 function AIResponse({ text }: { text: string }) {
-  const SECTIONS = [
-    { icon: <ClipboardList size={14} />, key: 'QISQA JAVOB',     bg: '#EFF6FF', border: '#BFDBFE', color: '#1D4ED8' },
-    { icon: <Info size={14} />, key: "ASOSIY MA'LUMOT", bg: '#F0FDF4', border: '#BBF7D0', color: '#15803D' },
-    { icon: <Gavel size={14} />,  key: 'QONUN',    bg: '#EFF6FF', border: '#BFDBFE', color: '#2563EB' },
-    { icon: <Sparkles size={14} />, key: 'MASLAHAT',         bg: '#FFF7ED', border: '#FED7AA', color: '#C2410C' },
+  const sections = [
+    { key: 'QISQA JAVOB',     bg: '#EFF6FF', border: '#BFDBFE', color: '#1D4ED8' },
+    { key: "ASOSIY MA'LUMOT", bg: '#F0FDF4', border: '#BBF7D0', color: '#15803D' },
+    { key: 'QONUN',            bg: '#EFF6FF', border: '#BFDBFE', color: '#2563EB' },
+    { key: 'MASLAHAT',         bg: '#FFF7ED', border: '#FED7AA', color: '#C2410C' },
   ];
 
-  const findSection = (t: string, key: string) => t.includes(key);
-  const hasAnySection = SECTIONS.some(s => findSection(text, s.key));
-
-  const renderLines = (content: string, color: string) =>
-    content.split('\n').filter(l => l.trim()).map((line, i) => {
-      const t = line.trim().replace(/^[•\-*]\s*/, '');
-      const isBullet = /^[•\-*]/.test(line.trim());
-      if (!t) return null;
-      return isBullet ? (
-        <div key={i} style={{ display: 'flex', gap: '8px', marginBottom: '5px' }}>
-          <span style={{ color, fontWeight: 700, flexShrink: 0 }}>•</span>
-          <span style={{ fontSize: '14px', lineHeight: 1.6 }}>{t}</span>
-        </div>
-      ) : (
-        <p key={i} style={{ fontSize: '14px', lineHeight: 1.6, marginBottom: '4px' }}>{t}</p>
-      );
-    });
-
-  if (!hasAnySection) {
-    return (
-      <div style={{ color: '#374151' }}>
-        {renderLines(text, '#3B82F6')}
-      </div>
-    );
+  const found = sections.filter(s => text.includes(s.key));
+  
+  if (found.length === 0) {
+    return <div style={{ color: '#374151', fontSize: 14, lineHeight: 1.7 }}>{text}</div>;
   }
 
-  const result: React.ReactNode[] = [];
-  type SecPos = { sec: typeof SECTIONS[0]; start: number; end: number };
-  const positions: SecPos[] = [];
+  const positions = found.map(s => ({ sec: s, start: text.indexOf(s.key), end: -1 }))
+    .sort((a, b) => a.start - b.start);
+  positions.forEach((p, i) => { p.end = positions[i + 1]?.start ?? text.length; });
 
-  SECTIONS.forEach(sec => {
-    const start = text.indexOf(sec.key);
-    if (start === -1) return;
-    positions.push({ sec, start, end: -1 });
-  });
-
-  positions.sort((a, b) => a.start - b.start);
-  positions.forEach((p, i) => {
-    p.end = positions[i + 1]?.start ?? text.length;
-  });
-
-  if (positions.length > 0 && positions[0].start > 0) {
-    const before = text.slice(0, positions[0].start).trim();
-    if (before) {
-      result.push(<div key="pre" style={{ color: '#374151', marginBottom: 8 }}>{renderLines(before, '#3B82F6')}</div>);
-    }
-  }
-
-  positions.forEach(({ sec, start, end }) => {
-    const raw = text.slice(start, end);
-    const content = raw
-      .replace(sec.key + ':', '')
-      .replace(sec.key, '')
-      .trim();
-
-    result.push(
-      <div key={sec.key} style={{
-        background: sec.bg, border: `1px solid ${sec.border}`,
-        borderRadius: 12, padding: '12px 16px', marginBottom: 10
-      }}>
-        <div style={{ fontWeight: 700, fontSize: 13, color: sec.color, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
-          {sec.icon} {sec.key}
-        </div>
-        <div style={{ color: '#1F2937' }}>{renderLines(content, sec.color)}</div>
-      </div>
-    );
-  });
-
-  return <>{result}</>;
+  return (
+    <>
+      {positions.map(({ sec, start, end }) => {
+        const content = text.slice(start, end).replace(sec.key + ':', '').replace(sec.key, '').trim();
+        return (
+          <div key={sec.key} style={{ background: sec.bg, border: `1px solid ${sec.border}`, borderRadius: 10, padding: '10px 14px', marginBottom: 8 }}>
+            <div style={{ fontWeight: 700, fontSize: 12, color: sec.color, marginBottom: 6 }}>{sec.key}</div>
+            <div style={{ color: '#374151', fontSize: 13, lineHeight: 1.6 }}>{content}</div>
+          </div>
+        );
+      })}
+    </>
+  );
 }
 
-// ── Chat sessionlarni localStorage dan olish ──────────────────
-function loadSessions(): ChatSession[] {
-  if (typeof window === 'undefined') return [];
-  try {
-    const raw = localStorage.getItem('ai_chat_sessions');
-    if (!raw) {
-      // Migrate from old flat history format
-      const old = localStorage.getItem('ai_chat_history');
-      if (old) {
-        const msgs = JSON.parse(old);
-        if (Array.isArray(msgs) && msgs.length > 0) {
-          const session: ChatSession = {
-            id: 'session-' + Date.now(),
-            title: msgs[0]?.text?.slice(0, 50) || 'Suhbat',
-            preview: msgs[msgs.length - 1]?.text?.slice(0, 40) || '',
-            date: new Date(msgs[0]?.timestamp || Date.now()).toISOString(),
-            messageCount: msgs.length,
-            messages: msgs
-          };
-          return [session];
-        }
-      }
-      return [];
-    }
-    const parsed = JSON.parse(raw);
-    return parsed.map((s: any) => ({
-      ...s,
-      messages: s.messages.map((m: any) => ({ ...m, timestamp: new Date(m.timestamp) }))
-    }));
-  } catch { return []; }
-}
-
-// ── Asosiy komponent ───────────────────────────────────────────────────────
-export default function AIAssistant() {
+export default function AIAssistantPage() {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [sessions, setSessions] = useState<ChatSession[]>([]);
-  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+  const [savedChats, setSavedChats] = useState<SavedChat[]>([]);
+  const [currentChatId, setCurrentChatId] = useState<string | null>(null);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
@@ -148,508 +70,323 @@ export default function AIAssistant() {
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const recognitionRef = useRef<any>(null);
-  const sessionIdRef = useRef<string | null>(null);
 
-  // Load sessions on mount
+  // Load saved chats on mount
   useEffect(() => {
-    setSessions(loadSessions());
-  }, []);
-
-  // Speech qo'llab-quvvatlashini tekshirish
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
+    try {
+      const raw = localStorage.getItem('ai_chats');
+      if (raw) setSavedChats(JSON.parse(raw));
+    } catch {}
     const tts = 'speechSynthesis' in window;
     const stt = 'SpeechRecognition' in window || 'webkitSpeechRecognition' in window;
     setSpeechReady(tts || stt || true);
   }, []);
 
-  // Xabarlar o'zgarganda joriy sessionni saqlash
+  // Save to localStorage whenever messages change
   useEffect(() => {
-    if (typeof window === 'undefined' || messages.length === 0 || !sessionIdRef.current) return;
-    
-    const now = new Date();
-    const sessionTitle = messages.find(m => m.type === 'user')?.text?.slice(0, 50) || 'Suhbat';
-    const lastMsg = messages[messages.length - 1];
-    const session: ChatSession = {
-      id: sessionIdRef.current,
-      title: sessionTitle,
-      preview: lastMsg?.text?.slice(0, 40) || '',
-      date: now.toISOString(),
-      messageCount: messages.length,
+    if (messages.length === 0 || !currentChatId) return;
+    const title = messages.find(m => m.type === 'user')?.text?.slice(0, 40) || 'Suhbat';
+    const chat: SavedChat = {
+      id: currentChatId,
+      title,
+      date: new Date().toISOString(),
       messages: messages.slice(-50).map(m => ({
         ...m,
-        timestamp: m.timestamp instanceof Date ? m.timestamp : new Date(m.timestamp)
+        timestamp: m.timestamp instanceof Date ? m.timestamp.toISOString() : String(m.timestamp)
       }))
     };
-
-    setSessions(prev => {
-      const filtered = prev.filter(s => s.id !== session.id);
-      const updated = [session, ...filtered].slice(0, 20);
-      
-      try {
-        const toSave = updated.map(s => ({
-          ...s,
-          messages: s.messages.map(m => ({
-            ...m,
-            timestamp: m.timestamp instanceof Date ? m.timestamp.toISOString() : m.timestamp
-          }))
-        }));
-        localStorage.setItem('ai_chat_sessions', JSON.stringify(toSave));
-      } catch {}
-      
+    setSavedChats(prev => {
+      const filtered = prev.filter(c => c.id !== chat.id);
+      const updated = [chat, ...filtered].slice(0, 20);
+      try { localStorage.setItem('ai_chats', JSON.stringify(updated)); } catch {}
       return updated;
     });
-  }, [messages]);
+  }, [messages, currentChatId]);
 
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, loading]);
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages, loading]);
 
-  // Load a session's messages
-  const loadSession = (session: ChatSession) => {
-    setMessages(session.messages);
-    setCurrentSessionId(session.id);
-    sessionIdRef.current = session.id;
-    setHistoryOpen(false);
-  };
-
-  // Start new chat
-  const newChat = () => {
-    setMessages([]);
-    setCurrentSessionId(null);
-    sessionIdRef.current = null;
-    setHistoryOpen(false);
-  };
-
-  // Delete a session
-  const deleteSession = (e: React.MouseEvent, sessionId: string) => {
-    e.stopPropagation();
-    setSessions(prev => {
-      const filtered = prev.filter(s => s.id !== sessionId);
-      try {
-        localStorage.setItem('ai_chat_sessions', JSON.stringify(filtered));
-      } catch {}
-      return filtered;
-    });
-    if (currentSessionId === sessionId) {
-      setMessages([]);
-      setCurrentSessionId(null);
-      sessionIdRef.current = null;
-    }
-  };
-
-  // Clear all history
-  const clearAllHistory = () => {
-    if (confirm('Barcha suhbat tarixini o\'chirishni xohlaysizmi?')) {
-      setSessions([]);
-      setMessages([]);
-      setCurrentSessionId(null);
-      sessionIdRef.current = null;
-      try {
-        localStorage.removeItem('ai_chat_sessions');
-        localStorage.removeItem('ai_chat_history');
-      } catch {}
-    }
-  };
-
-  // ── API ga savol yuborish ─────────────────────────────────────
-  const send = useCallback(async (text?: string) => {
+  // ── Send message ──
+  const sendMessage = useCallback(async (text?: string) => {
     const msg = (text ?? input).trim();
     if (!msg || loading) return;
 
-    // Initialize session ID on first message
-    if (!sessionIdRef.current) {
-      sessionIdRef.current = 'session-' + Date.now();
-      setCurrentSessionId(sessionIdRef.current);
-    }
+    const chatId = currentChatId || 'chat-' + Date.now();
+    if (!currentChatId) setCurrentChatId(chatId);
 
-    setMessages(p => [...p, { id: Date.now().toString(), text: msg, type: 'user', timestamp: new Date() }]);
+    setMessages(p => [...p, { id: 'u-' + Date.now(), text: msg, type: 'user', timestamp: new Date() }]);
     setInput('');
     setLoading(true);
 
     try {
       const res = await fetch('/api/ai/legal-chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: msg })
       });
       const data = await res.json();
       const reply = data.response || data.text || 'Javob olinmadi';
-
-      setMessages(p => [...p, {
-        id: (Date.now() + 1).toString(),
-        text: reply, type: 'assistant', timestamp: new Date(),
-        suggestions: data.suggestions || []
-      }]);
-
+      setMessages(p => [...p, { id: 'a-' + Date.now(), text: reply, type: 'assistant', timestamp: new Date(), suggestions: data.suggestions || [] }]);
       if (autoSpeak && speechReady) speakText(reply);
     } catch {
-      setMessages(p => [...p, {
-        id: (Date.now() + 1).toString(),
-        text: 'Xatolik yuz berdi. Serverni tekshiring.',
-        type: 'assistant', timestamp: new Date()
-      }]);
-    } finally {
-      setLoading(false);
-    }
-  }, [input, loading, autoSpeak, speechReady]);
+      setMessages(p => [...p, { id: 'a-' + Date.now(), text: 'Xatolik yuz berdi', type: 'assistant', timestamp: new Date() }]);
+    } finally { setLoading(false); }
+  }, [input, loading, autoSpeak, speechReady, currentChatId]);
 
-  // ── TTS ──────────────────────────────────────────────────────
+  // ── TTS ──
   const speakText = (text: string) => {
     if (!('speechSynthesis' in window)) return;
     const clean = text.replace(/[•]\s*/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 400);
     if (!clean) return;
     window.speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(clean);
-    u.lang = 'ru-RU'; u.rate = 0.88; u.pitch = 1; u.volume = 1;
-    const rv = window.speechSynthesis.getVoices().find(v => v.lang.startsWith('ru'));
-    if (rv) u.voice = rv;
+    u.lang = 'ru-RU'; u.rate = 0.88;
     u.onstart = () => setIsSpeaking(true);
     u.onend = u.onerror = () => setIsSpeaking(false);
-    setIsSpeaking(true);
-    if (window.speechSynthesis.getVoices().length > 0) {
-      window.speechSynthesis.speak(u);
-    } else {
-      window.speechSynthesis.onvoiceschanged = () => { window.speechSynthesis.speak(u); };
-      setTimeout(() => window.speechSynthesis.speak(u), 300);
-    }
+    window.speechSynthesis.speak(u);
   };
-
   const stopSpeak = () => { window.speechSynthesis?.cancel(); setIsSpeaking(false); };
 
-  // ── STT ──────────────────────────────────────────────────────
+  // ── STT ──
   const startMic = () => {
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SR) { alert('Ovozli kiritish faqat Chrome yoki Edge da ishlaydi.'); return; }
-    const r = new SR();
-    recognitionRef.current = r;
+    const r = new SR(); recognitionRef.current = r;
     r.lang = 'ru-RU'; r.continuous = false; r.interimResults = true;
     setIsListening(true);
     let buf = '';
     r.onresult = (e: any) => {
       for (let i = e.resultIndex; i < e.results.length; i++) {
         const t = e.results[i][0].transcript;
-        if (e.results[i].isFinal) { buf = t; setInput(t); }
-        else setInput(buf + t);
+        if (e.results[i].isFinal) { buf = t; setInput(t); } else setInput(buf + t);
       }
     };
     r.onend = () => setIsListening(false);
-    r.onerror = (e: any) => {
-      setIsListening(false);
-      if (e.error !== 'no-speech') alert({ 'not-allowed': 'Mikrofon ruxsati yo\'q.', 'audio-capture': 'Mikrofon topilmadi.' }[e.error as string] || 'Xato: ' + e.error);
-    };
     r.start();
   };
-
   const stopMic = () => { recognitionRef.current?.stop(); setIsListening(false); };
 
-  const templates = [
-    { name: 'Shartnoma',         prompt: 'Tijorat shartnomasi namunasini yoz.' },
-    { name: "Da'vo arizasi",     prompt: "Sudga da'vo arizasi namunasini yoz." },
-    { name: 'Ogohlantirish xati', prompt: 'Rasmiy ogohlantirish xati yoz.' },
-    { name: 'Vakolatnoma',        prompt: 'Vakolatnoma hujjati yoz.' },
-  ];
-
-  // Format date for display
-  const formatSessionDate = (dateStr: string) => {
-    const d = new Date(dateStr);
-    const now = new Date();
-    const diff = now.getTime() - d.getTime();
-    if (diff < 86400000) return 'Bugun';
-    if (diff < 172800000) return 'Kecha';
-    return d.toLocaleDateString('uz-UZ', { day: 'numeric', month: 'short' });
+  // ── History management ──
+  const loadChat = (chat: SavedChat) => {
+    setMessages(chat.messages.map(m => ({ ...m, type: m.type as 'user' | 'assistant', timestamp: new Date(m.timestamp) })));
+    setCurrentChatId(chat.id);
+    setHistoryOpen(false);
+  };
+  const newChat = () => { setMessages([]); setCurrentChatId(null); setHistoryOpen(false); };
+  const deleteChat = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    setSavedChats(prev => { const u = prev.filter(c => c.id !== id); try { localStorage.setItem('ai_chats', JSON.stringify(u)); } catch {} return u; });
+    if (currentChatId === id) { setMessages([]); setCurrentChatId(null); }
+  };
+  const clearAll = () => {
+    if (confirm('Barcha suhbatlarni o\'chirish?')) { setSavedChats([]); setMessages([]); setCurrentChatId(null); try { localStorage.removeItem('ai_chats'); } catch {} }
   };
 
+  const formatDate = (d: string) => {
+    const date = new Date(d); const now = new Date(); const diff = now.getTime() - date.getTime();
+    if (diff < 86400000) return 'Bugun'; if (diff < 172800000) return 'Kecha';
+    return date.toLocaleDateString('uz-UZ', { day: 'numeric', month: 'short' });
+  };
+
+  const templates = [
+    { name: 'Shartnoma', prompt: 'Tijorat shartnomasi namunasini yoz.' },
+    { name: "Da'vo arizasi", prompt: "Sudga da'vo arizasi namunasini yoz." },
+    { name: 'Ogohlantirish xati', prompt: 'Rasmiy ogohlantirish xati yoz.' },
+    { name: 'Vakolatnoma', prompt: 'Vakolatnoma hujjati yoz.' },
+  ];
+
   return (
-    <div style={{ minHeight: '100vh', background: '#F8FAFF', display: 'flex' }}>
-      {/* ── Chap Sidebar — faqat desktop da ko'rinadi ── */}
-      <aside className="desktop-sidebar" style={{ width: 256, background: '#fff', borderRight: '1px solid #F1F5F9', minHeight: '100vh', padding: '24px 16px', flexShrink: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
-          <a href="/" style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#6B7280', textDecoration: 'none', fontSize: 14 }}>
+    <div style={{ height: '100vh', background: '#F8FAFF', display: 'flex' }}>
+      {/* ── Left Sidebar ── */}
+      <aside className="desktop-sidebar" style={{ width: 220, background: '#fff', borderRight: '1px solid #F1F5F9', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
+        <div style={{ padding: '16px 14px', borderBottom: '1px solid #F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <a href="/dashboard" style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#6B7280', textDecoration: 'none', fontSize: 13 }}>
             <ArrowLeft size={16} /> Orqaga
           </a>
-          <button onClick={newChat}
-            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 8, background: '#EFF6FF', color: '#2563EB', border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 600 }}>
-            <MessageCircle size={14} /> Yangi
+          <button onClick={newChat} style={{ padding: '5px 10px', background: '#EFF6FF', color: '#2563EB', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 12, fontWeight: 600 }}>
+            + Yangi
           </button>
         </div>
-
-        <p style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>Tezkor</p>
-        {[
-          { icon: <BookOpen size={14} />, label: 'Qonunni top',     prompt: 'Qaysi qonun yoki modda haqida bilmoqchisiz?' },
-          { icon: <Scale size={14} />,    label: 'Keys tahlili',    prompt: 'Huquqiy vaziyatingizni tushuntiring.' },
-          { icon: <FileText size={14} />, label: 'Hujjat yaratish', cb: () => setActiveMode('document') },
-        ].map((a, i) => (
-          <button key={i} onClick={() => { if (a.cb) a.cb(); else { setInput(a.prompt!); inputRef.current?.focus(); } }}
-            style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '9px 12px', borderRadius: 10, background: '#EFF6FF', color: '#1D4ED8', border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 500, marginBottom: 6 }}>
-            {a.icon} {a.label}
-          </button>
-        ))}
-
-        {activeMode === 'document' && (
-          <div style={{ marginTop: 16 }}>
-            <p style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>Namunalar</p>
-            {templates.map(t => (
-              <button key={t.name} onClick={() => { send(t.prompt); setActiveMode('chat'); }}
-                style={{ width: '100%', textAlign: 'left', padding: '9px 12px', borderRadius: 10, background: '#F9FAFB', border: '1px solid #E5E7EB', cursor: 'pointer', marginBottom: 6, fontSize: 13, color: '#374151' }}>
-                {t.name}
-              </button>
-            ))}
-          </div>
-        )}
-
+        <div style={{ padding: '12px 14px' }}>
+          <p style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', marginBottom: 6 }}>Tezkor</p>
+          {[
+            { icon: <BookOpen size={14} />, label: 'Qonunni top', prompt: 'Qaysi qonun yoki modda haqida?' },
+            { icon: <Scale size={14} />, label: 'Keys tahlili', prompt: 'Huquqiy vaziyatingizni yozing.' },
+            { icon: <FileText size={14} />, label: 'Hujjat yaratish', cb: () => setActiveMode('document') },
+          ].map((a, i) => (
+            <button key={i} onClick={() => { if (a.cb) a.cb(); else { setInput(a.prompt!); inputRef.current?.focus(); } }}
+              style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 6, padding: '7px 10px', borderRadius: 8, background: '#EFF6FF', color: '#1D4ED8', border: 'none', cursor: 'pointer', fontSize: 12, marginBottom: 4 }}>
+              {a.icon} {a.label}
+            </button>
+          ))}
+          {activeMode === 'document' && (
+            <div style={{ marginTop: 12 }}>
+              <p style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', marginBottom: 6 }}>Namunalar</p>
+              {templates.map(t => (
+                <button key={t.name} onClick={() => { sendMessage(t.prompt); setActiveMode('chat'); }}
+                  style={{ width: '100%', textAlign: 'left', padding: '7px 10px', borderRadius: 8, background: '#F9FAFB', border: '1px solid #E5E7EB', cursor: 'pointer', marginBottom: 4, fontSize: 12, color: '#374151' }}>
+                  {t.name}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
         {speechReady && (
-          <div style={{ marginTop: 20, padding: 12, background: '#F0FDF4', borderRadius: 12, border: '1px solid #BBF7D0' }}>
-            <p style={{ fontSize: 12, fontWeight: 600, color: '#15803D', margin: '0 0 8px', display: 'flex', alignItems: 'center', gap: 6 }}><Volume2 size={14} /> Ovoz</p>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#374151', cursor: 'pointer' }}>
+          <div style={{ marginTop: 'auto', padding: '12px 14px', borderTop: '1px solid #F1F5F9' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#374151', cursor: 'pointer' }}>
               <input type="checkbox" checked={autoSpeak} onChange={e => setAutoSpeak(e.target.checked)} />
-              AI javobini ovozda eshit
+              <Volume2 size={14} /> Ovozli javob
             </label>
           </div>
         )}
       </aside>
 
-      {/* ── Chat maydon ── */}
+      {/* ── Main chat area ── */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         {/* Header */}
-        <header style={{ background: '#fff', borderBottom: '1px solid #F1F5F9', padding: '14px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ width: 40, height: 40, background: '#2563EB', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <MessageCircle size={18} color="#fff" />
+        <header style={{ background: '#fff', borderBottom: '1px solid #F1F5F9', padding: '12px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ width: 34, height: 34, background: '#2563EB', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <MessageCircle size={16} color="#fff" />
             </div>
             <div>
-              <h1 style={{ fontSize: 17, fontWeight: 700, color: '#111827', margin: 0 }}>AI Huquqiy Yordamchi</h1>
-              <p style={{ fontSize: 12, color: '#6B7280', margin: 0 }}>Groq · llama-3.1-8b-instant</p>
+              <h1 style={{ fontSize: 15, fontWeight: 700, color: '#111827', margin: 0 }}>AI Huquqiy Yordamchi</h1>
+              <p style={{ fontSize: 11, color: '#6B7280', margin: 0 }}>Groq · llama-3.1-8b-instant</p>
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            {/* History toggle button */}
             <button onClick={() => setHistoryOpen(!historyOpen)}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 10, background: historyOpen ? '#EFF6FF' : '#F3F4F6', color: historyOpen ? '#2563EB' : '#4B5563', border: historyOpen ? '1px solid #BFDBFE' : '1px solid #E5E7EB', cursor: 'pointer', fontSize: 13, fontWeight: 500, transition: 'all 0.15s' }}>
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 500, background: historyOpen ? '#EFF6FF' : '#F3F4F6', color: historyOpen ? '#2563EB' : '#4B5563', border: historyOpen ? '1px solid #BFDBFE' : '1px solid #E5E7EB' }}>
               <History size={16} />
-              <span className="desktop-only-text" style={{ display: 'none' }}>Tarix</span>
-              {sessions.length > 0 && (
+              <span>Tarix</span>
+              {savedChats.length > 0 && (
                 <span style={{ background: '#2563EB', color: '#fff', borderRadius: '50%', width: 18, height: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700 }}>
-                  {sessions.length}
+                  {savedChats.length}
                 </span>
               )}
             </button>
-            {isSpeaking && (
-              <button onClick={stopSpeak} style={{ padding: '5px 12px', background: '#FEF3C7', border: '1px solid #FCD34D', borderRadius: 20, fontSize: 12, color: '#92400E', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
-                <Volume2 size={12} /> To'xtat
-              </button>
-            )}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '5px 12px', background: '#DCFCE7', borderRadius: 20 }}>
-              <div style={{ width: 7, height: 7, background: '#22C55E', borderRadius: '50%' }} />
-              <span style={{ fontSize: 12, color: '#15803D', fontWeight: 600 }}>Online</span>
+            {isSpeaking && (<button onClick={stopSpeak} style={{ padding: '5px 10px', background: '#FEF3C7', border: '1px solid #FCD34D', borderRadius: 16, fontSize: 11, color: '#92400E', cursor: 'pointer' }}><Volume2 size={12} /> To'xtat</button>)}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', background: '#DCFCE7', borderRadius: 16 }}>
+              <div style={{ width: 6, height: 6, background: '#22C55E', borderRadius: '50%' }} />
+              <span style={{ fontSize: 11, color: '#15803D', fontWeight: 600 }}>Online</span>
             </div>
           </div>
         </header>
 
+        {/* Messages + History */}
         <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
-          {/* Messages area */}
-          <div style={{ flex: 1, overflowY: 'auto', padding: '28px 32px' }}>
-            <div style={{ maxWidth: 820, margin: '0 auto' }}>
-              {/* Bo'sh holat */}
-              {messages.length === 0 && (
-                <div style={{ textAlign: 'center', paddingTop: 48 }}>
-                  <div style={{ width: 64, height: 64, background: '#DBEAFE', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-                    <HelpCircle size={28} color="#2563EB" />
+          <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px' }}>
+            <div style={{ maxWidth: 720, margin: '0 auto' }}>
+              {messages.length === 0 ? (
+                <div style={{ textAlign: 'center', paddingTop: 60 }}>
+                  <div style={{ width: 56, height: 56, background: '#DBEAFE', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+                    <HelpCircle size={24} color="#2563EB" />
                   </div>
-                  <h2 style={{ fontSize: 22, fontWeight: 700, color: '#111827', margin: '0 0 8px' }}>Qanday yordam bera olaman?</h2>
-                  <p style={{ fontSize: 14, color: '#6B7280', margin: '0 0 32px' }}>Huquqiy savol bering, hujjat yarataman, keys tahlil qilaman</p>
-                  {sessions.length > 0 && (
-                    <div style={{ marginBottom: 32 }}>
-                      <button onClick={() => setHistoryOpen(true)}
-                        style={{ padding: '8px 20px', background: '#EFF6FF', color: '#2563EB', borderRadius: 10, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
-                        📋 {sessions.length} ta suhbat tarixi bor
-                      </button>
-                    </div>
+                  <h2 style={{ fontSize: 20, fontWeight: 700, color: '#111827', margin: '0 0 6px' }}>Qanday yordam bera olaman?</h2>
+                  <p style={{ fontSize: 14, color: '#6B7280', margin: '0 0 24px' }}>Huquqiy savol bering, hujjat yarataman, keys tahlil qilaman</p>
+                  {savedChats.length > 0 && (
+                    <button onClick={() => setHistoryOpen(true)} style={{ padding: '10px 24px', background: '#EFF6FF', color: '#2563EB', borderRadius: 10, border: 'none', cursor: 'pointer', fontSize: 14, fontWeight: 600 }}>
+                      📋 {savedChats.length} ta suhbat tarixi
+                    </button>
                   )}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12, maxWidth: 600, margin: '0 auto' }}>
-                    {[
-                      { icon: <BookOpen size={20} color="#2563EB" />, title: 'Qonun tahlili', bg: '#DBEAFE' },
-                      { icon: <Scale size={20} color="#16A34A" />,    title: 'Keys yechimi',  bg: '#DCFCE7' },
-                      { icon: <FileText size={20} color="#2563EB" />, title: 'Hujjatlar',    bg: '#DBEAFE' },
-                    ].map((c, i) => (
-                      <div key={i} style={{ background: '#fff', borderRadius: 14, padding: 16, boxShadow: '0 1px 4px rgba(0,0,0,0.07)' }}>
-                        <div style={{ width: 40, height: 40, background: c.bg, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 10 }}>{c.icon}</div>
-                        <p style={{ fontWeight: 600, fontSize: 14, color: '#111827', margin: 0 }}>{c.title}</p>
-                      </div>
-                    ))}
-                  </div>
                 </div>
-              )}
-
-              {/* Xabarlar */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                {messages.map(m => (
-                  <div key={m.id} style={{ display: 'flex', justifyContent: m.type === 'user' ? 'flex-end' : 'flex-start' }}>
-                    {m.type === 'user' ? (
-                      <div style={{ background: '#2563EB', color: '#fff', padding: '11px 18px', borderRadius: '18px 18px 4px 18px', maxWidth: '72%', fontSize: 14, lineHeight: 1.6 }}>
-                        {m.text}
-                      </div>
-                    ) : (
-                      <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: '4px 18px 18px 18px', padding: '16px 18px', maxWidth: '88%', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
-                        <AIResponse text={m.text} />
-
-                        <div style={{ display: 'flex', gap: 8, marginTop: 10, paddingTop: 10, borderTop: '1px solid #F3F4F6', flexWrap: 'wrap' }}>
-                          <button onClick={() => navigator.clipboard.writeText(m.text)}
-                            style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '3px 10px', background: '#F9FAFB', border: '1px solid #E5E7EB', borderRadius: 8, fontSize: 12, color: '#6B7280', cursor: 'pointer' }}>
-                            <Copy size={12} /> Nusxa
-                          </button>
-                          {speechReady && (
-                            <button onClick={() => speakText(m.text)}
-                              style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '3px 10px', background: '#F9FAFB', border: '1px solid #E5E7EB', borderRadius: 8, fontSize: 12, color: '#6B7280', cursor: 'pointer' }}>
-                              <Volume2 size={12} /> Eshit
-                            </button>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {messages.map(m => (
+                    <div key={m.id} style={{ display: 'flex', justifyContent: m.type === 'user' ? 'flex-end' : 'flex-start' }}>
+                      {m.type === 'user' ? (
+                        <div style={{ background: '#2563EB', color: '#fff', padding: '10px 16px', borderRadius: '16px 16px 4px 16px', maxWidth: '70%', fontSize: 14, lineHeight: 1.5 }}>{m.text}</div>
+                      ) : (
+                        <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: '4px 16px 16px 16px', padding: '14px 16px', maxWidth: '85%', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+                          <AIResponse text={m.text} />
+                          <div style={{ display: 'flex', gap: 6, marginTop: 8, paddingTop: 8, borderTop: '1px solid #F3F4F6', flexWrap: 'wrap' }}>
+                            <button onClick={() => navigator.clipboard.writeText(m.text)} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '3px 10px', background: '#F9FAFB', border: '1px solid #E5E7EB', borderRadius: 6, fontSize: 11, color: '#6B7280', cursor: 'pointer' }}><Copy size={12} /> Nusxa</button>
+                            {speechReady && <button onClick={() => speakText(m.text)} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '3px 10px', background: '#F9FAFB', border: '1px solid #E5E7EB', borderRadius: 6, fontSize: 11, color: '#6B7280', cursor: 'pointer' }}><Volume2 size={12} /> Eshit</button>}
+                          </div>
+                          {m.suggestions && m.suggestions.length > 0 && (
+                            <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                              <span style={{ fontSize: 11, color: '#9CA3AF', display: 'flex', alignItems: 'center', gap: 2 }}><Lightbulb size={11} /> Keyingi:</span>
+                              {m.suggestions.map((s, i) => (
+                                <button key={i} onClick={() => sendMessage(s)} style={{ padding: '3px 10px', background: '#FEF9C3', border: '1px solid #FDE68A', borderRadius: 16, fontSize: 11, color: '#92400E', cursor: 'pointer' }}>{s}</button>
+                              ))}
+                            </div>
                           )}
                         </div>
-
-                        {m.suggestions && m.suggestions.length > 0 && (
-                          <div style={{ marginTop: 10, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                            <span style={{ fontSize: 11, color: '#9CA3AF', display: 'flex', alignItems: 'center', gap: 3 }}>
-                              <Lightbulb size={11} /> Keyingi:
-                            </span>
-                            {m.suggestions.map((s, i) => (
-                              <button key={i} onClick={() => send(s)}
-                                style={{ padding: '3px 10px', background: '#FEF9C3', border: '1px solid #FDE68A', borderRadius: 20, fontSize: 11, color: '#92400E', cursor: 'pointer' }}>
-                                {s}
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                ))}
-
-                {loading && (
-                  <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-                    <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: '4px 18px 18px 18px', padding: '14px 18px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
-                      <div style={{ display: 'flex', gap: 5 }}>
-                        {[0, 160, 320].map(d => (
-                          <div key={d} style={{ width: 8, height: 8, background: '#93C5FD', borderRadius: '50%', animation: `bob 1s ${d}ms infinite` }} />
-                        ))}
+                      )}
+                    </div>
+                  ))}
+                  {loading && (
+                    <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+                      <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 12, padding: '12px 16px' }}>
+                        <div style={{ display: 'flex', gap: 4 }}>{[0, 200, 400].map(d => <div key={d} style={{ width: 7, height: 7, background: '#93C5FD', borderRadius: '50%', animation: `bounce 1s ${d}ms infinite` }} />)}</div>
                       </div>
                     </div>
-                  </div>
-                )}
-                <div ref={bottomRef} />
-              </div>
+                  )}
+                  <div ref={bottomRef} />
+                </div>
+              )}
             </div>
           </div>
 
-          {/* ── O'ng tomondagi chat tarixi paneli ── */}
+          {/* ── History panel ── */}
           {historyOpen && (
-            <div style={{
-              width: 300, background: '#fff', borderLeft: '1px solid #F1F5F9',
-              display: 'flex', flexDirection: 'column', flexShrink: 0,
-              animation: 'slideIn 0.2s ease-out'
-            }}>
-              {/* Panel header */}
-              <div style={{
-                padding: '16px 16px 12px', borderBottom: '1px solid #F1F5F9',
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <History size={18} color="#374151" />
-                  <span style={{ fontSize: 15, fontWeight: 700, color: '#111827' }}>Suhbat tarixi</span>
-                </div>
-                <button onClick={() => setHistoryOpen(false)}
-                  style={{ padding: 4, background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <X size={18} />
-                </button>
+            <div style={{ width: 280, background: '#fff', borderLeft: '1px solid #E5E7EB', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
+              <div style={{ padding: '14px 16px', borderBottom: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>Suhbat tarixi</span>
+                <button onClick={() => setHistoryOpen(false)} style={{ padding: 4, background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF' }}><X size={18} /></button>
               </div>
-
-              {/* Clear all button */}
-              {sessions.length > 0 && (
-                <div style={{ padding: '8px 16px', borderBottom: '1px solid #F1F5F9' }}>
-                  <button onClick={clearAllHistory}
-                    style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', background: '#FEF2F2', color: '#DC2626', border: '1px solid #FECACA', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 500, width: '100%', justifyContent: 'center' }}>
-                    <Trash2 size={14} /> Barchasini o'chirish
+              {savedChats.length > 0 && (
+                <div style={{ padding: '8px 12px', borderBottom: '1px solid #E5E7EB' }}>
+                  <button onClick={clearAll} style={{ width: '100%', padding: '6px 12px', background: '#FEF2F2', color: '#DC2626', border: '1px solid #FECACA', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 500 }}>
+                    <Trash2 size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} /> Barchasini o'chirish
                   </button>
                 </div>
               )}
-
-              {/* Sessions list */}
               <div style={{ flex: 1, overflowY: 'auto', padding: '8px 12px' }}>
-                {sessions.length === 0 ? (
-                  <div style={{ textAlign: 'center', padding: 32, color: '#9CA3AF' }}>
-                    <Clock size={32} style={{ opacity: 0.4, marginBottom: 8 }} />
-                    <p style={{ fontSize: 13, margin: 0 }}>Hali suhbatlar yo'q</p>
+                {savedChats.length === 0 ? (
+                  <div style={{ textAlign: 'center', padding: 40, color: '#9CA3AF' }}>
+                    <Clock size={28} style={{ opacity: 0.3, marginBottom: 8 }} />
+                    <p style={{ fontSize: 13, margin: 0 }}>Suhbatlar yo'q</p>
                   </div>
                 ) : (
-                  sessions.map(session => {
-                    const isActive = session.id === currentSessionId;
-                    return (
-                      <div key={session.id} onClick={() => loadSession(session)} className="session-item"
-                        style={{
-                          padding: '10px 12px', borderRadius: 10, cursor: 'pointer',
-                          background: isActive ? '#EFF6FF' : 'transparent',
-                          border: isActive ? '1px solid #BFDBFE' : '1px solid transparent',
-                          marginBottom: 4, transition: 'all 0.15s'
-                        }}
-                        onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = '#F9FAFB'; }}
-                        onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
-                          <span style={{ fontSize: 13, fontWeight: 600, color: '#111827', lineHeight: 1.3, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            {session.title}
-                          </span>
-                          <button onClick={(e) => deleteSession(e, session.id)}
-                            style={{ padding: 2, background: 'none', border: 'none', cursor: 'pointer', color: '#D1D5DB', borderRadius: 4, flexShrink: 0, marginLeft: 8, opacity: 0 }}
-                            className="delete-btn">
-                            <Trash2 size={14} />
-                          </button>
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span style={{ fontSize: 11, color: '#9CA3AF' }}>
-                            {session.messageCount} ta xabar · {formatSessionDate(session.date)}
-                          </span>
-                          <ChevronRight size={14} color={isActive ? '#2563EB' : '#D1D5DB'} />
-                        </div>
-
+                  savedChats.map(chat => (
+                    <div key={chat.id} onClick={() => loadChat(chat)}
+                      style={{ padding: '10px 12px', borderRadius: 8, cursor: 'pointer', marginBottom: 4, background: chat.id === currentChatId ? '#EFF6FF' : 'transparent', border: chat.id === currentChatId ? '1px solid #BFDBFE' : '1px solid transparent' }}>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: '#111827', marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{chat.title}</div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: 11, color: '#9CA3AF' }}>{chat.messages.length} ta · {formatDate(chat.date)}</span>
+                        <button onClick={(e) => deleteChat(e, chat.id)} style={{ padding: 2, background: 'none', border: 'none', cursor: 'pointer', color: '#D1D5DB', fontSize: 12 }}>✕</button>
                       </div>
-                    );
-                  })
+                    </div>
+                  ))
                 )}
               </div>
             </div>
           )}
         </div>
 
-        {/* Kiritish maydoni */}
-        <div style={{ background: '#fff', borderTop: '1px solid #F1F5F9', padding: '14px 32px' }}>
-          <div style={{ maxWidth: 820, margin: '0 auto' }}>
+        {/* ── Input ── */}
+        <div style={{ background: '#fff', borderTop: '1px solid #F1F5F9', padding: '12px 24px', flexShrink: 0 }}>
+          <div style={{ maxWidth: 720, margin: '0 auto' }}>
             {isListening && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 14px', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 10, marginBottom: 10 }}>
-                <div style={{ width: 8, height: 8, background: '#EF4444', borderRadius: '50%', animation: 'pulse 1s infinite' }} />
-                <span style={{ fontSize: 13, color: '#DC2626' }}>Tinglanmoqda... gapiring</span>
-                <button onClick={stopMic} style={{ marginLeft: 'auto', padding: '3px 10px', background: '#EF4444', color: '#fff', border: 'none', borderRadius: 6, fontSize: 12, cursor: 'pointer' }}>To'xtat</button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 12px', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 8, marginBottom: 8 }}>
+                <div style={{ width: 6, height: 6, background: '#EF4444', borderRadius: '50%', animation: 'pulse 1s infinite' }} />
+                <span style={{ fontSize: 12, color: '#DC2626' }}>Tinglanmoqda...</span>
+                <button onClick={stopMic} style={{ marginLeft: 'auto', padding: '2px 8px', background: '#EF4444', color: '#fff', border: 'none', borderRadius: 4, fontSize: 11, cursor: 'pointer' }}>To'xtat</button>
               </div>
             )}
-            <div style={{ display: 'flex', gap: 10 }}>
+            <div style={{ display: 'flex', gap: 8 }}>
               <textarea ref={inputRef} value={input} onChange={e => setInput(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
-                disabled={loading}
-                placeholder="Huquqiy savol yozing... (Enter = yuborish, Shift+Enter = yangi qator)"
-                rows={2}
-                style={{ flex: 1, padding: '12px 16px', border: '1.5px solid #E5E7EB', borderRadius: 14, resize: 'none', fontSize: 14, lineHeight: 1.5, outline: 'none', fontFamily: 'inherit', background: loading ? '#F9FAFB' : '#fff', transition: 'border-color 0.15s' }}
-                onFocus={e => (e.target.style.borderColor = '#3B82F6')}
-                onBlur={e => (e.target.style.borderColor = '#E5E7EB')}
-              />
+                onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
+                disabled={loading} placeholder="Huquqiy savol yozing... (Enter = yuborish)"
+                rows={1} style={{ flex: 1, padding: '10px 14px', border: '1.5px solid #E5E7EB', borderRadius: 10, resize: 'none', fontSize: 14, outline: 'none', fontFamily: 'inherit' }} />
               {speechReady && (
                 <button onClick={isListening ? stopMic : startMic}
-                  style={{ padding: '0 16px', borderRadius: 14, border: 'none', cursor: 'pointer', background: isListening ? '#EF4444' : '#F3F4F6', color: isListening ? '#fff' : '#4B5563', transition: 'all 0.15s' }}
-                  title={isListening ? "To'xtatish" : 'Ovozli kiritish'}>
+                  style={{ padding: '0 14px', borderRadius: 10, border: 'none', cursor: 'pointer', background: isListening ? '#EF4444' : '#F3F4F6', color: isListening ? '#fff' : '#4B5563' }}>
                   <Mic size={18} />
                 </button>
               )}
-              <button onClick={() => send()} disabled={loading || !input.trim()}
-                style={{ padding: '0 20px', borderRadius: 14, border: 'none', cursor: loading || !input.trim() ? 'not-allowed' : 'pointer', background: loading || !input.trim() ? '#93C5FD' : '#2563EB', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}>
-                {loading
-                  ? <div style={{ width: 18, height: 18, border: '2px solid rgba(255,255,255,0.3)', borderTop: '2px solid #fff', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-                  : <Send size={18} />}
+              <button onClick={() => sendMessage()} disabled={loading || !input.trim()}
+                style={{ padding: '0 20px', borderRadius: 10, border: 'none', cursor: loading || !input.trim() ? 'not-allowed' : 'pointer', background: loading || !input.trim() ? '#93C5FD' : '#2563EB', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {loading ? <div style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.3)', borderTop: '2px solid #fff', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} /> : <Send size={18} />}
               </button>
             </div>
           </div>
@@ -657,13 +394,10 @@ export default function AIAssistant() {
       </div>
 
       <style>{`
-        @keyframes bob  { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
-        @keyframes spin  { to{transform:rotate(360deg)} }
+        @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
+        @keyframes spin { to{transform:rotate(360deg)} }
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
-        @keyframes slideIn { from { width: 0; opacity: 0; } to { width: 300px; opacity: 1; } }
-        @media (min-width: 769px) { .desktop-only-text { display: inline !important; } }
-        .session-item:hover .delete-btn { opacity: 0.5; }
-        .session-item:hover .delete-btn:hover { opacity: 1; color: #DC2626; }
+        @media (max-width: 768px) { .desktop-sidebar { display: none !important; } }
       `}</style>
     </div>
   );
