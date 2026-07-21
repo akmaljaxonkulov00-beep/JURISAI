@@ -19,6 +19,8 @@ import {
   Pie, 
   Cell 
 } from 'recharts';
+import { Shield, Settings, CheckCircle, AlertTriangle } from 'lucide-react';
+import { makeCurrentUserAdmin } from '@/services/firebase-auth';
 
 interface User {
   id: string;
@@ -140,7 +142,7 @@ export default function AdminDashboard() {
   const [userAnalytics, setUserAnalytics] = useState<UserAnalytics | null>(null);
   const [aiUsageAnalytics, setAIUsageAnalytics] = useState<AIUsageAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'revenue' | 'users' | 'ai-usage'>('revenue');
+  const [activeTab, setActiveTab] = useState<'revenue' | 'users' | 'ai-usage' | 'settings'>('revenue');
 
   useEffect(() => {
     if (!user) {
@@ -346,10 +348,11 @@ export default function AdminDashboard() {
                 AI Faolligi
               </Button>
               <Button
-                variant="outline"
-                onClick={() => window.location.href = '/admin/users'}
+                variant={activeTab === 'settings' ? 'default' : 'outline'}
+                onClick={() => setActiveTab('settings')}
               >
-                Boshqaruv
+                <Settings className="w-4 h-4 mr-1" />
+                Sozlamalar
               </Button>
             </div>
           </div>
@@ -536,6 +539,110 @@ export default function AdminDashboard() {
                       </div>
                     </div>
                   ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {activeTab === 'settings' && (
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="w-5 h-5 text-blue-600" />
+                  Admin sozlamalari
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="p-4 bg-blue-50 rounded-xl border border-blue-100">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Shield className="w-8 h-8 text-blue-600" />
+                        <div>
+                          <p className="font-medium text-gray-800">Admin huquqlari</p>
+                          <p className="text-sm text-gray-600">
+                            Joriy holat: {user?.email ? (
+                              <span className="font-semibold">{user.email}</span>
+                            ) : 'Tizimga kirmagan'}
+                          </p>
+                          {isAdmin ? (
+                            <p className="text-sm text-green-600 mt-1">✅ Siz admin sifatida tizimdasiz</p>
+                          ) : (
+                            <p className="text-sm text-amber-600 mt-1">Siz oddiy foydalanuvchi sifatida tizimdasiz</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {!isAdmin && (
+                    <div className="p-4 bg-amber-50 rounded-xl border border-amber-200">
+                      <div className="flex items-start gap-3">
+                        <AlertTriangle className="w-5 h-5 text-amber-600 mt-0.5" />
+                        <div>
+                          <p className="font-medium text-amber-800">Admin bo\'lish</p>
+                          <p className="text-sm text-amber-700 mt-1">
+                            Admin bo\'lish uchun quyidagi tugmani bosing. Bu sizning emailingizni admin sifatida belgilaydi.
+                          </p>
+                          <button
+                            onClick={() => {
+                              if (user?.email) {
+                                const adminUser = makeCurrentUserAdmin(user as any);
+                                alert('Admin huquqi berildi! O\'zgarishlar kuchga kirishi uchun sahifa yangilanadi.');
+                                window.location.reload();
+                              } else {
+                                alert('Admin bo\'lish uchun avval tizimga kiring.');
+                              }
+                            }}
+                            className="mt-3 px-6 py-2 bg-amber-600 text-white rounded-xl hover:bg-amber-700 transition-colors font-medium text-sm"
+                          >
+                            Admin bo\'lish
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {isAdmin && (
+                    <div className="p-4 bg-green-50 rounded-xl border border-green-200">
+                      <div className="flex items-start gap-3">
+                        <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
+                        <div>
+                          <p className="font-medium text-green-800">Siz admin huquqiga egasiz</p>
+                          <p className="text-sm text-green-700 mt-1">
+                            Barcha ma\'lumotlarni ko\'rish va boshqarish imkoniyatiga egasiz.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Ma'lumotlarni tozalash */}
+                  <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Settings className="w-5 h-5 text-gray-600" />
+                        <div>
+                          <p className="font-medium text-gray-800">Ma\'lumotlarni boshqarish</p>
+                          <p className="text-sm text-gray-600">LocalStorage ma\'lumotlarini yangilash</p>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => {
+                            localStorage.removeItem('registered_users');
+                            alert('Foydalanuvchi ma\'lumotlari tozalandi. Yangilash uchun sahifani qayta yuklang.');
+                            window.location.reload();
+                          }}
+                          className="px-3 py-1.5 text-sm bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                        >
+                          Ma\'lumotlarni tozalash
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>

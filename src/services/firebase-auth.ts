@@ -36,10 +36,45 @@ function mapFirebaseUser(firebaseUser: FirebaseUser, additionalData?: Partial<Au
   };
 }
 
+// Admin email - kim admin bo'lishi mumkin
+const ADMIN_SETTING_KEY = 'jurisai_admin_email';
+
+// Check if user should be admin
+function checkIsAdmin(user: AuthUser): boolean {
+  if (user.role === 'ADMIN') return true;
+  try {
+    const adminEmail = localStorage.getItem(ADMIN_SETTING_KEY);
+    if (adminEmail && user.email === adminEmail) {
+      return true;
+    }
+  } catch {}
+  return false;
+}
+
+// Set admin email (call this from admin panel)
+export function setAdminEmail(email: string) {
+  localStorage.setItem(ADMIN_SETTING_KEY, email);
+}
+
+export function getAdminEmail(): string | null {
+  return localStorage.getItem(ADMIN_SETTING_KEY);
+}
+
+// Give current user admin role
+export function makeCurrentUserAdmin(user: AuthUser): AuthUser {
+  const adminUser = { ...user, role: 'ADMIN' as const };
+  saveUserToLocal(adminUser);
+  setAdminEmail(user.email);
+  return adminUser;
+}
+
 // Save user to localStorage for cross-component access
 function saveUserToLocal(user: AuthUser) {
+  // Check if this user should be admin
+  const effectiveRole = checkIsAdmin(user) ? 'ADMIN' : user.role;
+  const userWithRole = { ...user, role: effectiveRole };
   const userWithMeta = {
-    ...user,
+    ...userWithRole,
     created_at: new Date().toISOString(),
     last_login: new Date().toISOString(),
   };
@@ -62,6 +97,7 @@ function saveUserToLocal(user: AuthUser) {
   } catch (e) {
     // ignore localStorage errors
   }
+  return userWithMeta;
 }
 
 function clearUserFromLocal() {
@@ -218,8 +254,9 @@ export function onAuthChange(callback: (user: AuthUser | null) => void): () => v
   const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
     if (firebaseUser) {
       const user = mapFirebaseUser(firebaseUser);
-      saveUserToLocal(user);
-      callback(user);
+      // Save to localStorage and use the returned user (which has correct admin role)
+      const savedUser = saveUserToLocal(user);
+      callback(savedUser);
     } else {
       clearUserFromLocal();
       callback(null);
