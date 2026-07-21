@@ -94,7 +94,7 @@ export default function AchievementSystem() {
           id: '1',
           title: 'Birinchi Qadam',
           description: 'Platformaga ro\'yxatdan o\'ting',
-          icon: '👣',
+          icon: '◈',
           rarity: 'common',
           category: 'milestone',
           points: 10,
@@ -109,7 +109,7 @@ export default function AchievementSystem() {
           id: '2',
           title: 'IRAC Master',
           description: '10 ta IRAC tahlilini 90+ ball bilan bajaring',
-          icon: '⚖️',
+          icon: '═',
           rarity: 'rare',
           category: 'practice',
           points: 50,
@@ -124,7 +124,7 @@ export default function AchievementSystem() {
           id: '3',
           title: 'Hujjat Ustasi',
           description: '50 ta huquqiy hujjat yarating',
-          icon: '📄',
+          icon: '▢',
           rarity: 'epic',
           category: 'practice',
           points: 100,
@@ -139,7 +139,7 @@ export default function AchievementSystem() {
           id: '4',
           title: 'AI Power User',
           description: '500 ta AI so\'rov yuboring',
-          icon: '🤖',
+          icon: '⚙',
           rarity: 'legendary',
           category: 'learning',
           points: 200,
@@ -168,7 +168,7 @@ export default function AchievementSystem() {
           id: '6',
           title: 'Sud Simulyatori',
           description: '25 ta sud sessiyasini muvaffaqiyatli yakunlang',
-          icon: '⚖️',
+          icon: '═',
           rarity: 'rare',
           category: 'practice',
           points: 60,
@@ -182,7 +182,7 @@ export default function AchievementSystem() {
           id: '7',
           title: 'Qonun Bilimdoni',
           description: 'Barcha asosiy qonunlarni o\'qing',
-          icon: '📚',
+          icon: '▣▣',
           rarity: 'rare',
           category: 'learning',
           points: 40,
@@ -196,7 +196,7 @@ export default function AchievementSystem() {
           id: '8',
           title: 'Jamoat Lideri',
           description: '100 ta foydalanuvchiga yordam bering',
-          icon: '👥',
+          icon: '◉◉',
           rarity: 'epic',
           category: 'social',
           points: 80,
@@ -551,7 +551,7 @@ export default function AchievementSystem() {
                       
                       {achievement.rewards.badge && (
                         <div className="text-xs text-purple-600">
-                          🏅 {achievement.rewards.badge}
+                          ★ {achievement.rewards.badge}
                         </div>
                       )}
                     </div>

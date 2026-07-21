@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { ArrowLeft, Gavel, Scale, Users, Mic, Send, Clock, AlertTriangle, FileText, MessageCircle, Volume2 } from 'lucide-react';
+import { ArrowLeft, Gavel, Scale, Users, Mic, Send, Clock, AlertTriangle, FileText, MessageCircle, Volume2, VolumeX, Square, Star, CheckCircle, Target } from 'lucide-react';
 
 interface Msg {
   id: string; speaker: string;
@@ -63,7 +63,7 @@ export default function VirtualCourt() {
   // ── TTS ──────────────────────────────────────────────────
   const speak = useCallback((text: string) => {
     if (!('speechSynthesis' in window)) return;
-    const clean = text.replace(/[📋📖⚖️💡🏛️•]\s*/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 400);
+    const clean = text.replace(/[•]\s*/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 400);
     if (!clean) return;
     window.speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(clean);
@@ -120,11 +120,11 @@ export default function VirtualCourt() {
       });
       const data = await res.json();
       const txt = data.transcript?.[0]?.content || data.ai_response || 'Sud majlisi ochildi. So\'zingiz.';
-      addMsg(txt, 'judge', 'Sudya ⚖️', 'ruling');
+      addMsg(txt, 'judge', 'Sudya', 'ruling');
       if (autoSpeak) speak(txt);
     } catch {
       const txt = 'Sud majlisi ochildi. So\'zingizni eshitishga tayyormiz.';
-      addMsg(txt, 'judge', 'Sudya ⚖️', 'ruling');
+      addMsg(txt, 'judge', 'Sudya', 'ruling');
       if (autoSpeak) speak(txt);
     } finally { setLoading(false); }
   };
@@ -144,10 +144,10 @@ export default function VirtualCourt() {
       });
       const data = await res.json();
       const reply = data.transcript?.content || data.ai_response || 'Sud javobini belgilaydi.';
-      addMsg(reply, 'judge', 'Sudya ⚖️', 'ruling');
+      addMsg(reply, 'judge', 'Sudya', 'ruling');
       if (autoSpeak) speak(reply);
     } catch {
-      addMsg('Texnik nosozlik. Qaytadan urinib ko\'ring.', 'judge', 'Sudya ⚖️', 'ruling');
+      addMsg('Texnik nosozlik. Qaytadan urinib ko\'ring.', 'judge', 'Sudya', 'ruling');
     } finally { setLoading(false); }
   }, [input, loading, role, autoSpeak, speak]);
 
@@ -161,7 +161,7 @@ export default function VirtualCourt() {
       });
       const data = await res.json();
       const verdict = data.verdict || 'Sud majlisi yakunlandi.';
-      addMsg(verdict, 'judge', 'Sudya ⚖️', 'ruling');
+      addMsg(verdict, 'judge', 'Sudya', 'ruling');
       if (autoSpeak) speak(verdict);
     } catch { /* ignore */ } finally { setLoading(false); }
     setTimeout(() => setPage('verdict'), 1800);
@@ -180,12 +180,12 @@ export default function VirtualCourt() {
             <ArrowLeft size={16} /> Orqaga
           </a>
           <div style={{ background: '#FFF7ED', borderRadius: 12, padding: 14, border: '1px solid #FED7AA' }}>
-            <p style={{ fontWeight: 700, color: '#C2410C', fontSize: 14, margin: '0 0 4px' }}>⚖️ Virtual Sud</p>
+            <p style={{ fontWeight: 700, color: '#C2410C', fontSize: 14, margin: '0 0 4px' }}>Virtual Sud</p>
             <p style={{ fontSize: 12, color: '#9A3412', margin: 0 }}>AI sudya bilan real sud jarayoni</p>
           </div>
           {speechReady && (
             <div style={{ marginTop: 16, background: '#F0FDF4', borderRadius: 12, padding: 12, border: '1px solid #BBF7D0' }}>
-              <p style={{ fontSize: 12, color: '#15803D', fontWeight: 600, margin: '0 0 6px' }}>🔊 Ovoz</p>
+              <p style={{ fontSize: 12, color: '#15803D', fontWeight: 600, margin: '0 0 6px', display: 'flex', alignItems: 'center', gap: 4 }}><Volume2 size={14} /> Ovoz</p>
               <label style={{ display: 'flex', gap: 6, alignItems: 'center', fontSize: 12, color: '#374151', cursor: 'pointer' }}>
                 <input type="checkbox" checked={autoSpeak} onChange={e => setAutoSpeak(e.target.checked)} />
                 Sudya ovozini eshit
@@ -242,7 +242,7 @@ export default function VirtualCourt() {
             <ArrowLeft size={16} />
           </button>
           <div>
-            <p style={{ fontWeight: 700, fontSize: 15, margin: 0 }}>⚖️ {caseItem.title}</p>
+            <p style={{ fontWeight: 700, fontSize: 15, margin: 0 }}>{caseItem.title}</p>
             <p style={{ fontSize: 12, color: '#94A3B8', margin: 0 }}>{role.title} · {role.sub}</p>
           </div>
         </div>
@@ -251,12 +251,12 @@ export default function VirtualCourt() {
             <>
               <button onClick={() => setAutoSpeak(p => !p)}
                 style={{ padding: '5px 12px', background: autoSpeak ? 'rgba(34,197,94,0.2)' : 'rgba(255,255,255,0.08)', border: `1px solid ${autoSpeak ? '#22C55E' : 'rgba(255,255,255,0.15)'}`, borderRadius: 20, color: autoSpeak ? '#4ADE80' : '#94A3B8', fontSize: 12, cursor: 'pointer' }}>
-                {autoSpeak ? '🔊 Ovoz ON' : '🔇 Ovoz OFF'}
+                {autoSpeak ? <><Volume2 className="w-3.5 h-3.5" /> Ovoz ON</> : <><VolumeX className="w-3.5 h-3.5" /> Ovoz OFF</>}
               </button>
               {speaking && (
                 <button onClick={stopSpeak}
                   style={{ padding: '5px 12px', background: 'rgba(239,68,68,0.2)', border: '1px solid #EF4444', borderRadius: 20, color: '#F87171', fontSize: 12, cursor: 'pointer' }}>
-                  ⏹ To'xtat
+                  <Square className="w-3.5 h-3.5" /> To'xtat
                 </button>
               )}
             </>
@@ -418,7 +418,7 @@ export default function VirtualCourt() {
               <div style={{ height: 7, width: `${total}%`, background: 'linear-gradient(90deg,#2563EB,#7C3AED)', borderRadius: 4 }} />
             </div>
             <p style={{ fontSize: 13, color: '#374151', margin: '10px 0 0', fontWeight: 600 }}>
-              {total >= 80 ? "🏆 A'lo! Professional darajasi." : total >= 60 ? '👍 Yaxshi. Davom eting.' : '💪 Mashq qiling.'}
+              {total >= 80 ? <><Star className="w-4 h-4 text-yellow-500 fill-yellow-500 inline mr-1" />A'lo! Professional darajasi.</> : total >= 60 ? <><CheckCircle className="w-4 h-4 text-green-500 inline mr-1" />Yaxshi. Davom eting.</> : <><Target className="w-4 h-4 text-blue-500 inline mr-1" />Mashq qiling.</>}
             </p>
           </div>
           <div style={{ display: 'flex', gap: 10 }}>

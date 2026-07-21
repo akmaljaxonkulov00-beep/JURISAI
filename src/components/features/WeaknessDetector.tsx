@@ -219,11 +219,11 @@ export default function WeaknessDetector() {
 
   const getArgumentTypeIcon = (type: string) => {
     switch (type) {
-      case 'legal': return '⚖️';
-      case 'factual': return '📊';
-      case 'logical': return '🧠';
-      case 'emotional': return '❤️';
-      default: return '📝';
+      case 'legal': return '═';
+      case 'factual': return '▤';
+      case 'logical': return '◉';
+      case 'emotional': return '♥';
+      default: return 'NOTE';
     }
   };
 
@@ -317,10 +317,10 @@ export default function WeaknessDetector() {
                           value={argumentType} 
                           onChange={(e) => setArgumentType(e.target.value)}
                           options={[
-                            { value: "legal", label: "⚖️ Huquqiy" },
-                            { value: "factual", label: "📊 Faktik" },
-                            { value: "logical", label: "🧠 Mantiqiy" },
-                            { value: "emotional", label: "❤️ His-tuyg'uli" }
+                            { value: "legal", label: "═ Huquqiy" },
+                            { value: "factual", label: "▤ Faktik" },
+                            { value: "logical", label: "◉ Mantiqiy" },
+                            { value: "emotional", label: "♥ His-tuyg'uli" }
                           ]}
                         />
                       </div>
@@ -384,22 +384,22 @@ export default function WeaknessDetector() {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="p-4 bg-blue-50 rounded-xl">
-                      <h4 className="font-semibold text-blue-900 mb-2">⚖️ Huquqiy</h4>
+                      <h4 className="font-semibold text-blue-900 mb-2">═ Huquqiy</h4>
                       <p className="text-sm text-blue-700">Qonun hujjatlariga asoslangan argumentlar</p>
                     </div>
                     
                     <div className="p-4 bg-green-50 rounded-xl">
-                      <h4 className="font-semibold text-green-900 mb-2">📊 Faktik</h4>
+                      <h4 className="font-semibold text-green-900 mb-2">▤ Faktik</h4>
                       <p className="text-sm text-green-700">Dalillar va faktlarga asoslangan argumentlar</p>
                     </div>
                     
                     <div className="p-4 bg-purple-50 rounded-xl">
-                      <h4 className="font-semibold text-purple-900 mb-2">🧠 Mantiqiy</h4>
+                      <h4 className="font-semibold text-purple-900 mb-2">◉ Mantiqiy</h4>
                       <p className="text-sm text-purple-700">Mantiqiy izchillikka ega argumentlar</p>
                     </div>
                     
                     <div className="p-4 bg-red-50 rounded-xl">
-                      <h4 className="font-semibold text-red-900 mb-2">❤️ His-tuyg'uli</h4>
+                      <h4 className="font-semibold text-red-900 mb-2">♥ His-tuyg'uli</h4>
                       <p className="text-sm text-red-700">His-tuyg'uga asoslangan argumentlar</p>
                     </div>
                   </CardContent>

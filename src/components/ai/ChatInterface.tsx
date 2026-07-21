@@ -85,10 +85,10 @@ Qo'shimcha maslahat uchun advokat bilan maslahatlashingni tavsiya etaman.`;
 
 JurisAI platformasi O'zbekiston huquqiy tizimi bo'yicha zamonaviy ta'lim va tahlil vositalarini taklif etadi. Platformamiz orqali quyidagi xizmatlardan foydalanishingiz mumkin:
 
-🔹 **IRAC tahlili** - Huquqiy ishlarni xalqaro standartlar bo'yicha tahlil qiling
-🔹 **AI yordamchi** - Huquqiy masalalarda sun'iy intellekt yordamini oling  
-🔹 **Qaror daraxti** - Murakkab huquqiy vaziyatlarni vizual tahlil qiling
-🔹 **Shablonlar** - Huquqiy hujjatlar shablonlaridan foydalaning
+DOT **IRAC tahlili** - Huquqiy ishlarni xalqaro standartlar bo'yicha tahlil qiling
+DOT **AI yordamchi** - Huquqiy masalalarda sun'iy intellekt yordamini oling  
+DOT **Qaror daraxti** - Murakkab huquqiy vaziyatlarni vizual tahlil qiling
+DOT **Shablonlar** - Huquqiy hujjatlar shablonlaridan foydalaning
 
 Qo'shimcha savollaringiz bo'lsa, javob berishdan mamnun bo'laman!`;
       }

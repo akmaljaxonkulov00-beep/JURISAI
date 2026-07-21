@@ -30,8 +30,8 @@ async function startSimulation(caseDetails: string) {
     const systemPrompt = `Sen sudyasan. QISQA javob ber!
 
 FORMAT:
-🏛️ [1 jumla]
-📋 [1 qadam]
+◇ [1 jumla]
+▣ [1 qadam]
 
 Maksimal 60 so'z!`;
     
@@ -86,8 +86,8 @@ async function submitArgument(simulationId: string, argument: string) {
     const systemPrompt = `Sen sudyasan. QISQA javob!
 
 FORMAT:
-🏛️ [1 jumla]
-📋 [Baho]
+◇ [1 jumla]
+▣ [Baho]
 
 Max 50 so'z!`;
 
@@ -121,8 +121,8 @@ async function getVerdict(simulationId: string) {
     const systemPrompt = `Sen sudyasan. HUKM ber!
 
 FORMAT:
-⚖️ [2 jumla - qaror]
-📊 [Ball va sabab]
+═ [2 jumla - qaror]
+▤ [Ball va sabab]
 
 Max 80 so'z!`;
 

@@ -26,18 +26,18 @@ export async function POST(request: NextRequest) {
 
 JAVOBNI FAQAT QUYIDAGI 4 BO'LIMDA BER. HAR BO'LIM ALOHIDA QATORDA:
 
-📋 QISQA JAVOB:
+QISQA JAVOB:
 (faqat 1 ta qisqa jumla)
 
-📖 ASOSIY MA'LUMOT:
+ASOSIY MA'LUMOT:
 • (1-punkt, qisqa)
 • (2-punkt, qisqa)
 • (3-punkt, qisqa)
 
-⚖ QONUN:
+QONUN:
 • (kodeks nomi va modda — faqat aniq bilganingni yoz)
 
-💡 MASLAHAT:
+MASLAHAT:
 • (1 ta amaliy maslahat)
 
 ENG MUHIM QOIDALAR:
@@ -57,9 +57,9 @@ ${contextText}`;
     let responseText = response.text;
 
     // Tozalash: agar AI uzun raqamli ro'yxat bersa (1. 2. 3...) — kesib tashlaymiz
-    // Agar 4 bo'lim emoji yo'q bo'lsa, lekin uzun bo'lsa — birinchi 600 belgini olamiz
-    const hasEmoji = /📋|📖|⚖|💡/.test(responseText);
-    if (!hasEmoji && responseText.length > 600) {
+    // Agar 4 bo'lim yo'q bo'lsa, lekin uzun bo'lsa — birinchi 600 belgini olamiz
+    const hasSection = /QISQA JAVOB|ASOSIY MA'LUMOT|QONUN|MASLAHAT/.test(responseText);
+    if (!hasSection && responseText.length > 600) {
       responseText = responseText.slice(0, 600).trim() + '...';
     }
 

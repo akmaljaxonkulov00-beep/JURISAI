@@ -1134,9 +1134,9 @@ export default function CompleteAuthSystem() {
                 <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
                   <div className="text-sm text-blue-800">
                     <strong>Test foydalanuvchilar:</strong><br/>
-                    🔹 Super Admin: admin@jurisai.com / admin123<br/>
-                    🔹 Admin: admin2@jurisai.com / admin123<br/>
-                    🔹 User: user@jurisai.com / user123
+                    DOT Super Admin: admin@jurisai.com / admin123<br/>
+                    DOT Admin: admin2@jurisai.com / admin123<br/>
+                    DOT User: user@jurisai.com / user123
                   </div>
                 </div>
 

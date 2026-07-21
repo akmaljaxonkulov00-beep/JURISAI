@@ -256,7 +256,7 @@ export default function Simulator() {
           </div>
           {results.achievements.length > 0 && (
             <div className="bg-yellow-50 rounded-xl p-4 mb-6">
-              <p className="font-semibold text-yellow-800 mb-2">🏆 Yutuqlar</p>
+              <p className="font-semibold text-yellow-800 mb-2">☆ Yutuqlar</p>
               <div className="flex flex-wrap gap-2">
                 {results.achievements.map((a, i) => (
                   <span key={i} className="px-3 py-1 bg-yellow-200 text-yellow-800 rounded-full text-sm">{a}</span>

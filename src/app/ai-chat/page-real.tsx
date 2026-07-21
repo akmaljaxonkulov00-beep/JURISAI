@@ -527,7 +527,7 @@ export default function AIChat() {
                             <div className="space-y-1">
                               {message.related_laws.map((law, index) => (
                                 <div key={index} className="text-sm text-blue-700">
-                                  📜 {law}
+                                  SCROLL {law}
                                 </div>
                               ))}
                             </div>
@@ -545,7 +545,7 @@ export default function AIChat() {
                                   onClick={() => setInputValue(suggestion)}
                                   className="text-sm text-green-700 hover:text-green-900 text-left"
                                 >
-                                  💡 {suggestion}
+                                  ☼ {suggestion}
                                 </button>
                               ))}
                             </div>

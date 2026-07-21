@@ -324,7 +324,7 @@ const WeaknessDetector: React.FC = () => {
                     <ul className="space-y-2">
                       {analysis.strength_areas.map((strength, index) => (
                         <li key={index} className="flex items-start space-x-2">
-                          <span className="text-green-500 mt-1">✓</span>
+                          <span className="text-green-500 mt-1">[OK]</span>
                           <span className="text-gray-700">{strength}</span>
                         </li>
                       ))}

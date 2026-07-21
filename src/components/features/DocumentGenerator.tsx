@@ -305,7 +305,7 @@ export default function DocumentGenerator() {
                 disabled={loading}
                 className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
               >
-                {loading ? 'Yaratilmoqda...' : '📄 Hujjatni yaratish'}
+                {loading ? 'Yaratilmoqda...' : '▢ Hujjatni yaratish'}
               </Button>
               <Button
                 onClick={() => setActiveTab('templates')}
@@ -374,14 +374,14 @@ export default function DocumentGenerator() {
                     className="border-blue-600 text-blue-600 hover:bg-blue-50"
                     onClick={() => handleDownloadDocument(currentDocument)}
                   >
-                    📥 Yuklab olish
+                    ↓ Yuklab olish
                   </Button>
                   <Button
                     variant="outline"
                     className="border-green-600 text-green-600 hover:bg-green-50"
                     onClick={() => handleEditDocument(currentDocument)}
                   >
-                    ✏️ Tahrirlash
+                    ✎ Tahrirlash
                   </Button>
                 </div>
               </div>
@@ -419,9 +419,9 @@ export default function DocumentGenerator() {
         {/* Tabs */}
         <div className="flex space-x-1 mb-6 bg-white/80 backdrop-blur-sm rounded-xl p-1">
           {[
-            { id: 'templates', label: '📋 Shablonlar', icon: '📋' },
-            { id: 'generator', label: '✏️ Generator', icon: '✏️' },
-            { id: 'history', label: '📚 Tarix', icon: '📚' }
+            { id: 'templates', label: '▣ Shablonlar', icon: '▣' },
+            { id: 'generator', label: '✎ Generator', icon: '✎' },
+            { id: 'history', label: '▣▣ Tarix', icon: '▣▣' }
           ].map((tab) => (
             <button
               key={tab.id}

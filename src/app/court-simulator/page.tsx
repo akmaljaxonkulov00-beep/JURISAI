@@ -153,7 +153,7 @@ export default function CourtSimulatorPage() {
           <ArrowLeft size={16} /> Orqaga
         </a>
         <div style={{ background: '#EDE9FE', borderRadius: 12, padding: 14, border: '1px solid #DDD6FE' }}>
-          <p style={{ fontWeight: 700, color: '#6D28D9', fontSize: 14, margin: '0 0 4px' }}>🏛️ Sud Simulyatori</p>
+          <p style={{ fontWeight: 700, color: '#6D28D9', fontSize: 14, margin: '0 0 4px' }}>◇ Sud Simulyatori</p>
           <p style={{ fontSize: 12, color: '#7C3AED', margin: 0 }}>AI bilan ovozli sud jarayoni</p>
         </div>
         <div style={{ marginTop: 16, background: '#F0FDF4', borderRadius: 12, padding: 12, border: '1px solid #BBF7D0' }}>
@@ -212,7 +212,7 @@ export default function CourtSimulatorPage() {
             <ArrowLeft size={16} />
           </button>
           <div>
-            <p style={{ fontWeight: 700, fontSize: 15, margin: 0 }}>🏛️ {caseItem.title}</p>
+            <p style={{ fontWeight: 700, fontSize: 15, margin: 0 }}>◇ {caseItem.title}</p>
             <p style={{ fontSize: 12, color: '#94A3B8', margin: 0 }}>{role.title} · {role.sub}</p>
           </div>
         </div>
@@ -264,7 +264,7 @@ export default function CourtSimulatorPage() {
                   <div key={m.id} style={{ display: 'flex', justifyContent: isUser ? 'flex-end' : 'flex-start' }}>
                     <div style={{ maxWidth: '80%', padding: '11px 15px', borderRadius: isUser ? '14px 14px 3px 14px' : '3px 14px 14px 14px', background: isUser ? 'rgba(37,99,235,0.4)' : bg, border: `1px solid ${isUser ? 'rgba(37,99,235,0.5)' : bd}` }}>
                       <p style={{ fontSize: 11, color: '#94A3B8', margin: '0 0 4px', fontWeight: 600 }}>
-                        {isUser ? '👤 ' : '👨‍⚖️ '}{m.speaker}
+                        {isUser ? '◉ ' : '◉ '}{m.speaker}
                       </p>
                       <p style={{ fontSize: 14, lineHeight: 1.6, margin: 0, whiteSpace: 'pre-wrap' }}>{m.text}</p>
                     </div>
@@ -366,7 +366,7 @@ export default function CourtSimulatorPage() {
               <div style={{ height: 7, width: `${total}%`, background: 'linear-gradient(90deg,#7C3AED,#2563EB)', borderRadius: 4 }} />
             </div>
             <p style={{ fontSize: 13, color: '#374151', margin: '10px 0 0', fontWeight: 600 }}>
-              {total >= 80 ? "🏆 A'lo! Professional yurist darajasi." : total >= 60 ? '👍 Yaxshi natija. Davom eting.' : '💪 Mashq qiling, natija yaxshilanadi.'}
+              {total >= 80 ? "☆ A'lo! Professional yurist darajasi." : total >= 60 ? '[OK] Yaxshi natija. Davom eting.' : '⚙ Mashq qiling, natija yaxshilanadi.'}
             </p>
           </div>
           <div style={{ display: 'flex', gap: 10 }}>

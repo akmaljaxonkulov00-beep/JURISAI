@@ -4,8 +4,8 @@
 
 Agar siz xavfsizlik zaifligini topsangiz, iltimos **ommaviy bo'lmagan usulda** xabar bering:
 
-- **Email:** security@jurisai.uz
-- **Telegram:** @jurisai_security
+- **Email:** akmaljaxonkulov00@gmail.com
+- **Telegram:** @Jaxonkulov_A
 
 **❌ GitHub Issues'da xavfsizlik muammolarini joylashmang!**
 
@@ -47,4 +47,4 @@ Biz quyidagi xavfsizlik standartlariga rioya qilamiz:
 
 ## Yangilanish tarixi
 
-- **2024-06-13:** Initial security policy
+- **2026-06-13:** Initial security policy

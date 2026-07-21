@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { ArrowLeft, MessageCircle, FileText, Mic, Send, BookOpen, Scale, HelpCircle, Volume2, Lightbulb, Copy } from 'lucide-react';
+import { ArrowLeft, MessageCircle, FileText, Mic, Send, BookOpen, Scale, HelpCircle, Volume2, Lightbulb, Copy, ClipboardList, Info, Gavel, Sparkles } from 'lucide-react';
 
 interface Message {
   id: string;
@@ -13,17 +13,16 @@ interface Message {
 
 // ── AI javobini rangli bo'limlarda ko'rsatuvchi komponent ──────────────────
 function AIResponse({ text }: { text: string }) {
-  // ⚖️ = U+2696 U+FE0F — ba'zi LLM lar U+FE0F ni tushirib qoldiradi, shuning uchun ikkisini ham qabul qilamiz
   const SECTIONS = [
-    { emojis: ['📋'], key: 'QISQA JAVOB',     bg: '#EFF6FF', border: '#BFDBFE', color: '#1D4ED8' },
-    { emojis: ['📖'], key: "ASOSIY MA'LUMOT", bg: '#F0FDF4', border: '#BBF7D0', color: '#15803D' },
-    { emojis: ['⚖️', '⚖'],  key: 'QONUN',    bg: '#F5F3FF', border: '#DDD6FE', color: '#7C3AED' },
-    { emojis: ['💡'], key: 'MASLAHAT',         bg: '#FFF7ED', border: '#FED7AA', color: '#C2410C' },
+    { icon: <ClipboardList size={14} />, key: 'QISQA JAVOB',     bg: '#EFF6FF', border: '#BFDBFE', color: '#1D4ED8' },
+    { icon: <Info size={14} />, key: "ASOSIY MA'LUMOT", bg: '#F0FDF4', border: '#BBF7D0', color: '#15803D' },
+    { icon: <Gavel size={14} />,  key: 'QONUN',    bg: '#F5F3FF', border: '#DDD6FE', color: '#7C3AED' },
+    { icon: <Sparkles size={14} />, key: 'MASLAHAT',         bg: '#FFF7ED', border: '#FED7AA', color: '#C2410C' },
   ];
 
-  // Matnda qaysi emoji borligini topamiz
-  const findEmoji = (t: string, emojis: string[]) => emojis.find(e => t.includes(e));
-  const hasAnySection = SECTIONS.some(s => findEmoji(text, s.emojis));
+  // Matnda qaysi bo'lim borligini topamiz
+  const findSection = (t: string, key: string) => t.includes(key);
+  const hasAnySection = SECTIONS.some(s => findSection(text, s.key));
 
   const renderLines = (content: string, color: string) =>
     content.split('\n').filter(l => l.trim()).map((line, i) => {
@@ -52,15 +51,13 @@ function AIResponse({ text }: { text: string }) {
   const result: React.ReactNode[] = [];
 
   // Har bir bo'limning pozitsiyasini topamiz
-  type SecPos = { sec: typeof SECTIONS[0]; emoji: string; start: number; end: number };
+  type SecPos = { sec: typeof SECTIONS[0]; start: number; end: number };
   const positions: SecPos[] = [];
 
   SECTIONS.forEach(sec => {
-    const emoji = findEmoji(text, sec.emojis);
-    if (!emoji) return;
-    const start = text.indexOf(emoji);
+    const start = text.indexOf(sec.key);
     if (start === -1) return;
-    positions.push({ sec, emoji, start, end: -1 });
+    positions.push({ sec, start, end: -1 });
   });
 
   // end pozitsiyalarini belgilaymiz
@@ -78,11 +75,10 @@ function AIResponse({ text }: { text: string }) {
   }
 
   // Har bir bo'limni render qilamiz
-  positions.forEach(({ sec, emoji, start, end }) => {
+  positions.forEach(({ sec, start, end }) => {
     const raw = text.slice(start, end);
     // Sarlavhani olib tashlaymiz
     const content = raw
-      .replace(new RegExp(`[${sec.emojis.join('')}]`), '')
       .replace(sec.key + ':', '')
       .replace(sec.key, '')
       .trim();
@@ -92,8 +88,8 @@ function AIResponse({ text }: { text: string }) {
         background: sec.bg, border: `1px solid ${sec.border}`,
         borderRadius: 12, padding: '12px 16px', marginBottom: 10
       }}>
-        <div style={{ fontWeight: 700, fontSize: 13, color: sec.color, marginBottom: 8 }}>
-          {emoji} {sec.key}
+        <div style={{ fontWeight: 700, fontSize: 13, color: sec.color, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+          {sec.icon} {sec.key}
         </div>
         <div style={{ color: '#1F2937' }}>{renderLines(content, sec.color)}</div>
       </div>
@@ -168,7 +164,7 @@ export default function AIAssistant() {
   // ── TTS ──────────────────────────────────────────────────────
   const speakText = (text: string) => {
     if (!('speechSynthesis' in window)) return;
-    const clean = text.replace(/[📋📖⚖️💡🏛️•]\s*/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 400);
+    const clean = text.replace(/[•]\s*/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 400);
     if (!clean) return;
     window.speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(clean);
@@ -255,7 +251,7 @@ export default function AIAssistant() {
 
         {speechReady && (
           <div style={{ marginTop: 20, padding: 12, background: '#F0FDF4', borderRadius: 12, border: '1px solid #BBF7D0' }}>
-            <p style={{ fontSize: 12, fontWeight: 600, color: '#15803D', margin: '0 0 8px' }}>🔊 Ovoz</p>
+            <p style={{ fontSize: 12, fontWeight: 600, color: '#15803D', margin: '0 0 8px', display: 'flex', alignItems: 'center', gap: 6 }}><Volume2 size={14} /> Ovoz</p>
             <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#374151', cursor: 'pointer' }}>
               <input type="checkbox" checked={autoSpeak} onChange={e => setAutoSpeak(e.target.checked)} />
               AI javobini ovozda eshit
@@ -279,8 +275,8 @@ export default function AIAssistant() {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             {isSpeaking && (
-              <button onClick={stopSpeak} style={{ padding: '5px 12px', background: '#FEF3C7', border: '1px solid #FCD34D', borderRadius: 20, fontSize: 12, color: '#92400E', cursor: 'pointer' }}>
-                ⏹ To'xtat
+              <button onClick={stopSpeak} style={{ padding: '5px 12px', background: '#FEF3C7', border: '1px solid #FCD34D', borderRadius: 20, fontSize: 12, color: '#92400E', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+                <Volume2 size={12} /> To'xtat
               </button>
             )}
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '5px 12px', background: '#DCFCE7', borderRadius: 20 }}>

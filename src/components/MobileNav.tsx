@@ -3,24 +3,27 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { LayoutDashboard, Bot, Building2, Target, Scale, FileSearch, BookOpen, FileText, Search, Play, GitBranch, Moon, Sun } from 'lucide-react';
+import { useTheme } from '@/context/ThemeContext';
 
 const NAV_ITEMS = [
-  { href: '/dashboard',        label: 'Bosh sahifa',      icon: '🏠' },
-  { href: '/ai-assistant',     label: 'AI Yordamchi',     icon: '🤖' },
-  { href: '/court-simulator',  label: 'Sud Simulyator',   icon: '🏛️' },
-  { href: '/simulator',        label: 'Simulyator',       icon: '🎯' },
-  { href: '/virtual-court',    label: 'Virtual Sud',      icon: '⚖️' },
-  { href: '/irac',             label: 'IRAC Tahlil',      icon: '📋' },
-  { href: '/legal-database',   label: 'Qonunlar Bazasi',  icon: '📚' },
-  { href: '/document-generator', label: 'Hujjat Yaratish', icon: '📄' },
-  { href: '/weakness-detector', label: 'Zaiflik Aniqlash', icon: '🔍' },
-  { href: '/scenario-generator', label: 'Stsenariy',      icon: '🎬' },
-  { href: '/decision-tree',    label: 'Qaror Daraxti',    icon: '🌳' },
+  { href: '/dashboard',        label: 'Bosh sahifa',      icon: LayoutDashboard },
+  { href: '/ai-assistant',     label: 'AI Yordamchi',     icon: Bot },
+  { href: '/court-simulator',  label: 'Sud Simulyator',   icon: Building2 },
+  { href: '/simulator',        label: 'Simulyator',       icon: Target },
+  { href: '/virtual-court',    label: 'Virtual Sud',      icon: Scale },
+  { href: '/irac',             label: 'IRAC Tahlil',      icon: FileSearch },
+  { href: '/legal-database',   label: 'Qonunlar Bazasi',  icon: BookOpen },
+  { href: '/document-generator', label: 'Hujjat Yaratish', icon: FileText },
+  { href: '/weakness-detector', label: 'Zaiflik Aniqlash', icon: Search },
+  { href: '/scenario-generator', label: 'Stsenariy',      icon: Play },
+  { href: '/decision-tree',    label: 'Qaror Daraxti',    icon: GitBranch },
 ];
 
 export default function MobileNav() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  const { dark, toggle: toggleTheme } = useTheme();
 
   return (
     <>
@@ -52,29 +55,40 @@ export default function MobileNav() {
         }`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-100">
+        <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-700">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-sm">J</span>
             </div>
-            <span className="font-bold text-gray-800">JURISAI</span>
+            <span className="font-bold text-gray-800 dark:text-white">JURISAI</span>
           </div>
-          <button
-            onClick={() => setOpen(false)}
-            className="p-2 hover:bg-gray-100 rounded-lg"
-            aria-label="Menyu yopish"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="2.5" strokeLinecap="round">
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={toggleTheme}
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-600 dark:text-gray-300"
+              aria-label={dark ? 'Yorug\' rejim' : 'Qorong\'i rejim'}
+              title={dark ? 'Yorug\' rejim' : 'Qorong\'i rejim'}
+            >
+              {dark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
+            <button
+              onClick={() => setOpen(false)}
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+              aria-label="Menyu yopish"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" className="text-gray-500 dark:text-gray-400">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          </div>
         </div>
 
         {/* Nav links */}
         <div className="overflow-y-auto h-[calc(100%-65px)] py-2">
           {NAV_ITEMS.map(item => {
             const isActive = pathname === item.href;
+            const Icon = item.icon;
             return (
               <Link
                 key={item.href}
@@ -86,7 +100,7 @@ export default function MobileNav() {
                     : 'text-gray-700 hover:bg-gray-50'
                 }`}
               >
-                <span className="text-lg">{item.icon}</span>
+                <Icon className="w-5 h-5" />
                 <span>{item.label}</span>
               </Link>
             );

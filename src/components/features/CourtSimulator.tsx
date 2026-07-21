@@ -280,11 +280,11 @@ export default function CourtSimulator() {
   // Speech functions - TO'LIQ MUKAMMAL VERSIYA
   const speakText = (text: string) => {
     if (!speechEnabled) {
-      console.log('⚠️ Speech not enabled');
+      console.log('[!] Speech not enabled');
       return;
     }
     
-    console.log('🔊 Speaking text:', text.substring(0, 50) + '...');
+    console.log('♪ Speaking text:', text.substring(0, 50) + '...');
     setIsSpeaking(true);
     
     tts.speak(text, {
@@ -293,15 +293,15 @@ export default function CourtSimulator() {
       pitch: 1.0,
       volume: 1.0,
       onStart: () => {
-        console.log('✅ Speech started');
+        console.log('[OK] Speech started');
         setIsSpeaking(true);
       },
       onEnd: () => {
-        console.log('✅ Speech ended');
+        console.log('[OK] Speech ended');
         setIsSpeaking(false);
       },
       onError: (error) => {
-        console.error('❌ TTS error:', error);
+        console.error('[X] TTS error:', error);
         setIsSpeaking(false);
         alert('Ovozni aytishda xatolik yuz berdi. Qaytadan urinib ko\'ring.');
       }
@@ -323,11 +323,11 @@ export default function CourtSimulator() {
     stt.startListening({
       continuous: true, // Keep listening
       onStart: () => {
-        console.log('✅ Listening started');
+        console.log('[OK] Listening started');
         setIsListening(true);
       },
       onResult: (text, isFinal) => {
-        console.log('📝 Recognized:', text, 'Final:', isFinal);
+        console.log('NOTE Recognized:', text, 'Final:', isFinal);
         
         if (isFinal) {
           // Add to full transcript
@@ -339,7 +339,7 @@ export default function CourtSimulator() {
         }
       },
       onError: (error) => {
-        console.error('❌ STT error:', error);
+        console.error('[X] STT error:', error);
         setIsListening(false);
         
         const errorMessages: Record<string, string> = {
@@ -354,21 +354,21 @@ export default function CourtSimulator() {
         alert(message);
       },
       onEnd: () => {
-        console.log('🔴 Listening ended');
+        console.log('● Listening ended');
         setIsListening(false);
       }
     });
   };
 
   const stopListening = () => {
-    console.log('⏹️ Stopping listening...');
+    console.log('■ Stopping listening...');
     stt.stopListening();
     setIsListening(false);
   };
 
   const toggleSpeaking = () => {
     if (isSpeaking) {
-      console.log('⏹️ Stopping speech...');
+      console.log('■ Stopping speech...');
       tts.stop();
       setIsSpeaking(false);
     }
@@ -514,14 +514,14 @@ export default function CourtSimulator() {
               onClick={() => setActiveTab('cases')}
               className="bg-blue-600 hover:bg-blue-700 text-white"
             >
-              🏛️ Yangi simulyatsiya boshlash
+              ◇ Yangi simulyatsiya boshlash
             </Button>
             <Button
               onClick={() => setActiveTab('history')}
               variant="outline"
               className="border-blue-600 text-blue-600 hover:bg-blue-50"
             >
-              📊 Tarixni ko'rish
+              ▤ Tarixni ko'rish
             </Button>
           </div>
         </CardContent>
@@ -609,7 +609,7 @@ export default function CourtSimulator() {
                   </Badge>
                 </div>
                 <div className="text-sm text-gray-600 mb-2">
-                  ⏱️ {caseItem.estimated_duration} daqiqa
+                  ⏱ {caseItem.estimated_duration} daqiqa
                 </div>
                 <div className="text-xs text-gray-500">
                   <strong>Asosiy masalalar:</strong>
@@ -683,7 +683,7 @@ export default function CourtSimulator() {
               disabled={loading}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white"
             >
-              {loading ? 'Boshlanmoqda...' : '🏛️ Simulyatsiyani boshlash'}
+              {loading ? 'Boshlanmoqda...' : '◇ Simulyatsiyani boshlash'}
             </Button>
           </CardContent>
         </Card>
@@ -729,7 +729,7 @@ export default function CourtSimulator() {
                     variant="outline"
                     className="border-orange-600 text-orange-600 hover:bg-orange-50"
                   >
-                    ⏸️ To'xtatish
+                    ▌▌ To'xtatish
                   </Button>
                 ) : (
                   <Button
@@ -737,7 +737,7 @@ export default function CourtSimulator() {
                     variant="outline"
                     className="border-green-600 text-green-600 hover:bg-green-50"
                   >
-                    ▶️ Davom ettirish
+                    ▶ Davom ettirish
                   </Button>
                 )}
                 <Button
@@ -745,7 +745,7 @@ export default function CourtSimulator() {
                   variant="outline"
                   className="border-red-600 text-red-600 hover:bg-red-50"
                 >
-                  ⏹️ Tugatish
+                  ■ Tugatish
                 </Button>
               </div>
             </div>
@@ -783,8 +783,8 @@ export default function CourtSimulator() {
                       Rol
                     </label>
                     <div className="p-2 bg-gray-100 rounded-lg">
-                      {userRole === 'prosecution' ? '🏛️ Ayblovchi' : 
-                       userRole === 'defense' ? '🛡️ Himoyachi' : '⚖️ Hakam'}
+                      {userRole === 'prosecution' ? '◇ Ayblovchi' : 
+                       userRole === 'defense' ? '⛊ Himoyachi' : '═ Hakam'}
                     </div>
                   </div>
                 </div>
@@ -806,7 +806,7 @@ export default function CourtSimulator() {
                             }`}
                             title={isListening ? 'To\'xtatish' : 'Ovoz bilan kiritish'}
                           >
-                            {isListening ? '🔴 Tinglanmoqda...' : '🎤 Gapiring'}
+                            {isListening ? '● Tinglanmoqda...' : '🎤 Gapiring'}
                           </button>
                           <button
                             onClick={() => setAutoSpeak(!autoSpeak)}
@@ -817,7 +817,7 @@ export default function CourtSimulator() {
                             }`}
                             title={autoSpeak ? 'Avto gapirish yoqilgan' : 'Avto gapirish o\'chirilgan'}
                           >
-                            {autoSpeak ? '🔊 Eshitish ON' : '🔇 Eshitish OFF'}
+                            {autoSpeak ? '♪ Eshitish ON' : '♫ Eshitish OFF'}
                           </button>
                         </>
                       )}
@@ -842,7 +842,7 @@ export default function CourtSimulator() {
                   disabled={loading || !argumentContent.trim()}
                   className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                 >
-                  {loading ? 'Yuborilmoqda...' : '📤 Argumentni yuborish'}
+                  {loading ? 'Yuborilmoqda...' : '↑ Argumentni yuborish'}
                 </Button>
               </CardContent>
             </Card>
@@ -858,8 +858,8 @@ export default function CourtSimulator() {
                     <div key={index} className="p-3 bg-gray-50 rounded-lg">
                       <div className="flex justify-between items-start mb-2">
                         <span className="font-medium text-blue-900">
-                          {entry.speaker === 'prosecution' ? '🏛️ Ayblovchi' :
-                           entry.speaker === 'defense' ? '🛡️ Himoyachi' : '⚖️ Hakam'}
+                          {entry.speaker === 'prosecution' ? '◇ Ayblovchi' :
+                           entry.speaker === 'defense' ? '⛊ Himoyachi' : '═ Hakam'}
                         </span>
                         <span className="text-xs text-gray-500">
                           {new Date(entry.timestamp).toLocaleTimeString()}
@@ -927,15 +927,15 @@ export default function CourtSimulator() {
               <CardContent>
                 <div className="space-y-2">
                   <div className="p-2 bg-gray-50 rounded-lg">
-                    <div className="font-medium text-gray-900">⚖️ Hakam</div>
+                    <div className="font-medium text-gray-900">═ Hakam</div>
                     <div className="text-sm text-gray-600">Tajriba: 15 yil</div>
                   </div>
                   <div className="p-2 bg-gray-50 rounded-lg">
-                    <div className="font-medium text-gray-900">🏛️ Ayblovchi</div>
+                    <div className="font-medium text-gray-900">◇ Ayblovchi</div>
                     <div className="text-sm text-gray-600">Tajriba: 8 yil</div>
                   </div>
                   <div className="p-2 bg-gray-50 rounded-lg">
-                    <div className="font-medium text-gray-900">🛡️ Himoyachi</div>
+                    <div className="font-medium text-gray-900">⛊ Himoyachi</div>
                     <div className="text-sm text-gray-600">Tajriba: 10 yil</div>
                   </div>
                 </div>
@@ -1030,11 +1030,11 @@ export default function CourtSimulator() {
         {/* Tabs */}
         <div className="flex space-x-1 mb-6 bg-white/80 backdrop-blur-sm rounded-xl p-1">
           {[
-            { id: 'dashboard', label: '📊 Boshqaruv paneli', icon: '📊' },
-            { id: 'cases', label: '🏛️ Holatlar', icon: '🏛️' },
-            { id: 'simulation', label: '⚖️ Simulyatsiya', icon: '⚖️' },
-            { id: 'history', label: '📚 Tarix', icon: '📚' },
-            { id: 'leaderboard', label: '🏆 Reyting', icon: '🏆' }
+            { id: 'dashboard', label: '▤ Boshqaruv paneli', icon: '▤' },
+            { id: 'cases', label: '◇ Holatlar', icon: '◇' },
+            { id: 'simulation', label: '═ Simulyatsiya', icon: '═' },
+            { id: 'history', label: '▣▣ Tarix', icon: '▣▣' },
+            { id: 'leaderboard', label: '☆ Reyting', icon: '☆' }
           ].map((tab) => (
             <button
               key={tab.id}

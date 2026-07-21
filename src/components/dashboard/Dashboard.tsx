@@ -181,7 +181,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, className }) => {
                     <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
                       <div className="flex items-center space-x-3">
                         <div className="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center">
-                          <span className="text-white font-bold">🏆</span>
+                          <span className="text-white font-bold">☆</span>
                         </div>
                         <div>
                           <p className="font-medium">IRAC Mutaxassisi</p>
@@ -193,7 +193,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, className }) => {
                     <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
                       <div className="flex items-center space-x-3">
                         <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
-                          <span className="text-white font-bold">📚</span>
+                          <span className="text-white font-bold">▣▣</span>
                         </div>
                         <div>
                           <p className="font-medium">Kurs Bitiruvchisi</p>
@@ -205,7 +205,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, className }) => {
                     <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
                       <div className="flex items-center space-x-3">
                         <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
-                          <span className="text-white font-bold">🎯</span>
+                          <span className="text-white font-bold">◎</span>
                         </div>
                         <div>
                           <p className="font-medium">Aniq Tahlilchi</p>

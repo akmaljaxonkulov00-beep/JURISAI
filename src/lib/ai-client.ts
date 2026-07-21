@@ -70,7 +70,7 @@ export class AIClient {
   constructor(apiKey?: string) {
     this.apiKey = apiKey || GROQ_API_KEY;
     if (!this.apiKey) {
-      console.warn('⚠️ GROQ_API_KEY not found');
+      console.warn('[!] GROQ_API_KEY not found');
     }
   }
 
@@ -136,19 +136,19 @@ export class AIClient {
 
 JAVOBNI ANIQ SHU FORMATDA, SHU EMOJILAR BILAN BER (boshqacha emas):
 
-📋 QISQA JAVOB:
+▣ QISQA JAVOB:
 Bir jumlada asosiy javob.
 
-📖 ASOSIY MA'LUMOT:
+▣ ASOSIY MA'LUMOT:
 • Birinchi muhim fakt
 • Ikkinchi muhim fakt
 • Uchinchi muhim fakt
 
-⚖ QONUN:
+═ QONUN:
 • Tegishli kodeks va modda raqami
 • Yana bir modda (agar bo'lsa)
 
-💡 MASLAHAT:
+☼ MASLAHAT:
 • Bitta aniq amaliy maslahat
 
 QAT'IY QOIDALAR:

@@ -22,7 +22,7 @@ export default function VoiceTestPage() {
     // Check speech support
     const supported = isSpeechSupported();
     setSpeechSupported(supported);
-    addLog(`Speech Support: ${supported ? '✅ YES' : '❌ NO'}`);
+    addLog(`Speech Support: ${supported ? '[OK] YES' : '[X] NO'}`);
 
     // Run speech test
     testSpeech();
@@ -57,7 +57,7 @@ export default function VoiceTestPage() {
       return;
     }
 
-    addLog('🔊 Speaking: ' + textToSpeak.substring(0, 50) + '...');
+    addLog('♪ Speaking: ' + textToSpeak.substring(0, 50) + '...');
     setIsSpeaking(true);
 
     tts.speak(textToSpeak, {
@@ -66,22 +66,22 @@ export default function VoiceTestPage() {
       pitch,
       volume,
       onStart: () => {
-        addLog('✅ Speech started');
+        addLog('[OK] Speech started');
         setIsSpeaking(true);
       },
       onEnd: () => {
-        addLog('✅ Speech ended');
+        addLog('[OK] Speech ended');
         setIsSpeaking(false);
       },
       onError: (error) => {
-        addLog('❌ Speech error: ' + error);
+        addLog('[X] Speech error: ' + error);
         setIsSpeaking(false);
       }
     });
   };
 
   const handleStop = () => {
-    addLog('⏹️ Stopping speech');
+    addLog('■ Stopping speech');
     tts.stop();
     setIsSpeaking(false);
   };
@@ -97,11 +97,11 @@ export default function VoiceTestPage() {
     stt.startListening({
       continuous: true,
       onStart: () => {
-        addLog('✅ Listening started');
+        addLog('[OK] Listening started');
         setIsListening(true);
       },
       onResult: (text, isFinal) => {
-        addLog(`📝 ${isFinal ? 'Final' : 'Interim'}: ${text}`);
+        addLog(`NOTE ${isFinal ? 'Final' : 'Interim'}: ${text}`);
         
         if (isFinal) {
           fullTranscript += text + ' ';
@@ -112,18 +112,18 @@ export default function VoiceTestPage() {
         }
       },
       onError: (error) => {
-        addLog('❌ Listening error: ' + error);
+        addLog('[X] Listening error: ' + error);
         setIsListening(false);
       },
       onEnd: () => {
-        addLog('🔴 Listening ended');
+        addLog('● Listening ended');
         setIsListening(false);
       }
     });
   };
 
   const handleStopListening = () => {
-    addLog('⏹️ Stopping listening');
+    addLog('■ Stopping listening');
     stt.stopListening();
     setIsListening(false);
   };
@@ -159,12 +159,12 @@ export default function VoiceTestPage() {
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Status Card */}
         <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">📊 System Status</h2>
+          <h2 className="text-xl font-bold text-gray-900 mb-4">▤ System Status</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="p-4 bg-blue-50 rounded-lg">
               <div className="text-sm text-gray-600 mb-1">Speech Support</div>
               <div className="text-2xl font-bold text-blue-600">
-                {speechSupported ? '✅ YES' : '❌ NO'}
+                {speechSupported ? '[OK] YES' : '[X] NO'}
               </div>
             </div>
             <div className="p-4 bg-green-50 rounded-lg">
@@ -174,13 +174,13 @@ export default function VoiceTestPage() {
             <div className="p-4 bg-purple-50 rounded-lg">
               <div className="text-sm text-gray-600 mb-1">Speaking</div>
               <div className="text-2xl font-bold text-purple-600">
-                {isSpeaking ? '🔊 YES' : '🔇 NO'}
+                {isSpeaking ? '♪ YES' : '♫ NO'}
               </div>
             </div>
             <div className="p-4 bg-orange-50 rounded-lg">
               <div className="text-sm text-gray-600 mb-1">Listening</div>
               <div className="text-2xl font-bold text-orange-600">
-                {isListening ? '🎤 YES' : '🔴 NO'}
+                {isListening ? '🎤 YES' : '● NO'}
               </div>
             </div>
           </div>
@@ -189,7 +189,7 @@ export default function VoiceTestPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Text-to-Speech Section */}
           <div className="bg-white rounded-2xl shadow-lg p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">🔊 Text-to-Speech (TTS)</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-4">♪ Text-to-Speech (TTS)</h2>
             
             <div className="space-y-4">
               {/* Text Input */}
@@ -274,7 +274,7 @@ export default function VoiceTestPage() {
                       : 'bg-blue-600 text-white hover:bg-blue-700'
                   }`}
                 >
-                  {isSpeaking ? '🔊 Gapirmoqda...' : '🔊 Gapirish'}
+                  {isSpeaking ? '♪ Gapirmoqda...' : '♪ Gapirish'}
                 </button>
                 <button
                   onClick={handleStop}
@@ -285,7 +285,7 @@ export default function VoiceTestPage() {
                       : 'bg-red-600 text-white hover:bg-red-700'
                   }`}
                 >
-                  ⏹️ To'xtatish
+                  ■ To'xtatish
                 </button>
               </div>
             </div>
@@ -325,7 +325,7 @@ export default function VoiceTestPage() {
 
               {/* Instructions */}
               <div className="p-4 bg-blue-50 rounded-lg">
-                <h3 className="font-medium text-blue-900 mb-2">📝 Ko'rsatmalar:</h3>
+                <h3 className="font-medium text-blue-900 mb-2">NOTE Ko'rsatmalar:</h3>
                 <ul className="text-sm text-blue-700 space-y-1">
                   <li>• Mikrofon tugmasini bosing</li>
                   <li>• Browser ruxsat so'rasa, "Allow" bering</li>
@@ -346,7 +346,7 @@ export default function VoiceTestPage() {
                       : 'bg-green-600 text-white hover:bg-green-700'
                   }`}
                 >
-                  {isListening ? '🔴 Tinglanmoqda...' : '🎤 Tinglashni boshlash'}
+                  {isListening ? '● Tinglanmoqda...' : '🎤 Tinglashni boshlash'}
                 </button>
                 <button
                   onClick={handleStopListening}
@@ -357,7 +357,7 @@ export default function VoiceTestPage() {
                       : 'bg-red-600 text-white hover:bg-red-700'
                   }`}
                 >
-                  ⏹️ To'xtatish
+                  ■ To'xtatish
                 </button>
               </div>
 
@@ -369,7 +369,7 @@ export default function VoiceTestPage() {
                 }}
                 className="w-full py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
               >
-                🗑️ Tozalash
+                ⊗ Tozalash
               </button>
             </div>
           </div>
@@ -378,7 +378,7 @@ export default function VoiceTestPage() {
         {/* Logs Section */}
         <div className="mt-6 bg-white rounded-2xl shadow-lg p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-gray-900">📋 Event Logs</h2>
+            <h2 className="text-xl font-bold text-gray-900">▣ Event Logs</h2>
             <button
               onClick={() => setLogs([])}
               className="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
@@ -400,7 +400,7 @@ export default function VoiceTestPage() {
         {/* Voices Info */}
         {voices.length > 0 && (
           <div className="mt-6 bg-white rounded-2xl shadow-lg p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">🗣️ Available Voices ({voices.length})</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-4">♪ Available Voices ({voices.length})</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-96 overflow-y-auto">
               {voices.map((voice, index) => (
                 <div

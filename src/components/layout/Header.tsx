@@ -21,12 +21,10 @@ const Header: React.FC<HeaderProps> = ({ user, className }) => {
 
   const navigation = [
     { name: 'Bosh sahifa', href: '/' },
-    { name: 'Kurslar', href: '/courses' },
     { name: 'IRAC Tahlil', href: '/case-solver' },
     { name: 'Qaror daraxti', href: '/decision-tree' },
     { name: 'AI yordamchi', href: '/ai-assistant' },
     { name: 'Jamiyat', href: '/community' },
-    { name: 'Vazifalar', href: '/tasks' },
   ];
 
   const handleLogout = () => {

@@ -199,12 +199,12 @@ export default function ScenarioGenerator() {
 
   const getScenarioTypeIcon = (type: string) => {
     switch (type) {
-      case 'civil': return '📄';
-      case 'criminal': return '⚖️';
-      case 'family': return '👨‍👩‍👧‍👦';
-      case 'labor': return '💼';
-      case 'administrative': return '🏛️';
-      default: return '📋';
+      case 'civil': return '▢';
+      case 'criminal': return '═';
+      case 'family': return '◉◉◉';
+      case 'labor': return '▣';
+      case 'administrative': return '◇';
+      default: return '▣';
     }
   };
 
@@ -298,11 +298,11 @@ export default function ScenarioGenerator() {
                           value={scenarioType} 
                           onChange={(e) => setScenarioType(e.target.value)}
                           options={[
-                            { value: "civil", label: "📄 Fuqarolik" },
-                            { value: "criminal", label: "⚖️ Jinoyat" },
-                            { value: "family", label: "👨‍👩‍👧‍👦 Oilaviy" },
-                            { value: "labor", label: "💼 Mehnat" },
-                            { value: "administrative", label: "🏛️ Ma'muriy" }
+                            { value: "civil", label: "▢ Fuqarolik" },
+                            { value: "criminal", label: "═ Jinoyat" },
+                            { value: "family", label: "◉◉◉ Oilaviy" },
+                            { value: "labor", label: "▣ Mehnat" },
+                            { value: "administrative", label: "◇ Ma'muriy" }
                           ]}
                         />
                       </div>
@@ -402,27 +402,27 @@ export default function ScenarioGenerator() {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="p-4 bg-blue-50 rounded-xl">
-                      <h4 className="font-semibold text-blue-900 mb-2">📄 Fuqarolik</h4>
+                      <h4 className="font-semibold text-blue-900 mb-2">▢ Fuqarolik</h4>
                       <p className="text-sm text-blue-700">Shartnoma, mulkiy nizolar, to'lovlar</p>
                     </div>
                     
                     <div className="p-4 bg-red-50 rounded-xl">
-                      <h4 className="font-semibold text-red-900 mb-2">⚖️ Jinoyat</h4>
+                      <h4 className="font-semibold text-red-900 mb-2">═ Jinoyat</h4>
                       <p className="text-sm text-red-700">Jinoyat ishlari, tergov, sud protsessi</p>
                     </div>
                     
                     <div className="p-4 bg-green-50 rounded-xl">
-                      <h4 className="font-semibold text-green-900 mb-2">👨‍👩‍👧‍👦 Oilaviy</h4>
+                      <h4 className="font-semibold text-green-900 mb-2">◉◉◉ Oilaviy</h4>
                       <p className="text-sm text-green-700">Ajralish, aliment, vorislik</p>
                     </div>
                     
                     <div className="p-4 bg-purple-50 rounded-xl">
-                      <h4 className="font-semibold text-purple-900 mb-2">💼 Mehnat</h4>
+                      <h4 className="font-semibold text-purple-900 mb-2">▣ Mehnat</h4>
                       <p className="text-sm text-purple-700">Ishdan bo'shatish, ish haqi, mehnat shartnomasi</p>
                     </div>
                     
                     <div className="p-4 bg-orange-50 rounded-xl">
-                      <h4 className="font-semibold text-orange-900 mb-2">🏛️ Ma'muriy</h4>
+                      <h4 className="font-semibold text-orange-900 mb-2">◇ Ma'muriy</h4>
                       <p className="text-sm text-orange-700">Jarimalar, litsenziyalar, protsedura</p>
                     </div>
                   </CardContent>
@@ -523,7 +523,7 @@ export default function ScenarioGenerator() {
                               <p className="text-sm font-medium text-blue-700">Muvaffaqiyat mezonlari:</p>
                               <div className="space-y-1">
                                 {objective.success_criteria.map((criteria: string, index: number) => (
-                                  <div key={index} className="text-sm text-gray-600">✓ {criteria}</div>
+                                  <div key={index} className="text-sm text-gray-600">[OK] {criteria}</div>
                                 ))}
                               </div>
                             </div>

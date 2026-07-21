@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
+import { Bookmark, Trash2, X, Search } from 'lucide-react';
 import { api } from '@/services/api';
 
 interface LegalArticle {
@@ -372,7 +373,7 @@ export default function LegalDatabase() {
                           handleBookmark(article.id);
                         }}
                       >
-                        📚
+                        <Bookmark className="w-4 h-4" />
                       </Button>
                     </div>
                   </div>
@@ -517,7 +518,7 @@ export default function LegalDatabase() {
                         handleRemoveBookmark(bookmark.document_id);
                       }}
                     >
-                      🗑️
+                      <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>
                 </div>
@@ -557,7 +558,7 @@ export default function LegalDatabase() {
                 variant="outline"
                 onClick={() => setShowArticleModal(false)}
               >
-                ✕
+                <X className="w-4 h-4" />
               </Button>
             </div>
 
@@ -598,7 +599,7 @@ export default function LegalDatabase() {
                     onClick={() => handleBookmark(selectedArticle.id)}
                     className="bg-blue-600 hover:bg-blue-700 text-white"
                   >
-                    📚 Bookmark qilish
+                    <Bookmark className="w-4 h-4 mr-1.5" /> Bookmark qilish
                   </Button>
                 </div>
               </div>
@@ -610,31 +611,30 @@ export default function LegalDatabase() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 p-6 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       <div className="max-w-7xl mx-auto">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-blue-900">Legal Database</h1>
-          <p className="text-blue-700">O'zbekiston qonunchilik ma'lumotlar bazasi</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Qonunlar Bazasi</h1>
+          <p className="text-gray-500 dark:text-gray-400">O'zbekiston qonunchilik ma'lumotlar bazasi</p>
         </div>
 
         {/* Tabs */}
-        <div className="flex space-x-1 mb-6 bg-white/80 backdrop-blur-sm rounded-xl p-1">
+        <div className="flex space-x-1 mb-6 glass rounded-xl p-1">
           {[
-            { id: 'search', label: '🔍 Qidiruv', icon: '🔍' },
-            { id: 'categories', label: '📚 Kategoriyalar', icon: '📚' },
-            { id: 'popular', label: '⭐ Mashhur', icon: '⭐' },
-            { id: 'bookmarks', label: '🔖 Bookmarklar', icon: '🔖' }
+            { id: 'search', label: 'Qidiruv' },
+            { id: 'categories', label: 'Kategoriyalar' },
+            { id: 'popular', label: 'Mashhur' },
+            { id: 'bookmarks', label: "Xatcho'plar" }
           ].map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`flex-1 px-4 py-2 rounded-lg transition-colors ${
+              className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                 activeTab === tab.id
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-700 hover:bg-blue-50'
+                  ? 'bg-blue-600 text-white shadow-md'
+                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
               }`}
             >
-              <span className="mr-2">{tab.icon}</span>
               {tab.label}
             </button>
           ))}

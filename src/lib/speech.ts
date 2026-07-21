@@ -85,7 +85,7 @@ export class AdvancedTTS {
 
   constructor() {
     if (!hasSpeechSynthesis) {
-      console.error('❌ TTS not supported');
+      console.error('[X] TTS not supported');
       return;
     }
 
@@ -100,7 +100,7 @@ export class AdvancedTTS {
     this.voices = this.synth.getVoices();
     if (this.voices.length > 0) {
       this.voicesLoaded = true;
-      console.log(`✅ TTS: Loaded ${this.voices.length} voices immediately`);
+      console.log(`[OK] TTS: Loaded ${this.voices.length} voices immediately`);
       return;
     }
 
@@ -111,7 +111,7 @@ export class AdvancedTTS {
       this.synth.onvoiceschanged = () => {
         this.voices = this.synth!.getVoices();
         this.voicesLoaded = true;
-        console.log(`✅ TTS: Loaded ${this.voices.length} voices on change event`);
+        console.log(`[OK] TTS: Loaded ${this.voices.length} voices on change event`);
         resolve();
       };
 
@@ -120,7 +120,7 @@ export class AdvancedTTS {
         if (!this.voicesLoaded && this.synth) {
           this.voices = this.synth.getVoices();
           this.voicesLoaded = this.voices.length > 0;
-          console.log(`⏰ TTS: Loaded ${this.voices.length} voices after timeout`);
+          console.log(`⏱ TTS: Loaded ${this.voices.length} voices after timeout`);
         }
         resolve();
       }, 1000);
@@ -166,14 +166,14 @@ export class AdvancedTTS {
       // Event handlers
       utterance.onstart = () => {
         this.speaking = true;
-        console.log('🔊 TTS: Started speaking');
+        console.log('♪ TTS: Started speaking');
         options.onStart?.();
       };
 
       utterance.onend = () => {
         this.speaking = false;
         this.currentUtterance = null;
-        console.log('✅ TTS: Finished speaking');
+        console.log('[OK] TTS: Finished speaking');
         options.onEnd?.();
         resolve();
       };
@@ -182,7 +182,7 @@ export class AdvancedTTS {
         this.speaking = false;
         this.currentUtterance = null;
         const error = new Error(`TTS Error: ${event.error}`);
-        console.error('❌ TTS:', error);
+        console.error('[X] TTS:', error);
         options.onError?.(error);
         reject(error);
       };
@@ -243,7 +243,7 @@ export class AdvancedSTT {
 
   constructor() {
     if (!hasSpeechRecognition) {
-      console.error('❌ STT not supported');
+      console.error('[X] STT not supported');
       return;
     }
 
@@ -261,7 +261,7 @@ export class AdvancedSTT {
     this.recognition.lang = 'ru-RU';
     this.recognition.maxAlternatives = 1;
 
-    console.log('✅ STT: Initialized with default config');
+    console.log('[OK] STT: Initialized with default config');
   }
 
   start(options: STTOptions = {}): void {
@@ -275,7 +275,7 @@ export class AdvancedSTT {
     }
 
     if (this.listening) {
-      console.warn('⚠️ STT: Already listening');
+      console.warn('[!] STT: Already listening');
       return;
     }
 
@@ -306,18 +306,18 @@ export class AdvancedSTT {
 
         if (result.isFinal) {
           this.finalTranscript += transcript + ' ';
-          console.log('✅ STT Final:', transcript, `(${(confidence * 100).toFixed(0)}%)`);
+          console.log('[OK] STT Final:', transcript, `(${(confidence * 100).toFixed(0)}%)`);
           options.onResult?.(transcript, true, confidence);
         } else {
           this.interimTranscript += transcript;
-          console.log('⏳ STT Interim:', transcript);
+          console.log('WAIT STT Interim:', transcript);
           options.onResult?.(transcript, false, confidence);
         }
       }
     };
 
     this.recognition.onerror = (event: any) => {
-      console.error('❌ STT Error:', event.error);
+      console.error('[X] STT Error:', event.error);
       
       const errorObj: SpeechRecognitionError = {
         error: event.error,
@@ -334,12 +334,12 @@ export class AdvancedSTT {
 
     this.recognition.onend = () => {
       this.listening = false;
-      console.log('🔴 STT: Stopped listening');
+      console.log('● STT: Stopped listening');
       options.onEnd?.();
     };
 
     this.recognition.onnomatch = () => {
-      console.log('❓ STT: No match');
+      console.log('[?] STT: No match');
       options.onNoMatch?.();
     };
 
@@ -347,7 +347,7 @@ export class AdvancedSTT {
     try {
       this.recognition.start();
     } catch (error) {
-      console.error('❌ STT: Failed to start:', error);
+      console.error('[X] STT: Failed to start:', error);
       this.listening = false;
       const errorObj: SpeechRecognitionError = {
         error: 'aborted',
@@ -367,9 +367,9 @@ export class AdvancedSTT {
       try {
         this.recognition.stop();
         this.listening = false;
-        console.log('⏹️ STT: Stopped');
+        console.log('■ STT: Stopped');
       } catch (error) {
-        console.error('❌ STT: Error stopping:', error);
+        console.error('[X] STT: Error stopping:', error);
       }
     }
   }
@@ -384,9 +384,9 @@ export class AdvancedSTT {
       try {
         this.recognition.abort();
         this.listening = false;
-        console.log('🛑 STT: Aborted');
+        console.log('■ STT: Aborted');
       } catch (error) {
-        console.error('❌ STT: Error aborting:', error);
+        console.error('[X] STT: Error aborting:', error);
       }
     }
   }
@@ -477,8 +477,8 @@ export const testSpeech = (): void => {
   console.log('=== SPEECH TEST ===');
   const info = getBrowserInfo();
   console.log('Browser:', info.browser);
-  console.log('TTS:', info.tts ? '✅' : '❌');
-  console.log('STT:', info.stt ? '✅' : '❌');
+  console.log('TTS:', info.tts ? '[OK]' : '[X]');
+  console.log('STT:', info.stt ? '[OK]' : '[X]');
   
   if (info.tts) {
     const voices = tts.getVoices();

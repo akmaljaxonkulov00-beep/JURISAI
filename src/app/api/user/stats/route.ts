@@ -169,16 +169,16 @@ export async function GET(request: NextRequest) {
 
 function getAchievementIcon(type: string): string {
   const icons: { [key: string]: string } = {
-    'first_case': '🎯',
-    'irac_master': '⚖️',
+    'first_case': '◎',
+    'irac_master': '═',
     'quick_thinker': '⚡',
-    'legal_scholar': '🎓',
-    'ai_expert': '🤖',
-    'case_solver': '🏆',
-    'research_master': '📚',
+    'legal_scholar': '◇',
+    'ai_expert': '⚙',
+    'case_solver': '☆',
+    'research_master': '▣▣',
     'perfect_score': '💯'
   };
-  return icons[type] || '🏅';
+  return icons[type] || '★';
 }
 
 function getActivityTitle(feature: string, action: string): string {

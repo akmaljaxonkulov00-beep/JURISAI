@@ -83,7 +83,7 @@ export default function Community() {
       id: '1',
       author: {
         name: 'Aziz Karimov',
-        avatar: '👨‍💼',
+        avatar: 'user',
         role: 'Advokat',
         verified: true,
         reputation: 1250
@@ -101,7 +101,7 @@ export default function Community() {
       id: '2',
       author: {
         name: 'Dilora Nazarova',
-        avatar: '👩‍🏫',
+        avatar: 'user',
         role: 'Professor',
         verified: true,
         reputation: 2100
@@ -120,7 +120,7 @@ export default function Community() {
       id: '3',
       author: {
         name: 'Bahodir Toshmatov',
-        avatar: '👨‍⚖️',
+        avatar: 'user',
         role: 'Prokuror',
         verified: true,
         reputation: 890
@@ -138,7 +138,7 @@ export default function Community() {
       id: '4',
       author: {
         name: 'Gulnora Saidova',
-        avatar: '👩‍💻',
+        avatar: 'user',
         role: 'Talaba',
         verified: false,
         reputation: 156
@@ -197,7 +197,7 @@ export default function Community() {
     {
       id: '1',
       name: 'Dr. Aziz Karimov',
-      avatar: '👨‍🏫',
+      avatar: 'user',
       title: 'Huquqshunoslik fanlari doktori',
       specialization: 'Fuqarolik va tijorat huquqi',
       verified: true,
@@ -208,7 +208,7 @@ export default function Community() {
     {
       id: '2',
       name: 'Prof. Dilora Nazarova',
-      avatar: '👩‍🏫',
+      avatar: 'user',
       title: 'Jinoyat huquqi professori',
       specialization: 'Jinoyat huquqi va kriminologiya',
       verified: true,
@@ -219,7 +219,7 @@ export default function Community() {
     {
       id: '3',
       name: 'Bahodir Toshmatov',
-      avatar: '👨‍⚖️',
+      avatar: 'user',
       title: 'Prokuratura boshlig\'i',
       specialization: 'Jinoyat protsessi',
       verified: true,
@@ -230,7 +230,7 @@ export default function Community() {
     {
       id: '4',
       name: 'Malika Umarova',
-      avatar: '👩‍💼',
+      avatar: 'user',
       title: 'Advokat',
       specialization: 'Xalqaro arbitraj',
       verified: true,
@@ -283,11 +283,11 @@ export default function Community() {
   ];
 
   const topUsers = [
-    { name: 'Dr. Aziz Karimov', reputation: 2850, role: 'Professor', avatar: '👨‍🏫' },
-    { name: 'Prof. Dilora Nazarova', reputation: 3200, role: 'Professor', avatar: '👩‍🏫' },
-    { name: 'Bahodir Toshmatov', reputation: 1950, role: 'Prokuror', avatar: '👨‍⚖️' },
-    { name: 'Malika Umarova', reputation: 1670, role: 'Advokat', avatar: '👩‍💼' },
-    { name: 'Jamshid Xaydarov', reputation: 1340, role: 'Notarius', avatar: '👨‍💼' }
+    { name: 'Dr. Aziz Karimov', reputation: 2850, role: 'Professor', avatar: 'user' },
+    { name: 'Prof. Dilora Nazarova', reputation: 3200, role: 'Professor', avatar: 'user' },
+    { name: 'Bahodir Toshmatov', reputation: 1950, role: 'Prokuror', avatar: 'user' },
+    { name: 'Malika Umarova', reputation: 1670, role: 'Advokat', avatar: 'user' },
+    { name: 'Jamshid Xaydarov', reputation: 1340, role: 'Notarius', avatar: 'user' }
   ];
 
   const availableTags = [
@@ -378,10 +378,9 @@ export default function Community() {
                 <div className="grid grid-cols-2 gap-6">
                   {experts.map(expert => (
                     <div key={expert.id} className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-lg transition-shadow">
-                      <div className="flex items-start gap-4">
-                        <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-2xl">
-                          {expert.avatar}
-                        </div>
+                      <div className="flex items-start gap-4">                          <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center">
+                            <UserCircle className="w-10 h-10 text-white" />
+                          </div>
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
                             <h3 className="font-bold text-gray-800">{expert.name}</h3>
@@ -718,8 +717,8 @@ export default function Community() {
                       {/* Post Header */}
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                            {post.author.avatar}
+                          <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center">
+                            <UserCircle className="w-6 h-6 text-white" />
                           </div>
                           <div>
                             <div className="flex items-center gap-2">
@@ -799,8 +798,8 @@ export default function Community() {
                     <div className="space-y-3">
                       {topUsers.map((user, index) => (
                         <div key={index} className="flex items-center gap-3">
-                          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-sm">
-                            {user.avatar}
+                          <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center">
+                            <UserCircle className="w-4 h-4 text-white" />
                           </div>
                           <div className="flex-1">
                             <p className="font-medium text-gray-800 text-sm">{user.name}</p>

@@ -21,7 +21,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ className }) => {
           {/* Badge */}
           <div className="flex justify-center mb-6">
             <Badge className="bg-emerald-100 text-emerald-800 px-4 py-2 text-sm font-medium">
-              🎯 O'zbekistonning birinchi AI huquqiy platformasi
+              ◎ O'zbekistonning birinchi AI huquqiy platformasi
             </Badge>
           </div>
 

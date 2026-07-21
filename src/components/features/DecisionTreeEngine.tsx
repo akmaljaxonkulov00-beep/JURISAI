@@ -374,27 +374,27 @@ export default function DecisionTreeEngine() {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="p-4 bg-green-50 rounded-xl">
-                      <h4 className="font-semibold text-green-900 mb-2">📄 Shartnoma Nizolari</h4>
+                      <h4 className="font-semibold text-green-900 mb-2">▢ Shartnoma Nizolari</h4>
                       <p className="text-sm text-green-700">Shartnoma shartlari va kelishuvlar</p>
                     </div>
                     
                     <div className="p-4 bg-blue-50 rounded-xl">
-                      <h4 className="font-semibold text-blue-900 mb-2">👥 Vorislik Masalalari</h4>
+                      <h4 className="font-semibold text-blue-900 mb-2">◉◉ Vorislik Masalalari</h4>
                       <p className="text-sm text-blue-700">Meros va vorislik huquqlari</p>
                     </div>
                     
                     <div className="p-4 bg-purple-50 rounded-xl">
-                      <h4 className="font-semibold text-purple-900 mb-2">💼 Mehnat Masalalari</h4>
+                      <h4 className="font-semibold text-purple-900 mb-2">▣ Mehnat Masalalari</h4>
                       <p className="text-sm text-purple-700">Ishchi va ish beruvchi munosabatlari</p>
                     </div>
                     
                     <div className="p-4 bg-orange-50 rounded-xl">
-                      <h4 className="font-semibold text-orange-900 mb-2">🏠 Oilaviy Masalalar</h4>
+                      <h4 className="font-semibold text-orange-900 mb-2">⌂ Oilaviy Masalalar</h4>
                       <p className="text-sm text-orange-700">Nikoh, ajralish, aliment</p>
                     </div>
                     
                     <div className="p-4 bg-red-50 rounded-xl">
-                      <h4 className="font-semibold text-red-900 mb-2">⚖️ Jinoyat Ishlari</h4>
+                      <h4 className="font-semibold text-red-900 mb-2">═ Jinoyat Ishlari</h4>
                       <p className="text-sm text-red-700">Jinoyat protsedurasi va himoya</p>
                     </div>
                   </CardContent>

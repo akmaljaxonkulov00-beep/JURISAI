@@ -575,7 +575,7 @@ const LegalForms: React.FC = () => {
                     <ul className="space-y-1">
                       {selectedTemplate.required_documents.map((doc, index) => (
                         <li key={index} className="flex items-start space-x-2 text-sm text-yellow-700">
-                          <span className="text-yellow-500 mt-1">📄</span>
+                          <span className="text-yellow-500 mt-1">▢</span>
                           <span>{doc}</span>
                         </li>
                       ))}
@@ -702,19 +702,19 @@ const LegalForms: React.FC = () => {
                   <h4 className="font-medium mb-2">Yuborishdan oldin tekshirish:</h4>
                   <ul className="space-y-2 text-gray-700">
                     <li className="flex items-start space-x-2">
-                      <span className="text-green-500 mt-1">✓</span>
+                      <span className="text-green-500 mt-1">[OK]</span>
                       <span>Barcha maydonlar to\'ldirilganligini tekshiring</span>
                     </li>
                     <li className="flex items-start space-x-2">
-                      <span className="text-green-500 mt-1">✓</span>
+                      <span className="text-green-500 mt-1">[OK]</span>
                       <span>Ma\'lumotlarning to\'g\'riligini tekshiring</span>
                     </li>
                     <li className="flex items-start space-x-2">
-                      <span className="text-green-500 mt-1">✓</span>
+                      <span className="text-green-500 mt-1">[OK]</span>
                       <span>Ilova qilingan hujjatlar to\'liqligini tekshiring</span>
                     </li>
                     <li className="flex items-start space-x-2">
-                      <span className="text-green-500 mt-1">✓</span>
+                      <span className="text-green-500 mt-1">[OK]</span>
                       <span>Imzo va sanani tekshiring</span>
                     </li>
                   </ul>
