@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 // Stripe import with error handling
-// Stripe import with error handling
 let stripe: any = null;
 try {
-  const Stripe = require('stripe');
-  stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+  if (process.env.STRIPE_SECRET_KEY) {
+    const Stripe = require('stripe');
+    stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+  }
 } catch (error) {
   console.warn('Stripe not available:', error);
 }

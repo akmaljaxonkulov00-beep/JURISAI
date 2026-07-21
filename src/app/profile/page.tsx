@@ -41,28 +41,30 @@ export default function Profile() {
   const [activeTab, setActiveTab] = useState<'overview' | 'settings' | 'help' | 'premium'>('overview');
   const [settingsSubTab, setSettingsSubTab] = useState<'personal' | 'notifications' | 'appearance' | 'security' | 'data'>('personal');
   const [profile, setProfile] = useState<UserProfile>(() => {
-    // Try to load from localStorage auth
-    const stored = localStorage.getItem('auth_user');
-    if (stored) {
-      try {
-        const user = JSON.parse(stored);
-        return {
-          id: user.id || '0',
-          firstName: user.name?.split(' ')[0] || user.firstName || 'Foydalanuvchi',
-          lastName: user.name?.split(' ').slice(1).join(' ') || user.lastName || '',
-          email: user.email || '',
-          phone: user.phone || '+998 __ ___ __ __',
-          status: 'Talaba',
-          specialization: user.specialization || '',
-          avatar: 'user',
-          subscription: user.subscription_plan === 'pro' ? 'Pro' : 'Free',
-          language: 'uz',
-          xp: user.xp || 0,
-          coursesCount: user.coursesCount || 0,
-          rating: user.rating || 0,
-          certificates: user.certificates || 0
-        };
-      } catch {}
+    // Try to load from localStorage auth (client-side only)
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('auth_user');
+      if (stored) {
+        try {
+          const user = JSON.parse(stored);
+          return {
+            id: user.id || '0',
+            firstName: user.name?.split(' ')[0] || user.firstName || 'Foydalanuvchi',
+            lastName: user.name?.split(' ').slice(1).join(' ') || user.lastName || '',
+            email: user.email || '',
+            phone: user.phone || '+998 __ ___ __ __',
+            status: 'Talaba',
+            specialization: user.specialization || '',
+            avatar: 'user',
+            subscription: user.subscription_plan === 'pro' ? 'Pro' : 'Free',
+            language: 'uz',
+            xp: user.xp || 0,
+            coursesCount: user.coursesCount || 0,
+            rating: user.rating || 0,
+            certificates: user.certificates || 0
+          };
+        } catch {}
+      }
     }
     return {
       id: '0',
@@ -91,7 +93,12 @@ export default function Profile() {
     caseReminders: true,
     weeklyReport: true
   });
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return document.documentElement.classList.contains('dark') || localStorage.getItem('jurisai-theme') === 'dark';
+    }
+    return false;
+  });
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [passwordData, setPasswordData] = useState({ current: '', newPass: '', confirm: '' });
   const [showCurrentPass, setShowCurrentPass] = useState(false);
