@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import {
   ArrowLeft, User, Mail, Phone, Lock, Globe, Edit3, Award, BookOpen,
   TrendingUp, Star, Camera, CheckCircle, Crown, Settings, Target,
@@ -9,6 +9,7 @@ import {
   Search, X, Eye, EyeOff, Key, LogOut, Database, AlertTriangle
 } from 'lucide-react';
 import { useTheme } from '@/context/ThemeContext';
+import { useSearchParams } from 'next/navigation';
 
 interface UserProfile {
   id: string;
@@ -37,10 +38,14 @@ interface NotificationSettings {
   weeklyReport: boolean;
 }
 
-export default function Profile() {
+function ProfileContent() {
   const { dark: themeDark, toggle: toggleTheme } = useTheme();
+  const searchParams = useSearchParams();
   const [isEditing, setIsEditing] = useState(false);
-  const [activeTab, setActiveTab] = useState<'overview' | 'settings' | 'help' | 'premium'>('overview');
+  // Check if there's a tab query parameter (e.g. /profile?tab=settings)
+  const tabParam = searchParams.get('tab');
+  const defaultTab = (tabParam === 'settings' || tabParam === 'help' || tabParam === 'premium') ? tabParam : 'overview';
+  const [activeTab, setActiveTab] = useState<'overview' | 'settings' | 'help' | 'premium'>(defaultTab as any);
   const [settingsSubTab, setSettingsSubTab] = useState<'personal' | 'notifications' | 'appearance' | 'security' | 'data'>('personal');
   const [profile, setProfile] = useState<UserProfile>(() => {
     // Try to load from localStorage auth (client-side only)
@@ -194,7 +199,7 @@ export default function Profile() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Talaba': return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300';
-      case 'Magistrant': return 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300';
+      case 'Magistrant': return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300';
       case 'Amaliyotchi yurist': return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300';
       case 'Professional yurist': return 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300';
       default: return 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300';
@@ -386,7 +391,7 @@ export default function Profile() {
           <div className="space-y-4">
             <div className="glass rounded-2xl p-6">
               <h2 className="text-lg font-bold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
-                <Monitor className="w-5 h-5 text-purple-600" />
+                <Monitor className="w-5 h-5 text-blue-600" />
                 Ko'rinish sozlamalari
               </h2>
               <div className="space-y-6">
@@ -638,7 +643,7 @@ export default function Profile() {
           </div>
         </div>
 
-        <div className="glass rounded-2xl p-6 bg-gradient-to-r from-blue-500/5 to-purple-500/5">
+        <div className="glass rounded-2xl p-6 bg-gradient-to-r from-blue-500/5 to-green-500/5">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
               <MessageCircle className="w-6 h-6 text-blue-600 dark:text-blue-400" />
@@ -762,7 +767,7 @@ export default function Profile() {
             {profileImage ? (
               <img src={profileImage} alt="Profile" className="w-24 h-24 rounded-full object-cover shadow-lg" />
             ) : (
-              <div className="w-24 h-24 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center shadow-lg">
+              <div className="w-24 h-24 bg-gradient-to-br from-blue-400 to-green-500 rounded-full flex items-center justify-center shadow-lg">
                 <User className="w-12 h-12 text-white" />
               </div>
             )}
@@ -805,15 +810,14 @@ export default function Profile() {
       <div className="grid grid-cols-4 gap-4">
         {[
           { icon: TrendingUp, label: 'XP', value: profile.xp.toLocaleString(), color: 'blue' },
-          { icon: BookOpen, label: 'Kurslar', value: profile.coursesCount, color: 'green' },
-          { icon: Star, label: 'Reyting', value: `#${profile.rating}`, color: 'purple' },
+          { icon: BookOpen, label: 'Kurslar', value: profile.coursesCount, color: 'green' },            { icon: Star, label: 'Reyting', value: `#${profile.rating}`, color: 'orange' },
           { icon: Award, label: 'Sertifikatlar', value: profile.certificates, color: 'orange' },
         ].map((stat, i) => {
           const Icon = stat.icon;
           const colors: Record<string, string> = {
             blue: 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400',
             green: 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400',
-            purple: 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400',
+            orange: 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400',
             orange: 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400',
           };
           return (
@@ -839,7 +843,7 @@ export default function Profile() {
           {[
             { icon: CheckCircle, bg: 'bg-blue-100 dark:bg-blue-900/30', color: 'text-blue-600 dark:text-blue-400', title: 'Case Solver - Jinoyat ishi №245', desc: '85 ball bilan yakunlandi', time: '2 soat oldin' },
             { icon: Award, bg: 'bg-green-100 dark:bg-green-900/30', color: 'text-green-600 dark:text-green-400', title: 'Sertifikat olindi', desc: 'Jinoyat huquqi asoslari kursi', time: '1 kun oldin' },
-            { icon: Star, bg: 'bg-purple-100 dark:bg-purple-900/30', color: 'text-purple-600 dark:text-purple-400', title: 'Reyting oshdi', desc: '156 → 165 o\'ringa ko\'tarildi', time: '3 kun oldin' },
+            { icon: Star, bg: 'bg-orange-100 dark:bg-orange-900/30', color: 'text-orange-600 dark:text-orange-400', title: 'Reyting oshdi', desc: '156 → 165 o\'ringa ko\'tarildi', time: '3 kun oldin' },
           ].map((item, i) => {
             const Icon = item.icon;
             return (
@@ -907,5 +911,13 @@ export default function Profile() {
         {activeTab === 'premium' && renderPremium()}
       </div>
     </div>
+  );
+}
+
+export default function Profile() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-page-custom flex items-center justify-center"><div className="text-center">Yuklanmoqda...</div></div>}>
+      <ProfileContent />
+    </Suspense>
   );
 }

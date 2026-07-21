@@ -66,6 +66,9 @@ export default function Dashboard() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
   const [activeSection, setActiveSection] = useState('overview');
+  const [userStats, setUserStats] = useState<UserStats | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [profileImage, setProfileImage] = useState<string | null>(null);
 
   // Auth guard - tizimga kirmagan foydalanuvchini signin sahifasiga yo'naltirish
   useEffect(() => {
@@ -76,7 +79,7 @@ export default function Dashboard() {
 
   if (isLoading || !user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-100 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Yuklanmoqda...</p>
@@ -84,10 +87,6 @@ export default function Dashboard() {
       </div>
     );
   }
-  const [userStats, setUserStats] = useState<UserStats | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  const [profileImage, setProfileImage] = useState<string | null>(null);
 
   const handleNavigation = (href: string) => {
     router.push(href);
@@ -140,17 +139,7 @@ export default function Dashboard() {
   };
 
   const navigationGroups = [
-    {
-      title: 'Asosiy',
-      items: [
-        {
-          id: 'home',
-          label: 'Bosh sahifa',
-          icon: Home,
-          href: '/dashboard'
-        }
-      ]
-    },
+
     {
       title: 'Amaliyot',
       items: [
@@ -232,7 +221,7 @@ export default function Dashboard() {
     switch (rarity) {
       case 'common': return 'bg-gray-100 text-gray-800 border-gray-300';
       case 'rare': return 'bg-blue-100 text-blue-800 border-blue-300';
-      case 'epic': return 'bg-purple-100 text-purple-800 border-purple-300';
+      case 'epic': return 'bg-green-100 text-green-800 border-green-300';
       case 'legendary': return 'bg-yellow-100 text-yellow-800 border-yellow-300';
       default: return 'bg-gray-100 text-gray-800 border-gray-300';
     }
@@ -252,31 +241,33 @@ export default function Dashboard() {
       {/* User Profile Section */}
       <div className="p-6 border-b border-gray-100/50">
         <div className="flex items-center space-x-4">
-          <div className="relative group">
-            {profileImage ? (
-              <img src={profileImage} alt="Profile" className="w-16 h-16 rounded-full object-cover shadow-lg" />
-            ) : (
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg transition-transform group-hover:scale-105 duration-200">
-                {user?.name?.charAt(0).toUpperCase() || 'U'}
+          <a href="/profile" className="flex items-center space-x-4 group cursor-pointer">
+            <div className="relative group">
+              {profileImage ? (
+                <img src={profileImage} alt="Profile" className="w-16 h-16 rounded-full object-cover shadow-lg" />
+              ) : (
+                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-green-500 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg transition-transform group-hover:scale-105 duration-200">
+                  {user?.name?.charAt(0).toUpperCase() || 'U'}
+                </div>
+              )}
+              <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-emerald-500 rounded-full border-2 border-white flex items-center justify-center shadow-sm">
+                <span className="text-white text-xs font-bold">{userStats?.level || 1}</span>
               </div>
-            )}
-            <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-emerald-500 rounded-full border-2 border-white flex items-center justify-center shadow-sm">
-              <span className="text-white text-xs font-bold">{userStats?.level || 1}</span>
             </div>
-          </div>
-          <div className="flex-1">
-            <h3 className="font-bold text-gray-900 text-lg">{user?.name || 'User'}</h3>
-            <p className="text-sm text-gray-500">{userStats?.rank || 'Legal Practitioner'}</p>
-            <div className="flex items-center mt-2">
-              <div className="flex-1 bg-gray-100 rounded-full h-2 overflow-hidden">
-                <div
-                  className="bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-600 h-2 rounded-full transition-all duration-500"
-                  style={{ width: `${((userStats?.level || 1) % 20) * 5}%` }}
-                />
+            <div className="flex-1">
+              <h3 className="font-bold text-gray-900 text-lg group-hover:text-blue-600 transition-colors">{user?.name || 'User'}</h3>
+              <p className="text-sm text-gray-500">{userStats?.rank || 'Legal Practitioner'}</p>
+              <div className="flex items-center mt-2">
+                <div className="flex-1 bg-gray-100 rounded-full h-2 overflow-hidden">
+                  <div
+                    className="bg-gradient-to-r from-blue-500 to-green-500 h-2 rounded-full transition-all duration-500"
+                    style={{ width: `${((userStats?.level || 1) % 20) * 5}%` }}
+                  />
+                </div>
+                <span className="ml-2 text-xs text-gray-500 font-medium">Lv.{userStats?.level || 1}</span>
               </div>
-              <span className="ml-2 text-xs text-gray-500 font-medium">Lv.{userStats?.level || 1}</span>
             </div>
-          </div>
+          </a>
         </div>
       </div>
 
@@ -337,7 +328,7 @@ export default function Dashboard() {
   const renderOverview = () => (
     <div className="space-y-6 page-enter">
       {/* Welcome Header */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 rounded-2xl p-8 text-white shadow-2xl">
+      <div className="relative overflow-hidden bg-gradient-to-br from-blue-600 to-green-600 rounded-2xl p-8 text-white shadow-2xl">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.12)_0%,transparent_60%)]" />
         <div className="absolute -bottom-8 -right-8 w-48 h-48 bg-white/5 rounded-full blur-2xl" />
         <div className="relative flex justify-between items-start">
@@ -385,11 +376,11 @@ export default function Dashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-gray-500 font-medium mb-1">Total XP</p>
-                <p className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-purple-400 bg-clip-text text-transparent">{userStats?.xp || 0}</p>
+                <p className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-orange-400 bg-clip-text text-transparent">{userStats?.xp || 0}</p>
                 <p className="text-xs text-gray-400 mt-1">+250 this week</p>
               </div>
-              <div className="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center glow-purple">
-                <Zap className="w-6 h-6 text-purple-500" />
+              <div className="w-12 h-12 bg-orange-50 rounded-xl flex items-center justify-center">
+                <Zap className="w-6 h-6 text-orange-500" />
               </div>
             </div>
           </CardContent>
@@ -465,7 +456,7 @@ export default function Dashboard() {
         <Card className="glass rounded-2xl border-0 overflow-hidden">
           <CardHeader className="border-b border-gray-100/50 pb-4">
             <CardTitle className="flex items-center space-x-2 text-gray-800">
-              <Award className="w-5 h-5 text-purple-500" />
+              <Award className="w-5 h-5 text-orange-500" />
               <span className="text-lg">Yutuqlar</span>
             </CardTitle>
           </CardHeader>
@@ -482,7 +473,7 @@ export default function Dashboard() {
                         <span className={`inline-block px-2 py-0.5 rounded-md text-[10px] font-medium uppercase tracking-wider ${
                           achievement.rarity === 'common' ? 'bg-gray-200 text-gray-600' :
                           achievement.rarity === 'rare' ? 'bg-blue-200 text-blue-700' :
-                          achievement.rarity === 'epic' ? 'bg-purple-200 text-purple-700' :
+                          achievement.rarity === 'epic' ? 'bg-blue-200 text-blue-700' :
                           'bg-amber-200 text-amber-700'
                         }`}>
                           {achievement.rarity}
@@ -524,12 +515,12 @@ export default function Dashboard() {
             </div>
             <div
               onClick={() => handleNavigation('/court-simulator')}
-              className="relative overflow-hidden group p-6 bg-gradient-to-br from-purple-50/80 to-pink-50/80 rounded-xl border border-purple-100/50 hover:border-purple-200/80 transition-all duration-300 cursor-pointer hover-lift"
+              className="relative overflow-hidden group p-6 bg-gradient-to-br from-orange-50/80 to-amber-50/80 rounded-xl border border-orange-100/50 hover:border-orange-200/80 transition-all duration-300 cursor-pointer hover-lift"
             >
-              <div className="absolute -top-6 -right-6 w-20 h-20 bg-purple-200/20 rounded-full blur-xl group-hover:scale-150 transition-transform duration-500" />
-              <Gavel className="w-8 h-8 text-purple-600 mb-3 group-hover:scale-110 transition-transform duration-200" />
-              <h3 className="font-semibold text-purple-900">Sud Simulyatori</h3>
-              <p className="text-sm text-purple-600/70 mt-1">Virtual sud jarayonida qatnashing</p>
+              <div className="absolute -top-6 -right-6 w-20 h-20 bg-orange-200/20 rounded-full blur-xl group-hover:scale-150 transition-transform duration-500" />
+              <Gavel className="w-8 h-8 text-orange-600 mb-3 group-hover:scale-110 transition-transform duration-200" />
+              <h3 className="font-semibold text-orange-900">Sud Simulyatori</h3>
+              <p className="text-sm text-orange-600/70 mt-1">Virtual sud jarayonida qatnashing</p>
             </div>
           </div>
         </CardContent>
@@ -549,7 +540,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-3 md:p-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 p-3 md:p-6">
       <div className="max-w-full mx-auto">
         <div className="flex flex-col md:flex-row gap-4 md:gap-6">
           <div className="desktop-sidebar">

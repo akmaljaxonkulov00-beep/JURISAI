@@ -101,7 +101,22 @@ function AIResponse({ text }: { text: string }) {
 
 // ── Asosiy komponent ───────────────────────────────────────────────────────
 export default function AIAssistant() {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<Message[]>(() => {
+    // Saqlangan chat tarixini yuklash
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('ai_chat_history');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          return parsed.map((m: any) => ({
+            ...m,
+            timestamp: new Date(m.timestamp)
+          }));
+        }
+      } catch {}
+    }
+    return [];
+  });
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
@@ -120,6 +135,20 @@ export default function AIAssistant() {
     const stt = 'SpeechRecognition' in window || 'webkitSpeechRecognition' in window;
     setSpeechReady(tts || stt || true);
   }, []);
+
+  // Xabarlar o'zgarganda localStorage ga saqlash
+  useEffect(() => {
+    if (typeof window !== 'undefined' && messages.length > 0) {
+      try {
+        // Faqat oxirgi 50 ta xabarni saqlash
+        const toSave = messages.slice(-50).map(m => ({
+          ...m,
+          timestamp: m.timestamp.toISOString()
+        }));
+        localStorage.setItem('ai_chat_history', JSON.stringify(toSave));
+      } catch {}
+    }
+  }, [messages]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });

@@ -6,10 +6,10 @@ export default function AuthLayout({
   children: ReactNode
 }) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
       <div className="flex min-h-screen">
         {/* Left side - Branding and info */}
-        <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-600 to-purple-700 p-12 flex-col justify-between">
+        <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-600 to-blue-800 p-12 flex-col justify-between">
           <div className="flex-1 flex flex-col justify-center">
             <div className="mb-12">
               <div className="flex items-center space-x-3 mb-8">
