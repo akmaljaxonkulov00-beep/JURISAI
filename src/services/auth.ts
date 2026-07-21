@@ -285,29 +285,12 @@ export const useAuth = () => {
   });
 
   React.useEffect(() => {
-    // Initialize auth state
+    // Initialize auth state from localStorage
     const initializeAuth = async () => {
       console.log('Auth hook - initializing...');
       const state = authService.getAuthState();
       console.log('Auth hook - initial state:', state);
-      
-      // For now, set a mock user to bypass authentication
-      const mockUser = {
-        id: '1',
-        name: 'Test User',
-        email: 'test@example.com',
-        role: 'user',
-        created_at: new Date().toISOString()
-      };
-      
-      setAuthState({
-        user: mockUser,
-        token: 'mock-token',
-        isAuthenticated: true,
-        isLoading: false
-      });
-      
-      console.log('Auth hook - set mock user:', mockUser);
+      setAuthState({ ...state, isLoading: false });
     };
 
     initializeAuth();

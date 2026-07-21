@@ -92,85 +92,25 @@ export default function Dashboard() {
     try {
       setLoading(true);
 
-      // Mock data
-      const mockStats: UserStats = {
-        xp: 2450,
-        level: 12,
-        completedCases: 38,
-        totalCases: 42,
-        weeklyProgress: 78,
-        rank: "Legal Expert",
-        achievements: [
-          {
-            id: '1',
-            title: 'First Case',
-            description: 'Complete your first legal case analysis',
-            icon: '🔵',
-            unlockedAt: '2024-01-15',
-            rarity: 'common'
-          },
-          {
-            id: '2',
-            title: 'IRAC Master',
-            description: 'Score 90+ on 5 IRAC analyses',
-            icon: '🟣',
-            unlockedAt: '2024-01-20',
-            rarity: 'rare'
-          },
-          {
-            id: '3',
-            title: 'Quick Thinker',
-            description: 'Complete 10 cases under 5 minutes',
-            icon: '⚡',
-            unlockedAt: '2024-01-25',
-            rarity: 'epic'
-          },
-          {
-            id: '4',
-            title: 'Legal Scholar',
-            description: 'Reach level 10',
-            icon: '👑',
-            unlockedAt: '2024-02-01',
-            rarity: 'legendary'
-          }
-        ],
-        recentActivity: [
-          {
-            id: '1',
-            type: 'case_completed',
-            title: 'Contract Dispute Analysis',
-            description: 'Completed IRAC analysis with score 92',
-            timestamp: '2024-02-10T14:30:00Z',
-            xp: 150
-          },
-          {
-            id: '2',
-            type: 'achievement_unlocked',
-            title: 'IRAC Master',
-            description: 'Unlocked rare achievement',
-            timestamp: '2024-02-10T13:15:00Z',
-            xp: 100
-          },
-          {
-            id: '3',
-            type: 'case_completed',
-            title: 'Criminal Law Scenario',
-            description: 'Completed scenario analysis',
-            timestamp: '2024-02-09T16:45:00Z',
-            xp: 120
-          },
-          {
-            id: '4',
-            type: 'daily_streak',
-            title: '7 Day Streak',
-            description: 'Maintained daily activity for 7 days',
-            timestamp: '2024-02-09T09:00:00Z',
-            xp: 50
-          }
-        ]
-      };
-
-      setUserStats(mockStats);
+      // Load stats from localStorage or use default empty values
+      const storedStats = localStorage.getItem('user_stats');
+      if (storedStats) {
+        setUserStats(JSON.parse(storedStats));
+      } else {
+        // Default empty stats for new users
+        const defaultStats: UserStats = {
+          xp: 0,
+          level: 1,
+          completedCases: 0,
+          totalCases: 0,
+          weeklyProgress: 0,
+          rank: 'Yangi boshlovchi',
+          achievements: [],
+          recentActivity: []
+        };
+        setUserStats(defaultStats);
+        localStorage.setItem('user_stats', JSON.stringify(defaultStats));
+      }
     } catch (error) {
       console.error('Dashboard stats error:', error);
     } finally {

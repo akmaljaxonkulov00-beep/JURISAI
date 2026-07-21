@@ -165,109 +165,53 @@ export default function AdminDashboard() {
     try {
      console.log('Fetching analytics data...');
       
-      // Mock data for testing - API endpoints may not exist yet
-      const mockRevenueAnalytics: RevenueAnalytics = {
-        revenueData: [
-          { date: '2024-01-01', revenue: 2500000, transactionCount: 25 },
-          { date: '2024-01-02', revenue: 3200000, transactionCount: 32 },
-          { date: '2024-01-03', revenue: 2800000, transactionCount: 28 },
-        ],
-        summary: {
-          totalRevenue: 8500000,
-          totalTransactions: 85,
-          todayRevenue: 2800000,
-          todayTransactions: 28,
-          weekRevenue: 8500000,
-          weekTransactions: 85,
-          monthRevenue: 25000000,
-          monthTransactions: 250,
-        },
-        revenueByPlan: [
-          { planName: 'Basic', planPrice: 50000, subscriptionCount: 10, totalRevenue: 500000 },
-          { planName: 'Pro', planPrice: 100000, subscriptionCount: 15, totalRevenue: 1500000 },
-          { planName: 'Premium', planPrice: 200000, subscriptionCount: 5, totalRevenue: 1000000 },
-        ],
-      };
-
-      const mockUserAnalytics: UserAnalytics = {
-        userGrowth: [
-          { date: '2024-01-01', newUsers: 5 },
-          { date: '2024-01-02', newUsers: 8 },
-          { date: '2024-01-03', newUsers: 12 },
-        ],
-        activeSubscriptions: [
-          { planName: 'Basic', planPrice: 50000, activeSubscriptions: 10, uniqueUsers: 10 },
-          { planName: 'Pro', planPrice: 100000, activeSubscriptions: 15, uniqueUsers: 15 },
-          { planName: 'Premium', planPrice: 200000, activeSubscriptions: 5, uniqueUsers: 5 },
-        ],
-        summary: {
-          totalUsers: 150,
-          activeUsers: 120,
-          todayUsers: 25,
-          weekUsers: 80,
-          monthUsers: 150,
-        },
-        lastUsers: [
-          {
-            id: '1',
-            email: 'user1@example.com',
-            firstName: 'Ali',
-            lastName: 'Valiyev',
-            role: 'USER',
-            status: 'ACTIVE',
-            createdAt: '2024-01-03T10:00:00Z',
-            subscription: {
-              planName: 'Pro',
-              status: 'ACTIVE',
-              currentPeriodEnd: '2024-02-03T10:00:00Z',
-            },
-          },
-        ],
-        userRoles: [
-          { role: 'USER', count: 140 },
-          { role: 'ADMIN', count: 10 },
-        ],
-      };
-
-      const mockAIUsageAnalytics: AIUsageAnalytics = {
-        aiUsageOverTime: [
-          { date: '2024-01-01', legalChatRequests: 50, iracAnalysisRequests: 30, documentGenerationRequests: 20, lawSearchRequests: 40, totalRequests: 140 },
-          { date: '2024-01-02', legalChatRequests: 60, iracAnalysisRequests: 35, documentGenerationRequests: 25, lawSearchRequests: 45, totalRequests: 165 },
-          { date: '2024-01-03', legalChatRequests: 70, iracAnalysisRequests: 40, documentGenerationRequests: 30, lawSearchRequests: 50, totalRequests: 190 },
-        ],
-        mostUsedFeatures: [
-          { feature: 'Legal Chat', totalUsage: 180, uniqueUsers: 60 },
-          { feature: 'IRAC Analysis', totalUsage: 105, uniqueUsers: 35 },
-          { feature: 'Document Generation', totalUsage: 75, uniqueUsers: 25 },
-          { feature: 'Law Search', totalUsage: 135, uniqueUsers: 45 },
-        ],
-        topUsers: [
-          {
-            id: '1',
-            email: 'poweruser@example.com',
-            firstName: 'Bekzod',
-            lastName: 'Karimov',
-            totalAIUsage: 150,
-            featuresUsed: 4,
-          },
-        ],
-        summary: {
-          totalAIUsage: 495,
-          totalRequests: 495,
-          todayAIUsage: 190,
-          todayRequests: 190,
-          weekAIUsage: 495,
-          weekRequests: 495,
-          monthAIUsage: 1500,
-          monthRequests: 1500,
-        },
-      };
-
-      setRevenueAnalytics(mockRevenueAnalytics);
-      setUserAnalytics(mockUserAnalytics);
-      setAIUsageAnalytics(mockAIUsageAnalytics);
+      console.log('No analytics endpoints configured yet. Admin stats will show zeros until Supabase is connected.');
       
-      console.log('Mock analytics data loaded successfully');
+      // Empty data (no demo data)
+      setRevenueAnalytics({
+        revenueData: [],
+        summary: {
+          totalRevenue: 0,
+          totalTransactions: 0,
+          todayRevenue: 0,
+          todayTransactions: 0,
+          weekRevenue: 0,
+          weekTransactions: 0,
+          monthRevenue: 0,
+          monthTransactions: 0,
+        },
+        revenueByPlan: [],
+      });
+      
+      setUserAnalytics({
+        userGrowth: [],
+        activeSubscriptions: [],
+        summary: {
+          totalUsers: 0,
+          activeUsers: 0,
+          todayUsers: 0,
+          weekUsers: 0,
+          monthUsers: 0,
+        },
+        lastUsers: [],
+        userRoles: [],
+      });
+      
+      setAIUsageAnalytics({
+        aiUsageOverTime: [],
+        mostUsedFeatures: [],
+        topUsers: [],
+        summary: {
+          totalAIUsage: 0,
+          totalRequests: 0,
+          todayAIUsage: 0,
+          todayRequests: 0,
+          weekAIUsage: 0,
+          weekRequests: 0,
+          monthAIUsage: 0,
+          monthRequests: 0,
+        },
+      });
     } catch (error) {
       console.error('Error fetching analytics:', error);
     } finally {

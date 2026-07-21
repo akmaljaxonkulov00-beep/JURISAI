@@ -135,90 +135,20 @@ export default function LawyerDashboard() {
         return;
       }
 
-      // Load mock data for now (in production, fetch from API)
-      const mockClients: Client[] = [
-        {
-          id: '1',
-          name: 'Ali Karimov',
-          email: 'ali@example.com',
-          phone: '+998 90 123 45 67',
-          caseType: 'Jinoyat huquqi',
-          status: 'active',
-          createdAt: '2024-03-15',
-          lastContact: '2024-03-20',
-          totalCases: 3,
-          revenue: 1500000
-        },
-        {
-          id: '2',
-          name: 'Dilora Toshmatova',
-          email: 'dilora@example.com',
-          phone: '+998 91 234 56 78',
-          caseType: 'Oilaviy huquq',
-          status: 'pending',
-          createdAt: '2024-03-18',
-          lastContact: '2024-03-19',
-          totalCases: 1,
-          revenue: 500000
-        }
-      ];
-
-      const mockRequests: ClientRequest[] = [
-        {
-          id: '1',
-          clientId: '1',
-          clientName: 'Ali Karimov',
-          subject: 'Shartnoma tahlili',
-          description: 'Sotib olish shartnomasini huquqiy jihatdan tekshirish kerak',
-          urgency: 'high',
-          status: 'pending',
-          createdAt: '2024-03-20',
-          category: 'Shartnoma huquqi'
-        },
-        {
-          id: '2',
-          clientId: '2',
-          clientName: 'Dilora Toshmatova',
-          subject: 'Ajrim masalasi',
-          description: 'Nikohdan ajralish bo\'yicha maslahat kerak',
-          urgency: 'medium',
-          status: 'in_progress',
-          createdAt: '2024-03-19',
-          category: 'Oilaviy huquq'
-        }
-      ];
-
-      const mockDocuments: DocumentAnalysis[] = [
-        {
-          id: '1',
-          documentName: 'Sotib olish shartnomasi.pdf',
-          documentType: 'Shartnoma',
-          analysisResult: {
-            summary: 'Bu xususiy mulk sotib olish shartnomasi...',
-            keyPoints: ['Tomonlar: sotuvchi va xaridor', 'Miqdor: 150 million so\'m', 'To\'lov shartlari'],
-            risks: ['Shartnoma ro\'yxatdan o\'tilmagan', 'Garov mavjud emas'],
-            recommendations: ['Notarial tasdiqlash kerak', 'Garov qo\'shish maslahat beriladi'],
-            legalReferences: ['Fuqarolik kodeksi 375-moddasi', 'Mulk kodeksi 15-moddasi']
-          },
-          confidence: 95,
-          createdAt: '2024-03-20',
-          status: 'completed'
-        }
-      ];
-
-      setClients(mockClients);
-      setRequests(mockRequests);
-      setDocuments(mockDocuments);
+      // Set default empty data (no demo data)
+      setClients([]);
+      setRequests([]);
+      setDocuments([]);
       
       setStats({
-        totalClients: mockClients.length,
-        activeCases: mockClients.filter(c => c.status === 'active').length,
-        pendingRequests: mockRequests.filter(r => r.status === 'pending').length,
-        completedCases: mockClients.filter(c => c.status === 'completed').length,
-        totalRevenue: mockClients.reduce((sum, c) => sum + c.revenue, 0),
-        monthlyRevenue: 800000,
-        averageResponseTime: 2.5,
-        clientSatisfaction: 4.8
+        totalClients: 0,
+        activeCases: 0,
+        pendingRequests: 0,
+        completedCases: 0,
+        totalRevenue: 0,
+        monthlyRevenue: 0,
+        averageResponseTime: 0,
+        clientSatisfaction: 0
       });
 
     } catch (error) {

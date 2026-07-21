@@ -1,28 +1,36 @@
-import { useState, useEffect, createContext, useContext } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 
-// Inline auth context to avoid import issues
-interface AuthContextType {
-  user: { id: string; email: string; name: string; role: 'USER' | 'ADMIN' } | null;
-  isAuthenticated: boolean;
-  isAdmin: boolean;
-  logout: () => void;
-}
-
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
 function useAuth() {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    // Return mock values for now
-    return {
-      user: { id: '1', email: 'admin@jurisai.uz', name: 'Admin User', role: 'ADMIN' },
-      isAuthenticated: true,
-      isAdmin: true,
-      logout: () => {}
-    };
-  }
-  return context;
+  const [auth, setAuth] = useState({
+    user: null as { id: string; email: string; name: string; role: string } | null,
+    isAuthenticated: false,
+    isAdmin: false
+  });
+  
+  useEffect(() => {
+    const stored = localStorage.getItem('auth_user');
+    const token = localStorage.getItem('auth_token');
+    if (stored && token) {
+      try {
+        const user = JSON.parse(stored);
+        setAuth({
+          user,
+          isAuthenticated: true,
+          isAdmin: user.role === 'ADMIN' || user.role === 'admin'
+        });
+      } catch { setAuth({ user: null, isAuthenticated: false, isAdmin: false }); }
+    }
+  }, []);
+  
+  const logout = () => {
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('auth_user');
+    setAuth({ user: null, isAuthenticated: false, isAdmin: false });
+    window.location.href = '/signin';
+  };
+  
+  return { ...auth, logout };
 }
 
 function cn(...classes: string[]) {
@@ -218,9 +226,9 @@ const Sidebar: React.FC<SidebarProps> = ({
   });
 
   return (
-    <div className={cn("flex flex-col w-64 bg-gray-900", className || "")}>
+    <div className={cn("flex flex-col w-64 bg-gray-900 h-screen sticky top-0 overflow-y-auto hidden md:flex", className || "")}>
       {/* Logo */}
-      <div className="flex items-center h-16 px-6 bg-gray-900 border-b border-gray-800">
+      <div className="flex items-center h-16 px-6 bg-gray-900 border-b border-gray-800 flex-shrink-0">
         <div className="flex items-center space-x-3">
           <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
             <span className="text-white font-bold text-lg">J</span>

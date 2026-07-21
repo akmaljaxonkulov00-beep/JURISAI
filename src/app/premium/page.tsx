@@ -13,7 +13,7 @@ export default function Premium() {
   const plans = [
     {
       name: 'Pro',
-      price: selectedPlan === 'monthly' ? '99,000' : '990,000',
+      price: selectedPlan === 'monthly' ? '45,000 UZS' : '450,000 UZS',
       period: selectedPlan === 'monthly' ? 'oyiga' : 'yiliga',
       discount: selectedPlan === 'yearly' ? '2 oy bepul' : null,
       features: [
@@ -32,7 +32,7 @@ export default function Premium() {
     },
     {
       name: 'Premium',
-      price: selectedPlan === 'monthly' ? '199,000' : '1,990,000',
+      price: selectedPlan === 'monthly' ? '140,000 UZS' : '1,400,000 UZS',
       period: selectedPlan === 'monthly' ? 'oyiga' : 'yiliga',
       discount: selectedPlan === 'yearly' ? '3 oy bepul' : null,
       features: [

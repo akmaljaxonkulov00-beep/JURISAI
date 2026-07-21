@@ -1,30 +1,3 @@
 {
-  "assignments": [
-    {
-      "id": "assign_1",
-      "title": "Shartnoma tahlili",
-      "course_id": "course_1",
-      "description": "Berilgan shartnomani tahlil qiling va kamchiliklarni aniqlang",
-      "type": "case_study",
-      "difficulty": "medium",
-      "points": 100,
-      "deadline": "2024-06-30",
-      "status": "active",
-      "instructions": "1. Shartnomani diqqat bilan o'qing\n2. Kamchiliklarni belgilang\n3. Tavsiyalar bering",
-      "content": "Sotuvchi Ali va xaridor Vali o'rtasida uy-joy sotish shartnomasi tuzilgan..."
-    },
-    {
-      "id": "assign_2",
-      "title": "Jinoyat ishi bo'yicha munozara",
-      "course_id": "course_2",
-      "description": "O'g'irlik holati bo'yicha tahlil va jazo tavsiyasi",
-      "type": "discussion",
-      "difficulty": "hard",
-      "points": 150,
-      "deadline": "2024-07-15",
-      "status": "active",
-      "instructions": "Ish materiallarini o'rganing va o'z fikirlar ingizni yozing",
-      "content": "Sudlanuvchi Karim supermarketdan oziq-ovqat mahsulotlarini o'g'irlagan..."
-    }
-  ]
+  "assignments": []
 }

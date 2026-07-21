@@ -50,13 +50,13 @@ export default function SignInPage() {
 
     try {
       console.log('Calling authHelpers.signIn...')
-      const result = await authHelpers.signIn(data.email, data.password)
+      const result: any = await authHelpers.signIn(data.email, data.password)
       
       console.log('Auth result:', result)
 
-      if (result.success) {
+      if (result?.success) {
         console.log('Login successful!')
-        console.log('User data:', result.data)
+        console.log('User data:', result?.data)
         
         // Save email if remember me is checked
         if (rememberMe) {
@@ -67,6 +67,23 @@ export default function SignInPage() {
           console.log('Email removed from localStorage')
         }
         
+        // Save auth data to localStorage for sidebar and AuthProvider
+        if (result?.data?.user || result?.data) {
+          const userData: any = result?.data?.user || result?.data
+          // Save to 'auth_user' for sidebar
+          localStorage.setItem('auth_user', JSON.stringify(userData))
+          localStorage.setItem('auth_token', userData?.id || 'authenticated')
+          // Save to 'jurisai_user' for AuthProvider in providers.tsx
+          localStorage.setItem('jurisai_user', JSON.stringify({
+            id: userData.id || userData.sub,
+            email: userData.email,
+            name: userData.name || userData.user_metadata?.name || userData.email?.split('@')[0],
+            role: userData.role || userData.user_metadata?.role || 'USER',
+            subscription_plan: userData.subscription_plan || 'free'
+          }))
+          console.log('Auth data saved to localStorage for both auth systems')
+        }
+        
         // Get redirect URL from search params or default to dashboard
         const redirectTo = searchParams.get('redirectTo') || '/dashboard'
         console.log('Redirecting to:', redirectTo)
@@ -74,8 +91,8 @@ export default function SignInPage() {
         // Redirect immediately after successful login
         router.push(redirectTo)
       } else {
-        console.error('Login failed:', result.error)
-        setError(result.error?.message || 'Login xatosi yuz berdi')
+        console.error('Login failed:', result?.error)
+        setError(result?.error?.message || 'Login xatosi yuz berdi')
       }
     } catch (err) {
       console.error('Login error:', err)
@@ -117,9 +134,29 @@ export default function SignInPage() {
     }
   }
 
-  // Handle social login (placeholder)
-  const handleSocialLogin = (provider: string) => {
-    setError(`${provider} orqali login hozircha mavjud emas`)
+  // Handle social login with Supabase
+  const handleSocialLogin = async (provider: string) => {
+    setIsLoading(true)
+    setError(null)
+    
+    try {
+      if (provider === 'Google') {
+        const { error } = await supabaseClient.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: window.location.origin + '/auth/callback'
+          }
+        })
+        if (error) throw error
+      } else {
+        setError(`${provider} orqali login hozircha mavjud emas`)
+      }
+    } catch (err: any) {
+      console.error('Social login error:', err)
+      setError(err.message || 'Ijtimoiy tarmoq orqali kirishda xatolik yuz berdi')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -314,16 +351,6 @@ export default function SignInPage() {
             </svg>
             GitHub
           </button>
-        </div>
-      </div>
-
-      {/* Test Accounts Info */}
-      <div className="mt-8 p-4 bg-gray-50 rounded-lg">
-        <p className="text-sm font-medium text-gray-700 mb-2">Test hisoblari:</p>
-        <div className="space-y-1 text-xs text-gray-600">
-          <p><strong>Admin:</strong> admin@jurisai.uz / password123</p>
-          <p><strong>User:</strong> user@jurisai.uz / password123</p>
-          <p><strong>Demo:</strong> demo@jurisai.uz / password123</p>
         </div>
       </div>
 

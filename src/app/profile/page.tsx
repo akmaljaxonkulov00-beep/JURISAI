@@ -40,22 +40,46 @@ export default function Profile() {
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'settings' | 'help' | 'premium'>('overview');
   const [settingsSubTab, setSettingsSubTab] = useState<'personal' | 'notifications' | 'appearance' | 'security' | 'data'>('personal');
-  const [profile, setProfile] = useState<UserProfile>({
-    id: '1',
-    firstName: 'Sarvar',
-    lastName: 'Karimov',
-    email: 'sarvar.karimov@example.com',
-    phone: '+998 90 123 45 67',
-    status: 'Talaba',
-    specialization: 'Jinoyat huquqi',
-    avatar: 'user',
-    subscription: 'Pro',
-    subscriptionEnd: '2024-12-31',
-    language: 'uz',
-    xp: 2450,
-    coursesCount: 3,
-    rating: 156,
-    certificates: 12
+  const [profile, setProfile] = useState<UserProfile>(() => {
+    // Try to load from localStorage auth
+    const stored = localStorage.getItem('auth_user');
+    if (stored) {
+      try {
+        const user = JSON.parse(stored);
+        return {
+          id: user.id || '0',
+          firstName: user.name?.split(' ')[0] || user.firstName || 'Foydalanuvchi',
+          lastName: user.name?.split(' ').slice(1).join(' ') || user.lastName || '',
+          email: user.email || '',
+          phone: user.phone || '+998 __ ___ __ __',
+          status: 'Talaba',
+          specialization: user.specialization || '',
+          avatar: 'user',
+          subscription: user.subscription_plan === 'pro' ? 'Pro' : 'Free',
+          language: 'uz',
+          xp: user.xp || 0,
+          coursesCount: user.coursesCount || 0,
+          rating: user.rating || 0,
+          certificates: user.certificates || 0
+        };
+      } catch {}
+    }
+    return {
+      id: '0',
+      firstName: 'Foydalanuvchi',
+      lastName: '',
+      email: '',
+      phone: '+998 __ ___ __ __',
+      status: 'Talaba',
+      specialization: '',
+      avatar: 'user',
+      subscription: 'Free',
+      language: 'uz',
+      xp: 0,
+      coursesCount: 0,
+      rating: 0,
+      certificates: 0
+    };
   });
 
   const [editedProfile, setEditedProfile] = useState<UserProfile>(profile);
@@ -73,15 +97,47 @@ export default function Profile() {
   const [showCurrentPass, setShowCurrentPass] = useState(false);
   const [showNewPass, setShowNewPass] = useState(false);
   const [settingsSaved, setSettingsSaved] = useState(false);
+  const [profileImage, setProfileImage] = useState<string | null>(() => {
+    if (typeof window !== 'undefined') return localStorage.getItem('profile_image');
+    return null;
+  });
 
   const handleSave = () => {
+    const userData = {
+      id: editedProfile.id,
+      email: editedProfile.email,
+      name: editedProfile.firstName + ' ' + editedProfile.lastName,
+      firstName: editedProfile.firstName,
+      lastName: editedProfile.lastName,
+      phone: editedProfile.phone,
+      status: editedProfile.status,
+      specialization: editedProfile.specialization,
+      language: editedProfile.language,
+      subscription_plan: editedProfile.subscription.toLowerCase(),
+      role: 'USER'
+    };
     setProfile(editedProfile);
+    localStorage.setItem('auth_user', JSON.stringify(userData));
+    localStorage.setItem('jurisai_user', JSON.stringify(userData));
     setIsEditing(false);
   };
 
   const handleCancel = () => {
     setEditedProfile(profile);
     setIsEditing(false);
+  };
+
+  const handleProfileImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const dataUrl = event.target?.result as string;
+        setProfileImage(dataUrl);
+        localStorage.setItem('profile_image', dataUrl);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleSaveSettings = () => {
@@ -159,14 +215,14 @@ export default function Profile() {
 
   const premiumPlans = [
     { name: 'Free', price: '0', features: ['3 ta AI so\'rovi/kun', 'Asosiy qonunlar bazasi', 'Oddiy IRAC tahlili'], popular: false },
-    { name: 'Pro', price: '29.99', features: ['Cheksiz AI so\'rovi', 'To\'liq qonunlar bazasi', 'Premium IRAC tahlili', 'Shaxsiy maslahatchi', 'Hujjat generatsiyasi'], popular: true },
-    { name: 'Enterprise', price: '99.99', features: ['Barcha Pro imkoniyatlari', 'API kirish', 'Maxsus integratsiya', '24/7 support', 'SLA kafolati'], popular: false },
+    { name: 'Pro', price: '45,000 UZS', features: ['Cheksiz AI so\'rovi', 'To\'liq qonunlar bazasi', 'Premium IRAC tahlili', 'Shaxsiy maslahatchi', 'Hujjat generatsiyasi'], popular: true },
+    { name: 'Premium', price: '140,000 UZS', features: ['Barcha Pro imkoniyatlari', 'Cheksiz AI so\'rovlari', 'API kirish', '24/7 support', 'SLA kafolati'], popular: false },
   ];
 
   const billingHistory = [
-    { date: '2024-12-01', amount: 29.99, plan: 'Pro', status: 'To\'langan' },
-    { date: '2024-11-01', amount: 29.99, plan: 'Pro', status: 'To\'langan' },
-    { date: '2024-10-01', amount: 0, plan: 'Free', status: 'Bepul' },
+    { date: '2024-12-01', amount: '45,000 UZS', plan: 'Pro', status: 'To\'langan' },
+    { date: '2024-11-01', amount: '45,000 UZS', plan: 'Pro', status: 'To\'langan' },
+    { date: '2024-10-01', amount: '0 UZS', plan: 'Free', status: 'Bepul' },
   ];
 
   const getLanguageName = (lang: string) => {
@@ -366,9 +422,9 @@ export default function Profile() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5">Shrift hajmi</label>
-                  <select className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all">
+                  <select defaultValue="O'rtacha" className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all">
                     <option>Kichik</option>
-                    <option selected>O'rtacha</option>
+                    <option>O'rtacha</option>
                     <option>Katta</option>
                   </select>
                 </div>
@@ -643,7 +699,7 @@ export default function Profile() {
                   <h3 className={`font-bold text-sm ${plan.popular ? 'text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300'}`}>{plan.name}</h3>
                 </div>
                 <div className="mb-4">
-                  <span className="text-3xl font-bold text-gray-900 dark:text-white">${plan.price}</span>
+                  <span className="text-3xl font-bold text-gray-900 dark:text-white">{plan.price}</span>
                   <span className="text-gray-500 dark:text-gray-400 text-sm">/oy</span>
                 </div>
                 <ul className="space-y-2 mb-5">
@@ -678,7 +734,7 @@ export default function Profile() {
                 <div className="flex items-center gap-3">
                   <CreditCard className="w-4 h-4 text-gray-400" />
                   <div>
-                    <p className="text-sm font-medium text-gray-800 dark:text-white">{bill.plan} - ${bill.amount}</p>
+                    <p className="text-sm font-medium text-gray-800 dark:text-white">{bill.plan} - {bill.amount}</p>
                     <p className="text-xs text-gray-500">{bill.date}</p>
                   </div>
                 </div>
@@ -700,12 +756,17 @@ export default function Profile() {
       <div className="glass rounded-2xl p-6 card-hover">
         <div className="flex items-center gap-6">
           <div className="relative">
-            <div className="w-24 h-24 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center shadow-lg">
-              <User className="w-12 h-12 text-white" />
-            </div>
-            <button className="absolute bottom-0 right-0 w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white hover:bg-blue-700 transition-all shadow-md hover:shadow-lg">
+            {profileImage ? (
+              <img src={profileImage} alt="Profile" className="w-24 h-24 rounded-full object-cover shadow-lg" />
+            ) : (
+              <div className="w-24 h-24 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center shadow-lg">
+                <User className="w-12 h-12 text-white" />
+              </div>
+            )}
+            <label className="absolute bottom-0 right-0 w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white hover:bg-blue-700 transition-all shadow-md hover:shadow-lg cursor-pointer">
               <Camera className="w-4 h-4" />
-            </button>
+              <input type="file" accept="image/*" className="hidden" onChange={handleProfileImageUpload} />
+            </label>
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-2">

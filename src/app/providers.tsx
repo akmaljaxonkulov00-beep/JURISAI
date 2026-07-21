@@ -27,32 +27,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Mock user data
-const mockUsers: User[] = [
-  {
-    id: 'test-admin-1',
-    email: 'admin@jurisai.uz',
-    name: 'Admin User',
-    role: 'ADMIN',
-    subscription_plan: 'premium',
-    subscription_expires_at: '2024-12-31'
-  },
-  {
-    id: 'test-user-1',
-    email: 'user@jurisai.uz',
-    name: 'Test User',
-    role: 'USER',
-    subscription_plan: 'pro',
-    subscription_expires_at: '2024-06-30'
-  },
-  {
-    id: 'demo-user',
-    email: 'demo@jurisai.uz',
-    name: 'Demo User',
-    role: 'USER',
-    subscription_plan: 'free'
-  }
-];
+// No mock data - auth comes from localStorage or supabase
 
 function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -65,12 +40,13 @@ function AuthProvider({ children }: { children: ReactNode }) {
   const getSubscriptionPlan = user?.subscription_plan || 'free';
 
   useEffect(() => {
-    // Check localStorage on mount
+    // Check localStorage on mount - both keys for compatibility
     if (typeof window !== 'undefined') {
-      const storedUser = localStorage.getItem('jurisai_user');
+      const storedUser = localStorage.getItem('jurisai_user') || localStorage.getItem('auth_user');
       if (storedUser) {
         try {
-          setUser(JSON.parse(storedUser));
+          const parsed = JSON.parse(storedUser);
+          setUser(parsed);
         } catch (error) {
           console.error('Error parsing stored user:', error);
         }
@@ -81,32 +57,36 @@ function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Find user in mock data
-      const foundUser = mockUsers.find(u => u.email === email);
+      // Use supabase for actual login
+      const { supabaseClient } = await import('@/lib/supabase-client');
+      const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
       
-      if (!foundUser) {
-        return { success: false, error: 'Foydalanuvchi topilmadi' };
+      if (error) {
+        return { success: false, error: error.message };
       }
 
-      // In real app, verify password here
-      if (password !== 'password123') {
-        return { success: false, error: 'Noto\'g\'ri parol' };
+      if (data?.user) {
+        const userData: User = {
+          id: data.user.id,
+          email: data.user.email || '',
+          name: data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'User',
+          role: (data.user.user_metadata?.role || 'USER') as 'USER' | 'ADMIN',
+        };
+
+        setUser(userData);
+        
+        // Save to localStorage
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('jurisai_user', JSON.stringify(userData));
+          localStorage.setItem('auth_user', JSON.stringify(userData));
+        }
+
+        return { success: true };
       }
 
-      // Set user
-      setUser(foundUser);
-      
-      // Save to localStorage
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('jurisai_user', JSON.stringify(foundUser));
-      }
-
-      return { success: true };
-    } catch (error) {
       return { success: false, error: 'Login xatosi' };
+    } catch (error: any) {
+      return { success: false, error: error?.message || 'Login xatosi' };
     } finally {
       setIsLoading(false);
     }
