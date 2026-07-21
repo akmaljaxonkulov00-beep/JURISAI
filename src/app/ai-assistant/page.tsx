@@ -5,6 +5,8 @@ import {
   ArrowLeft, MessageCircle, FileText, Mic, Send, BookOpen, Scale, 
   HelpCircle, Volume2, Lightbulb, Copy, History, Trash2, X, Clock 
 } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface Message {
   id: string;
@@ -23,35 +25,29 @@ interface SavedChat {
 
 // ── AI response formatter ──
 function AIResponse({ text }: { text: string }) {
-  const sections = [
-    { key: 'QISQA JAVOB',     bg: 'var(--qisqa-javob-bg, #EFF6FF)', border: 'var(--qisqa-javob-border, #BFDBFE)', color: 'var(--qisqa-javob-color, #1D4ED8)' },
-    { key: "ASOSIY MA'LUMOT", bg: 'var(--asosiy-bg, #F0FDF4)', border: 'var(--asosiy-border, #BBF7D0)', color: 'var(--asosiy-color, #15803D)' },
-    { key: 'QONUN',            bg: 'var(--qonun-bg, #EFF6FF)', border: 'var(--qonun-border, #BFDBFE)', color: 'var(--qonun-color, #2563EB)' },
-    { key: 'MASLAHAT',         bg: 'var(--maslahat-bg, #FFF7ED)', border: 'var(--maslahat-border, #FED7AA)', color: 'var(--maslahat-color, #C2410C)' },
-  ];
-
-  const found = sections.filter(s => text.includes(s.key));
-  
-  if (found.length === 0) {
-    return <div style={{ color: 'var(--text-secondary)', fontSize: 14, lineHeight: 1.7 }}>{text}</div>;
-  }
-
-  const positions = found.map(s => ({ sec: s, start: text.indexOf(s.key), end: -1 }))
-    .sort((a, b) => a.start - b.start);
-  positions.forEach((p, i) => { p.end = positions[i + 1]?.start ?? text.length; });
-
+  // Professional markdown rendering for AI responses
   return (
-    <>
-      {positions.map(({ sec, start, end }) => {
-        const content = text.slice(start, end).replace(sec.key + ':', '').replace(sec.key, '').trim();
-        return (
-          <div key={sec.key} style={{ background: sec.bg, border: `1px solid ${sec.border}`, borderRadius: 10, padding: '10px 14px', marginBottom: 8 }}>
-            <div style={{ fontWeight: 700, fontSize: 12, color: sec.color, marginBottom: 6 }}>{sec.key}</div>
-            <div style={{ color: 'var(--text-secondary)', fontSize: 13, lineHeight: 1.6 }}>{content}</div>
-          </div>
-        );
-      })}
-    </>
+    <div className="ai-markdown-content" style={{ color: 'var(--text-secondary)', fontSize: 14, lineHeight: 1.7 }}>
+      <ReactMarkdown 
+        remarkPlugins={[remarkGfm]}
+        components={{
+          h2: ({children}) => (
+            <h3 style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', marginTop: 12, marginBottom: 6 }}>{children}</h3>
+          ),
+          h3: ({children}) => (
+            <h4 style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)', marginTop: 8, marginBottom: 4 }}>{children}</h4>
+          ),
+          strong: ({children}) => <strong style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{children}</strong>,
+          ul: ({children}) => <ul style={{ paddingLeft: 20, margin: '4px 0' }}>{children}</ul>,
+          ol: ({children}) => <ol style={{ paddingLeft: 20, margin: '4px 0' }}>{children}</ol>,
+          li: ({children}) => <li style={{ marginBottom: 4, lineHeight: 1.5 }}>{children}</li>,
+          p: ({children}) => <p style={{ margin: '4px 0' }}>{children}</p>,
+          code: ({children}) => <code style={{ background: 'var(--hover-bg)', padding: '1px 4px', borderRadius: 4, fontSize: 12 }}>{children}</code>,
+        }}
+      >
+        {text}
+      </ReactMarkdown>
+    </div>
   );
 }
 
