@@ -5,744 +5,647 @@ import { useAuth } from '@/app/providers';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  Legend, 
-  LineChart, 
-  Line, 
-  PieChart, 
-  Pie, 
-  Cell 
-} from 'recharts';
-import { Shield, Settings, CheckCircle, AlertTriangle } from 'lucide-react';
-import { makeCurrentUserAdmin } from '@/services/firebase-auth';
+import { Input } from '@/components/ui/Input';
+import { Settings, Shield, CheckCircle, AlertTriangle, Users, CreditCard, DollarSign, Save, X, Plus, Trash2, Bell, Globe } from 'lucide-react';
 
-interface User {
+// ===== SUPER ADMIN HARDCODED CREDENTIALS =====
+const SUPER_ADMIN_EMAIL = 'akmaljaxonkulov00@gmail.com';
+const SUPER_ADMIN_PASS = 'akmal1221';
+
+interface SiteSettings {
+  announcementBanner: string;
+  heroTitle: string;
+  heroSubtitle: string;
+  contactEmail: string;
+  contactPhone: string;
+  telegramLink: string;
+  legalDisclaimer: string;
+  systemPrompt: string;
+  paymentCardNumber: string;
+  paymentDetails: string;
+}
+
+interface PricingPlan {
   id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  role: string;
-  status: string;
+  name: string;
+  price: number;
+  features: string[];
+  caseLimit: number;
+}
+
+interface PaymentRequest {
+  id: string;
+  userId: string;
+  userEmail: string;
+  userName: string;
+  plan: string;
+  amount: number;
+  receiptImage: string;
+  status: 'pending' | 'approved' | 'rejected';
   createdAt: string;
-  subscription?: {
-    plan: {
-      name: string;
-      price: number;
-    };
-  };
 }
-
-interface RevenueAnalytics {
-  revenueData: Array<{
-    date: string;
-    revenue: number;
-    transactionCount: number;
-  }>;
-  summary: {
-    totalRevenue: number;
-    totalTransactions: number;
-    todayRevenue: number;
-    todayTransactions: number;
-    weekRevenue: number;
-    weekTransactions: number;
-    monthRevenue: number;
-    monthTransactions: number;
-  };
-  revenueByPlan: Array<{
-    planName: string;
-    planPrice: number;
-    subscriptionCount: number;
-    totalRevenue: number;
-  }>;
-}
-
-interface UserAnalytics {
-  userGrowth: Array<{
-    date: string;
-    newUsers: number;
-  }>;
-  activeSubscriptions: Array<{
-    planName: string;
-    planPrice: number;
-    activeSubscriptions: number;
-    uniqueUsers: number;
-  }>;
-  summary: {
-    totalUsers: number;
-    activeUsers: number;
-    todayUsers: number;
-    weekUsers: number;
-    monthUsers: number;
-  };
-  lastUsers: Array<{
-    id: string;
-    email: string;
-    firstName: string | null;
-    lastName: string | null;
-    role: string;
-    status: string;
-    createdAt: string;
-    subscription: {
-      planName: string;
-      status: string;
-      currentPeriodEnd: string;
-    } | null;
-  }>;
-  userRoles: Array<{
-    role: string;
-    count: number;
-  }>;
-}
-
-interface AIUsageAnalytics {
-  aiUsageOverTime: Array<{
-    date: string;
-    legalChatRequests: number;
-    iracAnalysisRequests: number;
-    documentGenerationRequests: number;
-    lawSearchRequests: number;
-    totalRequests: number;
-  }>;
-  mostUsedFeatures: Array<{
-    feature: string;
-    totalUsage: number;
-    uniqueUsers: number;
-  }>;
-  topUsers: Array<{
-    id: string;
-    email: string;
-    firstName: string | null;
-    lastName: string | null;
-    totalAIUsage: number;
-    featuresUsed: number;
-  }>;
-  summary: {
-    totalAIUsage: number;
-    totalRequests: number;
-    todayAIUsage: number;
-    todayRequests: number;
-    weekAIUsage: number;
-    weekRequests: number;
-    monthAIUsage: number;
-    monthRequests: number;
-  };
-}
-
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
 export default function AdminDashboard() {
-  const { user, isAdmin } = useAuth();
-  const [revenueAnalytics, setRevenueAnalytics] = useState<RevenueAnalytics | null>(null);
-  const [userAnalytics, setUserAnalytics] = useState<UserAnalytics | null>(null);
-  const [aiUsageAnalytics, setAIUsageAnalytics] = useState<AIUsageAnalytics | null>(null);
+  const { user, isAdmin, login } = useAuth();
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'payments' | 'pricing' | 'settings'>('dashboard');
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'revenue' | 'users' | 'ai-usage' | 'settings'>('revenue');
+  const [adminUser, setAdminUser] = useState<any>(null);
+  const [adminAuthError, setAdminAuthError] = useState('');
+  const [authEmail, setAuthEmail] = useState('');
+  const [authPassword, setAuthPassword] = useState('');
+
+  // Pricing
+  const [pricingPlans, setPricingPlans] = useState<PricingPlan[]>([
+    { id: 'free', name: 'Bepul', price: 0, features: ['5 ta IRAC tahlili', 'Asosiy qonunlar bazasi', '10 ta AI so\'rovi'], caseLimit: 5 },
+    { id: 'standart', name: 'Standart', price: 45000, features: ['Cheksiz IRAC tahlili', 'To\'liq qonunlar bazasi', 'AI yordami 24/7', '50 hujjat'], caseLimit: 50 },
+    { id: 'pro', name: 'Pro', price: 140000, features: ['Cheksiz AI so\'rovlari', 'Cheksiz hujjat', 'Shaxsiy maslahatchi', 'Ekspert konsultatsiyasi'], caseLimit: -1 },
+  ]);
+  const [editingPlan, setEditingPlan] = useState<string | null>(null);
+  const [editPlanData, setEditPlanData] = useState<PricingPlan | null>(null);
+
+  // Payments
+  const [paymentRequests, setPaymentRequests] = useState<PaymentRequest[]>([]);
+  const [showPaymentDetail, setShowPaymentDetail] = useState<string | null>(null);
+
+  // Users
+  const [allUsers, setAllUsers] = useState<any[]>([]);
+  const [usersLoading, setUsersLoading] = useState(true);
+
+  // Site settings
+  const [siteSettings, setSiteSettings] = useState<SiteSettings>({
+    announcementBanner: 'JURISAI - Huquqiy AI yordamchingiz!',
+    heroTitle: 'Huquqiy masalalarni AI bilan yeching',
+    heroSubtitle: 'O\'zbekiston qonunchiligi bo\'yicha professional AI yordamchi',
+    contactEmail: 'support@jurisai.uz',
+    contactPhone: '+998 90 123 45 67',
+    telegramLink: 'https://t.me/jurisai_bot',
+    legalDisclaimer: 'JURISAI tomonidan berilgan ma\'lumotlar faqat ma\'lumot uchun. Rasmiy huquqiy maslahat o\'rnini bosa olmaydi.',
+    systemPrompt: 'You are JurisAI — an expert legal consultant...',
+    paymentCardNumber: '8600 1234 5678 9012',
+    paymentDetails: 'Click: *123# 45000 UZS / Payme: 8600 1234 5678 9012',
+  });
+  const [settingsSaved, setSettingsSaved] = useState(false);
 
   useEffect(() => {
-    if (!user) {
-      setLoading(false);
-      return;
-    }
-    fetchAnalytics();
-  }, [user]);
-
-  const fetchAnalytics = async () => {
+    // Load from localStorage
     try {
-      // Registratsiyadan o'tgan foydalanuvchilarni localStorage dan o'qish
-      const usersKey = 'registered_users';
-      const storedUsers = localStorage.getItem(usersKey);
-      let registeredUsers: any[] = [];
-      
-      if (storedUsers) {
-        try { registeredUsers = JSON.parse(storedUsers); } catch { registeredUsers = []; }
-      }
+      const stored = localStorage.getItem('admin_site_settings');
+      if (stored) setSiteSettings(JSON.parse(stored));
+      const storedPlans = localStorage.getItem('admin_pricing_plans');
+      if (storedPlans) setPricingPlans(JSON.parse(storedPlans));
+      const storedPayments = localStorage.getItem('payment_requests');
+      if (storedPayments) setPaymentRequests(JSON.parse(storedPayments));
+    } catch {}
+    loadUsers();
+  }, []);
 
-      // Agar registered_users bo'sh bo'lsa, joriy userni olish
-      if (registeredUsers.length === 0) {
-        const currentUser = localStorage.getItem('auth_user') || localStorage.getItem('jurisai_user');
-        if (currentUser) {
-          try {
-            const parsed = JSON.parse(currentUser);
-            registeredUsers = [parsed];
-            localStorage.setItem(usersKey, JSON.stringify(registeredUsers));
-          } catch {}
+  const loadUsers = () => {
+    try {
+      const stored = localStorage.getItem('registered_users');
+      if (stored) {
+        setAllUsers(JSON.parse(stored));
+      }
+    } catch {}
+    setUsersLoading(false);
+    setLoading(false);
+  };
+
+  // ===== ADMIN AUTH =====
+  const handleAdminLogin = async () => {
+    setAdminAuthError('');
+    if (authEmail === SUPER_ADMIN_EMAIL && authPassword === SUPER_ADMIN_PASS) {
+      // Hardcoded super admin - force admin role
+      const adminData = {
+        id: 'super-admin',
+        email: SUPER_ADMIN_EMAIL,
+        name: 'Super Admin',
+        role: 'ADMIN',
+        subscription_plan: 'pro',
+      };
+      localStorage.setItem('auth_user', JSON.stringify(adminData));
+      localStorage.setItem('jurisai_user', JSON.stringify(adminData));
+      localStorage.setItem('jurisai_admin_email', SUPER_ADMIN_EMAIL);
+      setAdminUser(adminData);
+      setAdminAuthError('');
+    } else {
+      // Try Firebase auth
+      const result = await login(authEmail, authPassword);
+      if (result.success) {
+        if (authEmail === SUPER_ADMIN_EMAIL) {
+          localStorage.setItem('jurisai_admin_email', SUPER_ADMIN_EMAIL);
         }
+        setAdminAuthError('');
+      } else {
+        setAdminAuthError(result.error || 'Email yoki parol noto\'g\'ri');
       }
-
-      const now = new Date();
-      const today = now.toISOString().split('T')[0];
-      const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
-      const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
-
-      // Foydalanuvchilarni hisoblash
-      const totalUsers = registeredUsers.length;
-      const todayUsers = registeredUsers.filter((u: any) => 
-        (u.created_at && u.created_at.startsWith(today)) || 
-        (u.last_login && u.last_login.startsWith(today))
-      ).length;
-      const weekUsers = registeredUsers.filter((u: any) => 
-        new Date(u.created_at || u.last_login || now).getTime() > new Date(weekAgo).getTime()
-      ).length;
-      const monthUsers = registeredUsers.filter((u: any) => 
-        new Date(u.created_at || u.last_login || now).getTime() > new Date(monthAgo).getTime()
-      ).length;
-
-      // Rollar bo'yicha
-      const roles: Record<string, number> = {};
-      registeredUsers.forEach((u: any) => {
-        const role = u.role || 'user';
-        roles[role] = (roles[role] || 0) + 1;
-      });
-
-      // Obunalar
-      const subs: Record<string, number> = {};
-      registeredUsers.forEach((u: any) => {
-        const plan = u.subscription_plan || 'free';
-        subs[plan] = (subs[plan] || 0) + 1;
-      });
-
-      // Oxirgi 10 ta foydalanuvchi
-      const lastUsers = [...registeredUsers]
-        .sort((a: any, b: any) => {
-          const aTime = new Date(a.created_at || a.last_login || 0).getTime();
-          const bTime = new Date(b.created_at || b.last_login || 0).getTime();
-          return bTime - aTime;
-        })
-        .slice(0, 10)
-        .map((u: any) => ({
-          id: u.id || u.uid || '',
-          email: u.email || '',
-          firstName: u.firstName || u.name?.split(' ')[0] || 'Noma\'lum',
-          lastName: u.lastName || u.name?.split(' ').slice(1).join(' ') || '',
-          role: u.role || 'user',
-          status: 'ACTIVE',
-          createdAt: u.created_at || u.last_login || new Date().toISOString(),
-          subscription: u.subscription_plan && u.subscription_plan !== 'free'
-            ? { planName: u.subscription_plan, status: 'ACTIVE', currentPeriodEnd: u.subscription_expires_at || '' }
-            : null,
-        }));
-
-      setUserAnalytics({
-        userGrowth: [
-          { date: '1-hafta', newUsers: Math.max(1, Math.floor(totalUsers * 0.3)) },
-          { date: '2-hafta', newUsers: Math.max(1, Math.floor(totalUsers * 0.5)) },
-          { date: '3-hafta', newUsers: Math.max(1, Math.floor(totalUsers * 0.7)) },
-          { date: '4-hafta', newUsers: totalUsers },
-        ],
-        activeSubscriptions: Object.entries(subs).map(([planName, count]) => ({
-          planName: planName === 'pro' ? 'Pro' : planName === 'premium' ? 'Premium' : 'Free',
-          planPrice: planName === 'pro' ? 45000 : planName === 'premium' ? 140000 : 0,
-          activeSubscriptions: count as number,
-          uniqueUsers: count as number,
-        })),
-        summary: { totalUsers, activeUsers: totalUsers, todayUsers, weekUsers, monthUsers },
-        lastUsers,
-        userRoles: Object.entries(roles).map(([role, count]) => ({ role, count: count as number })),
-      });
-
-      // Daromad ma'lumotlari
-      const proUsers = registeredUsers.filter((u: any) => u.subscription_plan === 'pro').length;
-      const premiumUsers = registeredUsers.filter((u: any) => u.subscription_plan === 'premium').length;
-      const totalRevenue = proUsers * 45000 + premiumUsers * 140000;
-
-      setRevenueAnalytics({
-        revenueData: [
-          { date: '1-hafta', revenue: Math.floor(totalRevenue * 0.2), transactionCount: Math.floor(proUsers * 0.3) },
-          { date: '2-hafta', revenue: Math.floor(totalRevenue * 0.4), transactionCount: Math.floor(proUsers * 0.5) },
-          { date: '3-hafta', revenue: Math.floor(totalRevenue * 0.7), transactionCount: Math.floor(proUsers * 0.7) },
-          { date: '4-hafta', revenue: totalRevenue, transactionCount: proUsers + premiumUsers },
-        ],
-        summary: {
-          totalRevenue,
-          totalTransactions: proUsers + premiumUsers,
-          todayRevenue: 0,
-          todayTransactions: 0,
-          weekRevenue: Math.floor(totalRevenue * 0.3),
-          weekTransactions: Math.floor((proUsers + premiumUsers) * 0.3),
-          monthRevenue: totalRevenue,
-          monthTransactions: proUsers + premiumUsers,
-        },
-        revenueByPlan: [
-          { planName: 'Pro', planPrice: 45000, subscriptionCount: proUsers, totalRevenue: proUsers * 45000 },
-          { planName: 'Premium', planPrice: 140000, subscriptionCount: premiumUsers, totalRevenue: premiumUsers * 140000 },
-        ],
-      });
-
-      // AI foydalanish
-      setAIUsageAnalytics({
-        aiUsageOverTime: [
-          { date: '1-hafta', legalChatRequests: 0, iracAnalysisRequests: 0, documentGenerationRequests: 0, lawSearchRequests: 0, totalRequests: Math.max(10, totalUsers * 2) },
-          { date: '2-hafta', legalChatRequests: 0, iracAnalysisRequests: 0, documentGenerationRequests: 0, lawSearchRequests: 0, totalRequests: Math.max(20, totalUsers * 3) },
-          { date: '3-hafta', legalChatRequests: 0, iracAnalysisRequests: 0, documentGenerationRequests: 0, lawSearchRequests: 0, totalRequests: Math.max(30, totalUsers * 5) },
-          { date: '4-hafta', legalChatRequests: 0, iracAnalysisRequests: 0, documentGenerationRequests: 0, lawSearchRequests: 0, totalRequests: Math.max(50, totalUsers * 8) },
-        ],
-        mostUsedFeatures: [
-          { feature: 'AI Chat', totalUsage: Math.max(20, totalUsers * 5), uniqueUsers: totalUsers },
-          { feature: 'IRAC Tahlil', totalUsage: Math.max(10, totalUsers * 3), uniqueUsers: Math.floor(totalUsers * 0.7) },
-          { feature: 'Qonunlar bazasi', totalUsage: Math.max(30, totalUsers * 8), uniqueUsers: totalUsers },
-          { feature: 'Hujjat generatori', totalUsage: Math.max(5, totalUsers * 2), uniqueUsers: Math.floor(totalUsers * 0.5) },
-        ],
-        topUsers: registeredUsers.slice(0, 10).map((u: any) => ({
-          id: u.id || u.uid || '',
-          email: u.email || '',
-          firstName: u.firstName || u.name?.split(' ')[0] || null,
-          lastName: u.lastName || u.name?.split(' ').slice(1).join(' ') || null,
-          totalAIUsage: Math.floor(Math.random() * 50) + 5,
-          featuresUsed: Math.floor(Math.random() * 3) + 1,
-        })),
-        summary: {
-          totalAIUsage: Math.max(50, totalUsers * 10),
-          totalRequests: Math.max(50, totalUsers * 10),
-          todayAIUsage: Math.max(3, totalUsers),
-          todayRequests: Math.max(3, totalUsers),
-          weekAIUsage: Math.max(20, totalUsers * 5),
-          weekRequests: Math.max(20, totalUsers * 5),
-          monthAIUsage: Math.max(50, totalUsers * 10),
-          monthRequests: Math.max(50, totalUsers * 10),
-        },
-      });
-    } catch (error) {
-      console.error('Error fetching analytics:', error);
-    } finally {
-      setLoading(false);
     }
   };
 
-  if (loading) {
+  // ===== USER MANAGEMENT =====
+  const updateUserRole = (userId: string, newRole: string) => {
+    const updated = allUsers.map((u: any) => {
+      if (u.id === userId || u.uid === userId) {
+        return { ...u, role: newRole };
+      }
+      return u;
+    });
+    setAllUsers(updated);
+    localStorage.setItem('registered_users', JSON.stringify(updated));
+  };
+
+  const updateUserSubscription = (userId: string, plan: string) => {
+    const updated = allUsers.map((u: any) => {
+      if (u.id === userId || u.uid === userId) {
+        const expiresAt = plan !== 'free' ? new Date(Date.now() + 365 * 86400000).toISOString() : '';
+        return { ...u, subscription_plan: plan, subscription_expires_at: expiresAt };
+      }
+      return u;
+    });
+    setAllUsers(updated);
+    localStorage.setItem('registered_users', JSON.stringify(updated));
+  };
+
+  const toggleUserBlock = (userId: string) => {
+    const updated = allUsers.map((u: any) => {
+      if (u.id === userId || u.uid === userId) {
+        return { ...u, blocked: !u.blocked };
+      }
+      return u;
+    });
+    setAllUsers(updated);
+    localStorage.setItem('registered_users', JSON.stringify(updated));
+  };
+
+  // ===== PAYMENT MANAGEMENT =====
+  const approvePayment = (paymentId: string) => {
+    const updated = paymentRequests.map(p => {
+      if (p.id === paymentId) {
+        // Grant premium status to user
+        updateUserSubscription(p.userId, p.plan === 'standart' ? 'standart' : 'pro');
+        return { ...p, status: 'approved' as const };
+      }
+      return p;
+    });
+    setPaymentRequests(updated);
+    localStorage.setItem('payment_requests', JSON.stringify(updated));
+  };
+
+  const rejectPayment = (paymentId: string) => {
+    const updated = paymentRequests.map(p => {
+      if (p.id === paymentId) return { ...p, status: 'rejected' as const };
+      return p;
+    });
+    setPaymentRequests(updated);
+    localStorage.setItem('payment_requests', JSON.stringify(updated));
+  };
+
+  // ===== PRICING MANAGEMENT =====
+  const startEditPlan = (plan: PricingPlan) => {
+    setEditingPlan(plan.id);
+    setEditPlanData({ ...plan });
+  };
+
+  const savePlan = () => {
+    if (!editPlanData) return;
+    const updated = pricingPlans.map(p => p.id === editingPlan ? editPlanData : p);
+    setPricingPlans(updated);
+    localStorage.setItem('admin_pricing_plans', JSON.stringify(updated));
+    setEditingPlan(null);
+    setEditPlanData(null);
+  };
+
+  const addFeatureToPlan = () => {
+    if (!editPlanData) return;
+    setEditPlanData({ ...editPlanData, features: [...editPlanData.features, ''] });
+  };
+
+  const updateFeature = (idx: number, value: string) => {
+    if (!editPlanData) return;
+    const features = [...editPlanData.features];
+    features[idx] = value;
+    setEditPlanData({ ...editPlanData, features });
+  };
+
+  const removeFeature = (idx: number) => {
+    if (!editPlanData) return;
+    setEditPlanData({ ...editPlanData, features: editPlanData.features.filter((_, i) => i !== idx) });
+  };
+
+  // ===== SITE SETTINGS =====
+  const saveSettings = () => {
+    localStorage.setItem('admin_site_settings', JSON.stringify(siteSettings));
+    setSettingsSaved(true);
+    setTimeout(() => setSettingsSaved(false), 2000);
+  };
+
+  const isSuperAdmin = adminUser?.email === SUPER_ADMIN_EMAIL || user?.email === SUPER_ADMIN_EMAIL;
+  const effectiveIsAdmin = isAdmin || isSuperAdmin || !!adminUser;
+  const effectiveUser = adminUser || user;
+
+  // Login screen
+  if (!effectiveIsAdmin) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">Yuklanmoqda...</div>
+      <div className="min-h-screen bg-page-custom flex items-center justify-center p-4">
+        <Card className="w-full max-w-md card-default rounded-2xl">
+          <CardHeader className="text-center">
+            <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Shield className="w-8 h-8 text-blue-600" />
+            </div>
+            <CardTitle className="text-2xl text-gray-800 dark:text-white">Admin Panel</CardTitle>
+            <p className="text-sm text-secondary mt-2">Admin huquqlarini tasdiqlang</p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Email</label>
+              <Input
+                type="email"
+                value={authEmail}
+                onChange={(e) => setAuthEmail(e.target.value)}
+                placeholder={SUPER_ADMIN_EMAIL}
+                className="w-full"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Parol</label>
+              <Input
+                type="password"
+                value={authPassword}
+                onChange={(e) => setAuthPassword(e.target.value)}
+                placeholder="Parolni kiriting"
+                className="w-full"
+              />
+            </div>
+            {adminAuthError && (
+              <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-sm text-red-700 dark:text-red-300">
+                {adminAuthError}
+              </div>
+            )}
+            <Button onClick={handleAdminLogin} className="w-full">
+              <Shield className="w-4 h-4 mr-2" />
+              Admin panelga kirish
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="bg-white shadow">
+    <div className="min-h-screen bg-page-custom">
+      {/* Header */}
+      <div className="card-default border-b border-card-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <h1 className="text-3xl font-bold text-gray-900">Admin Panel</h1>
-            <div className="flex space-x-4">
-              <Button
-                variant={activeTab === 'revenue' ? 'default' : 'outline'}
-                onClick={() => setActiveTab('revenue')}
-              >
-                Moliya
-              </Button>
-              <Button
-                variant={activeTab === 'users' ? 'default' : 'outline'}
-                onClick={() => setActiveTab('users')}
-              >
-                Foydalanuvchilar
-              </Button>
-              <Button
-                variant={activeTab === 'ai-usage' ? 'default' : 'outline'}
-                onClick={() => setActiveTab('ai-usage')}
-              >
-                AI Faolligi
-              </Button>
-              <Button
-                variant={activeTab === 'settings' ? 'default' : 'outline'}
-                onClick={() => setActiveTab('settings')}
-              >
-                <Settings className="w-4 h-4 mr-1" />
-                Sozlamalar
-              </Button>
+          <div className="flex justify-between items-center py-4">
+            <div className="flex items-center gap-3">
+              <Shield className="w-6 h-6 text-blue-600" />
+              <div>
+                <h1 className="text-xl font-bold text-gray-900 dark:text-white">Admin Panel</h1>
+                <p className="text-xs text-secondary">{effectiveUser?.email} • {isSuperAdmin ? 'Super Admin' : 'Admin'}</p>
+              </div>
+            </div>
+            <div className="flex gap-2 flex-wrap">
+              {[ 
+                { id: 'dashboard', label: 'Boshqaruv', icon: Shield },
+                { id: 'users', label: 'Foydalanuvchilar', icon: Users },
+                { id: 'payments', label: 'To\'lovlar', icon: CreditCard },
+                { id: 'pricing', label: 'Narxlar', icon: DollarSign },
+                { id: 'settings', label: 'Sozlamalar', icon: Settings },
+              ].map(tab => {
+                const Icon = tab.icon;
+                return (
+                  <button key={tab.id}
+                    onClick={() => setActiveTab(tab.id as any)}
+                    className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all flex items-center gap-1 ${
+                      activeTab === tab.id
+                        ? 'bg-blue-600 text-white shadow-sm'
+                        : 'bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-300 hover:bg-gray-200 dark:hover:bg-zinc-700'
+                    }`}
+                  >
+                    <Icon size={14} />
+                    {tab.label}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {activeTab === 'revenue' && revenueAnalytics && (
+      <div className="max-w-7xl mx-auto px-4 py-6">
+        {/* ===== DASHBOARD ===== */}
+        {activeTab === 'dashboard' && (
           <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <Card>
-                <CardContent className="p-6">
-                  <div className="text-2xl font-bold text-blue-600">
-                    {revenueAnalytics.summary.totalRevenue.toLocaleString('uz-UZ')} so'm
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <Card className="card-default rounded-2xl">
+                <CardContent className="p-5">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-secondary">Jami foydalanuvchilar</p>
+                      <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{allUsers.length}</p>
+                    </div>
+                    <Users className="w-8 h-8 text-blue-500 opacity-60" />
                   </div>
-                  <div className="text-sm text-gray-600">Jami daromad</div>
                 </CardContent>
               </Card>
-              <Card>
-                <CardContent className="p-6">
-                  <div className="text-2xl font-bold text-green-600">
-                    {revenueAnalytics.summary.todayRevenue.toLocaleString('uz-UZ')} so'm
+              <Card className="card-default rounded-2xl">
+                <CardContent className="p-5">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-secondary">Kutilayotgan to\'lovlar</p>
+                      <p className="text-2xl font-bold text-orange-600 mt-1">{paymentRequests.filter(p => p.status === 'pending').length}</p>
+                    </div>
+                    <CreditCard className="w-8 h-8 text-orange-500 opacity-60" />
                   </div>
-                  <div className="text-sm text-gray-600">Bugungi daromad</div>
                 </CardContent>
               </Card>
-              <Card>
-                <CardContent className="p-6">
-                  <div className="text-2xl font-bold text-purple-600">
-                    {revenueAnalytics.summary.totalTransactions}
+              <Card className="card-default rounded-2xl">
+                <CardContent className="p-5">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-secondary">Tasdiqlangan to\'lovlar</p>
+                      <p className="text-2xl font-bold text-green-600 mt-1">{paymentRequests.filter(p => p.status === 'approved').length}</p>
+                    </div>
+                    <CheckCircle className="w-8 h-8 text-green-500 opacity-60" />
                   </div>
-                  <div className="text-sm text-gray-600">Jami tranzaksiyalar</div>
                 </CardContent>
               </Card>
-              <Card>
-                <CardContent className="p-6">
-                  <div className="text-2xl font-bold text-orange-600">
-                    {revenueAnalytics.summary.monthRevenue.toLocaleString('uz-UZ')} so'm
+              <Card className="card-default rounded-2xl">
+                <CardContent className="p-5">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-secondary">Premium foydalanuvchilar</p>
+                      <p className="text-2xl font-bold text-purple-600 mt-1">{allUsers.filter((u: any) => u.subscription_plan && u.subscription_plan !== 'free').length}</p>
+                    </div>
+                    <Shield className="w-8 h-8 text-purple-500 opacity-60" />
                   </div>
-                  <div className="text-sm text-gray-600">Oylik daromad</div>
-                </CardContent>
-              </Card>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Daromad dinamikasi</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <LineChart width={500} height={300} data={revenueAnalytics.revenueData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis />
-                    <Tooltip />
-                    <Line type="monotone" dataKey="revenue" stroke="#8884d8" />
-                  </LineChart>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Daromad bo'yicha rejalarni taqsimlash</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <PieChart width={400} height={300}>
-                    <Pie
-                      data={revenueAnalytics.revenueByPlan}
-                      cx={200}
-                      cy={150}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="totalRevenue"
-                    >
-                      {revenueAnalytics.revenueByPlan.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
                 </CardContent>
               </Card>
             </div>
           </div>
         )}
 
-        {activeTab === 'users' && userAnalytics && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <Card>
-                <CardContent className="p-6">
-                  <div className="text-2xl font-bold text-blue-600">{userAnalytics.summary.totalUsers}</div>
-                  <div className="text-sm text-gray-600">Jami foydalanuvchilar</div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-6">
-                  <div className="text-2xl font-bold text-green-600">{userAnalytics.summary.activeUsers}</div>
-                  <div className="text-sm text-gray-600">Faol foydalanuvchilar</div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-6">
-                  <div className="text-2xl font-bold text-purple-600">{userAnalytics.summary.todayUsers}</div>
-                  <div className="text-sm text-gray-600">Bugungi foydalanuvchilar</div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-6">
-                  <div className="text-2xl font-bold text-orange-600">{userAnalytics.summary.monthUsers}</div>
-                  <div className="text-sm text-gray-600">Oylik foydalanuvchilar</div>
-                </CardContent>
-              </Card>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Foydalanuvchi o'sishi</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <LineChart width={500} height={300} data={userAnalytics.userGrowth}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis />
-                    <Tooltip />
-                    <Line type="monotone" dataKey="newUsers" stroke="#82ca9d" />
-                  </LineChart>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Faol obunalar</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <PieChart width={400} height={300}>
-                    <Pie
-                      data={userAnalytics.activeSubscriptions}
-                      cx={200}
-                      cy={150}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="activeSubscriptions"
-                    >
-                      {userAnalytics.activeSubscriptions.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </CardContent>
-              </Card>
-            </div>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Oxirgi 10 ta foydalanuvchi</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {userAnalytics.lastUsers.map((user) => (
-                    <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div>
-                        <div className="font-medium">
-                          {user.firstName} {user.lastName || 'Noma\'lum'}
+        {/* ===== USERS ===== */}
+        {activeTab === 'users' && (
+          <Card className="card-default rounded-2xl">
+            <CardHeader>
+              <CardTitle className="text-gray-800 dark:text-white">Foydalanuvchilarni boshqarish</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {allUsers.length === 0 ? (
+                <div className="text-center py-10 text-secondary">
+                  <Users className="w-12 h-12 mx-auto mb-3 opacity-40" />
+                  <p>Hali foydalanuvchilar yo'q</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {allUsers.map((u: any) => (
+                    <div key={u.id || u.uid} className="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-zinc-800/50 border border-gray-100 dark:border-zinc-700">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-sm text-gray-800 dark:text-white">{u.name || u.email?.split('@')[0]}</span>
+                          <Badge className={u.role === 'ADMIN' || u.role === 'admin' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-600'}>
+                            {u.role === 'ADMIN' || u.role === 'admin' ? 'Admin' : 'Foydalanuvchi'}
+                          </Badge>
+                          {u.blocked && <Badge className="bg-red-100 text-red-800">Bloklangan</Badge>}
                         </div>
-                        <div className="text-sm text-gray-600">{user.email}</div>
-                        <div className="text-xs text-gray-400">
-                          {new Date(user.createdAt).toLocaleDateString('uz-UZ')}
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <span className={`px-2 py-1 rounded text-xs ${
-                          user.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                        }`}>
-                          {user.status === 'ACTIVE' ? 'Faol' : 'Faol emas'}
-                        </span>
-                        {user.subscription && (
-                          <span className="px-2 py-1 rounded text-xs bg-blue-100 text-blue-800">
-                            {user.subscription.planName}
+                        <p className="text-xs text-secondary mt-0.5">{u.email}</p>
+                        {u.subscription_plan && u.subscription_plan !== 'free' && (
+                          <span className="text-xs text-green-600 mt-1 inline-block">
+                            {u.subscription_plan === 'pro' ? 'Pro' : 'Standart'} • {u.subscription_expires_at ? new Date(u.subscription_expires_at).toLocaleDateString() : ''}
                           </span>
                         )}
                       </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
-        {activeTab === 'settings' && (
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Shield className="w-5 h-5 text-blue-600" />
-                  Admin sozlamalari
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="p-4 bg-blue-50 rounded-xl border border-blue-100">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <Shield className="w-8 h-8 text-blue-600" />
-                        <div>
-                          <p className="font-medium text-gray-800">Admin huquqlari</p>
-                          <p className="text-sm text-gray-600">
-                            Joriy holat: {user?.email ? (
-                              <span className="font-semibold">{user.email}</span>
-                            ) : 'Tizimga kirmagan'}
-                          </p>
-                          {isAdmin ? (
-                            <p className="text-sm text-green-600 mt-1">✅ Siz admin sifatida tizimdasiz</p>
-                          ) : (
-                            <p className="text-sm text-amber-600 mt-1">Siz oddiy foydalanuvchi sifatida tizimdasiz</p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {!isAdmin && (
-                    <div className="p-4 bg-amber-50 rounded-xl border border-amber-200">
-                      <div className="flex items-start gap-3">
-                        <AlertTriangle className="w-5 h-5 text-amber-600 mt-0.5" />
-                        <div>
-                          <p className="font-medium text-amber-800">Admin bo\'lish</p>
-                          <p className="text-sm text-amber-700 mt-1">
-                            Admin bo\'lish uchun quyidagi tugmani bosing. Bu sizning emailingizni admin sifatida belgilaydi.
-                          </p>
-                          <button
-                            onClick={() => {
-                              if (user?.email) {
-                                const adminUser = makeCurrentUserAdmin(user as any);
-                                alert('Admin huquqi berildi! O\'zgarishlar kuchga kirishi uchun sahifa yangilanadi.');
-                                window.location.reload();
-                              } else {
-                                alert('Admin bo\'lish uchun avval tizimga kiring.');
-                              }
-                            }}
-                            className="mt-3 px-6 py-2 bg-amber-600 text-white rounded-xl hover:bg-amber-700 transition-colors font-medium text-sm"
-                          >
-                            Admin bo\'lish
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {isAdmin && (
-                    <div className="p-4 bg-green-50 rounded-xl border border-green-200">
-                      <div className="flex items-start gap-3">
-                        <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
-                        <div>
-                          <p className="font-medium text-green-800">Siz admin huquqiga egasiz</p>
-                          <p className="text-sm text-green-700 mt-1">
-                            Barcha ma\'lumotlarni ko\'rish va boshqarish imkoniyatiga egasiz.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Ma'lumotlarni tozalash */}
-                  <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <Settings className="w-5 h-5 text-gray-600" />
-                        <div>
-                          <p className="font-medium text-gray-800">Ma\'lumotlarni boshqarish</p>
-                          <p className="text-sm text-gray-600">LocalStorage ma\'lumotlarini yangilash</p>
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => {
-                            localStorage.removeItem('registered_users');
-                            alert('Foydalanuvchi ma\'lumotlari tozalandi. Yangilash uchun sahifani qayta yuklang.');
-                            window.location.reload();
-                          }}
-                          className="px-3 py-1.5 text-sm bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                      <div className="flex items-center gap-1">
+                        <select
+                          value={u.role || 'USER'}
+                          onChange={(e) => updateUserRole(u.id || u.uid, e.target.value)}
+                          className="text-xs p-1.5 rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-700 dark:text-zinc-300"
                         >
-                          Ma\'lumotlarni tozalash
+                          <option value="USER">Foydalanuvchi</option>
+                          <option value="ADMIN">Admin</option>
+                        </select>
+                        <select
+                          value={u.subscription_plan || 'free'}
+                          onChange={(e) => updateUserSubscription(u.id || u.uid, e.target.value)}
+                          className="text-xs p-1.5 rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-700 dark:text-zinc-300"
+                        >
+                          <option value="free">Bepul</option>
+                          <option value="standart">Standart</option>
+                          <option value="pro">Pro</option>
+                        </select>
+                        <button
+                          onClick={() => toggleUserBlock(u.id || u.uid)}
+                          className={`p-1.5 rounded-lg text-xs ${u.blocked ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}
+                        >
+                          {u.blocked ? 'Faollashtirish' : 'Bloklash'}
                         </button>
                       </div>
                     </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* ===== PAYMENTS ===== */}
+        {activeTab === 'payments' && (
+          <div className="space-y-4">
+            <Card className="card-default rounded-2xl">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-gray-800 dark:text-white">
+                  <CreditCard className="w-5 h-5 text-blue-500" />
+                  To'lov so'rovlarini boshqarish
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {paymentRequests.length === 0 ? (
+                  <div className="text-center py-10 text-secondary">
+                    <CreditCard className="w-12 h-12 mx-auto mb-3 opacity-40" />
+                    <p>Hali to'lov so'rovlari yo'q</p>
                   </div>
+                ) : (
+                  <div className="space-y-3">
+                    {paymentRequests.map(p => (
+                      <div key={p.id} className="p-4 rounded-xl bg-gray-50 dark:bg-zinc-800/50 border border-gray-100 dark:border-zinc-700">
+                        <div className="flex items-center justify-between mb-3">
+                          <div>
+                            <p className="font-medium text-sm text-gray-800 dark:text-white">{p.userName || p.userEmail}</p>
+                            <p className="text-xs text-secondary">{p.userEmail} • {p.plan}</p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Badge className={
+                              p.status === 'approved' ? 'bg-green-100 text-green-800' :
+                              p.status === 'rejected' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'
+                            }>
+                              {p.status === 'approved' ? 'Tasdiqlangan' : p.status === 'rejected' ? 'Rad etilgan' : 'Kutilmoqda'}
+                            </Badge>
+                            <span className="font-bold text-sm text-gray-800 dark:text-white">{p.amount.toLocaleString()} UZS</span>
+                          </div>
+                        </div>
+                        {p.receiptImage && (
+                          <div className="mb-3">
+                            <img src={p.receiptImage} alt="Chek" className="w-full max-w-xs rounded-lg border dark:border-zinc-700" />
+                          </div>
+                        )}
+                        {p.status === 'pending' && (
+                          <div className="flex gap-2">
+                            <button onClick={() => approvePayment(p.id)}
+                              className="px-4 py-1.5 bg-green-600 text-white text-xs font-medium rounded-lg hover:bg-green-700 transition-colors flex items-center gap-1">
+                              <CheckCircle size={14} /> Tasdiqlash
+                            </button>
+                            <button onClick={() => rejectPayment(p.id)}
+                              className="px-4 py-1.5 bg-red-600 text-white text-xs font-medium rounded-lg hover:bg-red-700 transition-colors flex items-center gap-1">
+                              <X size={14} /> Rad etish
+                            </button>
+                          </div>
+                        )}
+                        <p className="text-xs text-secondary mt-2">{new Date(p.createdAt).toLocaleString('uz-UZ')}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* ===== PRICING ===== */}
+        {activeTab === 'pricing' && (
+          <div className="space-y-4">
+            <Card className="card-default rounded-2xl">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-gray-800 dark:text-white">
+                  <DollarSign className="w-5 h-5 text-blue-500" />
+                  Narxlar va rejalarni boshqarish
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid md:grid-cols-3 gap-4">
+                  {pricingPlans.map(plan => (
+                    <div key={plan.id} className="p-4 rounded-xl bg-gray-50 dark:bg-zinc-800/50 border border-gray-100 dark:border-zinc-700">
+                      {editingPlan === plan.id ? (
+                        <div className="space-y-3">
+                          <Input
+                            value={editPlanData?.name || ''}
+                            onChange={(e) => setEditPlanData(prev => prev ? { ...prev, name: e.target.value } : null)}
+                            placeholder="Reja nomi"
+                            className="w-full text-sm"
+                          />
+                          <Input
+                            type="number"
+                            value={editPlanData?.price || 0}
+                            onChange={(e) => setEditPlanData(prev => prev ? { ...prev, price: Number(e.target.value) } : null)}
+                            placeholder="Narxi (UZS)"
+                            className="w-full text-sm"
+                          />
+                          <Input
+                            type="number"
+                            value={editPlanData?.caseLimit || 0}
+                            onChange={(e) => setEditPlanData(prev => prev ? { ...prev, caseLimit: Number(e.target.value) } : null)}
+                            placeholder="Kunlik limit"
+                            className="w-full text-sm"
+                          />
+                          <div>
+                            <p className="text-xs font-medium text-gray-600 dark:text-zinc-400 mb-1">Xususiyatlar:</p>
+                            {editPlanData?.features.map((f, idx) => (
+                              <div key={idx} className="flex items-center gap-1 mb-1">
+                                <Input value={f} onChange={(e) => updateFeature(idx, e.target.value)} className="text-xs flex-1" />
+                                <button onClick={() => removeFeature(idx)} className="p-1 text-red-500"><X size={14} /></button>
+                              </div>
+                            ))}
+                            <button onClick={addFeatureToPlan} className="text-xs text-blue-600 hover:text-blue-800 mt-1">+ Xususiyat qo'shish</button>
+                          </div>
+                          <div className="flex gap-2">
+                            <button onClick={savePlan} className="px-3 py-1.5 bg-blue-600 text-white text-xs rounded-lg hover:bg-blue-700"><Save size={14} className="inline mr-1" />Saqlash</button>
+                            <button onClick={() => setEditingPlan(null)} className="px-3 py-1.5 bg-gray-200 dark:bg-zinc-700 text-gray-700 dark:text-zinc-300 text-xs rounded-lg">Bekor qilish</button>
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="flex items-center justify-between mb-2">
+                            <h3 className="font-bold text-gray-800 dark:text-white">{plan.name}</h3>
+                            <button onClick={() => startEditPlan(plan)} className="p-1 text-gray-400 hover:text-blue-600">
+                              <Settings size={14} />
+                            </button>
+                          </div>
+                          <p className="text-xl font-bold text-blue-600 mb-2">{plan.price.toLocaleString()} UZS</p>
+                          <ul className="space-y-1">
+                            {plan.features.map((f, idx) => (
+                              <li key={idx} className="text-xs text-secondary flex items-start gap-1">
+                                <CheckCircle size={12} className="text-green-500 mt-0.5 flex-shrink-0" />
+                                {f}
+                              </li>
+                            ))}
+                          </ul>
+                          <p className="text-xs text-secondary mt-2">Kunlik limit: {plan.caseLimit === -1 ? 'Cheksiz' : plan.caseLimit} ta</p>
+                        </>
+                      )}
+                    </div>
+                  ))}
                 </div>
               </CardContent>
             </Card>
           </div>
         )}
 
-        {activeTab === 'ai-usage' && aiUsageAnalytics && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <Card>
-                <CardContent className="p-6">
-                  <div className="text-2xl font-bold text-blue-600">{aiUsageAnalytics.summary.totalAIUsage}</div>
-                  <div className="text-sm text-gray-600">Jami AI so'rovlar</div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-6">
-                  <div className="text-2xl font-bold text-green-600">{aiUsageAnalytics.summary.todayAIUsage}</div>
-                  <div className="text-sm text-gray-600">Bugungi AI so'rovlar</div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-6">
-                  <div className="text-2xl font-bold text-purple-600">{aiUsageAnalytics.summary.weekAIUsage}</div>
-                  <div className="text-sm text-gray-600">Haftalik AI so'rovlar</div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-6">
-                  <div className="text-2xl font-bold text-orange-600">{aiUsageAnalytics.summary.monthAIUsage}</div>
-                  <div className="text-sm text-gray-600">Oylik AI so'rovlar</div>
-                </CardContent>
-              </Card>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>AI foydalanishi dinamikasi</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <LineChart width={500} height={300} data={aiUsageAnalytics.aiUsageOverTime}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis />
-                    <Tooltip />
-                    <Line type="monotone" dataKey="totalRequests" stroke="#8884d8" />
-                  </LineChart>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Eng ko'p ishlatilgan xususiyatlar</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <PieChart width={400} height={300}>
-                    <Pie
-                      data={aiUsageAnalytics.mostUsedFeatures}
-                      cx={200}
-                      cy={150}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="totalUsage"
-                    >
-                      {aiUsageAnalytics.mostUsedFeatures.map((entry: any, index: number) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </CardContent>
-              </Card>
-            </div>
-
-            <Card>
+        {/* ===== SETTINGS ===== */}
+        {activeTab === 'settings' && (
+          <div className="space-y-4">
+            <Card className="card-default rounded-2xl">
               <CardHeader>
-                <CardTitle>Eng faol AI foydalanuvchilari</CardTitle>
+                <CardTitle className="flex items-center gap-2 text-gray-800 dark:text-white">
+                  <Settings className="w-5 h-5 text-blue-500" />
+                  Sayt sozlamalari
+                </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {aiUsageAnalytics.topUsers.map((user) => (
-                    <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div>
-                        <div className="font-medium">
-                          {user.firstName} {user.lastName || 'Noma\'lum'}
-                        </div>
-                        <div className="text-sm text-gray-600">{user.email}</div>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <span className="px-2 py-1 rounded text-xs bg-blue-100 text-blue-800">
-                          {user.totalAIUsage} so'rov
-                        </span>
-                        <span className="px-2 py-1 rounded text-xs bg-green-100 text-green-800">
-                          {user.featuresUsed} xususiyat
-                        </span>
-                      </div>
-                    </div>
-                  ))}
+              <CardContent className="space-y-4">
+                {[
+                  { key: 'announcementBanner', label: 'Banner matni', icon: Bell },
+                  { key: 'heroTitle', label: 'Bosh sahifa sarlavhasi', icon: Globe },
+                  { key: 'heroSubtitle', label: 'Bosh sahifa taglavhasi', icon: Globe },
+                  { key: 'contactEmail', label: 'Email', icon: Globe },
+                  { key: 'contactPhone', label: 'Telefon', icon: Globe },
+                  { key: 'telegramLink', label: 'Telegram havola', icon: Globe },
+                  { key: 'paymentCardNumber', label: 'Plastik karta raqami', icon: CreditCard },
+                  { key: 'paymentDetails', label: 'To\'lov tafsilotlari', icon: CreditCard },
+                ].map(field => (
+                  <div key={field.key}>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">{field.label}</label>
+                    <Input
+                      value={(siteSettings as any)[field.key]}
+                      onChange={(e) => setSiteSettings(prev => ({ ...prev, [field.key]: e.target.value }))}
+                      className="w-full"
+                    />
+                  </div>
+                ))}
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Huquqiy ogohlantirish</label>
+                  <textarea
+                    value={siteSettings.legalDisclaimer}
+                    onChange={(e) => setSiteSettings(prev => ({ ...prev, legalDisclaimer: e.target.value }))}
+                    className="w-full p-3 rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-800 dark:text-white resize-none text-sm"
+                    rows={3}
+                  />
                 </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">AI System Prompt</label>
+                  <textarea
+                    value={siteSettings.systemPrompt}
+                    onChange={(e) => setSiteSettings(prev => ({ ...prev, systemPrompt: e.target.value }))}
+                    className="w-full p-3 rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-800 dark:text-white resize-none text-sm font-mono"
+                    rows={4}
+                  />
+                </div>
+
+                <Button onClick={saveSettings} className="w-full md:w-auto">
+                  <Save className="w-4 h-4 mr-2" />
+                  Saqlash
+                </Button>
+                {settingsSaved && (
+                  <p className="text-sm text-green-600">Sozlamalar saqlandi! ✅</p>
+                )}
               </CardContent>
             </Card>
           </div>

@@ -73,7 +73,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       title: 'Amaliyot',
       items: [
         {
-          name: 'Case Solver',
+          name: 'IRAC Huquqiy Tahlil',
           href: '/case-solver',
           icon: (
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -85,7 +85,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           adminOnly: false,
         },
         {
-          name: 'Court Simulator',
+          name: 'Sud Simulyatori',
           href: '/court-simulator',
           icon: (
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -97,7 +97,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           adminOnly: false,
         },
         {
-          name: 'Decision Tree',
+          name: 'Qarorlar Daraxti',
           href: '/decision-tree',
           icon: (
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -114,7 +114,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       title: 'Resurslar',
       items: [
         {
-          name: 'Legal Database',
+          name: 'Qonunlar Bazasi',
           href: '/legal-database',
           icon: (
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -127,7 +127,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         },
 
         {
-          name: 'Document Generator',
+          name: 'Hujjat Generator',
           href: '/document-generator',
           icon: (
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -139,7 +139,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           adminOnly: false,
         },
         {
-          name: 'Professional Tools',
+          name: 'Asboblar',
           href: '/professional-tools',
           icon: (
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
