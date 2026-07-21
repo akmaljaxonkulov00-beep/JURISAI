@@ -148,6 +148,7 @@ export default function AIAssistant() {
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const recognitionRef = useRef<any>(null);
+  const sessionIdRef = useRef<string | null>(null);
 
   // Load sessions on mount
   useEffect(() => {
@@ -164,13 +165,13 @@ export default function AIAssistant() {
 
   // Xabarlar o'zgarganda joriy sessionni saqlash
   useEffect(() => {
-    if (typeof window === 'undefined' || messages.length === 0) return;
+    if (typeof window === 'undefined' || messages.length === 0 || !sessionIdRef.current) return;
     
     const now = new Date();
     const sessionTitle = messages.find(m => m.type === 'user')?.text?.slice(0, 50) || 'Suhbat';
     const lastMsg = messages[messages.length - 1];
     const session: ChatSession = {
-      id: currentSessionId || 'session-' + Date.now(),
+      id: sessionIdRef.current,
       title: sessionTitle,
       preview: lastMsg?.text?.slice(0, 40) || '',
       date: now.toISOString(),
@@ -181,15 +182,10 @@ export default function AIAssistant() {
       }))
     };
 
-    if (!currentSessionId) {
-      setCurrentSessionId(session.id);
-    }
-
     setSessions(prev => {
       const filtered = prev.filter(s => s.id !== session.id);
-      const updated = [session, ...filtered].slice(0, 20); // max 20 sessions
+      const updated = [session, ...filtered].slice(0, 20);
       
-      // Save to localStorage
       try {
         const toSave = updated.map(s => ({
           ...s,
@@ -203,7 +199,7 @@ export default function AIAssistant() {
       
       return updated;
     });
-  }, [messages, currentSessionId]);
+  }, [messages]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -213,6 +209,7 @@ export default function AIAssistant() {
   const loadSession = (session: ChatSession) => {
     setMessages(session.messages);
     setCurrentSessionId(session.id);
+    sessionIdRef.current = session.id;
     setHistoryOpen(false);
   };
 
@@ -220,6 +217,7 @@ export default function AIAssistant() {
   const newChat = () => {
     setMessages([]);
     setCurrentSessionId(null);
+    sessionIdRef.current = null;
     setHistoryOpen(false);
   };
 
@@ -236,6 +234,7 @@ export default function AIAssistant() {
     if (currentSessionId === sessionId) {
       setMessages([]);
       setCurrentSessionId(null);
+      sessionIdRef.current = null;
     }
   };
 
@@ -245,6 +244,7 @@ export default function AIAssistant() {
       setSessions([]);
       setMessages([]);
       setCurrentSessionId(null);
+      sessionIdRef.current = null;
       try {
         localStorage.removeItem('ai_chat_sessions');
         localStorage.removeItem('ai_chat_history');
@@ -256,6 +256,12 @@ export default function AIAssistant() {
   const send = useCallback(async (text?: string) => {
     const msg = (text ?? input).trim();
     if (!msg || loading) return;
+
+    // Initialize session ID on first message
+    if (!sessionIdRef.current) {
+      sessionIdRef.current = 'session-' + Date.now();
+      setCurrentSessionId(sessionIdRef.current);
+    }
 
     setMessages(p => [...p, { id: Date.now().toString(), text: msg, type: 'user', timestamp: new Date() }]);
     setInput('');
