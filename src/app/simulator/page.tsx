@@ -227,30 +227,30 @@ export default function Simulator() {
   // RESULTS SCREEN
   if (showResults && results) {
     return (
-      <div className="min-h-screen bg-[#f8faff] flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full p-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-6 text-center">Simulyatsiya Natijalari</h1>
+      <div className="min-h-screen bg-[#f8faff] dark:bg-gray-950 flex items-center justify-center p-4">
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-xl max-w-2xl w-full p-8">
+          <h1 className="text-3xl font-bold text-gray-800 dark:text-zinc-100 mb-6 text-center">Simulyatsiya Natijalari</h1>
           <div className="grid grid-cols-3 gap-4 mb-6">
             <div className="text-center bg-blue-50 rounded-xl p-4">
               <TrendingUp className="w-8 h-8 text-blue-600 mx-auto mb-2" />
               <p className="text-2xl font-bold text-blue-700">{Math.round(results.legalAccuracy)}%</p>
-              <p className="text-sm text-gray-600">Yuridik aniqlik</p>
+              <p className="text-sm text-gray-600 dark:text-zinc-300">Yuridik aniqlik</p>
             </div>
             <div className="text-center bg-green-50 rounded-xl p-4">
               <Award className="w-8 h-8 text-green-600 mx-auto mb-2" />
               <p className="text-2xl font-bold text-green-700">{Math.round(results.ethics)}%</p>
-              <p className="text-sm text-gray-600">Etika</p>
+              <p className="text-sm text-gray-600 dark:text-zinc-300">Etika</p>
             </div>
             <div className="text-center bg-purple-50 rounded-xl p-4">
               <Target className="w-8 h-8 text-purple-600 mx-auto mb-2" />
               <p className="text-2xl font-bold text-purple-700">{Math.round(results.confidence)}%</p>
-              <p className="text-sm text-gray-600">Ishonch</p>
+              <p className="text-sm text-gray-600 dark:text-zinc-300">Ishonch</p>
             </div>
           </div>
-          <div className="bg-gray-50 rounded-xl p-6 mb-6 text-center">
-            <p className="text-gray-600 mb-1">Umumiy ball</p>
+          <div className="bg-gray-50 dark:bg-zinc-800/50 rounded-xl p-6 mb-6 text-center">
+            <p className="text-gray-600 dark:text-zinc-300 mb-1">Umumiy ball</p>
             <p className="text-4xl font-bold text-blue-600 mb-3">{results.totalScore}/100</p>
-            <div className="bg-gray-200 rounded-full h-3">
+            <div className="bg-gray-200 dark:bg-zinc-700 rounded-full h-3">
               <div className="bg-blue-500 h-3 rounded-full" style={{ width: `${results.totalScore}%` }} />
             </div>
           </div>
@@ -276,17 +276,17 @@ export default function Simulator() {
   // SIMULATION SCREEN
   if (isSimulating) {
     return (
-      <div className="min-h-screen bg-[#f8faff] flex flex-col">
-        <header className="bg-white px-6 py-4 border-b flex items-center justify-between">
+      <div className="min-h-screen bg-[#f8faff] dark:bg-gray-950 flex flex-col">
+        <header className="bg-white dark:bg-zinc-900 px-6 py-4 border-b flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <button onClick={reset} className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg"><ArrowLeft className="w-5 h-5" /></button>
+            <button onClick={reset} className="p-2 text-gray-600 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-700 dark:bg-zinc-800 rounded-lg"><ArrowLeft className="w-5 h-5" /></button>
             <div>
-              <h1 className="font-bold text-gray-800">Simulyatsiya</h1>
-              <p className="text-sm text-gray-500">Rol: {selectedRole}</p>
+              <h1 className="font-bold text-gray-800 dark:text-zinc-100">Simulyatsiya</h1>
+              <p className="text-sm text-gray-500 dark:text-zinc-400">Rol: {selectedRole}</p>
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <div className={`flex items-center gap-2 ${timeLeft <= 60 ? 'text-red-600' : 'text-gray-700'}`}>
+            <div className={`flex items-center gap-2 ${timeLeft <= 60 ? 'text-red-600' : 'text-gray-700 dark:text-zinc-200'}`}>
               <Clock className="w-4 h-4" />
               <span className="font-bold">{Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}</span>
             </div>
@@ -302,7 +302,7 @@ export default function Simulator() {
           <div className="max-w-3xl mx-auto space-y-4">
             {messages.map(msg => (
               <div key={msg.id} className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-2xl px-4 py-3 rounded-2xl ${msg.type === 'user' ? 'bg-blue-600 text-white' : 'bg-white border border-gray-200 text-gray-800'}`}>
+                <div className={`max-w-2xl px-4 py-3 rounded-2xl ${msg.type === 'user' ? 'bg-blue-600 text-white' : 'bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 text-gray-800 dark:text-zinc-100'}`}>
                   <p className="text-xs font-medium mb-1 opacity-70">{msg.speaker}</p>
                   <p className="whitespace-pre-wrap text-sm leading-relaxed">{msg.text}</p>
                 </div>
@@ -310,7 +310,7 @@ export default function Simulator() {
             ))}
             {loading && (
               <div className="flex justify-start">
-                <div className="bg-white border border-gray-200 px-4 py-3 rounded-2xl">
+                <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 px-4 py-3 rounded-2xl">
                   <div className="flex gap-1">
                     <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
                     <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
@@ -323,7 +323,7 @@ export default function Simulator() {
           </div>
         </div>
 
-        <div className="bg-white border-t p-4">
+        <div className="bg-white dark:bg-zinc-900 border-t p-4">
           <div className="max-w-3xl mx-auto">
             {listening && (
               <div className="flex items-center gap-2 px-4 py-2 bg-red-50 border border-red-200 rounded-lg mb-3">
@@ -339,12 +339,12 @@ export default function Simulator() {
                 onChange={e => setUserInput(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
                 placeholder="Javobingizni yozing yoki 🎤 bosib gapiring..."
-                className="flex-1 px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="flex-1 px-4 py-3 border border-gray-200 dark:border-zinc-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
                 disabled={loading}
               />
               <button
                 onClick={listening ? stopMic : startMic}
-                className={`px-4 py-3 rounded-xl transition-colors ${listening ? 'bg-red-500 text-white animate-pulse' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                className={`px-4 py-3 rounded-xl transition-colors ${listening ? 'bg-red-500 text-white animate-pulse' : 'bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-300 hover:bg-gray-200 dark:hover:bg-zinc-700 dark:bg-zinc-700'}`}
                 title={listening ? "To'xtatish" : 'Ovoz bilan kiritish'}
               >
                 <Mic className="w-5 h-5" />
@@ -361,10 +361,10 @@ export default function Simulator() {
 
   // HOME SCREEN
   return (
-    <div className="min-h-screen bg-[#f8faff]">
+    <div className="min-h-screen bg-[#f8faff] dark:bg-gray-950">
       <div className="flex">
-        <div className="desktop-sidebar w-64 bg-white border-r min-h-screen p-6">
-          <a href="/" className="flex items-center gap-2 text-gray-600 hover:bg-gray-50 px-3 py-2 rounded-lg mb-6">
+        <div className="desktop-sidebar w-64 bg-white dark:bg-zinc-900 border-r min-h-screen p-6">
+          <a href="/" className="flex items-center gap-2 text-gray-600 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800 dark:bg-zinc-800/50 px-3 py-2 rounded-lg mb-6">
             <ArrowLeft className="w-5 h-5" /><span>Orqaga</span>
           </a>
           <div className="bg-blue-50 rounded-xl p-4">
@@ -374,36 +374,36 @@ export default function Simulator() {
         </div>
 
         <div className="flex-1">
-          <header className="bg-white px-8 py-5 border-b">
-            <h1 className="text-2xl font-bold text-gray-800">Simulyator</h1>
-            <p className="text-sm text-gray-500">Xavfsiz virtual poligon — AI bilan real huquqiy vaziyatlar</p>
+          <header className="bg-white dark:bg-zinc-900 px-8 py-5 border-b">
+            <h1 className="text-2xl font-bold text-gray-800 dark:text-zinc-100">Simulyator</h1>
+            <p className="text-sm text-gray-500 dark:text-zinc-400">Xavfsiz virtual poligon — AI bilan real huquqiy vaziyatlar</p>
           </header>
 
           <main className="p-8">
-            <h2 className="text-xl font-bold text-gray-800 mb-5">Simulyatsiya turini tanlang</h2>
+            <h2 className="text-xl font-bold text-gray-800 dark:text-zinc-100 mb-5">Simulyatsiya turini tanlang</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">              {simulations.map(sim => (
                 <div
                   key={sim.id}
-                  className={`bg-white rounded-2xl p-6 shadow-sm border-2 transition-all cursor-pointer ${selectedSim === sim.id ? 'border-blue-500 bg-blue-50' : 'border-gray-100 hover:border-blue-200'}`}
+                  className={`bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-sm border-2 transition-all cursor-pointer ${selectedSim === sim.id ? 'border-blue-500 bg-blue-50' : 'border-gray-100 dark:border-zinc-800 hover:border-blue-200'}`}
                   onClick={() => setSelectedSim(selectedSim === sim.id ? null : sim.id)}
                 >
                   <div className={`w-12 h-12 bg-${sim.color}-100 rounded-xl flex items-center justify-center mb-4 text-${sim.color}-600`}>
                     {sim.icon}
                   </div>
-                  <h3 className="text-lg font-bold text-gray-800 mb-1">{sim.title}</h3>
-                  <p className="text-sm text-gray-500 mb-4">{sim.description}</p>
+                  <h3 className="text-lg font-bold text-gray-800 dark:text-zinc-100 mb-1">{sim.title}</h3>
+                  <p className="text-sm text-gray-500 dark:text-zinc-400 mb-4">{sim.description}</p>
 
                   {selectedSim === sim.id && (
                     <div className="space-y-2 mt-2">
-                      <p className="text-sm font-semibold text-gray-700">Rolni tanlang:</p>
+                      <p className="text-sm font-semibold text-gray-700 dark:text-zinc-200">Rolni tanlang:</p>
                       {sim.roles.map(role => (
                         <button
                           key={role.id}
                           onClick={e => { e.stopPropagation(); startSimulation(sim.id, role.name); }}
-                          className="w-full text-left p-3 bg-white rounded-lg border border-gray-200 hover:border-blue-400 hover:bg-blue-50 transition-all"
+                          className="w-full text-left p-3 bg-white dark:bg-zinc-900 rounded-lg border border-gray-200 dark:border-zinc-700 hover:border-blue-400 hover:bg-blue-50 transition-all"
                         >
-                          <p className="font-medium text-gray-800 text-sm">{role.name}</p>
-                          <p className="text-xs text-gray-500">{role.description}</p>
+                          <p className="font-medium text-gray-800 dark:text-zinc-100 text-sm">{role.name}</p>
+                          <p className="text-xs text-gray-500 dark:text-zinc-400">{role.description}</p>
                         </button>
                       ))}
                     </div>
@@ -412,8 +412,8 @@ export default function Simulator() {
               ))}
             </div>
 
-            <div className="mt-8 bg-white rounded-2xl p-6 shadow-sm">
-              <h3 className="font-bold text-gray-800 mb-4">Xususiyatlar</h3>
+            <div className="mt-8 bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-sm">
+              <h3 className="font-bold text-gray-800 dark:text-zinc-100 mb-4">Xususiyatlar</h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {[
                   { icon: <User className="w-5 h-5 text-blue-600" />, title: 'AI Personajlar', desc: 'Real AI javoblar' },
@@ -421,11 +421,11 @@ export default function Simulator() {
                   { icon: <AlertTriangle className="w-5 h-5 text-orange-600" />, title: 'Stress metr', desc: 'Hissiy intellekt' },
                   { icon: <Award className="w-5 h-5 text-yellow-600" />, title: 'Taqdirlash', desc: 'XP va yutuqlar' },
                 ].map((f, i) => (
-                  <div key={i} className="flex items-start gap-3 bg-gray-50 rounded-xl p-3">
-                    <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">{f.icon}</div>
+                  <div key={i} className="flex items-start gap-3 bg-gray-50 dark:bg-zinc-800/50 rounded-xl p-3">
+                    <div className="w-8 h-8 bg-white dark:bg-zinc-900 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">{f.icon}</div>
                     <div>
-                      <p className="font-medium text-gray-800 text-sm">{f.title}</p>
-                      <p className="text-xs text-gray-500">{f.desc}</p>
+                      <p className="font-medium text-gray-800 dark:text-zinc-100 text-sm">{f.title}</p>
+                      <p className="text-xs text-gray-500 dark:text-zinc-400">{f.desc}</p>
                     </div>
                   </div>
                 ))}

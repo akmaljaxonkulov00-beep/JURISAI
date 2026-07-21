@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { usePathname } from 'next/navigation';
-import { MessageCircle, X, Send, History, Trash2, Sparkles, ChevronDown, Plus } from 'lucide-react';
+import { MessageCircle, X, Send, History, Trash2, Sparkles, ChevronDown, Plus, Maximize2, Minimize2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -51,6 +51,7 @@ export default function AIChatWidget() {
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [minimized, setMinimized] = useState(false);
+  const [fullscreen, setFullscreen] = useState(false);
   const [windowWidth, setWindowWidth] = useState(400);
   const [windowHeight, setWindowHeight] = useState(560);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -140,11 +141,13 @@ export default function AIChatWidget() {
     return date.toLocaleDateString('uz-UZ', { day: 'numeric', month: 'short' });
   };
 
+  const isFullscreenMode = fullscreen;
+
   return (
     <>
       {/* Floating Action Button */}
       <button
-        onClick={() => { setOpen(!open); if (!open) setMinimized(false); }}
+        onClick={() => { setOpen(!open); if (!open) { setMinimized(false); setFullscreen(false); } }}
         style={{
           position: 'fixed', bottom: 24, right: 24, zIndex: 9999,
           width: 56, height: 56, borderRadius: '50%',
@@ -165,12 +168,14 @@ export default function AIChatWidget() {
       {/* Chat Panel Overlay */}
       {open && (
         <div style={{
-          position: 'fixed', bottom: 92, right: 24, zIndex: 9998,
-          width: Math.min(400, windowWidth),
-          height: Math.min(560, windowHeight),
+          position: 'fixed', zIndex: 9998,
+          ...(isFullscreenMode
+            ? { inset: 16, width: 'calc(100vw - 32px)', height: 'calc(100vh - 32px)' }
+            : { bottom: 92, right: 24, width: Math.min(400, windowWidth), height: Math.min(560, windowHeight) }
+          ),
           background: 'var(--card-bg)',
           border: '1px solid var(--card-border)',
-          borderRadius: 16,
+          borderRadius: isFullscreenMode ? 12 : 16,
           boxShadow: '0 8px 40px rgba(0, 0, 0, 0.15)',
           display: 'flex', flexDirection: 'column',
           overflow: 'hidden',
@@ -182,7 +187,7 @@ export default function AIChatWidget() {
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             padding: '10px 14px', borderBottom: '1px solid var(--card-border)',
             background: 'linear-gradient(135deg, #2563eb 0%, #3b82f6 100%)', color: '#fff',
-            flexShrink: 0, borderRadius: '16px 16px 0 0',
+            flexShrink: 0, borderRadius: isFullscreenMode ? '12px 12px 0 0' : '16px 16px 0 0',
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <MessageCircle size={16} />
@@ -190,6 +195,12 @@ export default function AIChatWidget() {
               <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#4ade80', boxShadow: '0 0 6px rgba(74,222,128,0.6)' }} />
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              {/* Fullscreen Toggle */}
+              <button onClick={() => setFullscreen(!fullscreen)}
+                title={fullscreen ? 'Kichik rejim' : 'To\'liq ekran'}
+                style={{ padding: 4, background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: 6, cursor: 'pointer', color: '#fff', display: 'flex', alignItems: 'center' }}>
+                {fullscreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+              </button>
               <button onClick={() => setMinimized(!minimized)}
                 style={{ padding: 4, background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: 6, cursor: 'pointer', color: '#fff', display: 'flex', alignItems: 'center' }}>
                 <ChevronDown size={14} style={{ transform: minimized ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />

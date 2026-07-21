@@ -173,7 +173,7 @@ export default function DecisionTreeEngine() {
           x={node.x}
           y={node.y! + (node.type === 'root' ? 40 : node.type === 'decision' ? 35 : 30)}
           textAnchor="middle"
-          className="text-sm font-medium fill-gray-700"
+          className="text-sm font-medium fill-gray-700 dark:fill-zinc-300"
         >
           {node.label}
         </text>
@@ -184,7 +184,7 @@ export default function DecisionTreeEngine() {
             x={node.x}
             y={node.y! - (node.type === 'root' ? 35 : node.type === 'decision' ? 30 : 25)}
             textAnchor="middle"
-            className="text-xs font-bold fill-gray-600"
+            className="text-xs font-bold fill-gray-600 dark:fill-zinc-400"
           >
             {node.probability}%
           </text>
@@ -217,30 +217,30 @@ export default function DecisionTreeEngine() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8faff]">
+    <div className="min-h-screen bg-[#f8faff] dark:bg-gray-950">
       <div className="flex">
         {/* Sidebar */}
-        <div className="w-64 bg-white border-r border-gray-100 min-h-screen">
+        <div className="w-64 bg-white dark:bg-zinc-900 border-r border-gray-100 dark:border-zinc-800 min-h-screen">
           <div className="p-6">
             {/* Daily Goal Block */}
             <div className="bg-orange-50 rounded-xl p-4 mb-6">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <Target className="w-5 h-5 text-orange-600" />
-                  <span className="font-semibold text-gray-800">Kundalik maqsad</span>
+                  <span className="font-semibold text-gray-800 dark:text-zinc-100">Kundalik maqsad</span>
                 </div>
               </div>
               <div className="mb-2">
-                <div className="bg-gray-200 rounded-full h-2">
+                <div className="bg-gray-200 dark:bg-zinc-700 rounded-full h-2">
                   <div className="bg-orange-500 h-2 rounded-full" style={{ width: '60%' }}></div>
                 </div>
               </div>
-              <p className="text-sm text-gray-600">2 ta case qolgan</p>
+              <p className="text-sm text-gray-600 dark:text-zinc-300">2 ta case qolgan</p>
             </div>
 
             {/* Menu Items */}
             <nav className="space-y-2">
-              <a href="/" className="flex items-center gap-3 px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-lg cursor-pointer">
+              <a href="/" className="flex items-center gap-3 px-3 py-2 text-gray-600 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800 dark:bg-zinc-800/50 rounded-lg cursor-pointer">
                 <ArrowLeft className="w-5 h-5" />
                 <span>Orqaga</span>
               </a>
@@ -255,11 +255,11 @@ export default function DecisionTreeEngine() {
         {/* Main Content */}
         <div className="flex-1">
           {/* Header */}
-          <header className="bg-white px-8 py-4 border-b border-gray-100">
+          <header className="bg-white dark:bg-zinc-900 px-8 py-4 border-b border-gray-100 dark:border-zinc-800">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-gray-800">Decision Tree Engine</h1>
-                <p className="text-sm text-gray-600">Qarorlar daraxti - Vizual strategiya xaritasi</p>
+                <h1 className="text-2xl font-bold text-gray-800 dark:text-zinc-100">Decision Tree Engine</h1>
+                <p className="text-sm text-gray-600 dark:text-zinc-300">Qarorlar daraxti - Vizual strategiya xaritasi</p>
               </div>
               <div className="flex items-center gap-4">
                 <button
@@ -274,19 +274,19 @@ export default function DecisionTreeEngine() {
           </header>
 
           {/* Control Tools */}
-          <div className="bg-white px-8 py-3 border-b border-gray-100">
+          <div className="bg-white dark:bg-zinc-900 px-8 py-3 border-b border-gray-100 dark:border-zinc-800">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <button
                   onClick={handleZoomIn}
-                  className="p-2 text-gray-600 hover:bg-gray-50 rounded-lg"
+                  className="p-2 text-gray-600 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800 dark:bg-zinc-800/50 rounded-lg"
                   title="Yaqinlashtirish"
                 >
                   <ZoomIn className="w-4 h-4" />
                 </button>
                 <button
                   onClick={handleZoomOut}
-                  className="p-2 text-gray-600 hover:bg-gray-50 rounded-lg"
+                  className="p-2 text-gray-600 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800 dark:bg-zinc-800/50 rounded-lg"
                   title="Uzoqlashtirish"
                 >
                   <ZoomOut className="w-4 h-4" />
@@ -294,34 +294,34 @@ export default function DecisionTreeEngine() {
                 <button
                   onClick={handleBack}
                   disabled={history.length <= 1}
-                  className="p-2 text-gray-600 hover:bg-gray-50 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="p-2 text-gray-600 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800 dark:bg-zinc-800/50 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
                   title="Orqaga qaytish"
                 >
                   <RotateCcw className="w-4 h-4" />
                 </button>
                 <button
                   onClick={handleReset}
-                  className="p-2 text-gray-600 hover:bg-gray-50 rounded-lg"
+                  className="p-2 text-gray-600 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800 dark:bg-zinc-800/50 rounded-lg"
                   title="Qayta boshlash"
                 >
                   <ArrowRight className="w-4 h-4" />
                 </button>
-                <span className="text-sm text-gray-500 ml-2">Zoom: {Math.round(zoom * 100)}%</span>
+                <span className="text-sm text-gray-500 dark:text-zinc-400 ml-2">Zoom: {Math.round(zoom * 100)}%</span>
               </div>
               
               {/* Legend */}
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                  <span className="text-xs text-gray-600">Joriy nuqta</span>
+                  <span className="text-xs text-gray-600 dark:text-zinc-300">Joriy nuqta</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                  <span className="text-xs text-gray-600">Optimal yo'l</span>
+                  <span className="text-xs text-gray-600 dark:text-zinc-300">Optimal yo'l</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                  <span className="text-xs text-gray-600">Xavfli yo'l</span>
+                  <span className="text-xs text-gray-600 dark:text-zinc-300">Xavfli yo'l</span>
                 </div>
               </div>
             </div>
@@ -332,14 +332,14 @@ export default function DecisionTreeEngine() {
             <div className="grid grid-cols-4 gap-6">
               {/* Decision Tree Visualization */}
               <div className="col-span-3">
-                <div className="bg-white rounded-2xl p-6 shadow-sm">
+                <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-sm">
                   <div className="mb-4">
-                    <h2 className="text-xl font-bold text-gray-800 mb-2">Vizual Strategiya Xaritasi</h2>
-                    <p className="text-sm text-gray-600">Huquqiy vaziyatning rivojlanish yo'llari va ehtimollari</p>
+                    <h2 className="text-xl font-bold text-gray-800 dark:text-zinc-100 mb-2">Vizual Strategiya Xaritasi</h2>
+                    <p className="text-sm text-gray-600 dark:text-zinc-300">Huquqiy vaziyatning rivojlanish yo'llari va ehtimollari</p>
                   </div>
                   
                   {/* SVG Canvas */}
-                  <div className="bg-gray-50 rounded-xl p-4 overflow-hidden" style={{ height: '400px' }}>
+                  <div className="bg-gray-50 dark:bg-zinc-800/50 rounded-xl p-4 overflow-hidden" style={{ height: '400px' }}>
                     <svg
                       ref={svgRef}
                       width="100%"
@@ -372,51 +372,51 @@ export default function DecisionTreeEngine() {
 
               {/* Statistics Panel */}
               <div className="col-span-1">
-                <div className="bg-white rounded-2xl p-4 shadow-sm mb-4">
-                  <h3 className="font-semibold text-gray-800 mb-4">Statistik Ma'lumotlar</h3>
+                <div className="bg-white dark:bg-zinc-900 rounded-2xl p-4 shadow-sm mb-4">
+                  <h3 className="font-semibold text-gray-800 dark:text-zinc-100 mb-4">Statistik Ma'lumotlar</h3>
                   <div className="space-y-4">
-                    <div className="bg-gray-50 rounded-lg p-3">
+                    <div className="bg-gray-50 dark:bg-zinc-800/50 rounded-lg p-3">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm text-gray-600">Variantlar</span>
-                        <span className="text-xl font-bold text-gray-800">{statistics.variants}</span>
+                        <span className="text-sm text-gray-600 dark:text-zinc-300">Variantlar</span>
+                        <span className="text-xl font-bold text-gray-800 dark:text-zinc-100">{statistics.variants}</span>
                       </div>
-                      <p className="text-xs text-gray-500">Rivojlanish ssenariylari</p>
+                      <p className="text-xs text-gray-500 dark:text-zinc-400">Rivojlanish ssenariylari</p>
                     </div>
                     
-                    <div className="bg-gray-50 rounded-lg p-3">
+                    <div className="bg-gray-50 dark:bg-zinc-800/50 rounded-lg p-3">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm text-gray-600">Ishonchlilik</span>
+                        <span className="text-sm text-gray-600 dark:text-zinc-300">Ishonchlilik</span>
                         <span className="text-xl font-bold text-green-600">{statistics.confidence}%</span>
                       </div>
-                      <p className="text-xs text-gray-500">Qonuniy asoslar kuchi</p>
+                      <p className="text-xs text-gray-500 dark:text-zinc-400">Qonuniy asoslar kuchi</p>
                     </div>
                     
-                    <div className="bg-gray-50 rounded-lg p-3">
+                    <div className="bg-gray-50 dark:bg-zinc-800/50 rounded-lg p-3">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm text-gray-600">Ijobiy yakunlar</span>
+                        <span className="text-sm text-gray-600 dark:text-zinc-300">Ijobiy yakunlar</span>
                         <span className="text-xl font-bold text-blue-600">{statistics.outcomes}</span>
                       </div>
-                      <p className="text-xs text-gray-500">G'alaba bilan tugaydigan yo'llar</p>
+                      <p className="text-xs text-gray-500 dark:text-zinc-400">G'alaba bilan tugaydigan yo'llar</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Risk Analysis */}
-                <div className="bg-white rounded-2xl p-4 shadow-sm mb-4">
-                  <h3 className="font-semibold text-gray-800 mb-4">Xavf Tahlili</h3>
+                <div className="bg-white dark:bg-zinc-900 rounded-2xl p-4 shadow-sm mb-4">
+                  <h3 className="font-semibold text-gray-800 dark:text-zinc-100 mb-4">Xavf Tahlili</h3>
                   <div className="space-y-3">
                     <div className="flex items-center gap-3">
                       <AlertTriangle className="w-5 h-5 text-red-500" />
                       <div>
-                        <p className="text-sm font-medium text-gray-800">Yuqori xavf</p>
-                        <p className="text-xs text-gray-600">Sudga berish yo'li</p>
+                        <p className="text-sm font-medium text-gray-800 dark:text-zinc-100">Yuqori xavf</p>
+                        <p className="text-xs text-gray-600 dark:text-zinc-300">Sudga berish yo'li</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
                       <CheckCircle className="w-5 h-5 text-green-500" />
                       <div>
-                        <p className="text-sm font-medium text-gray-800">Past xavf</p>
-                        <p className="text-xs text-gray-600">Muzokara yo'li</p>
+                        <p className="text-sm font-medium text-gray-800 dark:text-zinc-100">Past xavf</p>
+                        <p className="text-xs text-gray-600 dark:text-zinc-300">Muzokara yo'li</p>
                       </div>
                     </div>
                   </div>
@@ -424,8 +424,8 @@ export default function DecisionTreeEngine() {
 
                 {/* Recommendations */}
                 {showSimulation && (
-                  <div className="bg-white rounded-2xl p-4 shadow-sm">
-                    <h3 className="font-semibold text-gray-800 mb-4">Tavsiyalar</h3>
+                  <div className="bg-white dark:bg-zinc-900 rounded-2xl p-4 shadow-sm">
+                    <h3 className="font-semibold text-gray-800 dark:text-zinc-100 mb-4">Tavsiyalar</h3>
                     <div className="space-y-3">
                       <div className="bg-green-50 rounded-lg p-3">
                         <div className="flex items-center gap-2 mb-2">

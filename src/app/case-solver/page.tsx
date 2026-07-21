@@ -305,30 +305,30 @@ export default function CaseSolver() {
   const progress = ((currentStep + 1) / steps.length) * 100;
 
   return (
-    <div className="min-h-screen bg-[#f8faff]">
+    <div className="min-h-screen bg-[#f8faff] dark:bg-gray-950">
       <div className="flex">
         {/* Sidebar - same as main page */}
-        <div className="w-64 bg-white border-r border-gray-100 min-h-screen">
+        <div className="w-64 bg-white dark:bg-zinc-900 border-r border-gray-100 dark:border-zinc-800 min-h-screen">
           <div className="p-6">
             {/* Daily Goal Block */}
             <div className="bg-orange-50 rounded-xl p-4 mb-6">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <Target className="w-5 h-5 text-orange-600" />
-                  <span className="font-semibold text-gray-800">Kundalik maqsad</span>
+                  <span className="font-semibold text-gray-800 dark:text-zinc-100">Kundalik maqsad</span>
                 </div>
               </div>
               <div className="mb-2">
-                <div className="bg-gray-200 rounded-full h-2">
+                <div className="bg-gray-200 dark:bg-zinc-700 rounded-full h-2">
                   <div className="bg-orange-500 h-2 rounded-full" style={{ width: '60%' }}></div>
                 </div>
               </div>
-              <p className="text-sm text-gray-600">2 ta case qolgan</p>
+              <p className="text-sm text-gray-600 dark:text-zinc-300">2 ta case qolgan</p>
             </div>
 
             {/* Menu Items */}
             <nav className="space-y-2">
-              <div className="flex items-center gap-3 px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-lg cursor-pointer">
+              <div className="flex items-center gap-3 px-3 py-2 text-gray-600 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800 dark:bg-zinc-800/50 rounded-lg cursor-pointer">
                 <ArrowLeft className="w-5 h-5" />
                 <span>Orqaga</span>
               </div>
@@ -343,11 +343,11 @@ export default function CaseSolver() {
         {/* Main Content */}
         <div className="flex-1">
           {/* Header */}
-          <header className="bg-white px-8 py-4 border-b border-gray-100">
+          <header className="bg-white dark:bg-zinc-900 px-8 py-4 border-b border-gray-100 dark:border-zinc-800">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-gray-800">Case Solver</h1>
-                <p className="text-sm text-gray-600">IRAC metodikasi bilan huquqiy tahlil</p>
+                <h1 className="text-2xl font-bold text-gray-800 dark:text-zinc-100">Case Solver</h1>
+                <p className="text-sm text-gray-600 dark:text-zinc-300">IRAC metodikasi bilan huquqiy tahlil</p>
               </div>
               <div className="flex items-center gap-4">
                 <span className={`px-3 py-1 rounded-full text-sm font-medium ${
@@ -365,12 +365,12 @@ export default function CaseSolver() {
           </header>
 
           {/* Progress Bar */}
-          <div className="bg-white px-8 py-4 border-b border-gray-100">
+          <div className="bg-white dark:bg-zinc-900 px-8 py-4 border-b border-gray-100 dark:border-zinc-800">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-700">Qadam {currentStep + 1} / {steps.length}</span>
-              <span className="text-sm font-medium text-gray-700">{Math.round(progress)}%</span>
+              <span className="text-sm font-medium text-gray-700 dark:text-zinc-200">Qadam {currentStep + 1} / {steps.length}</span>
+              <span className="text-sm font-medium text-gray-700 dark:text-zinc-200">{Math.round(progress)}%</span>
             </div>
-            <div className="bg-gray-200 rounded-full h-2">
+            <div className="bg-gray-200 dark:bg-zinc-700 rounded-full h-2">
               <div 
                 className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
                 style={{ width: `${progress}%` }}
@@ -383,8 +383,8 @@ export default function CaseSolver() {
             <div className="grid grid-cols-4 gap-6">
               {/* Step Navigation */}
               <div className="col-span-1">
-                <div className="bg-white rounded-2xl p-4 shadow-sm">
-                  <h3 className="font-semibold text-gray-800 mb-4">IRAC Bosqichlari</h3>
+                <div className="bg-white dark:bg-zinc-900 rounded-2xl p-4 shadow-sm">
+                  <h3 className="font-semibold text-gray-800 dark:text-zinc-100 mb-4">IRAC Bosqichlari</h3>
                   <div className="space-y-2">
                     {steps.map((step, index) => (
                       <button
@@ -395,7 +395,7 @@ export default function CaseSolver() {
                             ? 'bg-blue-50 text-blue-600 border border-blue-200' 
                             : index < currentStep 
                             ? 'bg-green-50 text-green-600 border border-green-200'
-                            : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                            : 'bg-gray-50 dark:bg-zinc-800/50 text-gray-600 dark:text-zinc-300 hover:bg-gray-100 dark:bg-zinc-800'
                         }`}
                       >
                         <div className="flex items-center gap-2 mb-1">
@@ -412,40 +412,40 @@ export default function CaseSolver() {
               {/* Case Content */}
               <div className="col-span-2">
                 {/* Case Details */}
-                <div className="bg-white rounded-2xl p-6 shadow-sm mb-6">
-                  <h2 className="text-xl font-bold text-gray-800 mb-4">{currentCase.title}</h2>
-                  <div className="bg-gray-50 rounded-xl p-4 mb-4">
-                    <h3 className="font-semibold text-gray-700 mb-2">Holat faktlari:</h3>
-                    <p className="text-gray-600 leading-relaxed">{currentCase.facts}</p>
+                <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-sm mb-6">
+                  <h2 className="text-xl font-bold text-gray-800 dark:text-zinc-100 mb-4">{currentCase.title}</h2>
+                  <div className="bg-gray-50 dark:bg-zinc-800/50 rounded-xl p-4 mb-4">
+                    <h3 className="font-semibold text-gray-700 dark:text-zinc-200 mb-2">Holat faktlari:</h3>
+                    <p className="text-gray-600 dark:text-zinc-300 leading-relaxed">{currentCase.facts}</p>
                   </div>
                 </div>
 
                 {/* Current Step */}
-                <div className="bg-white rounded-2xl p-6 shadow-sm">
+                <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-sm">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
                       {steps[currentStep].icon}
-                      <h3 className="text-lg font-bold text-gray-800">{steps[currentStep].title}</h3>
+                      <h3 className="text-lg font-bold text-gray-800 dark:text-zinc-100">{steps[currentStep].title}</h3>
                     </div>
                     {userAnswers[steps[currentStep].id] && (
                       <CheckCircle className="w-5 h-5 text-green-600" />
                     )}
                   </div>
                   
-                  <p className="text-gray-600 mb-4">{steps[currentStep].question}</p>
+                  <p className="text-gray-600 dark:text-zinc-300 mb-4">{steps[currentStep].question}</p>
                   
                   <textarea
                     value={userAnswers[steps[currentStep].id] || ''}
                     onChange={(e) => handleAnswerChange(steps[currentStep].id, e.target.value)}
                     placeholder={steps[currentStep].placeholder}
-                    className="w-full h-40 p-4 border border-gray-200 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full h-40 p-4 border border-gray-200 dark:border-zinc-700 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
 
                   {/* Score and Feedback */}
                   {score !== null && (
-                    <div className="mt-4 p-4 bg-gray-50 rounded-xl">
+                    <div className="mt-4 p-4 bg-gray-50 dark:bg-zinc-800/50 rounded-xl">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="font-semibold text-gray-800">Ball: {score}/100</span>
+                        <span className="font-semibold text-gray-800 dark:text-zinc-100">Ball: {score}/100</span>
                         <span className={`text-sm font-medium ${
                           score >= 80 ? 'text-green-600' : 
                           score >= 60 ? 'text-yellow-600' : 'text-red-600'
@@ -453,7 +453,7 @@ export default function CaseSolver() {
                           {score >= 80 ? 'A\'lo' : score >= 60 ? 'Yaxshi' : 'Qayta urinib ko\'ring'}
                         </span>
                       </div>
-                      <p className="text-sm text-gray-600 mb-2">{feedback}</p>
+                      <p className="text-sm text-gray-600 dark:text-zinc-300 mb-2">{feedback}</p>
                       {errors.length > 0 && (
                         <div className="space-y-1">
                           {errors.map((error, index) => (
@@ -489,7 +489,7 @@ export default function CaseSolver() {
                     <button
                       onClick={() => handleStepChange(currentStep - 1)}
                       disabled={currentStep === 0}
-                      className="px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-4 py-2 text-gray-600 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800 dark:bg-zinc-800/50 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       ← Oldingi
                     </button>
@@ -505,7 +505,7 @@ export default function CaseSolver() {
                       <button
                         onClick={() => handleStepChange(currentStep + 1)}
                         disabled={currentStep === steps.length - 1}
-                        className="px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-4 py-2 text-gray-600 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800 dark:bg-zinc-800/50 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         Keyingi →
                       </button>
@@ -516,8 +516,8 @@ export default function CaseSolver() {
 
               {/* Advice Panel */}
               <div className="col-span-1">
-                <div className="bg-white rounded-2xl p-4 shadow-sm">
-                  <h3 className="font-semibold text-gray-800 mb-4">Maslahatlar</h3>
+                <div className="bg-white dark:bg-zinc-900 rounded-2xl p-4 shadow-sm">
+                  <h3 className="font-semibold text-gray-800 dark:text-zinc-100 mb-4">Maslahatlar</h3>
                   
                   {showAdvice ? (
                     <div className="space-y-3">
@@ -545,25 +545,25 @@ export default function CaseSolver() {
                   ) : (
                     <div className="text-center py-8">
                       <Lightbulb className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                      <p className="text-sm text-gray-500">Maslahat olish uchun "Maslahat" tugmasini bosing</p>
+                      <p className="text-sm text-gray-500 dark:text-zinc-400">Maslahat olish uchun "Maslahat" tugmasini bosing</p>
                     </div>
                   )}
                 </div>
 
                 {/* XP Reward */}
-                <div className="bg-white rounded-2xl p-4 shadow-sm mt-4">
-                  <h3 className="font-semibold text-gray-800 mb-2">Mukofotlar</h3>
+                <div className="bg-white dark:bg-zinc-900 rounded-2xl p-4 shadow-sm mt-4">
+                  <h3 className="font-semibold text-gray-800 dark:text-zinc-100 mb-2">Mukofotlar</h3>
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Muvaffaqiyatli yechim</span>
+                      <span className="text-sm text-gray-600 dark:text-zinc-300">Muvaffaqiyatli yechim</span>
                       <span className="text-sm font-medium text-green-600">+50 XP</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Birinchi urinishda</span>
+                      <span className="text-sm text-gray-600 dark:text-zinc-300">Birinchi urinishda</span>
                       <span className="text-sm font-medium text-green-600">+25 XP</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">To'liq tahlil</span>
+                      <span className="text-sm text-gray-600 dark:text-zinc-300">To'liq tahlil</span>
                       <span className="text-sm font-medium text-green-600">+15 XP</span>
                     </div>
                   </div>

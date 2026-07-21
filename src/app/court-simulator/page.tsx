@@ -147,9 +147,9 @@ export default function CourtSimulatorPage() {
 
   // ════════════════════════════ SETUP ════════════════════════════
   if (page === 'setup') return (
-    <div style={{ minHeight: '100vh', background: '#F8FAFF', display: 'flex' }}>
-      <aside className="desktop-sidebar" style={{ width: 240, background: '#fff', borderRight: '1px solid #F1F5F9', minHeight: '100vh', padding: '24px 16px', flexShrink: 0 }}>
-        <a href="/" style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#6B7280', textDecoration: 'none', fontSize: 14, marginBottom: 24 }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg-page)', display: 'flex' }}>
+      <aside className="desktop-sidebar" style={{ width: 240, background: 'var(--card-bg)', borderRight: '1px solid #F1F5F9', minHeight: '100vh', padding: '24px 16px', flexShrink: 0 }}>
+        <a href="/" style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-muted)', textDecoration: 'none', fontSize: 14, marginBottom: 24 }}>
           <ArrowLeft size={16} /> Orqaga
         </a>
         <div style={{ background: '#EDE9FE', borderRadius: 12, padding: 14, border: '1px solid #DDD6FE' }}>
@@ -163,40 +163,40 @@ export default function CourtSimulatorPage() {
       </aside>
 
       <div style={{ flex: 1, padding: 40, overflowY: 'auto' }}>
-        <h1 style={{ fontSize: 28, fontWeight: 800, color: '#111827', margin: '0 0 6px' }}>Sud Simulyatori</h1>
-        <p style={{ fontSize: 14, color: '#6B7280', margin: '0 0 32px' }}>Rol va ishni tanlang — AI sudya bilan ovozli sud jarayonini boshlang</p>
+        <h1 style={{ fontSize: 28, fontWeight: 800, color: 'var(--text-primary)', margin: '0 0 6px' }}>Sud Simulyatori</h1>
+        <p style={{ fontSize: 14, color: 'var(--text-muted)', margin: '0 0 32px' }}>Rol va ishni tanlang — AI sudya bilan ovozli sud jarayonini boshlang</p>
 
-        <h2 style={{ fontSize: 15, fontWeight: 700, color: '#374151', margin: '0 0 12px' }}>1. Rolingizni tanlang</h2>
+        <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-secondary)', margin: '0 0 12px' }}>1. Rolingizni tanlang</h2>
         <div className="mobile-grid-1" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12, marginBottom: 28 }}>
           {ROLES.map(r => (
             <button key={r.id} onClick={() => setRole(r)}
-              style={{ padding: 18, borderRadius: 14, border: `2px solid ${role.id === r.id ? r.color : '#E5E7EB'}`, background: role.id === r.id ? r.bg : '#fff', cursor: 'pointer', textAlign: 'left' }}>
+              style={{ padding: 18, borderRadius: 14, border: `2px solid ${role.id === r.id ? r.color : '#E5E7EB'}`, background: role.id === r.id ? r.bg : 'var(--card-bg)', cursor: 'pointer', textAlign: 'left' }}>
               <div style={{ width: 40, height: 40, background: r.bg, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', color: r.color, marginBottom: 10 }}>
                 {r.id === 'advokat' ? <Scale size={20} /> : r.id === 'prokuror' ? <Gavel size={20} /> : <Users size={20} />}
               </div>
-              <p style={{ fontWeight: 700, fontSize: 15, color: '#111827', margin: '0 0 3px' }}>{r.title}</p>
-              <p style={{ fontSize: 12, color: '#6B7280', margin: 0 }}>{r.sub}</p>
+              <p style={{ fontWeight: 700, fontSize: 15, color: 'var(--text-primary)', margin: '0 0 3px' }}>{r.title}</p>
+              <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0 }}>{r.sub}</p>
             </button>
           ))}
         </div>
 
-        <h2 style={{ fontSize: 15, fontWeight: 700, color: '#374151', margin: '0 0 12px' }}>2. Ishni tanlang</h2>
+        <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-secondary)', margin: '0 0 12px' }}>2. Ishni tanlang</h2>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 12, marginBottom: 32, maxWidth: 700 }}>
           {CASES.map(c => (
             <button key={c.id} onClick={() => setCaseItem(c)}
-              style={{ padding: 16, borderRadius: 14, border: `2px solid ${caseItem.id === c.id ? '#7C3AED' : '#E5E7EB'}`, background: caseItem.id === c.id ? '#F5F3FF' : '#fff', cursor: 'pointer', textAlign: 'left' }}>
+              style={{ padding: 16, borderRadius: 14, border: `2px solid ${caseItem.id === c.id ? '#7C3AED' : '#E5E7EB'}`, background: caseItem.id === c.id ? '#F5F3FF' : 'var(--card-bg)', cursor: 'pointer', textAlign: 'left' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 }}>
-                <p style={{ fontWeight: 700, fontSize: 14, color: '#111827', margin: 0 }}>{c.title}</p>
+                <p style={{ fontWeight: 700, fontSize: 14, color: 'var(--text-primary)', margin: 0 }}>{c.title}</p>
                 <span style={{ fontSize: 10, background: '#EDE9FE', color: '#6D28D9', padding: '2px 8px', borderRadius: 20 }}>{c.level}</span>
               </div>
-              <p style={{ fontSize: 12, color: '#6B7280', margin: '0 0 8px' }}>{c.desc}</p>
+              <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: '0 0 8px' }}>{c.desc}</p>
               <span style={{ fontSize: 11, background: '#DBEAFE', color: '#1D4ED8', padding: '2px 8px', borderRadius: 20 }}>{c.law}</span>
             </button>
           ))}
         </div>
 
         <button onClick={startCourt}
-          style={{ padding: '14px 38px', background: '#7C3AED', color: '#fff', border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
+          style={{ padding: '14px 38px', background: '#7C3AED', color: 'var(--card-bg)', border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
           <Gavel size={18} /> Sud majlisini boshlash
         </button>
       </div>
@@ -208,7 +208,7 @@ export default function CourtSimulatorPage() {
     <div style={{ minHeight: '100vh', background: '#0F172A', color: '#F8FAFC', display: 'flex', flexDirection: 'column' }}>
       <header style={{ background: 'rgba(0,0,0,0.6)', borderBottom: '1px solid rgba(255,255,255,0.1)', padding: '12px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          <button onClick={() => setPage('setup')} style={{ padding: 8, background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 10, color: '#fff', cursor: 'pointer' }}>
+          <button onClick={() => setPage('setup')} style={{ padding: 8, background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 10, color: 'var(--card-bg)', cursor: 'pointer' }}>
             <ArrowLeft size={16} />
           </button>
           <div>
@@ -219,9 +219,9 @@ export default function CourtSimulatorPage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px', background: time < 60 ? 'rgba(239,68,68,0.2)' : 'rgba(255,255,255,0.08)', borderRadius: 20, border: '1px solid rgba(255,255,255,0.15)' }}>
             <Clock size={14} color={time < 60 ? '#F87171' : '#94A3B8'} />
-            <span style={{ fontWeight: 700, fontSize: 14, color: time < 60 ? '#F87171' : '#fff' }}>{fmt(time)}</span>
+            <span style={{ fontWeight: 700, fontSize: 14, color: time < 60 ? '#F87171' : 'var(--card-bg)' }}>{fmt(time)}</span>
           </div>
-          <button onClick={finish} style={{ padding: '7px 16px', background: 'rgba(239,68,68,0.7)', border: '1px solid #EF4444', borderRadius: 10, color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+          <button onClick={finish} style={{ padding: '7px 16px', background: 'rgba(239,68,68,0.7)', border: '1px solid #EF4444', borderRadius: 10, color: 'var(--card-bg)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
             Tugatish
           </button>
         </div>
@@ -248,7 +248,7 @@ export default function CourtSimulatorPage() {
           ))}
           <div style={{ marginTop: 20, padding: 14, background: 'rgba(124,58,237,0.15)', borderRadius: 12, border: '1px solid rgba(124,58,237,0.3)', textAlign: 'center' }}>
             <p style={{ fontSize: 11, color: '#A78BFA', margin: '0 0 4px' }}>Umumiy</p>
-            <p style={{ fontSize: 28, fontWeight: 800, color: '#fff', margin: 0 }}>{total}</p>
+            <p style={{ fontSize: 28, fontWeight: 800, color: 'var(--card-bg)', margin: 0 }}>{total}</p>
           </div>
         </aside>
 
@@ -302,7 +302,7 @@ export default function CourtSimulatorPage() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 14px', background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.4)', borderRadius: 10, marginBottom: 10 }}>
                   <div style={{ width: 8, height: 8, background: '#EF4444', borderRadius: '50%', animation: 'pulse 1s infinite' }} />
                   <span style={{ fontSize: 13, color: '#FCA5A5' }}>🎤 Tinglanmoqda... gapiring</span>
-                  <button onClick={stopMic} style={{ marginLeft: 'auto', padding: '2px 10px', background: '#EF4444', color: '#fff', border: 'none', borderRadius: 6, fontSize: 11, cursor: 'pointer' }}>To'xtat</button>
+                  <button onClick={stopMic} style={{ marginLeft: 'auto', padding: '2px 10px', background: '#EF4444', color: 'var(--card-bg)', border: 'none', borderRadius: 6, fontSize: 11, cursor: 'pointer' }}>To'xtat</button>
                 </div>
               )}
 
@@ -311,15 +311,15 @@ export default function CourtSimulatorPage() {
                   onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit(); } }}
                   disabled={loading} rows={2}
                   placeholder={`${role.title} sifatida nutqingizni yozing yoki 🎤 bosib gapiring...`}
-                  style={{ flex: 1, padding: '11px 15px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.13)', borderRadius: 12, color: '#F1F5F9', fontSize: 14, resize: 'none', outline: 'none', fontFamily: 'inherit' }}
+                  style={{ flex: 1, padding: '11px 15px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.13)', borderRadius: 12, color: 'var(--card-border)', fontSize: 14, resize: 'none', outline: 'none', fontFamily: 'inherit' }}
                 />
                 <button onClick={listening ? stopMic : startMic}
-                  style={{ padding: '0 16px', borderRadius: 12, border: 'none', cursor: 'pointer', background: listening ? '#EF4444' : 'rgba(255,255,255,0.12)', color: '#fff', animation: listening ? 'pulse 1s infinite' : 'none' }}
+                  style={{ padding: '0 16px', borderRadius: 12, border: 'none', cursor: 'pointer', background: listening ? '#EF4444' : 'rgba(255,255,255,0.12)', color: 'var(--card-bg)', animation: listening ? 'pulse 1s infinite' : 'none' }}
                   title={listening ? "To'xtatish" : 'Ovoz bilan kiritish'}>
                   <Mic size={18} />
                 </button>
                 <button onClick={() => submit()} disabled={loading || !input.trim()}
-                  style={{ padding: '0 18px', borderRadius: 12, border: 'none', cursor: loading || !input.trim() ? 'not-allowed' : 'pointer', background: loading || !input.trim() ? 'rgba(124,58,237,0.3)' : '#7C3AED', color: '#fff', display: 'flex', alignItems: 'center' }}>
+                  style={{ padding: '0 18px', borderRadius: 12, border: 'none', cursor: loading || !input.trim() ? 'not-allowed' : 'pointer', background: loading || !input.trim() ? 'rgba(124,58,237,0.3)' : '#7C3AED', color: 'var(--card-bg)', display: 'flex', alignItems: 'center' }}>
                   {loading
                     ? <div style={{ width: 17, height: 17, border: '2px solid rgba(255,255,255,0.3)', borderTop: '2px solid #fff', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
                     : <Send size={17} />}
@@ -339,11 +339,11 @@ export default function CourtSimulatorPage() {
 
   // ════════════════════════════ RESULT ════════════════════════════
   return (
-    <div style={{ minHeight: '100vh', background: '#F8FAFF', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-      <div style={{ background: '#fff', borderRadius: 22, boxShadow: '0 8px 40px rgba(0,0,0,0.1)', maxWidth: 520, width: '100%', overflow: 'hidden' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg-page)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+      <div style={{ background: 'var(--card-bg)', borderRadius: 22, boxShadow: '0 8px 40px rgba(0,0,0,0.1)', maxWidth: 520, width: '100%', overflow: 'hidden' }}>
         <div style={{ background: 'linear-gradient(135deg,#7C3AED,#2563EB)', padding: '36px 28px', textAlign: 'center' }}>
           <Trophy size={48} color="#fff" />
-          <h1 style={{ fontSize: 24, fontWeight: 800, color: '#fff', margin: '12px 0 6px' }}>Sud Yakunlandi</h1>
+          <h1 style={{ fontSize: 24, fontWeight: 800, color: 'var(--card-bg)', margin: '12px 0 6px' }}>Sud Yakunlandi</h1>
           <p style={{ fontSize: 13, color: '#DDD6FE', margin: 0 }}>{role.title} · {caseItem.title}</p>
         </div>
         <div style={{ padding: 28 }}>
@@ -353,28 +353,28 @@ export default function CourtSimulatorPage() {
               { l: 'Argument', v: score.argument,  c: '#3B82F6' },
               { l: 'Dalillar', v: score.evidence,  c: '#A855F7' },
             ].map(b => (
-              <div key={b.l} style={{ background: '#F8FAFF', borderRadius: 12, padding: 14, textAlign: 'center', border: '1px solid #E5E7EB' }}>
+              <div key={b.l} style={{ background: 'var(--bg-page)', borderRadius: 12, padding: 14, textAlign: 'center', border: '1px solid #E5E7EB' }}>
                 <p style={{ fontSize: 22, fontWeight: 800, color: b.c, margin: '0 0 4px' }}>{b.v}%</p>
-                <p style={{ fontSize: 12, color: '#6B7280', margin: 0 }}>{b.l}</p>
+                <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0 }}>{b.l}</p>
               </div>
             ))}
           </div>
           <div style={{ background: 'linear-gradient(135deg,#F5F3FF,#EFF6FF)', borderRadius: 14, padding: 18, textAlign: 'center', marginBottom: 20 }}>
-            <p style={{ fontSize: 13, color: '#6B7280', margin: '0 0 4px' }}>Umumiy ball</p>
+            <p style={{ fontSize: 13, color: 'var(--text-muted)', margin: '0 0 4px' }}>Umumiy ball</p>
             <p style={{ fontSize: 42, fontWeight: 900, color: '#7C3AED', margin: '0 0 8px' }}>{total}/100</p>
             <div style={{ background: '#E5E7EB', borderRadius: 4, height: 7 }}>
               <div style={{ height: 7, width: `${total}%`, background: 'linear-gradient(90deg,#7C3AED,#2563EB)', borderRadius: 4 }} />
             </div>
-            <p style={{ fontSize: 13, color: '#374151', margin: '10px 0 0', fontWeight: 600 }}>
+            <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: '10px 0 0', fontWeight: 600 }}>
               {total >= 80 ? "☆ A'lo! Professional yurist darajasi." : total >= 60 ? '[OK] Yaxshi natija. Davom eting.' : '⚙ Mashq qiling, natija yaxshilanadi.'}
             </p>
           </div>
           <div style={{ display: 'flex', gap: 10 }}>
             <button onClick={() => { setPage('setup'); setMsgs([]); }}
-              style={{ flex: 1, padding: 12, background: '#7C3AED', color: '#fff', border: 'none', borderRadius: 11, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
+              style={{ flex: 1, padding: 12, background: '#7C3AED', color: 'var(--card-bg)', border: 'none', borderRadius: 11, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
               Qayta boshlash
             </button>
-            <a href="/" style={{ flex: 1, padding: 12, background: '#F3F4F6', color: '#374151', borderRadius: 11, fontSize: 14, fontWeight: 700, textDecoration: 'none', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <a href="/" style={{ flex: 1, padding: 12, background: '#F3F4F6', color: 'var(--text-secondary)', borderRadius: 11, fontSize: 14, fontWeight: 700, textDecoration: 'none', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               Bosh sahifa
             </a>
           </div>

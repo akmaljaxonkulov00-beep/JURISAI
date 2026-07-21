@@ -103,13 +103,13 @@ export default function Statistics() {
 
   const getHeatmapColor = (level: number) => {
     switch (level) {
-      case 0: return 'bg-gray-100';
+      case 0: return 'bg-gray-100 dark:bg-zinc-800';
       case 1: return 'bg-green-100';
       case 2: return 'bg-green-200';
       case 3: return 'bg-green-300';
       case 4: return 'bg-green-400';
       case 5: return 'bg-green-500';
-      default: return 'bg-gray-100';
+      default: return 'bg-gray-100 dark:bg-zinc-800';
     }
   };
 
@@ -152,9 +152,9 @@ export default function Statistics() {
     <div className="min-h-screen bg-[#f8faff]">
       <div className="flex">
         {/* Sidebar */}
-        <div className="w-64 bg-white border-r border-gray-100 min-h-screen">
+        <div className="w-64 bg-white dark:bg-zinc-900 border-r border-gray-100 dark:border-zinc-800 min-h-screen">
           <div className="p-6">
-            <a href="/" className="flex items-center gap-3 px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-lg cursor-pointer mb-6">
+            <a href="/" className="flex items-center gap-3 px-3 py-2 text-gray-600 dark:text-zinc-300 hover:bg-gray-50 rounded-lg cursor-pointer mb-6">
               <ArrowLeft className="w-5 h-5" />
               <span>Orqaga</span>
             </a>
@@ -172,21 +172,21 @@ export default function Statistics() {
         {/* Main Content */}
         <div className="flex-1">
           {/* Header */}
-          <header className="bg-white px-8 py-4 border-b border-gray-100">
+          <header className="bg-white dark:bg-zinc-900 px-8 py-4 border-b border-gray-100 dark:border-zinc-800">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-gray-800">Statistika</h1>
-                <p className="text-sm text-gray-600">Platformadagi faoliyatingizning to'liq tahlili</p>
+                <h1 className="text-2xl font-bold text-gray-800 dark:text-zinc-100">Statistika</h1>
+                <p className="text-sm text-gray-600 dark:text-zinc-300">Platformadagi faoliyatingizning to'liq tahlili</p>
               </div>
               
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2 bg-orange-50 px-4 py-2 rounded-lg">
                   <Zap className="w-5 h-5 text-orange-600" />
                   <span className="font-bold text-orange-600">{statistics.streak} kun</span>
-                  <span className="text-sm text-gray-600">davomiylik</span>
+                  <span className="text-sm text-gray-600 dark:text-zinc-300">davomiylik</span>
                 </div>
                 
-                <div className="flex bg-gray-100 rounded-lg p-1">
+                <div className="flex bg-gray-100 dark:bg-zinc-800 rounded-lg p-1">
                   {[
                     { value: 'week', label: 'Haftalik' },
                     { value: 'month', label: 'Oylik' },
@@ -197,8 +197,8 @@ export default function Statistics() {
                       onClick={() => setTimeFilter(filter.value as any)}
                       className={`px-4 py-2 rounded-md transition-colors ${
                         timeFilter === filter.value
-                          ? 'bg-white text-blue-600 shadow-sm'
-                          : 'text-gray-600 hover:text-gray-800'
+                          ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-sm'
+                          : 'text-gray-600 dark:text-zinc-300 hover:text-gray-800 dark:text-zinc-100'
                       }`}
                     >
                       {filter.label}
@@ -226,7 +226,7 @@ export default function Statistics() {
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
                       selectedView === view.id
                         ? 'bg-blue-600 text-white'
-                        : 'bg-white text-gray-600 hover:bg-gray-50'
+                        : 'bg-white dark:bg-zinc-900 text-gray-600 dark:text-zinc-300 hover:bg-gray-50'
                     }`}
                   >
                     {view.icon}
@@ -240,58 +240,58 @@ export default function Statistics() {
                 <div className="space-y-6">
                   {/* Progress Cards */}
                   <div className="grid grid-cols-4 gap-6">
-                    <div className="bg-white rounded-2xl p-6 shadow-sm">
+                    <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-sm">
                       <div className="flex items-center justify-between mb-4">
                         <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                           <Award className="w-6 h-6 text-blue-600" />
                         </div>
                         <span className="text-sm text-green-600 font-medium">+12%</span>
                       </div>
-                      <h3 className="text-2xl font-bold text-gray-800">{filteredData.totalXP.toLocaleString()}</h3>
-                      <p className="text-sm text-gray-600">Umumiy XP</p>
+                      <h3 className="text-2xl font-bold text-gray-800 dark:text-zinc-100">{filteredData.totalXP.toLocaleString()}</h3>
+                      <p className="text-sm text-gray-600 dark:text-zinc-300">Umumiy XP</p>
                     </div>
 
-                    <div className="bg-white rounded-2xl p-6 shadow-sm">
+                    <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-sm">
                       <div className="flex items-center justify-between mb-4">
                         <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
                           <CheckCircle className="w-6 h-6 text-green-600" />
                         </div>
                         <span className="text-sm text-green-600 font-medium">+8%</span>
                       </div>
-                      <h3 className="text-2xl font-bold text-gray-800">{filteredData.solvedCases}/{filteredData.totalCases}</h3>
-                      <p className="text-sm text-gray-600">Yechilgan keyslar</p>
+                      <h3 className="text-2xl font-bold text-gray-800 dark:text-zinc-100">{filteredData.solvedCases}/{filteredData.totalCases}</h3>
+                      <p className="text-sm text-gray-600 dark:text-zinc-300">Yechilgan keyslar</p>
                     </div>
 
-                    <div className="bg-white rounded-2xl p-6 shadow-sm">
+                    <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-sm">
                       <div className="flex items-center justify-between mb-4">
                         <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
                           <Target className="w-6 h-6 text-purple-600" />
                         </div>
                         <span className="text-sm text-green-600 font-medium">+5%</span>
                       </div>
-                      <h3 className="text-2xl font-bold text-gray-800">{filteredData.averageAccuracy}%</h3>
-                      <p className="text-sm text-gray-600">O\'rtacha aniqlik</p>
+                      <h3 className="text-2xl font-bold text-gray-800 dark:text-zinc-100">{filteredData.averageAccuracy}%</h3>
+                      <p className="text-sm text-gray-600 dark:text-zinc-300">O\'rtacha aniqlik</p>
                     </div>
 
-                    <div className="bg-white rounded-2xl p-6 shadow-sm">
+                    <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-sm">
                       <div className="flex items-center justify-between mb-4">
                         <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
                           <Clock className="w-6 h-6 text-orange-600" />
                         </div>
                         <span className="text-sm text-green-600 font-medium">+15%</span>
                       </div>
-                      <h3 className="text-2xl font-bold text-gray-800">{filteredData.studyTime} soat</h3>
-                      <p className="text-sm text-gray-600">O\'quv vaqti</p>
+                      <h3 className="text-2xl font-bold text-gray-800 dark:text-zinc-100">{filteredData.studyTime} soat</h3>
+                      <p className="text-sm text-gray-600 dark:text-zinc-300">O\'quv vaqti</p>
                     </div>
                   </div>
 
                   {/* Weekly Progress Chart */}
-                  <div className="bg-white rounded-2xl p-6 shadow-sm">
-                    <h3 className="text-lg font-bold text-gray-800 mb-6">Haftalik progress</h3>
+                  <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-sm">
+                    <h3 className="text-lg font-bold text-gray-800 dark:text-zinc-100 mb-6">Haftalik progress</h3>
                     <div className="space-y-4">
                       {filteredData.weeklyProgress.map((week, index) => (
                         <div key={week.week} className="flex items-center gap-4">
-                          <div className="w-20 text-sm text-gray-600">{week.week}</div>
+                          <div className="w-20 text-sm text-gray-600 dark:text-zinc-300">{week.week}</div>
                           <div className="flex-1">
                             <div className="flex items-center gap-4 mb-2">
                               <div className="flex-1 bg-gray-200 rounded-full h-2">
@@ -317,8 +317,8 @@ export default function Statistics() {
               {/* Skills Tab */}
               {selectedView === 'skills' && (
                 <div className="space-y-6">
-                  <div className="bg-white rounded-2xl p-6 shadow-sm">
-                    <h3 className="text-lg font-bold text-gray-800 mb-6">Yo\'nalishlar bo\'yicha bilim darajasi</h3>
+                  <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-sm">
+                    <h3 className="text-lg font-bold text-gray-800 dark:text-zinc-100 mb-6">Yo\'nalishlar bo\'yicha bilim darajasi</h3>
                     
                     {/* Radar Chart Simulation */}
                     <div className="flex justify-center mb-8">
@@ -415,7 +415,7 @@ export default function Statistics() {
                         return (
                           <div key={skill} className="p-4 bg-gray-50 rounded-lg">
                             <div className="flex items-center justify-between mb-2">
-                              <span className="font-medium text-gray-800">{skillNames[skill]}</span>
+                              <span className="font-medium text-gray-800 dark:text-zinc-100">{skillNames[skill]}</span>
                               <span className={`text-sm font-bold ${getSkillColor(level)}`}>{level}%</span>
                             </div>
                             <div className="bg-gray-200 rounded-full h-2">
@@ -445,12 +445,12 @@ export default function Statistics() {
               {/* Activity Tab */}
               {selectedView === 'activity' && (
                 <div className="space-y-6">
-                  <div className="bg-white rounded-2xl p-6 shadow-sm">
+                  <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-sm">
                     <div className="flex items-center justify-between mb-6">
-                      <h3 className="text-lg font-bold text-gray-800">Faollik grafigi</h3>
-                      <div className="flex items-center gap-4 text-sm text-gray-600">
+                      <h3 className="text-lg font-bold text-gray-800 dark:text-zinc-100">Faollik grafigi</h3>
+                      <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-zinc-300">
                         <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 bg-gray-100 rounded"></div>
+                          <div className="w-3 h-3 bg-gray-100 dark:bg-zinc-800 rounded"></div>
                           <span>Faollik yo\'q</span>
                         </div>
                         <div className="flex items-center gap-2">
@@ -490,8 +490,8 @@ export default function Statistics() {
                     
                     <div className="flex items-center justify-between mt-6 pt-6 border-t border-gray-200">
                       <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4 text-gray-600" />
-                        <span className="text-sm text-gray-600">Oxirgi 90 kun</span>
+                        <Calendar className="w-4 h-4 text-gray-600 dark:text-zinc-300" />
+                        <span className="text-sm text-gray-600 dark:text-zinc-300">Oxirgi 90 kun</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Zap className="w-4 h-4 text-orange-600" />
@@ -507,8 +507,8 @@ export default function Statistics() {
               {/* IRAC Tab */}
               {selectedView === 'irac' && (
                 <div className="space-y-6">
-                  <div className="bg-white rounded-2xl p-6 shadow-sm">
-                    <h3 className="text-lg font-bold text-gray-800 mb-6">IRAC Metodi tahlili</h3>
+                  <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-sm">
+                    <h3 className="text-lg font-bold text-gray-800 dark:text-zinc-100 mb-6">IRAC Metodi tahlili</h3>
                     
                     <div className="grid grid-cols-2 gap-6 mb-8">
                       {Object.entries(filteredData.iracScores).map(([step, score]) => {
@@ -529,12 +529,12 @@ export default function Statistics() {
                         return (
                           <div key={step} className="p-6 border border-gray-200 rounded-xl">
                             <div className="flex items-center justify-between mb-3">
-                              <h4 className="font-bold text-gray-800">{stepNames[step]}</h4>
+                              <h4 className="font-bold text-gray-800 dark:text-zinc-100">{stepNames[step]}</h4>
                               <span className={`px-3 py-1 rounded-full text-sm font-medium ${getIRACColor(score)}`}>
                                 {score}%
                               </span>
                             </div>
-                            <p className="text-sm text-gray-600 mb-4">{stepDescriptions[step]}</p>
+                            <p className="text-sm text-gray-600 dark:text-zinc-300 mb-4">{stepDescriptions[step]}</p>
                             <div className="bg-gray-200 rounded-full h-3">
                               <div 
                                 className={`h-3 rounded-full transition-all duration-500 ${
@@ -552,7 +552,7 @@ export default function Statistics() {
                     
                     {/* Recommendations */}
                     <div className="bg-blue-50 rounded-xl p-6">
-                      <h4 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
+                      <h4 className="font-bold text-gray-800 dark:text-zinc-100 mb-4 flex items-center gap-2">
                         <AlertTriangle className="w-5 h-5 text-blue-600" />
                         Tavsiyalar
                       </h4>
@@ -561,8 +561,8 @@ export default function Statistics() {
                           <div className="flex items-start gap-3">
                             <div className="w-2 h-2 bg-blue-600 rounded-full mt-2"></div>
                             <div>
-                              <p className="font-medium text-gray-800">Tatbiq qilishni kuchaytirish</p>
-                              <p className="text-sm text-gray-600">Siz qonunlarni yaxshi topasiz, lekin uni tatbiq etishda {100 - filteredData.iracScores.application}% xatolikka yo\'l qo\'yasiz. Ko\'proq amaliy mashqlar qiling.</p>
+                              <p className="font-medium text-gray-800 dark:text-zinc-100">Tatbiq qilishni kuchaytirish</p>
+                              <p className="text-sm text-gray-600 dark:text-zinc-300">Siz qonunlarni yaxshi topasiz, lekin uni tatbiq etishda {100 - filteredData.iracScores.application}% xatolikka yo\'l qo\'yasiz. Ko\'proq amaliy mashqlar qiling.</p>
                             </div>
                           </div>
                         )}
@@ -571,8 +571,8 @@ export default function Statistics() {
                           <div className="flex items-start gap-3">
                             <div className="w-2 h-2 bg-blue-600 rounded-full mt-2"></div>
                             <div>
-                              <p className="font-medium text-gray-800">Qoidalarni takrorlang</p>
-                              <p className="text-sm text-gray-600">Qonun moddalarini eslab qolishda qiyinchiliklar bor. Kartochka usulidan foydalanib, takrorlang.</p>
+                              <p className="font-medium text-gray-800 dark:text-zinc-100">Qoidalarni takrorlang</p>
+                              <p className="text-sm text-gray-600 dark:text-zinc-300">Qonun moddalarini eslab qolishda qiyinchiliklar bor. Kartochka usulidan foydalanib, takrorlang.</p>
                             </div>
                           </div>
                         )}
@@ -581,8 +581,8 @@ export default function Statistics() {
                           <div className="flex items-start gap-3">
                             <div className="w-2 h-2 bg-green-600 rounded-full mt-2"></div>
                             <div>
-                              <p className="font-medium text-gray-800">A\'lo yo\'nalish</p>
-                              <p className="text-sm text-gray-600">Muammoni topish va xulosa chiqarishda a\'lo natijalarni ko\'rsatmoqdasiz. Buni saqlab qoling!</p>
+                              <p className="font-medium text-gray-800 dark:text-zinc-100">A\'lo yo\'nalish</p>
+                              <p className="text-sm text-gray-600 dark:text-zinc-300">Muammoni topish va xulosa chiqarishda a\'lo natijalarni ko\'rsatmoqdasiz. Buni saqlab qoling!</p>
                             </div>
                           </div>
                         )}

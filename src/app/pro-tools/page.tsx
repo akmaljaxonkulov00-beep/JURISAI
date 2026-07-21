@@ -133,7 +133,7 @@ export default function ProTools() {
                 </div>
                 <div>
                   <CardTitle className="text-lg">{calc.name}</CardTitle>
-                  <p className="text-sm text-gray-600">{calc.description}</p>
+                  <p className="text-sm text-gray-600 dark:text-zinc-300">{calc.description}</p>
                 </div>
               </div>
             </CardHeader>
@@ -141,7 +141,7 @@ export default function ProTools() {
               <div className="space-y-4">
                 {calc.fields.map((field, fieldIndex) => (
                   <div key={fieldIndex}>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-zinc-200 mb-1">
                       {field.label}
                     </label>
                     {field.type === 'select' ? (
@@ -181,12 +181,12 @@ export default function ProTools() {
       <Card>
         <CardHeader>
           <CardTitle>Hujjat yuklang</CardTitle>
-          <p className="text-gray-600">Huquqiy hujjatni yuklang va AI tahlil qilsin</p>
+          <p className="text-gray-600 dark:text-zinc-300">Huquqiy hujjatni yuklang va AI tahlil qilsin</p>
         </CardHeader>
         <CardContent>
           <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
             <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600 mb-4">Hujjatni bu yerga torting oling yoki yuklang</p>
+            <p className="text-gray-600 dark:text-zinc-300 mb-4">Hujjatni bu yerga torting oling yoki yuklang</p>
             <Button variant="outline">Fayl tanlash</Button>
           </div>
         </CardContent>
@@ -200,15 +200,15 @@ export default function ProTools() {
           <CardContent>
             <div className="space-y-3">
               <div className="flex justify-between">
-                <span className="text-gray-600">Hujjat turi:</span>
+                <span className="text-gray-600 dark:text-zinc-300">Hujjat turi:</span>
                 <span className="font-medium">Da\'vo arizasi</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">To\'g\'rilik:</span>
+                <span className="text-gray-600 dark:text-zinc-300">To\'g\'rilik:</span>
                 <span className="font-medium text-green-600">85%</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Topilgan xatolar:</span>
+                <span className="text-gray-600 dark:text-zinc-300">Topilgan xatolar:</span>
                 <span className="font-medium text-red-600">3 ta</span>
               </div>
             </div>
@@ -275,13 +275,13 @@ export default function ProTools() {
                   <h3 className="font-semibold text-gray-900 mb-1">
                     O\'zbekiston Respublikasi Fuqarolik kodeksi, {i * 10}-modda
                   </h3>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-gray-600 dark:text-zinc-300">
                     Shartnoma tuzish tartibi
                   </p>
                 </div>
                 <Badge className="bg-green-100 text-green-800">Faol</Badge>
               </div>
-              <p className="text-gray-700 mb-3">
+              <p className="text-gray-700 dark:text-zinc-200 mb-3">
                 Shartnoma - bu tomonlarning o\'zaro huquq va majburiyatlarni belgilovchi yozma kelishuv. 
                 Shartnoma qonunga muvofiq tuzilishi va tomonlarning irodasi bilan tasdiqlanishi kerak...
               </p>
@@ -315,12 +315,12 @@ export default function ProTools() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-zinc-800/50">
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center mb-6">
-            <div className="p-3 bg-white/20 rounded-full backdrop-blur-sm mr-4">
+            <div className="p-3 bg-white dark:bg-zinc-900/20 dark:bg-zinc-800/30 rounded-full backdrop-blur-sm mr-4">
               <Wrench className="w-8 h-8" />
             </div>
             <div>
@@ -350,15 +350,15 @@ export default function ProTools() {
                   <Badge variant="outline">{tool.category}</Badge>
                 </div>
                 <h3 className="font-semibold text-gray-900 mb-2">{tool.name}</h3>
-                <p className="text-gray-600 text-sm">{tool.description}</p>
+                <p className="text-gray-600 dark:text-zinc-300 text-sm">{tool.description}</p>
               </CardContent>
             </Card>
           ))}
         </div>
 
         {/* Main Content */}
-        <div className="bg-white rounded-xl shadow-lg p-6">
-          <div className="border-b border-gray-200 mb-6">
+        <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-lg p-6">
+          <div className="border-b border-gray-200 dark:border-zinc-700 mb-6">
             <nav className="flex space-x-8">
               {tools.map((tool) => (
                 <button
@@ -367,7 +367,7 @@ export default function ProTools() {
                   className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
                     activeTab === tool.id
                       ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                      : 'border-transparent text-gray-500 dark:text-zinc-400 hover:text-gray-700 dark:text-zinc-200'
                   }`}
                 >
                   {tool.name}
@@ -391,7 +391,7 @@ export default function ProTools() {
                   </div>
                   <h3 className="font-semibold text-gray-900">Qonunlar bazasi</h3>
                 </div>
-                <p className="text-gray-600 text-sm mb-4">To\'liq qonunlar bazasi</p>
+                <p className="text-gray-600 dark:text-zinc-300 text-sm mb-4">To\'liq qonunlar bazasi</p>
                 <Link href="/legal-database">
                   <Button variant="outline" size="sm" className="w-full">
                     Ochish
@@ -408,7 +408,7 @@ export default function ProTools() {
                   </div>
                   <h3 className="font-semibold text-gray-900">Qo\'llanmalar</h3>
                 </div>
-                <p className="text-gray-600 text-sm mb-4">Batafsil yo\'riqnoma</p>
+                <p className="text-gray-600 dark:text-zinc-300 text-sm mb-4">Batafsil yo\'riqnoma</p>
                 <Link href="/help">
                   <Button variant="outline" size="sm" className="w-full">
                     Ochish
@@ -425,7 +425,7 @@ export default function ProTools() {
                   </div>
                   <h3 className="font-semibold text-gray-900">Sozlamalar</h3>
                 </div>
-                <p className="text-gray-600 text-sm mb-4">Profil sozlamalari</p>
+                <p className="text-gray-600 dark:text-zinc-300 text-sm mb-4">Profil sozlamalari</p>
                 <Link href="/settings">
                   <Button variant="outline" size="sm" className="w-full">
                     Ochish
@@ -442,7 +442,7 @@ export default function ProTools() {
                   </div>
                   <h3 className="font-semibold text-gray-900">AI yordamchi</h3>
                 </div>
-                <p className="text-gray-600 text-sm mb-4">Smart yordamchi</p>
+                <p className="text-gray-600 dark:text-zinc-300 text-sm mb-4">Smart yordamchi</p>
                 <Link href="/ai-chat">
                   <Button variant="outline" size="sm" className="w-full">
                     Ochish

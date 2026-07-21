@@ -346,11 +346,11 @@ export default function Community() {
       <div className="min-h-screen bg-[#f8faff]">
         <div className="flex">
           {/* Sidebar */}
-          <div className="w-64 bg-white border-r border-gray-100 min-h-screen">
+          <div className="w-64 bg-white dark:bg-zinc-900 border-r border-gray-100 dark:border-zinc-800 min-h-screen">
             <div className="p-6">
               <button
                 onClick={() => setActiveTab('feed')}
-                className="flex items-center gap-3 px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-lg cursor-pointer mb-6"
+                className="flex items-center gap-3 px-3 py-2 text-gray-600 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800 rounded-lg cursor-pointer mb-6"
               >
                 <ArrowLeft className="w-5 h-5" />
                 <span>Orqaga</span>
@@ -368,32 +368,32 @@ export default function Community() {
 
           {/* Main Content */}
           <div className="flex-1">
-            <header className="bg-white px-8 py-4 border-b border-gray-100">
-              <h1 className="text-2xl font-bold text-gray-800">Ekspertlar va Mentorlar</h1>
-              <p className="text-sm text-gray-600">Tasdiqlangan yuristlar va o\'qituvchilar bilan aloqa</p>
+            <header className="bg-white dark:bg-zinc-900 px-8 py-4 border-b border-gray-100 dark:border-zinc-800">
+              <h1 className="text-2xl font-bold text-gray-800 dark:text-zinc-100">Ekspertlar va Mentorlar</h1>
+              <p className="text-sm text-gray-600 dark:text-zinc-300">Tasdiqlangan yuristlar va o\'qituvchilar bilan aloqa</p>
             </header>
 
             <main className="p-8">
               <div className="max-w-6xl mx-auto">
                 <div className="grid grid-cols-2 gap-6">
                   {experts.map(expert => (
-                    <div key={expert.id} className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-lg transition-shadow">
+                    <div key={expert.id} className="bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-sm hover:shadow-lg transition-shadow">
                       <div className="flex items-start gap-4">                          <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center">
                             <UserCircle className="w-10 h-10 text-white" />
                           </div>
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
-                            <h3 className="font-bold text-gray-800">{expert.name}</h3>
+                            <h3 className="font-bold text-gray-800 dark:text-zinc-100">{expert.name}</h3>
                             {expert.verified && (
                               <Verified className="w-4 h-4 text-blue-600" />
                             )}
                           </div>
-                          <p className="text-sm text-gray-600 mb-2">{expert.title}</p>
+                          <p className="text-sm text-gray-600 dark:text-zinc-300 mb-2">{expert.title}</p>
                           <p className="text-sm text-gray-700 mb-3">
                             <span className="font-medium">Mutaxassislik:</span> {expert.specialization}
                           </p>
                           
-                          <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
+                          <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-zinc-300 mb-4">
                             <div className="flex items-center gap-1">
                               <Star className="w-4 h-4" />
                               <span>{expert.reputation} rep</span>
@@ -438,11 +438,11 @@ export default function Community() {
       <div className="min-h-screen bg-[#f8faff]">
         <div className="flex">
           {/* Sidebar */}
-          <div className="w-64 bg-white border-r border-gray-100 min-h-screen">
+          <div className="w-64 bg-white dark:bg-zinc-900 border-r border-gray-100 dark:border-zinc-800 min-h-screen">
             <div className="p-6">
               <button
                 onClick={() => setActiveTab('feed')}
-                className="flex items-center gap-3 px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-lg cursor-pointer mb-6"
+                className="flex items-center gap-3 px-3 py-2 text-gray-600 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800 rounded-lg cursor-pointer mb-6"
               >
                 <ArrowLeft className="w-5 h-5" />
                 <span>Orqaga</span>
@@ -460,25 +460,25 @@ export default function Community() {
 
           {/* Main Content */}
           <div className="flex-1">
-            <header className="bg-white px-8 py-4 border-b border-gray-100">
-              <h1 className="text-2xl font-bold text-gray-800">Guruhlar va Klublar</h1>
-              <p className="text-sm text-gray-600">Qiziqishingiz bo\'yicha professional guruhlarga qo\'shiling</p>
+            <header className="bg-white dark:bg-zinc-900 px-8 py-4 border-b border-gray-100 dark:border-zinc-800">
+              <h1 className="text-2xl font-bold text-gray-800 dark:text-zinc-100">Guruhlar va Klublar</h1>
+              <p className="text-sm text-gray-600 dark:text-zinc-300">Qiziqishingiz bo\'yicha professional guruhlarga qo\'shiling</p>
             </header>
 
             <main className="p-8">
               <div className="max-w-4xl mx-auto">
                 <div className="grid grid-cols-2 gap-6">
                   {groups.map(group => (
-                    <div key={group.id} className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-lg transition-shadow">
+                    <div key={group.id} className="bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-sm hover:shadow-lg transition-shadow">
                       <div className="flex items-start gap-4">
                         <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600">
                           {group.icon}
                         </div>
                         <div className="flex-1">
-                          <h3 className="font-bold text-gray-800 mb-1">{group.name}</h3>
-                          <p className="text-sm text-gray-600 mb-3">{group.description}</p>
+                          <h3 className="font-bold text-gray-800 dark:text-zinc-100 mb-1">{group.name}</h3>
+                          <p className="text-sm text-gray-600 dark:text-zinc-300 mb-3">{group.description}</p>
                           <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-zinc-300">
                               <Users className="w-4 h-4" />
                               <span>{group.members} a\'zo</span>
                             </div>
@@ -504,7 +504,7 @@ export default function Community() {
                 
                 {/* Create New Group */}
                 <div className="mt-6">
-                  <button className="w-full p-4 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-blue-400 hover:text-blue-600 transition-colors">
+                  <button className="w-full p-4 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 dark:text-zinc-300 hover:border-blue-400 hover:text-blue-600 transition-colors">
                     <div className="flex items-center justify-center gap-2">
                       <Plus className="w-5 h-5" />
                       <span>Yangi guruh yaratish</span>
@@ -524,11 +524,11 @@ export default function Community() {
       <div className="min-h-screen bg-[#f8faff]">
         <div className="flex">
           {/* Sidebar */}
-          <div className="w-64 bg-white border-r border-gray-100 min-h-screen">
+          <div className="w-64 bg-white dark:bg-zinc-900 border-r border-gray-100 dark:border-zinc-800 min-h-screen">
             <div className="p-6">
               <button
                 onClick={() => setActiveTab('feed')}
-                className="flex items-center gap-3 px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-lg cursor-pointer mb-6"
+                className="flex items-center gap-3 px-3 py-2 text-gray-600 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800 rounded-lg cursor-pointer mb-6"
               >
                 <ArrowLeft className="w-5 h-5" />
                 <span>Orqaga</span>
@@ -546,30 +546,30 @@ export default function Community() {
 
           {/* Main Content */}
           <div className="flex-1">
-            <header className="bg-white px-8 py-4 border-b border-gray-100">
-              <h1 className="text-2xl font-bold text-gray-800">Vebinarnlar</h1>
-              <p className="text-sm text-gray-600">Jonli darslar va professional uchrashuvlar</p>
+            <header className="bg-white dark:bg-zinc-900 px-8 py-4 border-b border-gray-100 dark:border-zinc-800">
+              <h1 className="text-2xl font-bold text-gray-800 dark:text-zinc-100">Vebinarnlar</h1>
+              <p className="text-sm text-gray-600 dark:text-zinc-300">Jonli darslar va professional uchrashuvlar</p>
             </header>
 
             <main className="p-8">
               <div className="max-w-4xl mx-auto">
                 <div className="space-y-4">
                   {webinars.map(webinar => (
-                    <div key={webinar.id} className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-lg transition-shadow">
+                    <div key={webinar.id} className="bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-sm hover:shadow-lg transition-shadow">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-2">
-                            <h3 className="font-bold text-gray-800">{webinar.title}</h3>
+                            <h3 className="font-bold text-gray-800 dark:text-zinc-100">{webinar.title}</h3>
                             {webinar.isLive && (
                               <span className="px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium animate-pulse">
                                 LIVE
                               </span>
                             )}
                           </div>
-                          <p className="text-sm text-gray-600 mb-3">
+                          <p className="text-sm text-gray-600 dark:text-zinc-300 mb-3">
                             <span className="font-medium">O'tkazuvchi:</span> {webinar.host}
                           </p>
-                          <div className="flex items-center gap-4 text-sm text-gray-600">
+                          <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-zinc-300">
                             <div className="flex items-center gap-1">
                               <Calendar className="w-4 h-4" />
                               <span>{webinar.date}</span>
@@ -615,9 +615,9 @@ export default function Community() {
     <div className="min-h-screen bg-[#f8faff]">
       <div className="flex">
         {/* Sidebar */}
-        <div className="w-64 bg-white border-r border-gray-100 min-h-screen">
+        <div className="w-64 bg-white dark:bg-zinc-900 border-r border-gray-100 dark:border-zinc-800 min-h-screen">
           <div className="p-6">
-            <a href="/" className="flex items-center gap-3 px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-lg cursor-pointer mb-6">
+            <a href="/" className="flex items-center gap-3 px-3 py-2 text-gray-600 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800 rounded-lg cursor-pointer mb-6">
               <ArrowLeft className="w-5 h-5" />
               <span>Orqaga</span>
             </a>
@@ -640,7 +640,7 @@ export default function Community() {
               <button
                 onClick={() => setActiveTab('feed')}
                 className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
-                  activeTab === 'feed' ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50'
+                  activeTab === 'feed' ? 'bg-blue-50 text-blue-600' : 'text-gray-600 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800'
                 }`}
               >
                 <MessageCircle className="w-5 h-5" />
@@ -649,7 +649,7 @@ export default function Community() {
               <button
                 onClick={() => setActiveTab('experts')}
                 className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
-                  activeTab === 'experts' ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50'
+                  activeTab === 'experts' ? 'bg-blue-50 text-blue-600' : 'text-gray-600 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800'
                 }`}
               >
                 <Star className="w-5 h-5" />
@@ -658,7 +658,7 @@ export default function Community() {
               <button
                 onClick={() => setActiveTab('groups')}
                 className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
-                  activeTab === 'groups' ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50'
+                  activeTab === 'groups' ? 'bg-blue-50 text-blue-600' : 'text-gray-600 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800'
                 }`}
               >
                 <Users className="w-5 h-5" />
@@ -667,7 +667,7 @@ export default function Community() {
               <button
                 onClick={() => setActiveTab('webinars')}
                 className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
-                  activeTab === 'webinars' ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50'
+                  activeTab === 'webinars' ? 'bg-blue-50 text-blue-600' : 'text-gray-600 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800'
                 }`}
               >
                 <Video className="w-5 h-5" />
@@ -680,11 +680,11 @@ export default function Community() {
         {/* Main Content */}
         <div className="flex-1">
           {/* Header */}
-          <header className="bg-white px-8 py-4 border-b border-gray-100">
+          <header className="bg-white dark:bg-zinc-900 px-8 py-4 border-b border-gray-100 dark:border-zinc-800">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-gray-800">Jamiyat</h1>
-                <p className="text-sm text-gray-600">Professional forum va aloqalar markazi</p>
+                <h1 className="text-2xl font-bold text-gray-800 dark:text-zinc-100">Jamiyat</h1>
+                <p className="text-sm text-gray-600 dark:text-zinc-300">Professional forum va aloqalar markazi</p>
               </div>
               
               <div className="flex items-center gap-4">
@@ -713,7 +713,7 @@ export default function Community() {
                 {/* Main Feed */}
                 <div className="col-span-2 space-y-4">
                   {posts.map(post => (
-                    <div key={post.id} className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-lg transition-shadow">
+                    <div key={post.id} className="bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-sm hover:shadow-lg transition-shadow">
                       {/* Post Header */}
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex items-center gap-3">
@@ -722,12 +722,12 @@ export default function Community() {
                           </div>
                           <div>
                             <div className="flex items-center gap-2">
-                              <h3 className="font-medium text-gray-800">{post.author.name}</h3>
+                              <h3 className="font-medium text-gray-800 dark:text-zinc-100">{post.author.name}</h3>
                               {post.author.verified && (
                                 <Verified className="w-4 h-4 text-blue-600" />
                               )}
                             </div>
-                            <p className="text-sm text-gray-600">{post.author.role}</p>
+                            <p className="text-sm text-gray-600 dark:text-zinc-300">{post.author.role}</p>
                           </div>
                         </div>
                         
@@ -762,26 +762,26 @@ export default function Community() {
                       </div>
                       
                       {/* Post Actions */}
-                      <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                      <div className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-zinc-800">
                         <div className="flex items-center gap-4">
-                          <button className="flex items-center gap-1 text-gray-600 hover:text-blue-600">
+                          <button className="flex items-center gap-1 text-gray-600 dark:text-zinc-300 hover:text-blue-600">
                             <ThumbsUp className="w-4 h-4" />
                             <span className="text-sm">{post.likes}</span>
                           </button>
-                          <button className="flex items-center gap-1 text-gray-600 hover:text-red-600">
+                          <button className="flex items-center gap-1 text-gray-600 dark:text-zinc-300 hover:text-red-600">
                             <ThumbsDown className="w-4 h-4" />
                             <span className="text-sm">{post.dislikes}</span>
                           </button>
-                          <button className="flex items-center gap-1 text-gray-600 hover:text-blue-600">
+                          <button className="flex items-center gap-1 text-gray-600 dark:text-zinc-300 hover:text-blue-600">
                             <MessageCircle className="w-4 h-4" />
                             <span className="text-sm">{post.comments}</span>
                           </button>
-                          <button className="flex items-center gap-1 text-gray-600 hover:text-green-600">
+                          <button className="flex items-center gap-1 text-gray-600 dark:text-zinc-300 hover:text-green-600">
                             <Eye className="w-4 h-4" />
                             <span className="text-sm">{post.views}</span>
                           </button>
                         </div>
-                        <span className="text-sm text-gray-500">{post.timestamp}</span>
+                        <span className="text-sm text-gray-500 dark:text-zinc-400">{post.timestamp}</span>
                       </div>
                     </div>
                   ))}
@@ -790,8 +790,8 @@ export default function Community() {
                 {/* Sidebar */}
                 <div className="space-y-6">
                   {/* Top Users */}
-                  <div className="bg-white rounded-2xl p-6 shadow-sm">
-                    <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
+                  <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-sm">
+                    <h3 className="font-bold text-gray-800 dark:text-zinc-100 mb-4 flex items-center gap-2">
                       <Award className="w-5 h-5 text-orange-600" />
                       Top foydalanuvchilar
                     </h3>
@@ -802,12 +802,12 @@ export default function Community() {
                             <UserCircle className="w-4 h-4 text-white" />
                           </div>
                           <div className="flex-1">
-                            <p className="font-medium text-gray-800 text-sm">{user.name}</p>
-                            <p className="text-xs text-gray-600">{user.role}</p>
+                            <p className="font-medium text-gray-800 dark:text-zinc-100 text-sm">{user.name}</p>
+                            <p className="text-xs text-gray-600 dark:text-zinc-300">{user.role}</p>
                           </div>
                           <div className="text-right">
                             <p className="text-sm font-bold text-blue-600">{user.reputation}</p>
-                            <p className="text-xs text-gray-500">rep</p>
+                            <p className="text-xs text-gray-500 dark:text-zinc-400">rep</p>
                           </div>
                         </div>
                       ))}
@@ -815,8 +815,8 @@ export default function Community() {
                   </div>
 
                   {/* Trending Topics */}
-                  <div className="bg-white rounded-2xl p-6 shadow-sm">
-                    <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
+                  <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-sm">
+                    <h3 className="font-bold text-gray-800 dark:text-zinc-100 mb-4 flex items-center gap-2">
                       <TrendingUp className="w-5 h-5 text-green-600" />
                       Trending mavzular
                     </h3>
@@ -824,28 +824,28 @@ export default function Community() {
                       {trendingTopics.map((topic, index) => (
                         <button
                           key={index}
-                          className="w-full flex items-center justify-between p-2 text-left hover:bg-gray-50 rounded-lg"
+                          className="w-full flex items-center justify-between p-2 text-left hover:bg-gray-50 dark:hover:bg-zinc-800 rounded-lg"
                         >
                           <span className="text-sm text-blue-600 font-medium">{topic.tag}</span>
-                          <span className="text-xs text-gray-500">{topic.count}</span>
+                          <span className="text-xs text-gray-500 dark:text-zinc-400">{topic.count}</span>
                         </button>
                       ))}
                     </div>
                   </div>
 
                   {/* Upcoming Webinars */}
-                  <div className="bg-white rounded-2xl p-6 shadow-sm">
-                    <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
+                  <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-sm">
+                    <h3 className="font-bold text-gray-800 dark:text-zinc-100 mb-4 flex items-center gap-2">
                       <Video className="w-5 h-5 text-purple-600" />
                       Kelayotgan vebinarnlar
                     </h3>
                     <div className="space-y-3">
                       {webinars.slice(0, 2).map(webinar => (
                         <div key={webinar.id} className="p-3 bg-gray-50 rounded-lg">
-                          <h4 className="font-medium text-gray-800 text-sm mb-1">{webinar.title}</h4>
-                          <p className="text-xs text-gray-600 mb-2">{webinar.host}</p>
+                          <h4 className="font-medium text-gray-800 dark:text-zinc-100 text-sm mb-1">{webinar.title}</h4>
+                          <p className="text-xs text-gray-600 dark:text-zinc-300 mb-2">{webinar.host}</p>
                           <div className="flex items-center justify-between">
-                            <span className="text-xs text-gray-500">{webinar.date}</span>
+                            <span className="text-xs text-gray-500 dark:text-zinc-400">{webinar.date}</span>
                             <button className="text-xs text-blue-600 hover:text-blue-700">
                               Ro\'yxatdan o\'tish
                             </button>
@@ -864,8 +864,8 @@ export default function Community() {
       {/* New Post Modal */}
       {showNewPost && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl p-6 max-w-2xl mx-4 w-full">
-            <h3 className="text-lg font-bold text-gray-800 mb-4">Yangi post yaratish</h3>
+          <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 max-w-2xl mx-4 w-full">
+            <h3 className="text-lg font-bold text-gray-800 dark:text-zinc-100 mb-4">Yangi post yaratish</h3>
             
             <div className="mb-4">
               <textarea
@@ -902,7 +902,7 @@ export default function Community() {
                     className={`px-2 py-1 rounded text-xs transition-colors ${
                       selectedTags.includes(tag)
                         ? 'bg-blue-100 text-blue-700'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        : 'bg-gray-100 text-gray-600 dark:text-zinc-300 hover:bg-gray-200'
                     }`}
                   >
                     #{tag}
