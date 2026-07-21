@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { ArrowLeft, MessageCircle, FileText, Mic, Send, BookOpen, Scale, HelpCircle, Volume2, Lightbulb, Copy, ClipboardList, Info, Gavel, Sparkles } from 'lucide-react';
+import { ArrowLeft, MessageCircle, FileText, Mic, Send, BookOpen, Scale, HelpCircle, Volume2, Lightbulb, Copy, ClipboardList, Info, Gavel, Sparkles, History, Trash2, ChevronRight, Clock, X } from 'lucide-react';
 
 interface Message {
   id: string;
@@ -9,6 +9,15 @@ interface Message {
   type: 'user' | 'assistant';
   timestamp: Date;
   suggestions?: string[];
+}
+
+interface ChatSession {
+  id: string;
+  title: string;
+  preview: string;
+  date: string;
+  messageCount: number;
+  messages: Message[];
 }
 
 // ── AI javobini rangli bo'limlarda ko'rsatuvchi komponent ──────────────────
@@ -20,7 +29,6 @@ function AIResponse({ text }: { text: string }) {
     { icon: <Sparkles size={14} />, key: 'MASLAHAT',         bg: '#FFF7ED', border: '#FED7AA', color: '#C2410C' },
   ];
 
-  // Matnda qaysi bo'lim borligini topamiz
   const findSection = (t: string, key: string) => t.includes(key);
   const hasAnySection = SECTIONS.some(s => findSection(text, s.key));
 
@@ -47,10 +55,7 @@ function AIResponse({ text }: { text: string }) {
     );
   }
 
-  // Bo'limlarga bo'lamiz — har bir bo'limni alohida qidirish
   const result: React.ReactNode[] = [];
-
-  // Har bir bo'limning pozitsiyasini topamiz
   type SecPos = { sec: typeof SECTIONS[0]; start: number; end: number };
   const positions: SecPos[] = [];
 
@@ -60,13 +65,11 @@ function AIResponse({ text }: { text: string }) {
     positions.push({ sec, start, end: -1 });
   });
 
-  // end pozitsiyalarini belgilaymiz
   positions.sort((a, b) => a.start - b.start);
   positions.forEach((p, i) => {
     p.end = positions[i + 1]?.start ?? text.length;
   });
 
-  // Birinchi bo'limdan oldingi matn
   if (positions.length > 0 && positions[0].start > 0) {
     const before = text.slice(0, positions[0].start).trim();
     if (before) {
@@ -74,10 +77,8 @@ function AIResponse({ text }: { text: string }) {
     }
   }
 
-  // Har bir bo'limni render qilamiz
   positions.forEach(({ sec, start, end }) => {
     const raw = text.slice(start, end);
-    // Sarlavhani olib tashlaymiz
     const content = raw
       .replace(sec.key + ':', '')
       .replace(sec.key, '')
@@ -99,24 +100,43 @@ function AIResponse({ text }: { text: string }) {
   return <>{result}</>;
 }
 
+// ── Chat sessionlarni localStorage dan olish ──────────────────
+function loadSessions(): ChatSession[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem('ai_chat_sessions');
+    if (!raw) {
+      // Migrate from old flat history format
+      const old = localStorage.getItem('ai_chat_history');
+      if (old) {
+        const msgs = JSON.parse(old);
+        if (Array.isArray(msgs) && msgs.length > 0) {
+          const session: ChatSession = {
+            id: 'session-' + Date.now(),
+            title: msgs[0]?.text?.slice(0, 50) || 'Suhbat',
+            preview: msgs[msgs.length - 1]?.text?.slice(0, 40) || '',
+            date: new Date(msgs[0]?.timestamp || Date.now()).toISOString(),
+            messageCount: msgs.length,
+            messages: msgs
+          };
+          return [session];
+        }
+      }
+      return [];
+    }
+    const parsed = JSON.parse(raw);
+    return parsed.map((s: any) => ({
+      ...s,
+      messages: s.messages.map((m: any) => ({ ...m, timestamp: new Date(m.timestamp) }))
+    }));
+  } catch { return []; }
+}
+
 // ── Asosiy komponent ───────────────────────────────────────────────────────
 export default function AIAssistant() {
-  const [messages, setMessages] = useState<Message[]>(() => {
-    // Saqlangan chat tarixini yuklash
-    if (typeof window !== 'undefined') {
-      try {
-        const saved = localStorage.getItem('ai_chat_history');
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          return parsed.map((m: any) => ({
-            ...m,
-            timestamp: new Date(m.timestamp)
-          }));
-        }
-      } catch {}
-    }
-    return [];
-  });
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [sessions, setSessions] = useState<ChatSession[]>([]);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
@@ -124,9 +144,15 @@ export default function AIAssistant() {
   const [speechReady, setSpeechReady] = useState(false);
   const [autoSpeak, setAutoSpeak] = useState(false);
   const [activeMode, setActiveMode] = useState<'chat' | 'document'>('chat');
+  const [historyOpen, setHistoryOpen] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const recognitionRef = useRef<any>(null);
+
+  // Load sessions on mount
+  useEffect(() => {
+    setSessions(loadSessions());
+  }, []);
 
   // Speech qo'llab-quvvatlashini tekshirish
   useEffect(() => {
@@ -136,23 +162,95 @@ export default function AIAssistant() {
     setSpeechReady(tts || stt || true);
   }, []);
 
-  // Xabarlar o'zgarganda localStorage ga saqlash
+  // Xabarlar o'zgarganda joriy sessionni saqlash
   useEffect(() => {
-    if (typeof window !== 'undefined' && messages.length > 0) {
-      try {
-        // Faqat oxirgi 50 ta xabarni saqlash
-        const toSave = messages.slice(-50).map(m => ({
-          ...m,
-          timestamp: m.timestamp.toISOString()
-        }));
-        localStorage.setItem('ai_chat_history', JSON.stringify(toSave));
-      } catch {}
+    if (typeof window === 'undefined' || messages.length === 0) return;
+    
+    const now = new Date();
+    const sessionTitle = messages.find(m => m.type === 'user')?.text?.slice(0, 50) || 'Suhbat';
+    const lastMsg = messages[messages.length - 1];
+    const session: ChatSession = {
+      id: currentSessionId || 'session-' + Date.now(),
+      title: sessionTitle,
+      preview: lastMsg?.text?.slice(0, 40) || '',
+      date: now.toISOString(),
+      messageCount: messages.length,
+      messages: messages.slice(-50).map(m => ({
+        ...m,
+        timestamp: m.timestamp instanceof Date ? m.timestamp : new Date(m.timestamp)
+      }))
+    };
+
+    if (!currentSessionId) {
+      setCurrentSessionId(session.id);
     }
-  }, [messages]);
+
+    setSessions(prev => {
+      const filtered = prev.filter(s => s.id !== session.id);
+      const updated = [session, ...filtered].slice(0, 20); // max 20 sessions
+      
+      // Save to localStorage
+      try {
+        const toSave = updated.map(s => ({
+          ...s,
+          messages: s.messages.map(m => ({
+            ...m,
+            timestamp: m.timestamp instanceof Date ? m.timestamp.toISOString() : m.timestamp
+          }))
+        }));
+        localStorage.setItem('ai_chat_sessions', JSON.stringify(toSave));
+      } catch {}
+      
+      return updated;
+    });
+  }, [messages, currentSessionId]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, loading]);
+
+  // Load a session's messages
+  const loadSession = (session: ChatSession) => {
+    setMessages(session.messages);
+    setCurrentSessionId(session.id);
+    setHistoryOpen(false);
+  };
+
+  // Start new chat
+  const newChat = () => {
+    setMessages([]);
+    setCurrentSessionId(null);
+    setHistoryOpen(false);
+  };
+
+  // Delete a session
+  const deleteSession = (e: React.MouseEvent, sessionId: string) => {
+    e.stopPropagation();
+    setSessions(prev => {
+      const filtered = prev.filter(s => s.id !== sessionId);
+      try {
+        localStorage.setItem('ai_chat_sessions', JSON.stringify(filtered));
+      } catch {}
+      return filtered;
+    });
+    if (currentSessionId === sessionId) {
+      setMessages([]);
+      setCurrentSessionId(null);
+    }
+  };
+
+  // Clear all history
+  const clearAllHistory = () => {
+    if (confirm('Barcha suhbat tarixini o\'chirishni xohlaysizmi?')) {
+      setSessions([]);
+      setMessages([]);
+      setCurrentSessionId(null);
+      try {
+        localStorage.removeItem('ai_chat_sessions');
+        localStorage.removeItem('ai_chat_history');
+      } catch {}
+    }
+  };
 
   // ── API ga savol yuborish ─────────────────────────────────────
   const send = useCallback(async (text?: string) => {
@@ -246,13 +344,29 @@ export default function AIAssistant() {
     { name: 'Vakolatnoma',        prompt: 'Vakolatnoma hujjati yoz.' },
   ];
 
+  // Format date for display
+  const formatSessionDate = (dateStr: string) => {
+    const d = new Date(dateStr);
+    const now = new Date();
+    const diff = now.getTime() - d.getTime();
+    if (diff < 86400000) return 'Bugun';
+    if (diff < 172800000) return 'Kecha';
+    return d.toLocaleDateString('uz-UZ', { day: 'numeric', month: 'short' });
+  };
+
   return (
     <div style={{ minHeight: '100vh', background: '#F8FAFF', display: 'flex' }}>
-      {/* ── Sidebar — faqat desktop da ko'rinadi ── */}
+      {/* ── Chap Sidebar — faqat desktop da ko'rinadi ── */}
       <aside className="desktop-sidebar" style={{ width: 256, background: '#fff', borderRight: '1px solid #F1F5F9', minHeight: '100vh', padding: '24px 16px', flexShrink: 0 }}>
-        <a href="/" style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#6B7280', textDecoration: 'none', fontSize: 14, marginBottom: 24 }}>
-          <ArrowLeft size={16} /> Orqaga
-        </a>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+          <a href="/" style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#6B7280', textDecoration: 'none', fontSize: 14 }}>
+            <ArrowLeft size={16} /> Orqaga
+          </a>
+          <button onClick={newChat}
+            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 8, background: '#EFF6FF', color: '#2563EB', border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 600 }}>
+            <MessageCircle size={14} /> Yangi
+          </button>
+        </div>
 
         <p style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>Tezkor</p>
         {[
@@ -290,7 +404,7 @@ export default function AIAssistant() {
       </aside>
 
       {/* ── Chat maydon ── */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         {/* Header */}
         <header style={{ background: '#fff', borderBottom: '1px solid #F1F5F9', padding: '14px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -303,6 +417,17 @@ export default function AIAssistant() {
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {/* History toggle button */}
+            <button onClick={() => setHistoryOpen(!historyOpen)}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 10, background: historyOpen ? '#EFF6FF' : '#F3F4F6', color: historyOpen ? '#2563EB' : '#4B5563', border: historyOpen ? '1px solid #BFDBFE' : '1px solid #E5E7EB', cursor: 'pointer', fontSize: 13, fontWeight: 500, transition: 'all 0.15s' }}>
+              <History size={16} />
+              <span className="desktop-only-text" style={{ display: 'none' }}>Tarix</span>
+              {sessions.length > 0 && (
+                <span style={{ background: '#2563EB', color: '#fff', borderRadius: '50%', width: 18, height: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700 }}>
+                  {sessions.length}
+                </span>
+              )}
+            </button>
             {isSpeaking && (
               <button onClick={stopSpeak} style={{ padding: '5px 12px', background: '#FEF3C7', border: '1px solid #FCD34D', borderRadius: 20, fontSize: 12, color: '#92400E', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
                 <Volume2 size={12} /> To'xtat
@@ -315,93 +440,176 @@ export default function AIAssistant() {
           </div>
         </header>
 
-        {/* Xabarlar */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '28px 32px' }}>
-          <div style={{ maxWidth: 820, margin: '0 auto' }}>
-
-            {/* Bo'sh holat */}
-            {messages.length === 0 && (
-              <div style={{ textAlign: 'center', paddingTop: 48 }}>
-                <div style={{ width: 64, height: 64, background: '#DBEAFE', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-                  <HelpCircle size={28} color="#2563EB" />
-                </div>
-                <h2 style={{ fontSize: 22, fontWeight: 700, color: '#111827', margin: '0 0 8px' }}>Qanday yordam bera olaman?</h2>
-                <p style={{ fontSize: 14, color: '#6B7280', margin: '0 0 32px' }}>Huquqiy savol bering, hujjat yarataman, keys tahlil qilaman</p>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12, maxWidth: 600, margin: '0 auto' }}>
-                  {[
-                    { icon: <BookOpen size={20} color="#2563EB" />, title: 'Qonun tahlili', bg: '#DBEAFE' },
-                    { icon: <Scale size={20} color="#16A34A" />,    title: 'Keys yechimi',  bg: '#DCFCE7' },
-                    { icon: <FileText size={20} color="#2563EB" />, title: 'Hujjatlar',    bg: '#DBEAFE' },
-                  ].map((c, i) => (
-                    <div key={i} style={{ background: '#fff', borderRadius: 14, padding: 16, boxShadow: '0 1px 4px rgba(0,0,0,0.07)' }}>
-                      <div style={{ width: 40, height: 40, background: c.bg, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 10 }}>{c.icon}</div>
-                      <p style={{ fontWeight: 600, fontSize: 14, color: '#111827', margin: 0 }}>{c.title}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Xabarlar */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              {messages.map(m => (
-                <div key={m.id} style={{ display: 'flex', justifyContent: m.type === 'user' ? 'flex-end' : 'flex-start' }}>
-                  {m.type === 'user' ? (
-                    <div style={{ background: '#2563EB', color: '#fff', padding: '11px 18px', borderRadius: '18px 18px 4px 18px', maxWidth: '72%', fontSize: 14, lineHeight: 1.6 }}>
-                      {m.text}
-                    </div>
-                  ) : (
-                    <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: '4px 18px 18px 18px', padding: '16px 18px', maxWidth: '88%', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
-                      <AIResponse text={m.text} />
-
-                      {/* Amal tugmalari */}
-                      <div style={{ display: 'flex', gap: 8, marginTop: 10, paddingTop: 10, borderTop: '1px solid #F3F4F6', flexWrap: 'wrap' }}>
-                        <button onClick={() => navigator.clipboard.writeText(m.text)}
-                          style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '3px 10px', background: '#F9FAFB', border: '1px solid #E5E7EB', borderRadius: 8, fontSize: 12, color: '#6B7280', cursor: 'pointer' }}>
-                          <Copy size={12} /> Nusxa
-                        </button>
-                        {speechReady && (
-                          <button onClick={() => speakText(m.text)}
-                            style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '3px 10px', background: '#F9FAFB', border: '1px solid #E5E7EB', borderRadius: 8, fontSize: 12, color: '#6B7280', cursor: 'pointer' }}>
-                            <Volume2 size={12} /> Eshit
-                          </button>
-                        )}
-                      </div>
-
-                      {/* Taklif savollar */}
-                      {m.suggestions && m.suggestions.length > 0 && (
-                        <div style={{ marginTop: 10, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                          <span style={{ fontSize: 11, color: '#9CA3AF', display: 'flex', alignItems: 'center', gap: 3 }}>
-                            <Lightbulb size={11} /> Keyingi:
-                          </span>
-                          {m.suggestions.map((s, i) => (
-                            <button key={i} onClick={() => send(s)}
-                              style={{ padding: '3px 10px', background: '#FEF9C3', border: '1px solid #FDE68A', borderRadius: 20, fontSize: 11, color: '#92400E', cursor: 'pointer' }}>
-                              {s}
-                            </button>
-                          ))}
-                        </div>
-                      )}
+        <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+          {/* Messages area */}
+          <div style={{ flex: 1, overflowY: 'auto', padding: '28px 32px' }}>
+            <div style={{ maxWidth: 820, margin: '0 auto' }}>
+              {/* Bo'sh holat */}
+              {messages.length === 0 && (
+                <div style={{ textAlign: 'center', paddingTop: 48 }}>
+                  <div style={{ width: 64, height: 64, background: '#DBEAFE', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+                    <HelpCircle size={28} color="#2563EB" />
+                  </div>
+                  <h2 style={{ fontSize: 22, fontWeight: 700, color: '#111827', margin: '0 0 8px' }}>Qanday yordam bera olaman?</h2>
+                  <p style={{ fontSize: 14, color: '#6B7280', margin: '0 0 32px' }}>Huquqiy savol bering, hujjat yarataman, keys tahlil qilaman</p>
+                  {sessions.length > 0 && (
+                    <div style={{ marginBottom: 32 }}>
+                      <button onClick={() => setHistoryOpen(true)}
+                        style={{ padding: '8px 20px', background: '#EFF6FF', color: '#2563EB', borderRadius: 10, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
+                        📋 {sessions.length} ta suhbat tarixi bor
+                      </button>
                     </div>
                   )}
-                </div>
-              ))}
-
-              {/* Loading animatsiya */}
-              {loading && (
-                <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-                  <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: '4px 18px 18px 18px', padding: '14px 18px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
-                    <div style={{ display: 'flex', gap: 5 }}>
-                      {[0, 160, 320].map(d => (
-                        <div key={d} style={{ width: 8, height: 8, background: '#93C5FD', borderRadius: '50%', animation: `bob 1s ${d}ms infinite` }} />
-                      ))}
-                    </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12, maxWidth: 600, margin: '0 auto' }}>
+                    {[
+                      { icon: <BookOpen size={20} color="#2563EB" />, title: 'Qonun tahlili', bg: '#DBEAFE' },
+                      { icon: <Scale size={20} color="#16A34A" />,    title: 'Keys yechimi',  bg: '#DCFCE7' },
+                      { icon: <FileText size={20} color="#2563EB" />, title: 'Hujjatlar',    bg: '#DBEAFE' },
+                    ].map((c, i) => (
+                      <div key={i} style={{ background: '#fff', borderRadius: 14, padding: 16, boxShadow: '0 1px 4px rgba(0,0,0,0.07)' }}>
+                        <div style={{ width: 40, height: 40, background: c.bg, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 10 }}>{c.icon}</div>
+                        <p style={{ fontWeight: 600, fontSize: 14, color: '#111827', margin: 0 }}>{c.title}</p>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
-              <div ref={bottomRef} />
+
+              {/* Xabarlar */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                {messages.map(m => (
+                  <div key={m.id} style={{ display: 'flex', justifyContent: m.type === 'user' ? 'flex-end' : 'flex-start' }}>
+                    {m.type === 'user' ? (
+                      <div style={{ background: '#2563EB', color: '#fff', padding: '11px 18px', borderRadius: '18px 18px 4px 18px', maxWidth: '72%', fontSize: 14, lineHeight: 1.6 }}>
+                        {m.text}
+                      </div>
+                    ) : (
+                      <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: '4px 18px 18px 18px', padding: '16px 18px', maxWidth: '88%', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+                        <AIResponse text={m.text} />
+
+                        <div style={{ display: 'flex', gap: 8, marginTop: 10, paddingTop: 10, borderTop: '1px solid #F3F4F6', flexWrap: 'wrap' }}>
+                          <button onClick={() => navigator.clipboard.writeText(m.text)}
+                            style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '3px 10px', background: '#F9FAFB', border: '1px solid #E5E7EB', borderRadius: 8, fontSize: 12, color: '#6B7280', cursor: 'pointer' }}>
+                            <Copy size={12} /> Nusxa
+                          </button>
+                          {speechReady && (
+                            <button onClick={() => speakText(m.text)}
+                              style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '3px 10px', background: '#F9FAFB', border: '1px solid #E5E7EB', borderRadius: 8, fontSize: 12, color: '#6B7280', cursor: 'pointer' }}>
+                              <Volume2 size={12} /> Eshit
+                            </button>
+                          )}
+                        </div>
+
+                        {m.suggestions && m.suggestions.length > 0 && (
+                          <div style={{ marginTop: 10, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                            <span style={{ fontSize: 11, color: '#9CA3AF', display: 'flex', alignItems: 'center', gap: 3 }}>
+                              <Lightbulb size={11} /> Keyingi:
+                            </span>
+                            {m.suggestions.map((s, i) => (
+                              <button key={i} onClick={() => send(s)}
+                                style={{ padding: '3px 10px', background: '#FEF9C3', border: '1px solid #FDE68A', borderRadius: 20, fontSize: 11, color: '#92400E', cursor: 'pointer' }}>
+                                {s}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))}
+
+                {loading && (
+                  <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+                    <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: '4px 18px 18px 18px', padding: '14px 18px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+                      <div style={{ display: 'flex', gap: 5 }}>
+                        {[0, 160, 320].map(d => (
+                          <div key={d} style={{ width: 8, height: 8, background: '#93C5FD', borderRadius: '50%', animation: `bob 1s ${d}ms infinite` }} />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                <div ref={bottomRef} />
+              </div>
             </div>
           </div>
+
+          {/* ── O'ng tomondagi chat tarixi paneli ── */}
+          {historyOpen && (
+            <div style={{
+              width: 300, background: '#fff', borderLeft: '1px solid #F1F5F9',
+              display: 'flex', flexDirection: 'column', flexShrink: 0,
+              animation: 'slideIn 0.2s ease-out'
+            }}>
+              {/* Panel header */}
+              <div style={{
+                padding: '16px 16px 12px', borderBottom: '1px solid #F1F5F9',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <History size={18} color="#374151" />
+                  <span style={{ fontSize: 15, fontWeight: 700, color: '#111827' }}>Suhbat tarixi</span>
+                </div>
+                <button onClick={() => setHistoryOpen(false)}
+                  style={{ padding: 4, background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* Clear all button */}
+              {sessions.length > 0 && (
+                <div style={{ padding: '8px 16px', borderBottom: '1px solid #F1F5F9' }}>
+                  <button onClick={clearAllHistory}
+                    style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', background: '#FEF2F2', color: '#DC2626', border: '1px solid #FECACA', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 500, width: '100%', justifyContent: 'center' }}>
+                    <Trash2 size={14} /> Barchasini o'chirish
+                  </button>
+                </div>
+              )}
+
+              {/* Sessions list */}
+              <div style={{ flex: 1, overflowY: 'auto', padding: '8px 12px' }}>
+                {sessions.length === 0 ? (
+                  <div style={{ textAlign: 'center', padding: 32, color: '#9CA3AF' }}>
+                    <Clock size={32} style={{ opacity: 0.4, marginBottom: 8 }} />
+                    <p style={{ fontSize: 13, margin: 0 }}>Hali suhbatlar yo'q</p>
+                  </div>
+                ) : (
+                  sessions.map(session => {
+                    const isActive = session.id === currentSessionId;
+                    return (
+                      <div key={session.id} onClick={() => loadSession(session)} className="session-item"
+                        style={{
+                          padding: '10px 12px', borderRadius: 10, cursor: 'pointer',
+                          background: isActive ? '#EFF6FF' : 'transparent',
+                          border: isActive ? '1px solid #BFDBFE' : '1px solid transparent',
+                          marginBottom: 4, transition: 'all 0.15s'
+                        }}
+                        onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = '#F9FAFB'; }}
+                        onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
+                          <span style={{ fontSize: 13, fontWeight: 600, color: '#111827', lineHeight: 1.3, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {session.title}
+                          </span>
+                          <button onClick={(e) => deleteSession(e, session.id)}
+                            style={{ padding: 2, background: 'none', border: 'none', cursor: 'pointer', color: '#D1D5DB', borderRadius: 4, flexShrink: 0, marginLeft: 8, opacity: 0 }}
+                            className="delete-btn">
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ fontSize: 11, color: '#9CA3AF' }}>
+                            {session.messageCount} ta xabar · {formatSessionDate(session.date)}
+                          </span>
+                          <ChevronRight size={14} color={isActive ? '#2563EB' : '#D1D5DB'} />
+                        </div>
+
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Kiritish maydoni */}
@@ -446,6 +654,10 @@ export default function AIAssistant() {
         @keyframes bob  { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
         @keyframes spin  { to{transform:rotate(360deg)} }
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+        @keyframes slideIn { from { width: 0; opacity: 0; } to { width: 300px; opacity: 1; } }
+        @media (min-width: 769px) { .desktop-only-text { display: inline !important; } }
+        .session-item:hover .delete-btn { opacity: 0.5; }
+        .session-item:hover .delete-btn:hover { opacity: 1; color: #DC2626; }
       `}</style>
     </div>
   );
