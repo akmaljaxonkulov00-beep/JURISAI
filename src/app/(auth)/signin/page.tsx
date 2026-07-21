@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import Link from 'next/link'
-import { supabaseClient, authHelpers } from '@/lib/supabase-client'
+import { firebaseAuth } from '@/services/firebase-auth'
 
 // Form validation schema
 const signInSchema = z.object({
@@ -44,58 +44,24 @@ export default function SignInPage() {
     setError(null)
     setSuccess(null)
 
-    console.log('=== LOGIN DEBUG ===')
-    console.log('Email:', data.email)
-    console.log('Password length:', data.password.length)
-
     try {
-      console.log('Calling authHelpers.signIn...')
-      const result: any = await authHelpers.signIn(data.email, data.password)
-      
-      console.log('Auth result:', result)
+      const result = await firebaseAuth.signIn(data.email, data.password)
 
-      if (result?.success) {
-        console.log('Login successful!')
-        console.log('User data:', result?.data)
-        
+      if (result.success) {
         // Save email if remember me is checked
         if (rememberMe) {
           localStorage.setItem('rememberedEmail', data.email)
-          console.log('Email saved to localStorage')
         } else {
           localStorage.removeItem('rememberedEmail')
-          console.log('Email removed from localStorage')
-        }
-        
-        // Save auth data to localStorage for sidebar and AuthProvider
-        if (result?.data?.user || result?.data) {
-          const userData: any = result?.data?.user || result?.data
-          // Save to 'auth_user' for sidebar
-          localStorage.setItem('auth_user', JSON.stringify(userData))
-          localStorage.setItem('auth_token', userData?.id || 'authenticated')
-          // Save to 'jurisai_user' for AuthProvider in providers.tsx
-          localStorage.setItem('jurisai_user', JSON.stringify({
-            id: userData.id || userData.sub,
-            email: userData.email,
-            name: userData.name || userData.user_metadata?.name || userData.email?.split('@')[0],
-            role: userData.role || userData.user_metadata?.role || 'USER',
-            subscription_plan: userData.subscription_plan || 'free'
-          }))
-          console.log('Auth data saved to localStorage for both auth systems')
         }
         
         // Get redirect URL from search params or default to dashboard
         const redirectTo = searchParams.get('redirectTo') || '/dashboard'
-        console.log('Redirecting to:', redirectTo)
-        
-        // Redirect immediately after successful login
         router.push(redirectTo)
       } else {
-        console.error('Login failed:', result?.error)
-        setError(result?.error?.message || 'Login xatosi yuz berdi')
+        setError(result.error || 'Login xatosi yuz berdi')
       }
     } catch (err) {
-      console.error('Login error:', err)
       setError('Noma\'lum xatolik yuz berdi. Iltimos, qayta urinib ko\'ring.')
     } finally {
       setIsLoading(false)
@@ -121,11 +87,11 @@ export default function SignInPage() {
 
     setIsLoading(true)
     try {
-      const result = await (authHelpers as any).resetPassword(email)
-      if (result?.success) {
+      const result = await firebaseAuth.resetPassword(email)
+      if (result.success) {
         setSuccess('Parolni tiklash bo\'yicha email yuborildi!')
       } else {
-        setError(result?.error?.message || 'Parolni tiklashda xatolik yuz berdi')
+        setError(result.error || 'Parolni tiklashda xatolik yuz berdi')
       }
     } catch (err) {
       setError('Noma\'lum xatolik yuz berdi')
@@ -134,26 +100,20 @@ export default function SignInPage() {
     }
   }
 
-  // Handle social login with Supabase
-  const handleSocialLogin = async (provider: string) => {
+  // Handle Google login with Firebase
+  const handleGoogleLogin = async () => {
     setIsLoading(true)
     setError(null)
     
     try {
-      if (provider === 'Google') {
-        const { error } = await supabaseClient.auth.signInWithOAuth({
-          provider: 'google',
-          options: {
-            redirectTo: window.location.origin + '/auth/callback'
-          }
-        })
-        if (error) throw error
+      const result = await firebaseAuth.signInWithGoogle()
+      if (result.success) {
+        router.push('/dashboard')
       } else {
-        setError(`${provider} orqali login hozircha mavjud emas`)
+        setError(result.error || 'Google orqali kirishda xatolik yuz berdi')
       }
     } catch (err: any) {
-      console.error('Social login error:', err)
-      setError(err.message || 'Ijtimoiy tarmoq orqali kirishda xatolik yuz berdi')
+      setError(err.message || 'Google orqali kirishda xatolik yuz berdi')
     } finally {
       setIsLoading(false)
     }
@@ -163,34 +123,34 @@ export default function SignInPage() {
     <div className="w-full">
       {/* Header */}
       <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">
+        <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
           Xush kelibsiz
         </h2>
-        <p className="text-gray-600">
+        <p className="text-gray-600 dark:text-gray-400">
           JURISAI platformasiga kirish uchun login va parolingizni kiriting
         </p>
       </div>
 
       {/* Success Message */}
       {success && (
-        <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+        <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
           <div className="flex items-center">
             <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <p className="text-green-700 text-sm font-medium">{success}</p>
+            <p className="text-green-700 dark:text-green-300 text-sm font-medium">{success}</p>
           </div>
         </div>
       )}
 
       {/* Error Message */}
       {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+        <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
           <div className="flex items-center">
             <svg className="w-5 h-5 text-red-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <p className="text-red-700 text-sm font-medium">{error}</p>
+            <p className="text-red-700 dark:text-red-300 text-sm font-medium">{error}</p>
           </div>
         </div>
       )}
@@ -199,7 +159,7 @@ export default function SignInPage() {
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         {/* Email Field */}
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Email manzili
           </label>
           <input
@@ -207,20 +167,20 @@ export default function SignInPage() {
             type="email"
             autoComplete="email"
             {...register('email')}
-            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-              errors.email ? 'border-red-500' : 'border-gray-300'
+            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors bg-white dark:bg-gray-800 text-gray-900 dark:text-white ${
+              errors.email ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
             }`}
             placeholder="name@example.com"
             disabled={isLoading}
           />
           {errors.email && (
-            <p className="mt-2 text-sm text-red-600">{errors.email.message}</p>
+            <p className="mt-2 text-sm text-red-600 dark:text-red-400">{errors.email.message}</p>
           )}
         </div>
 
         {/* Password Field */}
         <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Parol
           </label>
           <div className="relative">
@@ -229,8 +189,8 @@ export default function SignInPage() {
               type={showPassword ? 'text' : 'password'}
               autoComplete="current-password"
               {...register('password')}
-              className={`w-full px-4 py-3 pr-12 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                errors.password ? 'border-red-500' : 'border-gray-300'
+              className={`w-full px-4 py-3 pr-12 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors bg-white dark:bg-gray-800 text-gray-900 dark:text-white ${
+                errors.password ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
               }`}
               placeholder="••••••••"
               disabled={isLoading}
@@ -254,7 +214,7 @@ export default function SignInPage() {
             </button>
           </div>
           {errors.password && (
-            <p className="mt-2 text-sm text-red-600">{errors.password.message}</p>
+            <p className="mt-2 text-sm text-red-600 dark:text-red-400">{errors.password.message}</p>
           )}
         </div>
 
@@ -269,7 +229,7 @@ export default function SignInPage() {
               className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
               disabled={isLoading}
             />
-            <label htmlFor="remember" className="ml-2 text-sm text-gray-600">
+            <label htmlFor="remember" className="ml-2 text-sm text-gray-600 dark:text-gray-400">
               Meni eslab qol
             </label>
           </div>
@@ -287,7 +247,7 @@ export default function SignInPage() {
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 focus:ring-4 focus:ring-blue-500 focus:ring-opacity-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+          className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 px-4 rounded-lg font-medium hover:from-blue-700 hover:to-indigo-700 focus:ring-4 focus:ring-blue-500 focus:ring-opacity-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shadow-lg shadow-blue-500/25"
         >
           {isLoading ? (
             <>
@@ -305,7 +265,7 @@ export default function SignInPage() {
 
       {/* Sign Up Link */}
       <div className="mt-8 text-center">
-        <p className="text-gray-600">
+        <p className="text-gray-600 dark:text-gray-400">
           Hisobingiz yo'qmi?{' '}
           <Link 
             href="/signup" 
@@ -320,44 +280,34 @@ export default function SignInPage() {
       <div className="mt-6">
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300" />
+            <div className="w-full border-t border-gray-300 dark:border-gray-600" />
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-white text-gray-500">Yoki</span>
+            <span className="px-2 bg-white dark:bg-gray-900 text-gray-500 dark:text-gray-400">Yoki</span>
           </div>
         </div>
-        <div className="mt-6 grid grid-cols-2 gap-3">
+        <div className="mt-6 grid grid-cols-1 gap-3">
           <button
             type="button"
-            onClick={() => handleSocialLogin('Google')}
-            className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors"
+            onClick={handleGoogleLogin}
+            className="w-full inline-flex justify-center items-center py-3 px-4 border border-gray-300 dark:border-gray-600 rounded-xl shadow-sm bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all hover:shadow-md"
             disabled={isLoading}
           >
-            <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133l1.414 1.414c2.395-2.395 3.52-5.893 3.52-9.413 0-.574-.05-1.14-.147-1.693l-8.84.179z"/>
-              <path d="M5.84 14.09c-.22-.66-.353-1.36-.353-2.09s.133-1.43.353-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-              <path d="M12.48 3v.005c3.305 0 5.64 1.86 6.56 4.41l2.62-2.62C19.56 2.11 16.27 0 12.48 0c-3.18 0-5.99 1.52-7.77 3.87l2.85 2.22c.92-1.86 2.48-3.09 4.92-3.09z"/>
+            <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
+              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
+              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
             </svg>
-            Google
-          </button>
-          <button
-            type="button"
-            onClick={() => handleSocialLogin('GitHub')}
-            className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors"
-            disabled={isLoading}
-          >
-            <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729 1.089-.745 1.089.745.094 1.089.745 1.089.745.892 1.651 2.328 1.234 2.328 1.234.645 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-            </svg>
-            GitHub
+            Google orqali kirish
           </button>
         </div>
       </div>
 
       {/* Security Info */}
       <div className="mt-4 text-center">
-        <p className="text-xs text-gray-500">
-          <Link href="/privacy" className="hover:text-gray-700">Maxfiylik siyosati</Link> • <Link href="/terms" className="hover:text-gray-700">Foydalanish shartlari</Link>
+        <p className="text-xs text-gray-500 dark:text-gray-500">
+          <Link href="/privacy" className="hover:text-gray-700 dark:hover:text-gray-300">Maxfiylik siyosati</Link> • <Link href="/terms" className="hover:text-gray-700 dark:hover:text-gray-300">Foydalanish shartlari</Link>
         </p>
       </div>
     </div>

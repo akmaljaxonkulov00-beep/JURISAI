@@ -1,37 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-
-function useAuth() {
-  const [auth, setAuth] = useState({
-    user: null as { id: string; email: string; name: string; role: string } | null,
-    isAuthenticated: false,
-    isAdmin: false
-  });
-  
-  useEffect(() => {
-    const stored = localStorage.getItem('auth_user');
-    const token = localStorage.getItem('auth_token');
-    if (stored && token) {
-      try {
-        const user = JSON.parse(stored);
-        setAuth({
-          user,
-          isAuthenticated: true,
-          isAdmin: user.role === 'ADMIN' || user.role === 'admin'
-        });
-      } catch { setAuth({ user: null, isAuthenticated: false, isAdmin: false }); }
-    }
-  }, []);
-  
-  const logout = () => {
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('auth_user');
-    setAuth({ user: null, isAuthenticated: false, isAdmin: false });
-    window.location.href = '/signin';
-  };
-  
-  return { ...auth, logout };
-}
+import { firebaseAuth } from '@/services/firebase-auth';
+import type { AuthUser } from '@/services/firebase-auth';
 
 function cn(...classes: string[]) {
   return classes.filter(Boolean).join(' ');
@@ -50,15 +20,36 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ 
-  user, 
+  user: propUser, 
   className, 
   isOpen = false, 
   onToggle 
 }) => {
   const router = useRouter();
   const pathname = usePathname();
-  const { isAuthenticated, isAdmin, logout } = useAuth();
+  const [authUser, setAuthUser] = useState<AuthUser | null>(null);
   const [activeItem, setActiveItem] = useState(pathname);
+
+  useEffect(() => {
+    // Subscribe to Firebase auth changes
+    const unsubscribe = firebaseAuth.onAuthChange((user) => {
+      setAuthUser(user);
+    });
+    // Also check localStorage for immediate display
+    const storedUser = firebaseAuth.getCurrentUser();
+    if (storedUser) {
+      setAuthUser(storedUser);
+    }
+    return unsubscribe;
+  }, []);
+
+  const isAuthenticated = !!authUser;
+  const isAdmin = authUser?.role === 'ADMIN' || authUser?.role === 'admin';
+
+  const handleLogout = async () => {
+    await firebaseAuth.signOut();
+    window.location.href = '/signin';
+  };
 
   const navigationGroups = [
     {
@@ -212,8 +203,6 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   const handleNavigation = (href: string) => {
     router.push(href);
-    
-    // Close sidebar on mobile after navigation
     if (onToggle && typeof window !== 'undefined' && window.innerWidth < 768) {
       onToggle();
     }
@@ -224,6 +213,8 @@ const Sidebar: React.FC<SidebarProps> = ({
     if (item.adminOnly && !isAdmin) return false;
     return true;
   });
+
+  const displayUser = authUser || propUser;
 
   return (
     <div className={cn("flex flex-col w-64 bg-gray-900 h-screen sticky top-0 overflow-y-auto hidden md:flex", className || "")}>
@@ -304,25 +295,25 @@ const Sidebar: React.FC<SidebarProps> = ({
       </nav>
 
       {/* User Section */}
-      {isAuthenticated && user && (
+      {isAuthenticated && displayUser && (
         <div className="border-t border-gray-800 p-4">
           <div className="flex items-center space-x-3 mb-4">
             <div className="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center">
               <span className="text-gray-300 text-sm font-medium">
-                {user.name?.charAt(0).toUpperCase() || 'U'}
+                {displayUser.name?.charAt(0).toUpperCase() || 'U'}
               </span>
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-white truncate">
-                {user.name}
+                {displayUser.name}
               </p>
               <p className="text-xs text-gray-400 truncate">
-                {user.email}
+                {displayUser.email}
               </p>
             </div>
           </div>
           <button
-            onClick={logout}
+            onClick={handleLogout}
             className="w-full flex items-center px-3 py-2 text-sm font-medium text-gray-300 rounded-md hover:bg-gray-800 hover:text-white transition-colors"
           >
             <svg className="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

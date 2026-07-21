@@ -2,18 +2,11 @@
 
 import { ReactNode, createContext, useContext, useState, useEffect } from 'react';
 import { ThemeProvider } from '@/context/ThemeContext';
-
-interface User {
-  id: string;
-  email: string;
-  name: string;
-  role: 'USER' | 'ADMIN';
-  subscription_plan?: string;
-  subscription_expires_at?: string;
-}
+import { firebaseAuth } from '@/services/firebase-auth';
+import type { AuthUser } from '@/services/firebase-auth';
 
 interface AuthContextType {
-  user: User | null;
+  user: AuthUser | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   isAdmin: boolean;
@@ -21,70 +14,41 @@ interface AuthContextType {
   getSubscriptionPlan: string;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   register: (userData: { name: string; email: string; password: string }) => Promise<{ success: boolean; error?: string }>;
-  logout: () => void;
-  updateProfile: (updates: Partial<User>) => Promise<{ success: boolean; error?: string }>;
+  logout: () => Promise<void>;
+  updateProfile: (updates: Partial<AuthUser>) => Promise<{ success: boolean; error?: string }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// No mock data - auth comes from localStorage or supabase
-
 function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const isAuthenticated = !!user;
-  const isAdmin = user?.role === 'ADMIN';
+  const isAdmin = user?.role === 'ADMIN' || user?.role === 'admin';
   const hasActiveSubscription = user?.subscription_expires_at ? 
     new Date(user.subscription_expires_at) > new Date() : false;
   const getSubscriptionPlan = user?.subscription_plan || 'free';
 
   useEffect(() => {
-    // Check localStorage on mount - both keys for compatibility
-    if (typeof window !== 'undefined') {
-      const storedUser = localStorage.getItem('jurisai_user') || localStorage.getItem('auth_user');
-      if (storedUser) {
-        try {
-          const parsed = JSON.parse(storedUser);
-          setUser(parsed);
-        } catch (error) {
-          console.error('Error parsing stored user:', error);
-        }
-      }
-    }
+    // Subscribe to Firebase auth state changes
+    const unsubscribe = firebaseAuth.onAuthChange((authUser) => {
+      setUser(authUser);
+      setIsLoading(false);
+    });
+
+    return unsubscribe;
   }, []);
 
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      // Use supabase for actual login
-      const { supabaseClient } = await import('@/lib/supabase-client');
-      const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-      
-      if (error) {
-        return { success: false, error: error.message };
-      }
-
-      if (data?.user) {
-        const userData: User = {
-          id: data.user.id,
-          email: data.user.email || '',
-          name: data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'User',
-          role: (data.user.user_metadata?.role || 'USER') as 'USER' | 'ADMIN',
-        };
-
-        setUser(userData);
-        
-        // Save to localStorage
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('jurisai_user', JSON.stringify(userData));
-          localStorage.setItem('auth_user', JSON.stringify(userData));
-        }
-
+      const result = await firebaseAuth.signIn(email, password);
+      if (result.success && result.data) {
+        setUser(result.data);
         return { success: true };
       }
-
-      return { success: false, error: 'Login xatosi' };
+      return { success: false, error: result.error || 'Login xatosi' };
     } catch (error: any) {
       return { success: false, error: error?.message || 'Login xatosi' };
     } finally {
@@ -95,35 +59,12 @@ function AuthProvider({ children }: { children: ReactNode }) {
   const register = async (userData: { name: string; email: string; password: string }) => {
     setIsLoading(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Check if user already exists
-      const existingUser = mockUsers.find(u => u.email === userData.email);
-      if (existingUser) {
-        return { success: false, error: 'Bu email allaqachon ro\'yxatdan o\'tgan' };
+      const result = await firebaseAuth.signUp(userData.email, userData.password, userData.name);
+      if (result.success && result.data) {
+        setUser(result.data);
+        return { success: true };
       }
-
-      // Create new user
-      const newUser: User = {
-        id: crypto.randomUUID(),
-        email: userData.email,
-        name: userData.name,
-        role: 'USER',
-        subscription_plan: 'free'
-      };
-
-      // Add to mock users (in real app, save to database)
-      mockUsers.push(newUser);
-
-      // Auto login after registration
-      setUser(newUser);
-      
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('jurisai_user', JSON.stringify(newUser));
-      }
-
-      return { success: true };
+      return { success: false, error: result.error || 'Ro\'yxatdan o\'tish xatosi' };
     } catch (error) {
       return { success: false, error: 'Ro\'yxatdan o\'tish xatosi' };
     } finally {
@@ -131,37 +72,25 @@ function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
+    await firebaseAuth.signOut();
     setUser(null);
-    
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('jurisai_user');
-    }
   };
 
-  const updateProfile = async (updates: Partial<User>) => {
+  const updateProfile = async (updates: Partial<AuthUser>) => {
     setIsLoading(true);
     try {
       if (!user) {
         return { success: false, error: 'Foydalanuvchi tizimga kirmagan' };
       }
 
-      // Update user data
-      const updatedUser = { ...user, ...updates };
-      setUser(updatedUser);
-      
-      // Update in mock users
-      const userIndex = mockUsers.findIndex(u => u.id === user.id);
-      if (userIndex !== -1) {
-        mockUsers[userIndex] = updatedUser;
+      const result = await firebaseAuth.updateProfile(updates);
+      if (result.success) {
+        // Update local state
+        const updatedUser = { ...user, ...updates };
+        setUser(updatedUser);
       }
-
-      // Save to localStorage
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('jurisai_user', JSON.stringify(updatedUser));
-      }
-
-      return { success: true };
+      return result;
     } catch (error) {
       return { success: false, error: 'Profilni yangilash xatosi' };
     } finally {
