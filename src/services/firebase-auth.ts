@@ -2,6 +2,8 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   GoogleAuthProvider,
   signOut as firebaseSignOut,
   sendPasswordResetEmail,
@@ -162,11 +164,16 @@ export async function signUp(email: string, password: string, name: string): Pro
   }
 }
 
-// Sign in with Google
+// Sign in with Google - popup first, redirect as fallback
 export async function signInWithGoogle(): Promise<{ success: boolean; data?: AuthUser; error?: string }> {
   try {
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({ prompt: 'select_account' });
+    
+    if (!auth) {
+      return { success: false, error: 'Firebase sozlanmagan. Iltimos, qayta urinib ko\'ring.' };
+    }
+    
     const result = await signInWithPopup(auth, provider);
     const user = mapFirebaseUser(result.user);
     saveUserToLocal(user);
@@ -176,9 +183,47 @@ export async function signInWithGoogle(): Promise<{ success: boolean; data?: Aut
       return { success: false, error: 'Kirish oynasi yopildi' };
     }
     if (error.code === 'auth/popup-blocked') {
+      // Try redirect fallback
+      try {
+        if (auth) {
+          const provider = new GoogleAuthProvider();
+          provider.setCustomParameters({ prompt: 'select_account' });
+          await signInWithRedirect(auth, provider);
+          return { success: true };
+        }
+      } catch (redirectError: any) {
+        return { success: false, error: 'Brauzeringizda pop-up blokerni o\'chiring va qayta urinib ko\'ring' };
+      }
       return { success: false, error: 'Brauzeringizda pop-up blokerni o\'chiring va qayta urinib ko\'ring' };
     }
-    return { success: false, error: 'Google orqali kirishda xatolik yuz berdi' };
+    if (error.code === 'auth/unauthorized-domain') {
+      return { success: false, error: 'Bu domen Firebase autentifikatsiyasi uchun ruxsat etilmagan. Firebase konsolida domenni qo\'shing.' };
+    }
+    if (error.code === 'auth/operation-not-allowed') {
+      return { success: false, error: 'Google orqali kirish yoqilmagan. Administratorga murojaat qiling.' };
+    }
+    if (error.code === 'auth/account-exists-with-different-credential') {
+      return { success: false, error: 'Bu email boshqa usul bilan ro\'yxatdan o\'tgan. Email/parol orqali kiring.' };
+    }
+    console.error('[Firebase] Google sign-in error:', error.code, error.message);
+    return { success: false, error: 'Google orqali kirishda xatolik yuz berdi. Qayta urinib ko\'ring.' };
+  }
+}
+
+// Handle redirect result (call this on app startup)
+export async function handleRedirectResult(): Promise<{ success: boolean; data?: AuthUser; error?: string }> {
+  try {
+    if (!auth) return { success: false };
+    const result = await getRedirectResult(auth);
+    if (result?.user) {
+      const user = mapFirebaseUser(result.user);
+      saveUserToLocal(user);
+      return { success: true, data: user };
+    }
+    return { success: false };
+  } catch (error: any) {
+    console.error('[Firebase] Redirect result error:', error.code, error.message);
+    return { success: false, error: error.message || 'Qayta yo\'naltirish xatosi' };
   }
 }
 
@@ -269,6 +314,7 @@ export const firebaseAuth = {
   signIn,
   signUp,
   signInWithGoogle,
+  handleRedirectResult,
   signOut,
   resetPassword,
   updateProfile,
