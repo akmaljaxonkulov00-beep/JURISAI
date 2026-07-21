@@ -230,7 +230,7 @@ export default function Dashboard() {
   const getActivityIcon = (type: string) => {
     switch (type) {
       case 'case_completed': return <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center"><CheckCircle className="w-3 h-3 text-white" /></div>;
-      case 'achievement_unlocked': return <div className="w-5 h-5 rounded-full bg-purple-500 flex items-center justify-center"><Award className="w-3 h-3 text-white" /></div>;
+      case 'achievement_unlocked': return <div className="w-5 h-5 rounded-full bg-orange-500 flex items-center justify-center"><Award className="w-3 h-3 text-white" /></div>;
       case 'daily_streak': return <div className="w-5 h-5 rounded-full bg-orange-500 flex items-center justify-center"><Zap className="w-3 h-3 text-white" /></div>;
       default: return <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center"><FileText className="w-3 h-3 text-white" /></div>;
     }
@@ -497,7 +497,7 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div
               onClick={() => handleNavigation('/irac')}
-              className="relative overflow-hidden group p-6 bg-gradient-to-br from-blue-50/80 to-indigo-50/80 rounded-xl border border-blue-100/50 hover:border-blue-200/80 transition-all duration-300 cursor-pointer hover-lift"
+              className="relative overflow-hidden group p-6 bg-gradient-to-br from-blue-50/80 to-green-50/80 rounded-xl border border-blue-100/50 hover:border-blue-200/80 transition-all duration-300 cursor-pointer hover-lift"
             >
               <div className="absolute -top-6 -right-6 w-20 h-20 bg-blue-200/20 rounded-full blur-xl group-hover:scale-150 transition-transform duration-500" />
               <Scale className="w-8 h-8 text-blue-600 mb-3 group-hover:scale-110 transition-transform duration-200" />
@@ -530,7 +530,7 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-100 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading your dashboard...</p>

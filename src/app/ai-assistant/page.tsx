@@ -16,7 +16,7 @@ function AIResponse({ text }: { text: string }) {
   const SECTIONS = [
     { icon: <ClipboardList size={14} />, key: 'QISQA JAVOB',     bg: '#EFF6FF', border: '#BFDBFE', color: '#1D4ED8' },
     { icon: <Info size={14} />, key: "ASOSIY MA'LUMOT", bg: '#F0FDF4', border: '#BBF7D0', color: '#15803D' },
-    { icon: <Gavel size={14} />,  key: 'QONUN',    bg: '#F5F3FF', border: '#DDD6FE', color: '#7C3AED' },
+    { icon: <Gavel size={14} />,  key: 'QONUN',    bg: '#EFF6FF', border: '#BFDBFE', color: '#2563EB' },
     { icon: <Sparkles size={14} />, key: 'MASLAHAT',         bg: '#FFF7ED', border: '#FED7AA', color: '#C2410C' },
   ];
 
@@ -331,7 +331,7 @@ export default function AIAssistant() {
                   {[
                     { icon: <BookOpen size={20} color="#2563EB" />, title: 'Qonun tahlili', bg: '#DBEAFE' },
                     { icon: <Scale size={20} color="#16A34A" />,    title: 'Keys yechimi',  bg: '#DCFCE7' },
-                    { icon: <FileText size={20} color="#7C3AED" />, title: 'Hujjatlar',    bg: '#EDE9FE' },
+                    { icon: <FileText size={20} color="#2563EB" />, title: 'Hujjatlar',    bg: '#DBEAFE' },
                   ].map((c, i) => (
                     <div key={i} style={{ background: '#fff', borderRadius: 14, padding: 16, boxShadow: '0 1px 4px rgba(0,0,0,0.07)' }}>
                       <div style={{ width: 40, height: 40, background: c.bg, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 10 }}>{c.icon}</div>
