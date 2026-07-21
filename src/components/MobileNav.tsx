@@ -30,7 +30,7 @@ export default function MobileNav() {
       {/* Hamburger tugma — faqat mobilda ko'rinadi */}
       <button
         onClick={() => setOpen(true)}
-        className="md:hidden fixed top-3 left-3 z-50 p-2 bg-white border border-gray-200 rounded-lg shadow-md"
+        className="md:hidden fixed top-3 left-3 z-50 p-2 bg-white dark:bg-[#1a2332] border border-gray-200 dark:border-gray-600 rounded-lg shadow-md"
         aria-label="Menyu ochish"
       >
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2.5" strokeLinecap="round">
@@ -50,7 +50,7 @@ export default function MobileNav() {
 
       {/* Menyu paneli */}
       <nav
-        className={`md:hidden fixed top-0 left-0 z-50 h-full w-72 bg-white shadow-2xl transform transition-transform duration-300 ease-in-out ${
+        className={`md:hidden fixed top-0 left-0 z-50 h-full w-72 bg-white dark:bg-[#111d2b] shadow-2xl transform transition-transform duration-300 ease-in-out ${
           open ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -96,8 +96,8 @@ export default function MobileNav() {
                 onClick={() => setOpen(false)}
                 className={`flex items-center gap-3 mx-2 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
                   isActive
-                    ? 'bg-blue-50 text-blue-700 border border-blue-100'
-                    : 'text-gray-700 hover:bg-gray-50'
+                    ? 'bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 border border-blue-100 dark:border-blue-800'
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50'
                 }`}
               >
                 <Icon className="w-5 h-5" />
