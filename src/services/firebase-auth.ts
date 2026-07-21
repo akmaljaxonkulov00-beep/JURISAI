@@ -38,9 +38,30 @@ function mapFirebaseUser(firebaseUser: FirebaseUser, additionalData?: Partial<Au
 
 // Save user to localStorage for cross-component access
 function saveUserToLocal(user: AuthUser) {
-  localStorage.setItem('jurisai_user', JSON.stringify(user));
-  localStorage.setItem('auth_user', JSON.stringify(user));
+  const userWithMeta = {
+    ...user,
+    created_at: new Date().toISOString(),
+    last_login: new Date().toISOString(),
+  };
+  localStorage.setItem('jurisai_user', JSON.stringify(userWithMeta));
+  localStorage.setItem('auth_user', JSON.stringify(userWithMeta));
   localStorage.setItem('auth_token', user.id);
+  
+  // Append to registered users list for admin analytics
+  try {
+    const stored = localStorage.getItem('registered_users');
+    const users = stored ? JSON.parse(stored) : [];
+    // Check if user already exists, if so update, else add
+    const existingIdx = users.findIndex((u: any) => u.id === user.id || u.uid === user.id);
+    if (existingIdx >= 0) {
+      users[existingIdx] = { ...users[existingIdx], ...userWithMeta, last_login: new Date().toISOString() };
+    } else {
+      users.push(userWithMeta);
+    }
+    localStorage.setItem('registered_users', JSON.stringify(users));
+  } catch (e) {
+    // ignore localStorage errors
+  }
 }
 
 function clearUserFromLocal() {

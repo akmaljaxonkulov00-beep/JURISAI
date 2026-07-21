@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Progress } from '@/components/ui/Progress';
-import { useAuth } from '@/services/auth';
+import { useAuth } from '@/app/providers';
 import { api } from '@/services/api';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
