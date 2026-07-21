@@ -93,10 +93,10 @@ export default function Dashboard() {
 
   if (isLoading || !user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Yuklanmoqda...</p>
+          <p className="text-gray-600 dark:text-gray-400">Yuklanmoqda...</p>
         </div>
       </div>
     );
@@ -232,8 +232,7 @@ export default function Dashboard() {
 
   const renderSidebar = () => (
     <div className="w-80 glass-strong rounded-2xl shadow-2xl overflow-hidden">
-      {/* User Profile Section */}
-      <div className="p-6 border-b border-gray-100/50">
+      {/* User Profile Section */}            <div className="p-6 border-b border-gray-100/50 dark:border-gray-700/50">
         <div className="flex items-center space-x-4">
           <a href="/profile" className="flex items-center space-x-4 group cursor-pointer">
             <div className="relative group">
@@ -249,16 +248,16 @@ export default function Dashboard() {
               </div>
             </div>
             <div className="flex-1">
-              <h3 className="font-bold text-gray-900 text-lg group-hover:text-blue-600 transition-colors">{user?.name || 'User'}</h3>
-              <p className="text-sm text-gray-500">{userStats?.rank || 'Legal Practitioner'}</p>
+              <h3 className="font-bold text-gray-900 dark:text-white text-lg group-hover:text-blue-600 transition-colors">{user?.name || 'User'}</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{userStats?.rank || 'Legal Practitioner'}</p>
               <div className="flex items-center mt-2">
-                <div className="flex-1 bg-gray-100 rounded-full h-2 overflow-hidden">
+                <div className="flex-1 bg-gray-100 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
                   <div
                     className="bg-gradient-to-r from-blue-500 to-green-500 h-2 rounded-full transition-all duration-500"
                     style={{ width: `${((userStats?.level || 1) % 20) * 5}%` }}
                   />
                 </div>
-                <span className="ml-2 text-xs text-gray-500 font-medium">Lv.{userStats?.level || 1}</span>
+                <span className="ml-2 text-xs text-gray-500 dark:text-gray-400 font-medium">Lv.{userStats?.level || 1}</span>
               </div>
             </div>
           </a>
@@ -266,15 +265,15 @@ export default function Dashboard() {
       </div>
 
       {/* XP and Stats */}
-      <div className="px-6 py-4 border-b border-gray-100/50">
+      <div className="px-6 py-4 border-b border-gray-100/50 dark:border-gray-700/50">
         <div className="grid grid-cols-2 gap-4">
           <div className="text-center p-3 bg-blue-50/50 rounded-xl hover:bg-blue-50 transition-colors">
             <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">{userStats?.xp || 0}</div>
-            <div className="text-xs text-gray-500 mt-1">Total XP</div>
+            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Total XP</div>
           </div>
           <div className="text-center p-3 bg-emerald-50/50 rounded-xl hover:bg-emerald-50 transition-colors">
             <div className="text-2xl font-bold text-emerald-600">{userStats?.weeklyProgress || 0}%</div>
-            <div className="text-xs text-gray-500 mt-1">Weekly Goal</div>
+            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Weekly Goal</div>
           </div>
         </div>
       </div>
@@ -350,62 +349,62 @@ export default function Dashboard() {
 
       {/* Quick Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-        <Card className="glass card-hover rounded-2xl border-0">
+        <Card className="card-default card-hover rounded-2xl">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-gray-500 font-medium mb-1">Current Level</p>
+                <p className="text-xs text-secondary font-medium mb-1">Current Level</p>
                 <p className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">{userStats?.level || 1}</p>
-                <p className="text-xs text-gray-400 mt-1">{userStats?.rank || 'Beginner'}</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{userStats?.rank || 'Beginner'}</p>
               </div>
-              <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center glow-blue">
+              <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/30 rounded-xl flex items-center justify-center glow-blue">
                 <TrendingUp className="w-6 h-6 text-blue-500" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="glass card-hover rounded-2xl border-0">
+        <Card className="card-default card-hover rounded-2xl">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-gray-500 font-medium mb-1">Total XP</p>
+                <p className="text-xs text-secondary font-medium mb-1">Total XP</p>
                 <p className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-orange-400 bg-clip-text text-transparent">{userStats?.xp || 0}</p>
-                <p className="text-xs text-gray-400 mt-1">+250 this week</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">+250 this week</p>
               </div>
-              <div className="w-12 h-12 bg-orange-50 rounded-xl flex items-center justify-center">
+              <div className="w-12 h-12 bg-orange-50 dark:bg-orange-900/30 rounded-xl flex items-center justify-center">
                 <Zap className="w-6 h-6 text-orange-500" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="glass card-hover rounded-2xl border-0">
+        <Card className="card-default card-hover rounded-2xl">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-gray-500 font-medium mb-1">Success Rate</p>
+                <p className="text-xs text-secondary font-medium mb-1">Success Rate</p>
                 <p className="text-3xl font-bold text-emerald-600">
                   {Math.round(((userStats?.completedCases || 0) / (userStats?.totalCases || 1)) * 100)}%
                 </p>
-                <p className="text-xs text-gray-400 mt-1">Above average</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Above average</p>
               </div>
-              <div className="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center">
+              <div className="w-12 h-12 bg-emerald-50 dark:bg-emerald-900/30 rounded-xl flex items-center justify-center">
                 <Target className="w-6 h-6 text-emerald-500" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="glass card-hover rounded-2xl border-0">
+        <Card className="card-default card-hover rounded-2xl">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-gray-500 font-medium mb-1">Study Streak</p>
+                <p className="text-xs text-secondary font-medium mb-1">Study Streak</p>
                 <p className="text-3xl font-bold text-orange-600">7</p>
-                <p className="text-xs text-gray-400 mt-1">Days in a row</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Days in a row</p>
               </div>
-              <div className="w-12 h-12 bg-orange-50 rounded-xl flex items-center justify-center">
+              <div className="w-12 h-12 bg-orange-50 dark:bg-orange-900/30 rounded-xl flex items-center justify-center">
                 <Award className="w-6 h-6 text-orange-500" />
               </div>
             </div>
@@ -416,9 +415,9 @@ export default function Dashboard() {
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Recent Activity */}
-        <Card className="lg:col-span-2 glass rounded-2xl border-0 overflow-hidden">
-          <CardHeader className="border-b border-gray-100/50 pb-4">
-            <CardTitle className="flex items-center space-x-2 text-gray-800">
+        <Card className="lg:col-span-2 card-default rounded-2xl overflow-hidden">
+          <CardHeader className="border-b border-gray-100/50 dark:border-gray-700/50 pb-4">
+            <CardTitle className="flex items-center space-x-2 text-gray-800 dark:text-white">
               <Clock className="w-5 h-5 text-blue-500" />
               <span className="text-lg">So'nggi faoliyat</span>
             </CardTitle>
@@ -426,17 +425,17 @@ export default function Dashboard() {
           <CardContent className="pt-5">
             <div className="space-y-3">
               {userStats?.recentActivity?.map((activity, idx) => (
-                <div key={activity.id} className="stagger-enter flex items-start space-x-4 p-4 rounded-xl hover:bg-gray-50/80 transition-all duration-200 card-hover" style={{ animationDelay: `${idx * 80}ms` }}>
-                  <div className="w-10 h-10 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl flex items-center justify-center text-lg font-medium text-blue-600">
+                <div key={activity.id} className="stagger-enter flex items-start space-x-4 p-4 rounded-xl hover:bg-gray-50/80 dark:hover:bg-gray-800/30 transition-all duration-200 card-hover" style={{ animationDelay: `${idx * 80}ms` }}>
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-50 to-green-50 rounded-xl flex items-center justify-center text-lg font-medium text-blue-600">
                     {getActivityIcon(activity.type)}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <h4 className="font-semibold text-gray-900 text-sm truncate">{activity.title}</h4>
+                      <h4 className="font-semibold text-gray-900 dark:text-white text-sm truncate">{activity.title}</h4>
                       <Badge className="bg-emerald-50 text-emerald-700 border-0 text-xs font-medium ml-2 flex-shrink-0">+{activity.xp} XP</Badge>
                     </div>
-                    <p className="text-sm text-gray-500 mt-0.5">{activity.description}</p>
-                    <span className="text-xs text-gray-400 mt-1 block">
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{activity.description}</p>
+                    <span className="text-xs text-gray-400 dark:text-gray-500 mt-1 block">
                       {new Date(activity.timestamp).toLocaleDateString('uz-UZ', { day: 'numeric', month: 'long' })}
                     </span>
                   </div>
@@ -447,9 +446,9 @@ export default function Dashboard() {
         </Card>
 
         {/* Achievements */}
-        <Card className="glass rounded-2xl border-0 overflow-hidden">
-          <CardHeader className="border-b border-gray-100/50 pb-4">
-            <CardTitle className="flex items-center space-x-2 text-gray-800">
+        <Card className="card-default rounded-2xl overflow-hidden">
+          <CardHeader className="border-b border-gray-100/50 dark:border-gray-700/50 pb-4">
+            <CardTitle className="flex items-center space-x-2 text-gray-800 dark:text-white">
               <Award className="w-5 h-5 text-orange-500" />
               <span className="text-lg">Yutuqlar</span>
             </CardTitle>
@@ -457,12 +456,12 @@ export default function Dashboard() {
           <CardContent className="pt-5">
             <div className="space-y-3">
               {userStats?.achievements?.map((achievement) => (
-                <div key={achievement.id} className={`p-3.5 rounded-xl border transition-all hover:shadow-sm ${getRarityColor(achievement.rarity)}`}>
+                <div key={achievement.id} className={`p-3.5 rounded-xl border transition-all hover:shadow-sm dark:shadow-gray-900/50 ${getRarityColor(achievement.rarity)}`}>
                   <div className="flex items-start space-x-3">
                     <div className="w-9 h-9 rounded-lg bg-white/60 flex items-center justify-center text-lg">{achievement.icon}</div>
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-semibold text-sm text-gray-900">{achievement.title}</h4>
-                      <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{achievement.description}</p>
+                      <h4 className="font-semibold text-sm text-gray-900 dark:text-white">{achievement.title}</h4>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2">{achievement.description}</p>
                       <div className="mt-1.5">
                         <span className={`inline-block px-2 py-0.5 rounded-md text-[10px] font-medium uppercase tracking-wider ${
                           achievement.rarity === 'common' ? 'bg-gray-200 text-gray-600' :
@@ -482,10 +481,9 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      {/* Quick Actions */}
-      <Card className="glass rounded-2xl border-0 overflow-hidden">
-        <CardHeader className="border-b border-gray-100/50 pb-4">
-          <CardTitle className="text-gray-800 text-lg">Tezkor amallar</CardTitle>
+      {/* Quick Actions */}        <Card className="card-default rounded-2xl overflow-hidden">
+          <CardHeader className="border-b border-gray-100/50 dark:border-gray-700/50 pb-4">
+            <CardTitle className="text-gray-800 dark:text-white text-lg">Tezkor amallar</CardTitle>
         </CardHeader>
         <CardContent className="pt-5">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -534,7 +532,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 p-3 md:p-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 p-3 md:p-6">
       <div className="max-w-full mx-auto">
         <div className="flex flex-col md:flex-row gap-4 md:gap-6">
           <div className="desktop-sidebar">
