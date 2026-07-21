@@ -9,7 +9,6 @@ import { useAuth } from '@/app/providers';
 import { api } from '@/services/api';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import {
   Home,
   FileText,
