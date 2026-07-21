@@ -34,6 +34,7 @@ import {
   Settings,
   HelpCircle
 } from 'lucide-react';
+import AIChatWidget from '@/components/AIChatWidget';
 
 interface UserStats {
   xp: number;
@@ -558,6 +559,8 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+      {/* Floating AI Chat Widget */}
+      <AIChatWidget />
     </div>
   );
 }

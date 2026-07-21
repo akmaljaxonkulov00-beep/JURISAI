@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { aiClient } from '@/lib/ai-client';
+
+const GROQ_API_KEY = process.env.GROQ_API_KEY || process.env.NEXT_PUBLIC_GROQ_API_KEY;
+const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,6 +15,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (!GROQ_API_KEY) {
+      return NextResponse.json(
+        { error: 'AI xizmati sozlanmagan' },
+        { status: 500 }
+      );
+    }
+
     // Build context from conversation history
     let contextText = '';
     if (context.length > 0) {
@@ -21,8 +30,13 @@ export async function POST(request: NextRequest) {
       ).join('\n');
     }
 
-    // Professional system prompt with markdown formatting
-    const systemPrompt = `You are JurisAI — an expert legal consultant specialized in Uzbekistan legislation. Provide clear, structured, readable, and highly accurate markdown responses. Use headings (##), bullet points, bold key terms, and cited legal articles (moddalar). Never generate repetitive loops or unformatted walls of text.
+    const systemPrompt = `You are JurisAI — the leading expert AI Legal Assistant strictly specialized in the legislation of the Republic of Uzbekistan (O'zbekiston Respublikasi Qonunchiligi).
+
+STRICT RULES:
+1. ACCURACY FIRST: You must NEVER invent or hallucinate legal articles (moddalar) or punishments. Jinoyat Kodeksi 97-modda is ALWAYS 'Qasddan odam o'ldirish'. Never confuse it with property theft or other codes.
+2. FORMATTING: Use clean Markdown (headings ##, bold **, bullet points *). Never output unformatted walls of repeating text.
+3. LANGUAGE: Answer strictly in formal Uzbek language (O'zbek tili).
+4. If you don't know an exact article number, say "aniq modda uchun qonunlar bazasiga qarang" — never make up fake citations.
 
 JAVOB FORMATI:
 ## Qisqa javob
@@ -48,17 +62,40 @@ MUHIM QOIDALAR:
 
 ${contextText}`;
 
-    // Call AI with strict limits
-    const response = await aiClient.chatMessage(message, systemPrompt);
+    // Call Groq with strict parameters
+    const response = await fetch(GROQ_API_URL, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${GROQ_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: message }
+        ],
+        temperature: 0.1,
+        max_tokens: 2048,
+      }),
+    });
 
-    // Return raw text - frontend will format it
-    let responseText = response.text;
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Groq API error:', errorText);
+      return NextResponse.json(
+        { error: 'AI xizmati xatosi', success: false },
+        { status: response.status }
+      );
+    }
 
-    // Tozalash: agar AI uzun raqamli ro'yxat bersa (1. 2. 3...) — kesib tashlaymiz
-    // Agar 4 bo'lim yo'q bo'lsa, lekin uzun bo'lsa — birinchi 600 belgini olamiz
-    const hasSection = /QISQA JAVOB|ASOSIY MA'LUMOT|QONUN|MASLAHAT/.test(responseText);
-    if (!hasSection && responseText.length > 600) {
-      responseText = responseText.slice(0, 600).trim() + '...';
+    const data = await response.json();
+    let responseText = data.choices[0]?.message?.content || 'Javob olinmadi';
+
+    // Clean up: trim repeating text
+    const hasSection = /Qisqa javob|Asosiy ma'lumot|Qonun|Maslahat/i.test(responseText);
+    if (!hasSection && responseText.length > 800) {
+      responseText = responseText.slice(0, 800).trim() + '...';
     }
 
     // Determine category based on keywords
@@ -73,7 +110,7 @@ ${contextText}`;
       category = 'document';
     }
 
-    // Extract related laws from response (simple regex pattern)
+    // Extract related laws from response
     const relatedLaws: string[] = [];
     const lawPattern = /([А-Я][а-яА-Я\s]+кодекси?|[A-Z][a-z]+\s+kodeks[i]?)\s*(\d+[-]?(?:modda|moddasi)?)/gi;
     let match;
@@ -81,7 +118,7 @@ ${contextText}`;
       relatedLaws.push(match[0]);
     }
 
-    // Generate smart suggestions based on category
+    // Generate smart suggestions
     let suggestions: string[] = [];
     switch (category) {
       case 'legal':
@@ -116,7 +153,7 @@ ${contextText}`;
     return NextResponse.json({
       response: responseText,
       category,
-      relatedLaws: relatedLaws.slice(0, 3), // Top 3
+      relatedLaws: relatedLaws.slice(0, 3),
       suggestions,
       success: true
     });

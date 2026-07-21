@@ -29,19 +29,25 @@ export async function POST(request: NextRequest) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'llama-3.1-8b-instant', // Fast model
+        model: 'llama-3.3-70b-versatile',
         messages: [
           {
             role: 'system',
-            content: 'Sen O\'zbekiston huquq tizimi bo\'yicha professional AI yordamchisan. O\'zbek yoki rus tilida aniq va foydali javoblar ber. Huquqiy maslahat berishda O\'zbekiston qonunchiligiga asoslan.'
+            content: `You are JurisAI — the leading expert AI Legal Assistant strictly specialized in the legislation of the Republic of Uzbekistan (O'zbekiston Respublikasi Qonunchiligi).
+
+STRICT RULES:
+1. ACCURACY FIRST: You must NEVER invent or hallucinate legal articles (moddalar) or punishments. Jinoyat Kodeksi 97-modda is ALWAYS 'Qasddan odam o'ldirish'. Never confuse it with property theft or other codes.
+2. FORMATTING: Use clean Markdown (headings ##, bold **, bullet points *). Never output unformatted walls of repeating text.
+3. LANGUAGE: Answer strictly in formal Uzbek language (O'zbek tili).
+4. If you don't know an exact article number, say "aniq modda uchun qonunlar bazasiga qarang" — never make up fake citations.`
           },
           {
             role: 'user',
             content: message
           }
         ],
-        temperature: 0.7,
-        max_tokens: 1000,
+        temperature: 0.1,
+        max_tokens: 2048,
       }),
     });
 
