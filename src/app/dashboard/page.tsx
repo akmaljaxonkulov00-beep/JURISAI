@@ -30,7 +30,9 @@ import {
   Crown,
   Wrench,
   Users2,
-  CheckCircle
+  CheckCircle,
+  Settings,
+  HelpCircle
 } from 'lucide-react';
 
 interface UserStats {
@@ -202,10 +204,22 @@ export default function Dashboard() {
       title: 'Shaxsiy',
       items: [
         {
-          id: 'profile',
-          label: 'Profil',
-          icon: User,
+          id: 'settings',
+          label: 'Sozlamalar',
+          icon: Settings,
           href: '/profile'
+        },
+        {
+          id: 'premium',
+          label: 'Premium',
+          icon: Crown,
+          href: '/premium'
+        },
+        {
+          id: 'help',
+          label: 'Yordam',
+          icon: HelpCircle,
+          href: '/help'
         }
       ]
     }
@@ -213,11 +227,11 @@ export default function Dashboard() {
 
   const getRarityColor = (rarity: string) => {
     switch (rarity) {
-      case 'common': return 'bg-gray-100 text-gray-800 border-gray-300';
-      case 'rare': return 'bg-blue-100 text-blue-800 border-blue-300';
-      case 'epic': return 'bg-green-100 text-green-800 border-green-300';
-      case 'legendary': return 'bg-yellow-100 text-yellow-800 border-yellow-300';
-      default: return 'bg-gray-100 text-gray-800 border-gray-300';
+      case 'common': return 'bg-gray-100 text-gray-800 border-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600';
+      case 'rare': return 'bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800';
+      case 'epic': return 'bg-green-100 text-green-800 border-green-300 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800';
+      case 'legendary': return 'bg-yellow-100 text-yellow-800 border-yellow-300 dark:bg-yellow-900/30 dark:text-yellow-300 dark:border-yellow-800';
+      default: return 'bg-gray-100 text-gray-800 border-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600';
     }
   };
 
@@ -297,7 +311,7 @@ export default function Dashboard() {
                         className={`nav-item flex items-center space-x-3 px-4 py-2.5 rounded-xl cursor-pointer ${
                           isActive
                             ? 'nav-item-active'
-                            : 'text-gray-600 hover:text-gray-900'
+                            : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                         }`}
                         onClick={() => setActiveSection(item.id)}
                       >
@@ -493,25 +507,25 @@ export default function Dashboard() {
             >
               <div className="absolute -top-6 -right-6 w-20 h-20 bg-blue-200/20 rounded-full blur-xl group-hover:scale-150 transition-transform duration-500" />
               <Scale className="w-8 h-8 text-blue-600 mb-3 group-hover:scale-110 transition-transform duration-200" />
-              <h3 className="font-semibold text-blue-900">IRAC Tahlil</h3>
+              <h3 className="font-semibold text-blue-900 dark:text-blue-300">IRAC Tahlil</h3>
               <p className="text-sm text-blue-600/70 mt-1">Huquqiy keyslarni tahlil qiling</p>
             </div>
             <div
               onClick={() => handleNavigation('/legal-database-new')}
-              className="relative overflow-hidden group p-6 bg-gradient-to-br from-emerald-50/80 to-teal-50/80 rounded-xl border border-emerald-100/50 hover:border-emerald-200/80 transition-all duration-300 cursor-pointer hover-lift"
+              className="relative overflow-hidden group p-6 bg-gradient-to-br from-emerald-50/80 to-teal-50/80 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-xl border border-emerald-100/50 dark:border-emerald-800/30 hover:border-emerald-200/80 transition-all duration-300 cursor-pointer hover-lift"
             >
               <div className="absolute -top-6 -right-6 w-20 h-20 bg-emerald-200/20 rounded-full blur-xl group-hover:scale-150 transition-transform duration-500" />
               <Database className="w-8 h-8 text-emerald-600 mb-3 group-hover:scale-110 transition-transform duration-200" />
-              <h3 className="font-semibold text-emerald-900">Qonunlar bazasi</h3>
+              <h3 className="font-semibold text-emerald-900 dark:text-emerald-300">Qonunlar bazasi</h3>
               <p className="text-sm text-emerald-600/70 mt-1">Qonun va kodifikatsiyalarni qidiring</p>
             </div>
             <div
               onClick={() => handleNavigation('/court-simulator')}
-              className="relative overflow-hidden group p-6 bg-gradient-to-br from-orange-50/80 to-amber-50/80 rounded-xl border border-orange-100/50 hover:border-orange-200/80 transition-all duration-300 cursor-pointer hover-lift"
+              className="relative overflow-hidden group p-6 bg-gradient-to-br from-orange-50/80 to-amber-50/80 dark:from-orange-900/20 dark:to-amber-900/20 rounded-xl border border-orange-100/50 dark:border-orange-800/30 hover:border-orange-200/80 transition-all duration-300 cursor-pointer hover-lift"
             >
               <div className="absolute -top-6 -right-6 w-20 h-20 bg-orange-200/20 rounded-full blur-xl group-hover:scale-150 transition-transform duration-500" />
               <Gavel className="w-8 h-8 text-orange-600 mb-3 group-hover:scale-110 transition-transform duration-200" />
-              <h3 className="font-semibold text-orange-900">Sud Simulyatori</h3>
+              <h3 className="font-semibold text-orange-900 dark:text-orange-300">Sud Simulyatori</h3>
               <p className="text-sm text-orange-600/70 mt-1">Virtual sud jarayonida qatnashing</p>
             </div>
           </div>
@@ -522,10 +536,10 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading your dashboard...</p>
+          <p className="text-gray-600 dark:text-gray-400">Yuklanmoqda...</p>
         </div>
       </div>
     );

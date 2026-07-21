@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { aiClient } from '@/lib/ai-client';
+import { FileText, ArrowLeft, Download, Edit3, Plus, Clock } from 'lucide-react';
 
 import documentTemplatesData from '@/data/document-templates.json';
 
@@ -92,7 +93,6 @@ export default function DocumentGenerator() {
   const handleGenerateDocument = async () => {
     if (!selectedTemplate) return;
 
-    // Validate required fields
     const missingFields = selectedTemplate.fields
       .filter(field => field.required && !formData[field.id])
       .map(field => field.name);
@@ -106,12 +106,10 @@ export default function DocumentGenerator() {
     setError(null);
 
     try {
-      // Prepare details for AI
       const details = selectedTemplate.fields
         .map(field => `${field.name}: ${formData[field.id] || 'belgilanmagan'}`)
         .join('\n');
 
-      // Generate document using AI
       const response = await aiClient.generateDocument(selectedTemplate.name, details);
 
       const newDocument: GeneratedDocument = {
@@ -125,8 +123,6 @@ export default function DocumentGenerator() {
 
       saveDocument(newDocument);
       setCurrentDocument(newDocument);
-      
-      // Reset form
       setFormData({});
       setActiveTab('history');
     } catch (err) {
@@ -139,22 +135,15 @@ export default function DocumentGenerator() {
 
   const handleDownloadDocument = (document: GeneratedDocument) => {
     try {
-      // Create blob from document content
       const blob = new Blob([document.content], { type: 'text/plain;charset=utf-8' });
       const url = window.URL.createObjectURL(blob);
-      
-      // Create temporary link and trigger download
       const link = window.document.createElement('a');
       link.href = url;
       link.download = `${document.title.replace(/\s+/g, '_')}.txt`;
       window.document.body.appendChild(link);
       link.click();
       window.document.body.removeChild(link);
-      
-      // Clean up URL
       window.URL.revokeObjectURL(url);
-      
-      console.log('Document downloaded successfully');
     } catch (error) {
       console.error('Error downloading document:', error);
     }
@@ -162,25 +151,19 @@ export default function DocumentGenerator() {
 
   const handleEditDocument = (document: GeneratedDocument) => {
     try {
-      // Find the template for this document
       const template = templates.find(t => t.id === document.template_id);
       if (template) {
         setSelectedTemplate(template);
         setActiveTab('generator');
-        
-        // Parse document content to extract form data (simplified implementation)
         const lines = document.content.split('\n');
         const parsedData: Record<string, string> = {};
-        
         template.fields.forEach(field => {
           const fieldLine = lines.find(line => line.startsWith(`${field.name}:`));
           if (fieldLine) {
             parsedData[field.id] = fieldLine.replace(`${field.name}:`, '').trim();
           }
         });
-        
         setFormData(parsedData);
-        console.log('Document loaded for editing');
       }
     } catch (error) {
       console.error('Error editing document:', error);
@@ -189,26 +172,24 @@ export default function DocumentGenerator() {
 
   const renderTemplatesTab = () => (
     <div className="space-y-6">
-      <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+      <Card className="card-default rounded-2xl">
         <CardHeader>
-          <CardTitle className="text-blue-900">Hujjat shablonlari</CardTitle>
+          <CardTitle className="text-gray-800 dark:text-white flex items-center gap-2">
+            <FileText className="w-5 h-5 text-blue-500" /> Hujjat shablonlari
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {templates.map((template) => (
               <div
                 key={template.id}
-                className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-200 hover:border-blue-400 transition-all cursor-pointer"
+                className="p-4 bg-gradient-to-br from-blue-50 to-green-50 dark:from-blue-900/20 dark:to-green-900/20 rounded-xl border border-blue-200 dark:border-blue-800/30 hover:border-blue-400 dark:hover:border-blue-600 transition-all cursor-pointer hover:shadow-md"
                 onClick={() => handleTemplateSelect(template)}
               >
-                <h3 className="font-semibold text-blue-900 mb-2">{template.name}</h3>
-                <p className="text-sm text-gray-600 mb-3">{template.description}</p>
-                <Badge className="bg-green-100 text-green-800">
-                  {template.category}
-                </Badge>
-                <div className="mt-3 text-sm text-gray-500">
-                  {template.fields.length} maydon
-                </div>
+                <h3 className="font-semibold text-gray-800 dark:text-white mb-2">{template.name}</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">{template.description}</p>
+                <Badge className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300">{template.category}</Badge>
+                <div className="mt-3 text-sm text-gray-400 dark:text-gray-500">{template.fields.length} maydon</div>
               </div>
             ))}
           </div>
@@ -220,14 +201,12 @@ export default function DocumentGenerator() {
   const renderGeneratorTab = () => {
     if (!selectedTemplate) {
       return (
-        <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+        <Card className="card-default rounded-2xl">
           <CardContent className="p-12 text-center">
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">Shablon tanlanmagan</h3>
-            <p className="text-gray-600 mb-6">Avval shablonni tanlang</p>
-            <Button
-              onClick={() => setActiveTab('templates')}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-            >
+            <FileText className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">Shablon tanlanmagan</h3>
+            <p className="text-gray-500 dark:text-gray-400 mb-6">Avval shablonni tanlang</p>
+            <Button onClick={() => setActiveTab('templates')} className="bg-blue-600 hover:bg-blue-700 text-white">
               Shablonlarni ko'rish
             </Button>
           </CardContent>
@@ -237,16 +216,14 @@ export default function DocumentGenerator() {
 
     return (
       <div className="space-y-6">
-        <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+        <Card className="card-default rounded-2xl">
           <CardHeader>
-            <CardTitle className="text-blue-900">
-              {selectedTemplate.name} - Hujjat yaratish
-            </CardTitle>
+            <CardTitle className="text-gray-800 dark:text-white">{selectedTemplate.name} - Hujjat yaratish</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             {selectedTemplate.fields.map((field) => (
               <div key={field.id}>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
                   {field.name} {field.required && <span className="text-red-500">*</span>}
                 </label>
                 
@@ -266,27 +243,16 @@ export default function DocumentGenerator() {
                     onChange={(e) => handleFieldChange(field.id, e.target.value)}
                     required={field.required}
                     rows={4}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 )}
                 
                 {field.type === 'date' && (
-                  <Input
-                    type="date"
-                    value={formData[field.id] || ''}
-                    onChange={(e) => handleFieldChange(field.id, e.target.value)}
-                    required={field.required}
-                  />
+                  <Input type="date" value={formData[field.id] || ''} onChange={(e) => handleFieldChange(field.id, e.target.value)} required={field.required} />
                 )}
                 
                 {field.type === 'number' && (
-                  <Input
-                    type="number"
-                    placeholder={field.placeholder}
-                    value={formData[field.id] || ''}
-                    onChange={(e) => handleFieldChange(field.id, e.target.value)}
-                    required={field.required}
-                  />
+                  <Input type="number" placeholder={field.placeholder} value={formData[field.id] || ''} onChange={(e) => handleFieldChange(field.id, e.target.value)} required={field.required} />
                 )}
                 
                 {field.type === 'select' && field.options && (
@@ -300,18 +266,10 @@ export default function DocumentGenerator() {
             ))}
             
             <div className="flex gap-4">
-              <Button
-                onClick={handleGenerateDocument}
-                disabled={loading}
-                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                {loading ? 'Yaratilmoqda...' : '▢ Hujjatni yaratish'}
+              <Button onClick={handleGenerateDocument} disabled={loading} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white">
+                {loading ? 'Yaratilmoqda...' : <><Plus className="w-4 h-4 mr-2" /> Hujjatni yaratish</>}
               </Button>
-              <Button
-                onClick={() => setActiveTab('templates')}
-                variant="outline"
-                className="border-gray-300 text-gray-700 hover:bg-gray-50"
-              >
+              <Button onClick={() => setActiveTab('templates')} variant="outline" className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">
                 Orqaga
               </Button>
             </div>
@@ -323,78 +281,66 @@ export default function DocumentGenerator() {
 
   const renderHistoryTab = () => (
     <div className="space-y-6">
-      <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+      <Card className="card-default rounded-2xl">
         <CardHeader>
-          <CardTitle className="text-blue-900">Yaratilgan hujjatlar</CardTitle>
+          <CardTitle className="text-gray-800 dark:text-white flex items-center gap-2">
+            <Clock className="w-5 h-5 text-blue-500" /> Yaratilgan hujjatlar
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             {generatedDocuments.map((document) => (
               <div
                 key={document.id}
-                className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+                className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer border border-gray-100 dark:border-gray-700"
                 onClick={() => setCurrentDocument(document)}
               >
                 <div className="flex justify-between items-start mb-2">
                   <div>
-                    <h3 className="font-semibold text-gray-900">{document.title}</h3>
-                    <p className="text-sm text-gray-600">
-                      {new Date(document.created_at).toLocaleDateString()}
-                    </p>
+                    <h3 className="font-semibold text-gray-800 dark:text-white">{document.title}</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{new Date(document.created_at).toLocaleDateString('uz-UZ')}</p>
                   </div>
-                  <Badge className={
-                    document.status === 'completed' 
-                      ? 'bg-green-100 text-green-800' 
-                      : 'bg-yellow-100 text-yellow-800'
-                  }>
+                  <Badge className={document.status === 'completed' ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300' : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300'}>
                     {document.status === 'completed' ? 'Tugallangan' : 'Draft'}
                   </Badge>
                 </div>
-                <p className="text-sm text-gray-700 line-clamp-2">
-                  {document.content.substring(0, 100)}...
-                </p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{document.content.substring(0, 100)}...</p>
               </div>
             ))}
+            {generatedDocuments.length === 0 && (
+              <div className="text-center py-12">
+                <FileText className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+                <p className="text-gray-500 dark:text-gray-400">Hali hech qanday hujjat yaratilmagan</p>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
 
       {currentDocument && (
-        <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+        <Card className="card-default rounded-2xl">
           <CardHeader>
-            <CardTitle className="text-blue-900">Hujjat ko'rish</CardTitle>
+            <CardTitle className="text-gray-800 dark:text-white flex items-center gap-2">
+              <FileText className="w-5 h-5 text-blue-500" /> Hujjat ko'rish
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <h3 className="font-semibold text-gray-900">{currentDocument.title}</h3>
+                <h3 className="font-semibold text-gray-800 dark:text-white">{currentDocument.title}</h3>
                 <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    className="border-blue-600 text-blue-600 hover:bg-blue-50"
-                    onClick={() => handleDownloadDocument(currentDocument)}
-                  >
-                    ↓ Yuklab olish
+                  <Button variant="outline" className="border-blue-600 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20" onClick={() => handleDownloadDocument(currentDocument)}>
+                    <Download className="w-4 h-4 mr-2" /> Yuklab olish
                   </Button>
-                  <Button
-                    variant="outline"
-                    className="border-green-600 text-green-600 hover:bg-green-50"
-                    onClick={() => handleEditDocument(currentDocument)}
-                  >
-                    ✎ Tahrirlash
+                  <Button variant="outline" className="border-green-600 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20" onClick={() => handleEditDocument(currentDocument)}>
+                    <Edit3 className="w-4 h-4 mr-2" /> Tahrirlash
                   </Button>
                 </div>
               </div>
-              
-              <div className="bg-gray-50 rounded-lg p-6">
-                <pre className="whitespace-pre-wrap text-gray-700">
-                  {currentDocument.content}
-                </pre>
+              <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-6 border border-gray-100 dark:border-gray-700">
+                <pre className="whitespace-pre-wrap text-gray-700 dark:text-gray-300">{currentDocument.content}</pre>
               </div>
-              
-              <div className="text-sm text-gray-500">
-                Yaratilgan: {new Date(currentDocument.created_at).toLocaleDateString('uz-UZ')}
-              </div>
+              <div className="text-sm text-gray-400 dark:text-gray-500">Yaratilgan: {new Date(currentDocument.created_at).toLocaleDateString('uz-UZ')}</div>
             </div>
           </CardContent>
         </Card>
@@ -403,39 +349,48 @@ export default function DocumentGenerator() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
+    <div className="min-h-screen bg-page-custom p-6">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-blue-900">Document Generator</h1>
-          <p className="text-blue-700">Huquqiy hujjatlar avtomatik generatsiyasi</p>
+        <div className="flex items-center gap-4 mb-6">
+          <a href="/dashboard" className="flex items-center gap-2 px-3 py-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all">
+            <ArrowLeft className="w-4 h-4" /> <span className="text-sm font-medium">Orqaga</span>
+          </a>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Document Generator</h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Huquqiy hujjatlar avtomatik generatsiyasi</p>
+          </div>
         </div>
 
         {error && (
-          <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-xl">
-            {error}
+          <div className="mb-4 p-4 bg-red-100 dark:bg-red-900/20 border border-red-400 dark:border-red-800 text-red-700 dark:text-red-300 rounded-xl flex items-center gap-2">
+            <span className="text-sm">{error}</span>
+            <button onClick={() => setError(null)} className="ml-auto text-red-500 hover:text-red-700">✕</button>
           </div>
         )}
 
         {/* Tabs */}
-        <div className="flex space-x-1 mb-6 bg-white/80 backdrop-blur-sm rounded-xl p-1">
+        <div className="flex space-x-1 mb-6 card-default rounded-xl p-1">
           {[
-            { id: 'templates', label: '▣ Shablonlar', icon: '▣' },
-            { id: 'generator', label: '✎ Generator', icon: '✎' },
-            { id: 'history', label: '▣▣ Tarix', icon: '▣▣' }
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
-              className={`flex-1 px-4 py-2 rounded-lg transition-colors ${
-                activeTab === tab.id
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-700 hover:bg-blue-50'
-              }`}
-            >
-              <span className="mr-2">{tab.icon}</span>
-              {tab.label}
-            </button>
-          ))}
+            { id: 'templates', label: 'Shablonlar', icon: FileText },
+            { id: 'generator', label: 'Generator', icon: Plus },
+            { id: 'history', label: 'Tarix', icon: Clock }
+          ].map((tab) => {
+            const Icon = tab.icon;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg transition-all text-sm font-medium ${
+                  activeTab === tab.id
+                    ? 'nav-item-active'
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/50'
+                }`}
+              >
+                <Icon className="w-4 h-4" />
+                {tab.label}
+              </button>
+            );
+          })}
         </div>
 
         {/* Tab Content */}

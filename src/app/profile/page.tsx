@@ -100,6 +100,8 @@ function ProfileContent() {
     setProfile(editedProfile);
     localStorage.setItem('auth_user', JSON.stringify(userData));
     localStorage.setItem('jurisai_user', JSON.stringify(userData));
+    setSettingsSaved(true);
+    setTimeout(() => setSettingsSaved(false), 3000);
   };
 
   const handleCancel = () => {
@@ -125,10 +127,16 @@ function ProfileContent() {
     if (darkMode !== themeDark) toggleTheme();
   };
 
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
+
   const handleChangePassword = () => {
-    if (passwordData.newPass !== passwordData.confirm) { alert('Yangi parollar mos kelmadi!'); return; }
-    if (passwordData.newPass.length < 6) { alert('Parol kamida 6 belgidan iborat bo\'lishi kerak!'); return; }
-    alert('Parol muvaffaqiyatli o\'zgartirildi!');
+    setPasswordError(null);
+    setPasswordSuccess(null);
+    if (passwordData.newPass !== passwordData.confirm) { setPasswordError('Yangi parollar mos kelmadi!'); return; }
+    if (passwordData.newPass.length < 6) { setPasswordError('Parol kamida 6 belgidan iborat bo\'lishi kerak!'); return; }
+    setPasswordSuccess('Parol muvaffaqiyatli o\'zgartirildi!');
+    setTimeout(() => setPasswordSuccess(null), 3000);
     setShowPasswordForm(false);
     setPasswordData({ current: '', newPass: '', confirm: '' });
   };
@@ -142,12 +150,17 @@ function ProfileContent() {
     URL.revokeObjectURL(url);
   };
 
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [deleteSuccess, setDeleteSuccess] = useState<string | null>(null);
+
   const handleDeleteAccount = () => {
-    if (confirm('Hisobingizni o\'chirishni xohlaysizmi? Bu amalni qaytarib bo\'lmaydi!')) {
-      if (confirm('Haqiqatan ham hisobingizni o\'chirishni xohlaysizmi?')) {
-        alert('Hisob o\'chirildi. Xayr!');
-      }
+    if (!deleteConfirm) {
+      setDeleteConfirm(true);
+      return;
     }
+    setDeleteSuccess('Hisob o\'chirildi. Xayr!');
+    setTimeout(() => setDeleteSuccess(null), 3000);
+    setDeleteConfirm(false);
   };
 
   const getStatusColor = (status: string) => {
@@ -510,7 +523,19 @@ function ProfileContent() {
                       <p className="text-xs text-gray-500">Hisobingizni butunlay o'chirish va barcha ma'lumotlarni tozalash</p>
                     </div>
                   </div>
-                  <button onClick={handleDeleteAccount} className="px-4 py-2 text-sm bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-xl hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors font-medium border border-red-200 dark:border-red-800">O'chirish</button>
+                  <div className="flex items-center gap-2">
+                    {deleteConfirm && (
+                      <span className="text-xs text-red-600 dark:text-red-400 font-medium">Haqiqatan ham o'chirilsinmi?</span>
+                    )}
+                    <button onClick={handleDeleteAccount} className="px-4 py-2 text-sm bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-xl hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors font-medium border border-red-200 dark:border-red-800">
+                      {deleteConfirm ? 'Tasdiqlash' : 'O\'chirish'}
+                    </button>
+                    {deleteConfirm && (
+                      <button onClick={() => setDeleteConfirm(false)} className="px-4 py-2 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl font-medium">
+                        Bekor qilish
+                      </button>
+                    )}
+                  </div>
                 </div>
                 <div className="p-4 bg-amber-50 dark:bg-amber-900/10 rounded-xl border border-amber-200 dark:border-amber-800">
                   <div className="flex items-start gap-3">
@@ -529,8 +554,7 @@ function ProfileContent() {
     </div>
   );
 
-  return (
-    <div className="min-h-screen bg-page-custom p-4 md:p-6">
+  return (      <div className="min-h-screen bg-page-custom p-4 md:p-6">
       <div className="max-w-5xl mx-auto">
         <div className="flex items-center gap-4 mb-6">
           <a href="/dashboard" className="flex items-center gap-2 px-3 py-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all">
@@ -538,6 +562,23 @@ function ProfileContent() {
           </a>
           <h1 className="text-xl font-bold text-gray-800 dark:text-white">Sozlamalar</h1>
         </div>
+        {/* Toast messages */}
+        {passwordError && (
+          <div className="mb-4 px-4 py-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl flex items-center gap-2 text-sm text-red-700 dark:text-red-300">
+            <span>{passwordError}</span>
+            <button onClick={() => setPasswordError(null)} className="ml-auto text-red-500 hover:text-red-700">✕</button>
+          </div>
+        )}
+        {passwordSuccess && (
+          <div className="mb-4 px-4 py-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl flex items-center gap-2 text-sm text-green-700 dark:text-green-300">
+            <CheckCircle className="w-4 h-4" /> {passwordSuccess}
+          </div>
+        )}
+        {deleteSuccess && (
+          <div className="mb-4 px-4 py-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl flex items-center gap-2 text-sm text-red-700 dark:text-red-300">
+            <span>{deleteSuccess}</span>
+          </div>
+        )}
         {renderSettings()}
       </div>
     </div>
