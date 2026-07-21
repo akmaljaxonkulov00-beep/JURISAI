@@ -235,19 +235,19 @@ const Sidebar: React.FC<SidebarProps> = ({
   const displayUser = authUser || propUser;
 
   return (
-    <div className={cn("flex flex-col w-64 bg-gray-900 h-screen sticky top-0 overflow-y-auto hidden md:flex", className || "")}>
+    <div className={cn("flex flex-col w-64 h-screen sticky top-0 overflow-y-auto hidden md:flex", className || "")} style={{ background: 'var(--sidebar-bg)', borderRight: '1px solid var(--card-border)' }}>
       {/* Logo */}
-      <div className="flex items-center h-16 px-6 bg-gray-900 border-b border-gray-800 flex-shrink-0">
+      <div style={{ display: 'flex', alignItems: 'center', height: 64, padding: '0 24px', borderBottom: '1px solid var(--card-border)', background: 'var(--sidebar-bg)', flexShrink: 0 }}>
         <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-lg">J</span>
+          <div style={{ width: 32, height: 32, background: 'var(--primary)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ color: '#fff', fontWeight: 700, fontSize: 18 }}>J</span>
           </div>
-          <span className="text-white font-semibold text-lg">JURISAI</span>
+          <span style={{ color: 'var(--text-primary)', fontWeight: 600, fontSize: 18 }}>JURISAI</span>
         </div>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-4 py-6 space-y-8">
+      <nav style={{ flex: 1, padding: '24px 16px', display: 'flex', flexDirection: 'column', gap: 32 }}>
         {navigationGroups.map((group) => {
           const filteredItems = group.items.filter((item: any) => {
             if (!isAuthenticated && item.requiresAuth) return false;
@@ -257,25 +257,45 @@ const Sidebar: React.FC<SidebarProps> = ({
           if (filteredItems.length === 0) return null;
           return (
             <div key={group.title}>
-              <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+              <h3 style={{ padding: '0 12px', fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
                 {group.title}
               </h3>
-              <ul className="space-y-1">
+              <ul style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 {filteredItems.map((item: any) => (
                   <li key={item.name}>
                     <button
                       onClick={() => handleNavigation(item.href)}
-                      className={cn(
-                        "w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors",
-                        activeItem === item.href
-                          ? "bg-blue-600 text-white"
-                          : "text-gray-300 hover:bg-gray-800 hover:text-white"
-                      )}
+                      style={{
+                        width: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        padding: '8px 12px',
+                        fontSize: 13,
+                        fontWeight: 500,
+                        borderRadius: 8,
+                        border: 'none',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        background: activeItem === item.href ? 'var(--primary)' : 'transparent',
+                        color: activeItem === item.href ? '#fff' : 'var(--text-secondary)'
+                      }}
+                      onMouseEnter={(e) => {
+                        if (activeItem !== item.href) {
+                          e.currentTarget.style.background = 'var(--hover-bg)';
+                          e.currentTarget.style.color = 'var(--text-primary)';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (activeItem !== item.href) {
+                          e.currentTarget.style.background = 'transparent';
+                          e.currentTarget.style.color = 'var(--text-secondary)';
+                        }
+                      }}
                     >
-                      <span className="mr-3 h-5 w-5">{item.icon}</span>
+                      <span style={{ marginRight: 12, width: 20, height: 20, flexShrink: 0 }}>{item.icon}</span>
                       {item.name}
                       {item.badge && (
-                        <span className="ml-auto inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        <span style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', padding: '2px 8px', borderRadius: 12, fontSize: 10, fontWeight: 600, background: 'rgba(37, 99, 235, 0.15)', color: 'var(--primary)' }}>
                           {item.badge}
                         </span>
                       )}
@@ -291,27 +311,48 @@ const Sidebar: React.FC<SidebarProps> = ({
 
       {/* User Section */}
       {isAuthenticated && displayUser && (
-        <div className="border-t border-gray-800 p-4">
-          <div className="flex items-center space-x-3 mb-4">
-            <div className="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center">
-              <span className="text-gray-300 text-sm font-medium">
+        <div style={{ borderTop: '1px solid var(--card-border)', padding: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+            <div style={{ width: 32, height: 32, background: 'var(--card-border)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ color: 'var(--text-secondary)', fontSize: 13, fontWeight: 500 }}>
                 {displayUser.name?.charAt(0).toUpperCase() || 'U'}
               </span>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-white truncate">
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', margin: 0 }}>
                 {displayUser.name}
               </p>
-              <p className="text-xs text-gray-400 truncate">
+              <p style={{ fontSize: 11, color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', margin: 0 }}>
                 {displayUser.email}
               </p>
             </div>
           </div>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center px-3 py-2 text-sm font-medium text-gray-300 rounded-md hover:bg-gray-800 hover:text-white transition-colors"
+            style={{
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              padding: '8px 12px',
+              fontSize: 13,
+              fontWeight: 500,
+              borderRadius: 8,
+              border: 'none',
+              cursor: 'pointer',
+              color: 'var(--text-secondary)',
+              background: 'transparent',
+              transition: 'all 0.2s'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'var(--hover-bg)';
+              e.currentTarget.style.color = 'var(--danger)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'transparent';
+              e.currentTarget.style.color = 'var(--text-secondary)';
+            }}
           >
-            <svg className="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg style={{ marginRight: 12, width: 20, height: 20 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
             </svg>
             Chiqish

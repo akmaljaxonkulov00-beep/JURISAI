@@ -39,7 +39,7 @@ interface NotificationSettings {
 function ProfileContent() {
   const { dark: themeDark, toggle: toggleTheme } = useTheme();
   const [activeTab, setActiveTab] = useState<'settings' | 'help' | 'premium'>('settings');
-  const [settingsSubTab, setSettingsSubTab] = useState<'personal' | 'notifications' | 'appearance' | 'security' | 'data'>('personal');
+  const [settingsSubTab, setSettingsSubTab] = useState<'profil' | 'personal' | 'notifications' | 'appearance' | 'security' | 'data'>('profil');
   const [profile, setProfile] = useState<UserProfile>(() => {
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem('auth_user');
@@ -170,7 +170,8 @@ function ProfileContent() {
       <div className="w-full lg:w-56 flex-shrink-0">
         <div className="card-default rounded-2xl p-3 space-y-1">
           {[
-            { id: 'personal', label: 'Shaxsiy ma\'lumotlar', icon: User },
+            { id: 'profil', label: 'Profil', icon: User },
+            { id: 'personal', label: 'Shaxsiy ma\'lumotlar', icon: Edit3 },
             { id: 'notifications', label: 'Bildirishnomalar', icon: Bell },
             { id: 'appearance', label: 'Ko\'rinish', icon: Monitor },
             { id: 'security', label: 'Xavfsizlik', icon: Shield },
@@ -193,6 +194,87 @@ function ProfileContent() {
         {settingsSaved && (
           <div className="mb-4 px-4 py-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl flex items-center gap-2 text-sm text-green-700 dark:text-green-300">
             <CheckCircle className="w-4 h-4" /> Sozlamalar muvaffaqiyatli saqlandi!
+          </div>
+        )}
+
+        {/* Profil */}
+        {settingsSubTab === 'profil' && (
+          <div className="card-default rounded-2xl p-6 space-y-6">
+            <h2 className="text-lg font-bold text-gray-800 dark:text-white">Mening Profilim</h2>
+            {/* Profile Card */}
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 p-6 bg-gradient-to-br from-blue-50 to-green-50 dark:from-blue-900/20 dark:to-green-900/20 rounded-2xl border border-blue-100 dark:border-blue-900/30">
+              <div className="relative">
+                {profileImage ? (
+                  <img src={profileImage} alt="" className="w-24 h-24 rounded-full object-cover shadow-lg ring-4 ring-white dark:ring-gray-700" />
+                ) : (
+                  <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-green-500 rounded-full flex items-center justify-center shadow-lg ring-4 ring-white dark:ring-gray-700">
+                    <User className="w-12 h-12 text-white" />
+                  </div>
+                )}
+                <label className="absolute bottom-0 right-0 w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white hover:bg-blue-700 transition-all cursor-pointer shadow">
+                  <Camera className="w-4 h-4" />
+                  <input type="file" accept="image/*" className="hidden" onChange={handleProfileImageUpload} />
+                </label>
+              </div>
+              <div className="text-center sm:text-left flex-1">
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{profile.firstName} {profile.lastName}</h3>
+                <p className="text-gray-500 dark:text-gray-400 mt-1">{profile.email}</p>
+                <div className="flex flex-wrap gap-2 mt-3 justify-center sm:justify-start">
+                  <span className={"inline-block px-3 py-1 rounded-full text-xs font-medium " + getStatusColor(profile.status)}>{profile.status}</span>
+                  {profile.subscription === 'Pro' && (
+                    <span className="inline-flex items-center gap-1 px-3 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 rounded-full text-xs font-medium">
+                      <Crown className="w-3 h-3" /> Pro
+                    </span>
+                  )}
+                </div>
+                {/* Stats */}
+                <div className="grid grid-cols-3 gap-4 mt-6">
+                  <div className="text-center p-3 bg-white/60 dark:bg-gray-800/40 rounded-xl">
+                    <p className="text-lg font-bold text-blue-600">{profile.coursesCount}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Kurslar</p>
+                  </div>
+                  <div className="text-center p-3 bg-white/60 dark:bg-gray-800/40 rounded-xl">
+                    <p className="text-lg font-bold text-green-600">{profile.xp}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">XP</p>
+                  </div>
+                  <div className="text-center p-3 bg-white/60 dark:bg-gray-800/40 rounded-xl">
+                    <p className="text-lg font-bold text-orange-600">{profile.rating}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Reyting</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {/* Quick Info */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl flex items-center gap-3">
+                <Globe className="w-5 h-5 text-blue-600" />
+                <div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Til</p>
+                  <p className="font-medium text-gray-800 dark:text-white">{getLanguageName(profile.language)}</p>
+                </div>
+              </div>
+              <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl flex items-center gap-3">
+                <Phone className="w-5 h-5 text-green-600" />
+                <div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Telefon</p>
+                  <p className="font-medium text-gray-800 dark:text-white">{profile.phone}</p>
+                </div>
+              </div>
+              <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl flex items-center gap-3">
+                <Award className="w-5 h-5 text-orange-600" />
+                <div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Sertifikatlar</p>
+                  <p className="font-medium text-gray-800 dark:text-white">{profile.certificates} ta</p>
+                </div>
+              </div>
+              <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl flex items-center gap-3">
+                <Target className="w-5 h-5 text-blue-600" />
+                <div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Mutaxassislik</p>
+                  <p className="font-medium text-gray-800 dark:text-white">{profile.specialization || 'Ko\'rsatilmagan'}</p>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 

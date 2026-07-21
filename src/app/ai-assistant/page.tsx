@@ -24,16 +24,16 @@ interface SavedChat {
 // ── AI response formatter ──
 function AIResponse({ text }: { text: string }) {
   const sections = [
-    { key: 'QISQA JAVOB',     bg: '#EFF6FF', border: '#BFDBFE', color: '#1D4ED8' },
-    { key: "ASOSIY MA'LUMOT", bg: '#F0FDF4', border: '#BBF7D0', color: '#15803D' },
-    { key: 'QONUN',            bg: '#EFF6FF', border: '#BFDBFE', color: '#2563EB' },
-    { key: 'MASLAHAT',         bg: '#FFF7ED', border: '#FED7AA', color: '#C2410C' },
+    { key: 'QISQA JAVOB',     bg: 'var(--qisqa-javob-bg, #EFF6FF)', border: 'var(--qisqa-javob-border, #BFDBFE)', color: 'var(--qisqa-javob-color, #1D4ED8)' },
+    { key: "ASOSIY MA'LUMOT", bg: 'var(--asosiy-bg, #F0FDF4)', border: 'var(--asosiy-border, #BBF7D0)', color: 'var(--asosiy-color, #15803D)' },
+    { key: 'QONUN',            bg: 'var(--qonun-bg, #EFF6FF)', border: 'var(--qonun-border, #BFDBFE)', color: 'var(--qonun-color, #2563EB)' },
+    { key: 'MASLAHAT',         bg: 'var(--maslahat-bg, #FFF7ED)', border: 'var(--maslahat-border, #FED7AA)', color: 'var(--maslahat-color, #C2410C)' },
   ];
 
   const found = sections.filter(s => text.includes(s.key));
   
   if (found.length === 0) {
-    return <div style={{ color: '#374151', fontSize: 14, lineHeight: 1.7 }}>{text}</div>;
+    return <div style={{ color: 'var(--text-secondary)', fontSize: 14, lineHeight: 1.7 }}>{text}</div>;
   }
 
   const positions = found.map(s => ({ sec: s, start: text.indexOf(s.key), end: -1 }))
@@ -47,7 +47,7 @@ function AIResponse({ text }: { text: string }) {
         return (
           <div key={sec.key} style={{ background: sec.bg, border: `1px solid ${sec.border}`, borderRadius: 10, padding: '10px 14px', marginBottom: 8 }}>
             <div style={{ fontWeight: 700, fontSize: 12, color: sec.color, marginBottom: 6 }}>{sec.key}</div>
-            <div style={{ color: '#374151', fontSize: 13, lineHeight: 1.6 }}>{content}</div>
+            <div style={{ color: 'var(--text-secondary)', fontSize: 13, lineHeight: 1.6 }}>{content}</div>
           </div>
         );
       })}
@@ -177,7 +177,7 @@ export default function AIAssistantPage() {
     if (currentChatId === id) { setMessages([]); setCurrentChatId(null); }
   };
   const clearAll = () => {
-    if (confirm('Barcha suhbatlarni o\'chirish?')) { setSavedChats([]); setMessages([]); setCurrentChatId(null); try { localStorage.removeItem('ai_chats'); } catch {} }
+    if (confirm("Barcha suhbatlarni o'chirish?")) { setSavedChats([]); setMessages([]); setCurrentChatId(null); try { localStorage.removeItem('ai_chats'); } catch {} }
   };
 
   const formatDate = (d: string) => {
@@ -194,35 +194,35 @@ export default function AIAssistantPage() {
   ];
 
   return (
-    <div style={{ height: '100vh', background: '#F8FAFF', display: 'flex' }}>
+    <div style={{ height: '100vh', background: 'var(--bg-page)', display: 'flex' }}>
       {/* ── Left Sidebar ── */}
-      <aside className="desktop-sidebar" style={{ width: 220, background: '#fff', borderRight: '1px solid #F1F5F9', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
-        <div style={{ padding: '16px 14px', borderBottom: '1px solid #F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <a href="/dashboard" style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#6B7280', textDecoration: 'none', fontSize: 13 }}>
+      <aside className="desktop-sidebar" style={{ width: 220, background: 'var(--card-bg)', borderRight: '1px solid var(--card-border)', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
+        <div style={{ padding: '16px 14px', borderBottom: '1px solid var(--card-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <a href="/dashboard" style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--text-secondary)', textDecoration: 'none', fontSize: 13 }}>
             <ArrowLeft size={16} /> Orqaga
           </a>
-          <button onClick={newChat} style={{ padding: '5px 10px', background: '#EFF6FF', color: '#2563EB', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 12, fontWeight: 600 }}>
+          <button onClick={newChat} style={{ padding: '5px 10px', background: 'var(--primary-glow)', color: 'var(--primary)', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 12, fontWeight: 600 }}>
             + Yangi
           </button>
         </div>
         <div style={{ padding: '12px 14px' }}>
-          <p style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', marginBottom: 6 }}>Tezkor</p>
+          <p style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 6 }}>Tezkor</p>
           {[
             { icon: <BookOpen size={14} />, label: 'Qonunni top', prompt: 'Qaysi qonun yoki modda haqida?' },
             { icon: <Scale size={14} />, label: 'Keys tahlili', prompt: 'Huquqiy vaziyatingizni yozing.' },
             { icon: <FileText size={14} />, label: 'Hujjat yaratish', cb: () => setActiveMode('document') },
           ].map((a, i) => (
             <button key={i} onClick={() => { if (a.cb) a.cb(); else { setInput(a.prompt!); inputRef.current?.focus(); } }}
-              style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 6, padding: '7px 10px', borderRadius: 8, background: '#EFF6FF', color: '#1D4ED8', border: 'none', cursor: 'pointer', fontSize: 12, marginBottom: 4 }}>
+              style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 6, padding: '7px 10px', borderRadius: 8, background: 'var(--hover-bg)', color: 'var(--primary)', border: 'none', cursor: 'pointer', fontSize: 12, marginBottom: 4 }}>
               {a.icon} {a.label}
             </button>
           ))}
           {activeMode === 'document' && (
             <div style={{ marginTop: 12 }}>
-              <p style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', marginBottom: 6 }}>Namunalar</p>
+              <p style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 6 }}>Namunalar</p>
               {templates.map(t => (
                 <button key={t.name} onClick={() => { sendMessage(t.prompt); setActiveMode('chat'); }}
-                  style={{ width: '100%', textAlign: 'left', padding: '7px 10px', borderRadius: 8, background: '#F9FAFB', border: '1px solid #E5E7EB', cursor: 'pointer', marginBottom: 4, fontSize: 12, color: '#374151' }}>
+                  style={{ width: '100%', textAlign: 'left', padding: '7px 10px', borderRadius: 8, background: 'var(--card-bg)', border: '1px solid var(--card-border)', cursor: 'pointer', marginBottom: 4, fontSize: 12, color: 'var(--text-secondary)' }}>
                   {t.name}
                 </button>
               ))}
@@ -230,8 +230,8 @@ export default function AIAssistantPage() {
           )}
         </div>
         {speechReady && (
-          <div style={{ marginTop: 'auto', padding: '12px 14px', borderTop: '1px solid #F1F5F9' }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#374151', cursor: 'pointer' }}>
+          <div style={{ marginTop: 'auto', padding: '12px 14px', borderTop: '1px solid var(--card-border)' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--text-secondary)', cursor: 'pointer' }}>
               <input type="checkbox" checked={autoSpeak} onChange={e => setAutoSpeak(e.target.checked)} />
               <Volume2 size={14} /> Ovozli javob
             </label>
@@ -242,23 +242,23 @@ export default function AIAssistantPage() {
       {/* ── Main chat area ── */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         {/* Header */}
-        <header style={{ background: '#fff', borderBottom: '1px solid #F1F5F9', padding: '12px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+        <header style={{ background: 'var(--card-bg)', borderBottom: '1px solid var(--card-border)', padding: '12px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ width: 34, height: 34, background: '#2563EB', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ width: 34, height: 34, background: 'var(--primary)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <MessageCircle size={16} color="#fff" />
             </div>
             <div>
-              <h1 style={{ fontSize: 15, fontWeight: 700, color: '#111827', margin: 0 }}>AI Huquqiy Yordamchi</h1>
-              <p style={{ fontSize: 11, color: '#6B7280', margin: 0 }}>Groq · llama-3.1-8b-instant</p>
+              <h1 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>AI Huquqiy Yordamchi</h1>
+              <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: 0 }}>Groq · llama-3.1-8b-instant</p>
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <button onClick={() => setHistoryOpen(!historyOpen)}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 500, background: historyOpen ? '#EFF6FF' : '#F3F4F6', color: historyOpen ? '#2563EB' : '#4B5563', border: historyOpen ? '1px solid #BFDBFE' : '1px solid #E5E7EB' }}>
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 500, background: historyOpen ? 'var(--hover-bg)' : 'var(--card-bg)', color: historyOpen ? 'var(--primary)' : 'var(--text-secondary)', border: historyOpen ? '1px solid var(--primary-glow)' : '1px solid var(--card-border)' }}>
               <History size={16} />
               <span>Tarix</span>
               {savedChats.length > 0 && (
-                <span style={{ background: '#2563EB', color: '#fff', borderRadius: '50%', width: 18, height: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700 }}>
+                <span style={{ background: 'var(--primary)', color: '#fff', borderRadius: '50%', width: 18, height: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700 }}>
                   {savedChats.length}
                 </span>
               )}
@@ -277,13 +277,13 @@ export default function AIAssistantPage() {
             <div style={{ maxWidth: 720, margin: '0 auto' }}>
               {messages.length === 0 ? (
                 <div style={{ textAlign: 'center', paddingTop: 60 }}>
-                  <div style={{ width: 56, height: 56, background: '#DBEAFE', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-                    <HelpCircle size={24} color="#2563EB" />
+                  <div style={{ width: 56, height: 56, background: 'var(--hover-bg)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+                    <HelpCircle size={24} color="var(--primary)" />
                   </div>
-                  <h2 style={{ fontSize: 20, fontWeight: 700, color: '#111827', margin: '0 0 6px' }}>Qanday yordam bera olaman?</h2>
-                  <p style={{ fontSize: 14, color: '#6B7280', margin: '0 0 24px' }}>Huquqiy savol bering, hujjat yarataman, keys tahlil qilaman</p>
+                  <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 6px' }}>Qanday yordam bera olaman?</h2>
+                  <p style={{ fontSize: 14, color: 'var(--text-muted)', margin: '0 0 24px' }}>Huquqiy savol bering, hujjat yarataman, keys tahlil qilaman</p>
                   {savedChats.length > 0 && (
-                    <button onClick={() => setHistoryOpen(true)} style={{ padding: '10px 24px', background: '#EFF6FF', color: '#2563EB', borderRadius: 10, border: 'none', cursor: 'pointer', fontSize: 14, fontWeight: 600 }}>
+                    <button onClick={() => setHistoryOpen(true)} style={{ padding: '10px 24px', background: 'var(--hover-bg)', color: 'var(--primary)', borderRadius: 10, border: 'none', cursor: 'pointer', fontSize: 14, fontWeight: 600 }}>
                       📋 {savedChats.length} ta suhbat tarixi
                     </button>
                   )}
@@ -293,17 +293,17 @@ export default function AIAssistantPage() {
                   {messages.map(m => (
                     <div key={m.id} style={{ display: 'flex', justifyContent: m.type === 'user' ? 'flex-end' : 'flex-start' }}>
                       {m.type === 'user' ? (
-                        <div style={{ background: '#2563EB', color: '#fff', padding: '10px 16px', borderRadius: '16px 16px 4px 16px', maxWidth: '70%', fontSize: 14, lineHeight: 1.5 }}>{m.text}</div>
+                        <div style={{ background: 'var(--primary)', color: '#fff', padding: '10px 16px', borderRadius: '16px 16px 4px 16px', maxWidth: '70%', fontSize: 14, lineHeight: 1.5 }}>{m.text}</div>
                       ) : (
-                        <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: '4px 16px 16px 16px', padding: '14px 16px', maxWidth: '85%', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+                        <div style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '4px 16px 16px 16px', padding: '14px 16px', maxWidth: '85%', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
                           <AIResponse text={m.text} />
-                          <div style={{ display: 'flex', gap: 6, marginTop: 8, paddingTop: 8, borderTop: '1px solid #F3F4F6', flexWrap: 'wrap' }}>
-                            <button onClick={() => navigator.clipboard.writeText(m.text)} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '3px 10px', background: '#F9FAFB', border: '1px solid #E5E7EB', borderRadius: 6, fontSize: 11, color: '#6B7280', cursor: 'pointer' }}><Copy size={12} /> Nusxa</button>
-                            {speechReady && <button onClick={() => speakText(m.text)} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '3px 10px', background: '#F9FAFB', border: '1px solid #E5E7EB', borderRadius: 6, fontSize: 11, color: '#6B7280', cursor: 'pointer' }}><Volume2 size={12} /> Eshit</button>}
+                          <div style={{ display: 'flex', gap: 6, marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--card-border)', flexWrap: 'wrap' }}>
+                            <button onClick={() => navigator.clipboard.writeText(m.text)} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '3px 10px', background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: 6, fontSize: 11, color: 'var(--text-muted)', cursor: 'pointer' }}><Copy size={12} /> Nusxa</button>
+                            {speechReady && <button onClick={() => speakText(m.text)} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '3px 10px', background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: 6, fontSize: 11, color: 'var(--text-muted)', cursor: 'pointer' }}><Volume2 size={12} /> Eshit</button>}
                           </div>
                           {m.suggestions && m.suggestions.length > 0 && (
                             <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                              <span style={{ fontSize: 11, color: '#9CA3AF', display: 'flex', alignItems: 'center', gap: 2 }}><Lightbulb size={11} /> Keyingi:</span>
+                              <span style={{ fontSize: 11, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 2 }}><Lightbulb size={11} /> Keyingi:</span>
                               {m.suggestions.map((s, i) => (
                                 <button key={i} onClick={() => sendMessage(s)} style={{ padding: '3px 10px', background: '#FEF9C3', border: '1px solid #FDE68A', borderRadius: 16, fontSize: 11, color: '#92400E', cursor: 'pointer' }}>{s}</button>
                               ))}
@@ -315,8 +315,8 @@ export default function AIAssistantPage() {
                   ))}
                   {loading && (
                     <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-                      <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 12, padding: '12px 16px' }}>
-                        <div style={{ display: 'flex', gap: 4 }}>{[0, 200, 400].map(d => <div key={d} style={{ width: 7, height: 7, background: '#93C5FD', borderRadius: '50%', animation: `bounce 1s ${d}ms infinite` }} />)}</div>
+                      <div style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: 12, padding: '12px 16px' }}>
+                        <div style={{ display: 'flex', gap: 4 }}>{[0, 200, 400].map(d => <div key={d} style={{ width: 7, height: 7, background: 'var(--primary)', borderRadius: '50%', animation: `bounce 1s ${d}ms infinite` }} />)}</div>
                       </div>
                     </div>
                   )}
@@ -328,32 +328,32 @@ export default function AIAssistantPage() {
 
           {/* ── History panel ── */}
           {historyOpen && (
-            <div style={{ width: 280, background: '#fff', borderLeft: '1px solid #E5E7EB', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
-              <div style={{ padding: '14px 16px', borderBottom: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>Suhbat tarixi</span>
-                <button onClick={() => setHistoryOpen(false)} style={{ padding: 4, background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF' }}><X size={18} /></button>
+            <div style={{ width: 280, background: 'var(--card-bg)', borderLeft: '1px solid var(--card-border)', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
+              <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--card-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' }}>Suhbat tarixi</span>
+                <button onClick={() => setHistoryOpen(false)} style={{ padding: 4, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}><X size={18} /></button>
               </div>
               {savedChats.length > 0 && (
-                <div style={{ padding: '8px 12px', borderBottom: '1px solid #E5E7EB' }}>
-                  <button onClick={clearAll} style={{ width: '100%', padding: '6px 12px', background: '#FEF2F2', color: '#DC2626', border: '1px solid #FECACA', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 500 }}>
+                <div style={{ padding: '8px 12px', borderBottom: '1px solid var(--card-border)' }}>
+                  <button onClick={clearAll} style={{ width: '100%', padding: '6px 12px', background: 'var(--danger)', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 500, opacity: 0.9 }}>
                     <Trash2 size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} /> Barchasini o'chirish
                   </button>
                 </div>
               )}
               <div style={{ flex: 1, overflowY: 'auto', padding: '8px 12px' }}>
                 {savedChats.length === 0 ? (
-                  <div style={{ textAlign: 'center', padding: 40, color: '#9CA3AF' }}>
+                  <div style={{ textAlign: 'center', padding: 40, color: 'var(--text-muted)' }}>
                     <Clock size={28} style={{ opacity: 0.3, marginBottom: 8 }} />
                     <p style={{ fontSize: 13, margin: 0 }}>Suhbatlar yo'q</p>
                   </div>
                 ) : (
                   savedChats.map(chat => (
                     <div key={chat.id} onClick={() => loadChat(chat)}
-                      style={{ padding: '10px 12px', borderRadius: 8, cursor: 'pointer', marginBottom: 4, background: chat.id === currentChatId ? '#EFF6FF' : 'transparent', border: chat.id === currentChatId ? '1px solid #BFDBFE' : '1px solid transparent' }}>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: '#111827', marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{chat.title}</div>
+                      style={{ padding: '10px 12px', borderRadius: 8, cursor: 'pointer', marginBottom: 4, background: chat.id === currentChatId ? 'var(--hover-bg)' : 'transparent', border: chat.id === currentChatId ? '1px solid var(--primary-glow)' : '1px solid transparent' }}>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{chat.title}</div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: 11, color: '#9CA3AF' }}>{chat.messages.length} ta · {formatDate(chat.date)}</span>
-                        <button onClick={(e) => deleteChat(e, chat.id)} style={{ padding: 2, background: 'none', border: 'none', cursor: 'pointer', color: '#D1D5DB', fontSize: 12 }}>✕</button>
+                        <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{chat.messages.length} ta · {formatDate(chat.date)}</span>
+                        <button onClick={(e) => deleteChat(e, chat.id)} style={{ padding: 2, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: 12 }}>✕</button>
                       </div>
                     </div>
                   ))
@@ -364,7 +364,7 @@ export default function AIAssistantPage() {
         </div>
 
         {/* ── Input ── */}
-        <div style={{ background: '#fff', borderTop: '1px solid #F1F5F9', padding: '12px 24px', flexShrink: 0 }}>
+        <div style={{ background: 'var(--card-bg)', borderTop: '1px solid var(--card-border)', padding: '12px 24px', flexShrink: 0 }}>
           <div style={{ maxWidth: 720, margin: '0 auto' }}>
             {isListening && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 12px', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 8, marginBottom: 8 }}>
@@ -377,15 +377,15 @@ export default function AIAssistantPage() {
               <textarea ref={inputRef} value={input} onChange={e => setInput(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
                 disabled={loading} placeholder="Huquqiy savol yozing... (Enter = yuborish)"
-                rows={1} style={{ flex: 1, padding: '10px 14px', border: '1.5px solid #E5E7EB', borderRadius: 10, resize: 'none', fontSize: 14, outline: 'none', fontFamily: 'inherit' }} />
+                rows={1} style={{ flex: 1, padding: '10px 14px', border: '1.5px solid var(--card-border)', borderRadius: 10, resize: 'none', fontSize: 14, outline: 'none', fontFamily: 'inherit', background: 'var(--input-bg)', color: 'var(--text-primary)' }} />
               {speechReady && (
                 <button onClick={isListening ? stopMic : startMic}
-                  style={{ padding: '0 14px', borderRadius: 10, border: 'none', cursor: 'pointer', background: isListening ? '#EF4444' : '#F3F4F6', color: isListening ? '#fff' : '#4B5563' }}>
+                  style={{ padding: '0 14px', borderRadius: 10, border: 'none', cursor: 'pointer', background: isListening ? '#EF4444' : 'var(--card-bg)', color: isListening ? '#fff' : 'var(--text-secondary)' }}>
                   <Mic size={18} />
                 </button>
               )}
               <button onClick={() => sendMessage()} disabled={loading || !input.trim()}
-                style={{ padding: '0 20px', borderRadius: 10, border: 'none', cursor: loading || !input.trim() ? 'not-allowed' : 'pointer', background: loading || !input.trim() ? '#93C5FD' : '#2563EB', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                style={{ padding: '0 20px', borderRadius: 10, border: 'none', cursor: loading || !input.trim() ? 'not-allowed' : 'pointer', background: loading || !input.trim() ? 'var(--text-muted)' : 'var(--primary)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 {loading ? <div style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.3)', borderTop: '2px solid #fff', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} /> : <Send size={18} />}
               </button>
             </div>
@@ -398,6 +398,7 @@ export default function AIAssistantPage() {
         @keyframes spin { to{transform:rotate(360deg)} }
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
         @media (max-width: 768px) { .desktop-sidebar { display: none !important; } }
+        .dark .ai-message-bot { background: var(--card-bg) !important; }
       `}</style>
     </div>
   );
