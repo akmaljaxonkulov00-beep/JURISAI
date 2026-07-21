@@ -145,8 +145,10 @@ export default function Profile() {
     setTimeout(() => setSettingsSaved(false), 2000);
     if (darkMode) {
       document.documentElement.classList.add('dark');
+      localStorage.setItem('jurisai-theme', 'dark');
     } else {
       document.documentElement.classList.remove('dark');
+      localStorage.setItem('jurisai-theme', 'light');
     }
   };
 

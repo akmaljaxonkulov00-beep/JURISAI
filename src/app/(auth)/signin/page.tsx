@@ -121,11 +121,11 @@ export default function SignInPage() {
 
     setIsLoading(true)
     try {
-      const result = await authHelpers.resetPassword(email)
-      if (result.success) {
+      const result = await (authHelpers as any).resetPassword(email)
+      if (result?.success) {
         setSuccess('Parolni tiklash bo\'yicha email yuborildi!')
       } else {
-        setError(result.error?.message || 'Parolni tiklashda xatolik yuz berdi')
+        setError(result?.error?.message || 'Parolni tiklashda xatolik yuz berdi')
       }
     } catch (err) {
       setError('Noma\'lum xatolik yuz berdi')

@@ -4,38 +4,56 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
-  --glass-bg: rgba(255, 255, 255, 0.7);
-  --glass-border: rgba(255, 255, 255, 0.2);
-  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
-  --primary-glow: rgba(59, 130, 246, 0.15);
-  --purple-glow: rgba(147, 51, 234, 0.12);
+  --foreground: #0f172a;
+  --glass-bg: rgba(255, 255, 255, 0.75);
+  --glass-border: rgba(226, 232, 240, 0.5);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+  --primary: #2563eb;
+  --primary-light: #3b82f6;
+  --primary-dark: #1d4ed8;
+  --primary-glow: rgba(37, 99, 235, 0.12);
+  --accent: #7c3aed;
+  --accent-glow: rgba(124, 58, 237, 0.1);
   --card-bg: #ffffff;
-  --card-border: #e5e7eb;
-  --text-primary: #111827;
-  --text-secondary: #6b7280;
-  --bg-page: #f8faff;
+  --card-border: #e2e8f0;
+  --text-primary: #0f172a;
+  --text-secondary: #64748b;
+  --text-muted: #94a3b8;
+  --bg-page: #f8fafc;
   --sidebar-bg: #ffffff;
   --input-bg: #ffffff;
-  --hover-bg: rgba(59, 130, 246, 0.06);
+  --hover-bg: rgba(37, 99, 235, 0.05);
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --info: #6366f1;
 }
 
 .dark {
-  --background: #0f172a;
-  --foreground: #f1f5f9;
-  --glass-bg: rgba(15, 23, 42, 0.8);
-  --glass-border: rgba(148, 163, 184, 0.15);
-  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  --background: #0b1121;
+  --foreground: #e2e8f0;
+  --glass-bg: rgba(11, 17, 33, 0.85);
+  --glass-border: rgba(51, 65, 85, 0.3);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  --primary: #3b82f6;
+  --primary-light: #60a5fa;
+  --primary-dark: #2563eb;
   --primary-glow: rgba(59, 130, 246, 0.1);
-  --purple-glow: rgba(147, 51, 234, 0.08);
-  --card-bg: #1e293b;
-  --card-border: #334155;
-  --text-primary: #f1f5f9;
+  --accent: #8b5cf6;
+  --accent-glow: rgba(139, 92, 246, 0.08);
+  --card-bg: #1a2332;
+  --card-border: #2d3a4d;
+  --text-primary: #e2e8f0;
   --text-secondary: #94a3b8;
-  --bg-page: #0f172a;
-  --sidebar-bg: #1e293b;
-  --input-bg: #1e293b;
-  --hover-bg: rgba(59, 130, 246, 0.1);
+  --text-muted: #64748b;
+  --bg-page: #0b1121;
+  --sidebar-bg: #111d2b;
+  --input-bg: #1a2332;
+  --hover-bg: rgba(59, 130, 246, 0.08);
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --info: #818cf8;
 }
 
 * {

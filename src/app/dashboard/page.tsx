@@ -69,11 +69,14 @@ export default function Dashboard() {
   const [userStats, setUserStats] = useState<UserStats | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const [profileImage, setProfileImage] = useState<string | null>(null);
+
   const handleNavigation = (href: string) => {
     router.push(href);
   };
 
   useEffect(() => {
+    setProfileImage(localStorage.getItem('profile_image'));
     console.log('Dashboard useEffect - user:', user);
     console.log('Environment variables:', {
       NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -232,11 +235,15 @@ export default function Dashboard() {
       <div className="p-6 border-b border-gray-100/50">
         <div className="flex items-center space-x-4">
           <div className="relative group">
-            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg transition-transform group-hover:scale-105 duration-200">
-              {user?.name?.charAt(0).toUpperCase() || 'U'}
-            </div>
+            {profileImage ? (
+              <img src={profileImage} alt="Profile" className="w-16 h-16 rounded-full object-cover shadow-lg" />
+            ) : (
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg transition-transform group-hover:scale-105 duration-200">
+                {user?.name?.charAt(0).toUpperCase() || 'U'}
+              </div>
+            )}
             <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-emerald-500 rounded-full border-2 border-white flex items-center justify-center shadow-sm">
-              <span className="text-white text-xs font-bold">12</span>
+              <span className="text-white text-xs font-bold">{userStats?.level || 1}</span>
             </div>
           </div>
           <div className="flex-1">

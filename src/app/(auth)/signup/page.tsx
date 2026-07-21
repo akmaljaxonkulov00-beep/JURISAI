@@ -41,15 +41,15 @@ export default function SignUpPage() {
     setSuccess(null)
 
     try {
-      const result = await authHelpers.signUp(data.email, data.password, data.name)
+      const result: any = await authHelpers.signUp(data.email, data.password, data.name)
 
-      if (result.success) {
+      if (result?.success) {
         setSuccess('Ro\'yxatdan muvaffaqiyatli o\'tdingiz! Emailingizni tasdiqlang.')
         
         // Redirect to sign in immediately after successful registration
         router.push('/signin')
       } else {
-        setError(result.error?.message || 'Ro\'yxatdan o\'tish xatosi yuz berdi')
+        setError(result?.error?.message || 'Ro\'yxatdan o\'tish xatosi yuz berdi')
       }
     } catch (err) {
       setError('Noma\'lum xatolik yuz berdi. Iltimos, qayta urinib ko\'ring.')
