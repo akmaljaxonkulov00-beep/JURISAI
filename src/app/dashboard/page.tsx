@@ -77,6 +77,20 @@ export default function Dashboard() {
     }
   }, [user, isLoading, router]);
 
+  // ⚠️ ALL hooks MUST be before any early return — React Rules of Hooks
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setProfileImage(localStorage.getItem('profile_image'));
+    }
+    if (user) {
+      loadUserStats();
+    }
+  }, [user]);
+
+  const handleNavigation = (href: string) => {
+    router.push(href);
+  };
+
   if (isLoading || !user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-100 flex items-center justify-center">
@@ -87,26 +101,6 @@ export default function Dashboard() {
       </div>
     );
   }
-
-  const handleNavigation = (href: string) => {
-    router.push(href);
-  };
-
-  useEffect(() => {
-    setProfileImage(localStorage.getItem('profile_image'));
-    console.log('Dashboard useEffect - user:', user);
-    console.log('Environment variables:', {
-      NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'SET' : 'NOT SET'
-    });
-
-    if (user) {
-      loadUserStats();
-    } else {
-      // If no user, stop loading
-      setLoading(false);
-    }
-  }, [user]);
 
   const loadUserStats = async () => {
     try {
