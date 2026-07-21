@@ -51,7 +51,7 @@ export default function DecisionTreeEngine() {
         children: [
           {
             id: 'g_alaba',
-            label: 'G\'alaba',
+            label: "G'alaba",
             type: 'outcome',
             x: 100,
             y: 250,
@@ -89,7 +89,7 @@ export default function DecisionTreeEngine() {
           },
           {
             id: 'maglubiyat',
-            label: 'Mag\'lubiyat',
+            label: "Mag'lubiyat",
             type: 'outcome',
             x: 700,
             y: 250,
@@ -223,7 +223,7 @@ export default function DecisionTreeEngine() {
         <div className="w-64 bg-white dark:bg-zinc-900 border-r border-gray-100 dark:border-zinc-800 min-h-screen">
           <div className="p-6">
             {/* Daily Goal Block */}
-            <div className="bg-orange-50 rounded-xl p-4 mb-6">
+            <div className="bg-orange-50 dark:bg-orange-900/30 rounded-xl p-4 mb-6">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <Target className="w-5 h-5 text-orange-600" />
@@ -244,9 +244,9 @@ export default function DecisionTreeEngine() {
                 <ArrowLeft className="w-5 h-5" />
                 <span>Orqaga</span>
               </a>
-              <div className="flex items-center gap-3 px-3 py-2 bg-blue-50 text-blue-600 rounded-lg">
+              <div className="flex items-center gap-3 px-3 py-2 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg">
                 <GitBranch className="w-5 h-5" />
-                <span className="font-medium">Decision Tree</span>
+                <span className="font-medium">Qarorlar Daraxti</span>
               </div>
             </nav>
           </div>
@@ -258,7 +258,7 @@ export default function DecisionTreeEngine() {
           <header className="bg-white dark:bg-zinc-900 px-8 py-4 border-b border-gray-100 dark:border-zinc-800">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-gray-800 dark:text-zinc-100">Decision Tree Engine</h1>
+                <h1 className="text-2xl font-bold text-gray-800 dark:text-zinc-100">Qarorlar Daraxti Dvigateli</h1>
                 <p className="text-sm text-gray-600 dark:text-zinc-300">Qarorlar daraxti - Vizual strategiya xaritasi</p>
               </div>
               <div className="flex items-center gap-4">
@@ -306,7 +306,7 @@ export default function DecisionTreeEngine() {
                 >
                   <ArrowRight className="w-4 h-4" />
                 </button>
-                <span className="text-sm text-gray-500 dark:text-zinc-400 ml-2">Zoom: {Math.round(zoom * 100)}%</span>
+                <span className="text-sm text-gray-500 dark:text-zinc-400 ml-2">Masshtab: {Math.round(zoom * 100)}%</span>
               </div>
               
               {/* Legend */}
@@ -354,7 +354,7 @@ export default function DecisionTreeEngine() {
 
                   {/* Selected Node Info */}
                   {selectedNode && (
-                    <div className="mt-4 p-4 bg-blue-50 rounded-xl">
+                    <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/30 rounded-xl">
                       <h3 className="font-semibold text-blue-800 mb-2">Tanlangan nuqta ma'lumotlari</h3>
                       <p className="text-sm text-blue-700">
                         {selectedNode === 'root' && 'Boshlang\'ich nuqta - Shartnoma buzilishi holati'}
@@ -427,7 +427,7 @@ export default function DecisionTreeEngine() {
                   <div className="bg-white dark:bg-zinc-900 rounded-2xl p-4 shadow-sm">
                     <h3 className="font-semibold text-gray-800 dark:text-zinc-100 mb-4">Tavsiyalar</h3>
                     <div className="space-y-3">
-                      <div className="bg-green-50 rounded-lg p-3">
+                      <div className="bg-green-50 dark:bg-green-900/30 rounded-lg p-3">
                         <div className="flex items-center gap-2 mb-2">
                           <TrendingUp className="w-4 h-4 text-green-600" />
                           <span className="text-sm font-medium text-green-800">Optimal yo'l</span>
@@ -436,7 +436,7 @@ export default function DecisionTreeEngine() {
                           Muzokara o'tkazish - eng yuqori muvaffaqiyat ehtimoli (85%) va eng past xavf
                         </p>
                       </div>
-                      <div className="bg-yellow-50 rounded-lg p-3">
+                      <div className="bg-yellow-50 dark:bg-yellow-900/30 rounded-lg p-3">
                         <div className="flex items-center gap-2 mb-2">
                           <Info className="w-4 h-4 text-yellow-600" />
                           <span className="text-sm font-medium text-yellow-800">Eslatma</span>

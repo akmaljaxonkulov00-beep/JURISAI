@@ -48,7 +48,7 @@ export default function ProTools() {
       name: 'Case kuzatuv',
       icon: <Clock className="w-6 h-6" />,
       description: 'Case holatini kuzatib borish',
-      color: 'bg-red-100 text-red-600',
+      color: 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400',
       category: 'Kuzatuv'
     },
     {
@@ -56,7 +56,7 @@ export default function ProTools() {
       name: 'Muddat kuzatgichi',
       icon: <Target className="w-6 h-6" />,
       description: 'Muhim muddatlarni eslatish',
-      color: 'bg-yellow-100 text-yellow-600',
+      color: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400',
       category: 'Eslatma'
     }
   ];
@@ -128,7 +128,7 @@ export default function ProTools() {
           <Card key={index} className="hover:shadow-lg transition-shadow">
             <CardHeader>
               <div className="flex items-center gap-3">
-                <div className="p-3 bg-blue-100 rounded-lg text-blue-600">
+                <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg text-blue-600 dark:text-blue-400">
                   {calc.icon}
                 </div>
                 <div>
@@ -221,7 +221,7 @@ export default function ProTools() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              <div className="p-3 bg-yellow-50 rounded-lg">
+              <div className="p-3 bg-yellow-50 dark:bg-yellow-900/30 rounded-lg">
                 <p className="text-sm text-yellow-800">
                   5-moddada da\'vachi ma\'lumotlari to\'liq kiritilmagan
                 </p>
@@ -279,7 +279,7 @@ export default function ProTools() {
                     Shartnoma tuzish tartibi
                   </p>
                 </div>
-                <Badge className="bg-green-100 text-green-800">Faol</Badge>
+                <Badge className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400">Faol</Badge>
               </div>
               <p className="text-gray-700 dark:text-zinc-200 mb-3">
                 Shartnoma - bu tomonlarning o\'zaro huquq va majburiyatlarni belgilovchi yozma kelishuv. 
@@ -324,7 +324,7 @@ export default function ProTools() {
               <Wrench className="w-8 h-8" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold mb-2">Professional Tools</h1>
+              <h1 className="text-3xl font-bold mb-2">Professional Asboblar</h1>
               <p className="text-white/90">Huquqchilar uchun maxsus asboblar</p>
             </div>
           </div>
@@ -403,7 +403,7 @@ export default function ProTools() {
             <Card className="hover:shadow-lg transition-shadow cursor-pointer">
               <CardContent className="p-6">
                 <div className="flex items-center mb-4">
-                  <div className="p-2 bg-green-100 rounded-lg mr-3">
+                  <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg mr-3">
                     <BookOpen className="w-5 h-5 text-green-600" />
                   </div>
                   <h3 className="font-semibold text-gray-900">Qo\'llanmalar</h3>
@@ -420,7 +420,7 @@ export default function ProTools() {
             <Card className="hover:shadow-lg transition-shadow cursor-pointer">
               <CardContent className="p-6">
                 <div className="flex items-center mb-4">
-                  <div className="p-2 bg-purple-100 rounded-lg mr-3">
+                  <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg mr-3">
                     <Settings className="w-5 h-5 text-purple-600" />
                   </div>
                   <h3 className="font-semibold text-gray-900">Sozlamalar</h3>
@@ -437,7 +437,7 @@ export default function ProTools() {
             <Card className="hover:shadow-lg transition-shadow cursor-pointer">
               <CardContent className="p-6">
                 <div className="flex items-center mb-4">
-                  <div className="p-2 bg-orange-100 rounded-lg mr-3">
+                  <div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg mr-3">
                     <Zap className="w-5 h-5 text-orange-600" />
                   </div>
                   <h3 className="font-semibold text-gray-900">AI yordamchi</h3>

@@ -142,13 +142,13 @@ export default function Dashboard() {
       items: [
         {
           id: 'case-solver',
-          label: 'Case Solver',
+          label: 'IRAC Huquqiy Tahlil',
           icon: Scale,
           href: '/irac'
         },
         {
           id: 'decision-tree',
-          label: 'Decision Tree',
+          label: 'Qarorlar Daraxti',
           icon: Brain,
           href: '/decision-tree'
         },
@@ -177,13 +177,13 @@ export default function Dashboard() {
         },
         {
           id: 'pro-tools',
-          label: 'Pro Tools',
+          label: 'Asboblar',
           icon: Wrench,
           href: '/pro-tools'
         },
         {
           id: 'ai-chat',
-          label: 'AI Chat Assistant',
+          label: 'AI Yordamchi',
           icon: MessageSquare,
           href: '/ai-chat'
         },
@@ -264,7 +264,7 @@ export default function Dashboard() {
             </div>
             <div className="flex-1">
               <h3 className="font-bold text-gray-900 dark:text-white text-lg group-hover:text-blue-600 transition-colors">{user?.name || 'User'}</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">{userStats?.rank || 'Legal Practitioner'}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{userStats?.rank || 'Huquqshunos'}</p>
               <div className="flex items-center mt-2">
                 <div className="flex-1 bg-gray-100 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
                   <div
@@ -288,7 +288,7 @@ export default function Dashboard() {
           </div>
           <div className="text-center p-3 bg-emerald-50/50 rounded-xl hover:bg-emerald-50 transition-colors">
             <div className="text-2xl font-bold text-emerald-600">{userStats?.weeklyProgress || 0}%</div>
-            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Weekly Goal</div>
+            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Haftalik maqsad</div>
           </div>
         </div>
       </div>
@@ -368,7 +368,7 @@ export default function Dashboard() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-secondary font-medium mb-1">Current Level</p>
+                <p className="text-xs text-secondary font-medium mb-1">Joriy daraja</p>
                 <p className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">{userStats?.level || 1}</p>
                 <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{userStats?.rank || 'Beginner'}</p>
               </div>
@@ -383,7 +383,7 @@ export default function Dashboard() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-secondary font-medium mb-1">Total XP</p>
+                <p className="text-xs text-secondary font-medium mb-1">Umumiy XP</p>
                 <p className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-orange-400 bg-clip-text text-transparent">{userStats?.xp || 0}</p>
                 <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">+250 this week</p>
               </div>
@@ -398,7 +398,7 @@ export default function Dashboard() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-secondary font-medium mb-1">Success Rate</p>
+                <p className="text-xs text-secondary font-medium mb-1">Muvaffaqiyat</p>
                 <p className="text-3xl font-bold text-emerald-600">
                   {Math.round(((userStats?.completedCases || 0) / (userStats?.totalCases || 1)) * 100)}%
                 </p>
@@ -415,7 +415,7 @@ export default function Dashboard() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-secondary font-medium mb-1">Study Streak</p>
+                <p className="text-xs text-secondary font-medium mb-1">O'qish zanjiri</p>
                 <p className="text-3xl font-bold text-orange-600">7</p>
                 <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Days in a row</p>
               </div>

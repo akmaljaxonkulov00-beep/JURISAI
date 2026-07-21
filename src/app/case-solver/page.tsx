@@ -16,7 +16,7 @@ interface CaseData {
   id: string;
   title: string;
   description: string;
-  difficulty: 'Boshlang\'ich' | 'O\'rta' | 'Yuqori';
+  difficulty: "Boshlang'ich" | 'O\'rta' | 'Yuqori';
   category: string;
   facts: string;
 }
@@ -33,7 +33,7 @@ export default function CaseSolver() {
     id: 'case_001',
     title: 'Jinoyat ishi №245',
     description: 'O\'g\'irlik holati bo\'yicha',
-    difficulty: 'O\'rta',
+    difficulty: "O'rta",
     category: 'Jinoyat huquqi',
     facts: '2024-yil 15-mart kuni Toshkent shahar, Yunusobod tumanida yashovchi 25 yoshli A.A. Karimov, "Mega Market" do\'koniga kirib, 10 million so\'m miqdoridagi naqd pulni olib qochib ketgan. Do\'kon xodimlari politsiyaga xabar bergan. Karimov 2 kundan keyin qo\'lga olingan. U jinoyatni tan olgan va o\'g\'rilgan pulning 7 million so\'mini qaytarib bergan.'
   };
@@ -41,7 +41,7 @@ export default function CaseSolver() {
   const steps: CaseStep[] = [
     {
       id: 'issue',
-      title: 'Issue (Muammo)',
+      title: 'Muammo (Huquqiy masala)',
       description: 'Asosiy huquqiy nizoni aniqlang',
       icon: <Target className="w-5 h-5" />,
       question: 'Ushbu holatdagi asosiy huquqiy muammo nimadan iborat?',
@@ -49,7 +49,7 @@ export default function CaseSolver() {
     },
     {
       id: 'rule',
-      title: 'Rule (Qoida)',
+      title: 'Qoida (Qonunchilik moddasi)',
       description: 'Tegishli qonun normasini ko\'rsating',
       icon: <Scale className="w-5 h-5" />,
       question: 'Ushbu muammoni hal qilish uchun qaysi qonun, kodeks yoki modda ishlatiladi?',
@@ -57,7 +57,7 @@ export default function CaseSolver() {
     },
     {
       id: 'application',
-      title: 'Application (Tatbiq)',
+      title: "Qo'llash (Vaziyat tahlili)",
       description: 'Qonunni faktlarga bog\'lang',
       icon: <FileText className="w-5 h-5" />,
       question: 'Nega aynan bu qonun berilgan vaziyatga to\'g\'ri keladi?',
@@ -65,7 +65,7 @@ export default function CaseSolver() {
     },
     {
       id: 'conclusion',
-      title: 'Conclusion (Xulosa)',
+      title: 'Xulosa (Yakuniy pozitsiya)',
       description: 'Yakuniy hukm chiqaring',
       icon: <Award className="w-5 h-5" />,
       question: 'Tahlilingiz asosida yakuniy xulosani yozing',
@@ -311,7 +311,7 @@ export default function CaseSolver() {
         <div className="w-64 bg-white dark:bg-zinc-900 border-r border-gray-100 dark:border-zinc-800 min-h-screen">
           <div className="p-6">
             {/* Daily Goal Block */}
-            <div className="bg-orange-50 rounded-xl p-4 mb-6">
+            <div className="bg-orange-50 dark:bg-orange-900/30 rounded-xl p-4 mb-6">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <Target className="w-5 h-5 text-orange-600" />
@@ -332,9 +332,9 @@ export default function CaseSolver() {
                 <ArrowLeft className="w-5 h-5" />
                 <span>Orqaga</span>
               </div>
-              <div className="flex items-center gap-3 px-3 py-2 bg-blue-50 text-blue-600 rounded-lg">
+              <div className="flex items-center gap-3 px-3 py-2 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg">
                 <Scale className="w-5 h-5" />
-                <span className="font-medium">Case Solver</span>
+                <span className="font-medium">IRAC Huquqiy Tahlil</span>
               </div>
             </nav>
           </div>
@@ -346,14 +346,14 @@ export default function CaseSolver() {
           <header className="bg-white dark:bg-zinc-900 px-8 py-4 border-b border-gray-100 dark:border-zinc-800">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-gray-800 dark:text-zinc-100">Case Solver</h1>
+                <h1 className="text-2xl font-bold text-gray-800 dark:text-zinc-100">IRAC Huquqiy Tahlil</h1>
                 <p className="text-sm text-gray-600 dark:text-zinc-300">IRAC metodikasi bilan huquqiy tahlil</p>
               </div>
               <div className="flex items-center gap-4">
                 <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                  currentCase.difficulty === 'Boshlang\'ich' ? 'bg-green-100 text-green-700' :
-                  currentCase.difficulty === 'O\'rta' ? 'bg-yellow-100 text-yellow-700' :
-                  'bg-red-100 text-red-700'
+                  currentCase.difficulty === 'Boshlang\'ich' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' :
+                  currentCase.difficulty === 'O\'rta' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400' :
+                  'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
                 }`}>
                   {currentCase.difficulty}
                 </span>
@@ -394,8 +394,8 @@ export default function CaseSolver() {
                           index === currentStep 
                             ? 'bg-blue-50 text-blue-600 border border-blue-200' 
                             : index < currentStep 
-                            ? 'bg-green-50 text-green-600 border border-green-200'
-                            : 'bg-gray-50 dark:bg-zinc-800/50 text-gray-600 dark:text-zinc-300 hover:bg-gray-100 dark:bg-zinc-800'
+                            ? 'bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 border border-green-200 dark:border-green-800'
+                            : 'bg-gray-50 dark:bg-zinc-800/50 text-gray-600 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-700'
                         }`}
                       >
                         <div className="flex items-center gap-2 mb-1">
@@ -521,7 +521,7 @@ export default function CaseSolver() {
                   
                   {showAdvice ? (
                     <div className="space-y-3">
-                      <div className="bg-yellow-50 rounded-lg p-3">
+                      <div className="bg-yellow-50 dark:bg-yellow-900/30 rounded-lg p-3">
                         <h4 className="font-medium text-yellow-800 mb-2">Qanday yondashish kerak:</h4>
                         <ul className="space-y-2 text-sm text-yellow-700">
                           {adviceHints[steps[currentStep].id as keyof typeof adviceHints].map((hint, index) => (
@@ -533,7 +533,7 @@ export default function CaseSolver() {
                         </ul>
                       </div>
                       
-                      <div className="bg-blue-50 rounded-lg p-3">
+                      <div className="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-3">
                         <h4 className="font-medium text-blue-800 mb-2">Esda tutish:</h4>
                         <ul className="space-y-1 text-sm text-blue-700">
                           <li>• Aniq va aniq yozing</li>
