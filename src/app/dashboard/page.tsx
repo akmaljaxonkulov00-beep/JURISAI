@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Progress } from '@/components/ui/Progress';
 import { useAuth } from '@/app/providers';
 import { api } from '@/services/api';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -63,9 +64,27 @@ interface Activity {
 }
 
 export default function Dashboard() {
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
   const router = useRouter();
   const [activeSection, setActiveSection] = useState('overview');
+
+  // Auth guard - tizimga kirmagan foydalanuvchini signin sahifasiga yo'naltirish
+  useEffect(() => {
+    if (!isLoading && !user) {
+      router.replace('/signin');
+    }
+  }, [user, isLoading, router]);
+
+  if (isLoading || !user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Yuklanmoqda...</p>
+        </div>
+      </div>
+    );
+  }
   const [userStats, setUserStats] = useState<UserStats | null>(null);
   const [loading, setLoading] = useState(true);
 

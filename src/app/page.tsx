@@ -2,14 +2,26 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/app/providers';
 
 export default function HomePage() {
   const router = useRouter();
+  const { user, isLoading, isAdmin } = useAuth();
 
   useEffect(() => {
-    // Asosiy sahifa sifatida Dashboardni yo'naltirish
-    router.replace('/dashboard');
-  }, [router]);
+    if (isLoading) return;
+    
+    if (!user) {
+      // Tizimga kirmagan → signin sahifasiga yo'naltirish
+      router.replace('/signin');
+    } else if (isAdmin) {
+      // Admin bo'lsa → admin panelga yo'naltirish
+      router.replace('/admin');
+    } else {
+      // Oddiy foydalanuvchi → dashboardga yo'naltirish
+      router.replace('/dashboard');
+    }
+  }, [user, isLoading, isAdmin, router]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex items-center justify-center">

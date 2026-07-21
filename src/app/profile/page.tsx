@@ -8,6 +8,7 @@ import {
   Smartphone, Monitor, Download, Trash2, CreditCard, History,
   Search, X, Eye, EyeOff, Key, LogOut, Database, AlertTriangle
 } from 'lucide-react';
+import { useTheme } from '@/context/ThemeContext';
 
 interface UserProfile {
   id: string;
@@ -37,6 +38,7 @@ interface NotificationSettings {
 }
 
 export default function Profile() {
+  const { dark: themeDark, toggle: toggleTheme } = useTheme();
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'settings' | 'help' | 'premium'>('overview');
   const [settingsSubTab, setSettingsSubTab] = useState<'personal' | 'notifications' | 'appearance' | 'security' | 'data'>('personal');
@@ -93,12 +95,7 @@ export default function Profile() {
     caseReminders: true,
     weeklyReport: true
   });
-  const [darkMode, setDarkMode] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return document.documentElement.classList.contains('dark') || localStorage.getItem('jurisai-theme') === 'dark';
-    }
-    return false;
-  });
+  const [darkMode, setDarkMode] = useState(themeDark);
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [passwordData, setPasswordData] = useState({ current: '', newPass: '', confirm: '' });
   const [showCurrentPass, setShowCurrentPass] = useState(false);
@@ -150,12 +147,9 @@ export default function Profile() {
   const handleSaveSettings = () => {
     setSettingsSaved(true);
     setTimeout(() => setSettingsSaved(false), 2000);
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('jurisai-theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('jurisai-theme', 'light');
+    // Sync with ThemeContext
+    if (darkMode !== themeDark) {
+      toggleTheme();
     }
   };
 
@@ -400,7 +394,7 @@ export default function Profile() {
                   <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-3">Mavzu</label>
                   <div className="flex gap-3">
                     <button
-                      onClick={() => { setDarkMode(false); document.documentElement.classList.remove('dark'); }}
+                      onClick={() => { setDarkMode(false); if (themeDark) toggleTheme(); }}
                       className={`flex-1 flex items-center justify-center gap-2 p-4 rounded-xl border-2 transition-all ${
                         !darkMode ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-gray-200 dark:border-gray-600 hover:border-gray-300'
                       }`}
@@ -409,7 +403,7 @@ export default function Profile() {
                       <span className="font-medium text-gray-800 dark:text-white">Yorug'</span>
                     </button>
                     <button
-                      onClick={() => { setDarkMode(true); document.documentElement.classList.add('dark'); }}
+                      onClick={() => { setDarkMode(true); if (!themeDark) toggleTheme(); }}
                       className={`flex-1 flex items-center justify-center gap-2 p-4 rounded-xl border-2 transition-all ${
                         darkMode ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-gray-200 dark:border-gray-600 hover:border-gray-300'
                       }`}
