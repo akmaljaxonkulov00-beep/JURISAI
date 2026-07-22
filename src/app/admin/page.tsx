@@ -113,8 +113,14 @@ export default function AdminDashboard() {
   // ===== ADMIN AUTH =====
   const handleAdminLogin = async () => {
     setAdminAuthError('');
-    if (authEmail === SUPER_ADMIN_EMAIL && authPassword === SUPER_ADMIN_PASS) {
-      // Hardcoded super admin - force admin role
+    
+    // Trim and normalize inputs for comparison
+    const normalizedEmail = authEmail.trim().toLowerCase();
+    const normalizedPass = authPassword.trim();
+    const superEmail = SUPER_ADMIN_EMAIL.trim().toLowerCase();
+    
+    if (normalizedEmail === superEmail && normalizedPass === SUPER_ADMIN_PASS) {
+      // Hardcoded super admin - force admin role (bypasses all Firebase checks)
       const adminData = {
         id: 'super-admin',
         email: SUPER_ADMIN_EMAIL,
@@ -129,18 +135,26 @@ export default function AdminDashboard() {
       sessionStorage.setItem('jurisai_user', JSON.stringify(adminData));
       sessionStorage.setItem('auth_token', 'super-admin');
       localStorage.setItem('jurisai_admin_email', SUPER_ADMIN_EMAIL);
+      
       setAdminUser(adminData);
       setAdminAuthError('');
+    } else if (normalizedEmail === superEmail && normalizedPass !== SUPER_ADMIN_PASS) {
+      // Correct email but wrong password — never show password in error messages!
+      setAdminAuthError('Parol noto\'g\'ri. Iltimos, qayta urinib ko\'ring yoki administratorga murojaat qiling.');
     } else {
       // Try Firebase auth
-      const result = await login(authEmail, authPassword);
-      if (result.success) {
-        if (authEmail === SUPER_ADMIN_EMAIL) {
-          localStorage.setItem('jurisai_admin_email', SUPER_ADMIN_EMAIL);
+      try {
+        const result = await login(normalizedEmail, normalizedPass);
+        if (result.success) {
+          if (normalizedEmail === superEmail) {
+            localStorage.setItem('jurisai_admin_email', SUPER_ADMIN_EMAIL);
+          }
+          setAdminAuthError('');
+        } else {
+          setAdminAuthError(result.error || 'Email yoki parol noto\'g\'ri');
         }
-        setAdminAuthError('');
-      } else {
-        setAdminAuthError(result.error || 'Email yoki parol noto\'g\'ri');
+      } catch {
+        setAdminAuthError('Tizimga kirishda xatolik yuz berdi. Iltimos, qayta urinib ko\'ring.');
       }
     }
   };

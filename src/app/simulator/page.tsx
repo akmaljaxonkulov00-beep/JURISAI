@@ -433,15 +433,18 @@ export default function Simulator() {
 
                   {selectedSim === sim.id && (
                     <div className="space-y-2 mt-2">
-                      <p className="text-sm font-semibold text-gray-700 dark:text-zinc-200">Rolni tanlang:</p>
+                      <p className="text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>Rolni tanlang:</p>
                       {sim.roles.map(role => (
                         <button
                           key={role.id}
                           onClick={e => { e.stopPropagation(); startSimulation(sim.id, role.name); }}
-                          className="w-full text-left p-3 bg-white dark:bg-zinc-900 rounded-lg border border-gray-200 dark:border-zinc-700 hover:border-blue-400 hover:bg-blue-50 transition-all"
+                          className="w-full text-left p-3 rounded-lg border transition-all"
+                          style={{ background: 'var(--card-bg)', borderColor: 'var(--card-border)', color: 'var(--text-primary)' }}
+                          onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--hover-bg)'; e.currentTarget.style.borderColor = 'var(--primary)'; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--card-bg)'; e.currentTarget.style.borderColor = 'var(--card-border)'; }}
                         >
-                          <p className="font-medium text-gray-800 dark:text-zinc-100 text-sm">{role.name}</p>
-                          <p className="text-xs text-gray-500 dark:text-zinc-400">{role.description}</p>
+                          <p className="font-medium text-sm" style={{ color: 'var(--text-primary)' }}>{role.name}</p>
+                          <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{role.description}</p>
                         </button>
                       ))}
                     </div>
