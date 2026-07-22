@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+const GROQ_API_KEY = process.env.GROQ_API_KEY || process.env.NEXT_PUBLIC_GROQ_API_KEY;
+
 // Text-to-Speech (TTS) - Matnni ovozga aylantirish
 export async function POST(request: NextRequest) {
   try {
@@ -44,18 +46,54 @@ async function textToSpeech(text: string) {
 
 async function speechToText(audioData: string) {
   try {
-    // Hozircha browser'ning Web Speech API ni ishlatamiz
-    // Kelajakda Whisper API yoki Google STT integratsiya qilish mumkin
-    
+    // Use Groq Whisper-compatible model for high-accuracy Uzbek STT
+    if (GROQ_API_KEY && audioData) {
+      const response = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${GROQ_API_KEY}`,
+        },
+        body: (() => {
+          // Convert base64 to blob and send as form data
+          const binaryStr = atob(audioData.split(',')[1] || audioData);
+          const bytes = new Uint8Array(binaryStr.length);
+          for (let i = 0; i < binaryStr.length; i++) {
+            bytes[i] = binaryStr.charCodeAt(i);
+          }
+          const blob = new Blob([bytes], { type: 'audio/webm' });
+          const formData = new FormData();
+          formData.append('file', blob, 'audio.webm');
+          formData.append('model', 'whisper-large-v3');
+          formData.append('language', 'uz');
+          formData.append('response_format', 'json');
+          return formData;
+        })(),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        return NextResponse.json({
+          success: true,
+          text: result.text,
+          confidence: result.segments?.[0]?.confidence || 0.9,
+          message: 'Groq Whisper STT'
+        });
+      }
+    }
+
+    // Fallback: browser Web Speech API instructions
     return NextResponse.json({
       success: true,
-      text: 'Speech recognition...', // Browser STT ishlatiladi
-      confidence: 0.9,
-      message: 'Browser STT ishlatiladi'
+      text: null,
+      confidence: 0,
+      message: 'Web Speech API ishlatilsin — frontend uz-UZ tilida',
+      use_browser_stt: true,
+      language: 'uz-UZ'
     });
   } catch (error: any) {
+    console.error('STT error:', error);
     return NextResponse.json(
-      { error: error.message || 'STT failed' },
+      { error: error.message || 'STT xatosi', use_browser_stt: true, language: 'uz-UZ' },
       { status: 500 }
     );
   }

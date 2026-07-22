@@ -27,10 +27,10 @@ class AuthService {
   private user: User | null = null;
 
   private constructor() {
-    // Initialize from localStorage
+    // Initialize from sessionStorage (auto-logout on tab close)
     if (typeof window !== 'undefined') {
-      this.token = localStorage.getItem('auth_token');
-      const storedUser = localStorage.getItem('auth_user');
+      this.token = sessionStorage.getItem('auth_token');
+      const storedUser = sessionStorage.getItem('auth_user');
       if (storedUser) {
         this.user = JSON.parse(storedUser);
       }
@@ -116,10 +116,10 @@ class AuthService {
 
         this.token = data.session?.access_token || null;
         
-        // Save to localStorage
+        // Save to sessionStorage (closing browser = auto logout)
         if (typeof window !== 'undefined') {
-          localStorage.setItem('auth_token', this.token || '');
-          localStorage.setItem('auth_user', JSON.stringify(this.user));
+          sessionStorage.setItem('auth_token', this.token || '');
+          sessionStorage.setItem('auth_user', JSON.stringify(this.user));
         }
 
         return true;
@@ -196,10 +196,10 @@ class AuthService {
     this.token = null;
     this.user = null;
 
-    // Clear localStorage
+    // Clear sessionStorage
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('auth_user');
+      sessionStorage.removeItem('auth_token');
+      sessionStorage.removeItem('auth_user');
     }
   }
 
@@ -221,9 +221,9 @@ class AuthService {
       // Update local user data
       this.user = { ...this.user, ...updates };
       
-      // Save to localStorage
+      // Save to sessionStorage
       if (typeof window !== 'undefined') {
-        localStorage.setItem('auth_user', JSON.stringify(this.user));
+        sessionStorage.setItem('auth_user', JSON.stringify(this.user));
       }
 
       return true;

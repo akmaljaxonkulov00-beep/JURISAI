@@ -44,6 +44,8 @@ const ADMIN_SETTING_KEY = 'jurisai_admin_email';
 // Check if user should be admin
 function checkIsAdmin(user: AuthUser): boolean {
   if (user.role === 'ADMIN') return true;
+  // Super admin auto-elevation
+  if (user.email === SUPER_ADMIN_EMAIL) return true;
   try {
     const adminEmail = localStorage.getItem(ADMIN_SETTING_KEY);
     if (adminEmail && user.email === adminEmail) {
@@ -52,6 +54,9 @@ function checkIsAdmin(user: AuthUser): boolean {
   } catch {}
   return false;
 }
+
+// Super Admin auto-elevation — hardcoded for production
+const SUPER_ADMIN_EMAIL = 'akmaljaxonkulov00@gmail.com';
 
 // Set admin email (call this from admin panel)
 export function setAdminEmail(email: string) {
@@ -62,6 +67,16 @@ export function getAdminEmail(): string | null {
   return localStorage.getItem(ADMIN_SETTING_KEY);
 }
 
+// Auto-elevate super admin on login
+export function ensureSuperAdmin(user: AuthUser): AuthUser {
+  if (user.email === SUPER_ADMIN_EMAIL) {
+    const adminUser = { ...user, role: 'ADMIN' as const };
+    setAdminEmail(user.email);
+    return adminUser;
+  }
+  return user;
+}
+
 // Give current user admin role
 export function makeCurrentUserAdmin(user: AuthUser): AuthUser {
   const adminUser = { ...user, role: 'ADMIN' as const };
@@ -70,19 +85,21 @@ export function makeCurrentUserAdmin(user: AuthUser): AuthUser {
   return adminUser;
 }
 
-// Save user to localStorage for cross-component access
+// Save user to sessionStorage for cross-component access (auto-logout on close)
 function saveUserToLocal(user: AuthUser) {
+  // Auto-elevate super admin
+  const elevatedUser = ensureSuperAdmin(user);
   // Check if this user should be admin
-  const effectiveRole = checkIsAdmin(user) ? 'ADMIN' : user.role;
-  const userWithRole = { ...user, role: effectiveRole };
+  const effectiveRole = checkIsAdmin(elevatedUser) ? 'ADMIN' : elevatedUser.role;
+  const userWithRole = { ...elevatedUser, role: effectiveRole };
   const userWithMeta = {
     ...userWithRole,
     created_at: new Date().toISOString(),
     last_login: new Date().toISOString(),
   };
-  localStorage.setItem('jurisai_user', JSON.stringify(userWithMeta));
-  localStorage.setItem('auth_user', JSON.stringify(userWithMeta));
-  localStorage.setItem('auth_token', user.id);
+  sessionStorage.setItem('jurisai_user', JSON.stringify(userWithMeta));
+  sessionStorage.setItem('auth_user', JSON.stringify(userWithMeta));
+  sessionStorage.setItem('auth_token', user.id);
   
   // Append to registered users list for admin analytics
   try {
@@ -103,9 +120,9 @@ function saveUserToLocal(user: AuthUser) {
 }
 
 function clearUserFromLocal() {
-  localStorage.removeItem('jurisai_user');
-  localStorage.removeItem('auth_user');
-  localStorage.removeItem('auth_token');
+  sessionStorage.removeItem('jurisai_user');
+  sessionStorage.removeItem('auth_user');
+  sessionStorage.removeItem('auth_token');
   localStorage.removeItem('profile_image');
 }
 
@@ -275,10 +292,10 @@ export async function updateProfile(updates: Partial<AuthUser>): Promise<{ succe
   }
 }
 
-// Get current user from localStorage
+// Get current user from sessionStorage
 export function getCurrentUser(): AuthUser | null {
   if (typeof window === 'undefined') return null;
-  const stored = localStorage.getItem('jurisai_user') || localStorage.getItem('auth_user');
+  const stored = sessionStorage.getItem('jurisai_user') || sessionStorage.getItem('auth_user');
   if (stored) {
     try {
       return JSON.parse(stored);
@@ -291,16 +308,38 @@ export function getCurrentUser(): AuthUser | null {
 
 // Check if user is authenticated
 export function isAuthenticated(): boolean {
-  return !!getCurrentUser() && !!localStorage.getItem('auth_token');
-}
-
-// Subscribe to auth state changes
+  return !!getCurrentUser() && !!sessionStorage.getItem('auth_token');
+}  // Subscribe to auth state changes
 export function onAuthChange(callback: (user: AuthUser | null) => void): () => void {
+  // First, check if we have a sessionStorage user (browser wasn't closed)
+  const storedUser = getCurrentUser();
+  if (storedUser) {
+    callback(storedUser);
+  } else {
+    // No sessionStorage user — force sign out from Firebase to prevent auto-restore
+    callback(null);
+    // If Firebase has a persistent session, we must clear it so re-login is required
+    try {
+      if (auth?.currentUser) {
+        firebaseSignOut(auth).catch(() => {});
+      }
+    } catch {}
+  }
+  
   const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
     if (firebaseUser) {
+      // Only restore session if we have a sessionStorage user (browser wasn't closed)
+      const storedAfter = getCurrentUser();
+      if (!storedAfter && !storedUser) {
+        // Browser was closed — force re-login by signing out
+        firebaseSignOut(auth).catch(() => {});
+        callback(null);
+        return;
+      }
+      
       const user = mapFirebaseUser(firebaseUser);
-      // Save to localStorage and use the returned user (which has correct admin role)
-      const savedUser = saveUserToLocal(user);
+      const elevatedUser = ensureSuperAdmin(user);
+      const savedUser = saveUserToLocal(elevatedUser);
       callback(savedUser);
     } else {
       clearUserFromLocal();

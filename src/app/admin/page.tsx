@@ -119,11 +119,15 @@ export default function AdminDashboard() {
         id: 'super-admin',
         email: SUPER_ADMIN_EMAIL,
         name: 'Super Admin',
-        role: 'ADMIN',
+        role: 'ADMIN' as const,
         subscription_plan: 'pro',
       };
+      // Save to both localStorage (legacy) and sessionStorage (auto-logout)
       localStorage.setItem('auth_user', JSON.stringify(adminData));
+      sessionStorage.setItem('auth_user', JSON.stringify(adminData));
       localStorage.setItem('jurisai_user', JSON.stringify(adminData));
+      sessionStorage.setItem('jurisai_user', JSON.stringify(adminData));
+      sessionStorage.setItem('auth_token', 'super-admin');
       localStorage.setItem('jurisai_admin_email', SUPER_ADMIN_EMAIL);
       setAdminUser(adminData);
       setAdminAuthError('');

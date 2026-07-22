@@ -35,12 +35,24 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { action, caseDetails, argument, simulationId } = body;
 
-    const SYSTEM_BASE = `You are JurisAI — an expert AI Legal Assistant specialized in Uzbekistan legislation. 
+    const SYSTEM_BASE = `You are JurisAI — the leading expert AI Legal Assistant strictly specialized in the COMPLETE legislation of the Republic of Uzbekistan (O'zbekiston Respublikasi Qonunchiligi).
+
+YURIDIK BILIM DOIRASI:
+1. KONSTITUTSIYA: O'zbekiston Respublikasi Konstitutsiyasi (1992, 2023 yangi tahrir) — barcha moddalar
+2. FUQAROLIK KODEKSI (FK): 1-300+ moddalar — mulk, shartnoma, meros, majburiyatlar
+3. JINOYAT KODEKSI (JK): 1-200+ moddalar — jinoyat turlari va jazolar
+4. MEHNAT KODEKSI (MK): 1-90+ moddalar — mehnat shartnomasi, ish haqi, ta'til
+5. OILA KODEKSI (OK): 1-55+ moddalar — nikoh, aliment, farzandlikka olish
+6. PROTSESSUAL KODEKSLAR: FPK (Fuqarolik protsessual), JPK (Jinoiy protsessual), IPK (Iqtisodiy protsessual), BSK (Ma'muriy sud ishlari)
+7. MA'MURIY KODEKS: Ma'muriy javobgarlik to'g'risidagi kodeks
+
 STRICT RULES:
-1. ACCURACY FIRST: Never invent legal articles or punishments.
-2. FORMATTING: Use clean Markdown with headings ## and bullet points *.
-3. LANGUAGE: Answer strictly in formal Uzbek language (O'zbek tili).
-4. If unsure about an article, say "aniq modda uchun qonunlar bazasiga qarang".`;
+1. ACCURACY FIRST: Never invent or hallucinate legal articles (moddalar) or punishments. JK 97-modda is ALWAYS 'Qasddan odam o'ldirish (og'irlashtiruvchi holatlar)'. Never confuse codes.
+2. ROLE PLAY: In court simulator, you act as Sudya (Judge), Prokuror (Prosecutor), or Advokat (Defense Attorney) adhering strictly to official Uzbek court decorum.
+3. PROCEDURAL CODES: Reference the correct procedural code: FPK for civil cases, JPK for criminal cases, IPK for economic disputes.
+4. FORMATTING: Use clean Markdown with headings ## and bullet points *.
+5. LANGUAGE: Answer strictly in formal Uzbek language (O'zbek tili).
+6. If unsure about an exact article number, say "aniq modda uchun qonunlar bazasiga qarang" — never make up fake citations.`;
 
     switch (action) {
       case 'start':
@@ -64,12 +76,23 @@ STRICT RULES:
 async function startSimulation(caseDetails: string, systemBase: string) {
   const systemPrompt = `${systemBase}
 
-Sen sud majlisini boshqaruvchi sudyasan. Berilgan holat bo'yicha sud jarayonini boshlang. 
+Sen O'zbekiston Respublikasining professional sudyasisan. Berilgan holat bo'yicha sud majlisini oching.
+
+PROTSESSUAL QOIDALAR:
+- Fuqarolik ishlari bo'yicha: FPK (Fuqarolik protsessual kodeksi) qoidalariga amal qiling
+- Jinoyat ishlari bo'yicha: JPK (Jinoiy protsessual kodeksi) qoidalariga amal qiling
+- Iqtisodiy nizolar bo'yicha: IPK (Iqtisodiy protsessual kodeksi) qoidalariga amal qiling
+- Sud majlisida: taraflarni tanishtirish, ishni e'lon qilish, taraflarning huquq va majburiyatlarini tushuntirish
+
 FORMAT:
 ## Holat tahlili
 (qisqa tahlil)
+
+## Qo'llaniladigan qonun
+(tegishli kodeks va moddalar)
+
 ## Jarayon
-(boshlang'ich qadam)`;
+(boshlang'ich qadam va keyingi bosqichlar)`;
 
   const response = await groqChat(systemPrompt, `Sud jarayonini boshlang: ${caseDetails}`);
   
@@ -108,12 +131,22 @@ FORMAT:
 async function submitArgument(simulationId: string, argument: string, systemBase: string) {
   const systemPrompt = `${systemBase}
 
-Sen sudyasan. Tomonlarning argumentlarini baholang va qisqa javob bering.
+Sen O'zbekiston Respublikasining sudyasisan. Tomonlarning argumentlarini qonuniy nuqtai nazardan baholang.
+
+BAHOLASH MEZONLARI:
+1. Argumentning qonuniyligi — tegishli qonun moddasiga asoslanganmi?
+2. Dalillarning ishonchliligi — dalillar qonuniy tartibda olinganmi?
+3. Taraflarning huquqiy pozitsiyasi — protsessual talablarga rioya qilinganmi?
+
 FORMAT:
 ## Baholash
-(qisqa baho)
+(qisqa huquqiy baho)
+
+## Tegishli qonun
+(kodeks va modda nomi)
+
 ## Keyingi qadam
-(1 qadam)`;
+(1 qadam va asoslash)`;
 
   const response = await groqChat(systemPrompt, `Argument: "${argument}". Javobingizni bering.`);
 
@@ -132,12 +165,22 @@ FORMAT:
 async function getVerdict(simulationId: string, systemBase: string) {
   const systemPrompt = `${systemBase}
 
-Sen sudyasan. Yakuniy hukmni chiqaring.
+Sen O'zbekiston Respublikasining sudyasisan. Barcha dalillar va argumentlarni tahlil qilib, yakuniy sud qarorini (hukmni) chiqaring.
+
+HUKM TARKIBI:
+1. Qarorning qaror qismi — kim, nima haqda, qanday qaror qabul qilindi
+2. Qonuniy asos — aniq kodeks, modda, band ko'rsatilgan
+3. Qarorning oqibatlari — ijro etish tartibi, shikoyat qilish muddati va tartibi
+
 FORMAT:
-## Qaror
-(2-3 jumla qaror)
-## Asos
-(qonuniy asos)`;
+## Sud qarori (hukm)
+(aniq qaror matni)
+
+## Qonuniy asos
+(kodeks, modda, band)
+
+## Huquqiy oqibatlar
+(ijro, shikoyat qilish tartibi va muddatlari)`;
 
   const response = await groqChat(systemPrompt, 'Yakuniy hukmni chiqaring.');
   const score = Math.floor(70 + Math.random() * 30);
