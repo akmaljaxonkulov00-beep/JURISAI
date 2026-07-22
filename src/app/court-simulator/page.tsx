@@ -39,6 +39,8 @@ export default function CourtSimulatorPage() {
   // Ovoz (faqat foydalanuvchi gapiradi — STT)
   const [listening, setListening] = useState(false);
   const recRef = useRef<any>(null);
+  const listeningRef = useRef(false);
+  const silenceTimerRef = useRef<any>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -54,32 +56,61 @@ export default function CourtSimulatorPage() {
 
   const fmt = (s: number) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
 
-  // ── STT — ovoz bilan kiritish (faqat foydalanuvchi gapiradi) ──
+  // ── STT — uz-UZ, continuous, auto-restart, silence handling ──
+  const SILENCE_TIMEOUT_MS = 3000;
+  
   const startMic = () => {
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SR) { alert('Ovozli kiritish faqat Chrome yoki Edge brauzerida ishlaydi.'); return; }
     const r = new SR();
     recRef.current = r;
-    r.lang = 'ru-RU'; r.continuous = false; r.interimResults = true;
+    r.lang = 'uz-UZ';
+    r.continuous = true;
+    r.interimResults = true;
+    listeningRef.current = true;
     setListening(true);
     let buf = '';
+    
     r.onresult = (e: any) => {
+      if (silenceTimerRef.current) { clearTimeout(silenceTimerRef.current); silenceTimerRef.current = null; }
       for (let i = e.resultIndex; i < e.results.length; i++) {
         const t = e.results[i][0].transcript;
-        if (e.results[i].isFinal) { buf = t; setInput(t); }
-        else setInput(buf + t);
+        if (e.results[i].isFinal) {
+          buf = t;
+          const formatted = t.charAt(0).toUpperCase() + t.slice(1);
+          setInput(formatted);
+          silenceTimerRef.current = setTimeout(() => {}, SILENCE_TIMEOUT_MS);
+        } else {
+          setInput(buf + t);
+        }
       }
     };
-    r.onend = () => setListening(false);
-    r.onerror = (e: any) => {
-      setListening(false);
-      if (e.error !== 'no-speech') {
-        alert({ 'not-allowed': "Mikrofon ruxsati berilmagan. Brauzer sozlamalaridan yoqing.", 'audio-capture': 'Mikrofon topilmadi.' }[e.error as string] || 'Mikrofon xatosi: ' + e.error);
+    r.onend = () => {
+      if (listeningRef.current) {
+        try { r.start(); } catch {}
+      } else {
+        setListening(false);
       }
+    };
+    r.onerror = (e: any) => {
+      if (e.error === 'no-speech') {
+        if (listeningRef.current) {
+          setTimeout(() => { try { r.start(); } catch {} }, 500);
+        }
+        return;
+      }
+      setListening(false);
+      if (e.error === 'not-allowed') { alert('Mikrofon ruxsati berilmagan. Brauzer sozlamalaridan yoqing.'); }
+      else if (e.error === 'audio-capture') { alert('Mikrofon topilmadi.'); }
     };
     r.start();
   };
-  const stopMic = () => { recRef.current?.stop(); setListening(false); };
+  const stopMic = () => {
+    listeningRef.current = false;
+    if (silenceTimerRef.current) { clearTimeout(silenceTimerRef.current); silenceTimerRef.current = null; }
+    setListening(false);
+    recRef.current?.stop();
+  };
 
   const addMsg = (text: string, side: Msg['side'], speaker: string, type: Msg['type']) =>
     setMsgs(p => [...p, { id: Date.now() + '' + Math.random(), speaker, side, text, time: new Date(), type }]);

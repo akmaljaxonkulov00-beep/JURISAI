@@ -34,6 +34,8 @@ export default function Simulator() {
   const [listening, setListening] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recRef = useRef<any>(null);
+  const listeningRef = useRef(false);
+  const silenceTimerRef = useRef<any>(null);
 
   const simulations = [
     {
@@ -197,32 +199,68 @@ export default function Simulator() {
     setTimeLeft(300);
   };
 
-  // ── Ovoz bilan kiritish (STT) — faqat foydalanuvchi gapiradi ──
+  // ── Ovoz bilan kiritish (STT) — uz-UZ, continuous, auto-restart ──
+  const SILENCE_TIMEOUT_MS = 3000;
+  
   const startMic = () => {
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SR) { alert('Ovozli kiritish faqat Chrome yoki Edge brauzerida ishlaydi.'); return; }
     const r = new SR();
     recRef.current = r;
-    r.lang = 'ru-RU'; r.continuous = false; r.interimResults = true;
+    r.lang = 'uz-UZ';
+    r.continuous = true;
+    r.interimResults = true;
+    listeningRef.current = true;
     setListening(true);
     let buf = '';
+    
     r.onresult = (e: any) => {
+      if (silenceTimerRef.current) { clearTimeout(silenceTimerRef.current); silenceTimerRef.current = null; }
       for (let i = e.resultIndex; i < e.results.length; i++) {
         const t = e.results[i][0].transcript;
-        if (e.results[i].isFinal) { buf = t; setUserInput(t); }
-        else setUserInput(buf + t);
+        if (e.results[i].isFinal) {
+          buf = t;
+          const formatted = t.charAt(0).toUpperCase() + t.slice(1);
+          setUserInput(formatted);
+          silenceTimerRef.current = setTimeout(() => {}, SILENCE_TIMEOUT_MS);
+        } else {
+          setUserInput(buf + t);
+        }
       }
     };
-    r.onend = () => setListening(false);
+    
+    r.onend = () => {
+      if (listeningRef.current) {
+        try { r.start(); } catch {}
+      } else {
+        setListening(false);
+      }
+    };
+    
     r.onerror = (e: any) => {
+      if (e.error === 'no-speech') {
+        if (listeningRef.current) {
+          setTimeout(() => { try { r.start(); } catch {} }, 500);
+        }
+        return;
+      }
       setListening(false);
-      if (e.error !== 'no-speech') {
-        alert({ 'not-allowed': "Mikrofon ruxsati berilmagan. Brauzer sozlamalaridan yoqing.", 'audio-capture': 'Mikrofon topilmadi.' }[e.error as string] || 'Mikrofon xatosi: ' + e.error);
+      if (e.error === 'not-allowed') {
+        alert('Mikrofon ruxsati berilmagan. Brauzer sozlamalaridan yoqing.');
+      } else if (e.error === 'audio-capture') {
+        alert('Mikrofon topilmadi.');
       }
     };
+    
     r.start();
   };
-  const stopMic = () => { recRef.current?.stop(); setListening(false); };
+  
+  const stopMic = () => {
+    listeningRef.current = false;
+    if (silenceTimerRef.current) { clearTimeout(silenceTimerRef.current); silenceTimerRef.current = null; }
+    setListening(false);
+    recRef.current?.stop();
+  };
 
   // RESULTS SCREEN
   if (showResults && results) {
@@ -384,10 +422,10 @@ export default function Simulator() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">              {simulations.map(sim => (
                 <div
                   key={sim.id}
-                  className={`bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-sm border-2 transition-all cursor-pointer ${selectedSim === sim.id ? 'border-blue-500 bg-blue-50' : 'border-gray-100 dark:border-zinc-800 hover:border-blue-200'}`}
+                  className={`bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-sm border-2 transition-all cursor-pointer ${selectedSim === sim.id ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30' : 'border-gray-100 dark:border-zinc-800 hover:border-blue-200'}`}
                   onClick={() => setSelectedSim(selectedSim === sim.id ? null : sim.id)}
                 >
-                  <div className={`w-12 h-12 bg-${sim.color}-100 rounded-xl flex items-center justify-center mb-4 text-${sim.color}-600`}>
+                  <div className={`w-12 h-12 bg-${sim.color}-100 dark:bg-${sim.color}-900/40 rounded-xl flex items-center justify-center mb-4 text-${sim.color}-600 dark:text-${sim.color}-300`}>
                     {sim.icon}
                   </div>
                   <h3 className="text-lg font-bold text-gray-800 dark:text-zinc-100 mb-1">{sim.title}</h3>

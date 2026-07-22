@@ -380,6 +380,99 @@ INSERT INTO legal_documents (title, content, document_type, article_reference, j
  'family_code', '52-modda', 'uzbekistan', 'uz');
 
 -- ============================================================
+-- 6. PROTSESSUAL KODEKSLAR (Procedural Codes)
+-- ============================================================
+
+-- 6a. FPK — Fuqarolik Protsessual Kodeksi
+INSERT INTO legal_documents (title, content, document_type, article_reference, jurisdiction, language) VALUES
+('Fuqarolik Protsessual Kodeksi — 1-modda. Fuqarolik protsessual qonunchiligining vazifalari',
+ 'Fuqarolik protsessual qonunchiligining vazifalari fuqarolik ishlarini to''g''ri va o''z vaqtida ko''rib chiqish va hal qilish, fuqarolarning buzilgan yoki bahsli huquqlari, erkinliklari va qonun bilan qo''riqlanadigan manfaatlarini himoya qilishdan iborat.',
+ 'procedural_code', 'FPK 1-modda', 'uzbekistan', 'uz'),
+('Fuqarolik Protsessual Kodeksi — 5-modda. Sudga murojaat qilish huquqi',
+ 'Har bir manfaatdor shaxs o''z huquq va erkinliklarini himoya qilish uchun sudga murojaat qilish huquqiga ega. Sudga murojaat qilish qonunda belgilangan tartibda amalga oshiriladi.',
+ 'procedural_code', 'FPK 5-modda', 'uzbekistan', 'uz'),
+('Fuqarolik Protsessual Kodeksi — 10-modda. Da''vo arizasi',
+ 'Da''vo arizasi yozma shaklda beriladi. Arizada: sud nomi, da''vogar va javobgar to''g''risidagi ma''lumotlar, da''voning mazmuni, da''vogarning talabi va uning asoslari ko''rsatilishi kerak.',
+ 'procedural_code', 'FPK 10-modda', 'uzbekistan', 'uz'),
+('Fuqarolik Protsessual Kodeksi — 15-modda. Dalillar',
+ 'Dalillar deb ishni to''g''ri hal qilish uchun ahamiyatga ega bo''lgan faktlar mavjudligini tasdiqlovchi qonuniy tartibda olingan ma''lumotlarga aytiladi. Dalillar: tushuntirishlar, ko''rsatmalar, yozma va ashyoviy dalillar, ekspert xulosalari.',
+ 'procedural_code', 'FPK 15-modda', 'uzbekistan', 'uz'),
+('Fuqarolik Protsessual Kodeksi — 20-modda. Sud majlisining ochiqligi',
+ 'Sud majlisida ishlarni ko''rish ochiq tarzda amalga oshiriladi. Yopiq sud majlisida ishlarni ko''rishga faqat qonunda nazarda tutilgan hollarda yo''l qo''yiladi.',
+ 'procedural_code', 'FPK 20-modda', 'uzbekistan', 'uz'),
+('Fuqarolik Protsessual Kodeksi — 35-modda. Sud qarori',
+ 'Sud qarori qonuniy va asosli bo''lishi kerak. Sud qaror chiqarishda dalillarni to''liq va har tomonlama baholaydi.',
+ 'procedural_code', 'FPK 35-modda', 'uzbekistan', 'uz'),
+('Fuqarolik Protsessual Kodeksi — 40-modda. Apellyatsiya shikoyati',
+ 'Sud qarori ustidan apellyatsiya shikoyati qaror chiqarilgan kundan e''tiboran bir oy muddat ichida berilishi mumkin. Apellyatsiya shikoyati qarorni chiqargan sud orqali yuqori sudga yuboriladi.',
+ 'procedural_code', 'FPK 40-modda', 'uzbekistan', 'uz');
+
+-- 6b. JPK — Jinoiy Protsessual Kodeksi
+INSERT INTO legal_documents (title, content, document_type, article_reference, jurisdiction, language) VALUES
+('Jinoiy Protsessual Kodeksi — 1-modda. Jinoyat protsessining vazifalari',
+ 'Jinoyat protsessining vazifalari jinoyatlarni tez va to''liq ochish, aybdorlarni fosh etish va ularga nisbatan qonuniy jazo qo''llash, hech kim aybsiz ravishda jinoiy javobgarlikka tortilmasligini ta''minlashdan iborat.',
+ 'procedural_code', 'JPK 1-modda', 'uzbekistan', 'uz'),
+('Jinoiy Protsessual Kodeksi — 5-modda. Aybsizlik prezumptsiyasi',
+ 'Ayblanuvchi uning aybi qonuniy tartibda, ya''ni sud hukmi bilan isbotlanmaguncha aybsiz hisoblanadi. Barcha shubhalar ayblanuvchi foydasiga talqin qilinadi.',
+ 'procedural_code', 'JPK 5-modda', 'uzbekistan', 'uz'),
+('Jinoiy Protsessual Kodeksi — 10-modda. Himoya huquqi',
+ 'Ayblanuvchi o''zini himoya qilish huquqiga ega. Himoya huquqiga: himoyachiga ega bo''lish, ayblov bilan tanishish, dalillar taqdim etish, e''tiroz bildirish kiradi.',
+ 'procedural_code', 'JPK 10-modda', 'uzbekistan', 'uz'),
+('Jinoiy Protsessual Kodeksi — 15-modda. Tintuv',
+ 'Tintuv — yashirin yoki olib qo''yilgan narsalarni topish maqsadida xonani, binoni yoki boshqa joyni tekshirish. Tintuv sud sanksiyasi bilan yoki qonunda nazarda tutilgan tartibda o''tkaziladi.',
+ 'procedural_code', 'JPK 15-modda', 'uzbekistan', 'uz'),
+('Jinoiy Protsessual Kodeksi — 20-modda. Prokuror nazorati',
+ 'Prokuror jinoyat protsessida qonunlarga rioya etilishi ustidan nazoratni amalga oshiradi. Prokuror tergovchi va surishtiruvchining protsessual harakatlarining qonuniyligini tekshiradi.',
+ 'procedural_code', 'JPK 20-modda', 'uzbekistan', 'uz'),
+('Jinoiy Protsessual Kodeksi — 25-modda. Sud hukmi',
+ 'Sud hukmi qonuniy, asosli va adolatli bo''lishi kerak. Hukm sud tomonidan dalillarni har tomonlama, to''liq va xolisona baholash asosida chiqariladi.',
+ 'procedural_code', 'JPK 25-modda', 'uzbekistan', 'uz'),
+('Jinoiy Protsessual Kodeksi — 30-modda. Kassatsiya shikoyati',
+ 'Hukm ustidan kassatsiya shikoyati berish muddati — hukm chiqarilgan kundan e''tiboran bir oy. Kassatsiya instantsiyasi hukmning qonuniyligi va asosliligini tekshiradi.',
+ 'procedural_code', 'JPK 30-modda', 'uzbekistan', 'uz');
+
+-- 6c. IPK — Iqtisodiy Protsessual Kodeksi
+INSERT INTO legal_documents (title, content, document_type, article_reference, jurisdiction, language) VALUES
+('Iqtisodiy Protsessual Kodeksi — 1-modda. Iqtisodiy sudlovning vazifalari',
+ 'Iqtisodiy protsessual qonunchiligi tadbirkorlik va boshqa iqtisodiy faoliyat sohasidagi nizolarni, shuningdek, iqtisodiy sudga taalluqli boshqa ishlarni ko''rib chiqish va hal qilish tartibini belgilaydi.',
+ 'procedural_code', 'IPK 1-modda', 'uzbekistan', 'uz'),
+('Iqtisodiy Protsessual Kodeksi — 3-modda. Iqtisodiy sudga murojaat qilish',
+ 'Yuridik shaxslar va tadbirkorlar iqtisodiy nizolarni hal qilish uchun iqtisodiy sudga murojaat qilish huquqiga ega. Murojaat yozma shaklda bo''lishi kerak.',
+ 'procedural_code', 'IPK 3-modda', 'uzbekistan', 'uz'),
+('Iqtisodiy Protsessual Kodeksi — 8-modda. Nizoni tinch yo''l bilan hal qilish',
+ 'Iqtisodiy sud ishni qo''zg''atishdan oldin tomonlarga nizoni tinch yo''l bilan hal qilish choralarini ko''rishni tavsiya etishi mumkin. Tomonlar kelishuv bitimini tuzishga haqlidirlar.',
+ 'procedural_code', 'IPK 8-modda', 'uzbekistan', 'uz'),
+('Iqtisodiy Protsessual Kodeksi — 15-modda. Iqtisodiy sud qarori',
+ 'Iqtisodiy sud qarori qonuniy kuchga kirgandan so''ng barcha davlat organlari, tashkilotlar va shaxslar uchun majburiydir. Qaror ustidan apellyatsiya berilishi mumkin.',
+ 'procedural_code', 'IPK 15-modda', 'uzbekistan', 'uz');
+
+-- 6d. BSK — Ma''muriy Sud Ish Yurituvi Kodeksi
+INSERT INTO legal_documents (title, content, document_type, article_reference, jurisdiction, language) VALUES
+('Ma''muriy Sud Ish Yurituvi Kodeksi — 1-modda. Ma''muriy sudlovning vazifalari',
+ 'Ma''muriy sud ish yurituvi davlat organlari va mansabdor shaxslarning qarorlari, harakatlari yoki harakatsizligi ustidan berilgan shikoyatlarni ko''rib chiqish va hal qilish tartibini belgilaydi.',
+ 'procedural_code', 'BSK 1-modda', 'uzbekistan', 'uz'),
+('Ma''muriy Sud Ish Yurituvi Kodeksi — 5-modda. Fuqaroning shikoyat qilish huquqi',
+ 'Har bir fuqaro davlat organlari va mansabdor shaxslarning qonunga xilof qarorlari, harakatlari yoki harakatsizligi ustidan ma''muriy sudga shikoyat qilish huquqiga ega.',
+ 'procedural_code', 'BSK 5-modda', 'uzbekistan', 'uz'),
+('Ma''muriy Sud Ish Yurituvi Kodeksi — 10-modda. Shikoyat berish muddati',
+ 'Shikoyat qaror, harakat yoki harakatsizlik to''g''risida bilgan yoki bilishi kerak bo''lgan kundan e''tiboran bir oy muddat ichida berilishi mumkin.',
+ 'procedural_code', 'BSK 10-modda', 'uzbekistan', 'uz');
+
+-- ============================================================
+-- 7. O'K — O'zbekiston Respublikasining Ma'muriy Javobgarlik To'g'risidagi Kodeksi
+-- ============================================================
+INSERT INTO legal_documents (title, content, document_type, article_reference, jurisdiction, language) VALUES
+('Ma''muriy javobgarlik to''g''risidagi kodeks — 1-modda. Ma''muriy javobgarlik asoslari',
+ 'Ma''muriy javobgarlik — jismoniy va yuridik shaxslarning ma''muriy huquqbuzarlik sodir etganligi uchun qonunda belgilangan javobgarligi.',
+ 'administrative_code', 'MJtK 1-modda', 'uzbekistan', 'uz'),
+('Ma''muriy javobgarlik to''g''risidagi kodeks — 15-modda. Jarima',
+ 'Ma''muriy jarima — pul ko''rinishidagi jazo. Jarima miqdori eng kam ish haqining bir qismi yoki bir necha barobarida belgilanadi.',
+ 'administrative_code', 'MJtK 15-modda', 'uzbekistan', 'uz'),
+('Ma''muriy javobgarlik to''g''risidagi kodeks — 20-modda. Ma''muriy huquqbuzarlik to''g''risidagi ishni ko''rib chiqish',
+ 'Ma''muriy huquqbuzarlik to''g''risidagi ish vakolatli organ (mansabdor shaxs) tomonidan huquqbuzarlik bayonnomasi tuzilgan kundan e''tiboran o''n besh kun muddatda ko''rib chiqiladi.',
+ 'administrative_code', 'MJtK 20-modda', 'uzbekistan', 'uz');
+
+-- ============================================================
 -- Indexes for better search performance
 -- ============================================================
 CREATE INDEX IF NOT EXISTS idx_legal_documents_jurisdiction_lang ON legal_documents(jurisdiction, language);
