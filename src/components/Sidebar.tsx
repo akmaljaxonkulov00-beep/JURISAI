@@ -1,6 +1,6 @@
 'use client';
 
-import { Home as HomeIcon, Scale, GitBranch, Play, MessageCircle, Target, Gavel, User, Star, Database, Users, BarChart3 } from 'lucide-react';
+import { Home as HomeIcon, Scale, GitBranch, Play, Target, Gavel, User, Star, Database, Users, BarChart3 } from 'lucide-react';
 
 interface SidebarProps {
   currentPage?: string;
@@ -13,7 +13,6 @@ export default function Sidebar({ currentPage = 'home' }: SidebarProps) {
     { id: 'decision-tree', label: 'Decision Tree', icon: <GitBranch className="w-5 h-5" />, href: '/decision-tree' },
     { id: 'virtual-court', label: 'Virtual Sud', icon: <Gavel className="w-5 h-5" />, href: '/virtual-court' },
     { id: 'simulator', label: 'Simulyator', icon: <Play className="w-5 h-5" />, href: '/simulator' },
-    { id: 'ai-assistant', label: 'AI Yordamchi', icon: <MessageCircle className="w-5 h-5" />, href: '/ai-assistant' },
     { id: 'profile', label: 'Profil', icon: <User className="w-5 h-5" />, href: '/profile' },
     { id: 'professional-tools', label: 'Pro Vositalar', icon: <Star className="w-5 h-5" />, href: '/professional-tools' },
     { id: 'legal-database', label: 'Qonunlar bazasi', icon: <Database className="w-5 h-5" />, href: '/legal-database' },

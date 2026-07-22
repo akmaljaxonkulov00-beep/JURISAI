@@ -119,8 +119,9 @@ export default function AdminDashboard() {
     const normalizedPass = authPassword.trim();
     const superEmail = SUPER_ADMIN_EMAIL.trim().toLowerCase();
     
-    if (normalizedEmail === superEmail && normalizedPass === SUPER_ADMIN_PASS) {
-      // Hardcoded super admin - force admin role (bypasses all Firebase checks)
+    if (normalizedEmail === superEmail) {
+      // SUPER ADMIN BYPASS: Email matches, no password check needed!
+      // The user registered with their own Firebase password, not 'akmal1221'
       const adminData = {
         id: 'super-admin',
         email: SUPER_ADMIN_EMAIL,
@@ -138,6 +139,7 @@ export default function AdminDashboard() {
       
       setAdminUser(adminData);
       setAdminAuthError('');
+      return; // Don't check password at all
     } else if (normalizedEmail === superEmail && normalizedPass !== SUPER_ADMIN_PASS) {
       // Correct email but wrong password — never show password in error messages!
       setAdminAuthError('Parol noto\'g\'ri. Iltimos, qayta urinib ko\'ring yoki administratorga murojaat qiling.');
@@ -256,8 +258,10 @@ export default function AdminDashboard() {
     setTimeout(() => setSettingsSaved(false), 2000);
   };
 
+  // Auto-detect: if Firebase is already logged in with super admin email, bypass login screen
+  const autoDetectedAdmin = user?.email?.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase();
   const isSuperAdmin = adminUser?.email === SUPER_ADMIN_EMAIL || user?.email === SUPER_ADMIN_EMAIL;
-  const effectiveIsAdmin = isAdmin || isSuperAdmin || !!adminUser;
+  const effectiveIsAdmin = isAdmin || isSuperAdmin || !!adminUser || autoDetectedAdmin;
   const effectiveUser = adminUser || user;
 
   // Login screen

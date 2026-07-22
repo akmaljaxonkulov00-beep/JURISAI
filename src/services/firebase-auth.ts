@@ -324,12 +324,21 @@ export function onAuthChange(callback: (user: AuthUser | null) => void): () => v
   // No need for manual force sign-out — Firebase handles it
   const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
     if (firebaseUser) {
-      // Firebase has a user — sync to sessionStorage (restore or login)
+      // Firebase has a user — always re-apply ensureSuperAdmin in case user was
+      // saved before the super admin email was configured (e.g. role='USER' stored)
       const existingSession = getCurrentUser();
       
-      // If sessionStorage already has this user, just confirm it
+      // If we have an existing session, upgrade its role if needed
       if (existingSession && existingSession.id === firebaseUser.uid) {
-        callback(existingSession);
+        // Always re-apply ensureSuperAdmin so previously-registered users get elevated
+        const upgradedUser = ensureSuperAdmin(existingSession);
+        // Only save + callback if role changed (was upgraded from USER to ADMIN)
+        if (upgradedUser.role !== existingSession.role) {
+          saveUserToLocal(upgradedUser);
+          callback(upgradedUser);
+        } else {
+          callback(existingSession);
+        }
         return;
       }
       

@@ -23,7 +23,6 @@ const Header: React.FC<HeaderProps> = ({ user, className }) => {
     { name: 'Bosh sahifa', href: '/' },
     { name: 'IRAC Tahlil', href: '/case-solver' },
     { name: 'Qaror daraxti', href: '/decision-tree' },
-    { name: 'AI yordamchi', href: '/ai-assistant' },
     { name: 'Jamiyat', href: '/community' },
   ];
 
