@@ -309,39 +309,37 @@ export function getCurrentUser(): AuthUser | null {
 // Check if user is authenticated
 export function isAuthenticated(): boolean {
   return !!getCurrentUser() && !!sessionStorage.getItem('auth_token');
-}  // Subscribe to auth state changes
+}
+
+// Subscribe to auth state changes
 export function onAuthChange(callback: (user: AuthUser | null) => void): () => void {
-  // First, check if we have a sessionStorage user (browser wasn't closed)
+  // First, check if we have a sessionStorage user (page refresh in same tab)
   const storedUser = getCurrentUser();
   if (storedUser) {
     callback(storedUser);
-  } else {
-    // No sessionStorage user — force sign out from Firebase to prevent auto-restore
-    callback(null);
-    // If Firebase has a persistent session, we must clear it so re-login is required
-    try {
-      if (auth?.currentUser) {
-        firebaseSignOut(auth).catch(() => {});
-      }
-    } catch {}
   }
   
+  // Subscribe to Firebase auth state changes
+  // With browserSessionPersistence, auth is auto-cleared on tab/browser close
+  // No need for manual force sign-out — Firebase handles it
   const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
     if (firebaseUser) {
-      // Only restore session if we have a sessionStorage user (browser wasn't closed)
-      const storedAfter = getCurrentUser();
-      if (!storedAfter && !storedUser) {
-        // Browser was closed — force re-login by signing out
-        firebaseSignOut(auth).catch(() => {});
-        callback(null);
+      // Firebase has a user — sync to sessionStorage (restore or login)
+      const existingSession = getCurrentUser();
+      
+      // If sessionStorage already has this user, just confirm it
+      if (existingSession && existingSession.id === firebaseUser.uid) {
+        callback(existingSession);
         return;
       }
       
+      // New login or different session — save to sessionStorage
       const user = mapFirebaseUser(firebaseUser);
       const elevatedUser = ensureSuperAdmin(user);
       const savedUser = saveUserToLocal(elevatedUser);
       callback(savedUser);
     } else {
+      // Firebase auth cleared (logout or session expired) — clear sessionStorage
       clearUserFromLocal();
       callback(null);
     }

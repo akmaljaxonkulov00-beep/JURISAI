@@ -1,5 +1,5 @@
 import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
-import { getAuth, Auth, connectAuthEmulator } from 'firebase/auth';
+import { getAuth, Auth, browserSessionPersistence, setPersistence } from 'firebase/auth';
 
 const firebaseConfig = {
   apiKey: "AIzaSyCA5cKruT8J4jcbGO5vSrDMkP7z8QePO-g",
@@ -19,6 +19,12 @@ if (typeof window !== 'undefined') {
   try {
     app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
     auth = getAuth(app);
+    
+    // Use session persistence so auth is cleared when browser tab closes
+    // Combined with sessionStorage for user data -> auto-logout on close
+    setPersistence(auth, browserSessionPersistence).catch((err) => {
+      console.warn('[Firebase] Could not set session persistence:', err);
+    });
     
     // Log successful initialization
     console.log('[Firebase] Initialized successfully:', firebaseConfig.projectId);
