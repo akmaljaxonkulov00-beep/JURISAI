@@ -85,6 +85,32 @@ export function makeCurrentUserAdmin(user: AuthUser): AuthUser {
   return adminUser;
 }
 
+// Log auth event to Supabase
+async function logAuthEvent(email: string, method: string, userId?: string, success?: boolean) {
+  try {
+    await fetch('/api/log/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, method, userId, success }),
+    });
+  } catch {
+    // Silently fail - logging is non-critical
+  }
+}
+
+// Log usage event to Supabase
+export async function logUsage(userId: string, email: string, name: string, tokens: number, action: string, metadata?: Record<string, any>) {
+  try {
+    await fetch('/api/log/usage', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, email, name, tokens, action, metadata }),
+    });
+  } catch {
+    // Silently fail
+  }
+}
+
 // Save user to sessionStorage for cross-component access (auto-logout on close)
 function saveUserToLocal(user: AuthUser) {
   // Auto-elevate super admin
@@ -140,6 +166,7 @@ export async function signIn(email: string, password: string): Promise<{ success
       subscription_plan: 'pro',
     };
     saveUserToLocal(adminData);
+    logAuthEvent(SUPER_ADMIN_EMAIL, 'email', 'super-admin', true);
     return { success: true, data: adminData };
   }
   
@@ -147,6 +174,7 @@ export async function signIn(email: string, password: string): Promise<{ success
     const result = await signInWithEmailAndPassword(auth, email, password);
     const user = mapFirebaseUser(result.user);
     saveUserToLocal(user);
+    logAuthEvent(email, 'email', user.id, true);
     return { success: true, data: user };
   } catch (error: any) {
     let message = 'Login xatosi yuz berdi';
@@ -211,6 +239,7 @@ export async function signInWithGoogle(): Promise<{ success: boolean; data?: Aut
     // saveUserToLocal internally calls ensureSuperAdmin which elevates the role
     // for akmaljaxonkulov00@gmail.com to 'ADMIN'
     const savedUser = saveUserToLocal(user);
+    logAuthEvent(user.email, 'google', user.id, true);
     return { success: true, data: savedUser };
   } catch (error: any) {
     if (error.code === 'auth/popup-closed-by-user') {
@@ -264,6 +293,10 @@ export async function handleRedirectResult(): Promise<{ success: boolean; data?:
 // Sign out
 export async function signOut(): Promise<void> {
   try {
+    const user = getCurrentUser();
+    if (user) {
+      logAuthEvent(user.email, 'logout', user.id, false);
+    }
     await firebaseSignOut(auth);
   } finally {
     clearUserFromLocal();
