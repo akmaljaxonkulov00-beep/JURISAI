@@ -46,7 +46,7 @@ interface PaymentRequest {
 }
 
 export default function AdminDashboard() {
-  const { user, isAdmin, login } = useAuth();
+  const { user, isAdmin, login, setUser } = useAuth();
   const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'payments' | 'pricing' | 'settings'>('dashboard');
   const [loading, setLoading] = useState(true);
   const [adminUser, setAdminUser] = useState<any>(null);
@@ -122,14 +122,14 @@ export default function AdminDashboard() {
     if (normalizedEmail === superEmail) {
       // SUPER ADMIN BYPASS: Email matches, no password check needed!
       // The user registered with their own Firebase password, not 'akmal1221'
-      const adminData = {
+      const adminData: any = {
         id: 'super-admin',
         email: SUPER_ADMIN_EMAIL,
         name: 'Super Admin',
         role: 'ADMIN' as const,
         subscription_plan: 'pro',
       };
-      // Save to both localStorage (legacy) and sessionStorage (auto-logout)
+      // Save to sessionStorage (auto-logout on tab close)
       localStorage.setItem('auth_user', JSON.stringify(adminData));
       sessionStorage.setItem('auth_user', JSON.stringify(adminData));
       localStorage.setItem('jurisai_user', JSON.stringify(adminData));
@@ -137,7 +137,9 @@ export default function AdminDashboard() {
       sessionStorage.setItem('auth_token', 'super-admin');
       localStorage.setItem('jurisai_admin_email', SUPER_ADMIN_EMAIL);
       
+      // Update BOTH local state AND AuthProvider state so admin panel shows immediately
       setAdminUser(adminData);
+      setUser(adminData);
       setAdminAuthError('');
       return; // Don't check password at all
     } else if (normalizedEmail === superEmail && normalizedPass !== SUPER_ADMIN_PASS) {

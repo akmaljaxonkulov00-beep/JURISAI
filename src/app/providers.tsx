@@ -16,6 +16,7 @@ interface AuthContextType {
   register: (userData: { name: string; email: string; password: string }) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   updateProfile: (updates: Partial<AuthUser>) => Promise<{ success: boolean; error?: string }>;
+  setUser: (user: AuthUser | null) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -109,6 +110,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
     register,
     logout,
     updateProfile,
+    setUser,
   };
 
   return (
