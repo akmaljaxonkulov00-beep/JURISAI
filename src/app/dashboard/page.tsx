@@ -23,7 +23,6 @@ import {
   Scale,
   Database,
   Gavel,
-  MessageSquare,
   BarChart3,
   Trophy,
   User,
@@ -35,7 +34,6 @@ import {
   HelpCircle,
   LogOut
 } from 'lucide-react';
-import AIChatWidget from '@/components/AIChatWidget';
 
 interface UserStats {
   xp: number;
@@ -198,12 +196,6 @@ export default function Dashboard() {
           label: 'Asboblar',
           icon: Wrench,
           href: '/pro-tools'
-        },
-        {
-          id: 'ai-chat',
-          label: 'AI Yordamchi',
-          icon: MessageSquare,
-          href: '/ai-chat'
         },
         {
           id: 'community',
@@ -583,8 +575,6 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
-      {/* Floating AI Chat Widget */}
-      <AIChatWidget />
     </div>
   );
 }

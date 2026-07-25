@@ -86,9 +86,91 @@ CREATE INDEX IF NOT EXISTS idx_articles_code_id ON articles(code_id);
 CREATE INDEX IF NOT EXISTS idx_articles_number ON articles(article_number);
 CREATE INDEX IF NOT EXISTS idx_articles_category ON articles(category);
 
+-- ============================================================
+-- ANALYTICS TABLES (usage_logs, auth_logs, payment_requests)
+-- ============================================================
+
+-- Usage logs (token tracking, AI queries, case solves)
+CREATE TABLE IF NOT EXISTS usage_logs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id TEXT,
+  email TEXT,
+  name TEXT,
+  tokens INTEGER DEFAULT 1,
+  action TEXT NOT NULL,
+  metadata JSONB DEFAULT '{}',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_usage_logs_user_id ON usage_logs(user_id);
+CREATE INDEX IF NOT EXISTS idx_usage_logs_created_at ON usage_logs(created_at);
+
+-- Auth logs (login activity tracking)
+CREATE TABLE IF NOT EXISTS auth_logs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id TEXT,
+  email TEXT NOT NULL,
+  method TEXT DEFAULT 'email',
+  ip_address TEXT,
+  user_agent TEXT,
+  success BOOLEAN DEFAULT true,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_auth_logs_email ON auth_logs(email);
+CREATE INDEX IF NOT EXISTS idx_auth_logs_created_at ON auth_logs(created_at);
+
+-- Payment requests (receipt uploads for manual verification)
+CREATE TABLE IF NOT EXISTS payment_requests (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id TEXT,
+  user_email TEXT,
+  user_name TEXT,
+  plan TEXT NOT NULL,
+  amount INTEGER NOT NULL,
+  receipt_image TEXT,
+  status TEXT DEFAULT 'pending',
+  notes TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_payment_requests_status ON payment_requests(status);
+CREATE INDEX IF NOT EXISTS idx_payment_requests_user_id ON payment_requests(user_id);
+
+-- Registered users
+CREATE TABLE IF NOT EXISTS registered_users (
+  id TEXT PRIMARY KEY,
+  email TEXT UNIQUE NOT NULL,
+  name TEXT,
+  role TEXT DEFAULT 'USER',
+  subscription_plan TEXT DEFAULT 'free',
+  subscription_expires_at TIMESTAMP WITH TIME ZONE,
+  blocked BOOLEAN DEFAULT false,
+  last_login TIMESTAMP WITH TIME ZONE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_registered_users_email ON registered_users(email);
+CREATE INDEX IF NOT EXISTS idx_registered_users_role ON registered_users(role);
+
+-- Seed super admin user
+INSERT INTO registered_users (id, email, name, role, subscription_plan)
+VALUES ('super-admin', 'akmaljaxonkulov00@gmail.com', 'Super Admin', 'ADMIN', 'pro')
+ON CONFLICT (id) DO NOTHING;
+
 -- Create view for easy access
 CREATE OR REPLACE VIEW code_article_counts AS
   SELECT c.id, c.short_name, c.title, c.total_articles, COUNT(a.id) AS seeded_articles
   FROM codes c
   LEFT JOIN articles a ON a.code_id = c.id
   GROUP BY c.id, c.short_name, c.title, c.total_articles;
+
+-- Create dashboard analytics view
+CREATE OR REPLACE VIEW admin_dashboard_stats AS
+  SELECT
+    (SELECT COUNT(*) FROM registered_users) AS total_users,
+    (SELECT COUNT(*) FROM registered_users WHERE created_at >= NOW() - INTERVAL '30 days') AS new_users_30d,
+    (SELECT COUNT(*) FROM registered_users WHERE role = 'ADMIN') AS admin_count,
+    (SELECT COUNT(*) FROM registered_users WHERE subscription_plan != 'free') AS premium_users,
+    (SELECT COALESCE(SUM(tokens), 0) FROM usage_logs WHERE created_at >= NOW() - INTERVAL '30 days') AS tokens_30d,
+    (SELECT COUNT(*) FROM auth_logs WHERE created_at >= NOW() - INTERVAL '30 days') AS logins_30d,
+    (SELECT COUNT(*) FROM payment_requests WHERE status = 'pending') AS pending_payments,
+    (SELECT COALESCE(SUM(amount), 0) FROM payment_requests WHERE status = 'approved') AS total_revenue;

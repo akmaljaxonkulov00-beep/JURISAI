@@ -1,113 +1,102 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { getSupabaseAdmin } from '@/lib/supabase-admin';
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const period = searchParams.get('period') || 'month';
-    
-    // Fetch real analytics data from Supabase
-    const [
-      { data: users, error: usersError },
-      { data: orders, error: ordersError },
-      { data: subscriptions, error: subsError }
-    ] = await Promise.all([
-      supabase.from('users').select('*'),
-      supabase.from('orders').select('*'),
-      supabase.from('subscriptions').select('*')
-    ]);
+    const days = parseInt(searchParams.get('days') || '30');
+    const type = searchParams.get('type') || 'all';
 
-    if (usersError || ordersError || subsError) {
-      console.error('Error fetching analytics data');
-      return NextResponse.json({ error: 'Failed to fetch analytics data' }, { status: 500 });
+    const supabase = getSupabaseAdmin();
+    const now = new Date();
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - days);
+    const prevCutoff = new Date();
+    prevCutoff.setDate(prevCutoff.getDate() - days * 2);
+
+    const result: Record<string, any> = {};
+
+    // Fetch users
+    if (type === 'all' || type === 'users') {
+      const { data: users, error: usersError } = await supabase
+        .from('registered_users')
+        .select('*');
+      if (!usersError && users) {
+        result.users = users;
+        result.totalUsers = users.length;
+        const newUsers = users.filter((u: any) => {
+          const created = u.created_at || u.last_login;
+          return created && new Date(created) >= cutoff;
+        });
+        result.newUsers = newUsers.length;
+
+        const prevNewUsers = users.filter((u: any) => {
+          const created = u.created_at || u.last_login;
+          return created && new Date(created) >= prevCutoff && new Date(created) < cutoff;
+        });
+        result.userGrowth = prevNewUsers.length > 0
+          ? Math.round(((newUsers.length - prevNewUsers.length) / prevNewUsers.length) * 100)
+          : 0;
+
+        const premiumUsers = users.filter((u: any) => u.subscription_plan && u.subscription_plan !== 'free');
+        result.premiumUsers = premiumUsers.length;
+      }
     }
 
-    // Calculate real analytics
-    const totalUsers = users?.length || 0;
-    const activeUsers = users?.filter(u => u.is_active !== false).length || 0;
-    const totalRevenue = orders?.filter(o => o.status === 'PAID').reduce((sum, o) => sum + (o.amount || 0), 0) || 0;
-    const totalTransactions = orders?.filter(o => o.status === 'PAID').length || 0;
-    
-    // Get AI usage data
-    const aiUsageData = await Promise.all([
-      supabase.from('ai_chat_conversations').select('*'),
-      supabase.from('document_analyses').select('*'),
-      supabase.from('irac_analyses').select('*')
-    ]);
-
-    const totalAIRequests = aiUsageData.reduce((sum, data) => sum + (data.data?.length || 0), 0);
-
-    const analytics = {
-      revenueAnalytics: {
-        revenueData: [
-          { date: new Date().toISOString().split('T')[0], revenue: totalRevenue, transactionCount: totalTransactions }
-        ],
-        summary: {
-          totalRevenue,
-          totalTransactions,
-          todayRevenue: orders?.filter(o => o.status === 'PAID' && new Date(o.created_at).toDateString() === new Date().toDateString()).reduce((sum, o) => sum + (o.amount || 0), 0) || 0,
-          todayTransactions: orders?.filter(o => o.status === 'PAID' && new Date(o.created_at).toDateString() === new Date().toDateString()).length || 0,
-          weekRevenue: totalRevenue * 0.25, // Approximate
-          weekTransactions: Math.floor(totalTransactions * 0.25),
-          monthRevenue: totalRevenue,
-          monthTransactions: totalTransactions
-        }
-      },
-      userAnalytics: {
-        userGrowth: [
-          { date: new Date().toISOString().split('T')[0], newUsers: totalUsers }
-        ],
-        activeSubscriptions: [
-          { planName: 'Free', planPrice: 0, activeSubscriptions: users?.filter(u => u.subscription_plan === 'free').length || 0, uniqueUsers: totalUsers },
-          { planName: 'Pro', planPrice: 99, activeSubscriptions: users?.filter(u => u.subscription_plan === 'pro').length || 0, uniqueUsers: totalUsers }
-        ],
-        summary: {
-          totalUsers,
-          activeUsers,
-          todayUsers: Math.floor(totalUsers * 0.02), // Approximate
-          weekUsers: Math.floor(totalUsers * 0.15),
-          monthUsers: totalUsers
-        },
-        lastUsers: users?.slice(0, 10).map(u => ({
-          id: u.id,
-          email: u.email,
-          firstName: u.name?.split(' ')[0] || '',
-          lastName: u.name?.split(' ')[1] || '',
-          role: u.role,
-          status: u.is_active ? 'ACTIVE' : 'INACTIVE',
-          createdAt: u.created_at,
-          subscription: u.subscription_plan ? {
-            planName: u.subscription_plan,
-            status: 'ACTIVE',
-            currentPeriodEnd: u.subscription_expires_at
-          } : null
-        })) || []
-      },
-      aiUsageAnalytics: {
-        aiUsageOverTime: [
-          { date: new Date().toISOString().split('T')[0], legalChatRequests: aiUsageData[0]?.data?.length || 0, iracAnalysisRequests: aiUsageData[1]?.data?.length || 0, documentGenerationRequests: aiUsageData[2]?.data?.length || 0, lawSearchRequests: 0, totalRequests: totalAIRequests }
-        ],
-        mostUsedFeatures: [
-          { feature: 'AI Chat', totalUsage: aiUsageData[0]?.data?.length || 0, uniqueUsers: activeUsers },
-          { feature: 'Document Analysis', totalUsage: aiUsageData[1]?.data?.length || 0, uniqueUsers: activeUsers },
-          { feature: 'IRAC Analysis',totalUsage: aiUsageData[2]?.data?.length || 0, uniqueUsers: activeUsers }
-        ],
-        summary: {
-          totalAIUsage: totalAIRequests,
-          totalRequests: totalAIRequests,
-          todayAIUsage: Math.floor(totalAIRequests * 0.03), // Approximate
-          todayRequests: Math.floor(totalAIRequests * 0.03),
-          weekAIUsage: Math.floor(totalAIRequests * 0.25),
-          weekRequests: Math.floor(totalAIRequests * 0.25),
-          monthAIUsage: totalAIRequests,
-          monthRequests: totalAIRequests
-        }
+    // Fetch login activity
+    if (type === 'all' || type === 'logins') {
+      const { data: logins, error: loginsError } = await supabase
+        .from('auth_logs')
+        .select('*')
+        .gte('created_at', cutoff.toISOString())
+        .order('created_at', { ascending: false })
+        .limit(100);
+      if (!loginsError && logins) {
+        result.loginActivities = logins;
+        result.recentLogins = logins.length;
+        const activeUserIds = new Set(logins.map((l: any) => l.user_id || l.email));
+        result.activeUsers = activeUserIds.size;
       }
-    };
+    }
 
-    return NextResponse.json(analytics);
-  } catch (error) {
-    console.error('Analytics API error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    // Fetch token usage
+    if (type === 'all' || type === 'tokens') {
+      const { data: tokens, error: tokensError } = await supabase
+        .from('usage_logs')
+        .select('*')
+        .gte('created_at', cutoff.toISOString())
+        .order('created_at', { ascending: false })
+        .limit(100);
+      if (!tokensError && tokens) {
+        result.tokenUsages = tokens;
+        result.tokensUsed = tokens.reduce((sum: number, t: any) => sum + (t.tokens || 0), 0);
+      }
+    }
+
+    // Fetch payments
+    if (type === 'all' || type === 'payments') {
+      const { data: payments, error: paymentsError } = await supabase
+        .from('payment_requests')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(50);
+      if (!paymentsError && payments) {
+        result.paymentRequests = payments;
+        const approvedPayments = payments.filter((p: any) => p.status === 'approved');
+        const totalRevenue = approvedPayments.reduce((sum: number, p: any) => sum + (p.amount || 0), 0);
+        result.totalRevenue = totalRevenue;
+        result.pendingCount = payments.filter((p: any) => p.status === 'pending').length;
+        result.approvedCount = approvedPayments.length;
+      }
+    }
+
+    result.source = 'supabase';
+    return NextResponse.json({ success: true, data: result });
+  } catch (error: any) {
+    console.error('Admin analytics API error:', error);
+    return NextResponse.json(
+      { success: false, error: error?.message || 'Failed to fetch analytics' },
+      { status: 500 }
+    );
   }
 }

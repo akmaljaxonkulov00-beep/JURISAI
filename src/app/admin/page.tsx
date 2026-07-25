@@ -120,18 +120,8 @@ export default function AdminDashboard() {
   const [settingsSaved, setSettingsSaved] = useState(false);
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem('admin_site_settings');
-      if (stored) setSiteSettings(JSON.parse(stored));
-      const storedPlans = localStorage.getItem('admin_pricing_plans');
-      if (storedPlans) setPricingPlans(JSON.parse(storedPlans));
-      const storedPayments = localStorage.getItem('payment_requests');
-      if (storedPayments) setPaymentRequests(JSON.parse(storedPayments));
-      const storedTokens = localStorage.getItem('token_usage');
-      if (storedTokens) setTokenUsages(JSON.parse(storedTokens));
-      const storedLogins = localStorage.getItem('login_activity');
-      if (storedLogins) setLoginActivities(JSON.parse(storedLogins));
-    } catch {}
+    loadFromLocalStorage();
+    loadFromSupabase();
     loadUsers();
     
     try {
@@ -149,6 +139,61 @@ export default function AdminDashboard() {
       }
     } catch {}
   }, []);
+
+  const loadFromLocalStorage = () => {
+    try {
+      const stored = localStorage.getItem('admin_site_settings');
+      if (stored) setSiteSettings(JSON.parse(stored));
+      const storedPlans = localStorage.getItem('admin_pricing_plans');
+      if (storedPlans) setPricingPlans(JSON.parse(storedPlans));
+      const storedPayments = localStorage.getItem('payment_requests');
+      if (storedPayments) setPaymentRequests(JSON.parse(storedPayments));
+      const storedTokens = localStorage.getItem('token_usage');
+      if (storedTokens) setTokenUsages(JSON.parse(storedTokens));
+      const storedLogins = localStorage.getItem('login_activity');
+      if (storedLogins) setLoginActivities(JSON.parse(storedLogins));
+    } catch {}
+  };
+
+  const loadFromSupabase = async () => {
+    try {
+      const res = await fetch('/api/admin/analytics?days=30&type=all');
+      const result = await res.json();
+      if (result.success && result.data) {
+        const d = result.data;
+        // Only override if Supabase has real data (not empty)
+        if (d.loginActivities && Array.isArray(d.loginActivities) && d.loginActivities.length > 0) {
+          setLoginActivities(d.loginActivities.map((l: any) => ({
+            userId: l.user_id || l.email,
+            userEmail: l.email,
+            date: l.created_at,
+            method: l.method || 'email'
+          })));
+        }
+        if (d.tokenUsages && Array.isArray(d.tokenUsages) && d.tokenUsages.length > 0) {
+          setTokenUsages(d.tokenUsages.map((t: any) => ({
+            userId: t.user_id || t.email,
+            userEmail: t.email,
+            userName: t.name || '',
+            tokens: t.tokens || 0,
+            date: t.created_at,
+            action: t.action || 'unknown'
+          })));
+        }
+        if (d.users && Array.isArray(d.users) && d.users.length > 0) {
+          setAllUsers(d.users);
+          setUsersLoading(false);
+        }
+        if (d.paymentRequests && Array.isArray(d.paymentRequests) && d.paymentRequests.length > 0) {
+          setPaymentRequests(d.paymentRequests);
+        }
+      }
+    } catch (err) {
+      // Silently fall back to localStorage data
+      console.log('Supabase analytics unavailable, using localStorage');
+    }
+    setLoading(false);
+  };
 
   // === LOGOUT ===
   const handleLogout = async () => {
@@ -172,7 +217,6 @@ export default function AdminDashboard() {
       }
     } catch {}
     setUsersLoading(false);
-    setLoading(false);
   };
 
   // ===== ADMIN AUTH =====
