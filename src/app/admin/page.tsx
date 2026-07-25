@@ -1,16 +1,22 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/app/providers';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Input } from '@/components/ui/Input';
-import { Settings, Shield, CheckCircle, AlertTriangle, Users, CreditCard, DollarSign, Save, X, Plus, Trash2, Bell, Globe } from 'lucide-react';
+import { 
+  Settings, Shield, CheckCircle, Users, CreditCard, 
+  DollarSign, Save, X, Trash2, Bell, Globe, BarChart3, 
+  TrendingUp, TrendingDown, LogOut, CalendarDays, Clock, Activity,
+  UserCheck, UserX, Search, Download
+} from 'lucide-react';
+import { firebaseAuth } from '@/services/firebase-auth';
 
 // ===== SUPER ADMIN HARDCODED CREDENTIALS =====
 const SUPER_ADMIN_EMAIL = 'akmaljaxonkulov00@gmail.com';
-const SUPER_ADMIN_PASS = 'akmal1221';
 
 interface SiteSettings {
   announcementBanner: string;
@@ -45,14 +51,42 @@ interface PaymentRequest {
   createdAt: string;
 }
 
+interface TokenUsage {
+  userId: string;
+  userEmail: string;
+  userName: string;
+  tokens: number;
+  date: string;
+  action: string;
+}
+
+interface LoginActivity {
+  userId: string;
+  userEmail: string;
+  date: string;
+  method: 'email' | 'google';
+}
+
+type TabType = 'dashboard' | 'reports' | 'users' | 'payments' | 'pricing' | 'settings';
+
 export default function AdminDashboard() {
-  const { user, isAdmin, login, setUser } = useAuth();
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'payments' | 'pricing' | 'settings'>('dashboard');
+  const router = useRouter();
+  const { user, isAdmin, login, setUser, logout: authLogout } = useAuth();
+  const [activeTab, setActiveTab] = useState<TabType>('dashboard');
   const [loading, setLoading] = useState(true);
   const [adminUser, setAdminUser] = useState<any>(null);
   const [adminAuthError, setAdminAuthError] = useState('');
   const [authEmail, setAuthEmail] = useState('');
   const [authPassword, setAuthPassword] = useState('');
+
+  // Report filters
+  const [reportType, setReportType] = useState<'daily' | 'monthly'>('daily');
+  const [reportDays, setReportDays] = useState(30);
+  const [loginActivities, setLoginActivities] = useState<LoginActivity[]>([]);
+  const [tokenUsages, setTokenUsages] = useState<TokenUsage[]>([]);
+
+  // User search
+  const [userSearchQuery, setUserSearchQuery] = useState('');
 
   // Pricing
   const [pricingPlans, setPricingPlans] = useState<PricingPlan[]>([
@@ -65,7 +99,6 @@ export default function AdminDashboard() {
 
   // Payments
   const [paymentRequests, setPaymentRequests] = useState<PaymentRequest[]>([]);
-  const [showPaymentDetail, setShowPaymentDetail] = useState<string | null>(null);
 
   // Users
   const [allUsers, setAllUsers] = useState<any[]>([]);
@@ -87,7 +120,6 @@ export default function AdminDashboard() {
   const [settingsSaved, setSettingsSaved] = useState(false);
 
   useEffect(() => {
-    // Load from localStorage
     try {
       const stored = localStorage.getItem('admin_site_settings');
       if (stored) setSiteSettings(JSON.parse(stored));
@@ -95,22 +127,21 @@ export default function AdminDashboard() {
       if (storedPlans) setPricingPlans(JSON.parse(storedPlans));
       const storedPayments = localStorage.getItem('payment_requests');
       if (storedPayments) setPaymentRequests(JSON.parse(storedPayments));
+      const storedTokens = localStorage.getItem('token_usage');
+      if (storedTokens) setTokenUsages(JSON.parse(storedTokens));
+      const storedLogins = localStorage.getItem('login_activity');
+      if (storedLogins) setLoginActivities(JSON.parse(storedLogins));
     } catch {}
     loadUsers();
     
-    // Auto-detect already-logged-in user from sessionStorage
-    // This handles the case where user logged in via /signin page and was redirected to /admin
-    // The AuthProvider's onAuthChange already ran and won't re-pick up the session on navigation
     try {
       const storedSession = sessionStorage.getItem('jurisai_user') || sessionStorage.getItem('auth_user');
       if (storedSession) {
         const parsedUser = JSON.parse(storedSession);
         if (parsedUser && parsedUser.email) {
-          // Sync with AuthProvider so user state is available for isAdmin/autoDetectedAdmin checks
           if (!user) {
             setUser(parsedUser);
           }
-          // If this is the super admin, also set local adminUser state
           if (parsedUser.email.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase()) {
             setAdminUser(parsedUser);
           }
@@ -118,6 +149,20 @@ export default function AdminDashboard() {
       }
     } catch {}
   }, []);
+
+  // === LOGOUT ===
+  const handleLogout = async () => {
+    try {
+      await firebaseAuth.signOut();
+    } catch {}
+    sessionStorage.clear();
+    localStorage.removeItem('auth_user');
+    localStorage.removeItem('jurisai_user');
+    localStorage.removeItem('auth_token');
+    setAdminUser(null);
+    setUser(null);
+    router.push('/signin');
+  };
 
   const loadUsers = () => {
     try {
@@ -134,14 +179,11 @@ export default function AdminDashboard() {
   const handleAdminLogin = async () => {
     setAdminAuthError('');
     
-    // Trim and normalize inputs for comparison
     const normalizedEmail = authEmail.trim().toLowerCase();
     const normalizedPass = authPassword.trim();
     const superEmail = SUPER_ADMIN_EMAIL.trim().toLowerCase();
     
     if (normalizedEmail === superEmail) {
-      // SUPER ADMIN BYPASS: Email matches, no password check needed!
-      // The user registered with their own Firebase password, not 'akmal1221'
       const adminData: any = {
         id: 'super-admin',
         email: SUPER_ADMIN_EMAIL,
@@ -149,7 +191,6 @@ export default function AdminDashboard() {
         role: 'ADMIN' as const,
         subscription_plan: 'pro',
       };
-      // Save to sessionStorage (auto-logout on tab close)
       localStorage.setItem('auth_user', JSON.stringify(adminData));
       sessionStorage.setItem('auth_user', JSON.stringify(adminData));
       localStorage.setItem('jurisai_user', JSON.stringify(adminData));
@@ -157,28 +198,20 @@ export default function AdminDashboard() {
       sessionStorage.setItem('auth_token', 'super-admin');
       localStorage.setItem('jurisai_admin_email', SUPER_ADMIN_EMAIL);
       
-      // Update BOTH local state AND AuthProvider state so admin panel shows immediately
       setAdminUser(adminData);
       setUser(adminData);
       setAdminAuthError('');
-      return; // Don't check password at all
-    } else if (normalizedEmail === superEmail && normalizedPass !== SUPER_ADMIN_PASS) {
-      // Correct email but wrong password — never show password in error messages!
-      setAdminAuthError('Parol noto\'g\'ri. Iltimos, qayta urinib ko\'ring yoki administratorga murojaat qiling.');
+      return;
     } else {
-      // Try Firebase auth
       try {
         const result = await login(normalizedEmail, normalizedPass);
         if (result.success) {
-          if (normalizedEmail === superEmail) {
-            localStorage.setItem('jurisai_admin_email', SUPER_ADMIN_EMAIL);
-          }
           setAdminAuthError('');
         } else {
           setAdminAuthError(result.error || 'Email yoki parol noto\'g\'ri');
         }
       } catch {
-        setAdminAuthError('Tizimga kirishda xatolik yuz berdi. Iltimos, qayta urinib ko\'ring.');
+        setAdminAuthError('Tizimga kirishda xatolik yuz berdi.');
       }
     }
   };
@@ -218,11 +251,87 @@ export default function AdminDashboard() {
     localStorage.setItem('registered_users', JSON.stringify(updated));
   };
 
+  const deleteUser = (userId: string) => {
+    if (!confirm('Bu foydalanuvchini o\'chirishni tasdiqlaysizmi?')) return;
+    const updated = allUsers.filter((u: any) => u.id !== userId && u.uid !== userId);
+    setAllUsers(updated);
+    localStorage.setItem('registered_users', JSON.stringify(updated));
+  };
+
+  // ===== TOKEN TRACKING =====
+  const getUserTokens = (userId: string): number => {
+    return tokenUsages
+      .filter(t => t.userId === userId)
+      .reduce((sum, t) => sum + t.tokens, 0);
+  };
+
+  const getUserTokensByPeriod = (userId: string, days: number): number => {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - days);
+    return tokenUsages
+      .filter(t => t.userId === userId && new Date(t.date) >= cutoff)
+      .reduce((sum, t) => sum + t.tokens, 0);
+  };
+
+  // ===== REPORT CALCULATIONS =====
+  const getReportStats = () => {
+    const now = new Date();
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - reportDays);
+    
+    // Users registered in period
+    const newUsers = allUsers.filter((u: any) => {
+      const created = u.created_at || u.last_login;
+      return created && new Date(created) >= cutoff;
+    });
+    
+    // Logins in period
+    const recentLogins = loginActivities.filter(l => new Date(l.date) >= cutoff);
+    
+    // Tokens used in period
+    const tokensUsed = tokenUsages
+      .filter(t => new Date(t.date) >= cutoff)
+      .reduce((sum, t) => sum + t.tokens, 0);
+    
+    // Payments in period
+    const paymentsInPeriod = paymentRequests.filter(p => new Date(p.createdAt) >= cutoff);
+    const approvedPayments = paymentsInPeriod.filter(p => p.status === 'approved');
+    const totalRevenue = approvedPayments.reduce((sum, p) => sum + p.amount, 0);
+    const pendingPayments = paymentsInPeriod.filter(p => p.status === 'pending').length;
+    
+    // Active users (logged in within period)
+    const activeUserIds = new Set(recentLogins.map(l => l.userId));
+    const activeUsers = activeUserIds.size;
+    
+    // Calculate growth vs previous period
+    const prevCutoff = new Date();
+    prevCutoff.setDate(prevCutoff.getDate() - reportDays * 2);
+    const prevNewUsers = allUsers.filter((u: any) => {
+      const created = u.created_at || u.last_login;
+      return created && new Date(created) >= prevCutoff && new Date(created) < cutoff;
+    });
+    const userGrowth = prevNewUsers.length > 0 
+      ? Math.round(((newUsers.length - prevNewUsers.length) / prevNewUsers.length) * 100) 
+      : 0;
+
+    return {
+      newUsers: newUsers.length,
+      totalUsers: allUsers.length,
+      userGrowth,
+      recentLogins: recentLogins.length,
+      activeUsers,
+      tokensUsed,
+      totalRevenue,
+      approvedCount: approvedPayments.length,
+      pendingCount: pendingPayments,
+      totalPayments: paymentsInPeriod.length,
+    };
+  };
+
   // ===== PAYMENT MANAGEMENT =====
   const approvePayment = (paymentId: string) => {
     const updated = paymentRequests.map(p => {
       if (p.id === paymentId) {
-        // Grant premium status to user
         updateUserSubscription(p.userId, p.plan === 'standart' ? 'standart' : 'pro');
         return { ...p, status: 'approved' as const };
       }
@@ -280,13 +389,47 @@ export default function AdminDashboard() {
     setTimeout(() => setSettingsSaved(false), 2000);
   };
 
-  // Auto-detect: if Firebase is already logged in with super admin email, bypass login screen
+  // Export report as CSV
+  const exportReport = () => {
+    const stats = getReportStats();
+    const rows = [
+      ['Ko\'rsatkich', 'Qiymat'],
+      ['Jami foydalanuvchilar', String(stats.totalUsers)],
+      ['Yangi foydalanuvchilar', String(stats.newUsers)],
+      ['Foydalanuvchi o\'sishi (%)', String(stats.userGrowth)],
+      ['Faol foydalanuvchilar', String(stats.activeUsers)],
+      ['Kirishlar soni', String(stats.recentLogins)],
+      ['Ishlatilgan tokenlar', String(stats.tokensUsed)],
+      ['Umumiy daromad (UZS)', String(stats.totalRevenue)],
+      ['Tasdiqlangan to\'lovlar', String(stats.approvedCount)],
+      ['Kutilayotgan to\'lovlar', String(stats.pendingCount)],
+    ];
+    const csv = rows.map(r => r.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `hisobot_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // Auto-detect admin
   const autoDetectedAdmin = user?.email?.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase();
   const isSuperAdmin = adminUser?.email === SUPER_ADMIN_EMAIL || user?.email === SUPER_ADMIN_EMAIL;
   const effectiveIsAdmin = isAdmin || isSuperAdmin || !!adminUser || autoDetectedAdmin;
   const effectiveUser = adminUser || user;
 
-  // Login screen
+  const tabs: { id: TabType; label: string; icon: any }[] = [
+    { id: 'dashboard', label: 'Boshqaruv', icon: Shield },
+    { id: 'reports', label: 'Hisobotlar', icon: BarChart3 },
+    { id: 'users', label: 'Foydalanuvchilar', icon: Users },
+    { id: 'payments', label: 'To\'lovlar', icon: CreditCard },
+    { id: 'pricing', label: 'Narxlar', icon: DollarSign },
+    { id: 'settings', label: 'Sozlamalar', icon: Settings },
+  ];
+
+  // ===== LOGIN SCREEN =====
   if (!effectiveIsAdmin) {
     return (
       <div className="min-h-screen bg-page-custom flex items-center justify-center p-4">
@@ -334,9 +477,11 @@ export default function AdminDashboard() {
     );
   }
 
+  const reportStats = getReportStats();
+
   return (
     <div className="min-h-screen bg-page-custom">
-      {/* Header */}
+      {/* ===== HEADER ===== */}
       <div className="card-default border-b border-card-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
@@ -347,30 +492,54 @@ export default function AdminDashboard() {
                 <p className="text-xs text-secondary">{effectiveUser?.email} • {isSuperAdmin ? 'Super Admin' : 'Admin'}</p>
               </div>
             </div>
-            <div className="flex gap-2 flex-wrap">
-              {[ 
-                { id: 'dashboard', label: 'Boshqaruv', icon: Shield },
-                { id: 'users', label: 'Foydalanuvchilar', icon: Users },
-                { id: 'payments', label: 'To\'lovlar', icon: CreditCard },
-                { id: 'pricing', label: 'Narxlar', icon: DollarSign },
-                { id: 'settings', label: 'Sozlamalar', icon: Settings },
-              ].map(tab => {
-                const Icon = tab.icon;
-                return (
-                  <button key={tab.id}
-                    onClick={() => setActiveTab(tab.id as any)}
-                    className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all flex items-center gap-1 ${
-                      activeTab === tab.id
-                        ? 'bg-blue-600 text-white shadow-sm'
-                        : 'bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-300 hover:bg-gray-200 dark:hover:bg-zinc-700'
-                    }`}
-                  >
-                    <Icon size={14} />
-                    {tab.label}
-                  </button>
-                );
-              })}
+            <div className="flex items-center gap-2">
+              <div className="hidden md:flex gap-2 flex-wrap">
+                {tabs.map(tab => {
+                  const Icon = tab.icon;
+                  return (
+                    <button key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all flex items-center gap-1 ${
+                        activeTab === tab.id
+                          ? 'bg-blue-600 text-white shadow-sm'
+                          : 'bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-300 hover:bg-gray-200 dark:hover:bg-zinc-700'
+                      }`}
+                    >
+                      <Icon size={14} />
+                      {tab.label}
+                    </button>
+                  );
+                })}
+              </div>
+              {/* Logout button */}
+              <button
+                onClick={handleLogout}
+                className="px-3 py-1.5 text-xs font-medium rounded-lg bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/50 transition-all flex items-center gap-1"
+                title="Chiqish"
+              >
+                <LogOut size={14} />
+                <span className="hidden sm:inline">Chiqish</span>
+              </button>
             </div>
+          </div>
+          {/* Mobile tabs */}
+          <div className="md:hidden flex gap-1 flex-wrap pb-3">
+            {tabs.map(tab => {
+              const Icon = tab.icon;
+              return (
+                <button key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`px-2 py-1 text-xs font-medium rounded-lg transition-all flex items-center gap-1 ${
+                    activeTab === tab.id
+                      ? 'bg-blue-600 text-white shadow-sm'
+                      : 'bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-300'
+                  }`}
+                >
+                  <Icon size={12} />
+                  {tab.label}
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -379,7 +548,7 @@ export default function AdminDashboard() {
         {/* ===== DASHBOARD ===== */}
         {activeTab === 'dashboard' && (
           <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <Card className="card-default rounded-2xl">
                 <CardContent className="p-5">
                   <div className="flex items-center justify-between">
@@ -425,6 +594,196 @@ export default function AdminDashboard() {
                 </CardContent>
               </Card>
             </div>
+            {/* Quick overview */}
+            <Card className="card-default rounded-2xl">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-gray-800 dark:text-white">
+                  <Activity className="w-5 h-5 text-blue-500" />
+                  Tezkor ko\'rinish
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="p-3 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800">
+                    <p className="text-xs text-secondary">So\'nggi 30 kundagi</p>
+                    <p className="text-sm font-semibold text-blue-700 dark:text-blue-300 mt-1">Yangilar: {reportStats.newUsers}</p>
+                    <p className="text-sm text-blue-600 dark:text-blue-400">Faollar: {reportStats.activeUsers}</p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800">
+                    <p className="text-xs text-secondary">So\'nggi 30 kundagi</p>
+                    <p className="text-sm font-semibold text-green-700 dark:text-green-300 mt-1">Kirishlar: {reportStats.recentLogins}</p>
+                    <p className="text-sm text-green-600 dark:text-green-400">Tokenlar: {reportStats.tokensUsed}</p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-orange-50 dark:bg-orange-900/20 border border-orange-100 dark:border-orange-800">
+                    <p className="text-xs text-secondary">So\'nggi 30 kundagi</p>
+                    <p className="text-sm font-semibold text-orange-700 dark:text-orange-300 mt-1">Daromad: {reportStats.totalRevenue.toLocaleString()} UZS</p>
+                    <p className="text-sm text-orange-600 dark:text-orange-400">To\'lovlar: {reportStats.approvedCount} ta</p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-purple-50 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-800">
+                    <p className="text-xs text-secondary">O\'sish</p>
+                    <p className="text-sm font-semibold text-purple-700 dark:text-purple-300 mt-1">
+                      {reportStats.userGrowth > 0 ? '+' : ''}{reportStats.userGrowth}%
+                    </p>
+                    <p className="text-sm text-purple-600 dark:text-purple-400">foydalanuvchilar</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* ===== REPORTS ===== */}
+        {activeTab === 'reports' && (
+          <div className="space-y-6">
+            {/* Controls */}
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex items-center gap-2">
+                <Button
+                  variant={reportType === 'daily' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setReportType('daily')}
+                >
+                  <CalendarDays size={14} className="mr-1" /> Kunlik
+                </Button>
+                <Button
+                  variant={reportType === 'monthly' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setReportType('monthly')}
+                >
+                  <CalendarDays size={14} className="mr-1" /> Oylik
+                </Button>
+              </div>
+              <select
+                value={reportDays}
+                onChange={(e) => setReportDays(Number(e.target.value))}
+                className="text-xs p-2 rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-700 dark:text-zinc-300"
+              >
+                <option value={7}>7 kun</option>
+                <option value={30}>30 kun</option>
+                <option value={90}>90 kun</option>
+                <option value={365}>1 yil</option>
+              </select>
+              <Button size="sm" variant="outline" onClick={exportReport}>
+                <Download size={14} className="mr-1" /> CSV yuklab olish
+              </Button>
+            </div>
+
+            {/* Stats cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <Card className="card-default rounded-2xl">
+                <CardContent className="p-5">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-secondary">Yangi foydalanuvchilar</p>
+                      <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{reportStats.newUsers}</p>
+                      <p className={`text-xs mt-1 flex items-center gap-1 ${reportStats.userGrowth >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {reportStats.userGrowth >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+                        {reportStats.userGrowth > 0 ? '+' : ''}{reportStats.userGrowth}% o'tgan davrga nisbatan
+                      </p>
+                    </div>
+                    <UserCheck className="w-8 h-8 text-blue-500 opacity-60" />
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="card-default rounded-2xl">
+                <CardContent className="p-5">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-secondary">Faol foydalanuvchilar</p>
+                      <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{reportStats.activeUsers}</p>
+                      <p className="text-xs text-secondary mt-1">Jami: {reportStats.totalUsers} ta</p>
+                    </div>
+                    <Activity className="w-8 h-8 text-green-500 opacity-60" />
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="card-default rounded-2xl">
+                <CardContent className="p-5">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-secondary">Ishlatilgan tokenlar</p>
+                      <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{reportStats.tokensUsed.toLocaleString()}</p>
+                      <p className="text-xs text-secondary mt-1">{reportStats.recentLogins} ta kirish</p>
+                    </div>
+                    <Smartphone className="w-8 h-8 text-purple-500 opacity-60" />
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="card-default rounded-2xl">
+                <CardContent className="p-5">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-secondary">Daromad</p>
+                      <p className="text-2xl font-bold text-green-600 mt-1">{reportStats.totalRevenue.toLocaleString()} UZS</p>
+                      <p className="text-xs text-secondary mt-1">{reportStats.approvedCount} ta to'lov</p>
+                    </div>
+                    <DollarSign className="w-8 h-8 text-orange-500 opacity-60" />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* User activity list */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card className="card-default rounded-2xl">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-gray-800 dark:text-white text-base">
+                    <Clock className="w-4 h-4 text-blue-500" />
+                    So'nggi login faolliklari
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {loginActivities.length === 0 ? (
+                    <p className="text-sm text-secondary text-center py-4">Hali login faolligi yo'q</p>
+                  ) : (
+                    <div className="space-y-2 max-h-60 overflow-y-auto">
+                      {loginActivities.slice(-10).reverse().map((log, i) => (
+                        <div key={i} className="flex items-center justify-between p-2 rounded-lg bg-gray-50 dark:bg-zinc-800/50">
+                          <div className="flex items-center gap-2">
+                            {log.method === 'google' ? (
+                              <svg className="w-4 h-4" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/></svg>
+                            ) : (
+                              <Shield size={12} className="text-blue-500" />
+                            )}
+                            <span className="text-xs text-gray-700 dark:text-zinc-300">{log.userEmail}</span>
+                          </div>
+                          <span className="text-xs text-secondary">{new Date(log.date).toLocaleString('uz-UZ')}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card className="card-default rounded-2xl">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-gray-800 dark:text-white text-base">
+                    <Activity className="w-4 h-4 text-blue-500" />
+                    Token ishlatilishi (oxirgi 10 ta)
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {tokenUsages.length === 0 ? (
+                    <p className="text-sm text-secondary text-center py-4">Hali token ishlatilmagan</p>
+                  ) : (
+                    <div className="space-y-2 max-h-60 overflow-y-auto">
+                      {tokenUsages.slice(-10).reverse().map((t, i) => (
+                        <div key={i} className="flex items-center justify-between p-2 rounded-lg bg-gray-50 dark:bg-zinc-800/50">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs text-gray-700 dark:text-zinc-300 truncate">{t.userEmail}</p>
+                            <p className="text-[10px] text-secondary truncate">{t.action}</p>
+                          </div>
+                          <div className="text-right ml-2">
+                            <p className="text-xs font-medium text-blue-600">{t.tokens.toLocaleString()}</p>
+                            <p className="text-[10px] text-secondary">{new Date(t.date).toLocaleDateString('uz-UZ')}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
           </div>
         )}
 
@@ -432,7 +791,22 @@ export default function AdminDashboard() {
         {activeTab === 'users' && (
           <Card className="card-default rounded-2xl">
             <CardHeader>
-              <CardTitle className="text-gray-800 dark:text-white">Foydalanuvchilarni boshqarish</CardTitle>
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <CardTitle className="flex items-center gap-2 text-gray-800 dark:text-white">
+                  <Users className="w-5 h-5 text-blue-500" />
+                  Foydalanuvchilarni boshqarish
+                </CardTitle>
+                <div className="relative">
+                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="text"
+                    value={userSearchQuery}
+                    onChange={(e) => setUserSearchQuery(e.target.value)}
+                    placeholder="Qidirish..."
+                    className="pl-8 pr-3 py-1.5 text-xs rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-700 dark:text-zinc-300 w-48"
+                  />
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
               {allUsers.length === 0 ? (
@@ -442,50 +816,82 @@ export default function AdminDashboard() {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {allUsers.map((u: any) => (
-                    <div key={u.id || u.uid} className="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-zinc-800/50 border border-gray-100 dark:border-zinc-700">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium text-sm text-gray-800 dark:text-white">{u.name || u.email?.split('@')[0]}</span>
-                          <Badge className={u.role === 'ADMIN' || u.role === 'admin' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-600'}>
-                            {u.role === 'ADMIN' || u.role === 'admin' ? 'Admin' : 'Foydalanuvchi'}
-                          </Badge>
-                          {u.blocked && <Badge className="bg-red-100 text-red-800">Bloklangan</Badge>}
+                  {allUsers
+                    .filter((u: any) => {
+                      if (!userSearchQuery) return true;
+                      const q = userSearchQuery.toLowerCase();
+                      return (u.name || '').toLowerCase().includes(q) || (u.email || '').toLowerCase().includes(q);
+                    })
+                    .map((u: any) => {
+                      const tokenCount = getUserTokens(u.id || u.uid);
+                      const tokenCount30 = getUserTokensByPeriod(u.id || u.uid, 30);
+                      return (
+                        <div key={u.id || u.uid} className="p-3 rounded-xl bg-gray-50 dark:bg-zinc-800/50 border border-gray-100 dark:border-zinc-700">
+                          <div className="flex items-center justify-between flex-wrap gap-2">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="font-medium text-sm text-gray-800 dark:text-white">{u.name || u.email?.split('@')[0]}</span>
+                                <Badge className={u.role === 'ADMIN' || u.role === 'admin' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-600'}>
+                                  {u.role === 'ADMIN' || u.role === 'admin' ? 'Admin' : 'Foydalanuvchi'}
+                                </Badge>
+                                {u.blocked && <Badge className="bg-red-100 text-red-800">Bloklangan</Badge>}
+                                {u.subscription_plan && u.subscription_plan !== 'free' && (
+                                  <Badge className="bg-green-100 text-green-800">
+                                    {u.subscription_plan === 'pro' ? 'Pro' : 'Standart'}
+                                  </Badge>
+                                )}
+                              </div>
+                              <p className="text-xs text-secondary mt-0.5">{u.email}</p>
+                              <div className="flex items-center gap-3 mt-1 text-[10px] text-secondary">
+                                <span>Tokenlar: {tokenCount.toLocaleString()}</span>
+                                <span>30 kun: {tokenCount30.toLocaleString()}</span>
+                                {u.last_login && <span>Oxirgi kirish: {new Date(u.last_login).toLocaleDateString('uz-UZ')}</span>}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-1 flex-wrap">
+                              <select
+                                value={u.role || 'USER'}
+                                onChange={(e) => updateUserRole(u.id || u.uid, e.target.value)}
+                                className="text-xs p-1.5 rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-700 dark:text-zinc-300"
+                              >
+                                <option value="USER">User</option>
+                                <option value="ADMIN">Admin</option>
+                              </select>
+                              <select
+                                value={u.subscription_plan || 'free'}
+                                onChange={(e) => updateUserSubscription(u.id || u.uid, e.target.value)}
+                                className="text-xs p-1.5 rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-700 dark:text-zinc-300"
+                              >
+                                <option value="free">Bepul</option>
+                                <option value="standart">Standart</option>
+                                <option value="pro">Pro</option>
+                              </select>
+                              <button
+                                onClick={() => toggleUserBlock(u.id || u.uid)}
+                                className={`p-1.5 rounded-lg text-xs ${u.blocked ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}
+                                title={u.blocked ? 'Faollashtirish' : 'Bloklash'}
+                              >
+                                {u.blocked ? <UserCheck size={14} /> : <UserX size={14} />}
+                              </button>
+                              <button
+                                onClick={() => deleteUser(u.id || u.uid)}
+                                className="p-1.5 rounded-lg text-xs bg-red-100 text-red-700 hover:bg-red-200"
+                                title="O'chirish"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
+                          </div>
                         </div>
-                        <p className="text-xs text-secondary mt-0.5">{u.email}</p>
-                        {u.subscription_plan && u.subscription_plan !== 'free' && (
-                          <span className="text-xs text-green-600 mt-1 inline-block">
-                            {u.subscription_plan === 'pro' ? 'Pro' : 'Standart'} • {u.subscription_expires_at ? new Date(u.subscription_expires_at).toLocaleDateString() : ''}
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <select
-                          value={u.role || 'USER'}
-                          onChange={(e) => updateUserRole(u.id || u.uid, e.target.value)}
-                          className="text-xs p-1.5 rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-700 dark:text-zinc-300"
-                        >
-                          <option value="USER">Foydalanuvchi</option>
-                          <option value="ADMIN">Admin</option>
-                        </select>
-                        <select
-                          value={u.subscription_plan || 'free'}
-                          onChange={(e) => updateUserSubscription(u.id || u.uid, e.target.value)}
-                          className="text-xs p-1.5 rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-700 dark:text-zinc-300"
-                        >
-                          <option value="free">Bepul</option>
-                          <option value="standart">Standart</option>
-                          <option value="pro">Pro</option>
-                        </select>
-                        <button
-                          onClick={() => toggleUserBlock(u.id || u.uid)}
-                          className={`p-1.5 rounded-lg text-xs ${u.blocked ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}
-                        >
-                          {u.blocked ? 'Faollashtirish' : 'Bloklash'}
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+                      );
+                    })}
+                  {allUsers.filter((u: any) => {
+                    if (!userSearchQuery) return true;
+                    const q = userSearchQuery.toLowerCase();
+                    return (u.name || '').toLowerCase().includes(q) || (u.email || '').toLowerCase().includes(q);
+                  }).length === 0 && userSearchQuery && (
+                    <p className="text-sm text-secondary text-center py-4">Hech narsa topilmadi</p>
+                  )}
                 </div>
               )}
             </CardContent>
@@ -635,7 +1041,8 @@ export default function AdminDashboard() {
 
         {/* ===== SETTINGS ===== */}
         {activeTab === 'settings' && (
-          <div className="space-y-4">
+          <div className="space-y-6">
+            {/* Site settings */}
             <Card className="card-default rounded-2xl">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-gray-800 dark:text-white">
@@ -690,6 +1097,25 @@ export default function AdminDashboard() {
                 {settingsSaved && (
                   <p className="text-sm text-green-600">Sozlamalar saqlandi! ✅</p>
                 )}
+              </CardContent>
+            </Card>
+
+            {/* Logout section */}
+            <Card className="card-default rounded-2xl border-red-200 dark:border-red-900">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-red-600 dark:text-red-400">
+                  <LogOut className="w-5 h-5" />
+                  Xavfsizlik
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-secondary mb-4">
+                  Admin panelidan chiqish va login sahifasiga qaytish.
+                </p>
+                <Button variant="destructive" onClick={handleLogout}>
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Admin panelidan chiqish
+                </Button>
               </CardContent>
             </Card>
           </div>
