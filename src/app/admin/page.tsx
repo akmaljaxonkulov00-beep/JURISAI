@@ -14,6 +14,7 @@ import {
   UserCheck, UserX, Smartphone, Search, Download
 } from 'lucide-react';
 import { firebaseAuth } from '@/services/firebase-auth';
+import MonitoringDashboard from '@/components/admin/MonitoringDashboard';
 
 // ===== SUPER ADMIN HARDCODED CREDENTIALS =====
 const SUPER_ADMIN_EMAIL = 'akmaljaxonkulov00@gmail.com';
@@ -67,7 +68,7 @@ interface LoginActivity {
   method: 'email' | 'google';
 }
 
-type TabType = 'dashboard' | 'reports' | 'users' | 'payments' | 'pricing' | 'settings';
+type TabType = 'dashboard' | 'reports' | 'monitoring' | 'users' | 'payments' | 'pricing' | 'settings';
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -507,6 +508,7 @@ export default function AdminDashboard() {
 
   const tabs: { id: TabType; label: string; icon: any }[] = [
     { id: 'dashboard', label: 'Boshqaruv', icon: Shield },
+    { id: 'monitoring', label: 'Monitoring', icon: Activity },
     { id: 'reports', label: 'Hisobotlar', icon: BarChart3 },
     { id: 'users', label: 'Foydalanuvchilar', icon: Users },
     { id: 'payments', label: 'To\'lovlar', icon: CreditCard },
@@ -870,6 +872,11 @@ export default function AdminDashboard() {
               </Card>
             </div>
           </div>
+        )}
+
+        {/* ===== MONITORING ===== */}
+        {activeTab === 'monitoring' && (
+          <MonitoringDashboard />
         )}
 
         {/* ===== USERS ===== */}
