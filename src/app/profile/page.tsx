@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, Suspense } from 'react';
+import { useState, Suspense, useEffect } from 'react';
 import {
   ArrowLeft, User, Mail, Phone, Edit3, Award, BookOpen,
   TrendingUp, Star, Camera, CheckCircle, Crown, Target,
   Bell, Moon, Sun, Shield,
   Smartphone, Monitor, Download, Trash2,
-  Eye, EyeOff, Key, Database, AlertTriangle, Settings, Globe
+  Eye, EyeOff, Key, Database, AlertTriangle, Settings, Globe,
+  CreditCard, Clock, AlertCircle
 } from 'lucide-react';
 import { useTheme } from '@/context/ThemeContext';
 import { useSearchParams } from 'next/navigation';
@@ -83,10 +84,36 @@ function ProfileContent() {
   const [showCurrentPass, setShowCurrentPass] = useState(false);
   const [showNewPass, setShowNewPass] = useState(false);
   const [settingsSaved, setSettingsSaved] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState<string | null>(null);
+  const [paymentAmount, setPaymentAmount] = useState<number>(0);
+  const [paymentDate, setPaymentDate] = useState<string>('');
   const [profileImage, setProfileImage] = useState<string | null>(() => {
     if (typeof window !== 'undefined') return localStorage.getItem('profile_image');
     return null;
   });
+
+  // Load payment status from localStorage/payment history
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('auth_user');
+        const payHistory = localStorage.getItem('payment_history');
+        if (payHistory) {
+          const payData = JSON.parse(payHistory);
+          setPaymentStatus(payData.status || null);
+          setPaymentAmount(payData.amount || 0);
+          setPaymentDate(payData.date || '');
+        } else {
+          // Check if subscription is Pro and find payment info
+          const userData = stored ? JSON.parse(stored) : {};
+          if (userData.subscription_plan === 'pro') {
+            setPaymentStatus('approved');
+            setPaymentAmount(45000);
+          }
+        }
+      } catch {}
+    }
+  }, []);
 
   const handleSave = () => {
     const userData = {
@@ -257,6 +284,30 @@ function ProfileContent() {
                 </div>
               </div>
             </div>
+            {/* Payment Status */}
+            {profile.subscription === 'Pro' && paymentStatus && (
+              <div className={`p-4 rounded-xl flex items-center gap-3 ${
+                paymentStatus === 'approved' ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800' :
+                paymentStatus === 'pending' ? 'bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800' :
+                'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800'
+              }`}>
+                {paymentStatus === 'approved' ? <CheckCircle className="w-5 h-5 text-green-600" /> :
+                 paymentStatus === 'pending' ? <Clock className="w-5 h-5 text-yellow-600" /> :
+                 <AlertCircle className="w-5 h-5 text-red-600" />}
+                <div>
+                  <p className="font-medium text-gray-800 dark:text-white">
+                    {paymentStatus === 'approved' && "To'lov tasdiqlandi ✅"}
+                    {paymentStatus === 'pending' && "To'lov tekshirilmoqda ⏳"}
+                    {paymentStatus === 'rejected' && "To'lov rad etildi ❌"}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    {paymentAmount > 0 && `${paymentAmount.toLocaleString()} UZS`}
+                    {paymentDate && ` — ${paymentDate}`}
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* Quick Info */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl flex items-center gap-3">

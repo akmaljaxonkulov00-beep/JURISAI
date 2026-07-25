@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { ArrowLeft, Search, HelpCircle, BookOpen, MessageCircle, Mail, Phone, ChevronDown, ChevronRight, FileText, Shield, Zap, Users, Globe } from 'lucide-react';
 import Link from 'next/link';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 
 interface FAQ {
   question: string;
@@ -14,6 +15,7 @@ interface FAQ {
 export default function Help() {
   const [searchQuery, setSearchQuery] = useState('');
   const [openFAQ, setOpenFAQ] = useState<string | null>(null);
+  const settings = useSiteSettings();
 
   const categories = [
     { id: 'getting-started', label: 'Boshlash', icon: BookOpen },
@@ -144,7 +146,7 @@ export default function Help() {
                 </div>
               </div>
               <h3 className="font-semibold text-gray-800 dark:text-white mb-1">Email</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">support@jurisai.uz</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{settings.contactEmail || 'support@jurisai.uz'}</p>
               <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">24/7 qo\'llab-quvvatlash</p>
             </div>
             <div className="text-center p-4">
@@ -154,7 +156,7 @@ export default function Help() {
                 </div>
               </div>
               <h3 className="font-semibold text-gray-800 dark:text-white mb-1">Telefon</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">+998 90 123 45 67</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{settings.contactPhone || '+998 90 123 45 67'}</p>
               <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">09:00 - 18:00</p>
             </div>
             <div className="text-center p-4">
@@ -164,7 +166,7 @@ export default function Help() {
                 </div>
               </div>
               <h3 className="font-semibold text-gray-800 dark:text-white mb-1">Telegram</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">@JurisAI_support</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{settings.telegramLink?.replace('https://t.me/', '@') ?? '@JurisAI_support'}</p>
               <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Tezkor javob</p>
             </div>
           </div>

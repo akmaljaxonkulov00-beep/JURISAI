@@ -82,6 +82,15 @@ function PaymentContent() {
         // Silently fail — logging is non-critical
       }
       
+      // Write payment_history so profile can show pending status
+      try {
+        localStorage.setItem('payment_history', JSON.stringify({
+          status: 'pending',
+          amount,
+          plan: planName.toLowerCase(),
+          date: new Date().toLocaleDateString('uz-UZ'),
+        }));
+      } catch {}
       setPaymentStatus('pending');
     } catch {
       // ignore

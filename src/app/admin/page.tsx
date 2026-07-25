@@ -393,6 +393,14 @@ export default function AdminDashboard() {
               sessionStorage.setItem('auth_user', JSON.stringify(updatedUser));
             }
           }
+          // Write payment_history so user's profile can read it
+          localStorage.setItem('payment_history', JSON.stringify({
+            status: 'approved',
+            amount: p.amount,
+            plan: p.plan,
+            date: new Date().toLocaleDateString('uz-UZ'),
+            userId: p.userId,
+          }));
         } catch {}
         return { ...p, status: 'approved' as const };
       }

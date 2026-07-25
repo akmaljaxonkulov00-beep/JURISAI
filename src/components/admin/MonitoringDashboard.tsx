@@ -24,13 +24,22 @@ interface MonitoringData {
   };
 }
 
+interface Alert {
+  type: 'success' | 'warning' | 'danger';
+  message: string;
+  icon: string;
+}
+
 export default function MonitoringDashboard() {
   const [data, setData] = useState<MonitoringData | null>(null);
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState(7);
+  const [autoRefresh, setAutoRefresh] = useState(false);
+  const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [lastUpdated, setLastUpdated] = useState<string>('');
 
-  const loadData = async () => {
-    setLoading(true);
+  const loadData = async (showLoading = true) => {
+    if (showLoading) setLoading(true);
     try {
       const res = await fetch(`/api/admin/analytics?days=${period}&type=all`);
       const result = await res.json();
@@ -69,25 +78,50 @@ export default function MonitoringDashboard() {
 
         // Convert to arrays
         const allDates = [...new Set([...Object.keys(loginMap), ...Object.keys(tokenMap), ...Object.keys(revenueMap), ...Object.keys(userMap)])].sort();
+
+        const totals = {
+          totalUsers: d.totalUsers || 0,
+          totalTokens: d.tokensUsed || 0,
+          totalRevenue: d.totalRevenue || 0,
+          totalLogins: d.recentLogins || 0,
+        };
         
         setData({
           users: allDates.map(date => ({ date, count: userMap[date] || 0 })),
           tokens: allDates.map(date => ({ date, count: tokenMap[date] || 0 })),
           revenue: allDates.map(date => ({ date, amount: revenueMap[date] || 0 })),
           logins: allDates.map(date => ({ date, count: loginMap[date] || 0 })),
-          totals: {
-            totalUsers: d.totalUsers || 0,
-            totalTokens: d.tokensUsed || 0,
-            totalRevenue: d.totalRevenue || 0,
-            totalLogins: d.recentLogins || 0,
-          },
+          totals,
         });
+
+        // Generate alerts based on data
+        const newAlerts: Alert[] = [];
+        if (totals.totalUsers < 5) {
+          newAlerts.push({ type: 'warning', message: 'Foydalanuvchilar soni juda kam (< 5)', icon: '⚠️' });
+        } else if (totals.totalUsers > 50) {
+          newAlerts.push({ type: 'success', message: `Foydalanuvchilar soni: ${totals.totalUsers} ta`, icon: '✅' });
+        }
+        if (totals.totalTokens > 100000) {
+          newAlerts.push({ type: 'warning', message: 'Token ishlatilishi yuqori: ' + totals.totalTokens.toLocaleString(), icon: '⚡' });
+        }
+        if (totals.totalRevenue > 1000000) {
+          newAlerts.push({ type: 'success', message: `Daromad: ${totals.totalRevenue.toLocaleString()} UZS`, icon: '💰' });
+        }
+        setAlerts(newAlerts);
+        setLastUpdated(new Date().toLocaleTimeString('uz-UZ'));
       }
     } catch {}
-    setLoading(false);
+    if (showLoading) setLoading(false);
   };
 
   useEffect(() => { loadData(); }, [period]);
+
+  // Auto-refresh every 30 seconds
+  useEffect(() => {
+    if (!autoRefresh) return;
+    const interval = setInterval(() => loadData(false), 30000);
+    return () => clearInterval(interval);
+  }, [autoRefresh, period]);
 
   if (loading && !data) {
     return (
@@ -108,16 +142,38 @@ export default function MonitoringDashboard() {
 
   return (
     <div className="space-y-6">
+      {/* Alerts */}
+      {alerts.length > 0 && (
+        <div className="space-y-2">
+          {alerts.map((alert, idx) => (
+            <div key={idx} className={`px-4 py-3 rounded-xl flex items-center gap-2 text-sm ${
+              alert.type === 'success' ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-300' :
+              alert.type === 'warning' ? 'bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 text-yellow-700 dark:text-yellow-300' :
+              'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300'
+            }`}>
+              <span>{alert.icon}</span>
+              <span>{alert.message}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Period selector */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-wrap">
         {[7, 30, 90].map(d => (
           <Button key={d} variant={period === d ? 'default' : 'outline'} size="sm" onClick={() => setPeriod(d)}>
             {d} kun
           </Button>
         ))}
-        <Button size="sm" variant="outline" onClick={loadData} className="ml-auto">
-          <RefreshCw size={14} className="mr-1" /> Yangilash
+        <Button size="sm" variant={autoRefresh ? 'default' : 'outline'} onClick={() => setAutoRefresh(!autoRefresh)}>
+          {autoRefresh ? '🔄 Auto' : 'Auto'}
         </Button>
+        <Button size="sm" variant="outline" onClick={() => loadData()} className="ml-auto">
+          <RefreshCw size={14} className={`mr-1 ${autoRefresh ? 'animate-spin' : ''}`} /> Yangilash
+        </Button>
+        {lastUpdated && (
+          <span className="text-xs text-gray-400 dark:text-gray-500">So'nggi yangilanish: {lastUpdated}</span>
+        )}
       </div>
 
       {/* Totals */}

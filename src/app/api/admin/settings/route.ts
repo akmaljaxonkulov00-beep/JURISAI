@@ -43,12 +43,31 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Supabase not configured' });
     }
 
-    // Upsert settings
-    const { error } = await supabase.from('site_settings').upsert({
+    // Convert camelCase keys to snake_case for Supabase table
+    const snakeCaseSettings: Record<string, any> = {
       id: 'global',
-      ...settings,
       updated_at: new Date().toISOString(),
-    });
+    };
+    
+    const keyMap: Record<string, string> = {
+      announcementBanner: 'announcement_banner',
+      heroTitle: 'hero_title',
+      heroSubtitle: 'hero_subtitle',
+      contactEmail: 'contact_email',
+      contactPhone: 'contact_phone',
+      telegramLink: 'telegram_link',
+      legalDisclaimer: 'legal_disclaimer',
+      systemPrompt: 'system_prompt',
+      paymentCardNumber: 'payment_card_number',
+      paymentDetails: 'payment_details',
+    };
+    
+    for (const [camelKey, value] of Object.entries(settings)) {
+      const snakeKey = keyMap[camelKey] || camelKey;
+      snakeCaseSettings[snakeKey] = value;
+    }
+
+    const { error } = await supabase.from('site_settings').upsert(snakeCaseSettings);
 
     if (error) {
       console.error('Settings save error:', error);
