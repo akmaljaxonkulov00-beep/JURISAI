@@ -55,9 +55,14 @@ function SignInForm() {
           localStorage.removeItem('rememberedEmail')
         }
         
-        // Get redirect URL from search params or default to dashboard
-        const redirectTo = searchParams.get('redirectTo') || '/dashboard'
-        router.push(redirectTo)
+        // Determine redirect: super admin -> /admin, otherwise -> from search params or /dashboard
+        const email = result.data?.email?.toLowerCase().trim()
+        if (email === 'akmaljaxonkulov00@gmail.com') {
+          router.push('/admin')
+        } else {
+          const redirectTo = searchParams.get('redirectTo') || '/dashboard'
+          router.push(redirectTo)
+        }
       } else {
         setError(result.error || 'Login xatosi yuz berdi')
       }
@@ -79,7 +84,12 @@ function SignInForm() {
     // Handle Google OAuth redirect result (popup blocked → redirect fallback)
     firebaseAuth.handleRedirectResult().then(result => {
       if (result.success && result.data) {
-        router.push('/dashboard')
+        const email = result.data.email?.toLowerCase().trim()
+        if (email === 'akmaljaxonkulov00@gmail.com') {
+          router.push('/admin')
+        } else {
+          router.push('/dashboard')
+        }
       }
     }).catch(() => {});
   }, [setValue, router])
@@ -115,7 +125,13 @@ function SignInForm() {
     try {
       const result = await firebaseAuth.signInWithGoogle()
       if (result.success) {
-        router.push('/dashboard')
+        // If super admin -> go to /admin, otherwise -> /dashboard
+        const email = result.data?.email?.toLowerCase().trim()
+        if (email === 'akmaljaxonkulov00@gmail.com') {
+          router.push('/admin')
+        } else {
+          router.push('/dashboard')
+        }
       } else {
         setError(result.error || 'Google orqali kirishda xatolik yuz berdi')
       }

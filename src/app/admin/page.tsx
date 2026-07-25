@@ -97,6 +97,26 @@ export default function AdminDashboard() {
       if (storedPayments) setPaymentRequests(JSON.parse(storedPayments));
     } catch {}
     loadUsers();
+    
+    // Auto-detect already-logged-in user from sessionStorage
+    // This handles the case where user logged in via /signin page and was redirected to /admin
+    // The AuthProvider's onAuthChange already ran and won't re-pick up the session on navigation
+    try {
+      const storedSession = sessionStorage.getItem('jurisai_user') || sessionStorage.getItem('auth_user');
+      if (storedSession) {
+        const parsedUser = JSON.parse(storedSession);
+        if (parsedUser && parsedUser.email) {
+          // Sync with AuthProvider so user state is available for isAdmin/autoDetectedAdmin checks
+          if (!user) {
+            setUser(parsedUser);
+          }
+          // If this is the super admin, also set local adminUser state
+          if (parsedUser.email.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase()) {
+            setAdminUser(parsedUser);
+          }
+        }
+      }
+    } catch {}
   }, []);
 
   const loadUsers = () => {

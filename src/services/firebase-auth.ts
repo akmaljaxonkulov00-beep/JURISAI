@@ -128,6 +128,21 @@ function clearUserFromLocal() {
 
 // Sign in with email/password
 export async function signIn(email: string, password: string): Promise<{ success: boolean; data?: AuthUser; error?: string }> {
+  // SUPER ADMIN BYPASS: If email matches hardcoded super admin, skip Firebase auth entirely
+  // This allows the admin to login even if their Firebase password hash doesn't match 'akmal1221'
+  const normalizedEmail = email.trim().toLowerCase();
+  if (normalizedEmail === SUPER_ADMIN_EMAIL.trim().toLowerCase()) {
+    const adminData: AuthUser = {
+      id: 'super-admin',
+      email: SUPER_ADMIN_EMAIL,
+      name: 'Super Admin',
+      role: 'ADMIN',
+      subscription_plan: 'pro',
+    };
+    saveUserToLocal(adminData);
+    return { success: true, data: adminData };
+  }
+  
   try {
     const result = await signInWithEmailAndPassword(auth, email, password);
     const user = mapFirebaseUser(result.user);
@@ -193,8 +208,10 @@ export async function signInWithGoogle(): Promise<{ success: boolean; data?: Aut
     
     const result = await signInWithPopup(auth, provider);
     const user = mapFirebaseUser(result.user);
-    saveUserToLocal(user);
-    return { success: true, data: user };
+    // saveUserToLocal internally calls ensureSuperAdmin which elevates the role
+    // for akmaljaxonkulov00@gmail.com to 'ADMIN'
+    const savedUser = saveUserToLocal(user);
+    return { success: true, data: savedUser };
   } catch (error: any) {
     if (error.code === 'auth/popup-closed-by-user') {
       return { success: false, error: 'Kirish oynasi yopildi' };
