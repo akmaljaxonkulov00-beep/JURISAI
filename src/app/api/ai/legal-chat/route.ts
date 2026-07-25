@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getSupabaseAdmin } from '@/lib/supabase-admin';
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY || process.env.NEXT_PUBLIC_GROQ_API_KEY;
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
@@ -148,6 +149,22 @@ ${contextText}`;
           'Misol keltirib bering',
           'O\'xshash holatlar'
         ];
+    }
+
+    // Log usage to Supabase (non-blocking)
+    try {
+      const supabase = getSupabaseAdmin();
+      await supabase.from('usage_logs').insert({
+        user_id: 'api',
+        email: 'api@jurisai.uz',
+        name: 'API',
+        tokens: Math.ceil(responseText.length / 4),
+        action: 'ai_legal_chat',
+        metadata: { category, message_length: message.length },
+        created_at: new Date().toISOString(),
+      });
+    } catch {
+      // Silently fail — logging is non-critical
     }
 
     return NextResponse.json({

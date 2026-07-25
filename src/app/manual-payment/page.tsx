@@ -54,9 +54,40 @@ function PaymentContent() {
   const handleSubmitPayment = async () => {
     if (!checkImage) return;
     setIsSubmitting(true);
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    setPaymentStatus('pending');
-    setIsSubmitting(false);
+    
+    try {
+      // Upload to Supabase storage + log payment request
+      try {
+        const reader = new FileReader();
+        const imageBase64 = await new Promise<string>((resolve) => {
+          reader.onload = () => resolve(reader.result as string);
+          reader.readAsDataURL(checkImage);
+        });
+        
+        const user = JSON.parse(sessionStorage.getItem('jurisai_user') || sessionStorage.getItem('auth_user') || '{}');
+        
+        await fetch('/api/log/payment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: user.id || 'unknown',
+            userEmail: user.email || 'unknown',
+            userName: user.name || '',
+            plan: planName.toLowerCase(),
+            amount,
+            receiptImage: imageBase64,
+          }),
+        });
+      } catch (logError) {
+        // Silently fail — logging is non-critical
+      }
+      
+      setPaymentStatus('pending');
+    } catch {
+      // ignore
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (paymentStatus === 'success' && amount === 0) {
