@@ -455,6 +455,143 @@ QAYTA QILGANDA yoki guruh bo'lib qilganda - jarima 10-20 barobar yoki ma'muriy q
 };
 
 // ============================================================================
+// OILA KODEKSI (OK) - Family Code
+// ============================================================================
+
+export const FAMILY_CODE: LegalCode = {
+  id: 'family_code',
+  name: "O'zbekiston Respublikasi Oila kodeksi",
+  shortName: 'OK',
+  description: 'Oila munosabatlarini tartibga soluvchi asosiy qonun hujjati',
+  totalArticles: 246,
+  effectiveDate: '01.09.1998',
+  articles: [
+    {
+      number: '1',
+      title: 'Oila qonunchiligining vazifalari',
+      content: `Oila qonunchiligi oilani mustahkamlash, oilaviy munosabatlarni tenglik asosida qurish, ota-onalar va farzandlarning huquqlarini himoya qilishga qaratilgan.
+
+Oila qonunchiligi O'zbekiston Respublikasi Konstitutsiyasiga asoslanadi va ushbu Kodeksdan iborat.`,
+      category: 'Umumiy qoidalar'
+    },
+    {
+      number: '15',
+      title: 'Nikoh yoshi',
+      content: `Nikoh tuzish yoshi o'n sakkiz yosh etib belgilanadi.
+
+Uzrli sabablarga ko'ra, mahalliy davlat hokimiyati organi nikoh tuzish yoshini bir yildan ortiq bo'lmagan muddatga pasaytirishi mumkin.`,
+      category: 'Nikoh'
+    },
+    {
+      number: '22',
+      title: 'Nikohni bekor qilish',
+      content: `Nikoh er-xotinning o'zaro roziligi bilan yoki er-xotindan birining iltimosiga ko'ra sud tartibida bekor qilinadi.
+
+Nikohni bekor qilishda er-xotinning umumiy mulki taqsimlanadi, voyaga yetmagan bolalarning yashash joyi va ularni boqish tartibi belgilanadi.`,
+      category: 'Nikoh',
+      references: ['OK 1', 'OK 15']
+    }
+  ]
+};
+
+// ============================================================================
+// SOLIQ KODEKSI (SK) - Tax Code (qisqacha)
+// ============================================================================
+
+export const TAX_CODE: LegalCode = {
+  id: 'tax_code',
+  name: "O'zbekiston Respublikasi Soliq kodeksi",
+  shortName: 'SK',
+  description: 'Soliq munosabatlarini tartibga soluvchi asosiy qonun hujjati',
+  totalArticles: 516,
+  effectiveDate: '01.01.2020',
+  articles: [
+    {
+      number: '1',
+      title: 'Soliq qonunchiligining asosiy vazifalari',
+      content: `Soliq qonunchiligi davlatning soliq va yig'imlarini belgilash, undirish tartibini, shuningdek soliq to'lovchilar va davlat o'rtasidagi munosabatlarni tartibga soladi.`,
+      category: 'Umumiy qoidalar'
+    },
+    {
+      number: '41',
+      title: 'Daromad solig\'i stavkasi',
+      content: `Jismoniy shaxslarning daromad solig'i stavkasi 12 foiz miqdorida belgilanadi.
+
+Soliq solinadigan daromad soliq davri mobaynida olingan jami daromaddan qonunda nazarda tutilgan chegirmalar chiqarib tashlangan holda aniqlanadi.`,
+      category: 'Soliq stavkalari'
+    }
+  ]
+};
+
+// ============================================================================
+// YER KODEKSI (ZK) - Land Code
+// ============================================================================
+
+export const LAND_CODE: LegalCode = {
+  id: 'land_code',
+  name: "O'zbekiston Respublikasi Yer kodeksi",
+  shortName: 'ZK',
+  description: 'Yer munosabatlarini tartibga soluvchi asosiy qonun hujjati',
+  totalArticles: 168,
+  effectiveDate: '01.04.1998',
+  articles: [
+    {
+      number: '1',
+      title: 'Yer qonunchiligining vazifalari',
+      content: `Yer qonunchiligi yerlardan oqilona foydalanish, ularni muhofaza qilish, yer uchastkalariga bo'lgan huquqlarni himoya qilish va yer munosabatlarini tartibga solishga qaratilgan.`,
+      category: 'Umumiy qoidalar'
+    },
+    {
+      number: '17',
+      title: 'Yer uchastkasiga egalik qilish',
+      content: `Yer uchastkalari davlat mulki bo'lib, fuqarolar va yuridik shaxslarga doimiy foydalanish yoki ijaraga berilishi mumkin.
+
+Yer uchastkasiga bo'lgan huquq davlat ro'yxatidan o'tkazilgan paytdan e'tiboran yuzaga keladi.`,
+      category: 'Yer huquqlari'
+    }
+  ]
+};
+
+// ============================================================================
+// O'ZBEKISTON RESPUBLIKASI KONSTITUTSIYASI
+// ============================================================================
+
+export const CONSTITUTION: LegalCode = {
+  id: 'constitution',
+  name: "O'zbekiston Respublikasi Konstitutsiyasi",
+  shortName: 'Konstitutsiya',
+  description: "O'zbekiston Respublikasining Asosiy Qonuni",
+  totalArticles: 155,
+  effectiveDate: '08.12.1992',
+  articles: [
+    {
+      number: '1',
+      title: "O'zbekiston - suveren respublika",
+      content: `O'zbekiston - suveren demokratik respublika. "O'zbekiston" va "O'zbekiston Respublikasi" degan nomlar bir ma'noni anglatadi. Davlat o'zining hududiy yaxlitligini va konstitutsiyaviy tuzumini himoya qiladi.`,
+      category: 'Davlat tuzumi'
+    },
+    {
+      number: '2',
+      title: 'Davlat ramzlari',
+      content: "O'zbekiston Respublikasining davlat ramzlari - Bayrog'i, Gerbi va Madhiyasi belgilangan tartibda tasdiqlanadi.",
+      category: 'Davlat tuzumi'
+    },
+    {
+      number: '13',
+      title: 'Inson huquqlari kafolatlari',
+      content: "O'zbekiston Respublikasida inson huquqlari va erkinliklari Konstitutsiya va qonunlarga muvofiq kafolatlanadi. Har kim o'z huquqlari va erkinliklarini sud orqali himoya qilishga haqlidir.",
+      category: 'Inson huquqlari'
+    },
+    {
+      number: '15',
+      title: 'Konstitutsiyaviy qonunlarning ustunligi',
+      content: "O'zbekiston Respublikasida O'zbekiston Respublikasi Konstitutsiyasi va qonunlarining ustunligi tan olinadi. Davlat, uning organlari, mansabdor shaxslari, jamoat birlashmalari, fuqarolar Konstitutsiya va qonunlarga muvofiq ish olib boradilar.",
+      category: 'Asosiy qoidalar'
+    }
+  ]
+};
+
+// ============================================================================
 // EXPORT ALL CODES
 // ============================================================================
 
@@ -462,7 +599,11 @@ export const ALL_LEGAL_CODES = [
   CRIMINAL_CODE,
   CIVIL_CODE,
   LABOR_CODE,
-  ADMINISTRATIVE_CODE
+  FAMILY_CODE,
+  TAX_CODE,
+  LAND_CODE,
+  ADMINISTRATIVE_CODE,
+  CONSTITUTION
 ];
 
 export const getLegalCodeById = (id: string): LegalCode | undefined => {

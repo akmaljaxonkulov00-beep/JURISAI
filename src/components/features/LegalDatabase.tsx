@@ -6,8 +6,9 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
-import { Bookmark, Trash2, X, Search } from 'lucide-react';
-import { api } from '@/services/api';
+import { Bookmark, Trash2, X, Search, ArrowLeft, FileText, Scale, Gavel, BookOpen, Landmark } from 'lucide-react';
+import { ALL_LEGAL_CODES } from '@/data/legal-codes';
+import type { LegalCode } from '@/data/legal-codes';
 
 // Fallback data - O'zbekiston qonunlari
 const fallbackDocs: LegalArticle[] = [
@@ -132,6 +133,8 @@ export default function LegalDatabase() {
   const [selectedArticle, setSelectedArticle] = useState<LegalArticle | null>(null);
   const [showArticleModal, setShowArticleModal] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [selectedCode, setSelectedCode] = useState<LegalCode | null>(null);
+  const [codeSearchQuery, setCodeSearchQuery] = useState('');
 
   useEffect(() => {
     loadCategories();
@@ -150,15 +153,21 @@ export default function LegalDatabase() {
       console.log('Loading legal categories...');
       
       // Use fallback data if API fails - O'zbekiston qonunlari
-      const fallbackCategories: Category[] = [
-        { id: 'constitution', name: 'Konstitutsiya', description: 'O\'zbekiston Respublikasi Konstitutsiyasi', document_count: 1, document_type: 'Konstitutsiya' },
-        { id: 'criminal', name: 'Jinoyat huquqi', description: 'Jinoyat kodeksi va jinoyat-protsessual kodeksi', document_count: 2, document_type: 'Kodeks' },
-        { id: 'civil', name: 'Fuqarolik huquqi', description: 'Fuqarolik kodeksi va fuqarolik-protsessual kodeksi', document_count: 2, document_type: 'Kodeks' },
-        { id: 'family', name: 'Oila huquqi', description: 'Oila kodeksi', document_count: 1, document_type: 'Kodeks' },
-        { id: 'labor', name: 'Mehnat huquqi', description: 'Mehnat kodeksi', document_count: 1, document_type: 'Kodeks' },
-        { id: 'administrative', name: 'Ma\'muriy huquq', description: 'Ma\'muriy javobgarlik to\'g\'risidagi kodeks', document_count: 1, document_type: 'Kodeks' },
-        { id: 'tax', name: 'Soliq huquqi', description: 'Soliq kodeksi', document_count: 1, document_type: 'Kodeks' },
-        { id: 'land', name: 'Yer huquqi', description: 'Yer kodeksi', document_count: 1, document_type: 'Kodeks' },
+      // Build categories from ALL_LEGAL_CODES for dynamic article counts
+      const codeCategories: Category[] = ALL_LEGAL_CODES.map(code => ({
+        id: code.id,
+        name: code.description.includes('Konstitutsiya') ? 'Konstitutsiya' : code.shortName,
+        description: code.description,
+        document_count: code.totalArticles,
+        document_type: code.shortName,
+      }));
+      
+      // Also add procedural codes
+      const allCategories: Category[] = [
+        ...codeCategories,
+        { id: 'fpk', name: 'FPK', description: 'Fuqarolik protsessual kodeksi', document_count: 246, document_type: 'Kodeks' },
+        { id: 'jpk', name: 'JPK', description: 'Jinoyat protsessual kodeksi', document_count: 389, document_type: 'Kodeks' },
+        { id: 'ipk', name: 'IPK', description: 'Iqtisodiy protsessual kodeksi', document_count: 211, document_type: 'Kodeks' },
       ];
       
       try {
@@ -181,12 +190,11 @@ export default function LegalDatabase() {
         }
       } catch {}
       
-      setCategories(fallbackCategories);
-      console.log('Using fallback legal categories');
+      setCategories(allCategories);
+      console.log('Using legal categories from legal-codes.ts');
     } catch (error) {
       console.error('Error loading categories:', error);
-      // Fallback to empty array
-      setCategories([]);
+      setCategories(allCategories);
     }
   };
 
@@ -502,32 +510,154 @@ export default function LegalDatabase() {
     </div>
   );
 
+  const renderCodeView = () => {
+    if (!selectedCode) return null;
+    
+    const filteredArticles = selectedCode.articles.filter(a => {
+      if (!codeSearchQuery) return true;
+      const q = codeSearchQuery.toLowerCase();
+      return a.title.toLowerCase().includes(q) || 
+             a.content.toLowerCase().includes(q) || 
+             a.number.includes(q) ||
+             (a.category || '').toLowerCase().includes(q);
+    });
+
+    return (
+      <div className="space-y-6">
+        <Card className="card-default rounded-2xl">
+          <CardHeader>
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => { setSelectedCode(null); setCodeSearchQuery(''); }}
+                  className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-zinc-800 transition-all"
+                  title="Orqaga"
+                >
+                  <ArrowLeft size={20} className="text-gray-600 dark:text-zinc-400" />
+                </button>
+                <div>
+                  <CardTitle className="text-gray-900 dark:text-white flex items-center gap-2">
+                    {selectedCode.shortName === 'Konstitutsiya' ? <Landmark size={20} className="text-blue-500" /> : 
+                     selectedCode.shortName === 'JK' ? <Gavel size={20} className="text-red-500" /> : 
+                     selectedCode.shortName === 'FK' ? <Scale size={20} className="text-green-500" /> : 
+                     <BookOpen size={20} className="text-blue-500" />}
+                    {selectedCode.shortName} — {selectedCode.name}
+                  </CardTitle>
+                  <p className="text-sm text-secondary mt-1">
+                    {selectedCode.totalArticles} ta modda • Kuchga kirgan: {selectedCode.effectiveDate}
+                  </p>
+                </div>
+              </div>
+              <div className="relative">
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  value={codeSearchQuery}
+                  onChange={(e) => setCodeSearchQuery(e.target.value)}
+                  placeholder="Modda raqami yoki matn bo'yicha..."
+                  className="pl-8 pr-3 py-2 text-xs rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-700 dark:text-zinc-300 w-56"
+                />
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {filteredArticles.length === 0 ? (
+              <p className="text-sm text-secondary text-center py-8">Hech qanday modda topilmadi</p>
+            ) : (
+              <div className="space-y-3">
+                {filteredArticles.map((article, idx) => (
+                  <div
+                    key={article.number}
+                    className="p-4 rounded-xl bg-gray-50 dark:bg-zinc-800/50 border border-gray-100 dark:border-zinc-700 hover:border-blue-300 dark:hover:border-blue-700 transition-all cursor-pointer"
+                    onClick={() => {
+                      setSelectedArticle({
+                        id: `${selectedCode.id}-${article.number}`,
+                        title: `${selectedCode.shortName} - ${article.number}-modda. ${article.title}`,
+                        content: article.content,
+                        category: article.category || 'Umumiy',
+                        document_type: selectedCode.shortName,
+                        article_number: `${article.number}-modda`,
+                        chapter: article.category || '1-bob',
+                        section: '',
+                        keywords: [selectedCode.shortName, ...article.title.split(' ').slice(0, 3)],
+                        cross_references: article.references || [],
+                        last_updated: selectedCode.effectiveDate,
+                        relevance_score: 100 - idx,
+                        view_count: 0
+                      });
+                      setShowArticleModal(true);
+                    }}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 rounded-md">
+                            {article.number}-modda
+                          </span>
+                          {article.category && (
+                            <Badge className="bg-gray-100 text-gray-600 dark:bg-zinc-700 dark:text-zinc-300 text-[10px]">
+                              {article.category}
+                            </Badge>
+                          )}
+                        </div>
+                        <h4 className="font-semibold text-sm text-gray-900 dark:text-white">{article.title}</h4>
+                        <p className="text-xs text-secondary mt-1 line-clamp-2">{article.content}</p>
+                      </div>
+                      <div className="flex-shrink-0 flex flex-col items-end gap-1">
+                        {article.penalties && (
+                          <Badge className="bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-300 text-[10px]">
+                            {article.penalties.substring(0, 30)}...
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  };
+
   const renderCategoriesTab = () => (
     <div className="space-y-6">
-      <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+      <Card className="card-default rounded-2xl">
         <CardHeader>
-          <CardTitle className="text-blue-900">Qonun Kategoriyalari</CardTitle>
+          <CardTitle className="text-gray-900 dark:text-white">Qonun Kategoriyalari</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {categories.map((category) => (
               <div
                 key={category.id}
-                className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-200 hover:border-blue-400 transition-all cursor-pointer"
+                className="p-4 rounded-xl bg-gray-50 dark:bg-zinc-800/50 border border-gray-100 dark:border-zinc-700 hover:border-blue-300 dark:hover:border-blue-700 transition-all cursor-pointer hover-lift"
                 onClick={() => {
-                  setSelectedCategory(category.id);
-                  setActiveTab('popular');
+                  const matchingCode = ALL_LEGAL_CODES.find(c => c.id === category.id);
+                  if (matchingCode) {
+                    setSelectedCode(matchingCode);
+                  } else {
+                    setSelectedCategory(category.id);
+                    setCodeSearchQuery(category.name);
+                  }
                 }}
               >
-                <h3 className="font-semibold text-blue-900 mb-2">{category.name}</h3>
-                <p className="text-sm text-gray-600 mb-3">{category.description}</p>
+                <div className="flex items-center gap-2 mb-2">
+                  {category.id === 'constitution' ? <Landmark size={20} className="text-blue-600" /> :
+                   category.id === 'criminal_code' ? <Gavel size={20} className="text-red-600" /> :
+                   category.id === 'civil_code' ? <Scale size={20} className="text-green-600" /> :
+                   category.id === 'labor_code' ? <FileText size={20} className="text-orange-600" /> :
+                   category.id === 'family_code' ? <BookOpen size={20} className="text-purple-600" /> :
+                   <FileText size={20} className="text-gray-600" />}
+                  <h3 className="font-semibold text-gray-900 dark:text-white">{category.name}</h3>
+                </div>
+                <p className="text-sm text-secondary mb-3 line-clamp-2">{category.description}</p>
                 <div className="flex justify-between items-center">
-                  <Badge className="bg-green-100 text-green-800">
-                    {category.document_count} hujjat
+                  <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
+                    {category.document_count} ta modda
                   </Badge>
-                  <Badge className="bg-purple-100 text-purple-800">
-                    {category.document_type}
-                  </Badge>
+                  <span className="text-xs text-secondary">{category.document_type}</span>
                 </div>
               </div>
             ))}
@@ -756,11 +886,15 @@ export default function LegalDatabase() {
           ))}
         </div>
 
-        {/* Tab Content */}
-        {activeTab === 'search' && renderSearchTab()}
-        {activeTab === 'categories' && renderCategoriesTab()}
-        {activeTab === 'popular' && renderPopularTab()}
-        {activeTab === 'bookmarks' && renderBookmarksTab()}
+        {/* Tab Content - Show code view when a code is selected */}
+        {selectedCode ? renderCodeView() : (
+          <>
+            {activeTab === 'search' && renderSearchTab()}
+            {activeTab === 'categories' && renderCategoriesTab()}
+            {activeTab === 'popular' && renderPopularTab()}
+            {activeTab === 'bookmarks' && renderBookmarksTab()}
+          </>
+        )}
 
         {/* Article Modal */}
         {renderArticleModal()}
