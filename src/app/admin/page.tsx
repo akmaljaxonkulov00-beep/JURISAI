@@ -377,12 +377,43 @@ export default function AdminDashboard() {
     const updated = paymentRequests.map(p => {
       if (p.id === paymentId) {
         updateUserSubscription(p.userId, p.plan === 'standart' ? 'standart' : 'pro');
+        // Also update active user session if they're logged in
+        try {
+          const storedUser = sessionStorage.getItem('jurisai_user') || sessionStorage.getItem('auth_user');
+          if (storedUser) {
+            const userData = JSON.parse(storedUser);
+            if (userData.id === p.userId || userData.email === p.userEmail) {
+              const updatedUser = {
+                ...userData,
+                subscription_plan: p.plan === 'standart' ? 'standart' : 'pro',
+                subscription_expires_at: new Date(Date.now() + 365 * 86400000).toISOString(),
+              };
+              sessionStorage.setItem('jurisai_user', JSON.stringify(updatedUser));
+              sessionStorage.setItem('auth_user', JSON.stringify(updatedUser));
+            }
+          }
+        } catch {}
         return { ...p, status: 'approved' as const };
       }
       return p;
     });
     setPaymentRequests(updated);
     localStorage.setItem('payment_requests', JSON.stringify(updated));
+    
+    // Log to Supabase
+    try {
+      fetch('/api/log/payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userEmail: 'admin@jurisai.uz',
+          plan: 'admin_approval',
+          amount: 0,
+          userId: 'admin',
+          userName: 'Admin',
+        }),
+      });
+    } catch {}
   };
 
   const rejectPayment = (paymentId: string) => {
@@ -427,8 +458,18 @@ export default function AdminDashboard() {
   };
 
   // ===== SITE SETTINGS =====
-  const saveSettings = () => {
+  const saveSettings = async () => {
     localStorage.setItem('admin_site_settings', JSON.stringify(siteSettings));
+    // Also publish to user-accessible key for cross-user sync
+    localStorage.setItem('siteSettings', JSON.stringify(siteSettings));
+    // Sync to Supabase
+    try {
+      await fetch('/api/admin/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ settings: siteSettings }),
+      });
+    } catch {}
     setSettingsSaved(true);
     setTimeout(() => setSettingsSaved(false), 2000);
   };

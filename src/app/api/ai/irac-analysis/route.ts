@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseClient } from '@/lib/supabase';
-import { googleAIService } from '@/lib/google-ai';
+import { getSupabaseAdmin } from '@/lib/supabase-admin';
+
+const GROQ_API_KEY = process.env.GROQ_API_KEY || process.env.NEXT_PUBLIC_GROQ_API_KEY;
+const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
 export async function POST(request: NextRequest) {
   try {
@@ -8,21 +10,72 @@ export async function POST(request: NextRequest) {
 
     if (!caseText || caseText.trim().length < 50) {
       return NextResponse.json(
-        { error: 'Jinoyat ishi matni kamida 50 ta belgidan iborat bo\'lishi kerak' },
+        { error: 'Ish matni kamida 50 ta belgidan iborat bo\'lishi kerak' },
         { status: 400 }
       );
     }
 
-    // Use Google AI for IRAC analysis
-    const iracResult = await googleAIService.performIRACAnalysis(caseText);
-
-    // Track usage
-    if (userId && supabaseClient) {
-      await trackUsage('irac_analysis', caseText.length, userId);
+    if (!GROQ_API_KEY) {
+      return NextResponse.json({ error: 'AI xizmati sozlanmagan' }, { status: 500 });
     }
 
+    const systemPrompt = `You are JurisAI IRAC — an expert legal analysis system. Analyze the following legal case using IRAC methodology (Issue, Rule, Application, Conclusion) in Uzbek language.
+
+IRAC FORMAT:
+## Muammo (Issue)
+(1-2 jumla bilan huquqiy masalani aniqlang)
+
+## Qoida (Rule)  
+(Tegishli qonun moddalarini keltiring)
+
+## Qo'llash (Application)
+(Vaziyatni tahlil qiling va qonunni qo'llang)
+
+## Xulosa (Conclusion)
+(Yakuniy pozitsiyani bildiring)`;
+
+    const response = await fetch(GROQ_API_URL, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${GROQ_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: caseText }
+        ],
+        temperature: 0.1,
+        max_tokens: 2048,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Groq API error:', errorText);
+      return NextResponse.json({ error: 'AI tahlil xatosi' }, { status: response.status });
+    }
+
+    const data = await response.json();
+    const analysisText = data.choices[0]?.message?.content || 'Tahlil olinmadi';
+
+    // Log usage to Supabase
+    try {
+      const supabase = getSupabaseAdmin();
+      await supabase.from('usage_logs').insert({
+        user_id: userId || 'api',
+        email: 'api@jurisai.uz',
+        name: 'API',
+        tokens: Math.ceil(analysisText.length / 4) + Math.ceil(caseText.length / 4),
+        action: 'irac_analysis',
+        metadata: { text_length: caseText.length },
+        created_at: new Date().toISOString(),
+      });
+    } catch {}
+
     return NextResponse.json({
-      irac: iracResult,
+      irac: analysisText,
       caseText,
       timestamp: new Date().toISOString(),
     });
@@ -32,22 +85,5 @@ export async function POST(request: NextRequest) {
       { error: 'IRAC tahlilini olishda xatolik yuz berdi' },
       { status: 500 }
     );
-  }
-}
-
-async function trackUsage(feature: string, textLength: number, userId?: string) {
-  if (!supabaseClient || !userId) return;
-  
-  try {
-    await supabaseClient.from('usage_tracking').insert({
-      feature,
-      action: 'analysis',
-      quantity: 1,
-      metadata: { textLength },
-      user_id: userId,
-      created_at: new Date().toISOString()
-    });
-  } catch (error) {
-    console.error('Usage tracking error:', error);
   }
 }

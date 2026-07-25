@@ -163,6 +163,27 @@ CREATE OR REPLACE VIEW code_article_counts AS
   LEFT JOIN articles a ON a.code_id = c.id
   GROUP BY c.id, c.short_name, c.title, c.total_articles;
 
+-- Site settings (global config synced from admin panel)
+CREATE TABLE IF NOT EXISTS site_settings (
+  id TEXT PRIMARY KEY DEFAULT 'global',
+  announcement_banner TEXT,
+  hero_title TEXT,
+  hero_subtitle TEXT,
+  contact_email TEXT,
+  contact_phone TEXT,
+  telegram_link TEXT,
+  legal_disclaimer TEXT,
+  system_prompt TEXT,
+  payment_card_number TEXT,
+  payment_details TEXT,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+INSERT INTO site_settings (id, announcement_banner, hero_title, hero_subtitle, contact_email, contact_phone)
+VALUES ('global', 'JURISAI - Huquqiy AI yordamchingiz!', 'Huquqiy masalalarni AI bilan yeching', 'O''zbekiston qonunchiligi bo''yicha professional AI yordamchi', 'support@jurisai.uz', '+998 90 123 45 67')
+ON CONFLICT (id) DO NOTHING;
+
 -- Create dashboard analytics view
 CREATE OR REPLACE VIEW admin_dashboard_stats AS
   SELECT
