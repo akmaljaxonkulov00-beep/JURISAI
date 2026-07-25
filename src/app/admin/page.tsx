@@ -11,7 +11,7 @@ import {
   Settings, Shield, CheckCircle, Users, CreditCard, 
   DollarSign, Save, X, Trash2, Bell, Globe, BarChart3, 
   TrendingUp, TrendingDown, LogOut, CalendarDays, Clock, Activity,
-  UserCheck, UserX, Search, Download
+  UserCheck, UserX, Smartphone, Search, Download
 } from 'lucide-react';
 import { firebaseAuth } from '@/services/firebase-auth';
 

@@ -273,13 +273,7 @@ function ProfileContent() {
                   <p className="font-medium text-gray-800 dark:text-white">{profile.phone}</p>
                 </div>
               </div>
-              <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl flex items-center gap-3">
-                <Award className="w-5 h-5 text-orange-600" />
-                <div>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Sertifikatlar</p>
-                  <p className="font-medium text-gray-800 dark:text-white">{profile.certificates} ta</p>
-                </div>
-              </div>
+
               <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl flex items-center gap-3">
                 <Target className="w-5 h-5 text-blue-600" />
                 <div>

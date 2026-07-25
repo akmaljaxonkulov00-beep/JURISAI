@@ -32,7 +32,8 @@ import {
   Users2,
   CheckCircle,
   Settings,
-  HelpCircle
+  HelpCircle,
+  LogOut
 } from 'lucide-react';
 import AIChatWidget from '@/components/AIChatWidget';
 
@@ -88,9 +89,26 @@ export default function Dashboard() {
     if (user) {
       loadUserStats();
     }
-  }, [user]);
+  }, [user]);  const handleLogout = async () => {
+    try {
+      const { firebaseAuth } = await import('@/services/firebase-auth');
+      await firebaseAuth.signOut();
+    } catch {}
+    if (typeof window !== 'undefined') {
+      sessionStorage.clear();
+      localStorage.removeItem('auth_user');
+      localStorage.removeItem('jurisai_user');
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('profile_image');
+    }
+    router.push('/signin');
+  };
 
   const handleNavigation = (href: string) => {
+    if (href === '/signin') {
+      handleLogout();
+      return;
+    }
     router.push(href);
   };
 
@@ -221,6 +239,12 @@ export default function Dashboard() {
           label: 'Yordam',
           icon: HelpCircle,
           href: '/help'
+        },
+        {
+          id: 'logout',
+          label: 'Chiqish',
+          icon: LogOut,
+          href: '/signin'
         }
       ]
     }
