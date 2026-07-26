@@ -126,6 +126,10 @@ function saveUserToLocal(user: AuthUser) {
   sessionStorage.setItem('jurisai_user', JSON.stringify(userWithMeta));
   sessionStorage.setItem('auth_user', JSON.stringify(userWithMeta));
   sessionStorage.setItem('auth_token', user.id);
+  // Set cookie so middleware can verify auth (Edge Runtime cannot read sessionStorage)
+  if (typeof document !== 'undefined') {
+    document.cookie = `jurisai_auth=1; path=/; max-age=${24 * 60 * 60}; SameSite=Lax`;
+  }
   
   // Append to registered users list for admin analytics
   try {
