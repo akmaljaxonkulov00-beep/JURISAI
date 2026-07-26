@@ -4,6 +4,8 @@ import { useState, useEffect, useRef, useCallback, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { firebaseAuth } from '@/services/firebase-auth'
 import { useAuth } from '@/app/providers'
+import { useRealtimeStats } from '@/hooks/useRealtimeStats'
+import AnimatedCounter from '@/components/AnimatedCounter'
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 3D Interactive Floating Scene with Framer Motion
@@ -121,15 +123,35 @@ function ShineIcon() {
 }
 
 const floatingCards = [
-  { icon: <LegalShieldIcon />, title: 'AI Huquqiy Agent', desc: 'O\'zbekiston qonunchiligi asosida maslahat', color: 'from-blue-400/30 to-blue-600/20', depth: 4, href: '/ai-assistant' },
-  { icon: <GavelIcon />, title: 'Virtual Sud AI', desc: 'Real vaqt rejimida sud simulyatsiyasi', color: 'from-emerald-400/30 to-emerald-600/20', depth: 6, href: '/court-simulator' },
-  { icon: <FileIcon />, title: 'AI Hujjat Generator', desc: 'Da\'vo, shartnoma, ishonchnoma yarating', color: 'from-amber-400/30 to-amber-600/20', depth: 3, href: '/document-generator' },
-  { icon: <SearchIcon />, title: 'Smart Search', desc: 'Semantic va natural language qidiruv', color: 'from-purple-400/30 to-purple-600/20', depth: 7, href: '/qonunlar' },
-  { icon: <NetworkIcon />, title: 'O\'zbekiston Qonunchiligi', desc: '10 ta kodeks, 3000+ modda, AI tahlil', color: 'from-cyan-400/30 to-cyan-600/20', depth: 5, href: '/qonunlar' },
-  { icon: <ShineIcon />, title: 'AI Analitika', desc: 'Qonunlarni taqqoslash, risk analysis', color: 'from-rose-400/30 to-rose-600/20', depth: 8, href: '/statistics' },
+  { icon: <LegalShieldIcon />, title: 'AI Huquqiy Agent', descKey: 'ai', color: 'from-blue-400/30 to-blue-600/20', depth: 4, href: '/ai-assistant' },
+  { icon: <GavelIcon />, title: 'Virtual Sud AI', descKey: 'court', color: 'from-emerald-400/30 to-emerald-600/20', depth: 6, href: '/court-simulator' },
+  { icon: <FileIcon />, title: 'AI Hujjat Generator', descKey: 'docs', color: 'from-amber-400/30 to-amber-600/20', depth: 3, href: '/document-generator' },
+  { icon: <SearchIcon />, title: 'Smart Search', descKey: 'search', color: 'from-purple-400/30 to-purple-600/20', depth: 7, href: '/qonunlar' },
+  { icon: <NetworkIcon />, title: 'O\'zbekiston Qonunchiligi', descKey: 'codes', color: 'from-cyan-400/30 to-cyan-600/20', depth: 5, href: '/qonunlar' },
+  { icon: <ShineIcon />, title: 'AI Analitika', descKey: 'analytics', color: 'from-rose-400/30 to-rose-600/20', depth: 8, href: '/statistics' },
 ]
 
-function FloatingScene({ mouseX, mouseY, onNavigate }: { mouseX: any; mouseY: any; onNavigate?: (href: string) => void }) {
+const CARD_DESC_MAP: Record<string, (s: any) => string> = {
+  ai: (s) => `${s.total_ai_requests.toLocaleString()}+ AI so\'rov, 100% O\'zR qonunchiligi`,
+  court: (s) => `${s.active_users_today} ta bugungi seans, real vaqt rejimi`,
+  docs: (s) => `${s.total_documents.toLocaleString()}+ hujjat yaratildi, da\'vo, shartnoma, ishonchnoma`,
+  search: (s) => `${(s.total_codes * 300).toLocaleString()}+ modda, semantic qidiruv`,
+  codes: (s) => `${s.total_codes} ta kodeks, ${(s.total_codes * 300).toLocaleString()}+ modda, AI tahlil`,
+  analytics: (s) => `${s.total_users.toLocaleString()}+ foydalanuvchi, risk analysis`,
+}
+
+function getCardDesc(descKey: string, stats: any): string {
+  const fn = CARD_DESC_MAP[descKey]
+  return fn ? fn(stats) : 'Keng qamrovli tahlil'
+}
+
+function FloatingScene({ mouseX, mouseY, onNavigate, stats, statsLoading }: {
+  mouseX: any
+  mouseY: any
+  onNavigate?: (href: string) => void
+  stats?: { total_users: number; total_documents: number; total_ai_requests: number; total_codes: number; active_users_today: number; documents_generated_today: number }
+  statsLoading?: boolean
+}) {
   return (
     <div className="relative w-full h-full flex items-center justify-center">
       {/* Central glow */}
@@ -145,6 +167,9 @@ function FloatingScene({ mouseX, mouseY, onNavigate }: { mouseX: any; mouseY: an
             const y = Math.sin(angle) * radius
             const cardWidth = i % 2 === 0 ? 160 : 140
             const cardHeight = 80
+
+            // Live data for each card
+            const cardDesc = stats && !statsLoading ? getCardDesc(card.descKey, stats) : undefined
 
             return (
               <motion.div
@@ -173,7 +198,11 @@ function FloatingScene({ mouseX, mouseY, onNavigate }: { mouseX: any; mouseY: an
                       </div>
                       <div className="min-w-0">
                         <h3 className="text-xs font-semibold text-white/90 leading-tight">{card.title}</h3>
-                        <p className="text-[10px] text-white/50 mt-0.5 leading-tight">{card.desc}</p>
+                        {cardDesc ? (
+                          <p className="text-[10px] text-white/50 mt-0.5 leading-tight">{cardDesc}</p>
+                        ) : (
+                          <p className="text-[10px] text-white/50 mt-0.5 leading-tight">Yuklanmoqda...</p>
+                        )}
                       </div>
                     </div>
                   </button>
@@ -181,6 +210,18 @@ function FloatingScene({ mouseX, mouseY, onNavigate }: { mouseX: any; mouseY: an
               </motion.div>
             )
           })}
+
+          {/* Live counter badges ring */}
+          {stats && !statsLoading && (
+            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 translate-y-16 flex items-center justify-center gap-2">
+              <span className="px-1.5 py-0.5 rounded-md bg-blue-500/20 border border-blue-500/30 text-[8px] text-blue-300 font-medium">
+                <AnimatedCounter value={stats.active_users_today} suffix="" compact stiffness={90} damping={20} className="text-blue-300" /> bugun
+              </span>
+              <span className="px-1.5 py-0.5 rounded-md bg-emerald-500/20 border border-emerald-500/30 text-[8px] text-emerald-300 font-medium">
+                +<AnimatedCounter value={stats.documents_generated_today} suffix="" compact stiffness={90} damping={20} className="text-emerald-300" /> hujjat
+              </span>
+            </div>
+          )}
 
           {/* Center logo */}
           <motion.div
@@ -208,6 +249,8 @@ function SignInContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { user, isLoading: authLoading } = useAuth()
+
+  const { stats: liveStats, loading: statsLoading } = useRealtimeStats()
 
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
   const [mouseSpeed, setMouseSpeed] = useState(0)
@@ -358,7 +401,7 @@ function SignInContent() {
 
         {/* Floating 3D Scene */}
         <div className="absolute inset-0">
-          <FloatingScene mouseX={mouseX} mouseY={mouseY} onNavigate={(href) => router.push(href)} />
+          <FloatingScene mouseX={mouseX} mouseY={mouseY} onNavigate={(href) => router.push(href)} stats={liveStats} statsLoading={statsLoading} />
         </div>
 
         {/* Overlay text at top */}
@@ -389,17 +432,29 @@ function SignInContent() {
           className="absolute z-10 bottom-8 left-0 right-0 flex items-center justify-center gap-8"
         >
           <div className="text-center">
-            <div className="text-xl font-bold text-white">50K+</div>
+            <div className="text-xl font-bold text-white">
+              {statsLoading ? <span className="text-white/40 animate-pulse">...</span> : (
+                <AnimatedCounter value={liveStats.total_users} suffix="+" compact stiffness={90} damping={20} />
+              )}
+            </div>
             <div className="text-blue-200/60 text-[10px]">Faol foydalanuvchilar</div>
           </div>
           <div className="w-px h-8 bg-white/10" />
           <div className="text-center">
-            <div className="text-xl font-bold text-white">10</div>
+            <div className="text-xl font-bold text-white">
+              {statsLoading ? <span className="text-white/40 animate-pulse">...</span> : (
+                <AnimatedCounter value={liveStats.total_codes} stiffness={90} damping={20} />
+              )}
+            </div>
             <div className="text-blue-200/60 text-[10px]">Qonun kodekslari</div>
           </div>
           <div className="w-px h-8 bg-white/10" />
           <div className="text-center">
-            <div className="text-xl font-bold text-white">1M+</div>
+            <div className="text-xl font-bold text-white">
+              {statsLoading ? <span className="text-white/40 animate-pulse">...</span> : (
+                <AnimatedCounter value={liveStats.total_ai_requests} suffix="+" compact stiffness={90} damping={20} />
+              )}
+            </div>
             <div className="text-blue-200/60 text-[10px]">AI so'rovlari</div>
           </div>
         </motion.div>
