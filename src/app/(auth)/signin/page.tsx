@@ -356,13 +356,8 @@ function SignInContent() {
           backgroundSize: '60px 60px'
         }} />
 
-        {/* Floating Particles via Canvas */}
-        <div className="absolute inset-0">
-          <ShieldCanvas mousePos={mousePos} />
-        </div>
-
         {/* Floating 3D Scene */}
-        <div className="absolute inset-0 z-10">
+        <div className="absolute inset-0">
           <FloatingScene mouseX={mouseX} mouseY={mouseY} onNavigate={(href) => router.push(href)} />
         </div>
 
