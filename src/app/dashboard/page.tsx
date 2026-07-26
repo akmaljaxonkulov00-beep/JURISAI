@@ -9,6 +9,7 @@ import { useAuth } from '@/app/providers';
 import { api } from '@/services/api';
 import { firebaseAuth } from '@/services/firebase-auth';
 import AIChatFloatingWidget from '@/components/ai/AIChatFloatingWidget';
+import OnboardingTour from '@/components/OnboardingTour';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -569,6 +570,8 @@ export default function Dashboard() {
       </div>
       {/* AI Chat Floating Widget — only on dashboard */}
       <AIChatFloatingWidget />
+      {/* Interactive onboarding tour for new users */}
+      <OnboardingTour />
     </div>
   );
 }
