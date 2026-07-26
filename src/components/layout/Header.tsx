@@ -116,10 +116,10 @@ const Header: React.FC<HeaderProps> = ({ user, className }) => {
             ) : (
               <div className="flex items-center space-x-4">
                 <Button variant="ghost" asChild>
-                  <Link href="/login">Kirish</Link>
+                  <Link href="/signin">Kirish</Link>
                 </Button>
                 <Button asChild>
-                  <Link href="/register">Ro'yxatdan o'tish</Link>
+                  <Link href="/signin?mode=register">Ro'yxatdan o'tish</Link>
                 </Button>
               </div>
             )}

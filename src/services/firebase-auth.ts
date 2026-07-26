@@ -316,7 +316,7 @@ export async function signOut(): Promise<void> {
           .replace(/=.*/, '=;expires=' + new Date().toUTCString() + ';path=/');
       });
       // Hard redirect to force full page reload + session clear
-      window.location.href = '/login';
+      window.location.href = '/signin';
     }
   }
 }

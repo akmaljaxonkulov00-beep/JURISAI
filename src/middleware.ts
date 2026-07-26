@@ -2,28 +2,105 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 /**
- * Middleware — route-level protection.
+ * MIDDLEWARE — Route Protection
  *
- * This middleware works alongside client-side auth protection (page.tsx redirects).
- * Server-side: allows all requests through. Client-side auth protection in
- * page.tsx handles redirecting unauthenticated users to /signin.
+ * Protects authenticated routes by checking for the 'jurisai_auth' cookie.
+ * The cookie is set by firebase-auth.ts saveUserToLocal() during login.
  *
- * NOTE: Firebase Auth uses sessionStorage which is NOT accessible from Edge
- * Middleware. Full auth protection is implemented client-side via:
- *   - page.tsx: redirects to /signin when no user session found
- *   - firebaseAuth.signOut(): nuclear clear + hard redirect to /login
- *   - sessionStorage: auto-clears on browser/tab close
+ * PUBLIC routes (no auth required):
+ *   /signin, /signup, /login, /register
+ *   /forgot-password, /terms, /privacy, /pricing
+ *   /landing, /_next/*, /api/*, favicon, static files
  *
- * This middleware is kept for future enhancement (e.g. rate limiting, header
- * security, maintenance mode).
+ * PROTECTED routes (requires auth cookie):
+ *   /dashboard, /admin, /profile, /settings, /premium
+ *   /case-solver, /decision-tree, /court-simulator
+ *   /community, /statistics, /document-generator
+ *   /professional-tools, /qonunlar, /manual-payment
+ *   /billing, /help, /tasks, /irac, /simulator
  */
 
-export function middleware(_request: NextRequest) {
-  return NextResponse.next({
-    request: {
-      headers: _request.headers,
-    },
-  });
+const PUBLIC_ROUTES = [
+  '/signin',
+  '/signup',
+  '/login',
+  '/register',
+  '/forgot-password',
+  '/terms',
+  '/privacy',
+  '/pricing',
+  '/landing',
+  '/create-admin',
+  '/setup-supabase',
+  '/test-auth',
+  '/debug-auth',
+  '/voice-test',
+  '/demo-lawyer',
+  '/lawyer-login',
+  '/lawyer-register',
+  '/missing-features',
+  '/weakness-detector',
+  '/scenario-generator',
+];
+
+const PROTECTED_ROUTES = [
+  '/dashboard',
+  '/admin',
+  '/profile',
+  '/settings',
+  '/premium',
+  '/case-solver',
+  '/decision-tree',
+  '/court-simulator',
+  '/community',
+  '/statistics',
+  '/document-generator',
+  '/professional-tools',
+  '/qonunlar',
+  '/manual-payment',
+  '/billing',
+  '/help',
+  '/tasks',
+  '/irac',
+  '/simulator',
+  '/payment-admin',
+  '/pro-tools',
+  '/lawyer-dashboard',
+  '/legal-database',
+  '/legal-database-new',
+  '/ai-assistant',
+  '/virtual-court',
+];
+
+export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  
+  // Always allow public routes and static files
+  if (PUBLIC_ROUTES.some(route => pathname === route || pathname.startsWith(route + '/'))) {
+    return NextResponse.next();
+  }
+  
+  // Allow root path (client handles auth redirect)
+  if (pathname === '/') {
+    return NextResponse.next();
+  }
+  
+  // Check if this is a protected route
+  const isProtected = PROTECTED_ROUTES.some(route => pathname === route || pathname.startsWith(route + '/'));
+  
+  if (isProtected) {
+    // Check for auth cookie
+    const authCookie = request.cookies.get('jurisai_auth');
+    
+    if (!authCookie) {
+      // No auth cookie — redirect to signin
+      const signinUrl = new URL('/signin', request.url);
+      signinUrl.searchParams.set('redirectTo', pathname);
+      return NextResponse.redirect(signinUrl);
+    }
+  }
+  
+  return NextResponse.next();
 }
 
 export const config = {

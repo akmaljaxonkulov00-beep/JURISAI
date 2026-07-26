@@ -9,6 +9,7 @@ import { Select } from '@/components/ui/Select';
 import { Bookmark, Trash2, X, Search, ArrowLeft, FileText, Scale, Gavel, BookOpen, Landmark } from 'lucide-react';
 import { ALL_LEGAL_CODES } from '@/data/legal-codes';
 import type { LegalCode } from '@/data/legal-codes';
+import { getCodeFullName } from '@/lib/utils/code-mapper';
 
 // Fallback data - O'zbekiston qonunlari
 const fallbackDocs: LegalArticle[] = [
@@ -156,18 +157,18 @@ export default function LegalDatabase() {
       // Build categories from ALL_LEGAL_CODES for dynamic article counts
       const codeCategories: Category[] = ALL_LEGAL_CODES.map(code => ({
         id: code.id,
-        name: code.description.includes('Konstitutsiya') ? 'Konstitutsiya' : code.shortName,
+        name: getCodeFullName(code.id),
         description: code.description,
         document_count: code.totalArticles,
-        document_type: code.shortName,
+        document_type: getCodeFullName(code.id),
       }));
       
       // Also add procedural codes
       const allCategories: Category[] = [
         ...codeCategories,
-        { id: 'fpk', name: 'FPK', description: 'Fuqarolik protsessual kodeksi', document_count: 246, document_type: 'Kodeks' },
-        { id: 'jpk', name: 'JPK', description: 'Jinoyat protsessual kodeksi', document_count: 389, document_type: 'Kodeks' },
-        { id: 'ipk', name: 'IPK', description: 'Iqtisodiy protsessual kodeksi', document_count: 211, document_type: 'Kodeks' },
+        { id: 'fpk', name: 'O\'zbekiston Respublikasi Fuqarolik Protsessual Kodeksi', description: 'Fuqarolik protsessual kodeksi', document_count: 476, document_type: 'Kodeks' },
+        { id: 'jpk', name: 'O\'zbekiston Respublikasi Jinoyat Protsessual Kodeksi', description: 'Jinoyat protsessual kodeksi', document_count: 598, document_type: 'Kodeks' },
+        { id: 'ipk', name: 'O\'zbekiston Respublikasi Iqtisodiy Protsessual Kodeksi', description: 'Iqtisodiy protsessual kodeksi', document_count: 324, document_type: 'Kodeks' },
       ];
       
       try {
@@ -537,11 +538,11 @@ export default function LegalDatabase() {
                 </button>
                 <div>
                   <CardTitle className="text-gray-900 dark:text-white flex items-center gap-2">
-                    {selectedCode.shortName === 'Konstitutsiya' ? <Landmark size={20} className="text-blue-500" /> : 
-                     selectedCode.shortName === 'JK' ? <Gavel size={20} className="text-red-500" /> : 
-                     selectedCode.shortName === 'FK' ? <Scale size={20} className="text-green-500" /> : 
+                    {selectedCode.id === 'constitution' ? <Landmark size={20} className="text-blue-500" /> : 
+                     selectedCode.id === 'criminal_code' ? <Gavel size={20} className="text-red-500" /> : 
+                     selectedCode.id === 'civil_code' ? <Scale size={20} className="text-green-500" /> : 
                      <BookOpen size={20} className="text-blue-500" />}
-                    {selectedCode.shortName} — {selectedCode.name}
+                    {getCodeFullName(selectedCode.id)} — {selectedCode.name}
                   </CardTitle>
                   <p className="text-sm text-secondary mt-1">
                     {selectedCode.totalArticles} ta modda • Kuchga kirgan: {selectedCode.effectiveDate}
@@ -572,14 +573,14 @@ export default function LegalDatabase() {
                     onClick={() => {
                       setSelectedArticle({
                         id: `${selectedCode.id}-${article.number}`,
-                        title: `${selectedCode.shortName} - ${article.number}-modda. ${article.title}`,
+                        title: `${getCodeFullName(selectedCode.id)} - ${article.number}-modda. ${article.title}`,
                         content: article.content,
                         category: article.category || 'Umumiy',
-                        document_type: selectedCode.shortName,
+                        document_type: getCodeFullName(selectedCode.id),
                         article_number: `${article.number}-modda`,
                         chapter: article.category || '1-bob',
                         section: '',
-                        keywords: [selectedCode.shortName, ...article.title.split(' ').slice(0, 3)],
+                        keywords: [getCodeFullName(selectedCode.id), ...article.title.split(' ').slice(0, 3)],
                         cross_references: article.references || [],
                         last_updated: selectedCode.effectiveDate,
                         relevance_score: 100 - idx,
