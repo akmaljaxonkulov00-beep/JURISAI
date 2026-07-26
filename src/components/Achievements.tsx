@@ -86,7 +86,7 @@ export default function Achievements() {
 
   return (
     <div className="col-span-2">
-      <div className="bg-white rounded-2xl p-6 shadow-sm">
+      <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-sm">
         <h2 className="text-xl font-bold text-gray-800 mb-4">Yutuqlar</h2>
         
         <div className="grid grid-cols-2 gap-4">
@@ -153,7 +153,7 @@ export default function Achievements() {
         </div>
         
         {/* Achievement Stats */}
-        <div className="mt-6 p-4 bg-gray-50 rounded-xl">
+        <div className="mt-6 p-4 bg-gray-50 dark:bg-zinc-800 rounded-xl">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-800">Yutuqlar statistikasi</p>

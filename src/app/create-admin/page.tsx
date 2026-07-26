@@ -37,12 +37,12 @@ export default function CreateAdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-zinc-950 p-8">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8">Create Admin User</h1>
+        <h1 className="text-3xl font-bold mb-8 text-gray-900 dark:text-white">Create Admin User</h1>
         
-        <div className="bg-white rounded-lg shadow p-6 mb-6">
-          <h2 className="text-xl font-semibold mb-4">Admin Credentials</h2>
+        <div className="bg-white dark:bg-zinc-900 rounded-lg shadow p-6 mb-6">
+          <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Admin Credentials</h2>
           <div className="space-y-2 text-sm mb-6">
             <p><strong>Email:</strong> admin@jurisai.uz</p>
             <p><strong>Password:</strong> password123</p>
@@ -69,16 +69,16 @@ export default function CreateAdminPage() {
         </div>
 
         {results && (
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold mb-4">Results</h2>
-            <pre className="bg-gray-100 p-4 rounded-md overflow-auto text-sm">
+          <div className="bg-white dark:bg-zinc-900 rounded-lg shadow p-6">
+            <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Results</h2>
+            <pre className="bg-gray-100 dark:bg-zinc-800 p-4 rounded-md overflow-auto text-sm text-gray-900 dark:text-zinc-100">
               {JSON.stringify(results, null, 2)}
             </pre>
           </div>
         )}
 
-        <div className="bg-white rounded-lg shadow p-6 mt-6">
-          <h2 className="text-xl font-semibold mb-4">Test Users</h2>
+        <div className="bg-white dark:bg-zinc-900 rounded-lg shadow p-6 mt-6">
+          <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Test Users</h2>
           <div className="space-y-2 text-sm">
             <p><strong>User:</strong> user@jurisai.uz / password123</p>
             <p><strong>Demo:</strong> demo@jurisai.uz / password123</p>
@@ -86,7 +86,7 @@ export default function CreateAdminPage() {
           </div>
         </div>
 
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mt-6">
+        <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 mt-6">
           <h3 className="text-yellow-800 font-semibold mb-2">Important Notes:</h3>
           <ul className="text-yellow-700 text-sm space-y-1">
             <li>• This will create users in Supabase Auth</li>
