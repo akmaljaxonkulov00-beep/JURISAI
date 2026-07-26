@@ -90,9 +90,11 @@ export default function Dashboard() {
     if (user) {
       loadUserStats();
     }
-  }, [user]);  const handleLogout = async () => {
+  }, [user]);
+  
+  const handleLogout = async () => {
     await firebaseAuth.signOut();
-    // firebaseAuth.signOut() does nuclear clear + hard redirect to /login
+    // firebaseAuth.signOut() does nuclear clear + hard redirect to /signin
   };
 
   const handleNavigation = (href: string) => {
