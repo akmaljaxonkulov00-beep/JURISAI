@@ -17,7 +17,7 @@ const NAV_GROUPS = [
     title: 'Amaliyot',
     items: [
       { href: '/case-solver', label: 'IRAC Huquqiy Tahlil', icon: Scale },
-      { href: '/court-simulator', label: 'Sud Simulyatori', icon: Building2 },
+      { href: '/virtual-court', label: 'Virtual Sud', icon: Building2 },
       { href: '/decision-tree', label: 'Qarorlar Daraxti', icon: GitBranch },
     ]
   },

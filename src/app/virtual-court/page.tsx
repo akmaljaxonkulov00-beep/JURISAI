@@ -7,19 +7,20 @@ interface Msg {
   id: string; speaker: string;
   role: 'user' | 'judge';
   text: string; timestamp: Date;
-  type: 'statement' | 'objection' | 'question' | 'ruling';
+  type: 'statement' | 'objection' | 'evidence' | 'question' | 'ruling';
 }
 
 const ROLES = [
-  { id: 'advokat',  title: 'Advokat',  sub: 'Yoqlovchi', color: '#2563EB', bg: '#DBEAFE' },
-  { id: 'prokuror', title: 'Prokuror', sub: 'Ayblovchi', color: '#DC2626', bg: '#FEE2E2' },
-  { id: 'sudya',    title: 'Sudya',    sub: 'Hakam',     color: '#7C3AED', bg: '#EDE9FE' },
+  { id: 'advokat',  title: 'Advokat',  sub: 'Himoyachi',  color: '#2563EB', bg: '#DBEAFE', icon: 'scale' },
+  { id: 'prokuror', title: 'Prokuror', sub: 'Ayblovchi',  color: '#DC2626', bg: '#FEE2E2', icon: 'gavel' },
+  { id: 'sudya',    title: 'Sudya',    sub: 'Hakam',      color: '#7C3AED', bg: '#EDE9FE', icon: 'users' },
 ];
 
 const CASES = [
-  { id: 'theft',    title: "O'g'irlik ishi",        desc: "Supermarketdan 450,000 so'm tovar o'g'irlash.",                    law: "JK 169-modda" },
-  { id: 'contract', title: 'Shartnoma buzilishi',    desc: '6 oylik qurilish shartnomasi bajarilmagan, 50 mln so\'m zarar.',  law: 'FK 345, 395-moddalar' },
-  { id: 'labor',    title: 'Mehnat nizosi',          desc: "Xodim hujjatsiz ishdan bo'shatilgan, 3 oylik ish haqi yo'q.",     law: 'MK 100, 161-moddalar' },
+  { id: 'theft',    title: "O'g'irlik ishi",     desc: "Supermarketdan 450 000 so'mlik tovar o'g'irlash.",              law: 'JK 169-modda',          level: "Boshlang'ich" },
+  { id: 'contract', title: 'Shartnoma buzilishi', desc: "Qurilish shartnomasi bajarilmagan, 50 mln so'm zarar.",          law: 'FK 345, 395-moddalar',  level: "O'rta" },
+  { id: 'labor',    title: 'Mehnat nizosi',       desc: "Xodim noqonuniy ishdan bo'shatilgan, ish haqi to'lanmagan.",     law: 'MK 100, 161-moddalar',  level: "O'rta" },
+  { id: 'divorce',  title: 'Ajrashish ishi',      desc: "Er-xotin ajrashmoqda, bola va mol-mulk taqsimoti nizosi.",       law: 'OK 39, 41-moddalar',    level: 'Murakkab' },
 ];
 
 export default function VirtualCourt() {
@@ -30,11 +31,12 @@ export default function VirtualCourt() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [time, setTime] = useState(600);
-  const [score, setScore] = useState({ etiquette: 100, argumentation: 0, evidence: 0 });
+  const [score, setScore] = useState({ etiquette: 100, argument: 0, evidence: 0 });
   const [speechReady, setSpeechReady] = useState(false);
   const [listening, setListening] = useState(false);
   const [speaking, setSpeaking] = useState(false);
   const [autoSpeak, setAutoSpeak] = useState(true);
+  const [simId, setSimId] = useState('');
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const recognitionRef = useRef<any>(null);
@@ -42,11 +44,9 @@ export default function VirtualCourt() {
   const silenceTimerRef = useRef<any>(null);
 
   useEffect(() => {
-    // Speech API availability — localhost HTTP da ham ishlaydi
     if (typeof window === 'undefined') return;
     const tts = 'speechSynthesis' in window;
     const stt = 'SpeechRecognition' in window || 'webkitSpeechRecognition' in window;
-    // Chrome'da localhost uchun speech ruxsat berilgan, shuning uchun true qilamiz
     setSpeechReady(tts || stt || true);
   }, []);
 
@@ -126,7 +126,8 @@ export default function VirtualCourt() {
         return;
       }
       setListening(false);
-      alert({ 'not-allowed': 'Mikrofon ruxsati yo\'q.', 'audio-capture': 'Mikrofon topilmadi.' }[e.error as string] || 'Xato: ' + e.error);
+      const msg = { 'not-allowed': 'Mikrofon ruxsati yo\'q.', 'audio-capture': 'Mikrofon topilmadi.' }[e.error as string];
+      if (msg) alert(msg);
     };
     r.start();
   };
@@ -143,77 +144,82 @@ export default function VirtualCourt() {
 
   // ── Sud boshlash ──────────────────────────────────────────
   const startSession = async () => {
-    setPage('session'); setMsgs([]); setScore({ etiquette: 100, argumentation: 0, evidence: 0 }); setTime(600);
+    setPage('session'); setMsgs([]); setScore({ etiquette: 100, argument: 0, evidence: 0 }); setTime(600);
     setLoading(true);
     try {
       const res = await fetch('/api/court-simulator', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'start', caseDetails: `${caseItem.title}: ${caseItem.desc} Qonun: ${caseItem.law}. Rol: ${role.title}.` })
+        body: JSON.stringify({ action: 'start', caseDetails: `${caseItem.title}: ${caseItem.desc} Qonun: ${caseItem.law}. Foydalanuvchi roli: ${role.title} (${role.sub}).` })
       });
       const data = await res.json();
-      const txt = data.transcript?.[0]?.content || data.ai_response || 'Sud majlisi ochildi. So\'zingiz.';
+      setSimId(data.simulation_id || 'vc');
+      const txt = data.transcript?.[0]?.content || data.ai_response || 'Sud majlisi ochiq deb e\'lon qilinadi. Tomonlar, so\'zingizni eshitaman.';
       addMsg(txt, 'judge', 'Sudya', 'ruling');
       if (autoSpeak) speak(txt);
     } catch {
-      const txt = 'Sud majlisi ochildi. So\'zingizni eshitishga tayyormiz.';
+      const txt = 'Sud majlisi ochiq deb e\'lon qilinadi. So\'zingizni eshitaman.';
       addMsg(txt, 'judge', 'Sudya', 'ruling');
       if (autoSpeak) speak(txt);
     } finally { setLoading(false); }
   };
 
   // ── Argument yuborish ──────────────────────────────────────
-  const submit = useCallback(async (override?: string) => {
+  const submit = useCallback(async (override?: string, type: Msg['type'] = 'statement') => {
     const txt = (override ?? input).trim();
     if (!txt || loading) return;
-    addMsg(txt, 'user', role.title, 'statement');
+    addMsg(txt, 'user', role.title, type);
     setInput('');
-    setScore(s => ({ ...s, argumentation: Math.min(100, s.argumentation + 12) }));
+    setScore(s => ({
+      ...s,
+      argument: Math.min(100, s.argument + 12),
+      evidence: type === 'evidence' ? Math.min(100, s.evidence + 15) : s.evidence,
+    }));
     setLoading(true);
     try {
       const res = await fetch('/api/court-simulator', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'submit_argument', simulationId: 'vc', argument: `${role.title}: ${txt}` })
+        body: JSON.stringify({ action: 'submit_argument', simulationId: simId, argument: `${role.title} (${type}): ${txt}` })
       });
       const data = await res.json();
-      const reply = data.transcript?.content || data.ai_response || 'Sud javobini belgilaydi.';
+      const reply = data.transcript?.content || data.ai_response || 'Sud e\'tiborga oldi.';
       addMsg(reply, 'judge', 'Sudya', 'ruling');
       if (autoSpeak) speak(reply);
     } catch {
       addMsg('Texnik nosozlik. Qaytadan urinib ko\'ring.', 'judge', 'Sudya', 'ruling');
     } finally { setLoading(false); }
-  }, [input, loading, role, autoSpeak, speak]);
+  }, [input, loading, role, simId, autoSpeak, speak]);
 
-  // ── Tugatish ──────────────────────────────────────────────
+  // ── Sudni yakunlash ───────────────────────────────────────
   const endSession = async () => {
     setLoading(true);
     try {
       const res = await fetch('/api/court-simulator', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'get_verdict', simulationId: 'vc' })
+        body: JSON.stringify({ action: 'get_verdict', simulationId: simId })
       });
       const data = await res.json();
       const verdict = data.verdict || 'Sud majlisi yakunlandi.';
       addMsg(verdict, 'judge', 'Sudya', 'ruling');
       if (autoSpeak) speak(verdict);
     } catch { /* ignore */ } finally { setLoading(false); }
-    setTimeout(() => setPage('verdict'), 1800);
+    setTimeout(() => setPage('verdict'), 2200);
   };
 
-  const total = Math.round((score.etiquette + score.argumentation + score.evidence) / 3);
+  const total = Math.round((score.etiquette + score.argument + score.evidence) / 3);
 
   // ════════════════════════════════════════════════════════
   // ROL TANLASH SAHIFASI
   // ════════════════════════════════════════════════════════
   if (page === 'select') return (
     <div style={{ minHeight: '100vh', background: '#F8FAFF' }}>
-      <div style={{ display: 'flex' }}>
-        <aside className="desktop-sidebar" style={{ width: 240, background: '#fff', borderRight: '1px solid #F1F5F9', minHeight: '100vh', padding: '24px 16px', flexShrink: 0 }}>
+      <div className="flex-col md:flex-row" style={{ display: 'flex' }}>
+        <aside className="hidden lg:block desktop-sidebar" style={{ width: 240, background: '#fff', borderRight: '1px solid #F1F5F9', minHeight: '100vh', padding: '24px 16px', flexShrink: 0 }}>
           <a href="/" style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#6B7280', textDecoration: 'none', fontSize: 14, marginBottom: 24 }}>
             <ArrowLeft size={16} /> Orqaga
           </a>
-          <div style={{ background: '#FFF7ED', borderRadius: 12, padding: 14, border: '1px solid #FED7AA' }}>
-            <p style={{ fontWeight: 700, color: '#C2410C', fontSize: 14, margin: '0 0 4px' }}>Virtual Sud</p>
-            <p style={{ fontSize: 12, color: '#9A3412', margin: 0 }}>AI sudya bilan real sud jarayoni</p>
+          <div style={{ background: '#EDE9FE', borderRadius: 12, padding: 14, border: '1px solid #DDD6FE' }}>
+            <p style={{ fontWeight: 700, color: '#6D28D9', fontSize: 14, margin: '0 0 4px' }}>Virtual Sud</p>
+            <p style={{ fontSize: 12, color: '#7C3AED', margin: 0 }}>AI bilan ovozli sud jarayoni</p>
           </div>
           {speechReady && (
             <div style={{ marginTop: 16, background: '#F0FDF4', borderRadius: 12, padding: 12, border: '1px solid #BBF7D0' }}>
@@ -222,19 +228,24 @@ export default function VirtualCourt() {
                 <input type="checkbox" checked={autoSpeak} onChange={e => setAutoSpeak(e.target.checked)} />
                 Sudya ovozini eshit
               </label>
+              <p style={{ fontSize: 11, color: '#16A34A', marginTop: 8 }}>Mikrofon orqali gapirib argument bera olasiz (Chrome/Edge).</p>
             </div>
           )}
         </aside>
 
-        <div style={{ flex: 1, padding: 40 }}>
+        <div className="p-6 md:p-10" style={{ flex: 1 }}>
           <h1 style={{ fontSize: 26, fontWeight: 800, color: '#111827', margin: '0 0 6px' }}>Virtual Sud Majlisi</h1>
-          <p style={{ fontSize: 14, color: '#6B7280', margin: '0 0 32px' }}>Rol va ishni tanlang</p>
+          <p style={{ fontSize: 14, color: '#6B7280', margin: '0 0 32px' }}>Rol va ishni tanlang — AI sudya bilan ovozli sud jarayonini boshlang</p>
 
+          <style>{`@media(min-width:768px){.vc-grid-roles{grid-template-columns:repeat(3,1fr)!important}.vc-grid-cases{grid-template-columns:repeat(2,1fr)!important}}@media(max-width:639px){.vc-grid-roles{grid-template-columns:1fr!important}.vc-grid-cases{grid-template-columns:1fr!important}}`}</style>
           <h2 style={{ fontSize: 15, fontWeight: 700, color: '#374151', margin: '0 0 12px' }}>1. Rolingizni tanlang</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12, marginBottom: 28 }}>
+          <div className="vc-grid-roles" style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 12, marginBottom: 28 }}>
             {ROLES.map(r => (
               <button key={r.id} onClick={() => setRole(r)}
-                style={{ padding: 18, borderRadius: 14, border: `2px solid ${role.id === r.id ? r.color : '#E5E7EB'}`, background: role.id === r.id ? r.bg : '#fff', cursor: 'pointer', textAlign: 'left' }}>
+                style={{ padding: 18, borderRadius: 14, border: `2px solid ${role.id === r.id ? r.color : '#E5E7EB'}`, background: role.id === r.id ? r.bg : '#fff', cursor: 'pointer', textAlign: 'left', minHeight: 56 }}>
+                <div style={{ width: 40, height: 40, background: r.bg, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', color: r.color, marginBottom: 8 }}>
+                  {r.id === 'advokat' ? <Scale size={20} /> : r.id === 'prokuror' ? <Gavel size={20} /> : <Users size={20} />}
+                </div>
                 <p style={{ fontWeight: 700, fontSize: 15, color: '#111827', margin: '0 0 4px' }}>{r.title}</p>
                 <p style={{ fontSize: 12, color: '#6B7280', margin: 0 }}>{r.sub}</p>
               </button>
@@ -242,11 +253,14 @@ export default function VirtualCourt() {
           </div>
 
           <h2 style={{ fontSize: 15, fontWeight: 700, color: '#374151', margin: '0 0 12px' }}>2. Ishni tanlang</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12, marginBottom: 32 }}>
+          <div className="vc-grid-cases" style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 12, marginBottom: 32 }}>
             {CASES.map(c => (
               <button key={c.id} onClick={() => setCase(c)}
-                style={{ padding: 16, borderRadius: 14, border: `2px solid ${caseItem.id === c.id ? '#2563EB' : '#E5E7EB'}`, background: caseItem.id === c.id ? '#EFF6FF' : '#fff', cursor: 'pointer', textAlign: 'left' }}>
-                <p style={{ fontWeight: 700, fontSize: 13, color: '#111827', margin: '0 0 5px' }}>{c.title}</p>
+                style={{ padding: 16, borderRadius: 14, border: `2px solid ${caseItem.id === c.id ? '#2563EB' : '#E5E7EB'}`, background: caseItem.id === c.id ? '#EFF6FF' : '#fff', cursor: 'pointer', textAlign: 'left', minHeight: 56 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 }}>
+                  <p style={{ fontWeight: 700, fontSize: 14, color: '#111827', margin: 0 }}>{c.title}</p>
+                  <span style={{ fontSize: 10, background: '#EDE9FE', color: '#6D28D9', padding: '2px 8px', borderRadius: 20 }}>{c.level}</span>
+                </div>
                 <p style={{ fontSize: 12, color: '#6B7280', margin: '0 0 8px' }}>{c.desc}</p>
                 <span style={{ fontSize: 11, background: '#DBEAFE', color: '#1D4ED8', padding: '2px 8px', borderRadius: 20 }}>{c.law}</span>
               </button>
@@ -254,7 +268,7 @@ export default function VirtualCourt() {
           </div>
 
           <button onClick={startSession}
-            style={{ padding: '13px 36px', background: '#2563EB', color: '#fff', border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
+            style={{ padding: '13px 36px', background: '#2563EB', color: '#fff', border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, minHeight: 48 }}>
             <Gavel size={18} /> Sud majlisini boshlash
           </button>
         </div>
@@ -283,7 +297,7 @@ export default function VirtualCourt() {
             <>
               <button onClick={() => setAutoSpeak(p => !p)}
                 style={{ padding: '5px 12px', background: autoSpeak ? 'rgba(34,197,94,0.2)' : 'rgba(255,255,255,0.08)', border: `1px solid ${autoSpeak ? '#22C55E' : 'rgba(255,255,255,0.15)'}`, borderRadius: 20, color: autoSpeak ? '#4ADE80' : '#94A3B8', fontSize: 12, cursor: 'pointer' }}>
-                {autoSpeak ? <><Volume2 className="w-3.5 h-3.5" /> Ovoz ON</> : <><VolumeX className="w-3.5 h-3.5" /> Ovoz OFF</>}
+                {autoSpeak ? <><Volume2 className="w-3.5 h-3.5" /> Ovoz</> : <><VolumeX className="w-3.5 h-3.5" /> Ovozsiz</>}
               </button>
               {speaking && (
                 <button onClick={stopSpeak}
@@ -305,40 +319,43 @@ export default function VirtualCourt() {
 
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
         {/* Ball paneli */}
-        <aside className="desktop-sidebar" style={{ width: 200, background: 'rgba(0,0,0,0.4)', borderRight: '1px solid rgba(255,255,255,0.07)', padding: 18, flexShrink: 0 }}>
-          <p style={{ fontSize: 11, fontWeight: 600, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 12px' }}>Ballar</p>
+        <aside className="hidden md:block desktop-sidebar" style={{ width: 200, background: 'rgba(0,0,0,0.4)', borderRight: '1px solid rgba(255,255,255,0.07)', padding: 18, flexShrink: 0 }}>
+          <p style={{ fontSize: 11, fontWeight: 600, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 12px' }}>Baholash</p>
           {[
-            { l: 'Etika', v: score.etiquette, c: '#22C55E' },
-            { l: 'Argument', v: score.argumentation, c: '#3B82F6' },
-            { l: 'Dalillar', v: score.evidence, c: '#A855F7' },
+            { l: 'Sud etikasi', v: score.etiquette, c: '#22C55E' },
+            { l: 'Argument',    v: score.argument,  c: '#3B82F6' },
+            { l: 'Dalillar',    v: score.evidence,  c: '#A855F7' },
           ].map(b => (
-            <div key={b.l} style={{ marginBottom: 10 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 3 }}>
+            <div key={b.l} style={{ marginBottom: 12 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 4 }}>
                 <span style={{ color: '#CBD5E1' }}>{b.l}</span>
                 <span style={{ fontWeight: 700, color: b.c }}>{b.v}%</span>
               </div>
-              <div style={{ height: 4, background: 'rgba(255,255,255,0.1)', borderRadius: 2 }}>
-                <div style={{ height: 4, width: `${b.v}%`, background: b.c, borderRadius: 2, transition: 'width 0.4s' }} />
+              <div style={{ height: 5, background: 'rgba(255,255,255,0.1)', borderRadius: 3 }}>
+                <div style={{ height: 5, width: `${b.v}%`, background: b.c, borderRadius: 3, transition: 'width 0.4s' }} />
               </div>
             </div>
           ))}
+          <div style={{ marginTop: 20, padding: 14, background: 'rgba(124,58,237,0.15)', borderRadius: 12, border: '1px solid rgba(124,58,237,0.3)', textAlign: 'center' }}>
+            <p style={{ fontSize: 11, color: '#A78BFA', margin: '0 0 4px' }}>Umumiy</p>
+            <p style={{ fontSize: 28, fontWeight: 800, color: '#fff', margin: 0 }}>{total}</p>
+          </div>
         </aside>
 
-        {/* Transkript + kiritish */}
+        {/* Xabarlar + kiritish */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          {/* Xabarlar */}
           <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px' }}>
             <div style={{ maxWidth: 760, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 10 }}>
               {msgs.map(m => {
                 const isUser = m.role === 'user';
-                const bg = { ruling: 'rgba(124,58,237,0.12)', objection: 'rgba(239,68,68,0.12)', question: 'rgba(59,130,246,0.12)', statement: 'rgba(255,255,255,0.05)' }[m.type];
-                const bd = { ruling: 'rgba(124,58,237,0.35)', objection: 'rgba(239,68,68,0.35)', question: 'rgba(59,130,246,0.35)', statement: 'rgba(255,255,255,0.1)' }[m.type];
+                const bg = { ruling: 'rgba(124,58,237,0.12)', objection: 'rgba(239,68,68,0.12)', evidence: 'rgba(168,85,247,0.12)', question: 'rgba(59,130,246,0.12)', statement: 'rgba(255,255,255,0.05)' }[m.type];
+                const bd = { ruling: 'rgba(124,58,237,0.35)', objection: 'rgba(239,68,68,0.35)', evidence: 'rgba(168,85,247,0.35)', question: 'rgba(59,130,246,0.35)', statement: 'rgba(255,255,255,0.1)' }[m.type];
                 return (
                   <div key={m.id} style={{ display: 'flex', justifyContent: isUser ? 'flex-end' : 'flex-start' }}>
                     <div style={{ maxWidth: '78%', padding: '11px 15px', borderRadius: isUser ? '14px 14px 3px 14px' : '3px 14px 14px 14px', background: isUser ? 'rgba(37,99,235,0.4)' : bg, border: `1px solid ${isUser ? 'rgba(37,99,235,0.5)' : bd}` }}>
                       <p style={{ fontSize: 11, color: '#94A3B8', margin: '0 0 4px', fontWeight: 600 }}>{m.speaker}</p>
                       <p style={{ fontSize: 14, lineHeight: 1.6, margin: 0, whiteSpace: 'pre-wrap' }}>{m.text}</p>
-                      {speechReady && !isUser && (
+                      {!isUser && speechReady && (
                         <button onClick={() => speak(m.text)}
                           style={{ marginTop: 7, padding: '2px 8px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 7, color: '#94A3B8', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3 }}>
                           <Volume2 size={10} /> Eshit
@@ -364,15 +381,14 @@ export default function VirtualCourt() {
           {/* Kiritish */}
           <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', background: 'rgba(0,0,0,0.4)', padding: '14px 24px' }}>
             <div style={{ maxWidth: 760, margin: '0 auto' }}>
-              {/* Tezkor amallar */}
               <div style={{ display: 'flex', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
                 {[
-                  { icon: <AlertTriangle size={12} />, label: "E'tiroz!",    txt: "E'tiroz bildiraman! Bu dalil qonunga zid." },
-                  { icon: <FileText size={12} />,      label: 'Dalil keltir', txt: 'Hujjatli dalil taqdim etaman.' },
-                  { icon: <MessageCircle size={12} />, label: 'Savol ber',   txt: 'Guvohga savol: voqeani batafsil tushuntirib bering.' },
+                  { icon: <AlertTriangle size={12} />, label: "E'tiroz", txt: "E'tiroz bildiraman! Bu dalil qonunga zid.", type: 'objection' as const },
+                  { icon: <FileText size={12} />,      label: 'Dalil',   txt: 'Hujjatli dalil taqdim etaman.', type: 'evidence' as const },
+                  { icon: <MessageCircle size={12} />, label: 'Savol',   txt: 'Guvohga savol: voqeani batafsil tushuntirib bering.', type: 'question' as const },
                 ].map((a, i) => (
-                  <button key={i} onClick={() => submit(a.txt)}
-                    style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 13px', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.13)', borderRadius: 20, color: '#CBD5E1', fontSize: 12, cursor: 'pointer' }}>
+                  <button key={i} onClick={() => submit(a.txt, a.type)} disabled={loading}
+                    style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 13px', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.13)', borderRadius: 20, color: '#CBD5E1', fontSize: 12, cursor: loading ? 'not-allowed' : 'pointer' }}>
                     {a.icon} {a.label}
                   </button>
                 ))}
@@ -431,10 +447,10 @@ export default function VirtualCourt() {
           <p style={{ fontSize: 13, color: '#BFDBFE', margin: 0 }}>{role.title} · {caseItem.title}</p>
         </div>
         <div style={{ padding: 28 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 20 }}>
+          <div className="vc-verdict-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 20 }}>
             {[
-              { l: 'Etika', v: score.etiquette, c: '#22C55E' },
-              { l: 'Argument', v: score.argumentation, c: '#3B82F6' },
+              { l: 'Sud etikasi', v: score.etiquette, c: '#22C55E' },
+              { l: 'Argument', v: score.argument, c: '#3B82F6' },
               { l: 'Dalillar', v: score.evidence, c: '#A855F7' },
             ].map(b => (
               <div key={b.l} style={{ background: '#F8FAFF', borderRadius: 12, padding: 14, textAlign: 'center', border: '1px solid #E5E7EB' }}>
@@ -455,17 +471,17 @@ export default function VirtualCourt() {
           </div>
           <div style={{ display: 'flex', gap: 10 }}>
             <button onClick={() => { setPage('select'); setMsgs([]); }}
-              style={{ flex: 1, padding: 12, background: '#2563EB', color: '#fff', border: 'none', borderRadius: 11, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
+              style={{ flex: 1, padding: 12, background: '#2563EB', color: '#fff', border: 'none', borderRadius: 11, fontSize: 14, fontWeight: 700, cursor: 'pointer', minHeight: 48 }}>
               Qayta boshlash
             </button>
             <a href="/"
-              style={{ flex: 1, padding: 12, background: '#F3F4F6', color: '#374151', borderRadius: 11, fontSize: 14, fontWeight: 700, textDecoration: 'none', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              style={{ flex: 1, padding: 12, background: '#F3F4F6', color: '#374151', borderRadius: 11, fontSize: 14, fontWeight: 700, textDecoration: 'none', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 48 }}>
               Bosh sahifa
             </a>
           </div>
         </div>
       </div>
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}}@media(max-width:639px){.vc-verdict-grid{grid-template-columns:1fr!important}}`}</style>
     </div>
   );
 }

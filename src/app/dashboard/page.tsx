@@ -173,7 +173,7 @@ export default function Dashboard() {
           id: 'virtual-court',
           label: 'Virtual Sud',
           icon: Gavel,
-          href: '/court-simulator'
+          href: '/virtual-court'
         }
       ]
     },
@@ -532,12 +532,12 @@ export default function Dashboard() {
               <p className="text-sm text-emerald-600/70 mt-1">Qonun va kodifikatsiyalarni qidiring</p>
             </div>
             <div
-              onClick={() => handleNavigation('/court-simulator')}
+              onClick={() => handleNavigation('/virtual-court')}
               className="relative overflow-hidden group p-6 bg-gradient-to-br from-orange-50/80 to-amber-50/80 dark:from-orange-900/20 dark:to-amber-900/20 rounded-xl border border-orange-100/50 dark:border-orange-800/30 hover:border-orange-200/80 transition-all duration-300 cursor-pointer hover-lift"
             >
               <div className="absolute -top-6 -right-6 w-20 h-20 bg-orange-200/20 rounded-full blur-xl group-hover:scale-150 transition-transform duration-500" />
               <Gavel className="w-8 h-8 text-orange-600 mb-3 group-hover:scale-110 transition-transform duration-200" />
-              <h3 className="font-semibold text-orange-900 dark:text-orange-300">Sud Simulyatori</h3>
+              <h3 className="font-semibold text-orange-900 dark:text-orange-300">Virtual Sud</h3>
               <p className="text-sm text-orange-600/70 mt-1">Virtual sud jarayonida qatnashing</p>
             </div>
           </div>
