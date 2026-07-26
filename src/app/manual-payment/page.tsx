@@ -92,7 +92,7 @@ function PaymentContent() {
     try {
       const user = JSON.parse(sessionStorage.getItem('jurisai_user') || sessionStorage.getItem('auth_user') || '{}');
       
-      // Step 1: Upload image to Supabase Storage
+      // Step 1: Upload image to Supabase Storage via API
       let receiptUrl = '';
       try {
         const formData = new FormData();
@@ -107,9 +107,11 @@ function PaymentContent() {
         if (uploadResult.success && uploadResult.data?.url) {
           receiptUrl = uploadResult.data.url;
         }
-      } catch {}
+      } catch (e) {
+        console.warn('[Payment] Supabase upload failed, using base64:', e);
+      }
       
-      // Step 2: If Supabase upload failed, fall back to base64 in localStorage
+      // Step 2: base64 fallback
       if (!receiptUrl) {
         try {
           const reader = new FileReader();
@@ -118,12 +120,45 @@ function PaymentContent() {
             reader.readAsDataURL(checkImage);
           });
           receiptUrl = imageBase64;
-        } catch {}
+        } catch (e) {
+          console.error('[Payment] base64 fallback failed:', e);
+        }
       }
       
-      // Step 3: Create payment record via API
+      // Step 3: Create payment record — save to localStorage for admin pickup AND try Supabase
+      const paymentRecord = {
+        id: 'pay_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8),
+        userId: user.id || 'unknown',
+        userEmail: user.email || 'unknown',
+        userName: user.name || 'Foydalanuvchi',
+        plan: planName.toLowerCase(),
+        amount,
+        receiptImage: receiptUrl,
+        status: 'pending' as const,
+        createdAt: new Date().toISOString(),
+      };
+      
+      // Save to localStorage for immediate admin pickup
       try {
-        const paymentRes = await fetch('/api/log/payment', {
+        const existing = JSON.parse(localStorage.getItem('payment_requests') || '[]');
+        existing.push(paymentRecord);
+        localStorage.setItem('payment_requests', JSON.stringify(existing));
+      } catch {}
+      
+      // Also save as user's payment_history
+      try {
+        localStorage.setItem('payment_history', JSON.stringify({
+          status: 'pending',
+          amount,
+          plan: planName.toLowerCase(),
+          date: new Date().toLocaleDateString('uz-UZ'),
+          receiptImage: receiptUrl,
+        }));
+      } catch {}
+      
+      // Try Supabase log
+      try {
+        await fetch('/api/log/payment', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -135,21 +170,11 @@ function PaymentContent() {
             receiptImage: receiptUrl,
           }),
         });
-        await paymentRes.json();
       } catch {}
       
-      // Step 4: Write payment_history so profile can show pending status
-      try {
-        localStorage.setItem('payment_history', JSON.stringify({
-          status: 'pending',
-          amount,
-          plan: planName.toLowerCase(),
-          date: new Date().toLocaleDateString('uz-UZ'),
-        }));
-      } catch {}
       setPaymentStatus('pending');
-    } catch {
-      // ignore
+    } catch (e) {
+      console.error('[Payment] Error:', e);
     } finally {
       setIsSubmitting(false);
     }
