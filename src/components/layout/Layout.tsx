@@ -28,7 +28,7 @@ const Layout: React.FC<LayoutProps> = ({
   };
 
   return (
-    <div className={cn('min-h-screen bg-gray-50', className)}>
+    <div className={cn('min-h-screen bg-gray-50 dark:bg-zinc-800/50', className)}>
       <Header user={user} />
       
       <div className="flex">

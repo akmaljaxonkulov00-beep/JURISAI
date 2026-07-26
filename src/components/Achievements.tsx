@@ -79,7 +79,7 @@ export default function Achievements() {
         return {
           bg: 'from-gray-50 to-gray-100',
           iconBg: 'bg-gray-600',
-          border: 'border-gray-200'
+          border: 'border-gray-200 dark:border-zinc-800'
         };
     }
   };
@@ -87,7 +87,7 @@ export default function Achievements() {
   return (
     <div className="col-span-2">
       <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-sm">
-        <h2 className="text-xl font-bold text-gray-800 mb-4">Yutuqlar</h2>
+        <h2 className="text-xl font-bold text-gray-800 dark:text-zinc-200 mb-4">Yutuqlar</h2>
         
         <div className="grid grid-cols-2 gap-4">
           {achievements.map((achievement) => {
@@ -125,7 +125,7 @@ export default function Achievements() {
                           className="transition-all duration-300"
                         />
                       </svg>
-                      <span className="absolute inset-0 flex items-center justify-center text-xs font-medium text-gray-600">
+                      <span className="absolute inset-0 flex items-center justify-center text-xs font-medium text-gray-600 dark:text-zinc-400">
                         {achievement.progress}%
                       </span>
                     </div>
@@ -138,13 +138,13 @@ export default function Achievements() {
                   {achievement.icon}
                 </div>
                 
-                <h4 className="font-semibold text-gray-800 text-sm mb-1">{achievement.title}</h4>
-                <p className="text-xs text-gray-600">{achievement.description}</p>
+                <h4 className="font-semibold text-gray-800 dark:text-zinc-200 text-sm mb-1">{achievement.title}</h4>
+                <p className="text-xs text-gray-600 dark:text-zinc-400">{achievement.description}</p>
                 
                 {/* Lock indicator for locked achievements */}
                 {!achievement.unlocked && (
                   <div className="mt-2">
-                    <span className="text-xs text-gray-500">🔒 Qulflangan</span>
+                    <span className="text-xs text-gray-500 dark:text-zinc-500">🔒 Qulflangan</span>
                   </div>
                 )}
               </div>
@@ -156,12 +156,12 @@ export default function Achievements() {
         <div className="mt-6 p-4 bg-gray-50 dark:bg-zinc-800 rounded-xl">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-800">Yutuqlar statistikasi</p>
-              <p className="text-xs text-gray-600">3/4 ochilgan</p>
+              <p className="text-sm font-medium text-gray-800 dark:text-zinc-200">Yutuqlar statistikasi</p>
+              <p className="text-xs text-gray-600 dark:text-zinc-400">3/4 ochilgan</p>
             </div>
             <div className="text-right">
               <p className="text-lg font-bold text-blue-600">75%</p>
-              <p className="text-xs text-gray-600">Umumiy progress</p>
+              <p className="text-xs text-gray-600 dark:text-zinc-400">Umumiy progress</p>
             </div>
           </div>
           

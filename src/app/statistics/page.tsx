@@ -108,7 +108,7 @@ export default function Statistics() {
       case 2: return 'bg-green-200';
       case 3: return 'bg-green-300';
       case 4: return 'bg-green-400';
-      case 5: return 'bg-green-500';
+      case 5: return 'bg-green-50 dark:bg-green-900/20';
       default: return 'bg-gray-100 dark:bg-zinc-800';
     }
   };
@@ -149,19 +149,19 @@ export default function Statistics() {
   const filteredData = getFilteredData();
 
   return (
-    <div className="min-h-screen bg-[#f8faff]">
-      <div className="flex">
+    <div className="min-h-screen bg-[#f8faff] dark:bg-gray-950">
+      <div className="flex flex-col lg:flex-row">
         {/* Sidebar */}
-        <div className="w-64 bg-white dark:bg-zinc-900 border-r border-gray-100 dark:border-zinc-800 min-h-screen">
+        <div className="hidden lg:block w-64 bg-white dark:bg-zinc-900 border-r border-gray-100 dark:border-zinc-800 min-h-screen flex-shrink-0">
           <div className="p-6">
-            <a href="/" className="flex items-center gap-3 px-3 py-2 text-gray-600 dark:text-zinc-300 hover:bg-gray-50 rounded-lg cursor-pointer mb-6">
+            <a href="/" className="flex items-center gap-3 px-3 py-2 text-gray-600 dark:text-zinc-300 hover:bg-gray-50 dark:bg-zinc-800/50 rounded-lg cursor-pointer mb-6">
               <ArrowLeft className="w-5 h-5" />
               <span>Orqaga</span>
             </a>
             
             {/* Menu Items */}
             <nav className="space-y-2">
-              <div className="flex items-center gap-3 px-3 py-2 bg-blue-50 text-blue-600 rounded-lg">
+              <div className="flex items-center gap-3 px-3 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 rounded-lg">
                 <BarChart3 className="w-5 h-5" />
                 <span className="font-medium">Statistika</span>
               </div>
@@ -172,18 +172,18 @@ export default function Statistics() {
         {/* Main Content */}
         <div className="flex-1">
           {/* Header */}
-          <header className="bg-white dark:bg-zinc-900 px-8 py-4 border-b border-gray-100 dark:border-zinc-800">
-            <div className="flex items-center justify-between">
+          <header className="bg-white dark:bg-zinc-900 px-4 sm:px-6 lg:px-8 py-4 border-b border-gray-100 dark:border-zinc-800">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div>
                 <h1 className="text-2xl font-bold text-gray-800 dark:text-zinc-100">Statistika</h1>
                 <p className="text-sm text-gray-600 dark:text-zinc-300">Platformadagi faoliyatingizning to'liq tahlili</p>
               </div>
               
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2 bg-orange-50 px-4 py-2 rounded-lg">
-                  <Zap className="w-5 h-5 text-orange-600" />
-                  <span className="font-bold text-orange-600">{statistics.streak} kun</span>
-                  <span className="text-sm text-gray-600 dark:text-zinc-300">davomiylik</span>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4">
+                <div className="flex items-center gap-2 bg-orange-50 dark:bg-orange-900/30 px-3 sm:px-4 py-2 rounded-lg">
+                  <Zap className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" />
+                  <span className="font-bold text-sm sm:text-base text-orange-600">{statistics.streak} kun</span>
+                  <span className="text-xs sm:text-sm text-gray-600 dark:text-zinc-300">davomiylik</span>
                 </div>
                 
                 <div className="flex bg-gray-100 dark:bg-zinc-800 rounded-lg p-1">
@@ -195,7 +195,7 @@ export default function Statistics() {
                     <button
                       key={filter.value}
                       onClick={() => setTimeFilter(filter.value as any)}
-                      className={`px-4 py-2 rounded-md transition-colors ${
+                      className={`px-2 sm:px-4 py-2 text-xs sm:text-sm rounded-md transition-colors ${
                         timeFilter === filter.value
                           ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-sm'
                           : 'text-gray-600 dark:text-zinc-300 hover:text-gray-800 dark:text-zinc-100'
@@ -210,10 +210,10 @@ export default function Statistics() {
           </header>
 
           {/* Main Content Area */}
-          <main className="p-8">
+          <main className="p-4 sm:p-6 lg:p-8">
             <div className="max-w-7xl mx-auto">
               {/* View Tabs */}
-              <div className="flex gap-4 mb-8">
+              <div className="flex flex-wrap gap-2 sm:gap-4 mb-6 sm:mb-8">
                 {[
                   { id: 'overview', label: 'Umumiy ko\'rish', icon: <BarChart3 className="w-4 h-4" /> },
                   { id: 'skills', label: 'Bilim darajasi', icon: <Target className="w-4 h-4" /> },
@@ -226,7 +226,7 @@ export default function Statistics() {
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
                       selectedView === view.id
                         ? 'bg-blue-600 text-white'
-                        : 'bg-white dark:bg-zinc-900 text-gray-600 dark:text-zinc-300 hover:bg-gray-50'
+                        : 'bg-white dark:bg-zinc-900 text-gray-600 dark:text-zinc-300 hover:bg-gray-50 dark:bg-zinc-800/50'
                     }`}
                   >
                     {view.icon}
@@ -239,7 +239,7 @@ export default function Statistics() {
               {selectedView === 'overview' && (
                 <div className="space-y-6">
                   {/* Progress Cards */}
-                  <div className="grid grid-cols-4 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                     <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-sm">
                       <div className="flex items-center justify-between mb-4">
                         <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -296,13 +296,13 @@ export default function Statistics() {
                             <div className="flex items-center gap-4 mb-2">
                               <div className="flex-1 bg-gray-200 rounded-full h-2">
                                 <div 
-                                  className="bg-blue-500 h-2 rounded-full transition-all duration-500" 
+                                  className="bg-blue-50 dark:bg-blue-900/20 h-2 rounded-full transition-all duration-500" 
                                   style={{ width: `${(week.xp / 700) * 100}%` }}
                                 ></div>
                               </div>
-                              <span className="text-sm font-medium text-gray-700 w-16">{week.xp} XP</span>
+                              <span className="text-sm font-medium text-gray-700 dark:text-zinc-300 w-16">{week.xp} XP</span>
                             </div>
-                            <div className="flex items-center gap-4 text-xs text-gray-500">
+                            <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-zinc-500">
                               <span>{week.cases} keys</span>
                               <span>{week.accuracy}% aniqlik</span>
                             </div>
@@ -401,7 +401,7 @@ export default function Statistics() {
                     </div>
                     
                     {/* Skill Details */}
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                       {Object.entries(filteredData.skillLevels).map(([skill, level]) => {
                         const skillNames: Record<string, string> = {
                           civil: 'Fuqarolik huquqi',
@@ -413,7 +413,7 @@ export default function Statistics() {
                         };
                         
                         return (
-                          <div key={skill} className="p-4 bg-gray-50 rounded-lg">
+                          <div key={skill} className="p-4 bg-gray-50 dark:bg-zinc-800/50 rounded-lg">
                             <div className="flex items-center justify-between mb-2">
                               <span className="font-medium text-gray-800 dark:text-zinc-100">{skillNames[skill]}</span>
                               <span className={`text-sm font-bold ${getSkillColor(level)}`}>{level}%</span>
@@ -421,9 +421,9 @@ export default function Statistics() {
                             <div className="bg-gray-200 rounded-full h-2">
                               <div 
                                 className={`h-2 rounded-full transition-all duration-500 ${
-                                  level >= 80 ? 'bg-green-500' :
-                                  level >= 60 ? 'bg-yellow-500' :
-                                  level >= 40 ? 'bg-orange-500' : 'bg-red-500'
+                                  level >= 80 ? 'bg-green-50 dark:bg-green-900/20' :
+                                  level >= 60 ? 'bg-yellow-50 dark:bg-yellow-900/20' :
+                                  level >= 40 ? 'bg-orange-500' : 'bg-red-50 dark:bg-red-900/20'
                                 }`}
                                 style={{ width: `${level}%` }}
                               ></div>
@@ -454,7 +454,7 @@ export default function Statistics() {
                           <span>Faollik yo\'q</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 bg-green-500 rounded"></div>
+                          <div className="w-3 h-3 bg-green-50 dark:bg-green-900/20 rounded"></div>
                           <span>Yuqori faollik</span>
                         </div>
                       </div>
@@ -464,21 +464,21 @@ export default function Statistics() {
                     <div className="space-y-2">
                       {Array.from({ length: 12 }, (_, weekIndex) => (
                         <div key={weekIndex} className="flex items-center gap-2">
-                          <span className="text-xs text-gray-500 w-12">
+                          <span className="text-xs text-gray-500 dark:text-zinc-500 w-12">
                             {12 - weekIndex}-hafta
                           </span>
                           <div className="flex gap-1">
                             {Array.from({ length: 7 }, (_, dayIndex) => {
                               const dataIndex = weekIndex * 7 + dayIndex;
                               if (dataIndex >= filteredData.dailyActivity.length) {
-                                return <div key={dayIndex} className="w-8 h-8 bg-gray-50 rounded"></div>;
+                                return <div key={dayIndex} className="w-8 h-8 bg-gray-50 dark:bg-zinc-800/50 rounded"></div>;
                               }
                               
                               const day = filteredData.dailyActivity[dataIndex];
                               return (
                                 <div
                                   key={dayIndex}
-                                  className={`w-8 h-8 rounded ${getHeatmapColor(day.activity)} border border-gray-200`}
+                                  className={`w-8 h-8 rounded ${getHeatmapColor(day.activity)} border border-gray-200 dark:border-zinc-800`}
                                   title={`${day.date}: ${day.casesSolved} keys, ${day.studyMinutes} daqiqa`}
                                 ></div>
                               );
@@ -488,7 +488,7 @@ export default function Statistics() {
                       ))}
                     </div>
                     
-                    <div className="flex items-center justify-between mt-6 pt-6 border-t border-gray-200">
+                    <div className="flex items-center justify-between mt-6 pt-6 border-t border-gray-200 dark:border-zinc-800">
                       <div className="flex items-center gap-2">
                         <Calendar className="w-4 h-4 text-gray-600 dark:text-zinc-300" />
                         <span className="text-sm text-gray-600 dark:text-zinc-300">Oxirgi 90 kun</span>
@@ -510,7 +510,7 @@ export default function Statistics() {
                   <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-sm">
                     <h3 className="text-lg font-bold text-gray-800 dark:text-zinc-100 mb-6">IRAC Metodi tahlili</h3>
                     
-                    <div className="grid grid-cols-2 gap-6 mb-8">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
                       {Object.entries(filteredData.iracScores).map(([step, score]) => {
                         const stepNames: Record<string, string> = {
                           issue: 'Issue (Muammo)',
@@ -527,7 +527,7 @@ export default function Statistics() {
                         };
                         
                         return (
-                          <div key={step} className="p-6 border border-gray-200 rounded-xl">
+                          <div key={step} className="p-6 border border-gray-200 dark:border-zinc-800 rounded-xl">
                             <div className="flex items-center justify-between mb-3">
                               <h4 className="font-bold text-gray-800 dark:text-zinc-100">{stepNames[step]}</h4>
                               <span className={`px-3 py-1 rounded-full text-sm font-medium ${getIRACColor(score)}`}>
@@ -538,9 +538,9 @@ export default function Statistics() {
                             <div className="bg-gray-200 rounded-full h-3">
                               <div 
                                 className={`h-3 rounded-full transition-all duration-500 ${
-                                  score >= 90 ? 'bg-green-500' :
-                                  score >= 75 ? 'bg-yellow-500' :
-                                  score >= 60 ? 'bg-orange-500' : 'bg-red-500'
+                                  score >= 90 ? 'bg-green-50 dark:bg-green-900/20' :
+                                  score >= 75 ? 'bg-yellow-50 dark:bg-yellow-900/20' :
+                                  score >= 60 ? 'bg-orange-500' : 'bg-red-50 dark:bg-red-900/20'
                                 }`}
                                 style={{ width: `${score}%` }}
                               ></div>
@@ -551,7 +551,7 @@ export default function Statistics() {
                     </div>
                     
                     {/* Recommendations */}
-                    <div className="bg-blue-50 rounded-xl p-6">
+                    <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-6">
                       <h4 className="font-bold text-gray-800 dark:text-zinc-100 mb-4 flex items-center gap-2">
                         <AlertTriangle className="w-5 h-5 text-blue-600" />
                         Tavsiyalar

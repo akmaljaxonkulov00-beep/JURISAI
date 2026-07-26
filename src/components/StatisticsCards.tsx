@@ -100,10 +100,10 @@ export default function StatisticsCards() {
         };
       default:
         return {
-          bg: 'bg-gray-100',
-          text: 'text-gray-600',
+          bg: 'bg-gray-100 dark:bg-zinc-800/30',
+          text: 'text-gray-600 dark:text-zinc-400',
           progress: 'bg-gray-600',
-          trend: 'text-gray-600'
+          trend: 'text-gray-600 dark:text-zinc-400'
         };
     }
   };
@@ -114,7 +114,7 @@ export default function StatisticsCards() {
         const colors = getColorClasses(stat.color);
         
         return (
-          <div key={index} className="bg-white rounded-2xl p-4 shadow-sm">
+          <div key={index} className="bg-white dark:bg-zinc-900 rounded-2xl p-4 shadow-sm">
             <div className="flex items-center justify-between mb-3">
               <div className={`w-10 h-10 ${colors.bg} rounded-lg flex items-center justify-center`}>
                 {stat.icon}
@@ -124,8 +124,8 @@ export default function StatisticsCards() {
               )}
             </div>
             
-            <h3 className="text-2xl font-bold text-gray-800 mb-1">{stat.value}</h3>
-            <p className="text-sm text-gray-600">{stat.subtitle}</p>
+            <h3 className="text-2xl font-bold text-gray-800 dark:text-zinc-200 mb-1">{stat.value}</h3>
+            <p className="text-sm text-gray-600 dark:text-zinc-400">{stat.subtitle}</p>
             
             <div className="mt-3 bg-gray-200 rounded-full h-1">
               <div 

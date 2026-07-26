@@ -99,7 +99,7 @@ export default function Billing() {
       <div className="min-h-screen bg-page-custom flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-500 dark:text-gray-400">Yuklanmoqda...</p>
+          <p className="text-gray-500 dark:text-gray-400 dark:text-zinc-500">Yuklanmoqda...</p>
         </div>
       </div>
     );
@@ -109,7 +109,7 @@ export default function Billing() {
     <div className="min-h-screen bg-page-custom py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-4 mb-8">
-          <Link href="/dashboard" className="flex items-center gap-2 px-3 py-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all">
+          <Link href="/dashboard" className="flex items-center gap-2 px-3 py-2 text-gray-500 dark:text-gray-400 dark:text-zinc-500 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all">
             <ArrowLeft className="w-4 h-4" /> <span className="text-sm font-medium">Orqaga</span>
           </Link>
           <h1 className="text-2xl font-bold text-gray-800 dark:text-white">To\'lovlar</h1>
@@ -132,7 +132,7 @@ export default function Billing() {
                       <Badge variant={currentSubscription.status === 'ACTIVE' ? 'default' : 'secondary'}>
                         {currentSubscription.status === 'ACTIVE' ? 'Faol' : currentSubscription.status}
                       </Badge>
-                      <span className="text-sm text-gray-500 dark:text-gray-400">
+                      <span className="text-sm text-gray-500 dark:text-gray-400 dark:text-zinc-500">
                         Qayta yangilanadi: {new Date(currentSubscription.currentPeriodEnd).toLocaleDateString('uz-UZ')}
                       </span>
                     </div>
@@ -163,9 +163,9 @@ export default function Billing() {
                     <h3 className="text-2xl font-bold text-gray-800 dark:text-white">{plan.name}</h3>
                     <p className="text-4xl font-bold text-blue-600 dark:text-blue-400 mt-2">
                       {plan.price.toLocaleString('uz-UZ')}
-                      <span className="text-lg text-gray-500 dark:text-gray-400 font-normal">/{plan.billingCycle === 'monthly' ? 'oy' : 'yil'}</span>
+                      <span className="text-lg text-gray-500 dark:text-gray-400 dark:text-zinc-500 font-normal">/{plan.billingCycle === 'monthly' ? 'oy' : 'yil'}</span>
                     </p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{plan.description}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 dark:text-zinc-500 mt-1">{plan.description}</p>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>

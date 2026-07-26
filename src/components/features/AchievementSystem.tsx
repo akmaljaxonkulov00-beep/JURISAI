@@ -270,21 +270,21 @@ export default function AchievementSystem() {
 
   const getRarityColor = (rarity: string) => {
     switch (rarity) {
-      case 'common': return 'bg-gray-100 text-gray-800 border-gray-300';
+      case 'common': return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200 border-gray-300 dark:border-zinc-700';
       case 'rare': return 'bg-blue-100 text-blue-800 border-blue-300';
       case 'epic': return 'bg-purple-100 text-purple-800 border-purple-300';
       case 'legendary': return 'bg-yellow-100 text-yellow-800 border-yellow-300';
-      default: return 'bg-gray-100 text-gray-800 border-gray-300';
+      default: return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200 border-gray-300 dark:border-zinc-700';
     }
   };
 
   const getRarityBorder = (rarity: string) => {
     switch (rarity) {
-      case 'common': return 'border-gray-300';
+      case 'common': return 'border-gray-300 dark:border-zinc-700';
       case 'rare': return 'border-blue-400';
       case 'epic': return 'border-purple-400';
       case 'legendary': return 'border-yellow-400';
-      default: return 'border-gray-300';
+      default: return 'border-gray-300 dark:border-zinc-700';
     }
   };
 
@@ -295,7 +295,7 @@ export default function AchievementSystem() {
       case 'social': return <Users className="w-5 h-5 text-purple-600" />;
       case 'milestone': return <Trophy className="w-5 h-5 text-yellow-600" />;
       case 'special': return <Star className="w-5 h-5 text-red-600" />;
-      default: return <Award className="w-5 h-5 text-gray-600" />;
+      default: return <Award className="w-5 h-5 text-gray-600 dark:text-zinc-400" />;
     }
   };
 
@@ -318,7 +318,7 @@ export default function AchievementSystem() {
       <div className="p-6 max-w-6xl mx-auto">
         <div className="text-center py-12">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="text-gray-600 mt-4">Yuklanmoqda...</p>
+          <p className="text-gray-600 dark:text-zinc-400 mt-4">Yuklanmoqda...</p>
         </div>
       </div>
     );
@@ -327,8 +327,8 @@ export default function AchievementSystem() {
   return (
     <div className="p-6 max-w-6xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Yutuqlar Tizimi</h1>
-        <p className="text-gray-600">Gamifikatsiya orqali o'qish va rivojlanish</p>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-zinc-100 mb-2">Yutuqlar Tizimi</h1>
+        <p className="text-gray-600 dark:text-zinc-400">Gamifikatsiya orqali o'qish va rivojlanish</p>
       </div>
 
       {/* User Stats Overview */}
@@ -394,13 +394,13 @@ export default function AchievementSystem() {
 
       {/* Tabs */}
       <div className="mb-6">
-        <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
+        <div className="flex space-x-1 bg-gray-100 dark:bg-zinc-800/30 p-1 rounded-lg">
           <button
             onClick={() => setActiveTab('achievements')}
             className={`flex-1 flex items-center justify-center space-x-2 px-4 py-2 rounded-md transition-colors ${
               activeTab === 'achievements' 
-                ? 'bg-white text-blue-600 shadow-sm' 
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-sm' 
+                : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100'
             }`}
           >
             <Trophy className="w-4 h-4" />
@@ -410,8 +410,8 @@ export default function AchievementSystem() {
             onClick={() => setActiveTab('progress')}
             className={`flex-1 flex items-center justify-center space-x-2 px-4 py-2 rounded-md transition-colors ${
               activeTab === 'progress' 
-                ? 'bg-white text-blue-600 shadow-sm' 
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-sm' 
+                : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100'
             }`}
           >
             <Target className="w-4 h-4" />
@@ -421,8 +421,8 @@ export default function AchievementSystem() {
             onClick={() => setActiveTab('leaderboard')}
             className={`flex-1 flex items-center justify-center space-x-2 px-4 py-2 rounded-md transition-colors ${
               activeTab === 'leaderboard' 
-                ? 'bg-white text-blue-600 shadow-sm' 
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-sm' 
+                : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100'
             }`}
           >
             <Crown className="w-4 h-4" />
@@ -432,8 +432,8 @@ export default function AchievementSystem() {
             onClick={() => setActiveTab('rewards')}
             className={`flex-1 flex items-center justify-center space-x-2 px-4 py-2 rounded-md transition-colors ${
               activeTab === 'rewards' 
-                ? 'bg-white text-blue-600 shadow-sm' 
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-sm' 
+                : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100'
             }`}
           >
             <Zap className="w-4 h-4" />
@@ -512,7 +512,7 @@ export default function AchievementSystem() {
                       </Badge>
                     </div>
                     <h3 className="font-semibold text-lg mb-2">{achievement.title}</h3>
-                    <p className="text-gray-600 text-sm mb-4">{achievement.description}</p>
+                    <p className="text-gray-600 dark:text-zinc-400 text-sm mb-4">{achievement.description}</p>
                     
                     <div className="space-y-3">
                       <div>
@@ -527,22 +527,22 @@ export default function AchievementSystem() {
                       </div>
                       
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600">Points</span>
+                        <span className="text-gray-600 dark:text-zinc-400">Points</span>
                         <span className="font-semibold text-blue-600">+{achievement.points}</span>
                       </div>
                       
                       {achievement.unlocked && achievement.unlockedAt && (
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-gray-500 dark:text-zinc-500">
                           Unlocked: {new Date(achievement.unlockedAt).toLocaleDateString('uz-UZ')}
                         </div>
                       )}
                       
                       <div className="space-y-1">
-                        <p className="text-xs font-semibold text-gray-700">Requirements:</p>
+                        <p className="text-xs font-semibold text-gray-700 dark:text-zinc-300">Requirements:</p>
                         {achievement.requirements.map((req, index) => (
-                          <div key={index} className="text-xs text-gray-600 flex items-center space-x-1">
+                          <div key={index} className="text-xs text-gray-600 dark:text-zinc-400 flex items-center space-x-1">
                             <div className={`w-2 h-2 rounded-full ${
-                              achievement.unlocked ? 'bg-green-500' : 'bg-gray-300'
+                              achievement.unlocked ? 'bg-green-50 dark:bg-green-900/20' : 'bg-gray-300'
                             }`} />
                             <span>{req}</span>
                           </div>
@@ -574,32 +574,32 @@ export default function AchievementSystem() {
               <div className="space-y-4">
                 <div className="text-center">
                   <div className="text-4xl font-bold text-blue-600 mb-2">Level {userStats.level}</div>
-                  <p className="text-gray-600">{userStats.rank}</p>
+                  <p className="text-gray-600 dark:text-zinc-400">{userStats.rank}</p>
                 </div>
                 
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm text-gray-600">Current XP</span>
+                    <span className="text-sm text-gray-600 dark:text-zinc-400">Current XP</span>
                     <span className="font-semibold">{userStats.xp}</span>
                   </div>
                   <Progress value={(userStats.xp / userStats.nextLevelXp) * 100} className="h-3" />
                   <div className="flex items-center justify-between mt-2">
-                    <span className="text-xs text-gray-500">Level {userStats.level}</span>
-                    <span className="text-xs text-gray-500">Level {userStats.level + 1}</span>
+                    <span className="text-xs text-gray-500 dark:text-zinc-500">Level {userStats.level}</span>
+                    <span className="text-xs text-gray-500 dark:text-zinc-500">Level {userStats.level + 1}</span>
                   </div>
                   <div className="flex items-center justify-between mt-1">
-                    <span className="text-xs text-gray-500">{userStats.xp} XP</span>
-                    <span className="text-xs text-gray-500">{userStats.nextLevelXp} XP</span>
+                    <span className="text-xs text-gray-500 dark:text-zinc-500">{userStats.xp} XP</span>
+                    <span className="text-xs text-gray-500 dark:text-zinc-500">{userStats.nextLevelXp} XP</span>
                   </div>
                 </div>
                 
                 <div className="pt-4 border-t">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Total XP</span>
+                    <span className="text-sm text-gray-600 dark:text-zinc-400">Total XP</span>
                     <span className="font-semibold text-lg">{userStats.totalXp.toLocaleString()}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">XP to next level</span>
+                    <span className="text-sm text-gray-600 dark:text-zinc-400">XP to next level</span>
                     <span className="font-semibold">{userStats.nextLevelXp - userStats.xp}</span>
                   </div>
                 </div>
@@ -614,7 +614,7 @@ export default function AchievementSystem() {
             <CardContent>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Unlocked Achievements</span>
+                  <span className="text-sm text-gray-600 dark:text-zinc-400">Unlocked Achievements</span>
                   <span className="font-semibold">{userStats.achievementsUnlocked}/{userStats.totalAchievements}</span>
                 </div>
                 <Progress value={(userStats.achievementsUnlocked / userStats.totalAchievements) * 100} className="h-3" />
@@ -631,7 +631,7 @@ export default function AchievementSystem() {
                           value={(achievement.progress / achievement.maxProgress) * 100} 
                           className="w-20 h-2"
                         />
-                        <span className="text-xs text-gray-500">
+                        <span className="text-xs text-gray-500 dark:text-zinc-500">
                           {achievement.progress}/{achievement.maxProgress}
                         </span>
                       </div>
@@ -656,7 +656,7 @@ export default function AchievementSystem() {
                 <div 
                   key={entry.id} 
                   className={`flex items-center justify-between p-4 rounded-lg ${
-                    entry.name === 'You' ? 'bg-blue-50 border border-blue-200' : 'bg-gray-50'
+                    entry.name === 'You' ? 'bg-blue-50 dark:bg-blue-900/20 border border-blue-200' : 'bg-gray-50 dark:bg-zinc-800/50'
                   }`}
                 >
                   <div className="flex items-center space-x-4">
@@ -664,18 +664,18 @@ export default function AchievementSystem() {
                       {entry.rank}
                     </div>
                     <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center">
-                      <Users className="w-5 h-5 text-gray-600" />
+                      <Users className="w-5 h-5 text-gray-600 dark:text-zinc-400" />
                     </div>
                     <div>
                       <p className="font-semibold">{entry.name}</p>
-                      <p className="text-sm text-gray-600">Level {entry.level}</p>
+                      <p className="text-sm text-gray-600 dark:text-zinc-400">Level {entry.level}</p>
                     </div>
                   </div>
                   
                   <div className="flex items-center space-x-6">
                     <div className="text-right">
                       <p className="font-semibold">{entry.xp.toLocaleString()} XP</p>
-                      <p className="text-sm text-gray-600">{entry.achievements} achievements</p>
+                      <p className="text-sm text-gray-600 dark:text-zinc-400">{entry.achievements} achievements</p>
                     </div>
                     {getTrendIcon(entry.trend)}
                   </div>
@@ -696,19 +696,19 @@ export default function AchievementSystem() {
             <CardContent>
               <div className="space-y-4">
                 {userStats.badges.map((badge, index) => (
-                  <div key={index} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                  <div key={index} className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-zinc-800/50 rounded-lg">
                     <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
                       <Award className="w-6 h-6 text-blue-600" />
                     </div>
                     <div>
                       <p className="font-semibold">{badge}</p>
-                      <p className="text-sm text-gray-600">Yutuq uchun berilgan</p>
+                      <p className="text-sm text-gray-600 dark:text-zinc-400">Yutuq uchun berilgan</p>
                     </div>
                   </div>
                 ))}
                 
                 {userStats.badges.length === 0 && (
-                  <p className="text-gray-500 text-center py-8">Hali unvonlar yo'q</p>
+                  <p className="text-gray-500 dark:text-zinc-500 text-center py-8">Hali unvonlar yo'q</p>
                 )}
               </div>
             </CardContent>
@@ -720,15 +720,15 @@ export default function AchievementSystem() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="p-4 bg-purple-50 rounded-lg">
+                <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
                   <div className="flex items-center space-x-3 mb-2">
                     <Crown className="w-6 h-6 text-purple-600" />
                     <h4 className="font-semibold">Premium Features</h4>
                   </div>
-                  <p className="text-sm text-gray-600 mb-3">
+                  <p className="text-sm text-gray-600 dark:text-zinc-400 mb-3">
                     Yuqori level foydalanuvchilari uchun qulayliklar
                   </p>
-                  <ul className="text-sm text-gray-700 space-y-1">
+                  <ul className="text-sm text-gray-700 dark:text-zinc-300 space-y-1">
                     <li>• Cheksiz AI so'rovlar</li>
                     <li>• Advanced qidiruv</li>
                     <li>• Priority support</li>
@@ -736,12 +736,12 @@ export default function AchievementSystem() {
                   </ul>
                 </div>
                 
-                <div className="p-4 bg-green-50 rounded-lg">
+                <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
                   <div className="flex items-center space-x-3 mb-2">
                     <Heart className="w-6 h-6 text-green-600" />
                     <h4 className="font-semibold">Community Recognition</h4>
                   </div>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-gray-600 dark:text-zinc-400">
                     Jamoat tomonidan e'tirof etilganlik
                   </p>
                 </div>

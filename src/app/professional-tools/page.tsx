@@ -274,7 +274,7 @@ export default function ProfessionalTools() {
       case 'low': return 'text-green-600 bg-green-100';
       case 'medium': return 'text-yellow-600 bg-yellow-100';
       case 'high': return 'text-red-600 bg-red-100';
-      default: return 'text-gray-600 bg-gray-100';
+      default: return 'text-gray-600 dark:text-zinc-400 bg-gray-100 dark:bg-zinc-800/30';
     }
   };
 
@@ -283,11 +283,11 @@ export default function ProfessionalTools() {
       <div className="min-h-screen bg-[#f8faff]">
         <div className="flex">
           {/* Sidebar */}
-          <div className="w-64 bg-white border-r border-gray-100 min-h-screen">
+          <div className="w-64 bg-white dark:bg-zinc-900 border-r border-gray-100 dark:border-zinc-800 min-h-screen">
             <div className="p-6">
               <button
                 onClick={() => setSelectedTool(null)}
-                className="flex items-center gap-3 px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-lg cursor-pointer mb-6"
+                className="flex items-center gap-3 px-3 py-2 text-gray-600 dark:text-zinc-400 hover:bg-gray-50 dark:bg-zinc-800/50 rounded-lg cursor-pointer mb-6"
               >
                 <ArrowLeft className="w-5 h-5" />
                 <span>Orqaga</span>
@@ -298,8 +298,8 @@ export default function ProfessionalTools() {
                 <div className={`w-12 h-12 bg-gradient-to-br ${getToolColor(selectedTool.color)} rounded-lg flex items-center justify-center text-white mb-3`}>
                   {selectedTool.icon}
                 </div>
-                <h3 className="font-bold text-gray-800 mb-1">{selectedTool.title}</h3>
-                <p className="text-sm text-gray-600">{selectedTool.description}</p>
+                <h3 className="font-bold text-gray-800 dark:text-zinc-200 mb-1">{selectedTool.title}</h3>
+                <p className="text-sm text-gray-600 dark:text-zinc-400">{selectedTool.description}</p>
                 {selectedTool.isPro && (
                   <div className="flex items-center gap-1 mt-2">
                     <Crown className="w-3 h-3 text-yellow-600" />
@@ -312,7 +312,7 @@ export default function ProfessionalTools() {
               <div className="space-y-2">
                 {selectedTool.category === 'calculator' && (
                   <div>
-                    <h4 className="font-medium text-gray-800 mb-3">Kalkulyator turi</h4>
+                    <h4 className="font-medium text-gray-800 dark:text-zinc-200 mb-3">Kalkulyator turi</h4>
                     <div className="space-y-2">
                       {[
                         { id: 'state-fee', label: 'Davlat boji' },
@@ -324,8 +324,8 @@ export default function ProfessionalTools() {
                           onClick={() => setCalculatorType(type.id as any)}
                           className={`w-full text-left px-3 py-2 rounded-lg transition-colors ${
                             calculatorType === type.id
-                              ? 'bg-blue-50 text-blue-600'
-                              : 'text-gray-600 hover:bg-gray-50'
+                              ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600'
+                              : 'text-gray-600 dark:text-zinc-400 hover:bg-gray-50 dark:bg-zinc-800/50'
                           }`}
                         >
                           {type.label}
@@ -340,11 +340,11 @@ export default function ProfessionalTools() {
 
           {/* Main Tool Content */}
           <div className="flex-1">
-            <header className="bg-white px-8 py-4 border-b border-gray-100">
+            <header className="bg-white dark:bg-zinc-900 px-8 py-4 border-b border-gray-100 dark:border-zinc-800">
               <div className="flex items-center justify-between">
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-800">{selectedTool.title}</h1>
-                  <p className="text-sm text-gray-600">{selectedTool.description}</p>
+                  <h1 className="text-2xl font-bold text-gray-800 dark:text-zinc-200">{selectedTool.title}</h1>
+                  <p className="text-sm text-gray-600 dark:text-zinc-400">{selectedTool.description}</p>
                 </div>
                 <div className="flex items-center gap-2">
                   {selectedTool.isPro && (
@@ -362,8 +362,8 @@ export default function ProfessionalTools() {
                 {/* Legal Calculators */}
                 {selectedTool.category === 'calculator' && (
                   <div className="space-y-6">
-                    <div className="bg-white rounded-2xl p-6 shadow-sm">
-                      <h2 className="text-lg font-bold text-gray-800 mb-4">
+                    <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-sm">
+                      <h2 className="text-lg font-bold text-gray-800 dark:text-zinc-200 mb-4">
                         {calculatorType === 'state-fee' && 'Davlat boji kalkulyatori'}
                         {calculatorType === 'damages' && 'Zarar va jarimalarni hisoblash'}
                         {calculatorType === 'deadlines' && 'Muddatlar kalkulyatori'}
@@ -372,12 +372,12 @@ export default function ProfessionalTools() {
                       <div className="grid grid-cols-2 gap-4 mb-6">
                         {calculatorType === 'state-fee' && (
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Da\'vo summasi (so\'m)</label>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">Da\'vo summasi (so\'m)</label>
                             <input
                               type="number"
                               value={calculatorInputs.claimAmount}
                               onChange={(e) => setCalculatorInputs({...calculatorInputs, claimAmount: e.target.value})}
-                              className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              className="w-full px-4 py-2 border border-gray-200 dark:border-zinc-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                               placeholder="10000000"
                             />
                           </div>
@@ -386,22 +386,22 @@ export default function ProfessionalTools() {
                         {calculatorType === 'damages' && (
                           <>
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">Shartnoma summasi (so\'m)</label>
+                              <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">Shartnoma summasi (so\'m)</label>
                               <input
                                 type="number"
                                 value={calculatorInputs.contractAmount}
                                 onChange={(e) => setCalculatorInputs({...calculatorInputs, contractAmount: e.target.value})}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full px-4 py-2 border border-gray-200 dark:border-zinc-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 placeholder="5000000"
                               />
                             </div>
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">Kechikish kunlari</label>
+                              <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">Kechikish kunlari</label>
                               <input
                                 type="number"
                                 value={calculatorInputs.daysLate}
                                 onChange={(e) => setCalculatorInputs({...calculatorInputs, daysLate: e.target.value})}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full px-4 py-2 border border-gray-200 dark:border-zinc-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 placeholder="30"
                               />
                             </div>
@@ -411,20 +411,20 @@ export default function ProfessionalTools() {
                         {calculatorType === 'deadlines' && (
                           <>
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">Boshlanish sanasi</label>
+                              <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">Boshlanish sanasi</label>
                               <input
                                 type="date"
                                 value={calculatorInputs.startDate}
                                 onChange={(e) => setCalculatorInputs({...calculatorInputs, startDate: e.target.value})}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full px-4 py-2 border border-gray-200 dark:border-zinc-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                               />
                             </div>
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">Ish turi</label>
+                              <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">Ish turi</label>
                               <select
                                 value={calculatorInputs.caseType}
                                 onChange={(e) => setCalculatorInputs({...calculatorInputs, caseType: e.target.value})}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full px-4 py-2 border border-gray-200 dark:border-zinc-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                               >
                                 <option value="civil">Fuqarolik ishi</option>
                                 <option value="criminal">Jinoyat ishi</option>
@@ -443,8 +443,8 @@ export default function ProfessionalTools() {
                       </button>
                       
                       {calculatorResult && (
-                        <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                          <h3 className="font-bold text-gray-800 mb-3">Hisoblash natijalari</h3>
+                        <div className="mt-6 p-4 bg-gray-50 dark:bg-zinc-800/50 rounded-lg">
+                          <h3 className="font-bold text-gray-800 dark:text-zinc-200 mb-3">Hisoblash natijalari</h3>
                           <div className="space-y-2">
                             {calculatorResult.stateFee > 0 && (
                               <div className="flex justify-between">
@@ -458,7 +458,7 @@ export default function ProfessionalTools() {
                                 <span className="font-bold">{calculatorResult.damages.toLocaleString()} so\'m</span>
                               </div>
                             )}
-                            <div className="pt-2 border-t border-gray-200 flex justify-between">
+                            <div className="pt-2 border-t border-gray-200 dark:border-zinc-800 flex justify-between">
                               <span className="font-bold">Jami:</span>
                               <span className="font-bold text-blue-600">{calculatorResult.total.toLocaleString()} so\'m</span>
                             </div>
@@ -472,8 +472,8 @@ export default function ProfessionalTools() {
                 {/* Document Builder */}
                 {selectedTool.category === 'document' && (
                   <div className="space-y-6">
-                    <div className="bg-white rounded-2xl p-6 shadow-sm">
-                      <h2 className="text-lg font-bold text-gray-800 mb-4">Hujjat tanlang</h2>
+                    <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-sm">
+                      <h2 className="text-lg font-bold text-gray-800 dark:text-zinc-200 mb-4">Hujjat tanlang</h2>
                       
                       <div className="grid grid-cols-2 gap-4 mb-6">
                         {documentTemplates.map(template => (
@@ -482,31 +482,31 @@ export default function ProfessionalTools() {
                             onClick={() => setSelectedTemplate(template)}
                             className={`p-4 border-2 rounded-lg transition-all ${
                               selectedTemplate?.id === template.id
-                                ? 'border-blue-500 bg-blue-50'
-                                : 'border-gray-200 hover:border-gray-300'
+                                ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                                : 'border-gray-200 dark:border-zinc-800 hover:border-gray-300 dark:border-zinc-700'
                             }`}
                           >
-                            <h3 className="font-medium text-gray-800">{template.name}</h3>
-                            <p className="text-sm text-gray-600 mt-1">{template.description}</p>
+                            <h3 className="font-medium text-gray-800 dark:text-zinc-200">{template.name}</h3>
+                            <p className="text-sm text-gray-600 dark:text-zinc-400 mt-1">{template.description}</p>
                           </button>
                         ))}
                       </div>
                       
                       {selectedTemplate && (
                         <div className="space-y-4">
-                          <h3 className="font-bold text-gray-800">Ma\'lumotlarni kiriting</h3>
+                          <h3 className="font-bold text-gray-800 dark:text-zinc-200">Ma\'lumotlarni kiriting</h3>
                           
                           <div className="grid grid-cols-2 gap-4">
                             {selectedTemplate.fields.map(field => (
                               <div key={field.name}>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
                                   {field.name} {field.required && '*'}
                                 </label>
                                 {field.type === 'select' ? (
                                   <select
                                     value={documentData[field.name] || ''}
                                     onChange={(e) => setDocumentData({...documentData, [field.name]: e.target.value})}
-                                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-4 py-2 border border-gray-200 dark:border-zinc-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                   >
                                     <option value="">Tanlang</option>
                                     {field.options?.map(option => (
@@ -518,7 +518,7 @@ export default function ProfessionalTools() {
                                     type={field.type}
                                     value={documentData[field.name] || ''}
                                     onChange={(e) => setDocumentData({...documentData, [field.name]: e.target.value})}
-                                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-4 py-2 border border-gray-200 dark:border-zinc-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     placeholder={field.name}
                                   />
                                 )}
@@ -538,14 +538,14 @@ export default function ProfessionalTools() {
                       {generatedDocument && (
                         <div className="mt-6">
                           <div className="flex items-center justify-between mb-4">
-                            <h3 className="font-bold text-gray-800">Generatsiya qilingan hujjat</h3>
+                            <h3 className="font-bold text-gray-800 dark:text-zinc-200">Generatsiya qilingan hujjat</h3>
                             <button className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
                               <Download className="w-4 h-4" />
                               Yuklab olish
                             </button>
                           </div>
-                          <div className="p-4 bg-gray-50 rounded-lg">
-                            <pre className="whitespace-pre-wrap text-sm text-gray-700">{generatedDocument}</pre>
+                          <div className="p-4 bg-gray-50 dark:bg-zinc-800/50 rounded-lg">
+                            <pre className="whitespace-pre-wrap text-sm text-gray-700 dark:text-zinc-300">{generatedDocument}</pre>
                           </div>
                         </div>
                       )}
@@ -556,12 +556,12 @@ export default function ProfessionalTools() {
                 {/* Risk Assessment */}
                 {selectedTool.category === 'risk' && (
                   <div className="space-y-6">
-                    <div className="bg-white rounded-2xl p-6 shadow-sm">
-                      <h2 className="text-lg font-bold text-gray-800 mb-4">Shartnomani yuklang</h2>
+                    <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-sm">
+                      <h2 className="text-lg font-bold text-gray-800 dark:text-zinc-200 mb-4">Shartnomani yuklang</h2>
                       
-                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                        <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                        <p className="text-gray-600 mb-4">Shartnoma faylini bu yerga torting</p>
+                      <div className="border-2 border-dashed border-gray-300 dark:border-zinc-700 rounded-lg p-8 text-center">
+                        <Upload className="w-12 h-12 text-gray-400 dark:text-zinc-500 mx-auto mb-4" />
+                        <p className="text-gray-600 dark:text-zinc-400 mb-4">Shartnoma faylini bu yerga torting</p>
                         <input
                           type="file"
                           accept=".pdf,.doc,.docx"
@@ -578,9 +578,9 @@ export default function ProfessionalTools() {
                       </div>
                       
                       {uploadedContract && (
-                        <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                        <div className="mt-4 p-4 bg-gray-50 dark:bg-zinc-800/50 rounded-lg">
                           <div className="flex items-center justify-between">
-                            <span className="font-medium text-gray-800">{uploadedContract.name}</span>
+                            <span className="font-medium text-gray-800 dark:text-zinc-200">{uploadedContract.name}</span>
                             <button
                               onClick={analyzeContract}
                               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
@@ -593,7 +593,7 @@ export default function ProfessionalTools() {
                       
                       {riskAssessment && (
                         <div className="mt-6">
-                          <h3 className="font-bold text-gray-800 mb-4">Xavflarni baholash natijalari</h3>
+                          <h3 className="font-bold text-gray-800 dark:text-zinc-200 mb-4">Xavflarni baholash natijalari</h3>
                           
                           <div className="grid grid-cols-3 gap-4 mb-6">
                             <div className={`p-4 rounded-lg text-center ${getRiskColor(riskAssessment.overallRisk)}`}>
@@ -602,41 +602,41 @@ export default function ProfessionalTools() {
                               <div className="text-xs mt-1">{riskAssessment.overallRisk === 'low' ? 'Past' : riskAssessment.overallRisk === 'medium' ? 'O\'rta' : 'Yuqori'}</div>
                             </div>
                             
-                            <div className="p-4 bg-gray-50 rounded-lg text-center">
+                            <div className="p-4 bg-gray-50 dark:bg-zinc-800/50 rounded-lg text-center">
                               <div className="text-2xl font-bold mb-1">{riskAssessment.risks.length}</div>
                               <div className="text-sm font-medium">Topilgan xavflar</div>
                             </div>
                             
-                            <div className="p-4 bg-gray-50 rounded-lg text-center">
+                            <div className="p-4 bg-gray-50 dark:bg-zinc-800/50 rounded-lg text-center">
                               <div className="text-2xl font-bold mb-1">{riskAssessment.recommendations.length}</div>
                               <div className="text-sm font-medium">Tavsiyalar</div>
                             </div>
                           </div>
                           
                           <div className="space-y-3">
-                            <h4 className="font-medium text-gray-800">Xavflar</h4>
+                            <h4 className="font-medium text-gray-800 dark:text-zinc-200">Xavflar</h4>
                             {riskAssessment.risks.map((risk, index) => (
-                              <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                              <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-zinc-800/50 rounded-lg">
                                 <div className="flex-1">
                                   <div className="flex items-center gap-2 mb-1">
-                                    <span className="font-medium text-gray-800">{risk.category}</span>
+                                    <span className="font-medium text-gray-800 dark:text-zinc-200">{risk.category}</span>
                                     <span className={`px-2 py-1 rounded-full text-xs ${getRiskColor(risk.severity)}`}>
                                       {risk.severity === 'low' ? 'Past' : risk.severity === 'medium' ? 'O\'rta' : 'Yuqori'}
                                     </span>
                                   </div>
-                                  <p className="text-sm text-gray-600">{risk.description}</p>
+                                  <p className="text-sm text-gray-600 dark:text-zinc-400">{risk.description}</p>
                                 </div>
                               </div>
                             ))}
                           </div>
                           
                           <div className="mt-4">
-                            <h4 className="font-medium text-gray-800 mb-3">Tavsiyalar</h4>
+                            <h4 className="font-medium text-gray-800 dark:text-zinc-200 mb-3">Tavsiyalar</h4>
                             <div className="space-y-2">
                               {riskAssessment.recommendations.map((rec, index) => (
-                                <div key={index} className="flex items-start gap-2 p-3 bg-blue-50 rounded-lg">
+                                <div key={index} className="flex items-start gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                                   <CheckCircle className="w-4 h-4 text-blue-600 mt-0.5" />
-                                  <span className="text-sm text-gray-700">{rec}</span>
+                                  <span className="text-sm text-gray-700 dark:text-zinc-300">{rec}</span>
                                 </div>
                               ))}
                             </div>
@@ -650,8 +650,8 @@ export default function ProfessionalTools() {
                 {/* Case Law Analytics */}
                 {selectedTool.category === 'analytics' && (
                   <div className="space-y-6">
-                    <div className="bg-white rounded-2xl p-6 shadow-sm">
-                      <h2 className="text-lg font-bold text-gray-800 mb-4">Pretsedentlarni qidirish</h2>
+                    <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-sm">
+                      <h2 className="text-lg font-bold text-gray-800 dark:text-zinc-200 mb-4">Pretsedentlarni qidirish</h2>
                       
                       <div className="flex gap-4 mb-6">
                         <input
@@ -659,7 +659,7 @@ export default function ProfessionalTools() {
                           value={searchQuery}
                           onChange={(e) => setSearchQuery(e.target.value)}
                           placeholder="Ish turi, kalit so\'zlar..."
-                          className="flex-1 px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="flex-1 px-4 py-2 border border-gray-200 dark:border-zinc-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                         <button
                           onClick={searchCaseLaw}
@@ -672,32 +672,32 @@ export default function ProfessionalTools() {
                       {caseLawResults && (
                         <div className="space-y-6">
                           <div>
-                            <h3 className="font-bold text-gray-800 mb-4">Statistika</h3>
+                            <h3 className="font-bold text-gray-800 dark:text-zinc-200 mb-4">Statistika</h3>
                             <div className="grid grid-cols-3 gap-4">
-                              <div className="p-4 bg-gray-50 rounded-lg text-center">
+                              <div className="p-4 bg-gray-50 dark:bg-zinc-800/50 rounded-lg text-center">
                                 <div className="text-2xl font-bold text-blue-600 mb-1">{caseLawResults.statistics.winRate}%</div>
-                                <div className="text-sm text-gray-600">G\'alaba ehtimoli</div>
+                                <div className="text-sm text-gray-600 dark:text-zinc-400">G\'alaba ehtimoli</div>
                               </div>
-                              <div className="p-4 bg-gray-50 rounded-lg text-center">
+                              <div className="p-4 bg-gray-50 dark:bg-zinc-800/50 rounded-lg text-center">
                                 <div className="text-2xl font-bold text-green-600 mb-1">{caseLawResults.statistics.averageDuration}</div>
-                                <div className="text-sm text-gray-600">O\'rtalama muddat</div>
+                                <div className="text-sm text-gray-600 dark:text-zinc-400">O\'rtalama muddat</div>
                               </div>
-                              <div className="p-4 bg-gray-50 rounded-lg text-center">
+                              <div className="p-4 bg-gray-50 dark:bg-zinc-800/50 rounded-lg text-center">
                                 <div className="text-2xl font-bold text-purple-600 mb-1">{caseLawResults.precedents.length}</div>
-                                <div className="text-sm text-gray-600">Topilgan ishlar</div>
+                                <div className="text-sm text-gray-600 dark:text-zinc-400">Topilgan ishlar</div>
                               </div>
                             </div>
                           </div>
                           
                           <div>
-                            <h3 className="font-bold text-gray-800 mb-4">Pretsedentlar</h3>
+                            <h3 className="font-bold text-gray-800 dark:text-zinc-200 mb-4">Pretsedentlar</h3>
                             <div className="space-y-3">
                               {caseLawResults.precedents.map((precedent, index) => (
-                                <div key={index} className="p-4 bg-gray-50 rounded-lg">
+                                <div key={index} className="p-4 bg-gray-50 dark:bg-zinc-800/50 rounded-lg">
                                   <div className="flex items-start justify-between">
                                     <div className="flex-1">
-                                      <h4 className="font-medium text-gray-800 mb-1">{precedent.title}</h4>
-                                      <p className="text-sm text-gray-600 mb-2">{precedent.court} • {precedent.date}</p>
+                                      <h4 className="font-medium text-gray-800 dark:text-zinc-200 mb-1">{precedent.title}</h4>
+                                      <p className="text-sm text-gray-600 dark:text-zinc-400 mb-2">{precedent.court} • {precedent.date}</p>
                                       <div className="flex items-center gap-2">
                                         <span className={`px-2 py-1 rounded-full text-xs ${
                                           precedent.outcome === 'Da\'vogar foydasiga' 
@@ -706,7 +706,7 @@ export default function ProfessionalTools() {
                                         }`}>
                                           {precedent.outcome}
                                         </span>
-                                        <span className="text-xs text-gray-500">Moslik: {precedent.relevance}%</span>
+                                        <span className="text-xs text-gray-500 dark:text-zinc-500">Moslik: {precedent.relevance}%</span>
                                       </div>
                                     </div>
                                   </div>
@@ -731,9 +731,9 @@ export default function ProfessionalTools() {
     <div className="min-h-screen bg-[#f8faff]">
       <div className="flex">
         {/* Sidebar */}
-        <div className="w-64 bg-white border-r border-gray-100 min-h-screen">
+        <div className="w-64 bg-white dark:bg-zinc-900 border-r border-gray-100 dark:border-zinc-800 min-h-screen">
           <div className="p-6">
-            <a href="/" className="flex items-center gap-3 px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-lg cursor-pointer mb-6">
+            <a href="/" className="flex items-center gap-3 px-3 py-2 text-gray-600 dark:text-zinc-400 hover:bg-gray-50 dark:bg-zinc-800/50 rounded-lg cursor-pointer mb-6">
               <ArrowLeft className="w-5 h-5" />
               <span>Orqaga</span>
             </a>
@@ -743,7 +743,7 @@ export default function ProfessionalTools() {
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <Zap className="w-5 h-5 text-orange-600" />
-                  <span className="font-semibold text-gray-800">Pro Vositalar</span>
+                  <span className="font-semibold text-gray-800 dark:text-zinc-200">Pro Vositalar</span>
                 </div>
               </div>
               <div className="mb-2">
@@ -751,12 +751,12 @@ export default function ProfessionalTools() {
                   <div className="bg-orange-500 h-2 rounded-full" style={{ width: '80%' }}></div>
                 </div>
               </div>
-              <p className="text-sm text-gray-600">4 ta vosita faol</p>
+              <p className="text-sm text-gray-600 dark:text-zinc-400">4 ta vosita faol</p>
             </div>
 
             {/* Menu Items */}
             <nav className="space-y-2">
-              <div className="flex items-center gap-3 px-3 py-2 bg-blue-50 text-blue-600 rounded-lg">
+              <div className="flex items-center gap-3 px-3 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 rounded-lg">
                 <Star className="w-5 h-5" />
                 <span className="font-medium">Pro Vositalar</span>
               </div>
@@ -767,11 +767,11 @@ export default function ProfessionalTools() {
         {/* Main Content */}
         <div className="flex-1">
           {/* Header */}
-          <header className="bg-white px-8 py-4 border-b border-gray-100">
+          <header className="bg-white dark:bg-zinc-900 px-8 py-4 border-b border-gray-100 dark:border-zinc-800">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-gray-800">Professional Vositalar</h1>
-                <p className="text-sm text-gray-600">Premium qismi - amaliyotchi yuristlar uchun</p>
+                <h1 className="text-2xl font-bold text-gray-800 dark:text-zinc-200">Professional Vositalar</h1>
+                <p className="text-sm text-gray-600 dark:text-zinc-400">Premium qismi - amaliyotchi yuristlar uchun</p>
               </div>
               
               <div className="flex items-center gap-2">
@@ -791,7 +791,7 @@ export default function ProfessionalTools() {
                   <button
                     key={tool.id}
                     onClick={() => setSelectedTool(tool)}
-                    className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-lg transition-all border-2 border-transparent hover:border-blue-200 text-left"
+                    className="bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-sm hover:shadow-lg transition-all border-2 border-transparent hover:border-blue-200 text-left"
                   >
                     <div className="flex items-start justify-between mb-4">
                       <div className={`w-16 h-16 bg-gradient-to-br ${getToolColor(tool.color)} rounded-xl flex items-center justify-center text-white`}>
@@ -805,11 +805,11 @@ export default function ProfessionalTools() {
                       )}
                     </div>
                     
-                    <h3 className="text-xl font-bold text-gray-800 mb-2">{tool.title}</h3>
-                    <p className="text-gray-600 mb-4">{tool.description}</p>
+                    <h3 className="text-xl font-bold text-gray-800 dark:text-zinc-200 mb-2">{tool.title}</h3>
+                    <p className="text-gray-600 dark:text-zinc-400 mb-4">{tool.description}</p>
                     
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 text-sm text-gray-500">
+                      <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-zinc-500">
                         <Target className="w-4 h-4" />
                         <span>{tool.category === 'calculator' ? 'Hisoblash' : 
                                tool.category === 'document' ? 'Hujjat' :
@@ -825,39 +825,39 @@ export default function ProfessionalTools() {
               </div>
               
               {/* Features Section */}
-              <div className="mt-8 bg-white rounded-2xl p-6 shadow-sm">
-                <h3 className="text-lg font-bold text-gray-800 mb-4">Pro Vositalar xususiyatlari</h3>
+              <div className="mt-8 bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-sm">
+                <h3 className="text-lg font-bold text-gray-800 dark:text-zinc-200 mb-4">Pro Vositalar xususiyatlari</h3>
                 <div className="grid grid-cols-4 gap-4">
                   <div className="text-center">
                     <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
                       <Calculator className="w-6 h-6 text-blue-600" />
                     </div>
-                    <h4 className="font-medium text-gray-800 text-sm">Aniq hisoblar</h4>
-                    <p className="text-xs text-gray-600 mt-1">Qonuniy asosda hisoblash</p>
+                    <h4 className="font-medium text-gray-800 dark:text-zinc-200 text-sm">Aniq hisoblar</h4>
+                    <p className="text-xs text-gray-600 dark:text-zinc-400 mt-1">Qonuniy asosda hisoblash</p>
                   </div>
                   
                   <div className="text-center">
                     <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
                       <FileText className="w-6 h-6 text-green-600" />
                     </div>
-                    <h4 className="font-medium text-gray-800 text-sm">Aqlli generator</h4>
-                    <p className="text-xs text-gray-600 mt-1">Shaxsiylashtirilgan hujjatlar</p>
+                    <h4 className="font-medium text-gray-800 dark:text-zinc-200 text-sm">Aqlli generator</h4>
+                    <p className="text-xs text-gray-600 dark:text-zinc-400 mt-1">Shaxsiylashtirilgan hujjatlar</p>
                   </div>
                   
                   <div className="text-center">
                     <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2">
                       <Shield className="w-6 h-6 text-purple-600" />
                     </div>
-                    <h4 className="font-medium text-gray-800 text-sm">Xavf tahlili</h4>
-                    <p className="text-xs text-gray-600 mt-1">AI asosida baholash</p>
+                    <h4 className="font-medium text-gray-800 dark:text-zinc-200 text-sm">Xavf tahlili</h4>
+                    <p className="text-xs text-gray-600 dark:text-zinc-400 mt-1">AI asosida baholash</p>
                   </div>
                   
                   <div className="text-center">
                     <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-2">
                       <BarChart className="w-6 h-6 text-orange-600" />
                     </div>
-                    <h4 className="font-medium text-gray-800 text-sm">Statistika</h4>
-                    <p className="text-xs text-gray-600 mt-1">Pretsedentlar tahlili</p>
+                    <h4 className="font-medium text-gray-800 dark:text-zinc-200 text-sm">Statistika</h4>
+                    <p className="text-xs text-gray-600 dark:text-zinc-400 mt-1">Pretsedentlar tahlili</p>
                   </div>
                 </div>
               </div>

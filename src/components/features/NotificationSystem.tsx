@@ -128,17 +128,17 @@ export default function NotificationSystem() {
       case 'warning': return <AlertTriangle className="w-5 h-5 text-yellow-600" />;
       case 'error': return <X className="w-5 h-5 text-red-600" />;
       case 'info': return <Info className="w-5 h-5 text-blue-600" />;
-      default: return <Bell className="w-5 h-5 text-gray-600" />;
+      default: return <Bell className="w-5 h-5 text-gray-600 dark:text-zinc-400" />;
     }
   };
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case 'success': return 'bg-green-50 border-green-200';
-      case 'warning': return 'bg-yellow-50 border-yellow-200';
-      case 'error': return 'bg-red-50 border-red-200';
-      case 'info': return 'bg-blue-50 border-blue-200';
-      default: return 'bg-gray-50 border-gray-200';
+      case 'success': return 'bg-green-50 dark:bg-green-900/20 border-green-200';
+      case 'warning': return 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200';
+      case 'error': return 'bg-red-50 dark:bg-red-900/20 border-red-200';
+      case 'info': return 'bg-blue-50 dark:bg-blue-900/20 border-blue-200';
+      default: return 'bg-gray-50 dark:bg-zinc-800/50 border-gray-200 dark:border-zinc-800';
     }
   };
 
@@ -165,19 +165,19 @@ export default function NotificationSystem() {
   return (
     <div className="p-6 max-w-4xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Bildirishnomalar</h1>
-        <p className="text-gray-600">Platforma yangiliklari va bildirishnomalarni boshqarish</p>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-zinc-100 mb-2">Bildirishnomalar</h1>
+        <p className="text-gray-600 dark:text-zinc-400">Platforma yangiliklari va bildirishnomalarni boshqarish</p>
       </div>
 
       {/* Tabs */}
       <div className="mb-6">
-        <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
+        <div className="flex space-x-1 bg-gray-100 dark:bg-zinc-800/30 p-1 rounded-lg">
           <button
             onClick={() => setActiveTab('notifications')}
             className={`flex-1 flex items-center justify-center space-x-2 px-4 py-2 rounded-md transition-colors ${
               activeTab === 'notifications' 
-                ? 'bg-white text-blue-600 shadow-sm' 
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-sm' 
+                : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100'
             }`}
           >
             <Bell className="w-4 h-4" />
@@ -192,8 +192,8 @@ export default function NotificationSystem() {
             onClick={() => setActiveTab('settings')}
             className={`flex-1 flex items-center justify-center space-x-2 px-4 py-2 rounded-md transition-colors ${
               activeTab === 'settings' 
-                ? 'bg-white text-blue-600 shadow-sm' 
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-sm' 
+                : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100'
             }`}
           >
             <Settings className="w-4 h-4" />
@@ -210,7 +210,7 @@ export default function NotificationSystem() {
               <select 
                 value={filter} 
                 onChange={(e) => setFilter(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-3 py-2 border border-gray-300 dark:border-zinc-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="all">Barchasi ({notifications.length})</option>
                 <option value="unread">O'qilmagan ({unreadCount})</option>
@@ -241,13 +241,13 @@ export default function NotificationSystem() {
             {loading ? (
               <div className="text-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-                <p className="text-gray-600 mt-2">Yuklanmoqda...</p>
+                <p className="text-gray-600 dark:text-zinc-400 mt-2">Yuklanmoqda...</p>
               </div>
             ) : filteredNotifications.length === 0 ? (
               <Card>
                 <CardContent className="text-center py-8">
-                  <BellOff className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600">Bildirishnoma topilmadi</p>
+                  <BellOff className="w-12 h-12 text-gray-400 dark:text-zinc-500 mx-auto mb-4" />
+                  <p className="text-gray-600 dark:text-zinc-400">Bildirishnoma topilmadi</p>
                 </CardContent>
               </Card>
             ) : (
@@ -264,7 +264,7 @@ export default function NotificationSystem() {
                         </div>
                         <div className="flex-1">
                           <div className="flex items-center space-x-2 mb-1">
-                            <h3 className={`font-semibold ${!notification.read ? 'text-gray-900' : 'text-gray-700'}`}>
+                            <h3 className={`font-semibold ${!notification.read ? 'text-gray-900 dark:text-zinc-100' : 'text-gray-700 dark:text-zinc-300'}`}>
                               {notification.title}
                             </h3>
                             {!notification.read && (
@@ -272,14 +272,14 @@ export default function NotificationSystem() {
                                 Yangi
                               </Badge>
                             )}
-                            <div className="flex items-center space-x-1 text-gray-500">
+                            <div className="flex items-center space-x-1 text-gray-500 dark:text-zinc-500">
                               {getCategoryIcon(notification.category)}
                               <span className="text-xs">
                                 {new Date(notification.timestamp).toLocaleDateString('uz-UZ')}
                               </span>
                             </div>
                           </div>
-                          <p className="text-gray-700 mb-2">{notification.message}</p>
+                          <p className="text-gray-700 dark:text-zinc-300 mb-2">{notification.message}</p>
                           {notification.actionUrl && (
                             <Button
                               variant="outline"
@@ -376,10 +376,10 @@ export default function NotificationSystem() {
                   { key: 'ai', label: 'AI xizmatlari', icon: <MessageSquare className="w-4 h-4" /> },
                 ].map(({ key, label, icon }) => (
                   <label key={key} className="flex items-center space-x-3 p-3 border rounded-lg">
-                    <div className="text-gray-600">{icon}</div>
+                    <div className="text-gray-600 dark:text-zinc-400">{icon}</div>
                     <div className="flex-1">
                       <div className="font-medium">{label}</div>
-                      <div className="text-sm text-gray-500">
+                      <div className="text-sm text-gray-500 dark:text-zinc-500">
                         {settings[key as keyof NotificationSettings] ? 'Yoqilgan' : 'O\'chirilgan'}
                       </div>
                     </div>

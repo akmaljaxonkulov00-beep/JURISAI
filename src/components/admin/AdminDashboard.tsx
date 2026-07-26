@@ -670,7 +670,7 @@ export default function AdminDashboard() {
       case 'healthy': return 'bg-green-100 text-green-800';
       case 'warning': return 'bg-yellow-100 text-yellow-800';
       case 'critical': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      default: return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200';
     }
   };
 
@@ -680,7 +680,7 @@ export default function AdminDashboard() {
       case 'pending': return 'bg-yellow-100 text-yellow-800';
       case 'inactive': case 'failed': case 'cancelled': return 'bg-red-100 text-red-800';
       case 'suspended': return 'bg-orange-100 text-orange-800';
-      default: return 'bg-gray-100 text-gray-800';
+      default: return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200';
     }
   };
 
@@ -697,7 +697,7 @@ export default function AdminDashboard() {
     <div className="p-6 max-w-7xl mx-auto">
       <div className="mb-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-zinc-100">Admin Dashboard</h1>
           <div className="flex items-center space-x-4">
             <Button variant="outline" size="sm" onClick={handleRefresh}>
               <RefreshCw className="w-4 h-4 mr-2" />
@@ -722,7 +722,7 @@ export default function AdminDashboard() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-600 text-sm">Total Users</p>
+                  <p className="text-gray-600 dark:text-zinc-400 text-sm">Total Users</p>
                   <p className="text-2xl font-bold">{stats.totalUsers.toLocaleString()}</p>
                   <p className="text-green-600 text-sm">Active: {stats.activeUsers.toLocaleString()}</p>
                 </div>
@@ -735,7 +735,7 @@ export default function AdminDashboard() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-600 text-sm">AI Requests</p>
+                  <p className="text-gray-600 dark:text-zinc-400 text-sm">AI Requests</p>
                   <p className="text-2xl font-bold">{stats.totalAIRequests.toLocaleString()}</p>
                   <p className="text-blue-600 text-sm">Total tokens used</p>
                 </div>
@@ -748,7 +748,7 @@ export default function AdminDashboard() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-600 text-sm">Documents</p>
+                  <p className="text-gray-600 dark:text-zinc-400 text-sm">Documents</p>
                   <p className="text-2xl font-bold">{stats.totalDocuments.toLocaleString()}</p>
                   <p className="text-green-600 text-sm">Generated</p>
                 </div>
@@ -761,7 +761,7 @@ export default function AdminDashboard() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-600 text-sm">Payments</p>
+                  <p className="text-gray-600 dark:text-zinc-400 text-sm">Payments</p>
                   <p className="text-2xl font-bold">{stats.totalPayments}</p>
                   <p className="text-yellow-600 text-sm">Pending: {stats.pendingPayments}</p>
                 </div>
@@ -784,7 +784,7 @@ export default function AdminDashboard() {
                   {stats.systemHealth.toUpperCase()}
                 </Badge>
               </div>
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-gray-600 dark:text-zinc-400">
                 Last sync: {new Date(stats.lastSync).toLocaleString()}
               </div>
             </div>
@@ -794,13 +794,13 @@ export default function AdminDashboard() {
 
       {/* Tabs */}
       <div className="mb-6">
-        <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
+        <div className="flex space-x-1 bg-gray-100 dark:bg-zinc-800/30 p-1 rounded-lg">
           <button
             onClick={() => setActiveTab('overview')}
             className={`flex-1 flex items-center justify-center space-x-2 px-4 py-2 rounded-md transition-colors ${
               activeTab === 'overview' 
-                ? 'bg-white text-blue-600 shadow-sm' 
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-sm' 
+                : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100'
             }`}
           >
             <BarChart className="w-4 h-4" />
@@ -810,8 +810,8 @@ export default function AdminDashboard() {
             onClick={() => setActiveTab('users')}
             className={`flex-1 flex items-center justify-center space-x-2 px-4 py-2 rounded-md transition-colors ${
               activeTab === 'users' 
-                ? 'bg-white text-blue-600 shadow-sm' 
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-sm' 
+                : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100'
             }`}
           >
             <Users className="w-4 h-4" />
@@ -821,8 +821,8 @@ export default function AdminDashboard() {
             onClick={() => setActiveTab('ai')}
             className={`flex-1 flex items-center justify-center space-x-2 px-4 py-2 rounded-md transition-colors ${
               activeTab === 'ai' 
-                ? 'bg-white text-blue-600 shadow-sm' 
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-sm' 
+                : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100'
             }`}
           >
             <MessageSquare className="w-4 h-4" />
@@ -832,8 +832,8 @@ export default function AdminDashboard() {
             onClick={() => setActiveTab('documents')}
             className={`flex-1 flex items-center justify-center space-x-2 px-4 py-2 rounded-md transition-colors ${
               activeTab === 'documents' 
-                ? 'bg-white text-blue-600 shadow-sm' 
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-sm' 
+                : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100'
             }`}
           >
             <FileText className="w-4 h-4" />
@@ -843,8 +843,8 @@ export default function AdminDashboard() {
             onClick={() => setActiveTab('payments')}
             className={`flex-1 flex items-center justify-center space-x-2 px-4 py-2 rounded-md transition-colors ${
               activeTab === 'payments' 
-                ? 'bg-white text-blue-600 shadow-sm' 
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-sm' 
+                : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100'
             }`}
           >
             <CreditCard className="w-4 h-4" />
@@ -854,8 +854,8 @@ export default function AdminDashboard() {
             onClick={() => setActiveTab('database')}
             className={`flex-1 flex items-center justify-center space-x-2 px-4 py-2 rounded-md transition-colors ${
               activeTab === 'database' 
-                ? 'bg-white text-blue-600 shadow-sm' 
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-sm' 
+                : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100'
             }`}
           >
             <Database className="w-4 h-4" />
@@ -908,7 +908,7 @@ export default function AdminDashboard() {
                       <td className="p-2">
                         <div>
                           <div className="font-semibold">{user.name}</div>
-                          <div className="text-sm text-gray-600">{user.email}</div>
+                          <div className="text-sm text-gray-600 dark:text-zinc-400">{user.email}</div>
                         </div>
                       </td>
                       <td className="p-2">
@@ -989,19 +989,19 @@ export default function AdminDashboard() {
                         {request.status}
                       </Badge>
                     </div>
-                    <div className="text-sm text-gray-600">
+                    <div className="text-sm text-gray-600 dark:text-zinc-400">
                       {new Date(request.createdAt).toLocaleString()}
                     </div>
                   </div>
                   <div className="mb-2">
-                    <div className="text-sm text-gray-600 mb-1">Content:</div>
+                    <div className="text-sm text-gray-600 dark:text-zinc-400 mb-1">Content:</div>
                     <div className="text-sm">{request.content}</div>
                   </div>
                   <div className="mb-2">
-                    <div className="text-sm text-gray-600 mb-1">Response:</div>
+                    <div className="text-sm text-gray-600 dark:text-zinc-400 mb-1">Response:</div>
                     <div className="text-sm">{request.response}</div>
                   </div>
-                  <div className="flex items-center space-x-4 text-sm text-gray-600">
+                  <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-zinc-400">
                     <span>Tokens: {request.tokens}</span>
                     <span>Cost: ${request.cost.toFixed(4)}</span>
                   </div>
@@ -1056,12 +1056,12 @@ export default function AdminDashboard() {
                     <div className="flex items-center space-x-4">
                       <Badge variant="outline">{doc.type}</Badge>
                       <span className="font-semibold">{doc.title}</span>
-                      <span className="text-sm text-gray-600">{doc.userEmail}</span>
+                      <span className="text-sm text-gray-600 dark:text-zinc-400">{doc.userEmail}</span>
                       <Badge className={getStatusColor(doc.status)}>
                         {doc.status}
                       </Badge>
                     </div>
-                    <div className="text-sm text-gray-600">
+                    <div className="text-sm text-gray-600 dark:text-zinc-400">
                       {new Date(doc.createdAt).toLocaleString()}
                     </div>
                   </div>
@@ -1113,7 +1113,7 @@ export default function AdminDashboard() {
                 <select
                   value={filterStatus}
                   onChange={(e) => setFilterStatus(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-md"
+                  className="px-3 py-2 border border-gray-300 dark:border-zinc-700 rounded-md"
                 >
                   <option value="all">All Status</option>
                   <option value="pending">Pending</option>
@@ -1136,12 +1136,12 @@ export default function AdminDashboard() {
                         {payment.status}
                       </Badge>
                     </div>
-                    <div className="text-sm text-gray-600">
+                    <div className="text-sm text-gray-600 dark:text-zinc-400">
                       {new Date(payment.createdAt).toLocaleString()}
                     </div>
                   </div>
                   <div className="flex items-center justify-between">
-                    <div className="text-sm text-gray-600">
+                    <div className="text-sm text-gray-600 dark:text-zinc-400">
                       <div>Method: {payment.paymentMethod}</div>
                       <div>Tracking: {payment.trackingNumber}</div>
                     </div>

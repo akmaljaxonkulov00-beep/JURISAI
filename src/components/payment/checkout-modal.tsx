@@ -117,14 +117,14 @@ export default function CheckoutModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
       <div
-        className="relative w-full max-w-lg bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-gray-200/60 dark:border-zinc-700/60 overflow-hidden"
+        className="relative w-full max-w-lg bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-zinc-800/60 dark:border-zinc-700/60 overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Gradient bar */}
         <div className="h-1.5 bg-gradient-to-r from-blue-500 via-emerald-500 to-amber-500" />
 
         {/* Close */}
-        <button onClick={onClose} className="absolute top-4 right-4 w-8 h-8 rounded-full bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-all z-10">
+        <button onClick={onClose} className="absolute top-4 right-4 w-8 h-8 rounded-full bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 flex items-center justify-center text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:text-zinc-400 transition-all z-10">
           <X size={16} />
         </button>
 

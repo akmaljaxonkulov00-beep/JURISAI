@@ -178,38 +178,38 @@ const Dashboard: React.FC<DashboardProps> = ({ user, className }) => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
+                    <div className="flex items-center justify-between p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
                       <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center">
+                        <div className="w-10 h-10 bg-yellow-50 dark:bg-yellow-900/20 rounded-full flex items-center justify-center">
                           <span className="text-white font-bold">☆</span>
                         </div>
                         <div>
                           <p className="font-medium">IRAC Mutaxassisi</p>
-                          <p className="text-sm text-gray-600">10 ta IRAC tahlili</p>
+                          <p className="text-sm text-gray-600 dark:text-zinc-400">10 ta IRAC tahlili</p>
                         </div>
                       </div>
                       <Badge variant="warning">Yangi</Badge>
                     </div>
-                    <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                    <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
                       <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+                        <div className="w-10 h-10 bg-green-50 dark:bg-green-900/20 rounded-full flex items-center justify-center">
                           <span className="text-white font-bold">▣▣</span>
                         </div>
                         <div>
                           <p className="font-medium">Kurs Bitiruvchisi</p>
-                          <p className="text-sm text-gray-600">Fuqarolik huquqi kursi</p>
+                          <p className="text-sm text-gray-600 dark:text-zinc-400">Fuqarolik huquqi kursi</p>
                         </div>
                       </div>
                       <Badge variant="success">To'liq</Badge>
                     </div>
-                    <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                    <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                       <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                        <div className="w-10 h-10 bg-blue-50 dark:bg-blue-900/20 rounded-full flex items-center justify-center">
                           <span className="text-white font-bold">◎</span>
                         </div>
                         <div>
                           <p className="font-medium">Aniq Tahlilchi</p>
-                          <p className="text-sm text-gray-600">90%+ o'rtacha ball</p>
+                          <p className="text-sm text-gray-600 dark:text-zinc-400">90%+ o'rtacha ball</p>
                         </div>
                       </div>
                       <Badge variant="default">Mukofot</Badge>
@@ -272,10 +272,10 @@ const Dashboard: React.FC<DashboardProps> = ({ user, className }) => {
             <div className="p-4 border rounded-lg">
               <div className="flex items-center justify-between mb-2">
                 <Badge variant="outline">IRAC Tahlili</Badge>
-                <span className="text-xs text-gray-500">2 soat oldin</span>
+                <span className="text-xs text-gray-500 dark:text-zinc-500">2 soat oldin</span>
               </div>
               <h4 className="font-medium mb-1">Shartnoma buzilishi</h4>
-              <p className="text-sm text-gray-600 mb-2">Xizmat shartnomasi bo'yicha da'vo</p>
+              <p className="text-sm text-gray-600 dark:text-zinc-400 mb-2">Xizmat shartnomasi bo'yicha da'vo</p>
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-green-600">85 ball</span>
                 <Button variant="outline" size="sm">Ko'rish</Button>
@@ -284,24 +284,24 @@ const Dashboard: React.FC<DashboardProps> = ({ user, className }) => {
             <div className="p-4 border rounded-lg">
               <div className="flex items-center justify-between mb-2">
                 <Badge variant="outline">Hujjat</Badge>
-                <span className="text-xs text-gray-500">5 soat oldin</span>
+                <span className="text-xs text-gray-500 dark:text-zinc-500">5 soat oldin</span>
               </div>
               <h4 className="font-medium mb-1">Huquqiy xulosa</h4>
-              <p className="text-sm text-gray-600 mb-2">Mulk nizosi bo'yicha</p>
+              <p className="text-sm text-gray-600 dark:text-zinc-400 mb-2">Mulk nizosi bo'yicha</p>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-500">PDF format</span>
+                <span className="text-sm text-gray-500 dark:text-zinc-500">PDF format</span>
                 <Button variant="outline" size="sm">Yuklash</Button>
               </div>
             </div>
             <div className="p-4 border rounded-lg">
               <div className="flex items-center justify-between mb-2">
                 <Badge variant="outline">Senariy</Badge>
-                <span className="text-xs text-gray-500">1 kun oldin</span>
+                <span className="text-xs text-gray-500 dark:text-zinc-500">1 kun oldin</span>
               </div>
               <h4 className="font-medium mb-1">Oila huquqi</h4>
-              <p className="text-sm text-gray-600 mb-2">Nikoh buzilishi holati</p>
+              <p className="text-sm text-gray-600 dark:text-zinc-400 mb-2">Nikoh buzilishi holati</p>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-500">O'rtacha qiyinlik</span>
+                <span className="text-sm text-gray-500 dark:text-zinc-500">O'rtacha qiyinlik</span>
                 <Button variant="outline" size="sm">Boshlash</Button>
               </div>
             </div>

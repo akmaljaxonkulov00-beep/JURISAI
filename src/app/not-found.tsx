@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gray-50 dark:bg-zinc-800/50 flex items-center justify-center px-4">
       <Card className="max-w-md w-full">
         <CardHeader className="text-center">
           <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
@@ -24,17 +24,17 @@ export default function NotFound() {
               />
             </svg>
           </div>
-          <CardTitle className="text-2xl text-gray-900">Sahifa topilmadi</CardTitle>
+          <CardTitle className="text-2xl text-gray-900 dark:text-zinc-100">Sahifa topilmadi</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4 text-center">
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-zinc-400">
             Kechirasiz, siz qidirayotgan sahifa mavjud emas yoki ko'chirilgan.
           </p>
           <div className="space-y-2">
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-500 dark:text-zinc-500">
               Quyidagi variantlarni sinib ko'ring:
             </p>
-            <ul className="text-sm text-gray-500 space-y-1 text-left">
+            <ul className="text-sm text-gray-500 dark:text-zinc-500 space-y-1 text-left">
               <li>URL manzilni to'g'ri yozganingizni tekshiring</li>
               <li><Link href="/dashboard" className="text-blue-600 hover:text-blue-500">Dashboard</Link> ga qaytib ko'ring</li>
               <li><Link href="/" className="text-blue-600 hover:text-blue-500">Bosh sahifa</Link> ga o'ting</li>
@@ -53,7 +53,7 @@ export default function NotFound() {
             </Button>
           </div>
           <div className="pt-4 border-t">
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-gray-400 dark:text-zinc-500">
               Agar muammo davam etsa, iltimos biz bilan bog'laning:
             </p>
             <div className="flex justify-center space-x-4 mt-2">
@@ -63,7 +63,7 @@ export default function NotFound() {
               >
                 support@jurisai.uz
               </a>
-              <span className="text-xs text-gray-400">|</span>
+              <span className="text-xs text-gray-400 dark:text-zinc-500">|</span>
               <a
                 href="tel:+998901234567"
                 className="text-xs text-blue-600 hover:text-blue-500"

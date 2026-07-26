@@ -85,7 +85,7 @@ const ToastItem: React.FC<{ toast: Toast }> = ({ toast }) => {
       case 'destructive':
         return 'bg-destructive text-destructive-foreground border-destructive';
       case 'success':
-        return 'bg-green-500 text-white border-green-600';
+        return 'bg-green-50 dark:bg-green-900/20 text-white border-green-600';
       default:
         return 'bg-background text-foreground border-border';
     }

@@ -114,7 +114,7 @@ const WeaknessDetector: React.FC = () => {
       case 'high': return 'bg-orange-100 text-orange-800';
       case 'medium': return 'bg-yellow-100 text-yellow-800';
       case 'low': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
+      default: return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200';
     }
   };
 
@@ -159,8 +159,8 @@ const WeaknessDetector: React.FC = () => {
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold text-gray-900">Kamchilik Detektori</h1>
-        <p className="text-gray-600">Huquqiy argumentlardagi kamchiliklarni aniqlash</p>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-zinc-100">Kamchilik Detektori</h1>
+        <p className="text-gray-600 dark:text-zinc-400">Huquqiy argumentlardagi kamchiliklarni aniqlash</p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
@@ -177,7 +177,7 @@ const WeaknessDetector: React.FC = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
                   Argument turi
                 </label>
                 <div className="flex space-x-2">
@@ -200,7 +200,7 @@ const WeaknessDetector: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
                   Argument matni
                 </label>
                 <Textarea
@@ -237,7 +237,7 @@ const WeaknessDetector: React.FC = () => {
               <CardContent className="flex items-center justify-center py-12">
                 <div className="text-center space-y-4">
                   <LoadingSpinner size="lg" />
-                  <p className="text-gray-600">Tahlil jarayoni davom etmoqda...</p>
+                  <p className="text-gray-600 dark:text-zinc-400">Tahlil jarayoni davom etmoqda...</p>
                 </div>
               </CardContent>
             </Card>
@@ -256,11 +256,11 @@ const WeaknessDetector: React.FC = () => {
                 <CardContent>
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-500">Argument turi</span>
+                      <span className="text-sm text-gray-500 dark:text-zinc-500">Argument turi</span>
                       <span className="font-medium capitalize">{analysis.argument_type.replace('_', ' ')}</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-500">Tahlil vaqti</span>
+                      <span className="text-sm text-gray-500 dark:text-zinc-500">Tahlil vaqti</span>
                       <span className="font-medium">{analysis.processing_time} soniya</span>
                     </div>
                     <Progress value={analysis.overall_score} className="mt-2" />
@@ -268,7 +268,7 @@ const WeaknessDetector: React.FC = () => {
                       <span className={cn("text-4xl font-bold", getScoreColor(analysis.overall_score))}>
                         {analysis.overall_score}
                       </span>
-                      <p className="text-sm text-gray-500 mt-1">
+                      <p className="text-sm text-gray-500 dark:text-zinc-500 mt-1">
                         {analysis.overall_score >= 80 && 'A\'lo'}
                         {analysis.overall_score >= 60 && analysis.overall_score < 80 && 'Yaxshi'}
                         {analysis.overall_score >= 40 && analysis.overall_score < 60 && 'Qoniqarli'}
@@ -295,16 +295,16 @@ const WeaknessDetector: React.FC = () => {
                             </Badge>
                             <span className="font-medium">{getWeaknessTypeName(weakness.type)}</span>
                           </div>
-                          <span className="text-sm text-gray-500">
+                          <span className="text-sm text-gray-500 dark:text-zinc-500">
                             {Math.round(weakness.confidence * 100)}% ishonch
                           </span>
                         </div>
-                        <p className="text-gray-700 mb-2">{weakness.description}</p>
+                        <p className="text-gray-700 dark:text-zinc-300 mb-2">{weakness.description}</p>
                         <div className="flex items-center justify-between text-sm">
-                          <span className="text-gray-500">Joylashuv: {weakness.location}</span>
-                          <span className="text-gray-500">Ta'sir: {Math.round(weakness.impact_score * 100)}%</span>
+                          <span className="text-gray-500 dark:text-zinc-500">Joylashuv: {weakness.location}</span>
+                          <span className="text-gray-500 dark:text-zinc-500">Ta'sir: {Math.round(weakness.impact_score * 100)}%</span>
                         </div>
-                        <div className="mt-2 p-3 bg-blue-50 rounded-md">
+                        <div className="mt-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-md">
                           <p className="text-sm font-medium text-blue-900 mb-1">Tavsiya:</p>
                           <p className="text-sm text-blue-700">{weakness.suggestion}</p>
                         </div>
@@ -325,7 +325,7 @@ const WeaknessDetector: React.FC = () => {
                       {analysis.strength_areas.map((strength, index) => (
                         <li key={index} className="flex items-start space-x-2">
                           <span className="text-green-500 mt-1">[OK]</span>
-                          <span className="text-gray-700">{strength}</span>
+                          <span className="text-gray-700 dark:text-zinc-300">{strength}</span>
                         </li>
                       ))}
                     </ul>
@@ -341,7 +341,7 @@ const WeaknessDetector: React.FC = () => {
                       {analysis.improvement_recommendations.map((recommendation, index) => (
                         <li key={index} className="flex items-start space-x-2">
                           <span className="text-blue-500 mt-1">→</span>
-                          <span className="text-gray-700">{recommendation}</span>
+                          <span className="text-gray-700 dark:text-zinc-300">{recommendation}</span>
                         </li>
                       ))}
                     </ul>
@@ -355,14 +355,14 @@ const WeaknessDetector: React.FC = () => {
                   <CardTitle>Batafsil fikr-mulohazalar</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-700 leading-relaxed">{analysis.detailed_feedback}</p>
+                  <p className="text-gray-700 dark:text-zinc-300 leading-relaxed">{analysis.detailed_feedback}</p>
                 </CardContent>
               </Card>
             </div>
           ) : (
             <Card>
               <CardContent className="flex items-center justify-center py-12">
-                <div className="text-center text-gray-500">
+                <div className="text-center text-gray-500 dark:text-zinc-500">
                   <p>Hali tahlil qilinmagan</p>
                   <p className="text-sm mt-2">Avval argument matnini kiriting va tahlil qiling</p>
                 </div>

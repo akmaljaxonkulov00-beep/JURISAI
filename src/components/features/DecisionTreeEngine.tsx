@@ -244,7 +244,7 @@ export default function DecisionTreeEngine() {
       case 'medium': return 'bg-yellow-100 text-yellow-800';
       case 'high': return 'bg-orange-100 text-orange-800';
       case 'critical': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      default: return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200';
     }
   };
 
@@ -257,7 +257,7 @@ export default function DecisionTreeEngine() {
   const renderDecisionNode = (node: DecisionNode) => (
     <Card 
       key={node.id}
-      className={`bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl cursor-pointer transition-all hover:shadow-2xl ${
+      className={`bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl cursor-pointer transition-all hover:shadow-2xl ${
         selectedNode?.id === node.id ? 'ring-2 ring-blue-500' : ''
       }`}
       onClick={() => handleNodeSelection(node)}
@@ -271,12 +271,12 @@ export default function DecisionTreeEngine() {
         </div>
       </CardHeader>
       <CardContent>
-        <p className="text-gray-700 mb-4">{node.description}</p>
+        <p className="text-gray-700 dark:text-zinc-300 mb-4">{node.description}</p>
         
         <div className="space-y-2">
           <p className="text-sm font-medium text-blue-700">Qaror variantlari:</p>
           {node.options.map((option) => (
-            <div key={option.id} className="p-2 bg-blue-50 rounded-lg border border-blue-200">
+            <div key={option.id} className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200">
               <p className="text-sm text-blue-800">{option.text}</p>
             </div>
           ))}
@@ -294,7 +294,7 @@ export default function DecisionTreeEngine() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 bg-white/80 backdrop-blur-sm rounded-2xl p-1">
+          <TabsList className="grid w-full grid-cols-3 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl p-1">
             <TabsTrigger value="create" className="rounded-xl data-[state=active]:bg-blue-600 data-[state=active]:text-white">
               Yaratish
             </TabsTrigger>
@@ -309,7 +309,7 @@ export default function DecisionTreeEngine() {
           <TabsContent value="create" className="mt-6">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2">
-                <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+                <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
                   <CardHeader>
                     <CardTitle className="text-blue-900">Senariyo Yaratish</CardTitle>
                   </CardHeader>
@@ -368,22 +368,22 @@ export default function DecisionTreeEngine() {
               </div>
 
               <div>
-                <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+                <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
                   <CardHeader>
                     <CardTitle className="text-blue-900">Qaror Daraxti Turlari</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="p-4 bg-green-50 rounded-xl">
+                    <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-xl">
                       <h4 className="font-semibold text-green-900 mb-2">▢ Shartnoma Nizolari</h4>
                       <p className="text-sm text-green-700">Shartnoma shartlari va kelishuvlar</p>
                     </div>
                     
-                    <div className="p-4 bg-blue-50 rounded-xl">
+                    <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
                       <h4 className="font-semibold text-blue-900 mb-2">◉◉ Vorislik Masalalari</h4>
                       <p className="text-sm text-blue-700">Meros va vorislik huquqlari</p>
                     </div>
                     
-                    <div className="p-4 bg-purple-50 rounded-xl">
+                    <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-xl">
                       <h4 className="font-semibold text-purple-900 mb-2">▣ Mehnat Masalalari</h4>
                       <p className="text-sm text-purple-700">Ishchi va ish beruvchi munosabatlari</p>
                     </div>
@@ -393,7 +393,7 @@ export default function DecisionTreeEngine() {
                       <p className="text-sm text-orange-700">Nikoh, ajralish, aliment</p>
                     </div>
                     
-                    <div className="p-4 bg-red-50 rounded-xl">
+                    <div className="p-4 bg-red-50 dark:bg-red-900/20 rounded-xl">
                       <h4 className="font-semibold text-red-900 mb-2">═ Jinoyat Ishlari</h4>
                       <p className="text-sm text-red-700">Jinoyat protsedurasi va himoya</p>
                     </div>
@@ -406,18 +406,18 @@ export default function DecisionTreeEngine() {
           <TabsContent value="analyze" className="mt-6">
             {currentTree ? (
               <div className="space-y-6">
-                <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+                <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
                   <CardHeader>
                     <div className="flex justify-between items-start">
                       <div>
                         <CardTitle className="text-blue-900">{currentTree.scenario_title}</CardTitle>
-                        <p className="text-gray-600 mt-1">{currentTree.scenario_description}</p>
+                        <p className="text-gray-600 dark:text-zinc-400 mt-1">{currentTree.scenario_description}</p>
                       </div>
                       <div className="text-right">
                         <div className={`text-2xl font-bold ${getConfidenceColor(currentTree.confidence_score)}`}>
                           {(currentTree.confidence_score * 100).toFixed(1)}%
                         </div>
-                        <p className="text-sm text-gray-600">Ishonch darajasi</p>
+                        <p className="text-sm text-gray-600 dark:text-zinc-400">Ishonch darajasi</p>
                       </div>
                     </div>
                   </CardHeader>
@@ -434,12 +434,12 @@ export default function DecisionTreeEngine() {
                   <div>
                     <h3 className="text-xl font-semibold text-blue-900 mb-4">Qaror Paneli</h3>
                     {selectedNode ? (
-                      <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+                      <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
                         <CardHeader>
                           <CardTitle className="text-blue-900">{selectedNode.title}</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                          <p className="text-gray-700">{selectedNode.description}</p>
+                          <p className="text-gray-700 dark:text-zinc-300">{selectedNode.description}</p>
                           
                           <div>
                             <label className="block text-sm font-medium text-blue-700 mb-2">
@@ -489,9 +489,9 @@ export default function DecisionTreeEngine() {
                         </CardContent>
                       </Card>
                     ) : (
-                      <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+                      <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
                         <CardContent className="text-center py-12">
-                          <p className="text-gray-500">Qaror tugunini tanlang</p>
+                          <p className="text-gray-500 dark:text-zinc-500">Qaror tugunini tanlang</p>
                         </CardContent>
                       </Card>
                     )}
@@ -499,21 +499,21 @@ export default function DecisionTreeEngine() {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+                  <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
                     <CardHeader>
                       <CardTitle className="text-blue-900">Xavf Baholashi</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-3">
                         <div className="flex justify-between items-center">
-                          <span className="text-gray-700">Umumiy xavf:</span>
+                          <span className="text-gray-700 dark:text-zinc-300">Umumiy xavf:</span>
                           <Badge className={getRiskColor(currentTree.risk_assessment.overall_risk)}>
                             {currentTree.risk_assessment.overall_risk}
                           </Badge>
                         </div>
                         
                         <div>
-                          <p className="text-sm font-medium text-gray-700 mb-2">Yuridik xavflar:</p>
+                          <p className="text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">Yuridik xavflar:</p>
                           <div className="space-y-1">
                             {currentTree.risk_assessment.legal_risks.map((risk, index) => (
                               <div key={index} className="text-sm text-red-600">• {risk}</div>
@@ -522,7 +522,7 @@ export default function DecisionTreeEngine() {
                         </div>
                         
                         <div>
-                          <p className="text-sm font-medium text-gray-700 mb-2">Moliyaviy xavflar:</p>
+                          <p className="text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">Moliyaviy xavflar:</p>
                           <div className="space-y-1">
                             {currentTree.risk_assessment.financial_risks.map((risk, index) => (
                               <div key={index} className="text-sm text-orange-600">• {risk}</div>
@@ -533,14 +533,14 @@ export default function DecisionTreeEngine() {
                     </CardContent>
                   </Card>
 
-                  <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+                  <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
                     <CardHeader>
                       <CardTitle className="text-blue-900">AI Tavsiyalari</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-2">
                         {currentTree.ai_recommendations.map((recommendation, index) => (
-                          <div key={index} className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                          <div key={index} className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200">
                             <p className="text-sm text-blue-800">{recommendation}</p>
                           </div>
                         ))}
@@ -550,9 +550,9 @@ export default function DecisionTreeEngine() {
                 </div>
               </div>
             ) : (
-              <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+              <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
                 <CardContent className="text-center py-12">
-                  <p className="text-gray-500 mb-4">Hali hech qanday qaror daraxti yaratilmagan</p>
+                  <p className="text-gray-500 dark:text-zinc-500 mb-4">Hali hech qanday qaror daraxti yaratilmagan</p>
                   <Button 
                     onClick={() => setActiveTab('create')}
                     className="bg-blue-600 hover:bg-blue-700"
@@ -569,7 +569,7 @@ export default function DecisionTreeEngine() {
               {trees.map((tree) => (
                 <Card 
                   key={tree.id} 
-                  className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl hover:shadow-2xl transition-shadow cursor-pointer"
+                  className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl hover:shadow-2xl transition-shadow cursor-pointer"
                   onClick={() => {
                     setCurrentTree(tree);
                     setActiveTab('analyze');
@@ -588,22 +588,22 @@ export default function DecisionTreeEngine() {
                   <CardContent>
                     <div className="space-y-3">
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Case turi:</span>
+                        <span className="text-gray-600 dark:text-zinc-400">Case turi:</span>
                         <span className="font-medium capitalize">{tree.tree_data.case_type}</span>
                       </div>
                       
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Status:</span>
+                        <span className="text-gray-600 dark:text-zinc-400">Status:</span>
                         <span className="font-medium">{tree.status}</span>
                       </div>
                       
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Tugunlar soni:</span>
+                        <span className="text-gray-600 dark:text-zinc-400">Tugunlar soni:</span>
                         <span className="font-medium">{tree.tree_data.nodes.length}</span>
                       </div>
                       
-                      <div className="pt-2 border-t border-gray-200">
-                        <p className="text-xs text-gray-500">
+                      <div className="pt-2 border-t border-gray-200 dark:border-zinc-800">
+                        <p className="text-xs text-gray-500 dark:text-zinc-500">
                           {new Date(tree.created_at).toLocaleDateString('uz-UZ')}
                         </p>
                       </div>
@@ -614,9 +614,9 @@ export default function DecisionTreeEngine() {
               
               {trees.length === 0 && (
                 <div className="col-span-full">
-                  <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+                  <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
                     <CardContent className="text-center py-12">
-                      <p className="text-gray-500 mb-4">Hali hech qanday qaror daraxtlari mavjud emas</p>
+                      <p className="text-gray-500 dark:text-zinc-500 mb-4">Hali hech qanday qaror daraxtlari mavjud emas</p>
                       <Button 
                         onClick={() => setActiveTab('create')}
                         className="bg-blue-600 hover:bg-blue-700"

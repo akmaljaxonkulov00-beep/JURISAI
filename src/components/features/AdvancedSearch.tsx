@@ -225,7 +225,7 @@ export default function AdvancedSearch() {
       case 'criminal': return <Scale className="w-4 h-4 text-red-600" />;
       case 'labor': return <BookOpen className="w-4 h-4 text-green-600" />;
       case 'family': return <FileText className="w-4 h-4 text-purple-600" />;
-      default: return <Database className="w-4 h-4 text-gray-600" />;
+      default: return <Database className="w-4 h-4 text-gray-600 dark:text-zinc-400" />;
     }
   };
 
@@ -235,7 +235,7 @@ export default function AdvancedSearch() {
       case 'law': return 'bg-green-100 text-green-800';
       case 'article': return 'bg-purple-100 text-purple-800';
       case 'regulation': return 'bg-orange-100 text-orange-800';
-      default: return 'bg-gray-100 text-gray-800';
+      default: return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200';
     }
   };
 
@@ -254,8 +254,8 @@ export default function AdvancedSearch() {
   return (
     <div className="p-6 max-w-6xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Advanced Qidiruv</h1>
-        <p className="text-gray-600">Qonunlar bazasida chuqur qidiruv</p>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-zinc-100 mb-2">Advanced Qidiruv</h1>
+        <p className="text-gray-600 dark:text-zinc-400">Qonunlar bazasida chuqur qidiruv</p>
       </div>
 
       {/* Search Bar */}
@@ -264,7 +264,7 @@ export default function AdvancedSearch() {
           <div className="flex flex-col lg:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500 w-5 h-5" />
                 <Input
                   placeholder="Qonun, modda, yoki kalit so'zni kiriting..."
                   value={filters.query}
@@ -310,11 +310,11 @@ export default function AdvancedSearch() {
             <div className="mt-6 pt-6 border-t">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Kategoriya</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Kategoriya</label>
                   <select
                     value={filters.category}
                     onChange={(e) => setFilters(prev => ({ ...prev, category: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="all">Barchasi</option>
                     <option value="civil">Fuqarolik</option>
@@ -325,11 +325,11 @@ export default function AdvancedSearch() {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Hujjat turi</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Hujjat turi</label>
                   <select
                     value={filters.documentType}
                     onChange={(e) => setFilters(prev => ({ ...prev, documentType: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="all">Barchasi</option>
                     <option value="code">Kodeks</option>
@@ -340,11 +340,11 @@ export default function AdvancedSearch() {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Sana oralig'i</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Sana oralig'i</label>
                   <select
                     value={filters.dateRange}
                     onChange={(e) => setFilters(prev => ({ ...prev, dateRange: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="all">Barchasi</option>
                     <option value="7d">7 kun</option>
@@ -355,11 +355,11 @@ export default function AdvancedSearch() {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Tartiblash</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Tartiblash</label>
                   <select
                     value={filters.sortBy}
                     onChange={(e) => setFilters(prev => ({ ...prev, sortBy: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="relevance">Ahamiyati bo'yicha</option>
                     <option value="date">Sana bo'yicha</option>
@@ -397,13 +397,13 @@ export default function AdvancedSearch() {
 
       {/* Tabs */}
       <div className="mb-6">
-        <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
+        <div className="flex space-x-1 bg-gray-100 dark:bg-zinc-800/30 p-1 rounded-lg">
           <button
             onClick={() => setActiveTab('search')}
             className={`flex-1 flex items-center justify-center space-x-2 px-4 py-2 rounded-md transition-colors ${
               activeTab === 'search' 
-                ? 'bg-white text-blue-600 shadow-sm' 
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-sm' 
+                : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100'
             }`}
           >
             <Search className="w-4 h-4" />
@@ -416,8 +416,8 @@ export default function AdvancedSearch() {
             onClick={() => setActiveTab('history')}
             className={`flex-1 flex items-center justify-center space-x-2 px-4 py-2 rounded-md transition-colors ${
               activeTab === 'history' 
-                ? 'bg-white text-blue-600 shadow-sm' 
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-sm' 
+                : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100'
             }`}
           >
             <Clock className="w-4 h-4" />
@@ -427,8 +427,8 @@ export default function AdvancedSearch() {
             onClick={() => setActiveTab('bookmarks')}
             className={`flex-1 flex items-center justify-center space-x-2 px-4 py-2 rounded-md transition-colors ${
               activeTab === 'bookmarks' 
-                ? 'bg-white text-blue-600 shadow-sm' 
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-sm' 
+                : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100'
             }`}
           >
             <Bookmark className="w-4 h-4" />
@@ -438,8 +438,8 @@ export default function AdvancedSearch() {
             onClick={() => setActiveTab('trending')}
             className={`flex-1 flex items-center justify-center space-x-2 px-4 py-2 rounded-md transition-colors ${
               activeTab === 'trending' 
-                ? 'bg-white text-blue-600 shadow-sm' 
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-sm' 
+                : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100'
             }`}
           >
             <TrendingUp className="w-4 h-4" />
@@ -454,20 +454,20 @@ export default function AdvancedSearch() {
           {loading ? (
             <div className="text-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="text-gray-600 mt-4">Qidirilmoqda...</p>
+              <p className="text-gray-600 dark:text-zinc-400 mt-4">Qidirilmoqda...</p>
             </div>
           ) : searchResults.length === 0 ? (
             <Card>
               <CardContent className="text-center py-12">
-                <Search className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600">Natija topilmadi</p>
-                <p className="text-gray-500 text-sm mt-2">Boshqa kalit so'zlar bilan urinib ko'ring</p>
+                <Search className="w-16 h-16 text-gray-400 dark:text-zinc-500 mx-auto mb-4" />
+                <p className="text-gray-600 dark:text-zinc-400">Natija topilmadi</p>
+                <p className="text-gray-500 dark:text-zinc-500 text-sm mt-2">Boshqa kalit so'zlar bilan urinib ko'ring</p>
               </CardContent>
             </Card>
           ) : (
             <>
               <div className="flex items-center justify-between">
-                <p className="text-gray-600">
+                <p className="text-gray-600 dark:text-zinc-400">
                   {searchResults.length} ta natija topildi
                 </p>
                 <Button variant="outline" size="sm" onClick={exportResults}>
@@ -483,7 +483,7 @@ export default function AdvancedSearch() {
                       <div className="flex-1">
                         <div className="flex items-center space-x-3 mb-2">
                           {getCategoryIcon(result.category)}
-                          <h3 className="text-lg font-semibold text-gray-900">
+                          <h3 className="text-lg font-semibold text-gray-900 dark:text-zinc-100">
                             {result.title}
                           </h3>
                           <Badge className={getDocumentTypeColor(result.documentType)}>
@@ -495,7 +495,7 @@ export default function AdvancedSearch() {
                         </div>
                         
                         <div 
-                          className="text-gray-700 mb-3"
+                          className="text-gray-700 dark:text-zinc-300 mb-3"
                           dangerouslySetInnerHTML={{ __html: result.content }}
                         />
                         
@@ -507,7 +507,7 @@ export default function AdvancedSearch() {
                           ))}
                         </div>
                         
-                        <div className="flex items-center justify-between text-sm text-gray-500">
+                        <div className="flex items-center justify-between text-sm text-gray-500 dark:text-zinc-500">
                           <div className="flex items-center space-x-4">
                             <span className="flex items-center space-x-1">
                               <Eye className="w-4 h-4" />
@@ -550,8 +550,8 @@ export default function AdvancedSearch() {
           {searchHistory.length === 0 ? (
             <Card>
               <CardContent className="text-center py-12">
-                <Clock className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600">Qidiruv tarixi yo'q</p>
+                <Clock className="w-16 h-16 text-gray-400 dark:text-zinc-500 mx-auto mb-4" />
+                <p className="text-gray-600 dark:text-zinc-400">Qidiruv tarixi yo'q</p>
               </CardContent>
             </Card>
           ) : (
@@ -560,8 +560,8 @@ export default function AdvancedSearch() {
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="font-semibold text-gray-900">{item.query}</h4>
-                      <p className="text-sm text-gray-600">
+                      <h4 className="font-semibold text-gray-900 dark:text-zinc-100">{item.query}</h4>
+                      <p className="text-sm text-gray-600 dark:text-zinc-400">
                         {item.resultsCount} ta natija • {new Date(item.timestamp).toLocaleDateString('uz-UZ')}
                       </p>
                     </div>
@@ -595,8 +595,8 @@ export default function AdvancedSearch() {
           {searchResults.filter(r => r.isBookmarked).length === 0 ? (
             <Card>
               <CardContent className="text-center py-12">
-                <Bookmark className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600">Saqlangan natijalar yo'q</p>
+                <Bookmark className="w-16 h-16 text-gray-400 dark:text-zinc-500 mx-auto mb-4" />
+                <p className="text-gray-600 dark:text-zinc-400">Saqlangan natijalar yo'q</p>
               </CardContent>
             </Card>
           ) : (
@@ -605,8 +605,8 @@ export default function AdvancedSearch() {
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="font-semibold text-gray-900">{result.title}</h3>
-                      <p className="text-gray-600 text-sm">{result.category}</p>
+                      <h3 className="font-semibold text-gray-900 dark:text-zinc-100">{result.title}</h3>
+                      <p className="text-gray-600 dark:text-zinc-400 text-sm">{result.category}</p>
                     </div>
                     <Button
                       variant="ghost"
@@ -634,7 +634,7 @@ export default function AdvancedSearch() {
                     <TrendingUp className="w-5 h-5 text-green-600" />
                     <div>
                       <h4 className="font-semibold">{suggestion}</h4>
-                      <p className="text-sm text-gray-600">{Math.floor(Math.random() * 1000 + 100)} marta qidirilgan</p>
+                      <p className="text-sm text-gray-600 dark:text-zinc-400">{Math.floor(Math.random() * 1000 + 100)} marta qidirilgan</p>
                     </div>
                   </div>
                   <Button
@@ -684,12 +684,12 @@ export default function AdvancedSearch() {
                 </div>
                 
                 <div 
-                  className="text-gray-700"
+                  className="text-gray-700 dark:text-zinc-300"
                   dangerouslySetInnerHTML={{ __html: selectedResult.content }}
                 />
                 
                 <div className="flex items-center justify-between pt-4 border-t">
-                  <div className="flex items-center space-x-4 text-sm text-gray-500">
+                  <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-zinc-500">
                     <span>View: {selectedResult.viewCount.toLocaleString()}</span>
                     <span>Relevance: {selectedResult.relevanceScore}%</span>
                     <span>{new Date(selectedResult.lastUpdated).toLocaleDateString('uz-UZ')}</span>

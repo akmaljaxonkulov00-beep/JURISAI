@@ -128,7 +128,7 @@ export default function OnboardingTour() {
             : 'opacity-100 scale-100 translate-y-0'
         }`}
       >
-        <div className="relative bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-gray-200/60 dark:border-zinc-700/60 overflow-hidden">
+        <div className="relative bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-zinc-800/60 dark:border-zinc-700/60 overflow-hidden">
 
           {/* Top gradient bar */}
           <div className="h-1.5 bg-gradient-to-r from-blue-500 via-emerald-500 to-amber-500" />
@@ -136,7 +136,7 @@ export default function OnboardingTour() {
           {/* Close button */}
           <button
             onClick={handleSkip}
-            className="absolute top-4 right-4 w-8 h-8 rounded-full bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 flex items-center justify-center text-gray-400 hover:text-gray-600 dark:hover:text-zinc-300 transition-all z-10"
+            className="absolute top-4 right-4 w-8 h-8 rounded-full bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 flex items-center justify-center text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:hover:text-zinc-300 transition-all z-10"
           >
             <X size={16} />
           </button>
@@ -144,7 +144,7 @@ export default function OnboardingTour() {
           <div className="p-6 md:p-8">
             {/* Step indicator + icon */}
             <div className="flex items-center gap-3 mb-5">
-              <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 dark:from-zinc-800 dark:to-zinc-800/50 flex items-center justify-center shadow-sm border border-gray-200/50 dark:border-zinc-700/50">
+              <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 dark:from-zinc-800 dark:to-zinc-800/50 flex items-center justify-center shadow-sm border border-gray-200 dark:border-zinc-800/50 dark:border-zinc-700/50">
                 {step.icon}
               </div>
               <div>

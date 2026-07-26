@@ -26,7 +26,7 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   const getColorClasses = (color: string) => {
     switch (color) {
       case 'secondary':
-        return 'text-gray-500';
+        return 'text-gray-500 dark:text-zinc-500';
       case 'white':
         return 'text-white';
       default:

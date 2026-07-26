@@ -207,7 +207,7 @@ export default function WeaknessDetector() {
       case 'medium': return 'bg-yellow-100 text-yellow-800';
       case 'high': return 'bg-orange-100 text-orange-800';
       case 'critical': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      default: return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200';
     }
   };
 
@@ -228,7 +228,7 @@ export default function WeaknessDetector() {
   };
 
   const renderWeaknessPoint = (point: WeaknessPoint) => (
-    <Card key={point.id} className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+    <Card key={point.id} className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
       <CardHeader>
         <div className="flex justify-between items-start">
           <CardTitle className="text-blue-900 text-lg">{point.description}</CardTitle>
@@ -241,12 +241,12 @@ export default function WeaknessDetector() {
         <div className="space-y-4">
           <div>
             <p className="text-sm font-medium text-blue-700 mb-2">Joylashuv:</p>
-            <p className="text-sm text-gray-600 italic">{point.location}</p>
+            <p className="text-sm text-gray-600 dark:text-zinc-400 italic">{point.location}</p>
           </div>
           
           <div>
             <p className="text-sm font-medium text-blue-700 mb-2">Tavsiya:</p>
-            <p className="text-sm text-gray-700">{point.suggestion}</p>
+            <p className="text-sm text-gray-700 dark:text-zinc-300">{point.suggestion}</p>
           </div>
           
           {point.legal_references && point.legal_references.length > 0 && (
@@ -273,7 +273,7 @@ export default function WeaknessDetector() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4 bg-white/80 backdrop-blur-sm rounded-2xl p-1">
+          <TabsList className="grid w-full grid-cols-4 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl p-1">
             <TabsTrigger value="detect" className="rounded-xl data-[state=active]:bg-blue-600 data-[state=active]:text-white">
               Aniqlash
             </TabsTrigger>
@@ -291,7 +291,7 @@ export default function WeaknessDetector() {
           <TabsContent value="detect" className="mt-6">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2">
-                <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+                <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
                   <CardHeader>
                     <CardTitle className="text-blue-900">Argument Tahlili</CardTitle>
                   </CardHeader>
@@ -378,27 +378,27 @@ export default function WeaknessDetector() {
               </div>
 
               <div>
-                <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+                <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
                   <CardHeader>
                     <CardTitle className="text-blue-900">Argument Turlari</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="p-4 bg-blue-50 rounded-xl">
+                    <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
                       <h4 className="font-semibold text-blue-900 mb-2">═ Huquqiy</h4>
                       <p className="text-sm text-blue-700">Qonun hujjatlariga asoslangan argumentlar</p>
                     </div>
                     
-                    <div className="p-4 bg-green-50 rounded-xl">
+                    <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-xl">
                       <h4 className="font-semibold text-green-900 mb-2">▤ Faktik</h4>
                       <p className="text-sm text-green-700">Dalillar va faktlarga asoslangan argumentlar</p>
                     </div>
                     
-                    <div className="p-4 bg-purple-50 rounded-xl">
+                    <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-xl">
                       <h4 className="font-semibold text-purple-900 mb-2">◉ Mantiqiy</h4>
                       <p className="text-sm text-purple-700">Mantiqiy izchillikka ega argumentlar</p>
                     </div>
                     
-                    <div className="p-4 bg-red-50 rounded-xl">
+                    <div className="p-4 bg-red-50 dark:bg-red-900/20 rounded-xl">
                       <h4 className="font-semibold text-red-900 mb-2">♥ His-tuyg'uli</h4>
                       <p className="text-sm text-red-700">His-tuyg'uga asoslangan argumentlar</p>
                     </div>
@@ -411,12 +411,12 @@ export default function WeaknessDetector() {
           <TabsContent value="analysis" className="mt-6">
             {currentDetection ? (
               <div className="space-y-6">
-                <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+                <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
                   <CardHeader>
                     <div className="flex justify-between items-start">
                       <div>
                         <CardTitle className="text-blue-900 text-2xl">Tahlil Natijalari</CardTitle>
-                        <p className="text-gray-600 mt-2">
+                        <p className="text-gray-600 dark:text-zinc-400 mt-2">
                           {getArgumentTypeIcon(currentDetection.argument_type)} {currentDetection.argument_type} argument
                         </p>
                       </div>
@@ -424,46 +424,46 @@ export default function WeaknessDetector() {
                         <div className={`text-3xl font-bold ${getScoreColor(currentDetection.overall_score)}`}>
                           {(currentDetection.overall_score * 100).toFixed(1)}%
                         </div>
-                        <p className="text-sm text-gray-600">Umumiy ball</p>
+                        <p className="text-sm text-gray-600 dark:text-zinc-400">Umumiy ball</p>
                       </div>
                     </div>
                   </CardHeader>
                 </Card>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+                  <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
                     <CardContent className="text-center p-6">
                       <div className={`text-2xl font-bold ${getScoreColor(currentDetection.legal_compliance_score)}`}>
                         {(currentDetection.legal_compliance_score * 100).toFixed(1)}%
                       </div>
-                      <p className="text-sm text-gray-600 mt-1">Qonunchilik mosligi</p>
+                      <p className="text-sm text-gray-600 dark:text-zinc-400 mt-1">Qonunchilik mosligi</p>
                     </CardContent>
                   </Card>
                   
-                  <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+                  <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
                     <CardContent className="text-center p-6">
                       <div className={`text-2xl font-bold ${getScoreColor(currentDetection.logical_coherence_score)}`}>
                         {(currentDetection.logical_coherence_score * 100).toFixed(1)}%
                       </div>
-                      <p className="text-sm text-gray-600 mt-1">Mantiqiy izchillik</p>
+                      <p className="text-sm text-gray-600 dark:text-zinc-400 mt-1">Mantiqiy izchillik</p>
                     </CardContent>
                   </Card>
                   
-                  <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+                  <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
                     <CardContent className="text-center p-6">
                       <div className={`text-2xl font-bold ${getScoreColor(currentDetection.factual_accuracy_score)}`}>
                         {(currentDetection.factual_accuracy_score * 100).toFixed(1)}%
                       </div>
-                      <p className="text-sm text-gray-600 mt-1">Faktik aniqlik</p>
+                      <p className="text-sm text-gray-600 dark:text-zinc-400 mt-1">Faktik aniqlik</p>
                     </CardContent>
                   </Card>
                   
-                  <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+                  <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
                     <CardContent className="text-center p-6">
                       <div className={`text-2xl font-bold ${getScoreColor(currentDetection.persuasive_power_score)}`}>
                         {(currentDetection.persuasive_power_score * 100).toFixed(1)}%
                       </div>
-                      <p className="text-sm text-gray-600 mt-1">Tasir kuchi</p>
+                      <p className="text-sm text-gray-600 dark:text-zinc-400 mt-1">Tasir kuchi</p>
                     </CardContent>
                   </Card>
                 </div>
@@ -480,11 +480,11 @@ export default function WeaknessDetector() {
 
                   <div>
                     <h3 className="text-xl font-semibold text-blue-900 mb-4">Kuchli tomonlar</h3>
-                    <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+                    <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
                       <CardContent className="space-y-3 p-6">
                         {currentDetection.strengths.map((strength, index) => (
                           <div key={index} className="flex items-center space-x-2">
-                            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                            <div className="w-2 h-2 bg-green-50 dark:bg-green-900/20 rounded-full"></div>
                             <p className="text-green-700">{strength}</p>
                           </div>
                         ))}
@@ -495,10 +495,10 @@ export default function WeaknessDetector() {
 
                 <div>
                   <h3 className="text-xl font-semibold text-blue-900 mb-4">Yaxshilash takliflari</h3>
-                  <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+                  <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
                     <CardContent className="space-y-3 p-6">
                       {currentDetection.improvement_suggestions.map((suggestion, index) => (
-                        <div key={index} className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                        <div key={index} className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200">
                           <p className="text-blue-800">{suggestion}</p>
                         </div>
                       ))}
@@ -507,9 +507,9 @@ export default function WeaknessDetector() {
                 </div>
               </div>
             ) : (
-              <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+              <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
                 <CardContent className="text-center py-12">
-                  <p className="text-gray-500 mb-4">Hali hech qanday tahlil o'tkazilmagan</p>
+                  <p className="text-gray-500 dark:text-zinc-500 mb-4">Hali hech qanday tahlil o'tkazilmagan</p>
                   <Button 
                     onClick={() => setActiveTab('detect')}
                     className="bg-blue-600 hover:bg-blue-700"
@@ -523,7 +523,7 @@ export default function WeaknessDetector() {
 
           <TabsContent value="improve" className="mt-6">
             <div className="space-y-6">
-              <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+              <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
                 <CardHeader>
                   <CardTitle className="text-blue-900">Argument Yaxshilash</CardTitle>
                 </CardHeader>
@@ -557,9 +557,9 @@ export default function WeaknessDetector() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <div>
                     <h3 className="text-xl font-semibold text-blue-900 mb-4">Asl Argument</h3>
-                    <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+                    <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
                       <CardContent className="p-6">
-                        <p className="text-gray-700 whitespace-pre-wrap">
+                        <p className="text-gray-700 dark:text-zinc-300 whitespace-pre-wrap">
                           {currentDetection.argument_text}
                         </p>
                       </CardContent>
@@ -568,14 +568,14 @@ export default function WeaknessDetector() {
 
                   <div>
                     <h3 className="text-xl font-semibold text-blue-900 mb-4">Yaxshilangan Argument</h3>
-                    <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+                    <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
                       <CardContent className="p-6">
                         {improvedArgument ? (
-                          <p className="text-gray-700 whitespace-pre-wrap">
+                          <p className="text-gray-700 dark:text-zinc-300 whitespace-pre-wrap">
                             {improvedArgument}
                           </p>
                         ) : (
-                          <p className="text-gray-500 italic">
+                          <p className="text-gray-500 dark:text-zinc-500 italic">
                             Yaxshilash tugmasini bosing
                           </p>
                         )}
@@ -592,7 +592,7 @@ export default function WeaknessDetector() {
               {detections.map((detection) => (
                 <Card 
                   key={detection.id} 
-                  className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl hover:shadow-2xl transition-shadow cursor-pointer"
+                  className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl hover:shadow-2xl transition-shadow cursor-pointer"
                   onClick={() => {
                     setCurrentDetection(detection);
                     setActiveTab('analysis');
@@ -610,22 +610,22 @@ export default function WeaknessDetector() {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
-                      <p className="text-sm text-gray-600 line-clamp-3">
+                      <p className="text-sm text-gray-600 dark:text-zinc-400 line-clamp-3">
                         {detection.argument_text}
                       </p>
                       
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Zaifliklar:</span>
+                        <span className="text-gray-600 dark:text-zinc-400">Zaifliklar:</span>
                         <span className="font-medium">{detection.weakness_points.length}</span>
                       </div>
                       
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Kuchli tomonlar:</span>
+                        <span className="text-gray-600 dark:text-zinc-400">Kuchli tomonlar:</span>
                         <span className="font-medium">{detection.strengths.length}</span>
                       </div>
                       
-                      <div className="pt-2 border-t border-gray-200">
-                        <p className="text-xs text-gray-500">
+                      <div className="pt-2 border-t border-gray-200 dark:border-zinc-800">
+                        <p className="text-xs text-gray-500 dark:text-zinc-500">
                           {new Date(detection.created_at).toLocaleDateString('uz-UZ')}
                         </p>
                       </div>
@@ -636,9 +636,9 @@ export default function WeaknessDetector() {
               
               {detections.length === 0 && (
                 <div className="col-span-full">
-                  <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+                  <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
                     <CardContent className="text-center py-12">
-                      <p className="text-gray-500 mb-4">Hali hech qanday tahlillar mavjud emas</p>
+                      <p className="text-gray-500 dark:text-zinc-500 mb-4">Hali hech qanday tahlillar mavjud emas</p>
                       <Button 
                         onClick={() => setActiveTab('detect')}
                         className="bg-blue-600 hover:bg-blue-700"

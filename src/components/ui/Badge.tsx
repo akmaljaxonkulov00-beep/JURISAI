@@ -18,11 +18,11 @@ const Badge = forwardRef<HTMLDivElement, BadgeProps>(
         case 'outline':
           return 'text-foreground';
         case 'success':
-          return 'border-transparent bg-green-500 text-white hover:bg-green-600';
+          return 'border-transparent bg-green-50 dark:bg-green-900/20 text-white hover:bg-green-600';
         case 'warning':
-          return 'border-transparent bg-yellow-500 text-white hover:bg-yellow-600';
+          return 'border-transparent bg-yellow-50 dark:bg-yellow-900/20 text-white hover:bg-yellow-600';
         case 'info':
-          return 'border-transparent bg-blue-500 text-white hover:bg-blue-600';
+          return 'border-transparent bg-blue-50 dark:bg-blue-900/20 text-white hover:bg-blue-600';
         default:
           return 'border-transparent bg-primary text-primary-foreground hover:bg-primary/80';
       }

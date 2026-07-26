@@ -221,7 +221,7 @@ export default function IRACCaseSolver() {
         )}
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 bg-white/80 backdrop-blur-sm rounded-2xl p-1">
+          <TabsList className="grid w-full grid-cols-3 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl p-1">
             <TabsTrigger value="analyze" className="rounded-xl data-[state=active]:bg-blue-600 data-[state=active]:text-white">
               Tahlil
             </TabsTrigger>
@@ -236,7 +236,7 @@ export default function IRACCaseSolver() {
           <TabsContent value="analyze" className="mt-6">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2">
-                <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+                <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
                   <CardHeader>
                     <CardTitle className="text-blue-900">Case Matni</CardTitle>
                   </CardHeader>
@@ -295,27 +295,27 @@ export default function IRACCaseSolver() {
               </div>
 
               <div>
-                <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+                <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
                   <CardHeader>
                     <CardTitle className="text-blue-900">IRAC Metodologiyasi</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="p-4 bg-blue-50 rounded-xl">
+                    <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
                       <h4 className="font-semibold text-blue-900 mb-2">Issue</h4>
                       <p className="text-sm text-blue-700">Masalani aniqlash va to'g'ri formulirovka qilish</p>
                     </div>
                     
-                    <div className="p-4 bg-blue-50 rounded-xl">
+                    <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
                       <h4 className="font-semibold text-blue-900 mb-2">Rule</h4>
                       <p className="text-sm text-blue-700">Tegishli qonun va qoidalarni topish</p>
                     </div>
                     
-                    <div className="p-4 bg-blue-50 rounded-xl">
+                    <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
                       <h4 className="font-semibold text-blue-900 mb-2">Application</h4>
                       <p className="text-sm text-blue-700">Qoidalarni vaziyatga qo'llash</p>
                     </div>
                     
-                    <div className="p-4 bg-blue-50 rounded-xl">
+                    <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
                       <h4 className="font-semibold text-blue-900 mb-2">Conclusion</h4>
                       <p className="text-sm text-blue-700">Mantiqiy xulosa chiqarish</p>
                     </div>
@@ -330,7 +330,7 @@ export default function IRACCaseSolver() {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className="space-y-6">
                   {/* Issue */}
-                  <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+                  <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
                     <CardHeader className="flex flex-row items-center justify-between">
                       <CardTitle className="text-blue-900">Issue</CardTitle>
                       <Badge className={getScoreBadge(currentAnalysis.scores.issue)}>
@@ -360,7 +360,7 @@ export default function IRACCaseSolver() {
                         </div>
                       ) : (
                         <div className="space-y-4">
-                          <p className="text-gray-700 leading-relaxed">{currentAnalysis.issue}</p>
+                          <p className="text-gray-700 dark:text-zinc-300 leading-relaxed">{currentAnalysis.issue}</p>
                           <Button
                             variant="outline"
                             onClick={() => handleEditComponent('issue', currentAnalysis.issue)}
@@ -374,7 +374,7 @@ export default function IRACCaseSolver() {
                   </Card>
 
                   {/* Rule */}
-                  <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+                  <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
                     <CardHeader className="flex flex-row items-center justify-between">
                       <CardTitle className="text-blue-900">Rule</CardTitle>
                       <Badge className={getScoreBadge(currentAnalysis.scores.rule)}>
@@ -404,7 +404,7 @@ export default function IRACCaseSolver() {
                         </div>
                       ) : (
                         <div className="space-y-4">
-                          <p className="text-gray-700 leading-relaxed">{currentAnalysis.rule}</p>
+                          <p className="text-gray-700 dark:text-zinc-300 leading-relaxed">{currentAnalysis.rule}</p>
                           <Button
                             variant="outline"
                             onClick={() => handleEditComponent('rule', currentAnalysis.rule)}
@@ -420,7 +420,7 @@ export default function IRACCaseSolver() {
 
                 <div className="space-y-6">
                   {/* Application */}
-                  <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+                  <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
                     <CardHeader className="flex flex-row items-center justify-between">
                       <CardTitle className="text-blue-900">Application</CardTitle>
                       <Badge className={getScoreBadge(currentAnalysis.scores.application)}>
@@ -450,7 +450,7 @@ export default function IRACCaseSolver() {
                         </div>
                       ) : (
                         <div className="space-y-4">
-                          <p className="text-gray-700 leading-relaxed">{currentAnalysis.application}</p>
+                          <p className="text-gray-700 dark:text-zinc-300 leading-relaxed">{currentAnalysis.application}</p>
                           <Button
                             variant="outline"
                             onClick={() => handleEditComponent('application', currentAnalysis.application)}
@@ -464,7 +464,7 @@ export default function IRACCaseSolver() {
                   </Card>
 
                   {/* Conclusion */}
-                  <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+                  <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
                     <CardHeader className="flex flex-row items-center justify-between">
                       <CardTitle className="text-blue-900">Conclusion</CardTitle>
                       <Badge className={getScoreBadge(currentAnalysis.scores.conclusion)}>
@@ -494,7 +494,7 @@ export default function IRACCaseSolver() {
                         </div>
                       ) : (
                         <div className="space-y-4">
-                          <p className="text-gray-700 leading-relaxed">{currentAnalysis.conclusion}</p>
+                          <p className="text-gray-700 dark:text-zinc-300 leading-relaxed">{currentAnalysis.conclusion}</p>
                           <Button
                             variant="outline"
                             onClick={() => handleEditComponent('conclusion', currentAnalysis.conclusion)}
@@ -509,9 +509,9 @@ export default function IRACCaseSolver() {
                 </div>
               </div>
             ) : (
-              <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+              <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
                 <CardContent className="text-center py-12">
-                  <p className="text-gray-500 mb-4">Hali hech qanday tahlil o'tkazilmagan</p>
+                  <p className="text-gray-500 dark:text-zinc-500 mb-4">Hali hech qanday tahlil o'tkazilmagan</p>
                   <Button 
                     onClick={() => setActiveTab('analyze')}
                     className="bg-blue-600 hover:bg-blue-700"
@@ -528,7 +528,7 @@ export default function IRACCaseSolver() {
               {analyses.map((analysis) => (
                 <Card 
                   key={analysis.id} 
-                  className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl hover:shadow-2xl transition-shadow cursor-pointer"
+                  className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl hover:shadow-2xl transition-shadow cursor-pointer"
                   onClick={() => {
                     setCurrentAnalysis(analysis);
                     setActiveTab('results');
@@ -547,39 +547,39 @@ export default function IRACCaseSolver() {
                   <CardContent>
                     <div className="space-y-3">
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Qiyinlik:</span>
+                        <span className="text-gray-600 dark:text-zinc-400">Qiyinlik:</span>
                         <span className="font-medium">{analysis.difficulty_level}</span>
                       </div>
                       
                       <div className="space-y-2">
                         <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">Issue:</span>
+                          <span className="text-gray-600 dark:text-zinc-400">Issue:</span>
                           <span className={`font-medium ${getScoreColor(analysis.scores.issue)}`}>
                             {analysis.scores.issue.toFixed(1)}
                           </span>
                         </div>
                         <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">Rule:</span>
+                          <span className="text-gray-600 dark:text-zinc-400">Rule:</span>
                           <span className={`font-medium ${getScoreColor(analysis.scores.rule)}`}>
                             {analysis.scores.rule.toFixed(1)}
                           </span>
                         </div>
                         <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">Application:</span>
+                          <span className="text-gray-600 dark:text-zinc-400">Application:</span>
                           <span className={`font-medium ${getScoreColor(analysis.scores.application)}`}>
                             {analysis.scores.application.toFixed(1)}
                           </span>
                         </div>
                         <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">Conclusion:</span>
+                          <span className="text-gray-600 dark:text-zinc-400">Conclusion:</span>
                           <span className={`font-medium ${getScoreColor(analysis.scores.conclusion)}`}>
                             {analysis.scores.conclusion.toFixed(1)}
                           </span>
                         </div>
                       </div>
                       
-                      <div className="pt-2 border-t border-gray-200">
-                        <p className="text-xs text-gray-500">
+                      <div className="pt-2 border-t border-gray-200 dark:border-zinc-800">
+                        <p className="text-xs text-gray-500 dark:text-zinc-500">
                           {new Date(analysis.created_at).toLocaleDateString('uz-UZ')}
                         </p>
                       </div>
@@ -590,9 +590,9 @@ export default function IRACCaseSolver() {
               
               {analyses.length === 0 && (
                 <div className="col-span-full">
-                  <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+                  <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
                     <CardContent className="text-center py-12">
-                      <p className="text-gray-500 mb-4">Hali hech qanday tahlillar mavjud emas</p>
+                      <p className="text-gray-500 dark:text-zinc-500 mb-4">Hali hech qanday tahlillar mavjud emas</p>
                       <Button 
                         onClick={() => setActiveTab('analyze')}
                         className="bg-blue-600 hover:bg-blue-700"

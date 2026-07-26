@@ -293,14 +293,14 @@ export default function AIChatFloatingWidget() {
             <div className="flex items-center gap-1">
               <button
                 onClick={() => setShowHistory(!showHistory)}
-                className={`p-1.5 rounded-lg transition-all ${showHistory ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600' : 'text-gray-400 hover:text-gray-600 dark:hover:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800'}`}
+                className={`p-1.5 rounded-lg transition-all ${showHistory ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600' : 'text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:hover:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800'}`}
                 title="Tarix"
               >
                 <History className="w-4 h-4" />
               </button>
               <button
                 onClick={createNewSession}
-                className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800 transition-all"
+                className="p-1.5 rounded-lg text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:hover:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800 transition-all"
                 title="Yangi suhbat"
               >
                 <Plus className="w-4 h-4" />
@@ -339,7 +339,7 @@ export default function AIChatFloatingWidget() {
                         >
                           <span className="truncate flex-1">{s.title}</span>
                           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <span className="text-[10px] text-gray-400">{formatTime(s.updatedAt)}</span>
+                            <span className="text-[10px] text-gray-400 dark:text-zinc-500">{formatTime(s.updatedAt)}</span>
                             <button onClick={(e) => deleteSession(s.id, e)} className="p-0.5 text-red-400 hover:text-red-600">
                               <X className="w-3 h-3" />
                             </button>
@@ -394,9 +394,9 @@ export default function AIChatFloatingWidget() {
               <div className="flex justify-start">
                 <div className="bg-gray-100 dark:bg-zinc-800 px-3.5 py-3 rounded-2xl rounded-bl-md">
                   <div className="flex gap-1.5">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                    <div className="w-2 h-2 bg-blue-50 dark:bg-blue-900/20 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <div className="w-2 h-2 bg-blue-50 dark:bg-blue-900/20 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <div className="w-2 h-2 bg-blue-50 dark:bg-blue-900/20 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                   </div>
                 </div>
               </div>
@@ -420,7 +420,7 @@ export default function AIChatFloatingWidget() {
                 onKeyDown={handleKeyDown}
                 placeholder={isListening ? 'Gapiryapsiz...' : 'Savolingizni yozing...'}
                 rows={1}
-                className="flex-1 px-3 py-2 rounded-xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800 text-sm text-gray-800 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 resize-none max-h-24"
+                className="flex-1 px-3 py-2 rounded-xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800 text-sm text-gray-800 dark:text-white placeholder:text-gray-400 dark:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 resize-none max-h-24"
                 disabled={loading}
               />
               {speechSupported && (
@@ -429,7 +429,7 @@ export default function AIChatFloatingWidget() {
                   disabled={loading}
                   className={`p-2.5 rounded-xl transition-all active:scale-95 ${
                     isListening
-                      ? 'bg-red-500 text-white shadow-lg shadow-red-500/30 animate-pulse'
+                      ? 'bg-red-50 dark:bg-red-900/20 text-white shadow-lg shadow-red-500/30 animate-pulse'
                       : 'bg-gray-200 dark:bg-zinc-700 text-gray-600 dark:text-zinc-300 hover:bg-gray-300 dark:hover:bg-zinc-600'
                   }`}
                   title={isListening ? "Yozishni to'xtatish" : 'Ovozli kiritish (STT)'}

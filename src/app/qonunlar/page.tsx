@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
-import { ALL_LEGAL_CODES, LegalCode, LegalArticle } from '@/data/legal-codes';
+import { ALL_LEGAL_CODES, LegalCode, LegalArticle, CODE_DISPLAY_NAMES } from '@/data/legal-codes';
 import {
   Search, BookOpen, Scale, Gavel, Shield, FileText, Landmark,
   Users, DollarSign, TreePine, ChevronRight, ArrowLeft, BookMarked,
@@ -53,23 +53,8 @@ const CODE_BADGE_COLORS: Record<string, string> = {
   'economic_procedure_code': 'bg-teal-100 text-teal-800 dark:bg-teal-900/30 dark:text-teal-300',
 };
 
-// Full display names (replacing abbreviations) for use in badges and headings
-const CODE_DISPLAY_NAMES: Record<string, string> = {
-  'criminal_code': 'O\'zbekiston Respublikasi Jinoyat Kodeksi',
-  'civil_code': 'O\'zbekiston Respublikasi Fuqarolik Kodeksi',
-  'labor_code': 'O\'zbekiston Respublikasi Mehnat Kodeksi',
-  'family_code': 'O\'zbekiston Respublikasi Oila Kodeksi',
-  'tax_code': 'O\'zbekiston Respublikasi Soliq Kodeksi',
-  'land_code': 'O\'zbekiston Respublikasi Yer Kodeksi',
-  'admin_code': 'O\'zbekiston Respublikasi Ma\'muriy Javobgarlik To\'g\'risidagi Kodeks',
-  'constitution': 'O\'zbekiston Respublikasi Konstitutsiyasi',
-  'civil_procedure_code': 'O\'zbekiston Respublikasi Fuqarolik Protsessual Kodeksi',
-  'criminal_procedure_code': 'O\'zbekiston Respublikasi Jinoyat Protsessual Kodeksi',
-  'economic_procedure_code': 'O\'zbekiston Respublikasi Iqtisodiy Protsessual Kodeksi',
-};
-
 // CODE_SHORT_DISPLAY is intentionally NOT used — only full names are shown
-// All badges, headings, and references use CODE_DISPLAY_NAMES only
+// All badges, headings, and references use CODE_DISPLAY_NAMES only (imported from legal-codes.ts)
 
 export default function QonunlarPage() {
   const [searchQuery, setSearchQuery] = useState('');

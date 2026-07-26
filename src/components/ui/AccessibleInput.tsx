@@ -35,7 +35,7 @@ const AccessibleInput = React.forwardRef<HTMLInputElement, AccessibleInputProps>
         <label
           htmlFor={inputId}
           className={clsx(
-            'block text-sm font-medium text-gray-700 mb-1',
+            'block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1',
             hideLabel && 'sr-only'
           )}
         >
@@ -57,7 +57,7 @@ const AccessibleInput = React.forwardRef<HTMLInputElement, AccessibleInputProps>
             'transition-colors',
             hasError
               ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
-              : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500',
+              : 'border-gray-300 dark:border-zinc-700 focus:ring-blue-500 focus:border-blue-500',
             className
           )}
           required={required}
@@ -76,7 +76,7 @@ const AccessibleInput = React.forwardRef<HTMLInputElement, AccessibleInputProps>
         {helperText && !error && (
           <p
             id={helperId}
-            className="mt-1 text-sm text-gray-500"
+            className="mt-1 text-sm text-gray-500 dark:text-zinc-500"
           >
             {helperText}
           </p>

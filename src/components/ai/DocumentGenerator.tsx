@@ -292,7 +292,7 @@ ${values.applicant_name}
       case 'civil_litigation': return 'bg-blue-100 text-blue-800';
       case 'business_law': return 'bg-green-100 text-green-800';
       case 'administrative_law': return 'bg-purple-100 text-purple-800';
-      default: return 'bg-gray-100 text-gray-800';
+      default: return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200';
     }
   };
 
@@ -308,8 +308,8 @@ ${values.applicant_name}
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold text-gray-900">Hujjat Generatori</h1>
-        <p className="text-gray-600">Turli xil huquqiy hujjatlarni avtomatik yarating</p>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-zinc-100">Hujjat Generatori</h1>
+        <p className="text-gray-600 dark:text-zinc-400">Turli xil huquqiy hujjatlarni avtomatik yarating</p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
@@ -332,9 +332,9 @@ ${values.applicant_name}
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-600 mb-4">{template.description}</p>
+                  <p className="text-gray-600 dark:text-zinc-400 mb-4">{template.description}</p>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-500">
+                    <span className="text-sm text-gray-500 dark:text-zinc-500">
                       {template.fields.length} maydon
                     </span>
                     <Button
@@ -410,7 +410,7 @@ ${values.applicant_name}
           ) : (
             <Card>
               <CardContent className="flex items-center justify-center py-12">
-                <div className="text-center text-gray-500">
+                <div className="text-center text-gray-500 dark:text-zinc-500">
                   <p>Shablon tanlanmagan</p>
                   <p className="text-sm mt-2">Avval shablon tanlang</p>
                 </div>
@@ -430,7 +430,7 @@ ${values.applicant_name}
                       <div className="flex items-center justify-between">
                         <div>
                           <CardTitle className="text-lg">{template?.name}</CardTitle>
-                          <p className="text-sm text-gray-500">
+                          <p className="text-sm text-gray-500 dark:text-zinc-500">
                             {document.createdAt.toLocaleString('uz-UZ')}
                           </p>
                         </div>
@@ -475,7 +475,7 @@ ${values.applicant_name}
                       </div>
                     </CardHeader>
                     <CardContent>
-                      <div className="text-sm text-gray-600">
+                      <div className="text-sm text-gray-600 dark:text-zinc-400">
                         <p>Hujjat turi: {template?.name}</p>
                         <p>Yaratilgan sana: {document.createdAt.toLocaleDateString('uz-UZ')}</p>
                       </div>
@@ -487,7 +487,7 @@ ${values.applicant_name}
           ) : (
             <Card>
               <CardContent className="flex items-center justify-center py-12">
-                <div className="text-center text-gray-500">
+                <div className="text-center text-gray-500 dark:text-zinc-500">
                   <p>Hali hujjatlar yaratilmagan</p>
                   <p className="text-sm mt-2">Birinchi hujjatni yarating</p>
                 </div>

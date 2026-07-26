@@ -183,7 +183,7 @@ export default function ScenarioGenerator() {
       case 'intermediate': return 'bg-yellow-100 text-yellow-800';
       case 'advanced': return 'bg-orange-100 text-orange-800';
       case 'expert': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      default: return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200';
     }
   };
 
@@ -193,7 +193,7 @@ export default function ScenarioGenerator() {
       case 'standard': return 'bg-purple-100 text-purple-800';
       case 'complex': return 'bg-indigo-100 text-indigo-800';
       case 'expert': return 'bg-pink-100 text-pink-800';
-      default: return 'bg-gray-100 text-gray-800';
+      default: return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200';
     }
   };
 
@@ -209,7 +209,7 @@ export default function ScenarioGenerator() {
   };
 
   const renderParticipant = (participant: any) => (
-    <Card key={participant.id} className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+    <Card key={participant.id} className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
       <CardHeader>
         <div className="flex justify-between items-start">
           <CardTitle className="text-blue-900 text-lg">{participant.name}</CardTitle>
@@ -219,28 +219,28 @@ export default function ScenarioGenerator() {
         </div>
       </CardHeader>
       <CardContent>
-        <p className="text-gray-700 mb-4">{participant.description}</p>
+        <p className="text-gray-700 dark:text-zinc-300 mb-4">{participant.description}</p>
         
         <div className="space-y-3">
           <div>
             <p className="text-sm font-medium text-blue-700 mb-2">Maqsadlar:</p>
             <div className="space-y-1">
               {participant.objectives.map((obj: string, index: number) => (
-                <div key={index} className="text-sm text-gray-600">• {obj}</div>
+                <div key={index} className="text-sm text-gray-600 dark:text-zinc-400">• {obj}</div>
               ))}
             </div>
           </div>
           
           <div>
             <p className="text-sm font-medium text-blue-700 mb-1">Tarix:</p>
-            <p className="text-sm text-gray-600">{participant.background}</p>
+            <p className="text-sm text-gray-600 dark:text-zinc-400">{participant.background}</p>
           </div>
           
           <div>
             <p className="text-sm font-medium text-blue-700 mb-2">Xususiyatlar:</p>
             <div className="flex flex-wrap gap-1">
               {participant.personality_traits.map((trait: string, index: number) => (
-                <Badge key={index} className="bg-gray-100 text-gray-800 text-xs">
+                <Badge key={index} className="bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200 text-xs">
                   {trait}
                 </Badge>
               ))}
@@ -266,7 +266,7 @@ export default function ScenarioGenerator() {
         )}
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4 bg-white/80 backdrop-blur-sm rounded-2xl p-1">
+          <TabsList className="grid w-full grid-cols-4 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl p-1">
             <TabsTrigger value="create" className="rounded-xl data-[state=active]:bg-blue-600 data-[state=active]:text-white">
               Yaratish
             </TabsTrigger>
@@ -284,7 +284,7 @@ export default function ScenarioGenerator() {
           <TabsContent value="create" className="mt-6">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2">
-                <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+                <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
                   <CardHeader>
                     <CardTitle className="text-blue-900">Senariyo Parametrlari</CardTitle>
                   </CardHeader>
@@ -396,27 +396,27 @@ export default function ScenarioGenerator() {
               </div>
 
               <div>
-                <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+                <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
                   <CardHeader>
                     <CardTitle className="text-blue-900">Senariyo Turlari</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="p-4 bg-blue-50 rounded-xl">
+                    <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
                       <h4 className="font-semibold text-blue-900 mb-2">▢ Fuqarolik</h4>
                       <p className="text-sm text-blue-700">Shartnoma, mulkiy nizolar, to'lovlar</p>
                     </div>
                     
-                    <div className="p-4 bg-red-50 rounded-xl">
+                    <div className="p-4 bg-red-50 dark:bg-red-900/20 rounded-xl">
                       <h4 className="font-semibold text-red-900 mb-2">═ Jinoyat</h4>
                       <p className="text-sm text-red-700">Jinoyat ishlari, tergov, sud protsessi</p>
                     </div>
                     
-                    <div className="p-4 bg-green-50 rounded-xl">
+                    <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-xl">
                       <h4 className="font-semibold text-green-900 mb-2">◉◉◉ Oilaviy</h4>
                       <p className="text-sm text-green-700">Ajralish, aliment, vorislik</p>
                     </div>
                     
-                    <div className="p-4 bg-purple-50 rounded-xl">
+                    <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-xl">
                       <h4 className="font-semibold text-purple-900 mb-2">▣ Mehnat</h4>
                       <p className="text-sm text-purple-700">Ishdan bo'shatish, ish haqi, mehnat shartnomasi</p>
                     </div>
@@ -434,12 +434,12 @@ export default function ScenarioGenerator() {
           <TabsContent value="scenario" className="mt-6">
             {currentScenario ? (
               <div className="space-y-6">
-                <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+                <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
                   <CardHeader>
                     <div className="flex justify-between items-start">
                       <div>
                         <CardTitle className="text-blue-900 text-2xl">{currentScenario.title}</CardTitle>
-                        <p className="text-gray-600 mt-2">{currentScenario.description}</p>
+                        <p className="text-gray-600 dark:text-zinc-400 mt-2">{currentScenario.description}</p>
                       </div>
                       <div className="text-right space-y-2">
                         <Badge className={getDifficultyColor(currentScenario.difficulty_level)}>
@@ -456,21 +456,21 @@ export default function ScenarioGenerator() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <div>
                     <h3 className="text-xl font-semibold text-blue-900 mb-4">Case Ma'lumotlari</h3>
-                    <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+                    <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
                       <CardContent className="space-y-4 p-6">
                         <div>
                           <p className="text-sm font-medium text-blue-700 mb-1">Mavzu:</p>
-                          <p className="text-gray-800">{currentScenario.case_data.subject}</p>
+                          <p className="text-gray-800 dark:text-zinc-200">{currentScenario.case_data.subject}</p>
                         </div>
                         
                         <div>
                           <p className="text-sm font-medium text-blue-700 mb-1">Tarix:</p>
-                          <p className="text-gray-800">{currentScenario.case_data.background}</p>
+                          <p className="text-gray-800 dark:text-zinc-200">{currentScenario.case_data.background}</p>
                         </div>
                         
                         <div>
                           <p className="text-sm font-medium text-blue-700 mb-1">Asosiy muammo:</p>
-                          <p className="text-gray-800">{currentScenario.case_data.key_issue}</p>
+                          <p className="text-gray-800 dark:text-zinc-200">{currentScenario.case_data.key_issue}</p>
                         </div>
                         
                         {currentScenario.case_data.additional_facts && (
@@ -478,7 +478,7 @@ export default function ScenarioGenerator() {
                             <p className="text-sm font-medium text-blue-700 mb-2">Qo'shimcha faktlar:</p>
                             <div className="space-y-1">
                               {currentScenario.case_data.additional_facts.map((fact: string, index: number) => (
-                                <div key={index} className="text-sm text-gray-600">• {fact}</div>
+                                <div key={index} className="text-sm text-gray-600 dark:text-zinc-400">• {fact}</div>
                               ))}
                             </div>
                           </div>
@@ -509,10 +509,10 @@ export default function ScenarioGenerator() {
 
                   <div>
                     <h3 className="text-xl font-semibold text-blue-900 mb-4">Maqsadlar</h3>
-                    <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+                    <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
                       <CardContent className="space-y-4 p-6">
                         {currentScenario.objectives.map((objective) => (
-                          <div key={objective.id} className="p-4 bg-blue-50 rounded-xl border border-blue-200">
+                          <div key={objective.id} className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200">
                             <div className="flex justify-between items-start mb-2">
                               <p className="font-medium text-blue-900">{objective.description}</p>
                               <Badge className={objective.priority === 'high' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}>
@@ -523,7 +523,7 @@ export default function ScenarioGenerator() {
                               <p className="text-sm font-medium text-blue-700">Muvaffaqiyat mezonlari:</p>
                               <div className="space-y-1">
                                 {objective.success_criteria.map((criteria: string, index: number) => (
-                                  <div key={index} className="text-sm text-gray-600">[OK] {criteria}</div>
+                                  <div key={index} className="text-sm text-gray-600 dark:text-zinc-400">[OK] {criteria}</div>
                                 ))}
                               </div>
                             </div>
@@ -542,9 +542,9 @@ export default function ScenarioGenerator() {
                 </div>
               </div>
             ) : (
-              <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+              <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
                 <CardContent className="text-center py-12">
-                  <p className="text-gray-500 mb-4">Hali hech qanday senariyo yaratilmagan</p>
+                  <p className="text-gray-500 dark:text-zinc-500 mb-4">Hali hech qanday senariyo yaratilmagan</p>
                   <Button 
                     onClick={() => setActiveTab('create')}
                     className="bg-blue-600 hover:bg-blue-700"
@@ -559,7 +559,7 @@ export default function ScenarioGenerator() {
           <TabsContent value="templates" className="mt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {templates.map((template) => (
-                <Card key={template.id} className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl hover:shadow-2xl transition-shadow">
+                <Card key={template.id} className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl hover:shadow-2xl transition-shadow">
                   <CardHeader>
                     <div className="flex justify-between items-start">
                       <CardTitle className="text-blue-900 text-lg">{template.title}</CardTitle>
@@ -567,35 +567,35 @@ export default function ScenarioGenerator() {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-gray-700 mb-4">{template.description}</p>
+                    <p className="text-gray-700 dark:text-zinc-300 mb-4">{template.description}</p>
                     
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Turi:</span>
+                        <span className="text-gray-600 dark:text-zinc-400">Turi:</span>
                         <span className="font-medium capitalize">{template.scenario_type}</span>
                       </div>
                       
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Qiyinlik:</span>
+                        <span className="text-gray-600 dark:text-zinc-400">Qiyinlik:</span>
                         <Badge className={getDifficultyColor(template.difficulty_level)}>
                           {template.difficulty_level}
                         </Badge>
                       </div>
                       
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Murakkablik:</span>
+                        <span className="text-gray-600 dark:text-zinc-400">Murakkablik:</span>
                         <Badge className={getComplexityColor(template.complexity)}>
                           {template.complexity}
                         </Badge>
                       </div>
                       
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Davomiyligi:</span>
+                        <span className="text-gray-600 dark:text-zinc-400">Davomiyligi:</span>
                         <span className="font-medium">{template.estimated_duration} daqiqa</span>
                       </div>
                       
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Ishtirokchilar:</span>
+                        <span className="text-gray-600 dark:text-zinc-400">Ishtirokchilar:</span>
                         <span className="font-medium">{template.participants_count} kishi</span>
                       </div>
                     </div>
@@ -605,9 +605,9 @@ export default function ScenarioGenerator() {
               
               {templates.length === 0 && (
                 <div className="col-span-full">
-                  <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+                  <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
                     <CardContent className="text-center py-12">
-                      <p className="text-gray-500">Shablonlar yuklanmoqda...</p>
+                      <p className="text-gray-500 dark:text-zinc-500">Shablonlar yuklanmoqda...</p>
                     </CardContent>
                   </Card>
                 </div>
@@ -620,7 +620,7 @@ export default function ScenarioGenerator() {
               {scenarios.map((scenario) => (
                 <Card 
                   key={scenario.id} 
-                  className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl hover:shadow-2xl transition-shadow cursor-pointer"
+                  className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl hover:shadow-2xl transition-shadow cursor-pointer"
                   onClick={() => {
                     setCurrentScenario(scenario);
                     setActiveTab('scenario');
@@ -636,25 +636,25 @@ export default function ScenarioGenerator() {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
-                      <p className="text-sm text-gray-600">{scenario.description}</p>
+                      <p className="text-sm text-gray-600 dark:text-zinc-400">{scenario.description}</p>
                       
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Turi:</span>
+                        <span className="text-gray-600 dark:text-zinc-400">Turi:</span>
                         <span className="font-medium capitalize">{scenario.scenario_type}</span>
                       </div>
                       
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Ishtirokchilar:</span>
+                        <span className="text-gray-600 dark:text-zinc-400">Ishtirokchilar:</span>
                         <span className="font-medium">{scenario.participants.length} kishi</span>
                       </div>
                       
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Davomiyligi:</span>
+                        <span className="text-gray-600 dark:text-zinc-400">Davomiyligi:</span>
                         <span className="font-medium">{scenario.estimated_duration} daqiqa</span>
                       </div>
                       
-                      <div className="pt-2 border-t border-gray-200">
-                        <p className="text-xs text-gray-500">
+                      <div className="pt-2 border-t border-gray-200 dark:border-zinc-800">
+                        <p className="text-xs text-gray-500 dark:text-zinc-500">
                           {new Date(scenario.created_at).toLocaleDateString('uz-UZ')}
                         </p>
                       </div>
@@ -665,9 +665,9 @@ export default function ScenarioGenerator() {
               
               {scenarios.length === 0 && (
                 <div className="col-span-full">
-                  <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+                  <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
                     <CardContent className="text-center py-12">
-                      <p className="text-gray-500 mb-4">Hali hech qanday senariylar mavjud emas</p>
+                      <p className="text-gray-500 dark:text-zinc-500 mb-4">Hali hech qanday senariylar mavjud emas</p>
                       <Button 
                         onClick={() => setActiveTab('create')}
                         className="bg-blue-600 hover:bg-blue-700"

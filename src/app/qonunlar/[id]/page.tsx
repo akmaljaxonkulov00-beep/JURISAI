@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
-import { ALL_LEGAL_CODES, LegalArticle } from '@/data/legal-codes';
+import { ALL_LEGAL_CODES, LegalArticle, CODE_DISPLAY_NAMES } from '@/data/legal-codes';
 import {
   Search, BookOpen, Scale, Gavel, Shield, FileText, Landmark,
   Users, DollarSign, TreePine, ChevronRight, ArrowLeft, BookMarked,
@@ -53,19 +53,7 @@ const CODE_BADGE_COLORS: Record<string, string> = {
   'economic_procedure_code': 'bg-teal-100 text-teal-800 dark:bg-teal-900/30 dark:text-teal-300',
 };
 
-const CODE_DISPLAY_NAMES: Record<string, string> = {
-  'criminal_code': "O'zbekiston Respublikasi Jinoyat Kodeksi",
-  'civil_code': "O'zbekiston Respublikasi Fuqarolik Kodeksi",
-  'labor_code': "O'zbekiston Respublikasi Mehnat Kodeksi",
-  'family_code': "O'zbekiston Respublikasi Oila Kodeksi",
-  'tax_code': "O'zbekiston Respublikasi Soliq Kodeksi",
-  'land_code': "O'zbekiston Respublikasi Yer Kodeksi",
-  'admin_code': "O'zbekiston Respublikasi Ma'muriy Javobgarlik To'g'risidagi Kodeks",
-  'constitution': "O'zbekiston Respublikasi Konstitutsiyasi",
-  'civil_procedure_code': "O'zbekiston Respublikasi Fuqarolik Protsessual Kodeksi",
-  'criminal_procedure_code': "O'zbekiston Respublikasi Jinoyat Protsessual Kodeksi",
-  'economic_procedure_code': "O'zbekiston Respublikasi Iqtisodiy Protsessual Kodeksi",
-};
+// CODE_DISPLAY_NAMES is imported from @/data/legal-codes (single source of truth)
 
 export default function CodeDetailPage() {
   const params = useParams();

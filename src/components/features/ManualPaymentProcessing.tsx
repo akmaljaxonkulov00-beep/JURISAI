@@ -209,7 +209,7 @@ export default function ManualPaymentProcessing() {
       case 'pending': return 'bg-yellow-100 text-yellow-800';
       case 'processing': return 'bg-blue-100 text-blue-800';
       case 'cancelled': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      default: return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200';
     }
   };
 
@@ -254,19 +254,19 @@ export default function ManualPaymentProcessing() {
   return (
     <div className="p-6 max-w-6xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Manual To\'lov Tizimi</h1>
-        <p className="text-gray-600">To\'lovlarni qo'lda boshqarish</p>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-zinc-100 mb-2">Manual To\'lov Tizimi</h1>
+        <p className="text-gray-600 dark:text-zinc-400">To\'lovlarni qo'lda boshqarish</p>
       </div>
 
       {/* Tabs */}
       <div className="mb-6">
-        <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
+        <div className="flex space-x-1 bg-gray-100 dark:bg-zinc-800/30 p-1 rounded-lg">
           <button
             onClick={() => setActiveTab('plans')}
             className={`flex-1 flex items-center justify-center space-x-2 px-4 py-2 rounded-md transition-colors ${
               activeTab === 'plans' 
-                ? 'bg-white text-blue-600 shadow-sm' 
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-sm' 
+                : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100'
             }`}
           >
             <DollarSign className="w-4 h-4" />
@@ -276,8 +276,8 @@ export default function ManualPaymentProcessing() {
             onClick={() => setActiveTab('request')}
             className={`flex-1 flex items-center justify-center space-x-2 px-4 py-2 rounded-md transition-colors ${
               activeTab === 'request' 
-                ? 'bg-white text-blue-600 shadow-sm' 
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-sm' 
+                : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100'
             }`}
           >
             <FileText className="w-4 h-4" />
@@ -287,8 +287,8 @@ export default function ManualPaymentProcessing() {
             onClick={() => setActiveTab('history')}
             className={`flex-1 flex items-center justify-center space-x-2 px-4 py-2 rounded-md transition-colors ${
               activeTab === 'history' 
-                ? 'bg-white text-blue-600 shadow-sm' 
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-sm' 
+                : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100'
             }`}
           >
             <Clock className="w-4 h-4" />
@@ -298,8 +298,8 @@ export default function ManualPaymentProcessing() {
             onClick={() => setActiveTab('instructions')}
             className={`flex-1 flex items-center justify-center space-x-2 px-4 py-2 rounded-md transition-colors ${
               activeTab === 'instructions' 
-                ? 'bg-white text-blue-600 shadow-sm' 
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-sm' 
+                : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100'
             }`}
           >
             <Shield className="w-4 h-4" />
@@ -318,7 +318,7 @@ export default function ManualPaymentProcessing() {
             >
               {plan.popular && (
                 <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                  <Badge className="bg-blue-500 text-white">Eng mashhur</Badge>
+                  <Badge className="bg-blue-50 dark:bg-blue-900/20 text-white">Eng mashhur</Badge>
                 </div>
               )}
               <CardHeader className="text-center">
@@ -327,7 +327,7 @@ export default function ManualPaymentProcessing() {
                   <div className="text-3xl font-bold">
                     {plan.price === 0 ? 'Bepul' : `${plan.price.toLocaleString()} ${plan.currency}`}
                   </div>
-                  <p className="text-gray-600">{plan.duration}</p>
+                  <p className="text-gray-600 dark:text-zinc-400">{plan.duration}</p>
                 </div>
               </CardHeader>
               <CardContent>
@@ -367,11 +367,11 @@ export default function ManualPaymentProcessing() {
               </CardHeader>
               <CardContent className="space-y-6">
                 {selectedPlan && (
-                  <div className="p-4 bg-blue-50 rounded-lg">
+                  <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                     <div className="flex items-center justify-between">
                       <div>
                         <h4 className="font-semibold">{selectedPlan.name}</h4>
-                        <p className="text-gray-600">{selectedPlan.duration}</p>
+                        <p className="text-gray-600 dark:text-zinc-400">{selectedPlan.duration}</p>
                       </div>
                       <div className="text-right">
                         <div className="text-2xl font-bold text-blue-600">
@@ -384,7 +384,7 @@ export default function ManualPaymentProcessing() {
 
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Ism</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Ism</label>
                     <Input
                       value={formData.name}
                       onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
@@ -393,7 +393,7 @@ export default function ManualPaymentProcessing() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Email</label>
                     <Input
                       type="email"
                       value={formData.email}
@@ -403,7 +403,7 @@ export default function ManualPaymentProcessing() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Telefon</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Telefon</label>
                     <Input
                       value={formData.phone}
                       onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
@@ -412,7 +412,7 @@ export default function ManualPaymentProcessing() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Kompaniya (ixtiyoriy)</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Kompaniya (ixtiyoriy)</label>
                     <Input
                       value={formData.company}
                       onChange={(e) => setFormData(prev => ({ ...prev, company: e.target.value }))}
@@ -421,11 +421,11 @@ export default function ManualPaymentProcessing() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">To\'lov usuli</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">To\'lov usuli</label>
                     <select
                       value={formData.paymentMethod}
                       onChange={(e) => setFormData(prev => ({ ...prev, paymentMethod: e.target.value as any }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="manual">Qo'lda to'lash</option>
                       <option value="bank-transfer">Bank transfer</option>
@@ -435,7 +435,7 @@ export default function ManualPaymentProcessing() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Izoh (ixtiyoriy)</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Izoh (ixtiyoriy)</label>
                     <Textarea
                       value={formData.notes}
                       onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
@@ -481,7 +481,7 @@ export default function ManualPaymentProcessing() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="p-4 bg-gray-50 rounded-lg">
+                  <div className="p-4 bg-gray-50 dark:bg-zinc-800/50 rounded-lg">
                     <h4 className="font-semibold mb-2">Bank hisob raqamlari:</h4>
                     <div className="space-y-2 text-sm">
                       <div>
@@ -499,7 +499,7 @@ export default function ManualPaymentProcessing() {
                     </div>
                   </div>
                   
-                  <div className="p-4 bg-gray-50 rounded-lg">
+                  <div className="p-4 bg-gray-50 dark:bg-zinc-800/50 rounded-lg">
                     <h4 className="font-semibold mb-2">To'lov uchun talablar:</h4>
                     <ul className="text-sm space-y-1">
                       <li>• To'lov izohida tracking raqamini ko'rsating</li>
@@ -542,8 +542,8 @@ export default function ManualPaymentProcessing() {
           {paymentRequests.length === 0 ? (
             <Card>
               <CardContent className="text-center py-12">
-                <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600">To'lov tarixi yo'q</p>
+                <FileText className="w-16 h-16 text-gray-400 dark:text-zinc-500 mx-auto mb-4" />
+                <p className="text-gray-600 dark:text-zinc-400">To'lov tarixi yo'q</p>
               </CardContent>
             </Card>
           ) : (
@@ -562,28 +562,28 @@ export default function ManualPaymentProcessing() {
                       
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                         <div>
-                          <p className="text-gray-600">Miqdor:</p>
+                          <p className="text-gray-600 dark:text-zinc-400">Miqdor:</p>
                           <p className="font-semibold">{request.amount.toLocaleString()} {request.currency}</p>
                         </div>
                         <div>
-                          <p className="text-gray-600">To\'lov usuli:</p>
+                          <p className="text-gray-600 dark:text-zinc-400">To\'lov usuli:</p>
                           <p className="font-semibold flex items-center space-x-1">
                             {getPaymentMethodIcon(request.paymentMethod)}
                             <span>{request.paymentMethod}</span>
                           </p>
                         </div>
                         <div>
-                          <p className="text-gray-600">Tracking raqami:</p>
+                          <p className="text-gray-600 dark:text-zinc-400">Tracking raqami:</p>
                           <p className="font-semibold">{request.trackingNumber}</p>
                         </div>
                         <div>
-                          <p className="text-gray-600">Yuborilgan sana:</p>
+                          <p className="text-gray-600 dark:text-zinc-400">Yuborilgan sana:</p>
                           <p className="font-semibold">{new Date(request.createdAt).toLocaleDateString('uz-UZ')}</p>
                         </div>
                       </div>
                       
                       <div className="mt-4 pt-4 border-t">
-                        <p className="text-gray-600 text-sm mb-1">Foydalanuvchi ma'lumotlari:</p>
+                        <p className="text-gray-600 dark:text-zinc-400 text-sm mb-1">Foydalanuvchi ma'lumotlari:</p>
                         <div className="flex items-center space-x-4 text-sm">
                           <span><strong>Ism:</strong> {request.userInfo.name}</span>
                           <span><strong>Email:</strong> {request.userInfo.email}</span>
@@ -596,7 +596,7 @@ export default function ManualPaymentProcessing() {
                       
                       {request.notes && (
                         <div className="mt-4 pt-4 border-t">
-                          <p className="text-gray-600 text-sm mb-1">Izoh:</p>
+                          <p className="text-gray-600 dark:text-zinc-400 text-sm mb-1">Izoh:</p>
                           <p className="text-sm">{request.notes}</p>
                         </div>
                       )}
@@ -632,27 +632,27 @@ export default function ManualPaymentProcessing() {
               <div className="space-y-6">
                 <div>
                   <h3 className="font-semibold mb-3">1. Rejani tanlang</h3>
-                  <p className="text-gray-600">O'zingizga mos keladigan rejalardan birini tanlang. Har bir reja turlicha imkoniyatlarni o'z ichiga oladi.</p>
+                  <p className="text-gray-600 dark:text-zinc-400">O'zingizga mos keladigan rejalardan birini tanlang. Har bir reja turlicha imkoniyatlarni o'z ichiga oladi.</p>
                 </div>
                 
                 <div>
                   <h3 className="font-semibold mb-3">2. To'lov so'rovini yuboring</h3>
-                  <p className="text-gray-600">Shaxsiy ma'lumotlaringizni to'ldiring va to'lov usulini tanlang. So'rov yuborilgandan so'ng tracking raqami beriladi.</p>
+                  <p className="text-gray-600 dark:text-zinc-400">Shaxsiy ma'lumotlaringizni to'ldiring va to'lov usulini tanlang. So'rov yuborilgandan so'ng tracking raqami beriladi.</p>
                 </div>
                 
                 <div>
                   <h3 className="font-semibold mb-3">3. To'lovni amalga oshiring</h3>
-                  <p className="text-gray-600">Ko'rsatilgan bank hisob raqamiga to'lovni amalga oshiring. To'lov izohida tracking raqamini ko'rsating.</p>
+                  <p className="text-gray-600 dark:text-zinc-400">Ko'rsatilgan bank hisob raqamiga to'lovni amalga oshiring. To'lov izohida tracking raqamini ko'rsating.</p>
                 </div>
                 
                 <div>
                   <h3 className="font-semibold mb-3">4. To'lovni tasdiqlang</h3>
-                  <p className="text-gray-600">To'lov qilinganidan so'ng screenshot yoki chek rasmini support@jurisai.uz ga yuboring.</p>
+                  <p className="text-gray-600 dark:text-zinc-400">To'lov qilinganidan so'ng screenshot yoki chek rasmini support@jurisai.uz ga yuboring.</p>
                 </div>
                 
                 <div>
                   <h3 className="font-semibold mb-3">5. Hisobingiz faollashadi</h3>
-                  <p className="text-gray-600">To'lov tasdiqlangandan so'ng 1-3 ish kuni ichida hisobingiz faollashtiriladi va sizga email yuboriladi.</p>
+                  <p className="text-gray-600 dark:text-zinc-400">To'lov tasdiqlangandan so'ng 1-3 ish kuni ichida hisobingiz faollashtiriladi va sizga email yuboriladi.</p>
                 </div>
               </div>
             </CardContent>
@@ -669,8 +669,8 @@ export default function ManualPaymentProcessing() {
                     <Building className="w-5 h-5" />
                     <span>Bank Transfer</span>
                   </h4>
-                  <p className="text-gray-600 text-sm mb-2">Bevosita bank hisob raqamiga pul o'tkazish</p>
-                  <ul className="text-sm text-gray-600 space-y-1">
+                  <p className="text-gray-600 dark:text-zinc-400 text-sm mb-2">Bevosita bank hisob raqamiga pul o'tkazish</p>
+                  <ul className="text-sm text-gray-600 dark:text-zinc-400 space-y-1">
                     <li>• Tezkor va xavfsiz</li>
                     <li>• Katta miqdordagi to'lovlar uchun</li>
                     <li>• Bank komissiyasi qo'llanilishi mumkin</li>
@@ -682,8 +682,8 @@ export default function ManualPaymentProcessing() {
                     <DollarSign className="w-5 h-5" />
                     <span>Naqd Pul</span>
                   </h4>
-                  <p className="text-gray-600 text-sm mb-2">Ofisimizda naqd pul bilan to'lov</p>
-                  <ul className="text-sm text-gray-600 space-y-1">
+                  <p className="text-gray-600 dark:text-zinc-400 text-sm mb-2">Ofisimizda naqd pul bilan to'lov</p>
+                  <ul className="text-sm text-gray-600 dark:text-zinc-400 space-y-1">
                     <li>• Shaxsan to'lov</li>
                     <li>• Qo'lda chek olish</li>
                     <li>• Operativ yordam</li>
@@ -701,17 +701,17 @@ export default function ManualPaymentProcessing() {
               <div className="space-y-4">
                 <div>
                   <h4 className="font-semibold mb-2">To'lov qancha vaqtda tasdiqlanadi?</h4>
-                  <p className="text-gray-600 text-sm">Odatda 1-3 ish kuni ichida, lekin ba'zan 5 ish kungacha cho'zilishi mumkin.</p>
+                  <p className="text-gray-600 dark:text-zinc-400 text-sm">Odatda 1-3 ish kuni ichida, lekin ba'zan 5 ish kungacha cho'zilishi mumkin.</p>
                 </div>
                 
                 <div>
                   <h4 className="font-semibold mb-2">To'lov qaytarish mumkinmi?</h4>
-                  <p className="text-gray-600 text-sm">Xizmat ko'rsatilmagan taqdirda 14 kun ichida to'lovni qaytarish mumkin.</p>
+                  <p className="text-gray-600 dark:text-zinc-400 text-sm">Xizmat ko'rsatilmagan taqdirda 14 kun ichida to'lovni qaytarish mumkin.</p>
                 </div>
                 
                 <div>
                   <h4 className="font-semibold mb-2">Qo'shimcha yordam kerak bo'lsa?</h4>
-                  <p className="text-gray-600 text-sm">Support jamoasiga +998 90 123 45 67 raqami yoki support@jurisai.uz emaili orqali murojaat qiling.</p>
+                  <p className="text-gray-600 dark:text-zinc-400 text-sm">Support jamoasiga +998 90 123 45 67 raqami yoki support@jurisai.uz emaili orqali murojaat qiling.</p>
                 </div>
               </div>
             </CardContent>

@@ -96,11 +96,11 @@ export default function DebugAuthPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-zinc-950 p-8">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-3xl font-bold mb-8">Auth Debug Page</h1>
         
-        <div className="bg-white rounded-lg shadow p-6 mb-6">
+        <div className="bg-white dark:bg-zinc-900 rounded-lg shadow p-6 mb-6">
           <h2 className="text-xl font-semibold mb-4">Test Credentials</h2>
           <div className="space-y-4">
             <div>
@@ -163,15 +163,15 @@ export default function DebugAuthPage() {
         </div>
 
         {results && (
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white dark:bg-zinc-900 rounded-lg shadow p-6">
             <h2 className="text-xl font-semibold mb-4">Test Results</h2>
-            <pre className="bg-gray-100 p-4 rounded-md overflow-auto text-sm">
+            <pre className="bg-gray-100 dark:bg-zinc-800/30 p-4 rounded-md overflow-auto text-sm">
               {JSON.stringify(results, null, 2)}
             </pre>
           </div>
         )}
 
-        <div className="bg-white rounded-lg shadow p-6 mt-6">
+        <div className="bg-white dark:bg-zinc-900 rounded-lg shadow p-6 mt-6">
           <h2 className="text-xl font-semibold mb-4">Test Accounts</h2>
           <div className="space-y-2 text-sm">
             <p><strong>Admin:</strong> admin@jurisai.uz / password123</p>

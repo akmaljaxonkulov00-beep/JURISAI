@@ -196,7 +196,7 @@ function ProfileContent() {
       case 'Magistrant': return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300';
       case 'Amaliyotchi yurist': return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300';
       case 'Professional yurist': return 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300';
-      default: return 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300';
+      default: return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-700 dark:bg-gray-700 dark:text-gray-300';
     }
   };
 
@@ -221,7 +221,7 @@ function ProfileContent() {
             const isActive = settingsSubTab === tab.id;
             return (
               <button key={tab.id} onClick={() => setSettingsSubTab(tab.id as any)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive ? 'nav-item-active' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/50'}`}>
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive ? 'nav-item-active' : 'text-gray-600 dark:text-gray-400 dark:text-zinc-500 hover:bg-gray-100 dark:hover:bg-gray-700/50'}`}>
                 <Icon className="w-4 h-4" /> {tab.label}
               </button>
             );
@@ -258,7 +258,7 @@ function ProfileContent() {
               </div>
               <div className="text-center sm:text-left flex-1">
                 <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{profile.firstName} {profile.lastName}</h3>
-                <p className="text-gray-500 dark:text-gray-400 mt-1">{profile.email}</p>
+                <p className="text-gray-500 dark:text-gray-400 dark:text-zinc-500 mt-1">{profile.email}</p>
                 <div className="flex flex-wrap gap-2 mt-3 justify-center sm:justify-start">
                   <span className={"inline-block px-3 py-1 rounded-full text-xs font-medium " + getStatusColor(profile.status)}>{profile.status}</span>
                   {profile.subscription === 'Pro' && (
@@ -271,15 +271,15 @@ function ProfileContent() {
                 <div className="grid grid-cols-3 gap-4 mt-6">
                   <div className="text-center p-3 bg-white/60 dark:bg-gray-800/40 rounded-xl">
                     <p className="text-lg font-bold text-blue-600">{profile.coursesCount}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Kurslar</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-zinc-500">Kurslar</p>
                   </div>
                   <div className="text-center p-3 bg-white/60 dark:bg-gray-800/40 rounded-xl">
                     <p className="text-lg font-bold text-green-600">{profile.xp}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">XP</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-zinc-500">XP</p>
                   </div>
                   <div className="text-center p-3 bg-white/60 dark:bg-gray-800/40 rounded-xl">
                     <p className="text-lg font-bold text-orange-600">{profile.rating}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Reyting</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-zinc-500">Reyting</p>
                   </div>
                 </div>
               </div>
@@ -300,7 +300,7 @@ function ProfileContent() {
                     {paymentStatus === 'pending' && "To'lov tekshirilmoqda ⏳"}
                     {paymentStatus === 'rejected' && "To'lov rad etildi ❌"}
                   </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-zinc-500">
                     {paymentAmount > 0 && `${paymentAmount.toLocaleString()} UZS`}
                     {paymentDate && ` — ${paymentDate}`}
                   </p>
@@ -313,14 +313,14 @@ function ProfileContent() {
               <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl flex items-center gap-3">
                 <Globe className="w-5 h-5 text-blue-600" />
                 <div>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Til</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-zinc-500">Til</p>
                   <p className="font-medium text-gray-800 dark:text-white">{getLanguageName(profile.language)}</p>
                 </div>
               </div>
               <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl flex items-center gap-3">
                 <Phone className="w-5 h-5 text-green-600" />
                 <div>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Telefon</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-zinc-500">Telefon</p>
                   <p className="font-medium text-gray-800 dark:text-white">{profile.phone}</p>
                 </div>
               </div>
@@ -328,7 +328,7 @@ function ProfileContent() {
               <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl flex items-center gap-3">
                 <Target className="w-5 h-5 text-blue-600" />
                 <div>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Mutaxassislik</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-zinc-500">Mutaxassislik</p>
                   <p className="font-medium text-gray-800 dark:text-white">{profile.specialization || 'Ko\'rsatilmagan'}</p>
                 </div>
               </div>
@@ -357,37 +357,37 @@ function ProfileContent() {
               </div>
               <div>
                 <h3 className="font-bold text-gray-900 dark:text-white">{profile.firstName} {profile.lastName}</h3>
-                <p className="text-sm text-gray-500">{profile.email}</p>
+                <p className="text-sm text-gray-500 dark:text-zinc-500">{profile.email}</p>
                 <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(profile.status)}`}>{profile.status}</span>
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5">Ism</label>
+                <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 dark:text-zinc-500 mb-1.5">Ism</label>
                 <input type="text" value={editedProfile.firstName}
                   onChange={(e) => setEditedProfile({...editedProfile, firstName: e.target.value})}
                   className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5">Familiya</label>
+                <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 dark:text-zinc-500 mb-1.5">Familiya</label>
                 <input type="text" value={editedProfile.lastName}
                   onChange={(e) => setEditedProfile({...editedProfile, lastName: e.target.value})}
                   className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5">Elektron pochta</label>
+                <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 dark:text-zinc-500 mb-1.5">Elektron pochta</label>
                 <input type="email" value={editedProfile.email}
                   onChange={(e) => setEditedProfile({...editedProfile, email: e.target.value})}
                   className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5">Telefon raqami</label>
+                <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 dark:text-zinc-500 mb-1.5">Telefon raqami</label>
                 <input type="tel" value={editedProfile.phone}
                   onChange={(e) => setEditedProfile({...editedProfile, phone: e.target.value})}
                   className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5">Maqomi</label>
+                <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 dark:text-zinc-500 mb-1.5">Maqomi</label>
                 <select value={editedProfile.status}
                   onChange={(e) => setEditedProfile({...editedProfile, status: e.target.value as any})}
                   className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all">
@@ -398,7 +398,7 @@ function ProfileContent() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5">Mutaxassislik</label>
+                <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 dark:text-zinc-500 mb-1.5">Mutaxassislik</label>
                 <input type="text" value={editedProfile.specialization}
                   onChange={(e) => setEditedProfile({...editedProfile, specialization: e.target.value})}
                   className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all" />
@@ -431,11 +431,11 @@ function ProfileContent() {
                     <div className="relative mt-0.5">
                       <input type="checkbox" checked={notifSettings[item.id as keyof NotificationSettings]}
                         onChange={(e) => setNotifSettings({...notifSettings, [item.id]: e.target.checked})} className="sr-only peer" />
-                      <div className="w-10 h-6 bg-gray-200 dark:bg-gray-600 rounded-full peer-checked:bg-blue-600 transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-5 after:h-5 after:bg-white after:rounded-full after:shadow after:transition-all peer-checked:after:translate-x-4"></div>
+                      <div className="w-10 h-6 bg-gray-200 dark:bg-gray-600 rounded-full peer-checked:bg-blue-600 transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-5 after:h-5 after:bg-white dark:bg-zinc-900 after:rounded-full after:shadow after:transition-all peer-checked:after:translate-x-4"></div>
                     </div>
                     <div>
                       <p className="font-medium text-gray-800 dark:text-white text-sm">{item.label}</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{item.desc}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-zinc-500 mt-0.5">{item.desc}</p>
                     </div>
                   </label>
                 ))}
@@ -454,20 +454,20 @@ function ProfileContent() {
               </h2>
               <div className="space-y-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-3">Mavzu</label>
+                  <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 dark:text-zinc-500 mb-3">Mavzu</label>
                   <div className="flex gap-3">
                     <button onClick={() => { setDarkMode(false); if (themeDark) toggleTheme(); }}
-                      className={`flex-1 flex items-center justify-center gap-2 p-4 rounded-xl border-2 transition-all ${!darkMode ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-gray-200 dark:border-gray-600 hover:border-gray-300'}`}>
+                      className={`flex-1 flex items-center justify-center gap-2 p-4 rounded-xl border-2 transition-all ${!darkMode ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:border-zinc-700'}`}>
                       <Sun className="w-5 h-5 text-orange-500" /> <span className="font-medium text-gray-800 dark:text-white">Yorug'</span>
                     </button>
                     <button onClick={() => { setDarkMode(true); if (!themeDark) toggleTheme(); }}
-                      className={`flex-1 flex items-center justify-center gap-2 p-4 rounded-xl border-2 transition-all ${darkMode ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-gray-200 dark:border-gray-600 hover:border-gray-300'}`}>
+                      className={`flex-1 flex items-center justify-center gap-2 p-4 rounded-xl border-2 transition-all ${darkMode ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:border-zinc-700'}`}>
                       <Moon className="w-5 h-5 text-blue-600" /> <span className="font-medium text-gray-800 dark:text-white">Qorong'i</span>
                     </button>
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5">Til</label>
+                  <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 dark:text-zinc-500 mb-1.5">Til</label>
                   <select value={editedProfile.language} onChange={(e) => setEditedProfile({...editedProfile, language: e.target.value as any})}
                     className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all">
                     <option value="uz">O'zbekcha</option>
@@ -491,10 +491,10 @@ function ProfileContent() {
               <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-3">
-                    <Key className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                    <Key className="w-5 h-5 text-gray-600 dark:text-gray-400 dark:text-zinc-500" />
                     <div>
                       <p className="font-medium text-gray-800 dark:text-white">Parol</p>
-                      <p className="text-xs text-gray-500">Oxirgi o'zgarish: 3 oy oldin</p>
+                      <p className="text-xs text-gray-500 dark:text-zinc-500">Oxirgi o'zgarish: 3 oy oldin</p>
                     </div>
                   </div>
                   <button onClick={() => setShowPasswordForm(!showPasswordForm)}
@@ -508,7 +508,7 @@ function ProfileContent() {
                       <input type={showCurrentPass ? 'text' : 'password'} placeholder="Joriy parol" value={passwordData.current}
                         onChange={(e) => setPasswordData({...passwordData, current: e.target.value})}
                         className="w-full px-4 py-2.5 pr-10 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all" />
-                      <button onClick={() => setShowCurrentPass(!showCurrentPass)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                      <button onClick={() => setShowCurrentPass(!showCurrentPass)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:text-zinc-400">
                         {showCurrentPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
                     </div>
@@ -516,7 +516,7 @@ function ProfileContent() {
                       <input type={showNewPass ? 'text' : 'password'} placeholder="Yangi parol" value={passwordData.newPass}
                         onChange={(e) => setPasswordData({...passwordData, newPass: e.target.value})}
                         className="w-full px-4 py-2.5 pr-10 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all" />
-                      <button onClick={() => setShowNewPass(!showNewPass)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                      <button onClick={() => setShowNewPass(!showNewPass)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:text-zinc-400">
                         {showNewPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
                     </div>
@@ -529,10 +529,10 @@ function ProfileContent() {
               </div>
               <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <Smartphone className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                  <Smartphone className="w-5 h-5 text-gray-600 dark:text-gray-400 dark:text-zinc-500" />
                   <div>
                     <p className="font-medium text-gray-800 dark:text-white">Ikki faktorli autentifikatsiya</p>
-                    <p className="text-xs text-gray-500">Hisobingizni qo'shimcha himoya qilish</p>
+                    <p className="text-xs text-gray-500 dark:text-zinc-500">Hisobingizni qo'shimcha himoya qilish</p>
                   </div>
                 </div>
                 <button className="px-4 py-2 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium">Yoqish</button>
@@ -555,7 +555,7 @@ function ProfileContent() {
                     <Download className="w-5 h-5 text-blue-600" />
                     <div>
                       <p className="font-medium text-gray-800 dark:text-white">Ma'lumotlarni eksport qilish</p>
-                      <p className="text-xs text-gray-500">Barcha ma'lumotlaringizni JSON formatida yuklab olish</p>
+                      <p className="text-xs text-gray-500 dark:text-zinc-500">Barcha ma'lumotlaringizni JSON formatida yuklab olish</p>
                     </div>
                   </div>
                   <button onClick={handleExportData} className="px-4 py-2 text-sm bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-xl hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors font-medium">Eksport</button>
@@ -565,7 +565,7 @@ function ProfileContent() {
                     <Trash2 className="w-5 h-5 text-red-500" />
                     <div>
                       <p className="font-medium text-gray-800 dark:text-white">Hisobni o'chirish</p>
-                      <p className="text-xs text-gray-500">Hisobingizni butunlay o'chirish va barcha ma'lumotlarni tozalash</p>
+                      <p className="text-xs text-gray-500 dark:text-zinc-500">Hisobingizni butunlay o'chirish va barcha ma'lumotlarni tozalash</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -602,7 +602,7 @@ function ProfileContent() {
   return (      <div className="min-h-screen bg-page-custom p-4 md:p-6">
       <div className="max-w-5xl mx-auto">
         <div className="flex items-center gap-4 mb-6">
-          <a href="/dashboard" className="flex items-center gap-2 px-3 py-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all">
+          <a href="/dashboard" className="flex items-center gap-2 px-3 py-2 text-gray-500 dark:text-gray-400 dark:text-zinc-500 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all">
             <ArrowLeft className="w-4 h-4" /> <span className="text-sm font-medium">Orqaga</span>
           </a>
           <h1 className="text-xl font-bold text-gray-800 dark:text-white">Sozlamalar</h1>

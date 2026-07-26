@@ -110,7 +110,7 @@ export default function Dashboard() {
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">Yuklanmoqda...</p>
+          <p className="text-gray-600 dark:text-gray-400 dark:text-zinc-500">Yuklanmoqda...</p>
         </div>
       </div>
     );
@@ -239,26 +239,26 @@ export default function Dashboard() {
 
   const getRarityColor = (rarity: string) => {
     switch (rarity) {
-      case 'common': return 'bg-gray-100 text-gray-800 border-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600';
+      case 'common': return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200 border-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600';
       case 'rare': return 'bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800';
       case 'epic': return 'bg-green-100 text-green-800 border-green-300 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800';
       case 'legendary': return 'bg-yellow-100 text-yellow-800 border-yellow-300 dark:bg-yellow-900/30 dark:text-yellow-300 dark:border-yellow-800';
-      default: return 'bg-gray-100 text-gray-800 border-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600';
+      default: return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200 border-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600';
     }
   };
 
   const getActivityIcon = (type: string) => {
     switch (type) {
-      case 'case_completed': return <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center"><CheckCircle className="w-3 h-3 text-white" /></div>;
+      case 'case_completed': return <div className="w-5 h-5 rounded-full bg-green-50 dark:bg-green-900/20 flex items-center justify-center"><CheckCircle className="w-3 h-3 text-white" /></div>;
       case 'achievement_unlocked': return <div className="w-5 h-5 rounded-full bg-orange-500 flex items-center justify-center"><Award className="w-3 h-3 text-white" /></div>;
       case 'daily_streak': return <div className="w-5 h-5 rounded-full bg-orange-500 flex items-center justify-center"><Zap className="w-3 h-3 text-white" /></div>;
-      default: return <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center"><FileText className="w-3 h-3 text-white" /></div>;
+      default: return <div className="w-5 h-5 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center"><FileText className="w-3 h-3 text-white" /></div>;
     }
   };
 
   const renderSidebar = () => (
     <div className="w-80 glass-strong rounded-2xl shadow-2xl overflow-hidden">
-      {/* User Profile Section */}            <div className="p-6 border-b border-gray-100/50 dark:border-gray-700/50">
+      {/* User Profile Section */}            <div className="p-6 border-b border-gray-100 dark:border-zinc-800/50 dark:border-gray-700/50">
         <div className="flex items-center space-x-4">
           <a href="/profile" className="flex items-center space-x-4 group cursor-pointer">
             <div className="relative group">
@@ -274,8 +274,8 @@ export default function Dashboard() {
               </div>
             </div>
             <div className="flex-1">
-              <h3 className="font-bold text-gray-900 dark:text-white text-lg group-hover:text-blue-600 transition-colors">{user?.name || 'User'}</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">{userStats?.rank || 'Huquqshunos'}</p>
+              <h3 className="font-bold text-gray-900 dark:text-white text-lg group-hover:text-blue-600 dark:hover:text-blue-400 transition-colors">{user?.name || 'User'}</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 dark:text-zinc-500">{userStats?.rank || 'Huquqshunos'}</p>
               <div className="flex items-center mt-2">
                 <div className="flex-1 bg-gray-100 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
                   <div
@@ -283,7 +283,7 @@ export default function Dashboard() {
                     style={{ width: `${((userStats?.level || 1) % 20) * 5}%` }}
                   />
                 </div>
-                <span className="ml-2 text-xs text-gray-500 dark:text-gray-400 font-medium">Lv.{userStats?.level || 1}</span>
+                <span className="ml-2 text-xs text-gray-500 dark:text-gray-400 dark:text-zinc-500 font-medium">Lv.{userStats?.level || 1}</span>
               </div>
             </div>
           </a>
@@ -291,15 +291,15 @@ export default function Dashboard() {
       </div>
 
       {/* XP and Stats */}
-      <div className="px-6 py-4 border-b border-gray-100/50 dark:border-gray-700/50">
+      <div className="px-6 py-4 border-b border-gray-100 dark:border-zinc-800/50 dark:border-gray-700/50">
         <div className="grid grid-cols-2 gap-4">
-          <div className="text-center p-3 bg-blue-50/50 rounded-xl hover:bg-blue-50 transition-colors">
+          <div className="text-center p-3 bg-blue-50 dark:bg-blue-900/20/50 rounded-xl hover:bg-blue-50 dark:bg-blue-900/20 transition-colors">
             <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">{userStats?.xp || 0}</div>
-            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Total XP</div>
+            <div className="text-xs text-gray-500 dark:text-gray-400 dark:text-zinc-500 mt-1">Total XP</div>
           </div>
           <div className="text-center p-3 bg-emerald-50/50 rounded-xl hover:bg-emerald-50 transition-colors">
             <div className="text-2xl font-bold text-emerald-600">{userStats?.weeklyProgress || 0}%</div>
-            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Haftalik maqsad</div>
+            <div className="text-xs text-gray-500 dark:text-gray-400 dark:text-zinc-500 mt-1">Haftalik maqsad</div>
           </div>
         </div>
       </div>
@@ -309,7 +309,7 @@ export default function Dashboard() {
         <div className="space-y-5">
           {navigationGroups.map((group) => (
             <div key={group.title}>
-              <h3 className="px-4 text-[11px] font-semibold text-gray-400 uppercase tracking-[0.08em] mb-2">
+              <h3 className="px-4 text-[11px] font-semibold text-gray-400 dark:text-zinc-500 uppercase tracking-[0.08em] mb-2">
                 {group.title}
               </h3>
               <div className="space-y-0.5">
@@ -323,14 +323,14 @@ export default function Dashboard() {
                         className={`nav-item flex items-center space-x-3 px-4 py-2.5 rounded-xl cursor-pointer ${
                           isActive
                             ? 'nav-item-active'
-                            : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                            : 'text-gray-600 dark:text-gray-400 dark:text-zinc-500 hover:text-gray-900 dark:hover:text-white'
                         }`}
                         onClick={() => setActiveSection(item.id)}
                       >
-                        <Icon className={`w-5 h-5 ${isActive ? '' : 'text-gray-400 group-hover:text-gray-600'}`} />
+                        <Icon className={`w-5 h-5 ${isActive ? '' : 'text-gray-400 dark:text-zinc-500 group-hover:text-gray-600 dark:text-zinc-400'}`} />
                         <span className="font-medium text-sm">{item.label}</span>
                         {isActive && (
-                          <div className="ml-auto w-1.5 h-1.5 bg-white rounded-full shadow-[0_0_4px_rgba(255,255,255,0.5)]" />
+                          <div className="ml-auto w-1.5 h-1.5 bg-white dark:bg-zinc-900 rounded-full shadow-[0_0_4px_rgba(255,255,255,0.5)]" />
                         )}
                       </div>
                     </Link>
@@ -381,7 +381,7 @@ export default function Dashboard() {
               <div>
                 <p className="text-xs text-secondary font-medium mb-1">Joriy daraja</p>
                 <p className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">{userStats?.level || 1}</p>
-                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{userStats?.rank || 'Beginner'}</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500 dark:text-zinc-500 mt-1">{userStats?.rank || 'Beginner'}</p>
               </div>
               <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/30 rounded-xl flex items-center justify-center glow-blue">
                 <TrendingUp className="w-6 h-6 text-blue-500" />
@@ -396,7 +396,7 @@ export default function Dashboard() {
               <div>
                 <p className="text-xs text-secondary font-medium mb-1">Umumiy XP</p>
                 <p className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-orange-400 bg-clip-text text-transparent">{userStats?.xp || 0}</p>
-                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">+250 this week</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500 dark:text-zinc-500 mt-1">+250 this week</p>
               </div>
               <div className="w-12 h-12 bg-orange-50 dark:bg-orange-900/30 rounded-xl flex items-center justify-center">
                 <Zap className="w-6 h-6 text-orange-500" />
@@ -413,7 +413,7 @@ export default function Dashboard() {
                 <p className="text-3xl font-bold text-emerald-600">
                   {Math.round(((userStats?.completedCases || 0) / (userStats?.totalCases || 1)) * 100)}%
                 </p>
-                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Above average</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500 dark:text-zinc-500 mt-1">Above average</p>
               </div>
               <div className="w-12 h-12 bg-emerald-50 dark:bg-emerald-900/30 rounded-xl flex items-center justify-center">
                 <Target className="w-6 h-6 text-emerald-500" />
@@ -428,7 +428,7 @@ export default function Dashboard() {
               <div>
                 <p className="text-xs text-secondary font-medium mb-1">O'qish zanjiri</p>
                 <p className="text-3xl font-bold text-orange-600">7</p>
-                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Days in a row</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500 dark:text-zinc-500 mt-1">Days in a row</p>
               </div>
               <div className="w-12 h-12 bg-orange-50 dark:bg-orange-900/30 rounded-xl flex items-center justify-center">
                 <Award className="w-6 h-6 text-orange-500" />
@@ -442,7 +442,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Recent Activity */}
         <Card className="lg:col-span-2 card-default rounded-2xl overflow-hidden">
-          <CardHeader className="border-b border-gray-100/50 dark:border-gray-700/50 pb-4">
+          <CardHeader className="border-b border-gray-100 dark:border-zinc-800/50 dark:border-gray-700/50 pb-4">
             <CardTitle className="flex items-center space-x-2 text-gray-800 dark:text-white">
               <Clock className="w-5 h-5 text-blue-500" />
               <span className="text-lg">So'nggi faoliyat</span>
@@ -451,7 +451,7 @@ export default function Dashboard() {
           <CardContent className="pt-5">
             <div className="space-y-3">
               {userStats?.recentActivity?.map((activity, idx) => (
-                <div key={activity.id} className="stagger-enter flex items-start space-x-4 p-4 rounded-xl hover:bg-gray-50/80 dark:hover:bg-gray-800/30 transition-all duration-200 card-hover" style={{ animationDelay: `${idx * 80}ms` }}>
+                <div key={activity.id} className="stagger-enter flex items-start space-x-4 p-4 rounded-xl hover:bg-gray-50 dark:bg-zinc-800/50/80 dark:hover:bg-gray-800/30 transition-all duration-200 card-hover" style={{ animationDelay: `${idx * 80}ms` }}>
                   <div className="w-10 h-10 bg-gradient-to-br from-blue-50 to-green-50 rounded-xl flex items-center justify-center text-lg font-medium text-blue-600">
                     {getActivityIcon(activity.type)}
                   </div>
@@ -460,8 +460,8 @@ export default function Dashboard() {
                       <h4 className="font-semibold text-gray-900 dark:text-white text-sm truncate">{activity.title}</h4>
                       <Badge className="bg-emerald-50 text-emerald-700 border-0 text-xs font-medium ml-2 flex-shrink-0">+{activity.xp} XP</Badge>
                     </div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{activity.description}</p>
-                    <span className="text-xs text-gray-400 dark:text-gray-500 mt-1 block">
+                    <p className="text-sm text-gray-500 dark:text-gray-400 dark:text-zinc-500 mt-0.5">{activity.description}</p>
+                    <span className="text-xs text-gray-400 dark:text-gray-500 dark:text-zinc-500 mt-1 block">
                       {new Date(activity.timestamp).toLocaleDateString('uz-UZ', { day: 'numeric', month: 'long' })}
                     </span>
                   </div>
@@ -473,7 +473,7 @@ export default function Dashboard() {
 
         {/* Achievements */}
         <Card className="card-default rounded-2xl overflow-hidden">
-          <CardHeader className="border-b border-gray-100/50 dark:border-gray-700/50 pb-4">
+          <CardHeader className="border-b border-gray-100 dark:border-zinc-800/50 dark:border-gray-700/50 pb-4">
             <CardTitle className="flex items-center space-x-2 text-gray-800 dark:text-white">
               <Award className="w-5 h-5 text-orange-500" />
               <span className="text-lg">Yutuqlar</span>
@@ -487,10 +487,10 @@ export default function Dashboard() {
                     <div className="w-9 h-9 rounded-lg bg-white/60 flex items-center justify-center text-lg">{achievement.icon}</div>
                     <div className="flex-1 min-w-0">
                       <h4 className="font-semibold text-sm text-gray-900 dark:text-white">{achievement.title}</h4>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2">{achievement.description}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-zinc-500 mt-0.5 line-clamp-2">{achievement.description}</p>
                       <div className="mt-1.5">
                         <span className={`inline-block px-2 py-0.5 rounded-md text-[10px] font-medium uppercase tracking-wider ${
-                          achievement.rarity === 'common' ? 'bg-gray-200 text-gray-600' :
+                          achievement.rarity === 'common' ? 'bg-gray-200 text-gray-600 dark:text-zinc-400' :
                           achievement.rarity === 'rare' ? 'bg-blue-200 text-blue-700' :
                           achievement.rarity === 'epic' ? 'bg-blue-200 text-blue-700' :
                           'bg-amber-200 text-amber-700'
@@ -508,7 +508,7 @@ export default function Dashboard() {
       </div>
 
       {/* Quick Actions */}        <Card className="card-default rounded-2xl overflow-hidden">
-          <CardHeader className="border-b border-gray-100/50 dark:border-gray-700/50 pb-4">
+          <CardHeader className="border-b border-gray-100 dark:border-zinc-800/50 dark:border-gray-700/50 pb-4">
             <CardTitle className="text-gray-800 dark:text-white text-lg">Tezkor amallar</CardTitle>
         </CardHeader>
         <CardContent className="pt-5">
@@ -551,7 +551,7 @@ export default function Dashboard() {
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">Yuklanmoqda...</p>
+          <p className="text-gray-600 dark:text-gray-400 dark:text-zinc-500">Yuklanmoqda...</p>
         </div>
       </div>
     );

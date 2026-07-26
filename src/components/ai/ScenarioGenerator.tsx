@@ -199,7 +199,7 @@ const ScenarioGenerator: React.FC = () => {
       case 'administrative_law': return 'bg-orange-100 text-orange-800';
       case 'business_law': return 'bg-indigo-100 text-indigo-800';
       case 'employment_law': return 'bg-yellow-100 text-yellow-800';
-      default: return 'bg-gray-100 text-gray-800';
+      default: return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200';
     }
   };
 
@@ -223,7 +223,7 @@ const ScenarioGenerator: React.FC = () => {
       case 'intermediate': return 'bg-blue-100 text-blue-800';
       case 'advanced': return 'bg-orange-100 text-orange-800';
       case 'expert': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      default: return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200';
     }
   };
 
@@ -243,7 +243,7 @@ const ScenarioGenerator: React.FC = () => {
       case 'moderate': return 'bg-yellow-100 text-yellow-800';
       case 'complex': return 'bg-orange-100 text-orange-800';
       case 'very_complex': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      default: return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200';
     }
   };
 
@@ -260,8 +260,8 @@ const ScenarioGenerator: React.FC = () => {
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold text-gray-900">Senariy Generatori</h1>
-        <p className="text-gray-600">Huquqiy ta\'lim senariylarini yarating</p>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-zinc-100">Senariy Generatori</h1>
+        <p className="text-gray-600 dark:text-zinc-400">Huquqiy ta\'lim senariylarini yarating</p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
@@ -279,13 +279,13 @@ const ScenarioGenerator: React.FC = () => {
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
                     Senariy turi
                   </label>
                   <select
                     value={request.scenario_type}
                     onChange={(e) => setRequest(prev => ({ ...prev, scenario_type: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     {scenarioTypes.map(type => (
                       <option key={type.value} value={type.value}>
@@ -296,13 +296,13 @@ const ScenarioGenerator: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
                     Qiyinlik darajasi
                   </label>
                   <select
                     value={request.difficulty_level}
                     onChange={(e) => setRequest(prev => ({ ...prev, difficulty_level: e.target.value as any }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     {difficultyLevels.map(level => (
                       <option key={level.value} value={level.value}>
@@ -313,13 +313,13 @@ const ScenarioGenerator: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
                     Murakkablik darajasi
                   </label>
                   <select
                     value={request.complexity}
                     onChange={(e) => setRequest(prev => ({ ...prev, complexity: e.target.value as any }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     {complexityLevels.map(level => (
                       <option key={level.value} value={level.value}>
@@ -331,12 +331,12 @@ const ScenarioGenerator: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
                   Fokus yo\'nalishi (ixtiyoriy)
                 </label>
                 <input
                   type="text"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Masalan: to\'lov masalasi, mulk huquqi..."
                   value={request.focus_area || ''}
                   onChange={(e) => setRequest(prev => ({ ...prev, focus_area: e.target.value }))}
@@ -344,12 +344,12 @@ const ScenarioGenerator: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
                   Taxminiyot vaqt (daqiqa)
                 </label>
                 <input
                   type="number"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="45"
                   value={request.estimated_time || ''}
                   onChange={(e) => setRequest(prev => ({ ...prev, estimated_time: parseInt(e.target.value) }))}
@@ -399,47 +399,47 @@ const ScenarioGenerator: React.FC = () => {
                   <CardContent>
                     <div className="space-y-4">
                       <div>
-                        <h4 className="font-medium text-gray-900 mb-2">Fon</h4>
-                        <p className="text-gray-700">{scenario.background}</p>
+                        <h4 className="font-medium text-gray-900 dark:text-zinc-100 mb-2">Fon</h4>
+                        <p className="text-gray-700 dark:text-zinc-300">{scenario.background}</p>
                       </div>
 
                       <div>
-                        <h4 className="font-medium text-gray-900 mb-2">Faktlar</h4>
+                        <h4 className="font-medium text-gray-900 dark:text-zinc-100 mb-2">Faktlar</h4>
                         <ul className="space-y-1">
                           {scenario.facts.map((fact, index) => (
                             <li key={index} className="flex items-start space-x-2">
                               <span className="text-blue-500 mt-1">•</span>
-                              <span className="text-gray-700">{fact}</span>
+                              <span className="text-gray-700 dark:text-zinc-300">{fact}</span>
                             </li>
                           ))}
                         </ul>
                       </div>
 
                       <div>
-                        <h4 className="font-medium text-gray-900 mb-2">Tomonlar</h4>
+                        <h4 className="font-medium text-gray-900 dark:text-zinc-100 mb-2">Tomonlar</h4>
                         <div className="space-y-1">
                           {Object.entries(scenario.parties).map(([party, description]) => (
                             <div key={party} className="flex justify-between">
                               <span className="font-medium">{party}:</span>
-                              <span className="text-gray-700">{description}</span>
+                              <span className="text-gray-700 dark:text-zinc-300">{description}</span>
                             </div>
                           ))}
                         </div>
                       </div>
 
                       <div>
-                        <h4 className="font-medium text-gray-900 mb-2">Huquqiy masalalar</h4>
+                        <h4 className="font-medium text-gray-900 dark:text-zinc-100 mb-2">Huquqiy masalalar</h4>
                         <ul className="space-y-1">
                           {scenario.legal_issues.map((issue, index) => (
                             <li key={index} className="flex items-start space-x-2">
                               <span className="text-green-500 mt-1">?</span>
-                              <span className="text-gray-700">{issue}</span>
+                              <span className="text-gray-700 dark:text-zinc-300">{issue}</span>
                             </li>
                           ))}
                         </ul>
                       </div>
 
-                      <div className="flex items-center justify-between text-sm text-gray-500">
+                      <div className="flex items-center justify-between text-sm text-gray-500 dark:text-zinc-500">
                         <span>Taxminiyot vaqt: {scenario.estimated_time} daqiqa</span>
                         <span>{scenario.created_at.toLocaleDateString('uz-UZ')}</span>
                       </div>
@@ -475,7 +475,7 @@ const ScenarioGenerator: React.FC = () => {
           ) : (
             <Card>
               <CardContent className="flex items-center justify-center py-12">
-                <div className="text-center text-gray-500">
+                <div className="text-center text-gray-500 dark:text-zinc-500">
                   <p>Hali senariylar yaratilmagan</p>
                   <p className="text-sm mt-2">Birinchi senariyni yarating</p>
                 </div>

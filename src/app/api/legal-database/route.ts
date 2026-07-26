@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { aiClient } from '@/lib/ai-client';
-import legalData from '@/data/legal-database.json';
+import legalDataJson from '@/data/legal-database.json';
+const legalData = legalDataJson as any;
 
 export async function GET(request: NextRequest) {
   try {

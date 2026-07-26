@@ -28,7 +28,7 @@ export interface LegalCode {
 
 export const CRIMINAL_CODE: LegalCode = {
   id: 'criminal_code',
-  name: 'O\'zbekiston Respublikasi Jinoyat kodeksi',
+  name: 'O\'zbekiston Respublikasi Jinoyat Kodeksi',
   shortName: 'O\'zbekiston Respublikasi Jinoyat Kodeksi',
   description: 'Jinoyat huquq munosabatlarini tartibga soluvchi asosiy qonun hujjati',
   totalArticles: 302,
@@ -153,7 +153,7 @@ YIRIK MIQDORDA zarar yetkazilgan holda - besh yildan o'n yilgacha ozodlikdan mah
 
 export const CIVIL_CODE: LegalCode = {
   id: 'civil_code',
-  name: 'O\'zbekiston Respublikasi Fuqarolik kodeksi',
+  name: 'O\'zbekiston Respublikasi Fuqarolik Kodeksi',
   shortName: 'O\'zbekiston Respublikasi Fuqarolik Kodeksi',
   description: 'Fuqarolik huquq munosabatlarini tartibga soluvchi asosiy qonun hujjati',
   totalArticles: 1031,
@@ -255,7 +255,7 @@ Neustoyka qonun yoki shartnoma asosida belgilanishi mumkin. Qonuniy neustoyka sh
 
 export const LABOR_CODE: LegalCode = {
   id: 'labor_code',
-  name: 'O\'zbekiston Respublikasi Mehnat kodeksi',
+  name: 'O\'zbekiston Respublikasi Mehnat Kodeksi',
   shortName: 'O\'zbekiston Respublikasi Mehnat Kodeksi',
   description: 'Mehnat munosabatlarini tartibga soluvchi asosiy qonun hujjati',
   totalArticles: 359,
@@ -406,7 +406,7 @@ ISH VAQTI TAQSIMOTI - korxona tomonidan belgilanadi, lekin:
 
 export const ADMINISTRATIVE_CODE: LegalCode = {
   id: 'admin_code',
-  name: 'O\'zbekiston Respublikasi Ma\'muriy javobgarlik to\'g\'risida kodeks',
+  name: 'O\'zbekiston Respublikasi Ma\'muriy javobgarlik to\'g\'risida Kodeksi',
   shortName: 'O\'zbekiston Respublikasi Ma\'muriy Javobgarlik To\'g\'risidagi Kodeksi',
   description: 'Ma\'muriy huquqbuzarliklar va javobgarlikni tartibga soluvchi qonun',
   totalArticles: 526,
@@ -460,7 +460,7 @@ QAYTA QILGANDA yoki guruh bo'lib qilganda - jarima 10-20 barobar yoki ma'muriy q
 
 export const FAMILY_CODE: LegalCode = {
   id: 'family_code',
-  name: "O'zbekiston Respublikasi Oila kodeksi",
+  name: "O'zbekiston Respublikasi Oila Kodeksi",
   shortName: 'O\'zbekiston Respublikasi Oila Kodeksi',
   description: 'Oila munosabatlarini tartibga soluvchi asosiy qonun hujjati',
   totalArticles: 246,
@@ -500,7 +500,7 @@ Nikohni bekor qilishda er-xotinning umumiy mulki taqsimlanadi, voyaga yetmagan b
 
 export const TAX_CODE: LegalCode = {
   id: 'tax_code',
-  name: "O'zbekiston Respublikasi Soliq kodeksi",
+  name: "O'zbekiston Respublikasi Soliq Kodeksi",
   shortName: 'O\'zbekiston Respublikasi Soliq Kodeksi',
   description: 'Soliq munosabatlarini tartibga soluvchi asosiy qonun hujjati',
   totalArticles: 516,
@@ -529,7 +529,7 @@ Soliq solinadigan daromad soliq davri mobaynida olingan jami daromaddan qonunda 
 
 export const LAND_CODE: LegalCode = {
   id: 'land_code',
-  name: "O'zbekiston Respublikasi Yer kodeksi",
+  name: "O'zbekiston Respublikasi Yer Kodeksi",
   shortName: 'O\'zbekiston Respublikasi Yer Kodeksi',
   description: 'Yer munosabatlarini tartibga soluvchi asosiy qonun hujjati',
   totalArticles: 168,
@@ -559,7 +559,7 @@ Yer uchastkasiga bo'lgan huquq davlat ro'yxatidan o'tkazilgan paytdan e'tiboran 
 
 export const CIVIL_PROCEDURE_CODE: LegalCode = {
   id: 'civil_procedure_code',
-  name: "O'zbekiston Respublikasi Fuqarolik Protsessual kodeksi",
+  name: "O'zbekiston Respublikasi Fuqarolik Protsessual Kodeksi",
   shortName: 'O\'zbekiston Respublikasi Fuqarolik Protsessual Kodeksi',
   description: 'Fuqarolik ishlarini sudda ko\'rish tartibini belgilovchi asosiy qonun hujjati',
   totalArticles: 476,
@@ -593,7 +593,7 @@ Sud fuqarolik ishlarini qonunchilik asosida, teng huquqlilik va tortishuv prinsi
 
 export const CRIMINAL_PROCEDURE_CODE: LegalCode = {
   id: 'criminal_procedure_code',
-  name: "O'zbekiston Respublikasi Jinoyat Protsessual kodeksi",
+  name: "O'zbekiston Respublikasi Jinoyat Protsessual Kodeksi",
   shortName: 'O\'zbekiston Respublikasi Jinoyat Protsessual Kodeksi',
   description: 'Jinoyat ishlarini tergov qilish va sudda ko\'rish tartibini belgilovchi qonun',
   totalArticles: 598,
@@ -624,7 +624,7 @@ Tomondalar ayblov va himoya funksiyalarini amalga oshiradilar. Sud esa ishni xol
 
 export const ECONOMIC_PROCEDURE_CODE: LegalCode = {
   id: 'economic_procedure_code',
-  name: "O'zbekiston Respublikasi Iqtisodiy Protsessual kodeksi",
+  name: "O'zbekiston Respublikasi Iqtisodiy Protsessual Kodeksi",
   shortName: 'O\'zbekiston Respublikasi Iqtisodiy Protsessual Kodeksi',
   description: 'Iqtisodiy nizolarni sudda ko\'rish tartibini belgilovchi asosiy qonun hujjati',
   totalArticles: 324,
@@ -735,4 +735,19 @@ export const getArticleByNumber = (codeId: string, articleNumber: string): Legal
   if (!code) return undefined;
   
   return code.articles.find(article => article.number === articleNumber);
+};
+
+// Full display names (replacing abbreviations) for use in badges and headings
+export const CODE_DISPLAY_NAMES: Record<string, string> = {
+  'criminal_code': 'O\'zbekiston Respublikasi Jinoyat Kodeksi',
+  'civil_code': 'O\'zbekiston Respublikasi Fuqarolik Kodeksi',
+  'labor_code': 'O\'zbekiston Respublikasi Mehnat Kodeksi',
+  'family_code': 'O\'zbekiston Respublikasi Oila Kodeksi',
+  'tax_code': 'O\'zbekiston Respublikasi Soliq Kodeksi',
+  'land_code': 'O\'zbekiston Respublikasi Yer Kodeksi',
+  'admin_code': 'O\'zbekiston Respublikasi Ma\'muriy Javobgarlik To\'g\'risidagi Kodeks',
+  'constitution': 'O\'zbekiston Respublikasi Konstitutsiyasi',
+  'civil_procedure_code': 'O\'zbekiston Respublikasi Fuqarolik Protsessual Kodeksi',
+  'criminal_procedure_code': 'O\'zbekiston Respublikasi Jinoyat Protsessual Kodeksi',
+  'economic_procedure_code': 'O\'zbekiston Respublikasi Iqtisodiy Protsessual Kodeksi',
 };

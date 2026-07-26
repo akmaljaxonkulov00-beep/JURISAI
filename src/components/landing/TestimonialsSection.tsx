@@ -102,14 +102,14 @@ const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ className }) 
   };
 
   return (
-    <section className={cn('py-20 bg-white', className)}>
+    <section className={cn('py-20 bg-white dark:bg-zinc-900', className)}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-zinc-100 mb-4">
             Foydalanuvchilar <span className="text-emerald-600">fikrlari</span>
           </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <p className="text-xl text-gray-600 dark:text-zinc-400 max-w-3xl mx-auto">
             10,000+ dan ortiq professional foydalanuvchilar JurisAI ning samaradorligini tasdiqladilar
           </p>
         </div>
@@ -118,15 +118,15 @@ const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ className }) 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 mb-16">
           <div className="text-center">
             <div className="text-4xl font-bold text-emerald-600 mb-2">4.9/5</div>
-            <div className="text-gray-600">O\'rtacha reyting</div>
+            <div className="text-gray-600 dark:text-zinc-400">O\'rtacha reyting</div>
           </div>
           <div className="text-center">
             <div className="text-4xl font-bold text-emerald-600 mb-2">10,000+</div>
-            <div className="text-gray-600">Faol foydalanuvchilar</div>
+            <div className="text-gray-600 dark:text-zinc-400">Faol foydalanuvchilar</div>
           </div>
           <div className="text-center">
             <div className="text-4xl font-bold text-emerald-600 mb-2">95%</div>
-            <div className="text-gray-600">Tavsiya etish darajasi</div>
+            <div className="text-gray-600 dark:text-zinc-400">Tavsiya etish darajasi</div>
           </div>
         </div>
 
@@ -141,7 +141,7 @@ const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ className }) 
                 </div>
 
                 {/* Content */}
-                <blockquote className="text-gray-700 mb-6 leading-relaxed italic">
+                <blockquote className="text-gray-700 dark:text-zinc-300 mb-6 leading-relaxed italic">
                   "{testimonial.content}"
                 </blockquote>
 
@@ -153,15 +153,15 @@ const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ className }) 
                     className="bg-emerald-500 text-white"
                   />
                   <div className="flex-1">
-                    <div className="font-medium text-gray-900">{testimonial.name}</div>
-                    <div className="text-sm text-gray-600">{testimonial.role}</div>
-                    <div className="text-sm text-gray-500">{testimonial.organization}</div>
+                    <div className="font-medium text-gray-900 dark:text-zinc-100">{testimonial.name}</div>
+                    <div className="text-sm text-gray-600 dark:text-zinc-400">{testimonial.role}</div>
+                    <div className="text-sm text-gray-500 dark:text-zinc-500">{testimonial.organization}</div>
                   </div>
                 </div>
 
                 {/* Achievement */}
                 {testimonial.achievement && (
-                  <div className="mt-4 pt-4 border-t border-gray-100">
+                  <div className="mt-4 pt-4 border-t border-gray-100 dark:border-zinc-800">
                     <div className="flex items-center space-x-2">
                       <svg className="w-4 h-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
@@ -177,18 +177,18 @@ const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ className }) 
 
         {/* Bottom CTA */}
         <div className="text-center mt-16">
-          <div className="bg-gray-50 rounded-2xl p-8">
-            <h3 className="text-2xl font-bold text-gray-900 mb-4">
+          <div className="bg-gray-50 dark:bg-zinc-800/50 rounded-2xl p-8">
+            <h3 className="text-2xl font-bold text-gray-900 dark:text-zinc-100 mb-4">
               Ularning qatoriga qo\'shiling
             </h3>
-            <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
+            <p className="text-gray-600 dark:text-zinc-400 mb-6 max-w-2xl mx-auto">
               Minglabar professional huquqshunoslar kabi JurisAI dan foydalanib o\'z karerasini yangi bosqichga ko\'tardilar
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button className="bg-emerald-600 text-white px-8 py-3 rounded-lg font-medium hover:bg-emerald-700 transition-colors">
                 Bepul boshlash
               </button>
-              <button className="border border-gray-300 text-gray-700 px-8 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors">
+              <button className="border border-gray-300 dark:border-zinc-700 text-gray-700 dark:text-zinc-300 px-8 py-3 rounded-lg font-medium hover:bg-gray-50 dark:bg-zinc-800/50 transition-colors">
                 Muvaffaqiyat hikoyalari
               </button>
             </div>

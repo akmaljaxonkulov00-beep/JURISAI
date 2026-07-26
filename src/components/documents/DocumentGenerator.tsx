@@ -160,14 +160,14 @@ export default function DocumentGenerator() {
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl text-center">Hujjat Generator</CardTitle>
-          <p className="text-center text-gray-600">
+          <p className="text-center text-gray-600 dark:text-zinc-400">
             Avtomatik ravishda yuridik hujjatlar yarating
           </p>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Template Selection */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
               Hujjat turini tanlang
             </label>
             <select
@@ -178,7 +178,7 @@ export default function DocumentGenerator() {
                 setError('');
                 setGeneratedDocument(null);
               }}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="">Hujjat turini tanlang</option>
               {templates.map(template => (
@@ -191,7 +191,7 @@ export default function DocumentGenerator() {
 
           {currentTemplate && (
             <div className="space-y-4">
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 rounded-lg p-4">
                 <h3 className="font-semibold text-blue-900">{currentTemplate.name}</h3>
                 <p className="text-blue-700 text-sm">{currentTemplate.description}</p>
               </div>
@@ -200,7 +200,7 @@ export default function DocumentGenerator() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {currentTemplate.fields.map(field => (
                   <div key={field.name}>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">
                       {field.label}
                       {field.required && <span className="text-red-500">*</span>}
                     </label>
@@ -208,7 +208,7 @@ export default function DocumentGenerator() {
                       <select
                         value={formData[field.name] || ''}
                         onChange={(e) => handleFieldChange(field.name, e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                         required={field.required}
                       >
                         <option value="">Tanlang</option>
@@ -221,7 +221,7 @@ export default function DocumentGenerator() {
                         type={field.type}
                         value={formData[field.name] || ''}
                         onChange={(e) => handleFieldChange(field.name, e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                         required={field.required}
                       />
                     )}
@@ -234,7 +234,7 @@ export default function DocumentGenerator() {
               )}
 
               {generatedDocument && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 rounded-lg p-4">
                   <p className="text-green-800">{generatedDocument}</p>
                 </div>
               )}
@@ -251,7 +251,7 @@ export default function DocumentGenerator() {
           )}
 
           {!selectedTemplate && (
-            <div className="text-center text-gray-500 py-8">
+            <div className="text-center text-gray-500 dark:text-zinc-500 py-8">
               <p>Hujjat turini tanlang</p>
             </div>
           )}

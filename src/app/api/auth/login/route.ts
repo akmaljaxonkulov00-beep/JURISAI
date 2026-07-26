@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/simple-auth';
+import { auth as simpleAuth } from '@/lib/simple-auth';
+
+const auth = simpleAuth as any;
 
 export async function POST(request: NextRequest) {
   try {

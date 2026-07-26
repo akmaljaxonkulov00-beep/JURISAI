@@ -175,7 +175,7 @@ Qo'shimcha savollaringiz bo'lsa, javob berishdan mamnun bo'laman!`;
         {/* Messages */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {messages.length === 0 ? (
-            <div className="text-center text-gray-500 py-8">
+            <div className="text-center text-gray-500 dark:text-zinc-500 py-8">
               <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-white text-2xl font-bold">AI</span>
               </div>
@@ -196,15 +196,15 @@ Qo'shimcha savollaringiz bo'lsa, javob berishdan mamnun bo'laman!`;
                   size="sm"
                   className={cn(
                     'flex-shrink-0',
-                    message.role === 'user' ? 'bg-blue-500' : 'bg-emerald-500'
+                    message.role === 'user' ? 'bg-blue-50 dark:bg-blue-900/20' : 'bg-emerald-500'
                   )}
                 />
                 <div
                   className={cn(
                     'max-w-[80%] rounded-lg px-4 py-2',
                     message.role === 'user'
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-gray-100 text-gray-900'
+                      ? 'bg-blue-50 dark:bg-blue-900/20 text-white'
+                      : 'bg-gray-100 dark:bg-zinc-800/30 text-gray-900 dark:text-zinc-100'
                   )}
                 >
                   {message.type === 'irac' && (
@@ -242,7 +242,7 @@ Qo'shimcha savollaringiz bo'lsa, javob berishdan mamnun bo'laman!`;
                 size="sm"
                 className="bg-emerald-500 flex-shrink-0"
               />
-              <div className="bg-gray-100 rounded-lg px-4 py-2">
+              <div className="bg-gray-100 dark:bg-zinc-800/30 rounded-lg px-4 py-2">
                 <LoadingSpinner size="sm" />
               </div>
             </div>
@@ -251,7 +251,7 @@ Qo'shimcha savollaringiz bo'lsa, javob berishdan mamnun bo'laman!`;
         </div>
 
         {/* Input */}
-        <div className="border-t border-gray-200 p-4">
+        <div className="border-t border-gray-200 dark:border-zinc-800 p-4">
           <div className="flex space-x-2">
             <Input
               value={input}
@@ -281,7 +281,7 @@ Qo'shimcha savollaringiz bo'lsa, javob berishdan mamnun bo'laman!`;
               </svg>
             </Button>
           </div>
-          <div className="flex items-center justify-between mt-2 text-xs text-gray-500">
+          <div className="flex items-center justify-between mt-2 text-xs text-gray-500 dark:text-zinc-500">
             <span>Enter - yuborish | Shift+Enter - yangi qator</span>
             <span>{getModelName(selectedModel)}</span>
           </div>

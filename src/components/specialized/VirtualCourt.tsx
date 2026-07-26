@@ -305,7 +305,7 @@ const VirtualCourt: React.FC<VirtualCourtProps> = ({ className }) => {
       case 'in_progress': return 'bg-blue-100 text-blue-800';
       case 'deliberating': return 'bg-purple-100 text-purple-800';
       case 'concluded': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
+      default: return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200';
     }
   };
 
@@ -322,8 +322,8 @@ const VirtualCourt: React.FC<VirtualCourtProps> = ({ className }) => {
   return (
     <div className={cn('max-w-6xl mx-auto space-y-6', className)}>
       <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold text-gray-900">Virtual Sud</h1>
-        <p className="text-gray-600">Sud jarayonini virtual tarzda kuzating</p>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-zinc-100">Virtual Sud</h1>
+        <p className="text-gray-600 dark:text-zinc-400">Sud jarayonini virtual tarzda kuzating</p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
@@ -347,15 +347,15 @@ const VirtualCourt: React.FC<VirtualCourtProps> = ({ className }) => {
                     className={cn(
                       'border rounded-lg p-4 cursor-pointer transition-colors',
                       selectedCase === caseType.id
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200 hover:border-gray-300'
+                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                        : 'border-gray-200 dark:border-zinc-800 hover:border-gray-300 dark:border-zinc-700'
                     )}
                     onClick={() => setSelectedCase(caseType.id)}
                   >
                     <h3 className="font-medium mb-2">{caseType.name}</h3>
-                    <p className="text-sm text-gray-600 mb-3">{caseType.description}</p>
+                    <p className="text-sm text-gray-600 dark:text-zinc-400 mb-3">{caseType.description}</p>
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-500">Davomiyligi: {caseType.estimated_duration}</span>
+                      <span className="text-gray-500 dark:text-zinc-500">Davomiyligi: {caseType.estimated_duration}</span>
                       <Badge variant="outline">
                         {caseType.participants.length} ishtirokchi
                       </Badge>
@@ -383,13 +383,13 @@ const VirtualCourt: React.FC<VirtualCourtProps> = ({ className }) => {
                     className={cn(
                       'border rounded-lg p-4 cursor-pointer transition-colors',
                       userRole === role.id
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200 hover:border-gray-300'
+                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                        : 'border-gray-200 dark:border-zinc-800 hover:border-gray-300 dark:border-zinc-700'
                     )}
                     onClick={() => setUserRole(role.id as any)}
                   >
                     <h4 className="font-medium mb-1">{role.name}</h4>
-                    <p className="text-sm text-gray-600">{role.description}</p>
+                    <p className="text-sm text-gray-600 dark:text-zinc-400">{role.description}</p>
                   </div>
                 ))}
               </div>
@@ -422,7 +422,7 @@ const VirtualCourt: React.FC<VirtualCourtProps> = ({ className }) => {
                   <div className="flex items-center justify-between">
                     <div>
                       <h3 className="font-medium">{session.case_number}</h3>
-                      <p className="text-sm text-gray-600">{session.case_type}</p>
+                      <p className="text-sm text-gray-600 dark:text-zinc-400">{session.case_type}</p>
                     </div>
                     <Badge className={getStatusColor(session.status)}>
                       {getStatusName(session.status)}
@@ -457,20 +457,20 @@ const VirtualCourt: React.FC<VirtualCourtProps> = ({ className }) => {
                     </div>
 
                     {/* Proceedings */}
-                    <div className="border rounded-lg p-4 h-96 overflow-y-auto bg-gray-50">
+                    <div className="border rounded-lg p-4 h-96 overflow-y-auto bg-gray-50 dark:bg-zinc-800/50">
                       <h4 className="font-medium mb-4">Sud jarayoni</h4>
                       <div className="space-y-3">
                         {session.proceedings.map((proceeding, index) => (
                           <div key={index} className="flex items-start space-x-3">
-                            <div className="flex-shrink-0 w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
+                            <div className="flex-shrink-0 w-2 h-2 bg-blue-50 dark:bg-blue-900/20 rounded-full mt-2"></div>
                             <div className="flex-1">
                               <div className="flex items-center justify-between mb-1">
                                 <span className="font-medium text-sm">{proceeding.speaker}</span>
-                                <span className="text-xs text-gray-500">
+                                <span className="text-xs text-gray-500 dark:text-zinc-500">
                                   {proceeding.timestamp.toLocaleTimeString('uz-UZ')}
                                 </span>
                               </div>
-                              <p className="text-sm text-gray-700">{proceeding.content}</p>
+                              <p className="text-sm text-gray-700 dark:text-zinc-300">{proceeding.content}</p>
                             </div>
                           </div>
                         ))}
@@ -485,7 +485,7 @@ const VirtualCourt: React.FC<VirtualCourtProps> = ({ className }) => {
                           value={userInput}
                           onChange={(e) => setUserInput(e.target.value)}
                           placeholder={`${getRoleName(userRole)} sifatida gapiring...`}
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="flex-1 px-3 py-2 border border-gray-300 dark:border-zinc-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                           onKeyPress={(e) => e.key === 'Enter' && handleUserInput()}
                         />
                         <Button onClick={handleUserInput}>
@@ -500,7 +500,7 @@ const VirtualCourt: React.FC<VirtualCourtProps> = ({ className }) => {
           ) : (
             <Card>
               <CardContent className="flex items-center justify-center py-12">
-                <div className="text-center text-gray-500">
+                <div className="text-center text-gray-500 dark:text-zinc-500">
                   <p>Sud majlisi boshlanmagan</p>
                   <p className="text-sm mt-2">Avval sozlash bosqichidan boshlang</p>
                 </div>
@@ -527,11 +527,11 @@ const VirtualCourt: React.FC<VirtualCourtProps> = ({ className }) => {
                         </div>
                         <div className="grid grid-cols-2 gap-4 text-sm">
                           <div>
-                            <span className="text-gray-500">Ahamiyat:</span>
+                            <span className="text-gray-500 dark:text-zinc-500">Ahamiyat:</span>
                             <Progress value={evidence.relevance * 100} className="mt-1" />
                           </div>
                           <div>
-                            <span className="text-gray-500">Asoslilik:</span>
+                            <span className="text-gray-500 dark:text-zinc-500">Asoslilik:</span>
                             <Progress value={evidence.authenticity * 100} className="mt-1" />
                           </div>
                         </div>
@@ -554,9 +554,9 @@ const VirtualCourt: React.FC<VirtualCourtProps> = ({ className }) => {
                           <h4 className="font-medium">{witness.name}</h4>
                           <Badge variant="outline">{witness.role}</Badge>
                         </div>
-                        <p className="text-sm text-gray-700 mb-2">{witness.testimony}</p>
+                        <p className="text-sm text-gray-700 dark:text-zinc-300 mb-2">{witness.testimony}</p>
                         <div className="flex items-center justify-between text-sm">
-                          <span className="text-gray-500">Ishonch darajasi:</span>
+                          <span className="text-gray-500 dark:text-zinc-500">Ishonch darajasi:</span>
                           <Progress value={witness.credibility * 100} className="w-32" />
                         </div>
                       </div>
@@ -568,7 +568,7 @@ const VirtualCourt: React.FC<VirtualCourtProps> = ({ className }) => {
           ) : (
             <Card>
               <CardContent className="flex items-center justify-center py-12">
-                <div className="text-center text-gray-500">
+                <div className="text-center text-gray-500 dark:text-zinc-500">
                   <p>Dalillar yo'q</p>
                   <p className="text-sm mt-2">Sud majlisini boshlang</p>
                 </div>
@@ -591,22 +591,22 @@ const VirtualCourt: React.FC<VirtualCourtProps> = ({ className }) => {
               <CardContent>
                 <div className="space-y-4">
                   <div className="text-center">
-                    <p className="text-xl font-bold text-gray-900 mb-4">
+                    <p className="text-xl font-bold text-gray-900 dark:text-zinc-100 mb-4">
                       {session.verdict.decision}
                     </p>
                     {session.verdict.sentence && (
-                      <p className="text-lg text-gray-700 mb-4">
+                      <p className="text-lg text-gray-700 dark:text-zinc-300 mb-4">
                         Jazo: {session.verdict.sentence}
                       </p>
                     )}
                     <div className="text-4xl font-bold text-blue-600">
                       {Math.round(session.verdict.confidence * 100)}%
                     </div>
-                    <p className="text-sm text-gray-500 mt-1">Ishonch darajasi</p>
+                    <p className="text-sm text-gray-500 dark:text-zinc-500 mt-1">Ishonch darajasi</p>
                   </div>
                   <div className="border-t pt-4">
                     <h4 className="font-medium mb-2">Qaror asoslari:</h4>
-                    <p className="text-gray-700">{session.verdict.reasoning}</p>
+                    <p className="text-gray-700 dark:text-zinc-300">{session.verdict.reasoning}</p>
                   </div>
                 </div>
               </CardContent>
@@ -614,7 +614,7 @@ const VirtualCourt: React.FC<VirtualCourtProps> = ({ className }) => {
           ) : (
             <Card>
               <CardContent className="flex items-center justify-center py-12">
-                <div className="text-center text-gray-500">
+                <div className="text-center text-gray-500 dark:text-zinc-500">
                   <p>Qaror hali chiqarilmagan</p>
                   <p className="text-sm mt-2">Sud jarayoni tugagandan so'ng qaror e'lon qilinadi</p>
                 </div>

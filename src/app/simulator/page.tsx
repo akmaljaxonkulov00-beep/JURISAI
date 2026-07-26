@@ -269,17 +269,17 @@ export default function Simulator() {
         <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-xl max-w-2xl w-full p-8">
           <h1 className="text-3xl font-bold text-gray-800 dark:text-zinc-100 mb-6 text-center">Simulyatsiya Natijalari</h1>
           <div className="grid grid-cols-3 gap-4 mb-6">
-            <div className="text-center bg-blue-50 rounded-xl p-4">
+            <div className="text-center bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4">
               <TrendingUp className="w-8 h-8 text-blue-600 mx-auto mb-2" />
               <p className="text-2xl font-bold text-blue-700">{Math.round(results.legalAccuracy)}%</p>
               <p className="text-sm text-gray-600 dark:text-zinc-300">Yuridik aniqlik</p>
             </div>
-            <div className="text-center bg-green-50 rounded-xl p-4">
+            <div className="text-center bg-green-50 dark:bg-green-900/20 rounded-xl p-4">
               <Award className="w-8 h-8 text-green-600 mx-auto mb-2" />
               <p className="text-2xl font-bold text-green-700">{Math.round(results.ethics)}%</p>
               <p className="text-sm text-gray-600 dark:text-zinc-300">Etika</p>
             </div>
-            <div className="text-center bg-purple-50 rounded-xl p-4">
+            <div className="text-center bg-purple-50 dark:bg-purple-900/20 rounded-xl p-4">
               <Target className="w-8 h-8 text-purple-600 mx-auto mb-2" />
               <p className="text-2xl font-bold text-purple-700">{Math.round(results.confidence)}%</p>
               <p className="text-sm text-gray-600 dark:text-zinc-300">Ishonch</p>
@@ -289,11 +289,11 @@ export default function Simulator() {
             <p className="text-gray-600 dark:text-zinc-300 mb-1">Umumiy ball</p>
             <p className="text-4xl font-bold text-blue-600 mb-3">{results.totalScore}/100</p>
             <div className="bg-gray-200 dark:bg-zinc-700 rounded-full h-3">
-              <div className="bg-blue-500 h-3 rounded-full" style={{ width: `${results.totalScore}%` }} />
+              <div className="bg-blue-50 dark:bg-blue-900/20 h-3 rounded-full" style={{ width: `${results.totalScore}%` }} />
             </div>
           </div>
           {results.achievements.length > 0 && (
-            <div className="bg-yellow-50 rounded-xl p-4 mb-6">
+            <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-xl p-4 mb-6">
               <p className="font-semibold text-yellow-800 mb-2">☆ Yutuqlar</p>
               <div className="flex flex-wrap gap-2">
                 {results.achievements.map((a, i) => (
@@ -364,10 +364,10 @@ export default function Simulator() {
         <div className="bg-white dark:bg-zinc-900 border-t p-4">
           <div className="max-w-3xl mx-auto">
             {listening && (
-              <div className="flex items-center gap-2 px-4 py-2 bg-red-50 border border-red-200 rounded-lg mb-3">
-                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+              <div className="flex items-center gap-2 px-4 py-2 bg-red-50 dark:bg-red-900/20 border border-red-200 rounded-lg mb-3">
+                <div className="w-2 h-2 bg-red-50 dark:bg-red-900/20 rounded-full animate-pulse" />
                 <span className="text-sm text-red-600">🎤 Tinglanmoqda... gapiring</span>
-                <button onClick={stopMic} className="ml-auto px-3 py-1 bg-red-500 text-white rounded text-xs">To'xtat</button>
+                <button onClick={stopMic} className="ml-auto px-3 py-1 bg-red-50 dark:bg-red-900/20 text-white rounded text-xs">To'xtat</button>
               </div>
             )}
             <div className="flex gap-3">
@@ -382,7 +382,7 @@ export default function Simulator() {
               />
               <button
                 onClick={listening ? stopMic : startMic}
-                className={`px-4 py-3 rounded-xl transition-colors ${listening ? 'bg-red-500 text-white animate-pulse' : 'bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-300 hover:bg-gray-200 dark:hover:bg-zinc-700 dark:bg-zinc-700'}`}
+                className={`px-4 py-3 rounded-xl transition-colors ${listening ? 'bg-red-50 dark:bg-red-900/20 text-white animate-pulse' : 'bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-300 hover:bg-gray-200 dark:hover:bg-zinc-700 dark:bg-zinc-700'}`}
                 title={listening ? "To'xtatish" : 'Ovoz bilan kiritish'}
               >
                 <Mic className="w-5 h-5" />
@@ -405,7 +405,7 @@ export default function Simulator() {
           <a href="/" className="flex items-center gap-2 text-gray-600 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800 dark:bg-zinc-800/50 px-3 py-2 rounded-lg mb-6">
             <ArrowLeft className="w-5 h-5" /><span>Orqaga</span>
           </a>
-          <div className="bg-blue-50 rounded-xl p-4">
+          <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4">
             <p className="font-semibold text-blue-800 mb-1">Simulyator</p>
             <p className="text-sm text-blue-600">Real AI bilan mashq qiling</p>
           </div>

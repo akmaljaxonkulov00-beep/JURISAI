@@ -27,11 +27,11 @@ const Progress = forwardRef<HTMLDivElement, ProgressProps>(
     const getVariantClasses = (variant: string) => {
       switch (variant) {
         case 'success':
-          return 'bg-green-500';
+          return 'bg-green-50 dark:bg-green-900/20';
         case 'warning':
-          return 'bg-yellow-500';
+          return 'bg-yellow-50 dark:bg-yellow-900/20';
         case 'error':
-          return 'bg-red-500';
+          return 'bg-red-50 dark:bg-red-900/20';
         default:
           return 'bg-primary';
       }

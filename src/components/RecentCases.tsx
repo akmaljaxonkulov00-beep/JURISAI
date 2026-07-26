@@ -44,7 +44,7 @@ export default function RecentCases() {
       case 'completed':
         return 'bg-blue-100 text-blue-700';
       default:
-        return 'bg-gray-100 text-gray-700';
+        return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-700 dark:text-zinc-300';
     }
   };
 
@@ -70,24 +70,24 @@ export default function RecentCases() {
       case 'Yuqori':
         return 'bg-red-100 text-red-700';
       default:
-        return 'bg-gray-100 text-gray-700';
+        return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-700 dark:text-zinc-300';
     }
   };
 
   return (
     <div className="col-span-3">
-      <div className="bg-white rounded-2xl p-6 shadow-sm">
-        <h2 className="text-xl font-bold text-gray-800 mb-4">So\'nggi ishlar</h2>
+      <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-sm">
+        <h2 className="text-xl font-bold text-gray-800 dark:text-zinc-200 mb-4">So\'nggi ishlar</h2>
         
         <div className="space-y-4">
           {cases.map((case_) => (
             <div 
               key={case_.id}
-              className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 cursor-pointer transition-colors"
+              className="flex items-center justify-between p-4 bg-gray-50 dark:bg-zinc-800/50 rounded-xl hover:bg-gray-100 dark:bg-zinc-800/30 cursor-pointer transition-colors"
             >
               <div>
-                <h3 className="font-semibold text-gray-800">{case_.title}</h3>
-                <p className="text-sm text-gray-600">{case_.description}</p>
+                <h3 className="font-semibold text-gray-800 dark:text-zinc-200">{case_.title}</h3>
+                <p className="text-sm text-gray-600 dark:text-zinc-400">{case_.description}</p>
               </div>
               
               <div className="flex items-center gap-3">
@@ -95,7 +95,7 @@ export default function RecentCases() {
                   {getStatusText(case_.status)}
                 </span>
                 
-                <ChevronRight className="w-5 h-5 text-gray-400" />
+                <ChevronRight className="w-5 h-5 text-gray-400 dark:text-zinc-500" />
               </div>
             </div>
           ))}

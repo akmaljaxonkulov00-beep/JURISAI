@@ -67,13 +67,13 @@ export default function Help() {
             <h1 className="text-4xl font-bold mb-4">Yordam markazi</h1>
             <p className="text-lg text-white/80 mb-8 max-w-2xl mx-auto">Savollaringiz bormi? Javobni topishga yordam beramiz</p>
             <div className="max-w-xl mx-auto relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-zinc-500" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Savolingizni yozing..."
-                className="w-full pl-12 pr-4 py-4 rounded-xl bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-lg text-base"
+                className="w-full pl-12 pr-4 py-4 rounded-xl bg-white dark:bg-zinc-900 text-gray-900 dark:text-zinc-100 placeholder-gray-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-lg text-base"
               />
             </div>
           </div>
@@ -104,29 +104,29 @@ export default function Help() {
           <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">Ko\'p beriladigan savollar</h2>
           {filteredFAQs.length === 0 ? (
             <div className="text-center py-12">
-              <HelpCircle className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-              <p className="text-gray-500 dark:text-gray-400 text-lg">Savolingiz topilmadi</p>
-              <p className="text-gray-400 dark:text-gray-500 mt-2">Boshqa so\'z bilan qidirib ko\'ring yoki biz bilan bog\'laning</p>
+              <HelpCircle className="w-16 h-16 text-gray-300 dark:text-gray-600 dark:text-zinc-400 mx-auto mb-4" />
+              <p className="text-gray-500 dark:text-gray-400 dark:text-zinc-500 text-lg">Savolingiz topilmadi</p>
+              <p className="text-gray-400 dark:text-gray-500 dark:text-zinc-500 mt-2">Boshqa so\'z bilan qidirib ko\'ring yoki biz bilan bog\'laning</p>
             </div>
           ) : (
             <div className="space-y-3">
               {filteredFAQs.map((faq, index) => (
                 <Card key={index} className="card-default rounded-2xl overflow-hidden">
                   <button onClick={() => toggleFAQ(faq.question)}
-                    className="w-full flex items-center justify-between p-5 text-left hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors">
+                    className="w-full flex items-center justify-between p-5 text-left hover:bg-gray-50 dark:bg-zinc-800/50/50 dark:hover:bg-gray-800/30 transition-colors">
                     <div className="flex items-center gap-3">
-                      <div className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0" />
+                      <div className="w-2 h-2 rounded-full bg-blue-50 dark:bg-blue-900/20 flex-shrink-0" />
                       <span className="font-medium text-gray-800 dark:text-white text-sm">{faq.question}</span>
                     </div>
                     {openFAQ === faq.question ? (
-                      <ChevronDown className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                      <ChevronDown className="w-5 h-5 text-gray-400 dark:text-zinc-500 flex-shrink-0" />
                     ) : (
-                      <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                      <ChevronRight className="w-5 h-5 text-gray-400 dark:text-zinc-500 flex-shrink-0" />
                     )}
                   </button>
                   {openFAQ === faq.question && (
                     <CardContent className="px-5 pb-5 pt-0">
-                      <p className="text-gray-600 dark:text-gray-400 text-sm pl-5">{faq.answer}</p>
+                      <p className="text-gray-600 dark:text-gray-400 dark:text-zinc-500 text-sm pl-5">{faq.answer}</p>
                     </CardContent>
                   )}
                 </Card>
@@ -146,8 +146,8 @@ export default function Help() {
                 </div>
               </div>
               <h3 className="font-semibold text-gray-800 dark:text-white mb-1">Email</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">{settings.contactEmail || 'support@jurisai.uz'}</p>
-              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">24/7 qo\'llab-quvvatlash</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 dark:text-zinc-500">{settings.contactEmail || 'support@jurisai.uz'}</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 dark:text-zinc-500 mt-1">24/7 qo\'llab-quvvatlash</p>
             </div>
             <div className="text-center p-4">
               <div className="flex justify-center mb-3">
@@ -156,8 +156,8 @@ export default function Help() {
                 </div>
               </div>
               <h3 className="font-semibold text-gray-800 dark:text-white mb-1">Telefon</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">{settings.contactPhone || '+998 90 123 45 67'}</p>
-              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">09:00 - 18:00</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 dark:text-zinc-500">{settings.contactPhone || '+998 90 123 45 67'}</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 dark:text-zinc-500 mt-1">09:00 - 18:00</p>
             </div>
             <div className="text-center p-4">
               <div className="flex justify-center mb-3">
@@ -166,8 +166,8 @@ export default function Help() {
                 </div>
               </div>
               <h3 className="font-semibold text-gray-800 dark:text-white mb-1">Telegram</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">{settings.telegramLink?.replace('https://t.me/', '@') ?? '@JurisAI_support'}</p>
-              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Tezkor javob</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 dark:text-zinc-500">{settings.telegramLink?.replace('https://t.me/', '@') ?? '@JurisAI_support'}</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 dark:text-zinc-500 mt-1">Tezkor javob</p>
             </div>
           </div>
         </div>

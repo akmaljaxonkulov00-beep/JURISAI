@@ -187,9 +187,9 @@ export default function DocumentGenerator() {
                 onClick={() => handleTemplateSelect(template)}
               >
                 <h3 className="font-semibold text-gray-800 dark:text-white mb-2">{template.name}</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">{template.description}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 dark:text-zinc-500 mb-3">{template.description}</p>
                 <Badge className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300">{template.category}</Badge>
-                <div className="mt-3 text-sm text-gray-400 dark:text-gray-500">{template.fields.length} maydon</div>
+                <div className="mt-3 text-sm text-gray-400 dark:text-gray-500 dark:text-zinc-500">{template.fields.length} maydon</div>
               </div>
             ))}
           </div>
@@ -203,9 +203,9 @@ export default function DocumentGenerator() {
       return (
         <Card className="card-default rounded-2xl">
           <CardContent className="p-12 text-center">
-            <FileText className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+            <FileText className="w-16 h-16 text-gray-300 dark:text-gray-600 dark:text-zinc-400 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">Shablon tanlanmagan</h3>
-            <p className="text-gray-500 dark:text-gray-400 mb-6">Avval shablonni tanlang</p>
+            <p className="text-gray-500 dark:text-gray-400 dark:text-zinc-500 mb-6">Avval shablonni tanlang</p>
             <Button onClick={() => setActiveTab('templates')} className="bg-blue-600 hover:bg-blue-700 text-white">
               Shablonlarni ko'rish
             </Button>
@@ -223,7 +223,7 @@ export default function DocumentGenerator() {
           <CardContent className="space-y-4">
             {selectedTemplate.fields.map((field) => (
               <div key={field.id}>
-                <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
+                <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 dark:text-zinc-500 mb-2">
                   {field.name} {field.required && <span className="text-red-500">*</span>}
                 </label>
                 
@@ -298,19 +298,19 @@ export default function DocumentGenerator() {
                 <div className="flex justify-between items-start mb-2">
                   <div>
                     <h3 className="font-semibold text-gray-800 dark:text-white">{document.title}</h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">{new Date(document.created_at).toLocaleDateString('uz-UZ')}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 dark:text-zinc-500">{new Date(document.created_at).toLocaleDateString('uz-UZ')}</p>
                   </div>
                   <Badge className={document.status === 'completed' ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300' : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300'}>
                     {document.status === 'completed' ? 'Tugallangan' : 'Draft'}
                   </Badge>
                 </div>
-                <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{document.content.substring(0, 100)}...</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-zinc-500 line-clamp-2">{document.content.substring(0, 100)}...</p>
               </div>
             ))}
             {generatedDocuments.length === 0 && (
               <div className="text-center py-12">
-                <FileText className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-                <p className="text-gray-500 dark:text-gray-400">Hali hech qanday hujjat yaratilmagan</p>
+                <FileText className="w-16 h-16 text-gray-300 dark:text-gray-600 dark:text-zinc-400 mx-auto mb-4" />
+                <p className="text-gray-500 dark:text-gray-400 dark:text-zinc-500">Hali hech qanday hujjat yaratilmagan</p>
               </div>
             )}
           </div>
@@ -340,7 +340,7 @@ export default function DocumentGenerator() {
               <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-6 border border-gray-100 dark:border-gray-700">
                 <pre className="whitespace-pre-wrap text-gray-700 dark:text-gray-300">{currentDocument.content}</pre>
               </div>
-              <div className="text-sm text-gray-400 dark:text-gray-500">Yaratilgan: {new Date(currentDocument.created_at).toLocaleDateString('uz-UZ')}</div>
+              <div className="text-sm text-gray-400 dark:text-gray-500 dark:text-zinc-500">Yaratilgan: {new Date(currentDocument.created_at).toLocaleDateString('uz-UZ')}</div>
             </div>
           </CardContent>
         </Card>
@@ -352,12 +352,12 @@ export default function DocumentGenerator() {
     <div className="min-h-screen bg-page-custom p-6">
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center gap-4 mb-6">
-          <a href="/dashboard" className="flex items-center gap-2 px-3 py-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all">
+          <a href="/dashboard" className="flex items-center gap-2 px-3 py-2 text-gray-500 dark:text-gray-400 dark:text-zinc-500 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all">
             <ArrowLeft className="w-4 h-4" /> <span className="text-sm font-medium">Orqaga</span>
           </a>
           <div>
             <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Document Generator</h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Huquqiy hujjatlar avtomatik generatsiyasi</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 dark:text-zinc-500">Huquqiy hujjatlar avtomatik generatsiyasi</p>
           </div>
         </div>
 
@@ -383,7 +383,7 @@ export default function DocumentGenerator() {
                 className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg transition-all text-sm font-medium ${
                   activeTab === tab.id
                     ? 'nav-item-active'
-                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/50'
+                    : 'text-gray-600 dark:text-gray-400 dark:text-zinc-500 hover:bg-gray-100 dark:hover:bg-gray-700/50'
                 }`}
               >
                 <Icon className="w-4 h-4" />

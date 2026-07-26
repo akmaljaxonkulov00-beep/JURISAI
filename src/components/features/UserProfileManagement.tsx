@@ -143,20 +143,20 @@ export default function UserProfileManagement() {
 
   const getRarityColor = (rarity: string) => {
     switch (rarity) {
-      case 'common': return 'bg-gray-100 text-gray-800 border-gray-300';
+      case 'common': return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200 border-gray-300 dark:border-zinc-700';
       case 'rare': return 'bg-blue-100 text-blue-800 border-blue-300';
       case 'epic': return 'bg-purple-100 text-purple-800 border-purple-300';
       case 'legendary': return 'bg-yellow-100 text-yellow-800 border-yellow-300';
-      default: return 'bg-gray-100 text-gray-800 border-gray-300';
+      default: return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200 border-gray-300 dark:border-zinc-700';
     }
   };
 
   const getSubscriptionColor = (plan: string) => {
     switch (plan) {
-      case 'free': return 'bg-gray-100 text-gray-800';
+      case 'free': return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200';
       case 'pro': return 'bg-blue-100 text-blue-800';
       case 'premium': return 'bg-purple-100 text-purple-800';
-      default: return 'bg-gray-100 text-gray-800';
+      default: return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200';
     }
   };
 
@@ -165,7 +165,7 @@ export default function UserProfileManagement() {
       <div className="p-6 max-w-4xl mx-auto">
         <div className="text-center py-12">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="text-gray-600 mt-4">Profil yuklanmoqda...</p>
+          <p className="text-gray-600 dark:text-zinc-400 mt-4">Profil yuklanmoqda...</p>
         </div>
       </div>
     );
@@ -174,19 +174,19 @@ export default function UserProfileManagement() {
   return (
     <div className="p-6 max-w-6xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Profil Menejmenti</h1>
-        <p className="text-gray-600">Shaxsiy ma'lumotlaringizni boshqarish</p>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-zinc-100 mb-2">Profil Menejmenti</h1>
+        <p className="text-gray-600 dark:text-zinc-400">Shaxsiy ma'lumotlaringizni boshqarish</p>
       </div>
 
       {/* Tabs */}
       <div className="mb-6">
-        <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
+        <div className="flex space-x-1 bg-gray-100 dark:bg-zinc-800/30 p-1 rounded-lg">
           <button
             onClick={() => setActiveTab('profile')}
             className={`flex-1 flex items-center justify-center space-x-2 px-4 py-2 rounded-md transition-colors ${
               activeTab === 'profile' 
-                ? 'bg-white text-blue-600 shadow-sm' 
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-sm' 
+                : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100'
             }`}
           >
             <User className="w-4 h-4" />
@@ -196,8 +196,8 @@ export default function UserProfileManagement() {
             onClick={() => setActiveTab('settings')}
             className={`flex-1 flex items-center justify-center space-x-2 px-4 py-2 rounded-md transition-colors ${
               activeTab === 'settings' 
-                ? 'bg-white text-blue-600 shadow-sm' 
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-sm' 
+                : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100'
             }`}
           >
             <Settings className="w-4 h-4" />
@@ -207,8 +207,8 @@ export default function UserProfileManagement() {
             onClick={() => setActiveTab('achievements')}
             className={`flex-1 flex items-center justify-center space-x-2 px-4 py-2 rounded-md transition-colors ${
               activeTab === 'achievements' 
-                ? 'bg-white text-blue-600 shadow-sm' 
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-sm' 
+                : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100'
             }`}
           >
             <Award className="w-4 h-4" />
@@ -218,8 +218,8 @@ export default function UserProfileManagement() {
             onClick={() => setActiveTab('statistics')}
             className={`flex-1 flex items-center justify-center space-x-2 px-4 py-2 rounded-md transition-colors ${
               activeTab === 'statistics' 
-                ? 'bg-white text-blue-600 shadow-sm' 
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-sm' 
+                : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100'
             }`}
           >
             <TrendingUp className="w-4 h-4" />
@@ -283,7 +283,7 @@ export default function UserProfileManagement() {
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <User className="w-12 h-12 text-gray-400" />
+                        <User className="w-12 h-12 text-gray-400 dark:text-zinc-500" />
                       )}
                     </div>
                     {editing && (
@@ -300,7 +300,7 @@ export default function UserProfileManagement() {
                   </div>
                   <div>
                     <h3 className="text-xl font-semibold">{formData.name}</h3>
-                    <p className="text-gray-600">{formData.email}</p>
+                    <p className="text-gray-600 dark:text-zinc-400">{formData.email}</p>
                     <Badge className={getSubscriptionColor(profile.subscription_plan)}>
                       {profile.subscription_plan.toUpperCase()}
                     </Badge>
@@ -310,61 +310,61 @@ export default function UserProfileManagement() {
                 {/* Basic Information */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Ism</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Ism</label>
                     {editing ? (
                       <Input
                         value={formData.name || ''}
                         onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                       />
                     ) : (
-                      <p className="text-gray-900">{profile.name}</p>
+                      <p className="text-gray-900 dark:text-zinc-100">{profile.name}</p>
                     )}
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                    <p className="text-gray-900">{profile.email}</p>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Email</label>
+                    <p className="text-gray-900 dark:text-zinc-100">{profile.email}</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Telefon</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Telefon</label>
                     {editing ? (
                       <Input
                         value={formData.phone || ''}
                         onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
                       />
                     ) : (
-                      <p className="text-gray-900">{profile.phone || 'Ko\'rsatilmagan'}</p>
+                      <p className="text-gray-900 dark:text-zinc-100">{profile.phone || 'Ko\'rsatilmagan'}</p>
                     )}
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Manzil</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Manzil</label>
                     {editing ? (
                       <Input
                         value={formData.location || ''}
                         onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
                       />
                     ) : (
-                      <p className="text-gray-900">{profile.location || 'Ko\'rsatilmagan'}</p>
+                      <p className="text-gray-900 dark:text-zinc-100">{profile.location || 'Ko\'rsatilmagan'}</p>
                     )}
                   </div>
                 </div>
 
                 {/* Professional Information */}
                 <div className="space-y-4">
-                  <h4 className="font-semibold text-gray-900">Professional Ma'lumotlar</h4>
+                  <h4 className="font-semibold text-gray-900 dark:text-zinc-100">Professional Ma'lumotlar</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Mutaxassislik</label>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Mutaxassislik</label>
                       {editing ? (
                         <Input
                           value={formData.specialization || ''}
                           onChange={(e) => setFormData(prev => ({ ...prev, specialization: e.target.value }))}
                         />
                       ) : (
-                        <p className="text-gray-900">{profile.specialization || 'Ko\'rsatilmagan'}</p>
+                        <p className="text-gray-900 dark:text-zinc-100">{profile.specialization || 'Ko\'rsatilmagan'}</p>
                       )}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Tajriba (yil)</label>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Tajriba (yil)</label>
                       {editing ? (
                         <Input
                           type="number"
@@ -372,34 +372,34 @@ export default function UserProfileManagement() {
                           onChange={(e) => setFormData(prev => ({ ...prev, experience_years: parseInt(e.target.value) }))}
                         />
                       ) : (
-                        <p className="text-gray-900">{profile.experience_years || '0'} yil</p>
+                        <p className="text-gray-900 dark:text-zinc-100">{profile.experience_years || '0'} yil</p>
                       )}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Ta'lim</label>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Ta'lim</label>
                       {editing ? (
                         <Input
                           value={formData.education || ''}
                           onChange={(e) => setFormData(prev => ({ ...prev, education: e.target.value }))}
                         />
                       ) : (
-                        <p className="text-gray-900">{profile.education || 'Ko\'rsatilmagan'}</p>
+                        <p className="text-gray-900 dark:text-zinc-100">{profile.education || 'Ko\'rsatilmagan'}</p>
                       )}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Website</label>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Website</label>
                       {editing ? (
                         <Input
                           value={formData.website || ''}
                           onChange={(e) => setFormData(prev => ({ ...prev, website: e.target.value }))}
                         />
                       ) : (
-                        <p className="text-gray-900">{profile.website || 'Ko\'rsatilmagan'}</p>
+                        <p className="text-gray-900 dark:text-zinc-100">{profile.website || 'Ko\'rsatilmagan'}</p>
                       )}
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Bio</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Bio</label>
                     {editing ? (
                       <Textarea
                         value={formData.bio || ''}
@@ -407,7 +407,7 @@ export default function UserProfileManagement() {
                         rows={3}
                       />
                     ) : (
-                      <p className="text-gray-900">{profile.bio || 'Bio yo\'q'}</p>
+                      <p className="text-gray-900 dark:text-zinc-100">{profile.bio || 'Bio yo\'q'}</p>
                     )}
                   </div>
                 </div>
@@ -428,14 +428,14 @@ export default function UserProfileManagement() {
               <CardContent>
                 <div className="space-y-4">
                   <div>
-                    <p className="text-sm text-gray-600">Joriy reja</p>
+                    <p className="text-sm text-gray-600 dark:text-zinc-400">Joriy reja</p>
                     <Badge className={getSubscriptionColor(profile.subscription_plan)}>
                       {profile.subscription_plan.toUpperCase()}
                     </Badge>
                   </div>
                   {profile.subscription_expires_at && (
                     <div>
-                      <p className="text-sm text-gray-600">Tugash sanasi</p>
+                      <p className="text-sm text-gray-600 dark:text-zinc-400">Tugash sanasi</p>
                       <p className="font-semibold">
                         {new Date(profile.subscription_expires_at).toLocaleDateString('uz-UZ')}
                       </p>
@@ -459,19 +459,19 @@ export default function UserProfileManagement() {
               <CardContent>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Tahlil qilingan ishlar</span>
+                    <span className="text-sm text-gray-600 dark:text-zinc-400">Tahlil qilingan ishlar</span>
                     <span className="font-semibold">{profile.stats.cases_analyzed}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Yaratilgan hujjatlar</span>
+                    <span className="text-sm text-gray-600 dark:text-zinc-400">Yaratilgan hujjatlar</span>
                     <span className="font-semibold">{profile.stats.documents_generated}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">AI so'rovlar</span>
+                    <span className="text-sm text-gray-600 dark:text-zinc-400">AI so'rovlar</span>
                     <span className="font-semibold">{profile.stats.ai_requests}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">O'qish soatlari</span>
+                    <span className="text-sm text-gray-600 dark:text-zinc-400">O'qish soatlari</span>
                     <span className="font-semibold">{profile.stats.study_hours}</span>
                   </div>
                 </div>
@@ -489,8 +489,8 @@ export default function UserProfileManagement() {
                 <div className="text-center">
                   <div className="text-4xl mb-4">{achievement.icon}</div>
                   <h3 className="font-semibold text-lg mb-2">{achievement.title}</h3>
-                  <p className="text-gray-600 text-sm mb-4">{achievement.description}</p>
-                  <div className="flex items-center justify-between text-xs text-gray-500">
+                  <p className="text-gray-600 dark:text-zinc-400 text-sm mb-4">{achievement.description}</p>
+                  <div className="flex items-center justify-between text-xs text-gray-500 dark:text-zinc-500">
                     <span>{new Date(achievement.unlocked_at).toLocaleDateString('uz-UZ')}</span>
                     <Badge variant="outline" className="text-xs">
                       {achievement.rarity}
@@ -516,7 +516,7 @@ export default function UserProfileManagement() {
               <div className="space-y-6">
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm text-gray-600">Tahlil qilingan ishlar</span>
+                    <span className="text-sm text-gray-600 dark:text-zinc-400">Tahlil qilingan ishlar</span>
                     <span className="font-semibold">{profile.stats.cases_analyzed}</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
@@ -528,7 +528,7 @@ export default function UserProfileManagement() {
                 </div>
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm text-gray-600">Yaratilgan hujjatlar</span>
+                    <span className="text-sm text-gray-600 dark:text-zinc-400">Yaratilgan hujjatlar</span>
                     <span className="font-semibold">{profile.stats.documents_generated}</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
@@ -540,7 +540,7 @@ export default function UserProfileManagement() {
                 </div>
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm text-gray-600">AI so'rovlar</span>
+                    <span className="text-sm text-gray-600 dark:text-zinc-400">AI so'rovlar</span>
                     <span className="font-semibold">{profile.stats.ai_requests}</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
@@ -565,20 +565,20 @@ export default function UserProfileManagement() {
               <div className="space-y-4">
                 <div className="text-center">
                   <div className="text-3xl font-bold text-blue-600">{profile.stats.study_hours}</div>
-                  <p className="text-gray-600">Jami o'qish soatlari</p>
+                  <p className="text-gray-600 dark:text-zinc-400">Jami o'qish soatlari</p>
                 </div>
                 <div className="grid grid-cols-3 gap-4 text-center">
                   <div>
                     <div className="text-xl font-semibold">{Math.floor(profile.stats.study_hours / 7)}</div>
-                    <p className="text-xs text-gray-600">Hafta</p>
+                    <p className="text-xs text-gray-600 dark:text-zinc-400">Hafta</p>
                   </div>
                   <div>
                     <div className="text-xl font-semibold">{Math.floor(profile.stats.study_hours / 30)}</div>
-                    <p className="text-xs text-gray-600">Oy</p>
+                    <p className="text-xs text-gray-600 dark:text-zinc-400">Oy</p>
                   </div>
                   <div>
                     <div className="text-xl font-semibold">{Math.floor(profile.stats.study_hours / 365)}</div>
-                    <p className="text-xs text-gray-600">Yil</p>
+                    <p className="text-xs text-gray-600 dark:text-zinc-400">Yil</p>
                   </div>
                 </div>
               </div>

@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { Home as HomeIcon, Scale, GitBranch, Play, Target, Gavel, User, Star, Database, Users, BarChart3 } from 'lucide-react';
 
 interface SidebarProps {
@@ -25,14 +26,14 @@ export default function Sidebar({ currentPage = 'home' }: SidebarProps) {
   };
 
   return (
-    <div className="w-64 bg-white border-r border-gray-100 min-h-screen">
+    <div className="hidden lg:block w-64 bg-white dark:bg-zinc-900 border-r border-gray-100 dark:border-zinc-800 min-h-screen flex-shrink-0">
       <div className="p-6">
         {/* Daily Goal Block */}
         <div className="bg-orange-50 rounded-xl p-4 mb-6">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <Target className="w-5 h-5 text-orange-600" />
-              <span className="font-semibold text-gray-800">Kundalik maqsad</span>
+              <span className="font-semibold text-gray-800 dark:text-zinc-200">Kundalik maqsad</span>
             </div>
           </div>
           <div className="mb-2">
@@ -40,31 +41,34 @@ export default function Sidebar({ currentPage = 'home' }: SidebarProps) {
               <div className="bg-orange-500 h-2 rounded-full" style={{ width: '60%' }}></div>
             </div>
           </div>
-          <p className="text-sm text-gray-600">2 ta case qolgan</p>
+          <p className="text-sm text-gray-600 dark:text-zinc-400">2 ta case qolgan</p>
         </div>
 
         {/* Menu Items */}
         <nav className="space-y-2">
           {menuItems.map((item) => (
-            <a
+            <Link
               key={item.id}
               href={item.href}
               className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
                 isActive(item.id)
-                  ? 'bg-blue-50 text-blue-600'
-                  : 'text-gray-600 hover:bg-gray-50'
+                  ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600'
+                  : 'text-gray-600 dark:text-zinc-400 hover:bg-gray-50 dark:bg-zinc-800/50'
               }`}
             >
               {item.icon}
               <span className={isActive(item.id) ? 'font-medium' : ''}>{item.label}</span>
-            </a>
+            </Link>
           ))}
         </nav>
 
         {/* Premium Button */}
-        <button className="w-full mt-8 bg-orange-500 text-white px-4 py-3 rounded-xl font-medium hover:bg-orange-600 transition-colors">
+        <Link
+          href="/premium"
+          className="w-full mt-8 bg-orange-500 text-white px-4 py-3 rounded-xl font-medium hover:bg-orange-600 transition-colors text-center inline-block"
+        >
           Premiumga o'tish
-        </button>
+        </Link>
       </div>
     </div>
   );

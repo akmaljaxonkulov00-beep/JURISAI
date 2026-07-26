@@ -67,7 +67,7 @@ export default function SignUpPage() {
         <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
           Ro'yxatdan o'tish
         </h2>
-        <p className="text-gray-600 dark:text-gray-400">
+        <p className="text-gray-600 dark:text-gray-400 dark:text-zinc-500">
           JURISAI platformasiga qo'shilish uchun ma'lumotlaringizni kiriting
         </p>
       </div>
@@ -159,7 +159,7 @@ export default function SignUpPage() {
           {errors.password && (
             <p className="mt-2 text-sm text-red-600 dark:text-red-400">{errors.password.message}</p>
           )}
-          <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+          <p className="mt-2 text-xs text-gray-500 dark:text-gray-400 dark:text-zinc-500">
             Parol kamida 6 ta belgidan iborat bo'lishi kerak
           </p>
         </div>
@@ -190,10 +190,10 @@ export default function SignUpPage() {
           <input
             id="terms"
             type="checkbox"
-            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mt-1"
+            className="w-4 h-4 text-blue-600 border-gray-300 dark:border-zinc-700 rounded focus:ring-blue-500 mt-1"
             required
           />
-          <label htmlFor="terms" className="ml-3 text-sm text-gray-600 dark:text-gray-400">
+          <label htmlFor="terms" className="ml-3 text-sm text-gray-600 dark:text-gray-400 dark:text-zinc-500">
             Men{' '}
             <a href="#" className="text-blue-600 hover:text-blue-500">
               Foydalanish shartlari
@@ -228,7 +228,7 @@ export default function SignUpPage() {
 
       {/* Sign In Link */}
       <div className="mt-8 text-center">
-        <p className="text-gray-600 dark:text-gray-400">
+        <p className="text-gray-600 dark:text-gray-400 dark:text-zinc-500">
           Hisobingiz bormi?{' '}
           <Link 
             href="/signin" 

@@ -297,7 +297,7 @@ const CourtSimulator: React.FC = () => {
       case 'O\'rta': return 'bg-blue-100 text-blue-800';
       case 'Yuqori': return 'bg-orange-100 text-orange-800';
       case 'Ekspert': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      default: return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200';
     }
   };
 
@@ -323,8 +323,8 @@ const CourtSimulator: React.FC = () => {
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold text-gray-900">Sud Simulyatori</h1>
-        <p className="text-gray-600">Sud jarayonini simulyatsiya qiling</p>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-zinc-100">Sud Simulyatori</h1>
+        <p className="text-gray-600 dark:text-zinc-400">Sud jarayonini simulyatsiya qiling</p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
@@ -350,19 +350,19 @@ const CourtSimulator: React.FC = () => {
                 <CardContent>
                   <div className="space-y-4">
                     <div>
-                      <span className="text-sm text-gray-500">Ish turi:</span>
+                      <span className="text-sm text-gray-500 dark:text-zinc-500">Ish turi:</span>
                       <p className="font-medium">{scenario.case_type}</p>
                     </div>
                     <div>
-                      <span className="text-sm text-gray-500">Taxminiyot vaqt:</span>
+                      <span className="text-sm text-gray-500 dark:text-zinc-500">Taxminiyot vaqt:</span>
                       <p className="font-medium">{scenario.estimated_time} daqiqa</p>
                     </div>
                     <div>
-                      <span className="text-sm text-gray-500">Fon:</span>
-                      <p className="text-gray-700 text-sm">{scenario.background}</p>
+                      <span className="text-sm text-gray-500 dark:text-zinc-500">Fon:</span>
+                      <p className="text-gray-700 dark:text-zinc-300 text-sm">{scenario.background}</p>
                     </div>
                     <div>
-                      <span className="text-sm text-gray-500">Rollar:</span>
+                      <span className="text-sm text-gray-500 dark:text-zinc-500">Rollar:</span>
                       <div className="flex flex-wrap gap-1 mt-1">
                         {scenario.roles.map((role) => (
                           <Badge key={role.name} variant="outline" className="text-xs">
@@ -398,7 +398,7 @@ const CourtSimulator: React.FC = () => {
                   <div className="space-y-6">
                     <div>
                       <h4 className="font-medium mb-2">Ish to'g'risida ma'lumot</h4>
-                      <p className="text-gray-700">{selectedScenario.background}</p>
+                      <p className="text-gray-700 dark:text-zinc-300">{selectedScenario.background}</p>
                     </div>
 
                     <div>
@@ -407,7 +407,7 @@ const CourtSimulator: React.FC = () => {
                         {Object.entries(selectedScenario.parties).map(([party, description]) => (
                           <div key={party} className="flex justify-between">
                             <span className="font-medium">{party}:</span>
-                            <span className="text-gray-700">{description}</span>
+                            <span className="text-gray-700 dark:text-zinc-300">{description}</span>
                           </div>
                         ))}
                       </div>
@@ -419,7 +419,7 @@ const CourtSimulator: React.FC = () => {
                         {selectedScenario.legal_issues.map((issue, index) => (
                           <li key={index} className="flex items-start space-x-2">
                             <span className="text-blue-500 mt-1">•</span>
-                            <span className="text-gray-700">{issue}</span>
+                            <span className="text-gray-700 dark:text-zinc-300">{issue}</span>
                           </li>
                         ))}
                       </ul>
@@ -433,11 +433,11 @@ const CourtSimulator: React.FC = () => {
                             <div className="flex justify-between items-start">
                               <div>
                                 <p className="font-medium">{evidence.type}</p>
-                                <p className="text-sm text-gray-600">{evidence.description}</p>
+                                <p className="text-sm text-gray-600 dark:text-zinc-400">{evidence.description}</p>
                               </div>
                               <div className="text-right">
-                                <p className="text-xs text-gray-500">Ahamiyat: {evidence.relevance}</p>
-                                <p className="text-xs text-gray-500">Ishonch: {evidence.credibility}</p>
+                                <p className="text-xs text-gray-500 dark:text-zinc-500">Ahamiyat: {evidence.relevance}</p>
+                                <p className="text-xs text-gray-500 dark:text-zinc-500">Ishonch: {evidence.credibility}</p>
                               </div>
                             </div>
                           </div>
@@ -460,16 +460,16 @@ const CourtSimulator: React.FC = () => {
                         className={cn(
                           'border rounded-lg p-4 cursor-pointer transition-colors',
                           selectedRole === role.name
-                            ? 'border-blue-500 bg-blue-50'
-                            : 'border-gray-200 hover:border-gray-300'
+                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                            : 'border-gray-200 dark:border-zinc-800 hover:border-gray-300 dark:border-zinc-700'
                         )}
                         onClick={() => setSelectedRole(role.name)}
                       >
                         <h4 className="font-medium mb-2">{getRoleName(role.name)}</h4>
-                        <p className="text-sm text-gray-600 mb-3">{role.description}</p>
+                        <p className="text-sm text-gray-600 dark:text-zinc-400 mb-3">{role.description}</p>
                         <div>
                           <p className="text-sm font-medium mb-1">Mas'uliyatlar:</p>
-                          <ul className="text-xs text-gray-600 space-y-1">
+                          <ul className="text-xs text-gray-600 dark:text-zinc-400 space-y-1">
                             {role.responsibilities.slice(0, 2).map((resp, index) => (
                               <li key={index}>• {resp}</li>
                             ))}
@@ -481,7 +481,7 @@ const CourtSimulator: React.FC = () => {
 
                   {selectedRole && (
                     <div className="mt-6">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
                         Sizning argumentlaringiz ({getRoleName(selectedRole)} sifatida)
                       </label>
                       <Textarea
@@ -515,7 +515,7 @@ const CourtSimulator: React.FC = () => {
           ) : (
             <Card>
               <CardContent className="flex items-center justify-center py-12">
-                <div className="text-center text-gray-500">
+                <div className="text-center text-gray-500 dark:text-zinc-500">
                   <p>Senariy tanlanmagan</p>
                   <p className="text-sm mt-2">Avval senariy tanlang</p>
                 </div>
@@ -530,15 +530,15 @@ const CourtSimulator: React.FC = () => {
               <CardContent className="flex items-center justify-center py-12">
                 <div className="text-center space-y-4">
                   <LoadingSpinner size="lg" />
-                  <p className="text-gray-600">Simulyatsiya jarayoni davom etmoqda...</p>
-                  <p className="text-sm text-gray-500">AI tahlili olib borilmoqda</p>
+                  <p className="text-gray-600 dark:text-zinc-400">Simulyatsiya jarayoni davom etmoqda...</p>
+                  <p className="text-sm text-gray-500 dark:text-zinc-500">AI tahlili olib borilmoqda</p>
                 </div>
               </CardContent>
             </Card>
           ) : (
             <Card>
               <CardContent className="flex items-center justify-center py-12">
-                <div className="text-center text-gray-500">
+                <div className="text-center text-gray-500 dark:text-zinc-500">
                   <p>Simulyatsiya boshlanmagan</p>
                   <p className="text-sm mt-2">Tayyorgarlik bosqichidan boshlang</p>
                 </div>
@@ -565,7 +565,7 @@ const CourtSimulator: React.FC = () => {
                     <div className={cn("text-6xl font-bold", getScoreColor(simulationResult.overall_score))}>
                       {simulationResult.overall_score}
                     </div>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-gray-500 dark:text-zinc-500">
                       {simulationResult.overall_score >= 90 && 'A\'lo'}
                       {simulationResult.overall_score >= 80 && simulationResult.overall_score < 90 && 'Yaxshi'}
                       {simulationResult.overall_score >= 70 && simulationResult.overall_score < 80 && 'Qoniqarli'}
@@ -596,7 +596,7 @@ const CourtSimulator: React.FC = () => {
                           <p className="text-sm font-medium text-green-600 mb-2">Kuchli tomonlar:</p>
                           <ul className="space-y-1">
                             {performance.strengths.map((strength, index) => (
-                              <li key={index} className="text-sm text-gray-700">• {strength}</li>
+                              <li key={index} className="text-sm text-gray-700 dark:text-zinc-300">• {strength}</li>
                             ))}
                           </ul>
                         </div>
@@ -604,12 +604,12 @@ const CourtSimulator: React.FC = () => {
                           <p className="text-sm font-medium text-orange-600 mb-2">Kamchiliklar:</p>
                           <ul className="space-y-1">
                             {performance.weaknesses.map((weakness, index) => (
-                              <li key={index} className="text-sm text-gray-700">• {weakness}</li>
+                              <li key={index} className="text-sm text-gray-700 dark:text-zinc-300">• {weakness}</li>
                             ))}
                           </ul>
                         </div>
                       </div>
-                      <div className="p-3 bg-blue-50 rounded-md">
+                      <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-md">
                         <p className="text-sm font-medium text-blue-900 mb-1">Fikr-mulohaza:</p>
                         <p className="text-sm text-blue-700">{performance.feedback}</p>
                       </div>
@@ -626,12 +626,12 @@ const CourtSimulator: React.FC = () => {
                 <CardContent>
                   <div className="space-y-4">
                     <div>
-                      <p className="text-sm font-medium text-gray-500 mb-1">Qaror:</p>
+                      <p className="text-sm font-medium text-gray-500 dark:text-zinc-500 mb-1">Qaror:</p>
                       <p className="text-lg font-medium">{simulationResult.decision}</p>
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-gray-500 mb-1">Izoh:</p>
-                      <p className="text-gray-700">{simulationResult.reasoning}</p>
+                      <p className="text-sm font-medium text-gray-500 dark:text-zinc-500 mb-1">Izoh:</p>
+                      <p className="text-gray-700 dark:text-zinc-300">{simulationResult.reasoning}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -647,7 +647,7 @@ const CourtSimulator: React.FC = () => {
                     {simulationResult.learning_points.map((point, index) => (
                       <li key={index} className="flex items-start space-x-2">
                         <span className="text-blue-500 mt-1">→</span>
-                        <span className="text-gray-700">{point}</span>
+                        <span className="text-gray-700 dark:text-zinc-300">{point}</span>
                       </li>
                     ))}
                   </ul>
@@ -657,7 +657,7 @@ const CourtSimulator: React.FC = () => {
           ) : (
             <Card>
               <CardContent className="flex items-center justify-center py-12">
-                <div className="text-center text-gray-500">
+                <div className="text-center text-gray-500 dark:text-zinc-500">
                   <p>Hali natijalar yo'q</p>
                   <p className="text-sm mt-2">Avval simulyatsiyani o'tkazing</p>
                 </div>

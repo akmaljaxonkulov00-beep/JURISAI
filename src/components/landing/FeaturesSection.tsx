@@ -17,7 +17,7 @@ const FeaturesSection: React.FC<FeaturesSectionProps> = ({ className }) => {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
         </svg>
       ),
-      color: 'bg-blue-500',
+      color: 'bg-blue-50 dark:bg-blue-900/20',
       highlights: ['Issue aniqlash', 'Rule qo\'llash', 'Application tahlil', 'Conclusion chiqarish']
     },
     {
@@ -41,7 +41,7 @@ const FeaturesSection: React.FC<FeaturesSectionProps> = ({ className }) => {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6-3 6h-5.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
         </svg>
       ),
-      color: 'bg-purple-500',
+      color: 'bg-purple-50 dark:bg-purple-900/20',
       highlights: ['4 ta rol', 'Real-time jarayon', 'AI qarorlar', 'Feedback']
     },
     {
@@ -65,7 +65,7 @@ const FeaturesSection: React.FC<FeaturesSectionProps> = ({ className }) => {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
         </svg>
       ),
-      color: 'bg-red-500',
+      color: 'bg-red-50 dark:bg-red-900/20',
       highlights: ['4 ta senariy', 'AI tahlil', 'Xavf baholash', 'Tavsiyalar']
     },
     {
@@ -77,20 +77,20 @@ const FeaturesSection: React.FC<FeaturesSectionProps> = ({ className }) => {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
         </svg>
       ),
-      color: 'bg-indigo-500',
+      color: 'bg-indigo-50 dark:bg-indigo-900/20',
       highlights: ['10+ shablon', 'Field validation', 'Export imkoniyati', 'Customizatsiya']
     }
   ];
 
   return (
-    <section className={cn('py-20 bg-gray-50', className)}>
+    <section className={cn('py-20 bg-gray-50 dark:bg-zinc-800/50', className)}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-zinc-100 mb-4">
             Yuqori texnologiyali <span className="text-emerald-600">huquqiy ta'lim</span>
           </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <p className="text-xl text-gray-600 dark:text-zinc-400 max-w-3xl mx-auto">
             Zamonaviy AI va interaktiv vositalar bilan huquqiy bilimlaringizni yangi bosqichga ko'taring
           </p>
         </div>
@@ -109,10 +109,10 @@ const FeaturesSection: React.FC<FeaturesSectionProps> = ({ className }) => {
                 </div>
 
                 {/* Content */}
-                <h3 className="text-xl font-bold text-gray-900 mb-4 group-hover:text-emerald-600 transition-colors">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-zinc-100 mb-4 group-hover:text-emerald-600 transition-colors">
                   {feature.title}
                 </h3>
-                <p className="text-gray-600 mb-6 leading-relaxed">
+                <p className="text-gray-600 dark:text-zinc-400 mb-6 leading-relaxed">
                   {feature.description}
                 </p>
 
@@ -123,7 +123,7 @@ const FeaturesSection: React.FC<FeaturesSectionProps> = ({ className }) => {
                       <svg className="w-4 h-4 text-emerald-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                       </svg>
-                      <span className="text-sm text-gray-700">{highlight}</span>
+                      <span className="text-sm text-gray-700 dark:text-zinc-300">{highlight}</span>
                     </div>
                   ))}
                 </div>
@@ -152,14 +152,14 @@ const FeaturesSection: React.FC<FeaturesSectionProps> = ({ className }) => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 size="lg"
-                className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-3 font-medium"
+                className="bg-white dark:bg-zinc-900 text-blue-600 hover:bg-gray-100 dark:bg-zinc-800/30 px-8 py-3 font-medium"
               >
                 Bepul boshlang
               </Button>
               <Button
                 variant="outline"
                 size="lg"
-                className="border-white text-white hover:bg-white hover:text-blue-600 px-8 py-3 font-medium"
+                className="border-white text-white hover:bg-white dark:bg-zinc-900 hover:text-blue-600 dark:hover:text-blue-400 px-8 py-3 font-medium"
               >
                 Narxlar bilan tanishish
               </Button>

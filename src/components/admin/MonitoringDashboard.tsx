@@ -172,7 +172,7 @@ export default function MonitoringDashboard() {
           <RefreshCw size={14} className={`mr-1 ${autoRefresh ? 'animate-spin' : ''}`} /> Yangilash
         </Button>
         {lastUpdated && (
-          <span className="text-xs text-gray-400 dark:text-gray-500">So'nggi yangilanish: {lastUpdated}</span>
+          <span className="text-xs text-gray-400 dark:text-gray-500 dark:text-zinc-500">So'nggi yangilanish: {lastUpdated}</span>
         )}
       </div>
 

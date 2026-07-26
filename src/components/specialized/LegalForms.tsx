@@ -412,7 +412,7 @@ const LegalForms: React.FC = () => {
       case 'Administrative': return 'bg-green-100 text-green-800';
       case 'Business Law': return 'bg-purple-100 text-purple-800';
       case 'Family Law': return 'bg-pink-100 text-pink-800';
-      default: return 'bg-gray-100 text-gray-800';
+      default: return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200';
     }
   };
 
@@ -422,7 +422,7 @@ const LegalForms: React.FC = () => {
       case 'processing': return 'bg-blue-100 text-blue-800';
       case 'approved': return 'bg-green-100 text-green-800';
       case 'rejected': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      default: return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200';
     }
   };
 
@@ -453,13 +453,13 @@ const LegalForms: React.FC = () => {
       case 'select':
         return (
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300">
               {field.label} {field.required && <span className="text-red-500">*</span>}
             </label>
             <select
               value={value}
               onChange={(e) => handleFieldChange(field.id, e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">Tanlang...</option>
               {field.options?.map(option => (
@@ -486,8 +486,8 @@ const LegalForms: React.FC = () => {
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold text-gray-900">Huquqiy shakllar</h1>
-        <p className="text-gray-600">Rasmiy huquqiy shakllarni to\'ldiring va yuboring</p>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-zinc-100">Huquqiy shakllar</h1>
+        <p className="text-gray-600 dark:text-zinc-400">Rasmiy huquqiy shakllarni to\'ldiring va yuboring</p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
@@ -512,15 +512,15 @@ const LegalForms: React.FC = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    <p className="text-gray-600">{template.description}</p>
-                    <div className="flex items-center justify-between text-sm text-gray-500">
+                    <p className="text-gray-600 dark:text-zinc-400">{template.description}</p>
+                    <div className="flex items-center justify-between text-sm text-gray-500 dark:text-zinc-500">
                       <span>{template.fields.length} maydon</span>
                       <span>{template.processing_time}</span>
                     </div>
                     {template.fees > 0 && (
                       <div className="text-sm">
                         <span className="font-medium">Davlat boji: </span>
-                        <span className="text-gray-700">{template.fees.toLocaleString()} so\'m</span>
+                        <span className="text-gray-700 dark:text-zinc-300">{template.fees.toLocaleString()} so\'m</span>
                       </div>
                     )}
                     <Button
@@ -557,7 +557,7 @@ const LegalForms: React.FC = () => {
               <CardContent>
                 <div className="space-y-6">
                   {/* Instructions */}
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 rounded-lg p-4">
                     <h4 className="font-medium text-blue-900 mb-2">Ko\'rsatmalar:</h4>
                     <ul className="space-y-1">
                       {selectedTemplate.instructions.map((instruction, index) => (
@@ -570,7 +570,7 @@ const LegalForms: React.FC = () => {
                   </div>
 
                   {/* Required documents */}
-                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 rounded-lg p-4">
                     <h4 className="font-medium text-yellow-900 mb-2">Talab qilinadigan hujjatlar:</h4>
                     <ul className="space-y-1">
                       {selectedTemplate.required_documents.map((doc, index) => (
@@ -613,7 +613,7 @@ const LegalForms: React.FC = () => {
           ) : (
             <Card>
               <CardContent className="flex items-center justify-center py-12">
-                <div className="text-center text-gray-500">
+                <div className="text-center text-gray-500 dark:text-zinc-500">
                   <p>Shakl tanlanmagan</p>
                   <p className="text-sm mt-2">Avval shakl tanlang</p>
                 </div>
@@ -631,7 +631,7 @@ const LegalForms: React.FC = () => {
                     <div className="flex items-center justify-between mb-4">
                       <div>
                         <h3 className="font-medium text-lg">{submission.template.name}</h3>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-gray-500 dark:text-zinc-500">
                           Yuborilgan: {submission.submitted_at.toLocaleString('uz-UZ')}
                         </p>
                       </div>
@@ -645,7 +645,7 @@ const LegalForms: React.FC = () => {
                         if (!field) return null;
                         return (
                           <div key={key} className="flex justify-between">
-                            <span className="text-sm text-gray-600">{field.label}:</span>
+                            <span className="text-sm text-gray-600 dark:text-zinc-400">{field.label}:</span>
                             <span className="text-sm font-medium">
                               {typeof value === 'boolean' ? (value ? 'Ha' : 'Yo\'q') : String(value)}
                             </span>
@@ -660,7 +660,7 @@ const LegalForms: React.FC = () => {
           ) : (
             <Card>
               <CardContent className="flex items-center justify-center py-12">
-                <div className="text-center text-gray-500">
+                <div className="text-center text-gray-500 dark:text-zinc-500">
                   <p>Hali arizalar yuborilmagan</p>
                   <p className="text-sm mt-2">Birinchi arizani yuboring</p>
                 </div>
@@ -678,7 +678,7 @@ const LegalForms: React.FC = () => {
               <div className="space-y-6">
                 <div>
                   <h4 className="font-medium mb-2">Shakllarni to\'ldirish qoidalari:</h4>
-                  <ul className="space-y-2 text-gray-700">
+                  <ul className="space-y-2 text-gray-700 dark:text-zinc-300">
                     <li className="flex items-start space-x-2">
                       <span className="text-blue-500 mt-1">1.</span>
                       <span>Barcha maydonlarni to\'g\'ri va to\'liq to\'ldiring. Belgilangan maydonlar majburiy hisoblanadi.</span>
@@ -700,7 +700,7 @@ const LegalForms: React.FC = () => {
 
                 <div>
                   <h4 className="font-medium mb-2">Yuborishdan oldin tekshirish:</h4>
-                  <ul className="space-y-2 text-gray-700">
+                  <ul className="space-y-2 text-gray-700 dark:text-zinc-300">
                     <li className="flex items-start space-x-2">
                       <span className="text-green-500 mt-1">[OK]</span>
                       <span>Barcha maydonlar to\'ldirilganligini tekshiring</span>
@@ -722,8 +722,8 @@ const LegalForms: React.FC = () => {
 
                 <div>
                   <h4 className="font-medium mb-2">Qo\'shimcha maslahatlar:</h4>
-                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                    <ul className="space-y-2 text-gray-700">
+                  <div className="bg-gray-50 dark:bg-zinc-800/50 border border-gray-200 dark:border-zinc-800 rounded-lg p-4">
+                    <ul className="space-y-2 text-gray-700 dark:text-zinc-300">
                       <li className="flex items-start space-x-2">
                         <span className="text-orange-500 mt-1">!</span>
                         <span>Shaklni yuborishdan oldin advokat bilan maslahatlashingiz tavsiya etiladi.</span>

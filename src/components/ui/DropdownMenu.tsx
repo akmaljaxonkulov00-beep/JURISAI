@@ -82,7 +82,7 @@ const DropdownMenuTrigger: React.FC<DropdownMenuTriggerProps> = ({
       type="button"
       onClick={handleClick}
       className={cn(
-        'inline-flex justify-center w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2',
+        'inline-flex justify-center w-full rounded-md border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-2 text-sm font-medium text-gray-700 dark:text-zinc-300 shadow-sm hover:bg-gray-50 dark:bg-zinc-800/50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2',
         className
       )}
       aria-expanded={isOpen}
@@ -134,7 +134,7 @@ const DropdownMenuContent: React.FC<DropdownMenuContentProps> = ({
   return (
     <div
       className={cn(
-        'absolute z-10 mt-2 w-56 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none',
+        'absolute z-10 mt-2 w-56 rounded-md bg-white dark:bg-zinc-900 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none',
         getAlignmentClasses(align),
         className
       )}
@@ -173,7 +173,7 @@ const DropdownMenuItem: React.FC<DropdownMenuItemProps> = ({
     <button
       type="button"
       className={cn(
-        'w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus:bg-gray-100 focus:text-gray-900',
+        'w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-zinc-300 hover:bg-gray-100 dark:bg-zinc-800/30 hover:text-gray-900 dark:text-zinc-100 focus:outline-none focus:bg-gray-100 dark:bg-zinc-800/30 focus:text-gray-900 dark:text-zinc-100',
         disabled && 'opacity-50 cursor-not-allowed',
         className
       )}
@@ -191,7 +191,7 @@ interface DropdownMenuSeparatorProps {
 }
 
 const DropdownMenuSeparator: React.FC<DropdownMenuSeparatorProps> = ({ className }) => (
-  <div className={cn('border-t border-gray-100 my-1', className)} role="separator" />
+  <div className={cn('border-t border-gray-100 dark:border-zinc-800 my-1', className)} role="separator" />
 );
 
 interface DropdownMenuLabelProps {
@@ -200,7 +200,7 @@ interface DropdownMenuLabelProps {
 }
 
 const DropdownMenuLabel: React.FC<DropdownMenuLabelProps> = ({ children, className }) => (
-  <div className={cn('px-4 py-2 text-sm text-gray-500', className)} role="menuitem">
+  <div className={cn('px-4 py-2 text-sm text-gray-500 dark:text-zinc-500', className)} role="menuitem">
     {children}
   </div>
 );

@@ -169,7 +169,7 @@ export default function EnhancedAdminDashboard() {
       case 'healthy': return 'text-green-600';
       case 'warning': return 'text-yellow-600';
       case 'error': return 'text-red-600';
-      default: return 'text-gray-600';
+      default: return 'text-gray-600 dark:text-zinc-400';
     }
   };
 
@@ -187,20 +187,20 @@ export default function EnhancedAdminDashboard() {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Admin panel yuklanmoqda...</p>
+          <p className="text-gray-600 dark:text-zinc-400">Admin panel yuklanmoqda...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-zinc-800/50 p-6">
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Admin Panel</h1>
-            <p className="text-gray-600">Tizim statistikasi va boshqaruv</p>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-zinc-100">Admin Panel</h1>
+            <p className="text-gray-600 dark:text-zinc-400">Tizim statistikasi va boshqaruv</p>
           </div>
           <div className="flex items-center gap-4">
             <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${getHealthColor(stats.systemHealth)}`}>
@@ -218,7 +218,7 @@ export default function EnhancedAdminDashboard() {
         </div>
 
         {error && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 rounded-lg p-4 mb-6">
             <div className="flex items-center gap-2">
               <AlertCircle className="w-5 h-5 text-yellow-600" />
               <span className="text-yellow-800">{error}</span>
@@ -228,7 +228,7 @@ export default function EnhancedAdminDashboard() {
       </div>
 
       {/* Tab Navigation */}
-      <div className="flex gap-4 mb-6 border-b border-gray-200">
+      <div className="flex gap-4 mb-6 border-b border-gray-200 dark:border-zinc-800">
         {['overview', 'users', 'revenue', 'system'].map((tab) => (
           <button
             key={tab}
@@ -236,7 +236,7 @@ export default function EnhancedAdminDashboard() {
             className={`px-4 py-2 font-medium transition-colors ${
               activeTab === tab
                 ? 'text-blue-600 border-b-2 border-blue-600'
-                : 'text-gray-600 hover:text-gray-900'
+                : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100'
             }`}
           >
             {tab === 'overview' ? 'Umumiy ko\'rinish' :
@@ -253,8 +253,8 @@ export default function EnhancedAdminDashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Jami foydalanuvchilar</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.totalUsers.toLocaleString()}</p>
+                  <p className="text-sm text-gray-600 dark:text-zinc-400">Jami foydalanuvchilar</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-zinc-100">{stats.totalUsers.toLocaleString()}</p>
                 </div>
                 <Users className="w-8 h-8 text-blue-600" />
               </div>
@@ -269,8 +269,8 @@ export default function EnhancedAdminDashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Faol foydalanuvchilar</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.activeUsers.toLocaleString()}</p>
+                  <p className="text-sm text-gray-600 dark:text-zinc-400">Faol foydalanuvchilar</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-zinc-100">{stats.activeUsers.toLocaleString()}</p>
                 </div>
                 <Activity className="w-8 h-8 text-green-600" />
               </div>
@@ -286,8 +286,8 @@ export default function EnhancedAdminDashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Jami daromad</p>
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className="text-sm text-gray-600 dark:text-zinc-400">Jami daromad</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-zinc-100">
                     {stats.totalRevenue.toLocaleString('uz-UZ')} so'm
                   </p>
                 </div>
@@ -304,12 +304,12 @@ export default function EnhancedAdminDashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Tranzaksiyalar</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.totalTransactions}</p>
+                  <p className="text-sm text-gray-600 dark:text-zinc-400">Tranzaksiyalar</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-zinc-100">{stats.totalTransactions}</p>
                 </div>
                 <Database className="w-8 h-8 text-purple-600" />
               </div>
-              <div className="mt-2 text-sm text-gray-600">
+              <div className="mt-2 text-sm text-gray-600 dark:text-zinc-400">
                 Oxirgi sinxronizatsiya: {new Date(stats.lastSync).toLocaleTimeString()}
               </div>
             </CardContent>
@@ -382,7 +382,7 @@ export default function EnhancedAdminDashboard() {
                 </div>
                 <div className="flex items-center justify-between">
                   <span>Last Sync</span>
-                  <span className="text-sm text-gray-600">
+                  <span className="text-sm text-gray-600 dark:text-zinc-400">
                     {new Date(stats.lastSync).toLocaleString()}
                   </span>
                 </div>
@@ -396,7 +396,7 @@ export default function EnhancedAdminDashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="p-4 bg-gray-50 rounded-lg">
+                <div className="p-4 bg-gray-50 dark:bg-zinc-800/50 rounded-lg">
                   <h4 className="font-medium mb-2">Environment Variables</h4>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">

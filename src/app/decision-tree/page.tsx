@@ -218,9 +218,9 @@ export default function DecisionTreeEngine() {
 
   return (
     <div className="min-h-screen bg-[#f8faff] dark:bg-gray-950">
-      <div className="flex">
+      <div className="flex flex-col lg:flex-row">
         {/* Sidebar */}
-        <div className="w-64 bg-white dark:bg-zinc-900 border-r border-gray-100 dark:border-zinc-800 min-h-screen">
+        <div className="hidden lg:block w-64 bg-white dark:bg-zinc-900 border-r border-gray-100 dark:border-zinc-800 min-h-screen flex-shrink-0">
           <div className="p-6">
             {/* Daily Goal Block */}
             <div className="bg-orange-50 dark:bg-orange-900/30 rounded-xl p-4 mb-6">
@@ -255,7 +255,7 @@ export default function DecisionTreeEngine() {
         {/* Main Content */}
         <div className="flex-1">
           {/* Header */}
-          <header className="bg-white dark:bg-zinc-900 px-8 py-4 border-b border-gray-100 dark:border-zinc-800">
+          <header className="bg-white dark:bg-zinc-900 px-4 sm:px-6 lg:px-8 py-4 border-b border-gray-100 dark:border-zinc-800">
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-2xl font-bold text-gray-800 dark:text-zinc-100">Qarorlar Daraxti Dvigateli</h1>
@@ -312,15 +312,15 @@ export default function DecisionTreeEngine() {
               {/* Legend */}
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                  <div className="w-3 h-3 bg-blue-50 dark:bg-blue-900/20 rounded-full"></div>
                   <span className="text-xs text-gray-600 dark:text-zinc-300">Joriy nuqta</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                  <div className="w-3 h-3 bg-green-50 dark:bg-green-900/20 rounded-full"></div>
                   <span className="text-xs text-gray-600 dark:text-zinc-300">Optimal yo'l</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                  <div className="w-3 h-3 bg-red-50 dark:bg-red-900/20 rounded-full"></div>
                   <span className="text-xs text-gray-600 dark:text-zinc-300">Xavfli yo'l</span>
                 </div>
               </div>
@@ -328,10 +328,10 @@ export default function DecisionTreeEngine() {
           </div>
 
           {/* Main Content Area */}
-          <main className="p-8">
-            <div className="grid grid-cols-4 gap-6">
+          <main className="p-4 sm:p-6 lg:p-8">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 lg:gap-6">
               {/* Decision Tree Visualization */}
-              <div className="col-span-3">
+              <div className="lg:col-span-3">
                 <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-sm">
                   <div className="mb-4">
                     <h2 className="text-xl font-bold text-gray-800 dark:text-zinc-100 mb-2">Vizual Strategiya Xaritasi</h2>
@@ -371,7 +371,7 @@ export default function DecisionTreeEngine() {
               </div>
 
               {/* Statistics Panel */}
-              <div className="col-span-1">
+              <div className="lg:col-span-1">
                 <div className="bg-white dark:bg-zinc-900 rounded-2xl p-4 shadow-sm mb-4">
                   <h3 className="font-semibold text-gray-800 dark:text-zinc-100 mb-4">Statistik Ma'lumotlar</h3>
                   <div className="space-y-4">

@@ -38,16 +38,16 @@ export default function SetupSupabasePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-zinc-800/50 p-8">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-3xl font-bold mb-8">Supabase Setup</h1>
         
-        <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-md p-6">
           <h2 className="text-xl font-semibold mb-4">Environment Variables</h2>
           
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
                 Supabase URL
               </label>
               <input
@@ -56,12 +56,12 @@ export default function SetupSupabasePage() {
                 value={envVars.NEXT_PUBLIC_SUPABASE_URL}
                 onChange={handleChange}
                 placeholder="https://your-project.supabase.co"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-zinc-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
                 Supabase Anon Key
               </label>
               <input
@@ -70,12 +70,12 @@ export default function SetupSupabasePage() {
                 value={envVars.NEXT_PUBLIC_SUPABASE_ANON_KEY}
                 onChange={handleChange}
                 placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-zinc-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
                 Supabase Service Role Key
               </label>
               <input
@@ -84,7 +84,7 @@ export default function SetupSupabasePage() {
                 value={envVars.SUPABASE_SERVICE_ROLE_KEY}
                 onChange={handleChange}
                 placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-zinc-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
           </div>
@@ -112,9 +112,9 @@ export default function SetupSupabasePage() {
           )}
         </div>
         
-        <div className="mt-8 bg-blue-50 rounded-lg p-6">
+        <div className="mt-8 bg-blue-50 dark:bg-blue-900/20 rounded-lg p-6">
           <h3 className="text-lg font-semibold mb-4">How to get Supabase credentials:</h3>
-          <ol className="list-decimal list-inside space-y-2 text-gray-700">
+          <ol className="list-decimal list-inside space-y-2 text-gray-700 dark:text-zinc-300">
             <li>Go to <a href="https://supabase.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">supabase.com</a></li>
             <li>Create a new project or select existing one</li>
             <li>Go to Project Settings → API</li>
@@ -125,9 +125,9 @@ export default function SetupSupabasePage() {
           </ol>
         </div>
         
-        <div className="mt-8 bg-yellow-50 rounded-lg p-6">
+        <div className="mt-8 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-6">
           <h3 className="text-lg font-semibold mb-4">Important Notes:</h3>
-          <ul className="list-disc list-inside space-y-2 text-gray-700">
+          <ul className="list-disc list-inside space-y-2 text-gray-700 dark:text-zinc-300">
             <li>These credentials are stored in localStorage for development only</li>
             <li>In production, use proper .env.local file</li>
             <li>Never expose service role key in client-side code</li>

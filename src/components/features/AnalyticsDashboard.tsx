@@ -148,7 +148,7 @@ export default function AnalyticsDashboard() {
       <div className="p-6 max-w-6xl mx-auto">
         <div className="text-center py-12">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="text-gray-600 mt-4">Analitika ma'lumotlari yuklanmoqda...</p>
+          <p className="text-gray-600 dark:text-zinc-400 mt-4">Analitika ma'lumotlari yuklanmoqda...</p>
         </div>
       </div>
     );
@@ -157,8 +157,8 @@ export default function AnalyticsDashboard() {
   return (
     <div className="p-6 max-w-6xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Analitika Dashboard</h1>
-        <p className="text-gray-600">Platforma statistikasi va foydalanuvchi analitikasi</p>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-zinc-100 mb-2">Analitika Dashboard</h1>
+        <p className="text-gray-600 dark:text-zinc-400">Platforma statistikasi va foydalanuvchi analitikasi</p>
       </div>
 
       {/* Controls */}
@@ -167,7 +167,7 @@ export default function AnalyticsDashboard() {
           <select 
             value={timeRange} 
             onChange={(e) => setTimeRange(e.target.value as any)}
-            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-3 py-2 border border-gray-300 dark:border-zinc-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="7d">7 kun</option>
             <option value="30d">30 kun</option>
@@ -188,8 +188,8 @@ export default function AnalyticsDashboard() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-600 text-sm">Jami foydalanuvchilar</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-gray-600 dark:text-zinc-400 text-sm">Jami foydalanuvchilar</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-zinc-100">
                   {analyticsData?.users.total.toLocaleString()}
                 </p>
                 <p className="text-green-600 text-sm">+{analyticsData?.users.growth}%</p>
@@ -203,8 +203,8 @@ export default function AnalyticsDashboard() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-600 text-sm">Oylik daromad</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-gray-600 dark:text-zinc-400 text-sm">Oylik daromad</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-zinc-100">
                   {analyticsData?.revenue.monthly.toLocaleString()} so'm
                 </p>
                 <p className="text-green-600 text-sm">+{analyticsData?.revenue.growth}%</p>
@@ -218,8 +218,8 @@ export default function AnalyticsDashboard() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-600 text-sm">Yaratilgan hujjatlar</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-gray-600 dark:text-zinc-400 text-sm">Yaratilgan hujjatlar</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-zinc-100">
                   {analyticsData?.documents.generated.toLocaleString()}
                 </p>
                 <p className="text-green-600 text-sm">+24.1%</p>
@@ -233,8 +233,8 @@ export default function AnalyticsDashboard() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-600 text-sm">AI so'rovlar</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-gray-600 dark:text-zinc-400 text-sm">AI so'rovlar</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-zinc-100">
                   {analyticsData?.ai.requests.toLocaleString()}
                 </p>
                 <p className="text-green-600 text-sm">+45.7%</p>
@@ -311,15 +311,15 @@ export default function AnalyticsDashboard() {
           <CardContent>
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <span className="text-gray-600">Jami so'rovlar</span>
+                <span className="text-gray-600 dark:text-zinc-400">Jami so'rovlar</span>
                 <span className="font-semibold">{analyticsData?.ai.requests.toLocaleString()}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-gray-600">Muvaffaqiyat foizi</span>
+                <span className="text-gray-600 dark:text-zinc-400">Muvaffaqiyat foizi</span>
                 <span className="font-semibold text-green-600">{analyticsData?.ai.success_rate}%</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-gray-600">O'rtacha javob vaqti</span>
+                <span className="text-gray-600 dark:text-zinc-400">O'rtacha javob vaqti</span>
                 <span className="font-semibold">{analyticsData?.ai.avg_response_time}s</span>
               </div>
             </div>
@@ -333,15 +333,15 @@ export default function AnalyticsDashboard() {
           <CardContent>
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <span className="text-gray-600">Yaratilgan hujjatlar</span>
+                <span className="text-gray-600 dark:text-zinc-400">Yaratilgan hujjatlar</span>
                 <span className="font-semibold">{analyticsData?.documents.generated.toLocaleString()}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-gray-600">Shablonlar soni</span>
+                <span className="text-gray-600 dark:text-zinc-400">Shablonlar soni</span>
                 <span className="font-semibold">{analyticsData?.documents.templates}</span>
               </div>
               <div>
-                <p className="text-gray-600 mb-2">Eng mashhur:</p>
+                <p className="text-gray-600 dark:text-zinc-400 mb-2">Eng mashhur:</p>
                 <div className="flex flex-wrap gap-1">
                   {analyticsData?.documents.popular.slice(0, 3).map((doc, index) => (
                     <Badge key={index} variant="secondary" className="text-xs">
@@ -361,19 +361,19 @@ export default function AnalyticsDashboard() {
           <CardContent>
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <span className="text-gray-600">Churn rate</span>
+                <span className="text-gray-600 dark:text-zinc-400">Churn rate</span>
                 <span className="font-semibold text-red-600">{analyticsData?.subscriptions.churn_rate}%</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-gray-600">Bepul</span>
+                <span className="text-gray-600 dark:text-zinc-400">Bepul</span>
                 <span className="font-semibold">{analyticsData?.subscriptions.free.toLocaleString()}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-gray-600">Pro</span>
+                <span className="text-gray-600 dark:text-zinc-400">Pro</span>
                 <span className="font-semibold">{analyticsData?.subscriptions.pro.toLocaleString()}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-gray-600">Premium</span>
+                <span className="text-gray-600 dark:text-zinc-400">Premium</span>
                 <span className="font-semibold">{analyticsData?.subscriptions.premium.toLocaleString()}</span>
               </div>
             </div>

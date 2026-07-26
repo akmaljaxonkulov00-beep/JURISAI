@@ -66,7 +66,7 @@ export default function AdminProtectedRoute({
       <div className="min-h-screen bg-gray-50 dark:bg-zinc-950 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Admin tekshiruvi o'tkazilmoqda...</p>
+          <p className="text-gray-600 dark:text-zinc-400">Admin tekshiruvi o'tkazilmoqda...</p>
         </div>
       </div>
     );
@@ -89,16 +89,16 @@ export default function AdminProtectedRoute({
           <CardContent className="space-y-4">
             <div className="text-center">
               <AlertTriangle className="w-12 h-12 text-yellow-600 mx-auto mb-4" />
-              <p className="text-gray-700 mb-2">
+              <p className="text-gray-700 dark:text-zinc-300 mb-2">
                 Bu sahifaga kirish uchun admin ruxsatlari kerak.
               </p>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-600 dark:text-zinc-400">
                 Sizning rolingiz: {user?.role || 'Noma\'lum'}
               </p>
             </div>
 
             <div className="space-y-2">
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-gray-600 dark:text-zinc-400">
                 <strong>Kerakli ruxsatlar:</strong>
               </div>
               <div className="flex flex-wrap gap-1">
@@ -143,7 +143,7 @@ export default function AdminProtectedRoute({
             </div>
 
             {user && (
-              <div className="text-center text-sm text-gray-500">
+              <div className="text-center text-sm text-gray-500 dark:text-zinc-500">
                 <p>Joriy foydalanuvchi: {user.name}</p>
                 <p>Email: {user.email}</p>
               </div>

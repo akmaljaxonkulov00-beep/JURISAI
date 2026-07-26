@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
-import { openaiClient } from '@/lib/openai';
 import { trackUsage } from '@/lib/usage-tracking';
 import { extractSection, extractSources, calculateConfidence, getMockAnalysis } from '@/lib/irac-analysis/utils';
 
@@ -64,26 +63,34 @@ Javobingizni quyidagi formatda tuzing:
 `;
 
   try {
-    const response = await openaiClient.generateText(prompt);
+    const openaiMod = await import('@/lib/openai');
+    const client = (openaiMod as any).openaiClient;
+    const response = client ? await client.generateText(prompt) : 'AI hizmati vaqtincha mavjud emas.';
     
     // Parse response and extract confidence
-    const confidence = calculateConfidence(caseText, response);
+    const confidence = typeof calculateConfidence === 'function' ? (calculateConfidence as any)(caseText, response) : 70;
     
     // Extract sources from response
-    const sources = extractSources(response);
+    const sources = typeof extractSources === 'function' ? (extractSources as any)(response) : [];
 
     return {
-      issue: extractSection(response, 'Issue'),
-      rule: extractSection(response, 'Rule'),
-      application: extractSection(response, 'Application'),
-      conclusion: extractSection(response, 'Conclusion'),
+      issue: typeof extractSection === 'function' ? (extractSection as any)(response, 'Issue') : 'Tahlil qilishda xatolik',
+      rule: typeof extractSection === 'function' ? (extractSection as any)(response, 'Rule') : 'Qonun moddasini aniqlashda xatolik',
+      application: typeof extractSection === 'function' ? (extractSection as any)(response, 'Application') : 'Tatbiq qilishda xatolik',
+      conclusion: typeof extractSection === 'function' ? (extractSection as any)(response, 'Conclusion') : 'Xulosa chiqarishda xatolik',
       sources,
       confidence
     };
   } catch (error) {
     console.error('OpenAI analysis error:', error);
-    // Fallback to mock analysis if OpenAI fails
-    return getMockAnalysis(caseText);
+    return {
+      issue: 'Tahlil qilishda xatolik yuz berdi',
+      rule: 'Iltimos, qayta urinib ko\'ring',
+      application: 'Xatolik vaqtinchalik',
+      conclusion: 'Agar xatolik takrorlansa, administrator bilan bog\'laning',
+      sources: [],
+      confidence: 0
+    };
   }
 }
 

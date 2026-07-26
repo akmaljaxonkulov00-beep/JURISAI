@@ -29,13 +29,13 @@ const StatsCard: React.FC<StatsCardProps> = ({
   const getVariantColors = (variant: string) => {
     switch (variant) {
       case 'success':
-        return 'border-green-200 bg-green-50';
+        return 'border-green-200 bg-green-50 dark:bg-green-900/20';
       case 'warning':
-        return 'border-yellow-200 bg-yellow-50';
+        return 'border-yellow-200 bg-yellow-50 dark:bg-yellow-900/20';
       case 'danger':
-        return 'border-red-200 bg-red-50';
+        return 'border-red-200 bg-red-50 dark:bg-red-900/20';
       default:
-        return 'border-gray-200 bg-white';
+        return 'border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900';
     }
   };
 
@@ -58,11 +58,11 @@ const StatsCard: React.FC<StatsCardProps> = ({
   return (
     <Card className={cn(getVariantColors(variant), className)}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium text-gray-600">
+        <CardTitle className="text-sm font-medium text-gray-600 dark:text-zinc-400">
           {title}
         </CardTitle>
         {icon && (
-          <div className="h-4 w-4 text-gray-400">
+          <div className="h-4 w-4 text-gray-400 dark:text-zinc-500">
             {icon}
           </div>
         )}
@@ -75,13 +75,13 @@ const StatsCard: React.FC<StatsCardProps> = ({
               {getChangeIcon(change.type)}
               {change.value}%
             </span>
-            <span className="text-gray-500">
+            <span className="text-gray-500 dark:text-zinc-500">
               {change.period}
             </span>
           </div>
         )}
         {description && (
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-gray-500 dark:text-zinc-500 mt-1">
             {description}
           </p>
         )}

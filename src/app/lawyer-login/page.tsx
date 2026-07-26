@@ -81,7 +81,7 @@ export default function LawyerLoginPage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 py-12 px-4">
       <div className="max-w-md mx-auto">
         <div className="mb-8">
-          <Link href="/" className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-4">
+          <Link href="/" className="inline-flex items-center text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100 mb-4">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Asosiy sahifaga qaytish
           </Link>
@@ -90,8 +90,8 @@ export default function LawyerLoginPage() {
             <div className="w-20 h-20 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
               <Shield className="w-10 h-10 text-white" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900">Advokat kirishi</h1>
-            <p className="text-gray-600 mt-2">JURISAI advokat platformasiga kirish</p>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-zinc-100">Advokat kirishi</h1>
+            <p className="text-gray-600 dark:text-zinc-400 mt-2">JURISAI advokat platformasiga kirish</p>
           </div>
         </div>
 
@@ -99,12 +99,12 @@ export default function LawyerLoginPage() {
           <CardContent className="p-8">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
                   Email
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Mail className="h-5 w-5 text-gray-400" />
+                    <Mail className="h-5 w-5 text-gray-400 dark:text-zinc-500" />
                   </div>
                   <Input
                     type="email"
@@ -120,12 +120,12 @@ export default function LawyerLoginPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
                   Parol
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Lock className="h-5 w-5 text-gray-400" />
+                    <Lock className="h-5 w-5 text-gray-400 dark:text-zinc-500" />
                   </div>
                   <Input
                     type={showPassword ? 'text' : 'password'}
@@ -138,7 +138,7 @@ export default function LawyerLoginPage() {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="text-gray-400 hover:text-gray-600"
+                      className="text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:text-zinc-400"
                     >
                       {showPassword ? (
                         <EyeOff className="h-5 w-5" />
@@ -154,7 +154,7 @@ export default function LawyerLoginPage() {
               </div>
 
               {errors.submit && (
-                <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 rounded-lg">
                   <div className="flex items-center">
                     <AlertCircle className="h-5 w-5 text-red-500 mr-2" />
                     <p className="text-red-600">{errors.submit}</p>
@@ -184,15 +184,15 @@ export default function LawyerLoginPage() {
             <div className="mt-6">
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-300" />
+                  <div className="w-full border-t border-gray-300 dark:border-zinc-700" />
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white text-gray-500">Yoki</span>
+                  <span className="px-2 bg-white dark:bg-zinc-900 text-gray-500 dark:text-zinc-500">Yoki</span>
                 </div>
               </div>
 
               <div className="mt-6 text-center">
-                <p className="text-gray-600">
+                <p className="text-gray-600 dark:text-zinc-400">
                   Hali ro'yxatdan o'tmaganmisiz?{' '}
                   <Link href="/lawyer-register" className="text-blue-600 hover:text-blue-700 font-medium">
                     Ro'yxatdan o'tish
@@ -204,24 +204,24 @@ export default function LawyerLoginPage() {
         </Card>
 
         {/* Features */}
-        <div className="mt-8 bg-white rounded-lg p-6 shadow-sm">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Advokatlar uchun imkoniyatlar</h3>
+        <div className="mt-8 bg-white dark:bg-zinc-900 rounded-lg p-6 shadow-sm">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-zinc-100 mb-4">Advokatlar uchun imkoniyatlar</h3>
           <div className="space-y-3">
             <div className="flex items-center">
               <CheckCircle className="w-5 h-5 text-green-500 mr-3" />
-              <span className="text-gray-700">Mijozlar bazasini boshqarish</span>
+              <span className="text-gray-700 dark:text-zinc-300">Mijozlar bazasini boshqarish</span>
             </div>
             <div className="flex items-center">
               <CheckCircle className="w-5 h-5 text-green-500 mr-3" />
-              <span className="text-gray-700">AI yordamida hujjatlar tahlili</span>
+              <span className="text-gray-700 dark:text-zinc-300">AI yordamida hujjatlar tahlili</span>
             </div>
             <div className="flex items-center">
               <CheckCircle className="w-5 h-5 text-green-500 mr-3" />
-              <span className="text-gray-700">Mijoz so'rovlarini qabul qilish</span>
+              <span className="text-gray-700 dark:text-zinc-300">Mijoz so'rovlarini qabul qilish</span>
             </div>
             <div className="flex items-center">
               <CheckCircle className="w-5 h-5 text-green-500 mr-3" />
-              <span className="text-gray-700">Daromad va statistikani kuzatish</span>
+              <span className="text-gray-700 dark:text-zinc-300">Daromad va statistikani kuzatish</span>
             </div>
           </div>
         </div>

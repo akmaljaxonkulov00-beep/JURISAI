@@ -142,15 +142,15 @@ export default function VoiceTestPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 shadow-sm">
+      <header className="bg-white dark:bg-zinc-900 border-b border-gray-200 dark:border-zinc-800 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center gap-4">
-            <a href="/" className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+            <a href="/" className="p-2 hover:bg-gray-100 dark:bg-zinc-800/30 rounded-lg transition-colors">
               <ArrowLeft className="w-5 h-5" />
             </a>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">🎤 Voice Features Test</h1>
-              <p className="text-sm text-gray-600">Ovozli funksiyalarni test qilish sahifasi</p>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-zinc-100">🎤 Voice Features Test</h1>
+              <p className="text-sm text-gray-600 dark:text-zinc-400">Ovozli funksiyalarni test qilish sahifasi</p>
             </div>
           </div>
         </div>
@@ -158,27 +158,27 @@ export default function VoiceTestPage() {
 
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Status Card */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">▤ System Status</h2>
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-lg p-6 mb-6">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-zinc-100 mb-4">▤ System Status</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="p-4 bg-blue-50 rounded-lg">
-              <div className="text-sm text-gray-600 mb-1">Speech Support</div>
+            <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+              <div className="text-sm text-gray-600 dark:text-zinc-400 mb-1">Speech Support</div>
               <div className="text-2xl font-bold text-blue-600">
                 {speechSupported ? '[OK] YES' : '[X] NO'}
               </div>
             </div>
-            <div className="p-4 bg-green-50 rounded-lg">
-              <div className="text-sm text-gray-600 mb-1">Voices Available</div>
+            <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+              <div className="text-sm text-gray-600 dark:text-zinc-400 mb-1">Voices Available</div>
               <div className="text-2xl font-bold text-green-600">{voices.length}</div>
             </div>
-            <div className="p-4 bg-purple-50 rounded-lg">
-              <div className="text-sm text-gray-600 mb-1">Speaking</div>
+            <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+              <div className="text-sm text-gray-600 dark:text-zinc-400 mb-1">Speaking</div>
               <div className="text-2xl font-bold text-purple-600">
                 {isSpeaking ? '♪ YES' : '♫ NO'}
               </div>
             </div>
             <div className="p-4 bg-orange-50 rounded-lg">
-              <div className="text-sm text-gray-600 mb-1">Listening</div>
+              <div className="text-sm text-gray-600 dark:text-zinc-400 mb-1">Listening</div>
               <div className="text-2xl font-bold text-orange-600">
                 {isListening ? '🎤 YES' : '● NO'}
               </div>
@@ -188,26 +188,26 @@ export default function VoiceTestPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Text-to-Speech Section */}
-          <div className="bg-white rounded-2xl shadow-lg p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">♪ Text-to-Speech (TTS)</h2>
+          <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-lg p-6">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-zinc-100 mb-4">♪ Text-to-Speech (TTS)</h2>
             
             <div className="space-y-4">
               {/* Text Input */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
                   Gapiriladigan matn:
                 </label>
                 <textarea
                   value={textToSpeak}
                   onChange={(e) => setTextToSpeak(e.target.value)}
-                  className="w-full h-32 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full h-32 px-4 py-2 border border-gray-300 dark:border-zinc-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Bu yerga matn yozing..."
                 />
               </div>
 
               {/* Preset Phrases */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
                   Tayyor iboralar:
                 </label>
                 <div className="flex flex-wrap gap-2">
@@ -226,7 +226,7 @@ export default function VoiceTestPage() {
               {/* Controls */}
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-xs text-gray-600 mb-1">Tezlik: {rate}</label>
+                  <label className="block text-xs text-gray-600 dark:text-zinc-400 mb-1">Tezlik: {rate}</label>
                   <input
                     type="range"
                     min="0.5"
@@ -238,7 +238,7 @@ export default function VoiceTestPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-600 mb-1">Ohang: {pitch}</label>
+                  <label className="block text-xs text-gray-600 dark:text-zinc-400 mb-1">Ohang: {pitch}</label>
                   <input
                     type="range"
                     min="0.5"
@@ -250,7 +250,7 @@ export default function VoiceTestPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-600 mb-1">Ovoz: {volume}</label>
+                  <label className="block text-xs text-gray-600 dark:text-zinc-400 mb-1">Ovoz: {volume}</label>
                   <input
                     type="range"
                     min="0"
@@ -270,7 +270,7 @@ export default function VoiceTestPage() {
                   disabled={isSpeaking}
                   className={`flex-1 py-3 rounded-lg font-medium transition-all ${
                     isSpeaking
-                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      ? 'bg-gray-300 text-gray-500 dark:text-zinc-500 cursor-not-allowed'
                       : 'bg-blue-600 text-white hover:bg-blue-700'
                   }`}
                 >
@@ -281,7 +281,7 @@ export default function VoiceTestPage() {
                   disabled={!isSpeaking}
                   className={`px-6 py-3 rounded-lg font-medium transition-all ${
                     !isSpeaking
-                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      ? 'bg-gray-300 text-gray-500 dark:text-zinc-500 cursor-not-allowed'
                       : 'bg-red-600 text-white hover:bg-red-700'
                   }`}
                 >
@@ -292,18 +292,18 @@ export default function VoiceTestPage() {
           </div>
 
           {/* Speech-to-Text Section */}
-          <div className="bg-white rounded-2xl shadow-lg p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">🎤 Speech-to-Text (STT)</h2>
+          <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-lg p-6">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-zinc-100 mb-4">🎤 Speech-to-Text (STT)</h2>
             
             <div className="space-y-4">
               {/* Recognition Display */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
                   Tanilgan matn:
                 </label>
-                <div className="h-32 px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 overflow-y-auto">
+                <div className="h-32 px-4 py-2 border border-gray-300 dark:border-zinc-700 rounded-lg bg-gray-50 dark:bg-zinc-800/50 overflow-y-auto">
                   {recognizedText || interimText || (
-                    <span className="text-gray-400">Bu yerda tanilgan matn ko'rinadi...</span>
+                    <span className="text-gray-400 dark:text-zinc-500">Bu yerda tanilgan matn ko'rinadi...</span>
                   )}
                   {interimText && (
                     <span className="text-blue-500 italic"> {interimText}</span>
@@ -313,7 +313,7 @@ export default function VoiceTestPage() {
 
               {/* Status */}
               {isListening && (
-                <div className="p-4 bg-red-50 border border-red-200 rounded-lg animate-pulse">
+                <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 rounded-lg animate-pulse">
                   <div className="flex items-center gap-3">
                     <div className="w-3 h-3 bg-red-600 rounded-full animate-ping"></div>
                     <span className="text-red-700 font-medium">
@@ -324,7 +324,7 @@ export default function VoiceTestPage() {
               )}
 
               {/* Instructions */}
-              <div className="p-4 bg-blue-50 rounded-lg">
+              <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                 <h3 className="font-medium text-blue-900 mb-2">NOTE Ko'rsatmalar:</h3>
                 <ul className="text-sm text-blue-700 space-y-1">
                   <li>• Mikrofon tugmasini bosing</li>
@@ -353,7 +353,7 @@ export default function VoiceTestPage() {
                   disabled={!isListening}
                   className={`px-6 py-3 rounded-lg font-medium transition-all ${
                     !isListening
-                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      ? 'bg-gray-300 text-gray-500 dark:text-zinc-500 cursor-not-allowed'
                       : 'bg-red-600 text-white hover:bg-red-700'
                   }`}
                 >
@@ -367,7 +367,7 @@ export default function VoiceTestPage() {
                   setRecognizedText('');
                   setInterimText('');
                 }}
-                className="w-full py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                className="w-full py-2 border border-gray-300 dark:border-zinc-700 rounded-lg hover:bg-gray-50 dark:bg-zinc-800/50 transition-colors"
               >
                 ⊗ Tozalash
               </button>
@@ -376,19 +376,19 @@ export default function VoiceTestPage() {
         </div>
 
         {/* Logs Section */}
-        <div className="mt-6 bg-white rounded-2xl shadow-lg p-6">
+        <div className="mt-6 bg-white dark:bg-zinc-900 rounded-2xl shadow-lg p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-gray-900">▣ Event Logs</h2>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-zinc-100">▣ Event Logs</h2>
             <button
               onClick={() => setLogs([])}
-              className="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+              className="px-4 py-2 text-sm bg-gray-100 dark:bg-zinc-800/30 hover:bg-gray-200 rounded-lg transition-colors"
             >
               Clear Logs
             </button>
           </div>
           <div className="h-64 overflow-y-auto bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm">
             {logs.length === 0 ? (
-              <div className="text-gray-500">No logs yet...</div>
+              <div className="text-gray-500 dark:text-zinc-500">No logs yet...</div>
             ) : (
               logs.map((log, index) => (
                 <div key={index} className="mb-1">{log}</div>
@@ -399,17 +399,17 @@ export default function VoiceTestPage() {
 
         {/* Voices Info */}
         {voices.length > 0 && (
-          <div className="mt-6 bg-white rounded-2xl shadow-lg p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">♪ Available Voices ({voices.length})</h2>
+          <div className="mt-6 bg-white dark:bg-zinc-900 rounded-2xl shadow-lg p-6">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-zinc-100 mb-4">♪ Available Voices ({voices.length})</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-96 overflow-y-auto">
               {voices.map((voice, index) => (
                 <div
                   key={index}
-                  className="p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="p-3 border border-gray-200 dark:border-zinc-800 rounded-lg hover:bg-gray-50 dark:bg-zinc-800/50 transition-colors"
                 >
-                  <div className="font-medium text-gray-900">{voice.name}</div>
-                  <div className="text-sm text-gray-600">{voice.lang}</div>
-                  <div className="text-xs text-gray-400">
+                  <div className="font-medium text-gray-900 dark:text-zinc-100">{voice.name}</div>
+                  <div className="text-sm text-gray-600 dark:text-zinc-400">{voice.lang}</div>
+                  <div className="text-xs text-gray-400 dark:text-zinc-500">
                     {voice.localService ? 'Local' : 'Remote'}
                   </div>
                 </div>

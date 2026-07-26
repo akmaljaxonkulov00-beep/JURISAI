@@ -466,45 +466,45 @@ export default function CourtSimulator() {
     <div className="space-y-6">
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+        <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
           <CardContent className="p-6">
             <div className="text-2xl font-bold text-blue-900 mb-2">
               {userStats?.total_simulations || 0}
             </div>
-            <div className="text-sm text-gray-600">Jami simulyatsiyalar</div>
+            <div className="text-sm text-gray-600 dark:text-zinc-400">Jami simulyatsiyalar</div>
           </CardContent>
         </Card>
         
-        <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+        <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
           <CardContent className="p-6">
             <div className="text-2xl font-bold text-green-900 mb-2">
               {userStats?.completed_simulations || 0}
             </div>
-            <div className="text-sm text-gray-600">Tugallangan</div>
+            <div className="text-sm text-gray-600 dark:text-zinc-400">Tugallangan</div>
           </CardContent>
         </Card>
         
-        <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+        <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
           <CardContent className="p-6">
             <div className="text-2xl font-bold text-purple-900 mb-2">
               {userStats?.average_score || 0}
             </div>
-            <div className="text-sm text-gray-600">O'rtacha ball</div>
+            <div className="text-sm text-gray-600 dark:text-zinc-400">O'rtacha ball</div>
           </CardContent>
         </Card>
         
-        <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+        <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
           <CardContent className="p-6">
             <div className="text-2xl font-bold text-orange-900 mb-2">
               {userStats?.highest_score || 0}
             </div>
-            <div className="text-sm text-gray-600">Eng yuqori ball</div>
+            <div className="text-sm text-gray-600 dark:text-zinc-400">Eng yuqori ball</div>
           </CardContent>
         </Card>
       </div>
 
       {/* Quick Actions */}
-      <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+      <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
         <CardHeader>
           <CardTitle className="text-blue-900">Tezkor harakatlar</CardTitle>
         </CardHeader>
@@ -519,7 +519,7 @@ export default function CourtSimulator() {
             <Button
               onClick={() => setActiveTab('history')}
               variant="outline"
-              className="border-blue-600 text-blue-600 hover:bg-blue-50"
+              className="border-blue-600 text-blue-600 hover:bg-blue-50 dark:bg-blue-900/20"
             >
               ▤ Tarixni ko'rish
             </Button>
@@ -528,21 +528,21 @@ export default function CourtSimulator() {
       </Card>
 
       {/* Recent Activity */}
-      <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+      <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
         <CardHeader>
           <CardTitle className="text-blue-900">So'nggi faoliyat</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
             {simulationHistory.slice(0, 5).map((item, index) => (
-              <div key={index} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+              <div key={index} className="flex justify-between items-center p-3 bg-gray-50 dark:bg-zinc-800/50 rounded-lg">
                 <div>
-                  <div className="font-medium text-gray-900">{item.case_title}</div>
-                  <div className="text-sm text-gray-600">{item.user_role} • {item.difficulty_level}</div>
+                  <div className="font-medium text-gray-900 dark:text-zinc-100">{item.case_title}</div>
+                  <div className="text-sm text-gray-600 dark:text-zinc-400">{item.user_role} • {item.difficulty_level}</div>
                 </div>
                 <div className="text-right">
                   <div className="font-medium text-blue-900">{item.score} ball</div>
-                  <div className="text-sm text-gray-600">{item.outcome}</div>
+                  <div className="text-sm text-gray-600 dark:text-zinc-400">{item.outcome}</div>
                 </div>
               </div>
             ))}
@@ -554,7 +554,7 @@ export default function CourtSimulator() {
 
   const renderCasesTab = () => (
     <div className="space-y-6">
-      <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+      <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
         <CardHeader>
           <CardTitle className="text-blue-900">Mavjud holatlar</CardTitle>
         </CardHeader>
@@ -593,13 +593,13 @@ export default function CourtSimulator() {
                 key={caseItem.id}
                 className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
                   selectedCase?.id === caseItem.id
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-200 hover:border-blue-300 bg-white'
+                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                    : 'border-gray-200 dark:border-zinc-800 hover:border-blue-300 bg-white dark:bg-zinc-900'
                 }`}
                 onClick={() => setSelectedCase(caseItem)}
               >
                 <h3 className="font-semibold text-blue-900 mb-2">{caseItem.title}</h3>
-                <p className="text-sm text-gray-600 mb-3">{caseItem.description}</p>
+                <p className="text-sm text-gray-600 dark:text-zinc-400 mb-3">{caseItem.description}</p>
                 <div className="flex gap-2 mb-3">
                   <Badge className="bg-green-100 text-green-800">
                     {caseItem.case_type}
@@ -608,10 +608,10 @@ export default function CourtSimulator() {
                     {caseItem.difficulty_level}
                   </Badge>
                 </div>
-                <div className="text-sm text-gray-600 mb-2">
+                <div className="text-sm text-gray-600 dark:text-zinc-400 mb-2">
                   ⏱ {caseItem.estimated_duration} daqiqa
                 </div>
-                <div className="text-xs text-gray-500">
+                <div className="text-xs text-gray-500 dark:text-zinc-500">
                   <strong>Asosiy masalalar:</strong>
                   <ul className="mt-1">
                     {caseItem.key_issues.map((issue, index) => (
@@ -626,14 +626,14 @@ export default function CourtSimulator() {
       </Card>
 
       {selectedCase && (
-        <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+        <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
           <CardHeader>
             <CardTitle className="text-blue-900">Simulyatsiya sozlamalari</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
                   Sizning rolingiz
                 </label>
                 <Select
@@ -648,7 +648,7 @@ export default function CourtSimulator() {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
                   Qiyinlik darajasi
                 </label>
                 <Select
@@ -663,7 +663,7 @@ export default function CourtSimulator() {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
                   Simulyatsiya turi
                 </label>
                 <Select
@@ -694,10 +694,10 @@ export default function CourtSimulator() {
   const renderSimulationTab = () => {
     if (!simulationStatus) {
       return (
-        <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+        <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
           <CardContent className="p-12 text-center">
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">Faol simulyatsiya yo'q</h3>
-            <p className="text-gray-600 mb-6">Yangi simulyatsiya boshlash uchun "Holatlar" bo'limiga o'ting</p>
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-zinc-100 mb-4">Faol simulyatsiya yo'q</h3>
+            <p className="text-gray-600 dark:text-zinc-400 mb-6">Yangi simulyatsiya boshlash uchun "Holatlar" bo'limiga o'ting</p>
             <Button
               onClick={() => setActiveTab('cases')}
               className="bg-blue-600 hover:bg-blue-700 text-white"
@@ -712,12 +712,12 @@ export default function CourtSimulator() {
     return (
       <div className="space-y-6">
         {/* Status Bar */}
-        <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+        <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
           <CardContent className="p-4">
             <div className="flex justify-between items-center">
               <div>
                 <h3 className="font-semibold text-blue-900">Simulyatsiya holati</h3>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 dark:text-zinc-400">
                   Bosqich: {simulationStatus.current_phase} • 
                   Vaqt: {Math.floor(simulationStatus.elapsed_time / 60)}:{(simulationStatus.elapsed_time % 60).toString().padStart(2, '0')}
                 </p>
@@ -735,7 +735,7 @@ export default function CourtSimulator() {
                   <Button
                     onClick={resumeSimulation}
                     variant="outline"
-                    className="border-green-600 text-green-600 hover:bg-green-50"
+                    className="border-green-600 text-green-600 hover:bg-green-50 dark:bg-green-900/20"
                   >
                     ▶ Davom ettirish
                   </Button>
@@ -743,7 +743,7 @@ export default function CourtSimulator() {
                 <Button
                   onClick={endSimulation}
                   variant="outline"
-                  className="border-red-600 text-red-600 hover:bg-red-50"
+                  className="border-red-600 text-red-600 hover:bg-red-50 dark:bg-red-900/20"
                 >
                   ■ Tugatish
                 </Button>
@@ -757,14 +757,14 @@ export default function CourtSimulator() {
           {/* Main Court Area */}
           <div className="lg:col-span-2 space-y-4">
             {/* Argument Input */}
-            <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+            <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
               <CardHeader>
                 <CardTitle className="text-blue-900">Argument kiritish</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
                       Argument turi
                     </label>
                     <Select
@@ -779,10 +779,10 @@ export default function CourtSimulator() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
                       Rol
                     </label>
-                    <div className="p-2 bg-gray-100 rounded-lg">
+                    <div className="p-2 bg-gray-100 dark:bg-zinc-800/30 rounded-lg">
                       {userRole === 'prosecution' ? '◇ Ayblovchi' : 
                        userRole === 'defense' ? '⛊ Himoyachi' : '═ Hakam'}
                     </div>
@@ -791,7 +791,7 @@ export default function CourtSimulator() {
                 
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <label className="block text-sm font-medium text-gray-700">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300">
                       Argument mazmuni
                     </label>
                     <div className="flex gap-2">
@@ -813,7 +813,7 @@ export default function CourtSimulator() {
                             className={`px-3 py-1 rounded-lg text-sm ${
                               autoSpeak 
                                 ? 'bg-green-100 text-green-600' 
-                                : 'bg-gray-100 text-gray-600'
+                                : 'bg-gray-100 dark:bg-zinc-800/30 text-gray-600 dark:text-zinc-400'
                             }`}
                             title={autoSpeak ? 'Avto gapirish yoqilgan' : 'Avto gapirish o\'chirilgan'}
                           >
@@ -827,7 +827,7 @@ export default function CourtSimulator() {
                     value={argumentContent}
                     onChange={(e) => setArgumentContent(e.target.value)}
                     placeholder="Argumentingizni bu yerga yozing yoki 🎤 tugmasini bosib gapiring..."
-                    className="w-full h-32 px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full h-32 px-4 py-2 border border-gray-200 dark:border-zinc-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     disabled={isListening}
                   />
                   {isListening && (
@@ -848,24 +848,24 @@ export default function CourtSimulator() {
             </Card>
 
             {/* Transcript */}
-            <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+            <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
               <CardHeader>
                 <CardTitle className="text-blue-900">Transkript</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3 max-h-96 overflow-y-auto">
                   {transcript.map((entry, index) => (
-                    <div key={index} className="p-3 bg-gray-50 rounded-lg">
+                    <div key={index} className="p-3 bg-gray-50 dark:bg-zinc-800/50 rounded-lg">
                       <div className="flex justify-between items-start mb-2">
                         <span className="font-medium text-blue-900">
                           {entry.speaker === 'prosecution' ? '◇ Ayblovchi' :
                            entry.speaker === 'defense' ? '⛊ Himoyachi' : '═ Hakam'}
                         </span>
-                        <span className="text-xs text-gray-500">
+                        <span className="text-xs text-gray-500 dark:text-zinc-500">
                           {new Date(entry.timestamp).toLocaleTimeString()}
                         </span>
                       </div>
-                      <p className="text-gray-700">{entry.content}</p>
+                      <p className="text-gray-700 dark:text-zinc-300">{entry.content}</p>
                       {entry.evidence_references && entry.evidence_references.length > 0 && (
                         <div className="mt-2 text-sm text-blue-600">
                           Dalillar: {entry.evidence_references.join(', ')}
@@ -881,16 +881,16 @@ export default function CourtSimulator() {
           {/* Sidebar */}
           <div className="space-y-4">
             {/* Evidence */}
-            <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+            <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
               <CardHeader>
                 <CardTitle className="text-blue-900">Dalillar</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3 max-h-64 overflow-y-auto">
                   {evidence.map((item) => (
-                    <div key={item.id} className="p-3 bg-gray-50 rounded-lg">
+                    <div key={item.id} className="p-3 bg-gray-50 dark:bg-zinc-800/50 rounded-lg">
                       <div className="flex items-start justify-between mb-2">
-                        <h4 className="font-medium text-gray-900">{item.title}</h4>
+                        <h4 className="font-medium text-gray-900 dark:text-zinc-100">{item.title}</h4>
                         <input
                           type="checkbox"
                           checked={selectedEvidence.includes(item.id)}
@@ -904,7 +904,7 @@ export default function CourtSimulator() {
                           className="mt-1"
                         />
                       </div>
-                      <p className="text-sm text-gray-600 mb-2">{item.description}</p>
+                      <p className="text-sm text-gray-600 dark:text-zinc-400 mb-2">{item.description}</p>
                       <div className="flex gap-2 text-xs">
                         <Badge className="bg-green-100 text-green-800">
                           Ishonchlilik: {item.credibility_score}
@@ -920,23 +920,23 @@ export default function CourtSimulator() {
             </Card>
 
             {/* Participants */}
-            <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+            <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
               <CardHeader>
                 <CardTitle className="text-blue-900">Ishtirokchilar</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  <div className="p-2 bg-gray-50 rounded-lg">
-                    <div className="font-medium text-gray-900">═ Hakam</div>
-                    <div className="text-sm text-gray-600">Tajriba: 15 yil</div>
+                  <div className="p-2 bg-gray-50 dark:bg-zinc-800/50 rounded-lg">
+                    <div className="font-medium text-gray-900 dark:text-zinc-100">═ Hakam</div>
+                    <div className="text-sm text-gray-600 dark:text-zinc-400">Tajriba: 15 yil</div>
                   </div>
-                  <div className="p-2 bg-gray-50 rounded-lg">
-                    <div className="font-medium text-gray-900">◇ Ayblovchi</div>
-                    <div className="text-sm text-gray-600">Tajriba: 8 yil</div>
+                  <div className="p-2 bg-gray-50 dark:bg-zinc-800/50 rounded-lg">
+                    <div className="font-medium text-gray-900 dark:text-zinc-100">◇ Ayblovchi</div>
+                    <div className="text-sm text-gray-600 dark:text-zinc-400">Tajriba: 8 yil</div>
                   </div>
-                  <div className="p-2 bg-gray-50 rounded-lg">
-                    <div className="font-medium text-gray-900">⛊ Himoyachi</div>
-                    <div className="text-sm text-gray-600">Tajriba: 10 yil</div>
+                  <div className="p-2 bg-gray-50 dark:bg-zinc-800/50 rounded-lg">
+                    <div className="font-medium text-gray-900 dark:text-zinc-100">⛊ Himoyachi</div>
+                    <div className="text-sm text-gray-600 dark:text-zinc-400">Tajriba: 10 yil</div>
                   </div>
                 </div>
               </CardContent>
@@ -949,18 +949,18 @@ export default function CourtSimulator() {
 
   const renderHistoryTab = () => (
     <div className="space-y-6">
-      <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+      <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
         <CardHeader>
           <CardTitle className="text-blue-900">Simulyatsiya tarixi</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             {simulationHistory.map((item, index) => (
-              <div key={index} className="p-4 bg-gray-50 rounded-lg">
+              <div key={index} className="p-4 bg-gray-50 dark:bg-zinc-800/50 rounded-lg">
                 <div className="flex justify-between items-start mb-2">
                   <div>
-                    <h3 className="font-semibold text-gray-900">{item.case_title}</h3>
-                    <p className="text-sm text-gray-600">
+                    <h3 className="font-semibold text-gray-900 dark:text-zinc-100">{item.case_title}</h3>
+                    <p className="text-sm text-gray-600 dark:text-zinc-400">
                       {item.user_role} • {item.difficulty_level} • {item.simulation_type}
                     </p>
                   </div>
@@ -975,7 +975,7 @@ export default function CourtSimulator() {
                     </Badge>
                   </div>
                 </div>
-                <div className="text-sm text-gray-500">
+                <div className="text-sm text-gray-500 dark:text-zinc-500">
                   {new Date(item.created_at).toLocaleDateString()}
                 </div>
               </div>
@@ -988,28 +988,28 @@ export default function CourtSimulator() {
 
   const renderLeaderboardTab = () => (
     <div className="space-y-6">
-      <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+      <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
         <CardHeader>
           <CardTitle className="text-blue-900">Eng yaxshi natijalar</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             {leaderboard.map((item, index) => (
-              <div key={index} className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
+              <div key={index} className="flex justify-between items-center p-4 bg-gray-50 dark:bg-zinc-800/50 rounded-lg">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">
                     {index + 1}
                   </div>
                   <div>
-                    <div className="font-medium text-gray-900">Foydalanuvchi #{item.user_id}</div>
-                    <div className="text-sm text-gray-600">
+                    <div className="font-medium text-gray-900 dark:text-zinc-100">Foydalanuvchi #{item.user_id}</div>
+                    <div className="text-sm text-gray-600 dark:text-zinc-400">
                       {item.total_simulations} simulyatsiya • Eng yuqori: {item.highest_score}
                     </div>
                   </div>
                 </div>
                 <div className="text-right">
                   <div className="font-medium text-blue-900">{item.average_score.toFixed(1)}</div>
-                  <div className="text-sm text-gray-600">o'rtacha ball</div>
+                  <div className="text-sm text-gray-600 dark:text-zinc-400">o'rtacha ball</div>
                 </div>
               </div>
             ))}
@@ -1028,7 +1028,7 @@ export default function CourtSimulator() {
         </div>
 
         {/* Tabs */}
-        <div className="flex space-x-1 mb-6 bg-white/80 backdrop-blur-sm rounded-xl p-1">
+        <div className="flex space-x-1 mb-6 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-xl p-1">
           {[
             { id: 'dashboard', label: '▤ Boshqaruv paneli', icon: '▤' },
             { id: 'cases', label: '◇ Holatlar', icon: '◇' },
@@ -1042,7 +1042,7 @@ export default function CourtSimulator() {
               className={`flex-1 px-4 py-2 rounded-lg transition-colors ${
                 activeTab === tab.id
                   ? 'bg-blue-600 text-white'
-                  : 'text-gray-700 hover:bg-blue-50'
+                  : 'text-gray-700 dark:text-zinc-300 hover:bg-blue-50 dark:bg-blue-900/20'
               }`}
             >
               <span className="mr-2">{tab.icon}</span>

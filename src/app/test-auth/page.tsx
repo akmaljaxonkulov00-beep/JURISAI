@@ -46,7 +46,7 @@ export default function TestAuthPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-zinc-800/50 p-8">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-3xl font-bold mb-8">Authentication Test</h1>
         
@@ -59,9 +59,9 @@ export default function TestAuthPage() {
         </button>
         
         {result && (
-          <div className="mt-8 bg-white p-6 rounded-lg shadow">
+          <div className="mt-8 bg-white dark:bg-zinc-900 p-6 rounded-lg shadow">
             <h2 className="text-xl font-semibold mb-4">Results:</h2>
-            <pre className="bg-gray-100 p-4 rounded overflow-auto text-sm">
+            <pre className="bg-gray-100 dark:bg-zinc-800/30 p-4 rounded overflow-auto text-sm">
               {JSON.stringify(result, null, 2)}
             </pre>
           </div>

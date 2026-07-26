@@ -142,8 +142,8 @@ const IRACAnalyzer: React.FC = () => {
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold text-gray-900">IRAC Tahlilchi</h1>
-        <p className="text-gray-600">Huquqiy ishlarni IRAC metodologiyasi bo'yicha tahlil qiling</p>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-zinc-100">IRAC Tahlilchi</h1>
+        <p className="text-gray-600 dark:text-zinc-400">Huquqiy ishlarni IRAC metodologiyasi bo'yicha tahlil qiling</p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
@@ -161,7 +161,7 @@ const IRACAnalyzer: React.FC = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
                   Qiyinlik darajasi
                 </label>
                 <div className="flex space-x-2">
@@ -182,7 +182,7 @@ const IRACAnalyzer: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
                   Holat tavsifi
                 </label>
                 <Textarea
@@ -219,7 +219,7 @@ const IRACAnalyzer: React.FC = () => {
               <CardContent className="flex items-center justify-center py-12">
                 <div className="text-center space-y-4">
                   <LoadingSpinner size="lg" />
-                  <p className="text-gray-600">Tahlil jarayoni davom etmoqda...</p>
+                  <p className="text-gray-600 dark:text-zinc-400">Tahlil jarayoni davom etmoqda...</p>
                 </div>
               </CardContent>
             </Card>
@@ -243,16 +243,16 @@ const IRACAnalyzer: React.FC = () => {
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div>
-                      <span className="text-sm text-gray-500">Ishlov vaqti</span>
+                      <span className="text-sm text-gray-500 dark:text-zinc-500">Ishlov vaqti</span>
                       <p className="font-semibold">{analysis.processing_time} soniya</p>
                     </div>
                     <div>
-                      <span className="text-sm text-gray-500">Qiyinlik</span>
+                      <span className="text-sm text-gray-500 dark:text-zinc-500">Qiyinlik</span>
                       <p className="font-semibold capitalize">{analysis.difficulty_level}</p>
                     </div>
                   </div>
                   <Progress value={analysis.confidence_score * 100} className="mb-2" />
-                  <p className="text-sm text-gray-600">{analysis.analysis_notes}</p>
+                  <p className="text-sm text-gray-600 dark:text-zinc-400">{analysis.analysis_notes}</p>
                 </CardContent>
               </Card>
 
@@ -263,7 +263,7 @@ const IRACAnalyzer: React.FC = () => {
                     <CardTitle className="text-lg">Issue (Masala)</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-gray-700">{analysis.issue}</p>
+                    <p className="text-gray-700 dark:text-zinc-300">{analysis.issue}</p>
                   </CardContent>
                 </Card>
 
@@ -272,7 +272,7 @@ const IRACAnalyzer: React.FC = () => {
                     <CardTitle className="text-lg">Rule (Qoida)</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-gray-700">{analysis.rule}</p>
+                    <p className="text-gray-700 dark:text-zinc-300">{analysis.rule}</p>
                   </CardContent>
                 </Card>
 
@@ -281,7 +281,7 @@ const IRACAnalyzer: React.FC = () => {
                     <CardTitle className="text-lg">Application (Qo'llash)</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-gray-700">{analysis.application}</p>
+                    <p className="text-gray-700 dark:text-zinc-300">{analysis.application}</p>
                   </CardContent>
                 </Card>
 
@@ -290,7 +290,7 @@ const IRACAnalyzer: React.FC = () => {
                     <CardTitle className="text-lg">Conclusion (Xulosa)</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-gray-700">{analysis.conclusion}</p>
+                    <p className="text-gray-700 dark:text-zinc-300">{analysis.conclusion}</p>
                   </CardContent>
                 </Card>
               </div>
@@ -304,8 +304,8 @@ const IRACAnalyzer: React.FC = () => {
                   <ul className="space-y-2">
                     {analysis.legal_references.map((ref, index) => (
                       <li key={index} className="flex items-center space-x-2">
-                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                        <span className="text-gray-700">{ref}</span>
+                        <div className="w-2 h-2 bg-blue-50 dark:bg-blue-900/20 rounded-full"></div>
+                        <span className="text-gray-700 dark:text-zinc-300">{ref}</span>
                       </li>
                     ))}
                   </ul>
@@ -319,7 +319,7 @@ const IRACAnalyzer: React.FC = () => {
           ) : (
             <Card>
               <CardContent className="flex items-center justify-center py-12">
-                <div className="text-center text-gray-500">
+                <div className="text-center text-gray-500 dark:text-zinc-500">
                   <p>Hali tahlil qilinmagan</p>
                   <p className="text-sm mt-2">Avval holat matnini kiriting va tahlil qiling</p>
                 </div>
@@ -338,7 +338,7 @@ const IRACAnalyzer: React.FC = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="text-center space-y-4">
-                    <div className="text-6xl font-bold text-gray-900">
+                    <div className="text-6xl font-bold text-gray-900 dark:text-zinc-100">
                       {evaluation.overall_score}
                     </div>
                     <Badge variant={getScoreBadge(evaluation.overall_score)} className="text-lg px-4 py-2">
@@ -385,7 +385,7 @@ const IRACAnalyzer: React.FC = () => {
                       {evaluation.strengths.map((strength, index) => (
                         <li key={index} className="flex items-start space-x-2">
                           <span className="text-green-500 mt-1">[OK]</span>
-                          <span className="text-gray-700">{strength}</span>
+                          <span className="text-gray-700 dark:text-zinc-300">{strength}</span>
                         </li>
                       ))}
                     </ul>
@@ -401,7 +401,7 @@ const IRACAnalyzer: React.FC = () => {
                       {evaluation.weaknesses.map((weakness, index) => (
                         <li key={index} className="flex items-start space-x-2">
                           <span className="text-red-500 mt-1">!</span>
-                          <span className="text-gray-700">{weakness}</span>
+                          <span className="text-gray-700 dark:text-zinc-300">{weakness}</span>
                         </li>
                       ))}
                     </ul>
@@ -419,7 +419,7 @@ const IRACAnalyzer: React.FC = () => {
                     {evaluation.recommendations.map((recommendation, index) => (
                       <li key={index} className="flex items-start space-x-2">
                         <span className="text-blue-500 mt-1">→</span>
-                        <span className="text-gray-700">{recommendation}</span>
+                        <span className="text-gray-700 dark:text-zinc-300">{recommendation}</span>
                       </li>
                     ))}
                   </ul>
@@ -432,14 +432,14 @@ const IRACAnalyzer: React.FC = () => {
                   <CardTitle>Batafsil fikr-mulohazalar</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-700 leading-relaxed">{evaluation.detailed_feedback}</p>
+                  <p className="text-gray-700 dark:text-zinc-300 leading-relaxed">{evaluation.detailed_feedback}</p>
                 </CardContent>
               </Card>
             </div>
           ) : (
             <Card>
               <CardContent className="flex items-center justify-center py-12">
-                <div className="text-center text-gray-500">
+                <div className="text-center text-gray-500 dark:text-zinc-500">
                   <p>Hali baholash qilinmagan</p>
                   <p className="text-sm mt-2">Avval tahlilni bajaring</p>
                 </div>

@@ -306,9 +306,9 @@ export default function CaseSolver() {
 
   return (
     <div className="min-h-screen bg-[#f8faff] dark:bg-gray-950">
-      <div className="flex">
+      <div className="flex flex-col lg:flex-row">
         {/* Sidebar - same as main page */}
-        <div className="w-64 bg-white dark:bg-zinc-900 border-r border-gray-100 dark:border-zinc-800 min-h-screen">
+        <div className="hidden lg:block w-64 bg-white dark:bg-zinc-900 border-r border-gray-100 dark:border-zinc-800 min-h-screen flex-shrink-0">
           <div className="p-6">
             {/* Daily Goal Block */}
             <div className="bg-orange-50 dark:bg-orange-900/30 rounded-xl p-4 mb-6">
@@ -379,10 +379,10 @@ export default function CaseSolver() {
           </div>
 
           {/* Main Content Area */}
-          <main className="p-8">
-            <div className="grid grid-cols-4 gap-6">
+          <main className="p-4 sm:p-6 lg:p-8">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 lg:gap-6">
               {/* Step Navigation */}
-              <div className="col-span-1">
+              <div className="lg:col-span-1">
                 <div className="bg-white dark:bg-zinc-900 rounded-2xl p-4 shadow-sm">
                   <h3 className="font-semibold text-gray-800 dark:text-zinc-100 mb-4">IRAC Bosqichlari</h3>
                   <div className="space-y-2">
@@ -392,7 +392,7 @@ export default function CaseSolver() {
                         onClick={() => handleStepChange(index)}
                         className={`w-full text-left p-3 rounded-lg transition-colors ${
                           index === currentStep 
-                            ? 'bg-blue-50 text-blue-600 border border-blue-200' 
+                            ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 border border-blue-200' 
                             : index < currentStep 
                             ? 'bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 border border-green-200 dark:border-green-800'
                             : 'bg-gray-50 dark:bg-zinc-800/50 text-gray-600 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-700'
@@ -410,7 +410,7 @@ export default function CaseSolver() {
               </div>
 
               {/* Case Content */}
-              <div className="col-span-2">
+              <div className="lg:col-span-2">
                 {/* Case Details */}
                 <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-sm mb-6">
                   <h2 className="text-xl font-bold text-gray-800 dark:text-zinc-100 mb-4">{currentCase.title}</h2>
@@ -477,7 +477,7 @@ export default function CaseSolver() {
                     </button>
                     <button
                       onClick={handleGetAdvice}
-                      className="flex-1 bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors"
+                      className="flex-1 bg-yellow-50 dark:bg-yellow-900/20 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors"
                     >
                       <Lightbulb className="w-4 h-4 inline mr-2" />
                       Maslahat
@@ -515,7 +515,7 @@ export default function CaseSolver() {
               </div>
 
               {/* Advice Panel */}
-              <div className="col-span-1">
+              <div className="lg:col-span-1">
                 <div className="bg-white dark:bg-zinc-900 rounded-2xl p-4 shadow-sm">
                   <h3 className="font-semibold text-gray-800 dark:text-zinc-100 mb-4">Maslahatlar</h3>
                   

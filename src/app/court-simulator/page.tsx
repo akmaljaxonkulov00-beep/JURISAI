@@ -178,8 +178,8 @@ export default function CourtSimulatorPage() {
 
   // ════════════════════════════ SETUP ════════════════════════════
   if (page === 'setup') return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-page)', display: 'flex' }}>
-      <aside className="desktop-sidebar" style={{ width: 240, background: 'var(--card-bg)', borderRight: '1px solid #F1F5F9', minHeight: '100vh', padding: '24px 16px', flexShrink: 0 }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg-page)', display: 'flex' }}>        <style>{`@media(min-width:768px){.court-grid-roles{grid-template-columns:repeat(3,1fr)!important}.court-grid-cases{grid-template-columns:repeat(2,1fr)!important}}`}</style>
+        <aside className="hidden lg:block desktop-sidebar" style={{ width: 240, background: 'var(--card-bg)', borderRight: '1px solid #F1F5F9', minHeight: '100vh', padding: '24px 16px', flexShrink: 0 }}>
         <a href="/" style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-muted)', textDecoration: 'none', fontSize: 14, marginBottom: 24 }}>
           <ArrowLeft size={16} /> Orqaga
         </a>
@@ -195,10 +195,8 @@ export default function CourtSimulatorPage() {
 
       <div style={{ flex: 1, padding: 40, overflowY: 'auto' }}>
         <h1 style={{ fontSize: 28, fontWeight: 800, color: 'var(--text-primary)', margin: '0 0 6px' }}>Sud Simulyatori</h1>
-        <p style={{ fontSize: 14, color: 'var(--text-muted)', margin: '0 0 32px' }}>Rol va ishni tanlang — AI sudya bilan ovozli sud jarayonini boshlang</p>
-
-        <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-secondary)', margin: '0 0 12px' }}>1. Rolingizni tanlang</h2>
-        <div className="mobile-grid-1" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12, marginBottom: 28 }}>
+        <p style={{ fontSize: 14, color: 'var(--text-muted)', margin: '0 0 32px' }}>Rol va ishni tanlang — AI sudya bilan ovozli sud jarayonini boshlang</p>        <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-secondary)', margin: '0 0 12px' }}>1. Rolingizni tanlang</h2>
+          <div className="mobile-grid-1 court-grid-roles" style={{ display: 'grid', gridTemplateColumns: 'repeat(1,1fr)', gap: 12, marginBottom: 28 }}>
           {ROLES.map(r => (
             <button key={r.id} onClick={() => setRole(r)}
               style={{ padding: 18, borderRadius: 14, border: `2px solid ${role.id === r.id ? r.color : '#E5E7EB'}`, background: role.id === r.id ? r.bg : 'var(--card-bg)', cursor: 'pointer', textAlign: 'left' }}>
@@ -212,7 +210,7 @@ export default function CourtSimulatorPage() {
         </div>
 
         <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-secondary)', margin: '0 0 12px' }}>2. Ishni tanlang</h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 12, marginBottom: 32, maxWidth: 700 }}>
+        <div className="court-grid-cases" style={{ display: 'grid', gridTemplateColumns: 'repeat(1,1fr)', gap: 12, marginBottom: 32, maxWidth: 700 }}>
           {CASES.map(c => (
             <button key={c.id} onClick={() => setCaseItem(c)}
               style={{ padding: 16, borderRadius: 14, border: `2px solid ${caseItem.id === c.id ? '#7C3AED' : '#E5E7EB'}`, background: caseItem.id === c.id ? '#F5F3FF' : 'var(--card-bg)', cursor: 'pointer', textAlign: 'left' }}>

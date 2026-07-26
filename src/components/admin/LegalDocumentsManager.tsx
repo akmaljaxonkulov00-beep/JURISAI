@@ -254,7 +254,7 @@ export default function LegalDocumentsManager() {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Yuklanmoqda...</p>
+          <p className="text-gray-600 dark:text-zinc-400">Yuklanmoqda...</p>
         </div>
       </div>
     );
@@ -265,8 +265,8 @@ export default function LegalDocumentsManager() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-gray-800">Qonunlar Boshqaruvi</h2>
-          <p className="text-gray-600">Qonun hujjatlarini qo'shish, tahrirlash va o'chirish</p>
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-zinc-200">Qonunlar Boshqaruvi</h2>
+          <p className="text-gray-600 dark:text-zinc-400">Qonun hujjatlarini qo'shish, tahrirlash va o'chirish</p>
         </div>
         <Button
           onClick={() => {
@@ -286,7 +286,7 @@ export default function LegalDocumentsManager() {
           <div className="flex gap-4">
             <div className="flex-1">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500 w-4 h-4" />
                 <Input
                   placeholder="Hujjatlar orasida qidirish..."
                   value={searchTerm}
@@ -298,7 +298,7 @@ export default function LegalDocumentsManager() {
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-3 py-2 border border-gray-300 dark:border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">Barcha kategoriyalar</option>
               {categories.map(category => (
@@ -324,18 +324,18 @@ export default function LegalDocumentsManager() {
             {filteredDocuments.map((document) => (
               <div
                 key={document.id}
-                className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
+                className="border border-gray-200 dark:border-zinc-800 rounded-lg p-4 hover:bg-gray-50 dark:bg-zinc-800/50 transition-colors"
               >
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
                       {getDocumentIcon(document.document_type)}
-                      <h3 className="font-semibold text-gray-800">{document.title}</h3>
+                      <h3 className="font-semibold text-gray-800 dark:text-zinc-200">{document.title}</h3>
                       <Badge className="bg-blue-100 text-blue-800">
                         {document.article_number}
                       </Badge>
                     </div>
-                    <p className="text-sm text-gray-600 mb-2 line-clamp-2">
+                    <p className="text-sm text-gray-600 dark:text-zinc-400 mb-2 line-clamp-2">
                       {document.content.substring(0, 200)}...
                     </p>
                     <div className="flex gap-2">
@@ -345,7 +345,7 @@ export default function LegalDocumentsManager() {
                       <Badge className="bg-purple-100 text-purple-800">
                         {document.document_type}
                       </Badge>
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-gray-500 dark:text-zinc-500">
                         {document.view_count} marta ko'rilgan
                       </span>
                     </div>
@@ -373,8 +373,8 @@ export default function LegalDocumentsManager() {
             
             {filteredDocuments.length === 0 && (
               <div className="text-center py-8">
-                <Database className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600">Hujjatlar topilmadi</p>
+                <Database className="w-12 h-12 text-gray-400 dark:text-zinc-500 mx-auto mb-4" />
+                <p className="text-gray-600 dark:text-zinc-400">Hujjatlar topilmadi</p>
               </div>
             )}
           </div>
@@ -384,10 +384,10 @@ export default function LegalDocumentsManager() {
       {/* Add Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-bold text-gray-800">Yangi Hujjat Qo'shish</h3>
+                <h3 className="text-xl font-bold text-gray-800 dark:text-zinc-200">Yangi Hujjat Qo'shish</h3>
                 <Button
                   variant="outline"
                   onClick={() => setShowAddModal(false)}
@@ -399,7 +399,7 @@ export default function LegalDocumentsManager() {
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
                       Sarlavha
                     </label>
                     <Input
@@ -409,7 +409,7 @@ export default function LegalDocumentsManager() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
                       Modda raqami
                     </label>
                     <Input
@@ -422,13 +422,13 @@ export default function LegalDocumentsManager() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
                       Kategoriya
                     </label>
                     <select
                       value={formData.category}
                       onChange={(e) => setFormData({...formData, category: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="">Kategoriyani tanlang</option>
                       {categories.map(category => (
@@ -439,13 +439,13 @@ export default function LegalDocumentsManager() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
                       Hujjat turi
                     </label>
                     <select
                       value={formData.document_type}
                       onChange={(e) => setFormData({...formData, document_type: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="Code">Kodeks</option>
                       <option value="Law">Qonun</option>
@@ -456,7 +456,7 @@ export default function LegalDocumentsManager() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
                     Bob
                   </label>
                   <Input
@@ -467,20 +467,20 @@ export default function LegalDocumentsManager() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
                     Mazmun
                   </label>
                   <textarea
                     value={formData.content}
                     onChange={(e) => setFormData({...formData, content: e.target.value})}
                     placeholder="Hujjat to'liq mazmunini kiriting..."
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 h-32 resize-none"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 h-32 resize-none"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
                       Kalit so'zlar
                     </label>
                     <Input
@@ -490,7 +490,7 @@ export default function LegalDocumentsManager() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
                       Cross-references
                     </label>
                     <Input
@@ -525,10 +525,10 @@ export default function LegalDocumentsManager() {
       {/* Edit Modal */}
       {showEditModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-bold text-gray-800">Hujjatni Tahrirlash</h3>
+                <h3 className="text-xl font-bold text-gray-800 dark:text-zinc-200">Hujjatni Tahrirlash</h3>
                 <Button
                   variant="outline"
                   onClick={() => setShowEditModal(false)}
@@ -540,7 +540,7 @@ export default function LegalDocumentsManager() {
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
                       Sarlavha
                     </label>
                     <Input
@@ -550,7 +550,7 @@ export default function LegalDocumentsManager() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
                       Modda raqami
                     </label>
                     <Input
@@ -563,13 +563,13 @@ export default function LegalDocumentsManager() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
                       Kategoriya
                     </label>
                     <select
                       value={formData.category}
                       onChange={(e) => setFormData({...formData, category: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="">Kategoriyani tanlang</option>
                       {categories.map(category => (
@@ -580,13 +580,13 @@ export default function LegalDocumentsManager() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
                       Hujjat turi
                     </label>
                     <select
                       value={formData.document_type}
                       onChange={(e) => setFormData({...formData, document_type: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="Code">Kodeks</option>
                       <option value="Law">Qonun</option>
@@ -597,7 +597,7 @@ export default function LegalDocumentsManager() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
                     Bob
                   </label>
                   <Input
@@ -608,20 +608,20 @@ export default function LegalDocumentsManager() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
                     Mazmun
                   </label>
                   <textarea
                     value={formData.content}
                     onChange={(e) => setFormData({...formData, content: e.target.value})}
                     placeholder="Hujjat to'liq mazmunini kiriting..."
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 h-32 resize-none"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 h-32 resize-none"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
                       Kalit so'zlar
                     </label>
                     <Input
@@ -631,7 +631,7 @@ export default function LegalDocumentsManager() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
                       Cross-references
                     </label>
                     <Input

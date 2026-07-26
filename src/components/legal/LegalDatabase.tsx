@@ -200,7 +200,7 @@ const LegalDatabase: React.FC = () => {
       case 'active': return 'bg-green-100 text-green-800';
       case 'repealed': return 'bg-red-100 text-red-800';
       case 'amended': return 'bg-yellow-100 text-yellow-800';
-      default: return 'bg-gray-100 text-gray-800';
+      default: return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200';
     }
   };
 
@@ -219,7 +219,7 @@ const LegalDatabase: React.FC = () => {
       case 'code': return 'bg-purple-100 text-purple-800';
       case 'decree': return 'bg-orange-100 text-orange-800';
       case 'resolution': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
+      default: return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200';
     }
   };
 
@@ -238,8 +238,8 @@ const LegalDatabase: React.FC = () => {
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold text-gray-900">Huquqiy ma\'lumotlar bazasi</h1>
-        <p className="text-gray-600">O\'zbekiston qonun hujjatlarini qidiring va o\'qing</p>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-zinc-100">Huquqiy ma\'lumotlar bazasi</h1>
+        <p className="text-gray-600 dark:text-zinc-400">O\'zbekiston qonun hujjatlarini qidiring va o\'qing</p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
@@ -257,7 +257,7 @@ const LegalDatabase: React.FC = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
                   Qidiruv so\'zi
                 </label>
                 <div className="flex space-x-2">
@@ -286,13 +286,13 @@ const LegalDatabase: React.FC = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
                     Kategoriya
                   </label>
                   <select
                     value={selectedCategory}
                     onChange={(e) => setSelectedCategory(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     {categories.map(category => (
                       <option key={category.value} value={category.value}>
@@ -303,13 +303,13 @@ const LegalDatabase: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
                     Hujjat turi
                   </label>
                   <select
                     value={selectedType}
                     onChange={(e) => setSelectedType(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     {documentTypes.map(type => (
                       <option key={type.value} value={type.value}>
@@ -341,7 +341,7 @@ const LegalDatabase: React.FC = () => {
                 {mockDocuments.slice(0, 4).map((doc) => (
                   <div
                     key={doc.id}
-                    className="border rounded-lg p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+                    className="border rounded-lg p-4 cursor-pointer hover:bg-gray-50 dark:bg-zinc-800/50 transition-colors"
                     onClick={() => handleDocumentSelect(doc)}
                   >
                     <div className="flex items-start justify-between mb-2">
@@ -350,8 +350,8 @@ const LegalDatabase: React.FC = () => {
                         {getStatusName(doc.status)}
                       </Badge>
                     </div>
-                    <p className="text-xs text-gray-600 mb-2">{doc.description}</p>
-                    <div className="flex items-center justify-between text-xs text-gray-500">
+                    <p className="text-xs text-gray-600 dark:text-zinc-400 mb-2">{doc.description}</p>
+                    <div className="flex items-center justify-between text-xs text-gray-500 dark:text-zinc-500">
                       <span>{getTypeName(doc.type)}</span>
                       <span>{doc.citations.toLocaleString()} murojaat</span>
                     </div>
@@ -369,7 +369,7 @@ const LegalDatabase: React.FC = () => {
                 <h3 className="text-lg font-medium">
                   Qidiruv natijalari ({searchResults.total_count})
                 </h3>
-                <span className="text-sm text-gray-500">
+                <span className="text-sm text-gray-500 dark:text-zinc-500">
                   {searchResults.search_time} soniyada
                 </span>
               </div>
@@ -389,7 +389,7 @@ const LegalDatabase: React.FC = () => {
                             </Badge>
                           </div>
                           <h3 className="text-lg font-medium mb-2">{doc.title}</h3>
-                          <p className="text-gray-600 mb-3">{doc.description}</p>
+                          <p className="text-gray-600 dark:text-zinc-400 mb-3">{doc.description}</p>
                           <div className="flex flex-wrap gap-1 mb-3">
                             {doc.keywords.slice(0, 5).map((keyword, index) => (
                               <Badge key={index} variant="outline" className="text-xs">
@@ -399,7 +399,7 @@ const LegalDatabase: React.FC = () => {
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center justify-between text-sm text-gray-500">
+                      <div className="flex items-center justify-between text-sm text-gray-500 dark:text-zinc-500">
                         <div>
                           <span>Effektiv sanasi: {doc.effective_date}</span>
                           <span className="mx-2">•</span>
@@ -422,7 +422,7 @@ const LegalDatabase: React.FC = () => {
               ) : (
                 <Card>
                   <CardContent className="flex items-center justify-center py-12">
-                    <div className="text-center text-gray-500">
+                    <div className="text-center text-gray-500 dark:text-zinc-500">
                       <p>Hech qanday hujjat topilmadi</p>
                       <p className="text-sm mt-2">Boshqa kalit so\'zlar bilan urinib ko'ring</p>
                     </div>
@@ -433,7 +433,7 @@ const LegalDatabase: React.FC = () => {
           ) : (
             <Card>
               <CardContent className="flex items-center justify-center py-12">
-                <div className="text-center text-gray-500">
+                <div className="text-center text-gray-500 dark:text-zinc-500">
                   <p>Hali qidiruv amalga oshirilmagan</p>
                   <p className="text-sm mt-2">Qidiruv so\'zini kiriting</p>
                 </div>
@@ -461,7 +461,7 @@ const LegalDatabase: React.FC = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    <p className="text-gray-700">{selectedDocument.description}</p>
+                    <p className="text-gray-700 dark:text-zinc-300">{selectedDocument.description}</p>
                     
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                       <div>
@@ -519,7 +519,7 @@ const LegalDatabase: React.FC = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="prose max-w-none">
-                    <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                    <p className="text-gray-700 dark:text-zinc-300 leading-relaxed whitespace-pre-wrap">
                       {selectedDocument.content}
                     </p>
                   </div>
@@ -529,7 +529,7 @@ const LegalDatabase: React.FC = () => {
           ) : (
             <Card>
               <CardContent className="flex items-center justify-center py-12">
-                <div className="text-center text-gray-500">
+                <div className="text-center text-gray-500 dark:text-zinc-500">
                   <p>Hujjat tanlanmagan</p>
                   <p className="text-sm mt-2">Qidiruv natijalaridan hujjat tanlang</p>
                 </div>
@@ -541,7 +541,7 @@ const LegalDatabase: React.FC = () => {
         <TabsContent value="favorites" className="space-y-6">
           <Card>
             <CardContent className="flex items-center justify-center py-12">
-              <div className="text-center text-gray-500">
+              <div className="text-center text-gray-500 dark:text-zinc-500">
                 <p>Hali tanlangan hujjatlar yo'q</p>
                 <p className="text-sm mt-2">Hujjatlarni qidiruv natijalarida saqlang</p>
               </div>

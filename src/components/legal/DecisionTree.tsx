@@ -402,8 +402,8 @@ const DecisionTree: React.FC = () => {
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold text-gray-900">Qaror Daraxti</h1>
-        <p className="text-gray-600">Huquqiy vaziyatlarda qaror qabul qilish yo\'nalishini aniqlang</p>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-zinc-100">Qaror Daraxti</h1>
+        <p className="text-gray-600 dark:text-zinc-400">Huquqiy vaziyatlarda qaror qabul qilish yo\'nalishini aniqlang</p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
@@ -445,8 +445,8 @@ const DecisionTree: React.FC = () => {
                     className={cn(
                       'border rounded-lg p-4 cursor-pointer transition-colors',
                       selectedScenario === scenario.id
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200 hover:border-gray-300'
+                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                        : 'border-gray-200 dark:border-zinc-800 hover:border-gray-300 dark:border-zinc-700'
                     )}
                     onClick={() => {
                       setSelectedScenario(scenario.id);
@@ -454,7 +454,7 @@ const DecisionTree: React.FC = () => {
                     }}
                   >
                     <h3 className="font-medium mb-2">{scenario.name}</h3>
-                    <p className="text-sm text-gray-600">{scenario.description}</p>
+                    <p className="text-sm text-gray-600 dark:text-zinc-400">{scenario.description}</p>
                   </div>
                 ))}
               </div>
@@ -470,8 +470,8 @@ const DecisionTree: React.FC = () => {
               <div className="space-y-6">
                 {/* Progress indicator */}
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-500">Qaror yo\'nalishi</span>
-                  <span className="text-sm text-gray-500">{decisionPath.length} qadam</span>
+                  <span className="text-sm text-gray-500 dark:text-zinc-500">Qaror yo\'nalishi</span>
+                  <span className="text-sm text-gray-500 dark:text-zinc-500">{decisionPath.length} qadam</span>
                 </div>
                 <Progress value={(decisionPath.length / 5) * 100} />
 
@@ -479,14 +479,14 @@ const DecisionTree: React.FC = () => {
                 <div className="border rounded-lg p-6">
                   <h3 className="text-lg font-medium mb-2">{getCurrentNode().question}</h3>
                   {getCurrentNode().description && (
-                    <p className="text-gray-600 mb-4">{getCurrentNode().description}</p>
+                    <p className="text-gray-600 dark:text-zinc-400 mb-4">{getCurrentNode().description}</p>
                   )}
                   
                   <div className="space-y-3">
                     {getCurrentNode().options.map((option) => (
                       <div
                         key={option.id}
-                        className="border rounded-lg p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+                        className="border rounded-lg p-4 cursor-pointer hover:bg-gray-50 dark:bg-zinc-800/50 transition-colors"
                         onClick={() => handleOptionSelect(option)}
                       >
                         <div className="flex items-center justify-between">
@@ -498,12 +498,12 @@ const DecisionTree: React.FC = () => {
                           )}
                         </div>
                         {option.legal_basis && (
-                          <p className="text-sm text-gray-600 mt-2">
+                          <p className="text-sm text-gray-600 dark:text-zinc-400 mt-2">
                             <span className="font-medium">Qonuniy asos:</span> {option.legal_basis}
                           </p>
                         )}
                         {option.consequence && (
-                          <div className="mt-3 p-3 bg-yellow-50 rounded-md">
+                          <div className="mt-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-md">
                             <p className="text-sm font-medium text-yellow-900">Oqibat:</p>
                             <p className="text-sm text-yellow-700">{option.consequence}</p>
                           </div>
@@ -527,12 +527,12 @@ const DecisionTree: React.FC = () => {
                 <div className="space-y-4">
                   {decisionPath.map((step, index) => (
                     <div key={index} className="flex items-center space-x-4">
-                      <div className="flex-shrink-0 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-medium">
+                      <div className="flex-shrink-0 w-8 h-8 bg-blue-50 dark:bg-blue-900/20 rounded-full flex items-center justify-center text-white font-medium">
                         {index + 1}
                       </div>
                       <div className="flex-1">
                         <p className="font-medium">{step.answer}</p>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-gray-500 dark:text-zinc-500">
                           {step.timestamp.toLocaleTimeString('uz-UZ')}
                         </p>
                       </div>
@@ -540,7 +540,7 @@ const DecisionTree: React.FC = () => {
                   ))}
                 </div>
               ) : (
-                <div className="text-center text-gray-500 py-8">
+                <div className="text-center text-gray-500 dark:text-zinc-500 py-8">
                   <p>Hali hech qanday tanlov qilinmagan</p>
                   <p className="text-sm mt-2">Qaror daraxtidan boshlang</p>
                 </div>
@@ -555,8 +555,8 @@ const DecisionTree: React.FC = () => {
               <CardContent className="flex items-center justify-center py-12">
                 <div className="text-center space-y-4">
                   <LoadingSpinner size="lg" />
-                  <p className="text-gray-600">Qaror yo\'nalishi tahlil qilinmoqda...</p>
-                  <p className="text-sm text-gray-500">AI tahlili olib borilmoqda</p>
+                  <p className="text-gray-600 dark:text-zinc-400">Qaror yo\'nalishi tahlil qilinmoqda...</p>
+                  <p className="text-sm text-gray-500 dark:text-zinc-500">AI tahlili olib borilmoqda</p>
                 </div>
               </CardContent>
             </Card>
@@ -575,13 +575,13 @@ const DecisionTree: React.FC = () => {
                 <CardContent>
                   <div className="space-y-4">
                     <div className="text-center">
-                      <p className="text-lg font-medium text-gray-900">
+                      <p className="text-lg font-medium text-gray-900 dark:text-zinc-100">
                         {analysisResult.final_decision}
                       </p>
                       <div className={cn("text-4xl font-bold mt-4", getConfidenceColor(analysisResult.confidence_score))}>
                         {Math.round(analysisResult.confidence_score * 100)}%
                       </div>
-                      <p className="text-sm text-gray-500 mt-1">Ishonch darajasi</p>
+                      <p className="text-sm text-gray-500 dark:text-zinc-500 mt-1">Ishonch darajasi</p>
                     </div>
                     <Progress value={analysisResult.confidence_score * 100} className="max-w-md mx-auto" />
                   </div>
@@ -598,7 +598,7 @@ const DecisionTree: React.FC = () => {
                     {analysisResult.legal_basis.map((basis, index) => (
                       <li key={index} className="flex items-start space-x-2">
                         <span className="text-blue-500 mt-1">•</span>
-                        <span className="text-gray-700">{basis}</span>
+                        <span className="text-gray-700 dark:text-zinc-300">{basis}</span>
                       </li>
                     ))}
                   </ul>
@@ -620,8 +620,8 @@ const DecisionTree: React.FC = () => {
                             {Math.round(risk.probability * 100)}%
                           </Badge>
                         </div>
-                        <p className="text-gray-700 mb-2">{risk.description}</p>
-                        <div className="p-2 bg-blue-50 rounded">
+                        <p className="text-gray-700 dark:text-zinc-300 mb-2">{risk.description}</p>
+                        <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded">
                           <p className="text-sm font-medium text-blue-900">Kamaytirish:</p>
                           <p className="text-sm text-blue-700">{risk.mitigation}</p>
                         </div>
@@ -641,7 +641,7 @@ const DecisionTree: React.FC = () => {
                     {analysisResult.recommendations.map((recommendation, index) => (
                       <li key={index} className="flex items-start space-x-2">
                         <span className="text-green-500 mt-1">→</span>
-                        <span className="text-gray-700">{recommendation}</span>
+                        <span className="text-gray-700 dark:text-zinc-300">{recommendation}</span>
                       </li>
                     ))}
                   </ul>
@@ -658,9 +658,9 @@ const DecisionTree: React.FC = () => {
                     {analysisResult.alternative_paths.map((path, index) => (
                       <div key={index} className="border rounded-lg p-4">
                         <h4 className="font-medium mb-2">{path.description}</h4>
-                        <p className="text-gray-700 mb-2">{path.outcome}</p>
+                        <p className="text-gray-700 dark:text-zinc-300 mb-2">{path.outcome}</p>
                         <div className="flex items-center justify-between">
-                          <span className="text-sm text-gray-500">Ehtimollik:</span>
+                          <span className="text-sm text-gray-500 dark:text-zinc-500">Ehtimollik:</span>
                           <Badge variant="outline">
                             {Math.round(path.probability * 100)}%
                           </Badge>
@@ -674,7 +674,7 @@ const DecisionTree: React.FC = () => {
           ) : (
             <Card>
               <CardContent className="flex items-center justify-center py-12">
-                <div className="text-center text-gray-500">
+                <div className="text-center text-gray-500 dark:text-zinc-500">
                   <p>Hali tahlil qilinmagan</p>
                   <p className="text-sm mt-2">Qaror daraxtidan boshlang</p>
                 </div>

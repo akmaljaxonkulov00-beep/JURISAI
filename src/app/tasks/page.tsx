@@ -168,7 +168,7 @@ export default function Tasks() {
       case 'in-progress': return 'bg-yellow-100 text-yellow-700';
       case 'submitted': return 'bg-purple-100 text-purple-700';
       case 'graded': return 'bg-green-100 text-green-700';
-      default: return 'bg-gray-100 text-gray-700';
+      default: return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-700 dark:text-zinc-300';
     }
   };
 
@@ -187,7 +187,7 @@ export default function Tasks() {
       case 'easy': return 'bg-green-100 text-green-700';
       case 'medium': return 'bg-yellow-100 text-yellow-700';
       case 'hard': return 'bg-red-100 text-red-700';
-      default: return 'bg-gray-100 text-gray-700';
+      default: return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-700 dark:text-zinc-300';
     }
   };
 
@@ -202,10 +202,10 @@ export default function Tasks() {
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'high': return 'bg-red-500';
-      case 'medium': return 'bg-yellow-500';
-      case 'low': return 'bg-green-500';
-      default: return 'bg-gray-500';
+      case 'high': return 'bg-red-50 dark:bg-red-900/20';
+      case 'medium': return 'bg-yellow-50 dark:bg-yellow-900/20';
+      case 'low': return 'bg-green-50 dark:bg-green-900/20';
+      default: return 'bg-gray-50 dark:bg-zinc-800/500';
     }
   };
 
@@ -250,32 +250,32 @@ export default function Tasks() {
       <div className="min-h-screen bg-[#f8faff]">
         <div className="flex">
           {/* Sidebar */}
-          <div className="w-64 bg-white border-r border-gray-100 min-h-screen">
+          <div className="w-64 bg-white dark:bg-zinc-900 border-r border-gray-100 dark:border-zinc-800 min-h-screen">
             <div className="p-6">
               <button
                 onClick={() => setSelectedTask(null)}
-                className="flex items-center gap-3 px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-lg cursor-pointer mb-6"
+                className="flex items-center gap-3 px-3 py-2 text-gray-600 dark:text-zinc-400 hover:bg-gray-50 dark:bg-zinc-800/50 rounded-lg cursor-pointer mb-6"
               >
                 <ArrowLeft className="w-5 h-5" />
                 <span>Orqaga</span>
               </button>
               
               {/* Task Info */}
-              <div className="bg-blue-50 rounded-xl p-4 mb-6">
-                <h3 className="font-semibold text-gray-800 mb-2">{selectedTask.title}</h3>
+              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 mb-6">
+                <h3 className="font-semibold text-gray-800 dark:text-zinc-200 mb-2">{selectedTask.title}</h3>
                 <div className="space-y-2 text-sm">
                   <div className="flex items-center gap-2">
                     {getTaskTypeIcon(selectedTask.type)}
-                    <span className="text-gray-600">{getTaskTypeText(selectedTask.type)}</span>
+                    <span className="text-gray-600 dark:text-zinc-400">{getTaskTypeText(selectedTask.type)}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className={`px-2 py-1 rounded text-xs ${getDifficultyColor(selectedTask.difficulty)}`}>
                       {getDifficultyText(selectedTask.difficulty)}
                     </span>
-                    <span className="text-gray-600">{selectedTask.estimatedTime} soat</span>
+                    <span className="text-gray-600 dark:text-zinc-400">{selectedTask.estimatedTime} soat</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-gray-600" />
+                    <Calendar className="w-4 h-4 text-gray-600 dark:text-zinc-400" />
                     <span className={`font-medium ${getDeadlineColor(selectedTask.deadline)}`}>
                       {selectedTask.deadline}
                     </span>
@@ -292,7 +292,7 @@ export default function Tasks() {
                   <Send className="w-4 h-4" />
                   <span>Topshirish</span>
                 </button>
-                <button className="w-full flex items-center gap-2 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">
+                <button className="w-full flex items-center gap-2 px-3 py-2 bg-gray-100 dark:bg-zinc-800/30 text-gray-700 dark:text-zinc-300 rounded-lg hover:bg-gray-200">
                   <RefreshCw className="w-4 h-4" />
                   <span>Qayta boshlash</span>
                 </button>
@@ -302,11 +302,11 @@ export default function Tasks() {
 
           {/* Main Content */}
           <div className="flex-1">
-            <header className="bg-white px-8 py-4 border-b border-gray-100">
+            <header className="bg-white dark:bg-zinc-900 px-8 py-4 border-b border-gray-100 dark:border-zinc-800">
               <div className="flex items-center justify-between">
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-800">{selectedTask.title}</h1>
-                  <p className="text-sm text-gray-600">{getTaskTypeText(selectedTask.type)}</p>
+                  <h1 className="text-2xl font-bold text-gray-800 dark:text-zinc-200">{selectedTask.title}</h1>
+                  <p className="text-sm text-gray-600 dark:text-zinc-400">{getTaskTypeText(selectedTask.type)}</p>
                 </div>
                 <div className="flex items-center gap-4">
                   <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(selectedTask.status)}`}>
@@ -321,35 +321,35 @@ export default function Tasks() {
 
             <main className="p-8">
               <div className="max-w-4xl mx-auto">
-                <div className="bg-white rounded-2xl p-6 shadow-sm">
+                <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-sm">
                   <div className="mb-6">
-                    <h2 className="text-lg font-bold text-gray-800 mb-2">Topshiriq tavsifi</h2>
-                    <p className="text-gray-700 leading-relaxed">{selectedTask.description}</p>
+                    <h2 className="text-lg font-bold text-gray-800 dark:text-zinc-200 mb-2">Topshiriq tavsifi</h2>
+                    <p className="text-gray-700 dark:text-zinc-300 leading-relaxed">{selectedTask.description}</p>
                   </div>
                   
                   <div className="grid grid-cols-3 gap-4 mb-6">
-                    <div className="bg-gray-50 rounded-lg p-4">
+                    <div className="bg-gray-50 dark:bg-zinc-800/50 rounded-lg p-4">
                       <div className="flex items-center gap-2 mb-2">
                         <Target className="w-5 h-5 text-blue-600" />
-                        <span className="font-medium text-gray-800">Maksimal ball</span>
+                        <span className="font-medium text-gray-800 dark:text-zinc-200">Maksimal ball</span>
                       </div>
                       <p className="text-2xl font-bold text-blue-600">{selectedTask.maxScore}</p>
                     </div>
                     
-                    <div className="bg-gray-50 rounded-lg p-4">
+                    <div className="bg-gray-50 dark:bg-zinc-800/50 rounded-lg p-4">
                       <div className="flex items-center gap-2 mb-2">
                         <Clock className="w-5 h-5 text-orange-600" />
-                        <span className="font-medium text-gray-800">Tugash muddati</span>
+                        <span className="font-medium text-gray-800 dark:text-zinc-200">Tugash muddati</span>
                       </div>
                       <p className={`text-lg font-bold ${getDeadlineColor(selectedTask.deadline)}`}>
                         {selectedTask.deadline}
                       </p>
                     </div>
                     
-                    <div className="bg-gray-50 rounded-lg p-4">
+                    <div className="bg-gray-50 dark:bg-zinc-800/50 rounded-lg p-4">
                       <div className="flex items-center gap-2 mb-2">
                         <User className="w-5 h-5 text-purple-600" />
-                        <span className="font-medium text-gray-800">Ustoz</span>
+                        <span className="font-medium text-gray-800 dark:text-zinc-200">Ustoz</span>
                       </div>
                       <p className="text-lg font-bold text-purple-600">
                         {selectedTask.instructor || 'AI Assistent'}
@@ -358,11 +358,11 @@ export default function Tasks() {
                   </div>
                   
                   {selectedTask.feedback && (
-                    <div className="bg-blue-50 rounded-lg p-4">
-                      <h3 className="font-bold text-gray-800 mb-2">Oldingi feedback</h3>
-                      <p className="text-gray-700">{selectedTask.feedback}</p>
+                    <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
+                      <h3 className="font-bold text-gray-800 dark:text-zinc-200 mb-2">Oldingi feedback</h3>
+                      <p className="text-gray-700 dark:text-zinc-300">{selectedTask.feedback}</p>
                       {selectedTask.instructor && (
-                        <p className="text-sm text-gray-600 mt-2">- {selectedTask.instructor}</p>
+                        <p className="text-sm text-gray-600 dark:text-zinc-400 mt-2">- {selectedTask.instructor}</p>
                       )}
                     </div>
                   )}
@@ -375,23 +375,23 @@ export default function Tasks() {
         {/* Submission Modal */}
         {showSubmissionModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-2xl p-6 max-w-2xl mx-4 w-full">
-              <h3 className="text-lg font-bold text-gray-800 mb-4">Topshiriqni topshirish</h3>
+            <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 max-w-2xl mx-4 w-full">
+              <h3 className="text-lg font-bold text-gray-800 dark:text-zinc-200 mb-4">Topshiriqni topshirish</h3>
               
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Javobingiz</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">Javobingiz</label>
                 <textarea
                   value={submissionContent}
                   onChange={(e) => setSubmissionContent(e.target.value)}
                   placeholder="Topshiriq bo'yicha javobingizni bu yerga yozing..."
-                  className="w-full h-32 px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full h-32 px-4 py-2 border border-gray-200 dark:border-zinc-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               
               <div className="flex justify-end gap-3">
                 <button
                   onClick={() => setShowSubmissionModal(false)}
-                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+                  className="px-4 py-2 bg-gray-200 text-gray-700 dark:text-zinc-300 rounded-lg hover:bg-gray-300"
                 >
                   Bekor qilish
                 </button>
@@ -413,20 +413,20 @@ export default function Tasks() {
     <div className="min-h-screen bg-[#f8faff]">
       <div className="flex">
         {/* Sidebar */}
-        <div className="w-64 bg-white border-r border-gray-100 min-h-screen">
+        <div className="w-64 bg-white dark:bg-zinc-900 border-r border-gray-100 dark:border-zinc-800 min-h-screen">
           <div className="p-6">
-            <a href="/" className="flex items-center gap-3 px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-lg cursor-pointer mb-6">
+            <a href="/" className="flex items-center gap-3 px-3 py-2 text-gray-600 dark:text-zinc-400 hover:bg-gray-50 dark:bg-zinc-800/50 rounded-lg cursor-pointer mb-6">
               <ArrowLeft className="w-5 h-5" />
               <span>Orqaga</span>
             </a>
             
             {/* Menu Items */}
             <nav className="space-y-2">
-              <div className="flex items-center gap-3 px-3 py-2 bg-blue-50 text-blue-600 rounded-lg">
+              <div className="flex items-center gap-3 px-3 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 rounded-lg">
                 <CheckCircle className="w-5 h-5" />
                 <span className="font-medium">Topshiriqlar</span>
                 {getNewTasksCount() > 0 && (
-                  <span className="ml-auto w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs">
+                  <span className="ml-auto w-5 h-5 bg-red-50 dark:bg-red-900/20 text-white rounded-full flex items-center justify-center text-xs">
                     {getNewTasksCount()}
                   </span>
                 )}
@@ -438,25 +438,25 @@ export default function Tasks() {
         {/* Main Content */}
         <div className="flex-1">
           {/* Header */}
-          <header className="bg-white px-8 py-4 border-b border-gray-100">
+          <header className="bg-white dark:bg-zinc-900 px-8 py-4 border-b border-gray-100 dark:border-zinc-800">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-gray-800">Topshiriqlar</h1>
-                <p className="text-sm text-gray-600">Nazorat punkti - barcha amaliy vazifalar</p>
+                <h1 className="text-2xl font-bold text-gray-800 dark:text-zinc-200">Topshiriqlar</h1>
+                <p className="text-sm text-gray-600 dark:text-zinc-400">Nazorat punkti - barcha amaliy vazifalar</p>
               </div>
               
               <div className="flex items-center gap-4">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500 w-4 h-4" />
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Qidirish..."
-                    className="pl-10 pr-4 py-2 bg-gray-50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="pl-10 pr-4 py-2 bg-gray-50 dark:bg-zinc-800/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
-                <button className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">
+                <button className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-zinc-800/30 text-gray-700 dark:text-zinc-300 rounded-lg hover:bg-gray-200">
                   <Filter className="w-4 h-4" />
                   Filter
                 </button>
@@ -465,14 +465,14 @@ export default function Tasks() {
           </header>
 
           {/* Filter Tabs */}
-          <div className="bg-white px-8 py-4 border-b border-gray-100">
+          <div className="bg-white dark:bg-zinc-900 px-8 py-4 border-b border-gray-100 dark:border-zinc-800">
             <div className="flex gap-4">
               <button
                 onClick={() => setSelectedFilter('all')}
                 className={`px-4 py-2 rounded-lg transition-colors ${
                   selectedFilter === 'all'
                     ? 'bg-blue-600 text-white'
-                    : 'text-gray-600 hover:bg-gray-100'
+                    : 'text-gray-600 dark:text-zinc-400 hover:bg-gray-100 dark:bg-zinc-800/30'
                 }`}
               >
                 Barchasi ({tasks.length})
@@ -482,7 +482,7 @@ export default function Tasks() {
                 className={`px-4 py-2 rounded-lg transition-colors ${
                   selectedFilter === 'new'
                     ? 'bg-blue-600 text-white'
-                    : 'text-gray-600 hover:bg-gray-100'
+                    : 'text-gray-600 dark:text-zinc-400 hover:bg-gray-100 dark:bg-zinc-800/30'
                 }`}
               >
                 Yangi ({tasks.filter(t => t.status === 'new').length})
@@ -492,7 +492,7 @@ export default function Tasks() {
                 className={`px-4 py-2 rounded-lg transition-colors ${
                   selectedFilter === 'in-progress'
                     ? 'bg-blue-600 text-white'
-                    : 'text-gray-600 hover:bg-gray-100'
+                    : 'text-gray-600 dark:text-zinc-400 hover:bg-gray-100 dark:bg-zinc-800/30'
                 }`}
               >
                 Jarayonda ({tasks.filter(t => t.status === 'in-progress').length})
@@ -502,7 +502,7 @@ export default function Tasks() {
                 className={`px-4 py-2 rounded-lg transition-colors ${
                   selectedFilter === 'completed'
                     ? 'bg-blue-600 text-white'
-                    : 'text-gray-600 hover:bg-gray-100'
+                    : 'text-gray-600 dark:text-zinc-400 hover:bg-gray-100 dark:bg-zinc-800/30'
                 }`}
               >
                 Bajarilgan ({tasks.filter(t => ['completed', 'submitted', 'graded'].includes(t.status)).length})
@@ -511,14 +511,14 @@ export default function Tasks() {
           </div>
 
           {/* Type Filter */}
-          <div className="bg-white px-8 py-4 border-b border-gray-100">
+          <div className="bg-white dark:bg-zinc-900 px-8 py-4 border-b border-gray-100 dark:border-zinc-800">
             <div className="flex gap-4">
               <button
                 onClick={() => setSelectedType('all')}
                 className={`px-4 py-2 rounded-lg transition-colors ${
                   selectedType === 'all'
                     ? 'bg-blue-600 text-white'
-                    : 'text-gray-600 hover:bg-gray-100'
+                    : 'text-gray-600 dark:text-zinc-400 hover:bg-gray-100 dark:bg-zinc-800/30'
                 }`}
               >
                 Barcha turlar
@@ -528,7 +528,7 @@ export default function Tasks() {
                 className={`px-4 py-2 rounded-lg transition-colors ${
                   selectedType === 'case-study'
                     ? 'bg-blue-600 text-white'
-                    : 'text-gray-600 hover:bg-gray-100'
+                    : 'text-gray-600 dark:text-zinc-400 hover:bg-gray-100 dark:bg-zinc-800/30'
                 }`}
               >
                 Keys tahlili
@@ -538,7 +538,7 @@ export default function Tasks() {
                 className={`px-4 py-2 rounded-lg transition-colors ${
                   selectedType === 'document-prep'
                     ? 'bg-blue-600 text-white'
-                    : 'text-gray-600 hover:bg-gray-100'
+                    : 'text-gray-600 dark:text-zinc-400 hover:bg-gray-100 dark:bg-zinc-800/30'
                 }`}
               >
                 Hujjat tayyorlash
@@ -548,7 +548,7 @@ export default function Tasks() {
                 className={`px-4 py-2 rounded-lg transition-colors ${
                   selectedType === 'research'
                     ? 'bg-blue-600 text-white'
-                    : 'text-gray-600 hover:bg-gray-100'
+                    : 'text-gray-600 dark:text-zinc-400 hover:bg-gray-100 dark:bg-zinc-800/30'
                 }`}
               >
                 Tadqiqot
@@ -564,7 +564,7 @@ export default function Tasks() {
                   <div
                     key={task.id}
                     onClick={() => setSelectedTask(task)}
-                    className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-lg transition-shadow cursor-pointer"
+                    className="bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-sm hover:shadow-lg transition-shadow cursor-pointer"
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
@@ -573,8 +573,8 @@ export default function Tasks() {
                             {getTaskTypeIcon(task.type)}
                           </div>
                           <div>
-                            <h3 className="font-bold text-gray-800 text-lg">{task.title}</h3>
-                            <p className="text-sm text-gray-600">{getTaskTypeText(task.type)}</p>
+                            <h3 className="font-bold text-gray-800 dark:text-zinc-200 text-lg">{task.title}</h3>
+                            <p className="text-sm text-gray-600 dark:text-zinc-400">{getTaskTypeText(task.type)}</p>
                           </div>
                         </div>
                         
@@ -590,10 +590,10 @@ export default function Tasks() {
                       </div>
                     </div>
                     
-                    <p className="text-gray-700 mb-4">{task.description}</p>
+                    <p className="text-gray-700 dark:text-zinc-300 mb-4">{task.description}</p>
                     
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4 text-sm text-gray-600">
+                      <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-zinc-400">
                         <div className="flex items-center gap-1">
                           <Calendar className="w-4 h-4" />
                           <span className={getDeadlineColor(task.deadline)}>
@@ -660,14 +660,14 @@ export default function Tasks() {
                     </div>
                     
                     {task.feedback && (
-                      <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                      <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                         <div className="flex items-center gap-2 mb-1">
                           <User className="w-4 h-4 text-blue-600" />
                           <span className="font-medium text-blue-800">Feedback</span>
                         </div>
-                        <p className="text-sm text-gray-700">{task.feedback}</p>
+                        <p className="text-sm text-gray-700 dark:text-zinc-300">{task.feedback}</p>
                         {task.instructor && (
-                          <p className="text-xs text-gray-600 mt-1">- {task.instructor}</p>
+                          <p className="text-xs text-gray-600 dark:text-zinc-400 mt-1">- {task.instructor}</p>
                         )}
                       </div>
                     )}
@@ -677,11 +677,11 @@ export default function Tasks() {
               
               {filteredTasks.length === 0 && (
                 <div className="text-center py-12">
-                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <CheckCircle className="w-8 h-8 text-gray-400" />
+                  <div className="w-16 h-16 bg-gray-100 dark:bg-zinc-800/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <CheckCircle className="w-8 h-8 text-gray-400 dark:text-zinc-500" />
                   </div>
-                  <h3 className="text-lg font-medium text-gray-800 mb-2">Topshiriqlar topilmadi</h3>
-                  <p className="text-gray-600">Tanlangan filtrga mos topshiriqlar mavjud emas</p>
+                  <h3 className="text-lg font-medium text-gray-800 dark:text-zinc-200 mb-2">Topshiriqlar topilmadi</h3>
+                  <p className="text-gray-600 dark:text-zinc-400">Tanlangan filtrga mos topshiriqlar mavjud emas</p>
                 </div>
               )}
             </div>

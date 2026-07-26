@@ -137,14 +137,14 @@ const PricingSection: React.FC<PricingSectionProps> = ({ className }) => {
   };
 
   return (
-    <section className={cn('py-20 bg-gray-50', className)}>
+    <section className={cn('py-20 bg-gray-50 dark:bg-zinc-800/50', className)}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-zinc-100 mb-4">
             Siz uchun <span className="text-emerald-600">to\'g\'ri tarif</span>
           </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
+          <p className="text-xl text-gray-600 dark:text-zinc-400 max-w-3xl mx-auto mb-8">
             Har bir huquqshunos uchun mos variant - talabadan professionalgacha
           </p>
 
@@ -152,7 +152,7 @@ const PricingSection: React.FC<PricingSectionProps> = ({ className }) => {
           <div className="flex items-center justify-center space-x-4">
             <span className={cn(
               'text-sm font-medium',
-              billingCycle === 'monthly' ? 'text-gray-900' : 'text-gray-500'
+              billingCycle === 'monthly' ? 'text-gray-900 dark:text-zinc-100' : 'text-gray-500 dark:text-zinc-500'
             )}>
               Oylik
             </span>
@@ -162,14 +162,14 @@ const PricingSection: React.FC<PricingSectionProps> = ({ className }) => {
             >
               <span
                 className={cn(
-                  'inline-block h-4 w-4 transform rounded-full bg-white transition-transform',
+                  'inline-block h-4 w-4 transform rounded-full bg-white dark:bg-zinc-900 transition-transform',
                   billingCycle === 'yearly' ? 'translate-x-6' : 'translate-x-1'
                 )}
               />
             </button>
             <span className={cn(
               'text-sm font-medium',
-              billingCycle === 'yearly' ? 'text-gray-900' : 'text-gray-500'
+              billingCycle === 'yearly' ? 'text-gray-900 dark:text-zinc-100' : 'text-gray-500 dark:text-zinc-500'
             )}>
               Yillik
               <Badge className="ml-2 bg-emerald-100 text-emerald-800 text-xs">
@@ -204,25 +204,25 @@ const PricingSection: React.FC<PricingSectionProps> = ({ className }) => {
                   <div className="flex justify-center mb-4">
                     <div className={cn(
                       'w-12 h-12 rounded-full flex items-center justify-center',
-                      plan.popular ? 'bg-emerald-500 text-white' : 'bg-gray-100 text-gray-600'
+                      plan.popular ? 'bg-emerald-500 text-white' : 'bg-gray-100 dark:bg-zinc-800/30 text-gray-600 dark:text-zinc-400'
                     )}>
                       {plan.icon}
                     </div>
                   </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">{plan.name}</h3>
-                  <p className="text-sm text-gray-600 mb-4">{plan.description}</p>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-zinc-100 mb-2">{plan.name}</h3>
+                  <p className="text-sm text-gray-600 dark:text-zinc-400 mb-4">{plan.description}</p>
                   
                   {/* Price */}
                   <div className="mb-4">
                     {plan.price !== null ? (
                       <div>
-                        <span className="text-3xl font-bold text-gray-900">
+                        <span className="text-3xl font-bold text-gray-900 dark:text-zinc-100">
                           {formatPrice(plan.price)}
                         </span>
-                        <span className="text-gray-500 ml-1">/{plan.period}</span>
+                        <span className="text-gray-500 dark:text-zinc-500 ml-1">/{plan.period}</span>
                       </div>
                     ) : (
-                      <div className="text-2xl font-bold text-gray-900">Custom</div>
+                      <div className="text-2xl font-bold text-gray-900 dark:text-zinc-100">Custom</div>
                     )}
                   </div>
                 </div>
@@ -234,7 +234,7 @@ const PricingSection: React.FC<PricingSectionProps> = ({ className }) => {
                       <svg className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                       </svg>
-                      <span className="text-sm text-gray-700">{feature}</span>
+                      <span className="text-sm text-gray-700 dark:text-zinc-300">{feature}</span>
                     </div>
                   ))}
                 </div>
@@ -256,8 +256,8 @@ const PricingSection: React.FC<PricingSectionProps> = ({ className }) => {
 
         {/* Additional Info */}
         <div className="mt-16 text-center">
-          <div className="bg-white rounded-2xl p-8 shadow-lg">
-            <h3 className="text-2xl font-bold text-gray-900 mb-4">
+          <div className="bg-white dark:bg-zinc-900 rounded-2xl p-8 shadow-lg">
+            <h3 className="text-2xl font-bold text-gray-900 dark:text-zinc-100 mb-4">
               Barcha tariflarda nima bor?
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
@@ -266,8 +266,8 @@ const PricingSection: React.FC<PricingSectionProps> = ({ className }) => {
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
                 <div>
-                  <h4 className="font-medium text-gray-900">14 kun bepul sinov</h4>
-                  <p className="text-sm text-gray-600">Hech qanday majburiyatsiz</p>
+                  <h4 className="font-medium text-gray-900 dark:text-zinc-100">14 kun bepul sinov</h4>
+                  <p className="text-sm text-gray-600 dark:text-zinc-400">Hech qanday majburiyatsiz</p>
                 </div>
               </div>
               <div className="flex items-start space-x-3">
@@ -275,8 +275,8 @@ const PricingSection: React.FC<PricingSectionProps> = ({ className }) => {
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
                 <div>
-                  <h4 className="font-medium text-gray-900">Istalgan vaqtda bekor qilish</h4>
-                  <p className="text-sm text-gray-600">Hech qanday jarima</p>
+                  <h4 className="font-medium text-gray-900 dark:text-zinc-100">Istalgan vaqtda bekor qilish</h4>
+                  <p className="text-sm text-gray-600 dark:text-zinc-400">Hech qanday jarima</p>
                 </div>
               </div>
               <div className="flex items-start space-x-3">
@@ -284,8 +284,8 @@ const PricingSection: React.FC<PricingSectionProps> = ({ className }) => {
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
                 <div>
-                  <h4 className="font-medium text-gray-900">24/7 texnik yordam</h4>
-                  <p className="text-sm text-gray-600">Barcha tariflarda</p>
+                  <h4 className="font-medium text-gray-900 dark:text-zinc-100">24/7 texnik yordam</h4>
+                  <p className="text-sm text-gray-600 dark:text-zinc-400">Barcha tariflarda</p>
                 </div>
               </div>
             </div>

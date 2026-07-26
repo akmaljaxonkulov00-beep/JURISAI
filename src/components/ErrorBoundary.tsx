@@ -42,8 +42,8 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
 
 function DefaultErrorFallback({ error, reset }: { error?: Error; reset: () => void }) {
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center">
+    <div className="min-h-screen bg-gray-50 dark:bg-zinc-800/50 flex items-center justify-center p-4">
+      <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-lg p-8 max-w-md w-full text-center">
         <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
           <svg
             className="w-8 h-8 text-red-600"
@@ -60,17 +60,17 @@ function DefaultErrorFallback({ error, reset }: { error?: Error; reset: () => vo
           </svg>
         </div>
         
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-zinc-100 mb-2">
           Xatolik yuz berdi
         </h2>
         
-        <p className="text-gray-600 mb-6">
+        <p className="text-gray-600 dark:text-zinc-400 mb-6">
           Kechirasiz, sahifada nosozlik yuz berdi. Iltimos, sahifani qayta yuklang yoki keyinroq urinib ko'ring.
         </p>
         
         {error && (
-          <div className="bg-gray-100 rounded p-3 mb-6 text-left">
-            <p className="text-sm text-gray-700 font-mono">
+          <div className="bg-gray-100 dark:bg-zinc-800/30 rounded p-3 mb-6 text-left">
+            <p className="text-sm text-gray-700 dark:text-zinc-300 font-mono">
               {error.message}
             </p>
           </div>
@@ -86,13 +86,13 @@ function DefaultErrorFallback({ error, reset }: { error?: Error; reset: () => vo
           
           <button
             onClick={() => window.location.href = '/dashboard'}
-            className="w-full bg-gray-200 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors"
+            className="w-full bg-gray-200 text-gray-800 dark:text-zinc-200 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors"
           >
             Bosh sahifaga qaytish
           </button>
         </div>
         
-        <p className="text-sm text-gray-500 mt-4">
+        <p className="text-sm text-gray-500 dark:text-zinc-500 mt-4">
           Agar muammo davom etsa, iltimos, <a href="/help" className="text-blue-600 hover:underline">yordam</a> bo'limiga murojaat qiling.
         </p>
       </div>

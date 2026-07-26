@@ -229,17 +229,17 @@ export default function PaymentAdmin() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-zinc-800/50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Yuklanmoqda...</p>
+          <p className="text-gray-600 dark:text-zinc-400">Yuklanmoqda...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-zinc-800/50 p-6">
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
@@ -251,7 +251,7 @@ export default function PaymentAdmin() {
               <ArrowLeft className="w-4 h-4" />
               Orqaga
             </Button>
-            <h1 className="text-3xl font-bold text-gray-900">To'lovlar Admin Paneli</h1>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-zinc-100">To'lovlar Admin Paneli</h1>
           </div>
           <div className="flex items-center gap-2">
             <Badge className="bg-blue-100 text-blue-800">
@@ -266,7 +266,7 @@ export default function PaymentAdmin() {
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500 w-4 h-4" />
                   <Input
                     placeholder="Foydalanuvchi, email yoki tarif nomi bo'yicha qidirish..."
                     value={searchQuery}
@@ -321,32 +321,32 @@ export default function PaymentAdmin() {
                         <User className="w-5 h-5 text-blue-600" />
                       </div>
                       <div>
-                        <h3 className="font-semibold text-gray-900">{payment.userName}</h3>
-                        <p className="text-sm text-gray-600">{payment.userEmail}</p>
+                        <h3 className="font-semibold text-gray-900 dark:text-zinc-100">{payment.userName}</h3>
+                        <p className="text-sm text-gray-600 dark:text-zinc-400">{payment.userEmail}</p>
                       </div>
                       {getStatusBadge(payment.status)}
                     </div>
                     
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                       <div className="flex items-center gap-2">
-                        <CreditCard className="w-4 h-4 text-gray-400" />
-                        <span className="text-gray-600">Tarif:</span>
+                        <CreditCard className="w-4 h-4 text-gray-400 dark:text-zinc-500" />
+                        <span className="text-gray-600 dark:text-zinc-400">Tarif:</span>
                         <span className="font-medium">{payment.planName}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-gray-600">Summa:</span>
+                        <span className="text-gray-600 dark:text-zinc-400">Summa:</span>
                         <span className="font-medium">{payment.planPrice.toLocaleString()} UZS</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4 text-gray-400" />
-                        <span className="text-gray-600">
+                        <Calendar className="w-4 h-4 text-gray-400 dark:text-zinc-500" />
+                        <span className="text-gray-600 dark:text-zinc-400">
                           {new Date(payment.submittedAt).toLocaleDateString('uz-UZ')}
                         </span>
                       </div>
                     </div>
 
                     {payment.notes && (
-                      <div className="bg-yellow-50 border border-yellow-200 rounded p-2 text-sm">
+                      <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 rounded p-2 text-sm">
                         <span className="text-yellow-800">{payment.notes}</span>
                       </div>
                     )}
@@ -394,9 +394,9 @@ export default function PaymentAdmin() {
         {filteredPayments.length === 0 && (
           <Card>
             <CardContent className="p-12 text-center">
-              <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">To'lovlar topilmadi</h3>
-              <p className="text-gray-600">
+              <AlertCircle className="w-12 h-12 text-gray-400 dark:text-zinc-500 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-zinc-100 mb-2">To'lovlar topilmadi</h3>
+              <p className="text-gray-600 dark:text-zinc-400">
                 {searchQuery || statusFilter !== 'all' 
                   ? 'Berilgan filtrlar bo\'yicha to\'lovlar topilmadi' 
                   : 'Hozircha hech qanday to\'lov yo\'q'
@@ -426,47 +426,47 @@ export default function PaymentAdmin() {
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="space-y-4">
                     <div>
-                      <h3 className="font-medium text-gray-900 mb-2">Foydalanuvchi ma'lumotlari</h3>
-                      <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                      <h3 className="font-medium text-gray-900 dark:text-zinc-100 mb-2">Foydalanuvchi ma'lumotlari</h3>
+                      <div className="bg-gray-50 dark:bg-zinc-800/50 rounded-lg p-4 space-y-2">
                         <div className="flex justify-between">
-                          <span className="text-gray-600">Ism:</span>
+                          <span className="text-gray-600 dark:text-zinc-400">Ism:</span>
                           <span className="font-medium">{selectedPayment.userName}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-600">Email:</span>
+                          <span className="text-gray-600 dark:text-zinc-400">Email:</span>
                           <span className="font-medium">{selectedPayment.userEmail}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-600">User ID:</span>
+                          <span className="text-gray-600 dark:text-zinc-400">User ID:</span>
                           <span className="font-medium">{selectedPayment.userId}</span>
                         </div>
                       </div>
                     </div>
 
                     <div>
-                      <h3 className="font-medium text-gray-900 mb-2">To'lov ma'lumotlari</h3>
-                      <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                      <h3 className="font-medium text-gray-900 dark:text-zinc-100 mb-2">To'lov ma'lumotlari</h3>
+                      <div className="bg-gray-50 dark:bg-zinc-800/50 rounded-lg p-4 space-y-2">
                         <div className="flex justify-between">
-                          <span className="text-gray-600">Tarif:</span>
+                          <span className="text-gray-600 dark:text-zinc-400">Tarif:</span>
                           <span className="font-medium">{selectedPayment.planName}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-600">Summa:</span>
+                          <span className="text-gray-600 dark:text-zinc-400">Summa:</span>
                           <span className="font-medium">{selectedPayment.planPrice.toLocaleString()} UZS</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-600">Status:</span>
+                          <span className="text-gray-600 dark:text-zinc-400">Status:</span>
                           <div>{getStatusBadge(selectedPayment.status)}</div>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-600">Yuborilgan vaqt:</span>
+                          <span className="text-gray-600 dark:text-zinc-400">Yuborilgan vaqt:</span>
                           <span className="font-medium">
                             {new Date(selectedPayment.submittedAt).toLocaleString('uz-UZ')}
                           </span>
                         </div>
                         {selectedPayment.processedAt && (
                           <div className="flex justify-between">
-                            <span className="text-gray-600">Qayta ishlangan vaqt:</span>
+                            <span className="text-gray-600 dark:text-zinc-400">Qayta ishlangan vaqt:</span>
                             <span className="font-medium">
                               {new Date(selectedPayment.processedAt).toLocaleString('uz-UZ')}
                             </span>
@@ -474,7 +474,7 @@ export default function PaymentAdmin() {
                         )}
                         {selectedPayment.processedBy && (
                           <div className="flex justify-between">
-                            <span className="text-gray-600">Qayta ishlagan:</span>
+                            <span className="text-gray-600 dark:text-zinc-400">Qayta ishlagan:</span>
                             <span className="font-medium">{selectedPayment.processedBy}</span>
                           </div>
                         )}
@@ -484,8 +484,8 @@ export default function PaymentAdmin() {
 
                   <div className="space-y-4">
                     <div>
-                      <h3 className="font-medium text-gray-900 mb-2">Chek rasmi</h3>
-                      <div className="bg-gray-50 rounded-lg p-4">
+                      <h3 className="font-medium text-gray-900 dark:text-zinc-100 mb-2">Chek rasmi</h3>
+                      <div className="bg-gray-50 dark:bg-zinc-800/50 rounded-lg p-4">
                         {selectedPayment.checkImage ? (
                           <img 
                             src={selectedPayment.checkImage} 
@@ -494,7 +494,7 @@ export default function PaymentAdmin() {
                           />
                         ) : (
                           <div className="w-full h-64 bg-gray-200 rounded-lg flex items-center justify-center">
-                            <Image className="w-8 h-8 text-gray-400" />
+                            <Image className="w-8 h-8 text-gray-400 dark:text-zinc-500" />
                           </div>
                         )}
                       </div>

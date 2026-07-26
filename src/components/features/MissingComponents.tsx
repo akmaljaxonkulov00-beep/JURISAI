@@ -106,16 +106,16 @@ export default function MissingComponents() {
       case 'implemented': return 'bg-green-100 text-green-800';
       case 'partial': return 'bg-yellow-100 text-yellow-800';
       case 'missing': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      default: return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200';
     }
   };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'high': return 'bg-red-50 border-red-200';
-      case 'medium': return 'bg-yellow-50 border-yellow-200';
-      case 'low': return 'bg-green-50 border-green-200';
-      default: return 'bg-gray-50 border-gray-200';
+      case 'high': return 'bg-red-50 dark:bg-red-900/20 border-red-200';
+      case 'medium': return 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200';
+      case 'low': return 'bg-green-50 dark:bg-green-900/20 border-green-200';
+      default: return 'bg-gray-50 dark:bg-zinc-800/50 border-gray-200 dark:border-zinc-800';
     }
   };
 
@@ -131,13 +131,13 @@ export default function MissingComponents() {
   return (
     <div className="p-6 max-w-6xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">JurisAI - To'liq Funksional Tahlili</h1>
-        <p className="text-gray-600">Platformaning hozirgi holati va to'ldirilishi kerak bo'lgan funksiyalar</p>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-zinc-100 mb-2">JurisAI - To'liq Funksional Tahlili</h1>
+        <p className="text-gray-600 dark:text-zinc-400">Platformaning hozirgi holati va to'ldirilishi kerak bo'lgan funksiyalar</p>
       </div>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        <Card className="bg-green-50 border-green-200">
+        <Card className="bg-green-50 dark:bg-green-900/20 border-green-200">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
@@ -149,7 +149,7 @@ export default function MissingComponents() {
           </CardContent>
         </Card>
 
-        <Card className="bg-yellow-50 border-yellow-200">
+        <Card className="bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
@@ -161,7 +161,7 @@ export default function MissingComponents() {
           </CardContent>
         </Card>
 
-        <Card className="bg-red-50 border-red-200">
+        <Card className="bg-red-50 dark:bg-red-900/20 border-red-200">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
@@ -173,7 +173,7 @@ export default function MissingComponents() {
           </CardContent>
         </Card>
 
-        <Card className="bg-blue-50 border-blue-200">
+        <Card className="bg-blue-50 dark:bg-blue-900/20 border-blue-200">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
@@ -206,25 +206,25 @@ export default function MissingComponents() {
               </div>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-700 mb-4">{feature.description}</p>
+              <p className="text-gray-700 dark:text-zinc-300 mb-4">{feature.description}</p>
               
               <div className="space-y-2">
                 {feature.component && (
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">Component:</span>
-                    <code className="bg-gray-100 px-2 py-1 rounded">{feature.component}</code>
+                    <span className="text-gray-600 dark:text-zinc-400">Component:</span>
+                    <code className="bg-gray-100 dark:bg-zinc-800/30 px-2 py-1 rounded">{feature.component}</code>
                   </div>
                 )}
                 
                 {feature.api && (
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">API:</span>
-                    <code className="bg-gray-100 px-2 py-1 rounded">{feature.api}</code>
+                    <span className="text-gray-600 dark:text-zinc-400">API:</span>
+                    <code className="bg-gray-100 dark:bg-zinc-800/30 px-2 py-1 rounded">{feature.api}</code>
                   </div>
                 )}
                 
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600">Priority:</span>
+                  <span className="text-gray-600 dark:text-zinc-400">Priority:</span>
                   <Badge variant={feature.priority === 'high' ? 'destructive' : 
                                  feature.priority === 'medium' ? 'default' : 'secondary'}>
                     {feature.priority === 'high' ? 'Yuqori' : 
@@ -234,7 +234,7 @@ export default function MissingComponents() {
               </div>
 
               {feature.status !== 'implemented' && (
-                <div className="mt-4 pt-4 border-t border-gray-200">
+                <div className="mt-4 pt-4 border-t border-gray-200 dark:border-zinc-800">
                   <Button 
                     variant="outline" 
                     size="sm" 
@@ -266,7 +266,7 @@ export default function MissingComponents() {
           <div className="space-y-4">
             <div>
               <h3 className="font-semibold text-lg mb-2">1. Yuqori Prioritetli Funksiyalar</h3>
-              <ul className="list-disc list-inside space-y-1 text-gray-700">
+              <ul className="list-disc list-inside space-y-1 text-gray-700 dark:text-zinc-300">
                 <li>Telegram integratsiyasi - foydalanuvchilarni xabardor qilish</li>
                 <li>To'liq to'lov tizimi - Payme/Click integratsiyasi</li>
               </ul>
@@ -274,7 +274,7 @@ export default function MissingComponents() {
             
             <div>
               <h3 className="font-semibold text-lg mb-2">2. O'rta Prioritet</h3>
-              <ul className="list-disc list-inside space-y-1 text-gray-700">
+              <ul className="list-disc list-inside space-y-1 text-gray-700 dark:text-zinc-300">
                 <li>Profil menejmenti - foydalanuvchi sozlamalari</li>
                 <li>Advanced qidiruv - qonunlar bazasida qidiruv</li>
                 <li>Analitika - platforma statistikasi</li>
@@ -283,7 +283,7 @@ export default function MissingComponents() {
             
             <div>
               <h3 className="font-semibold text-lg mb-2">3. Past Prioritet</h3>
-              <ul className="list-disc list-inside space-y-1 text-gray-700">
+              <ul className="list-disc list-inside space-y-1 text-gray-700 dark:text-zinc-300">
                 <li>Achievement system - gamifikatsiya</li>
                 <li>Notification system - bildirishnoma</li>
               </ul>

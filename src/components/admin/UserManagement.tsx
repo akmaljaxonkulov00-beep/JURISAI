@@ -169,8 +169,8 @@ export default function UserManagement() {
     switch (status) {
       case 'ACTIVE': return 'bg-green-100 text-green-800';
       case 'SUSPENDED': return 'bg-red-100 text-red-800';
-      case 'INACTIVE': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'INACTIVE': return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200';
+      default: return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200';
     }
   };
 
@@ -179,16 +179,16 @@ export default function UserManagement() {
       case 'ADMIN': return 'bg-purple-100 text-purple-800';
       case 'TEACHER': return 'bg-blue-100 text-blue-800';
       case 'STUDENT': return 'bg-yellow-100 text-yellow-800';
-      default: return 'bg-gray-100 text-gray-800';
+      default: return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200';
     }
   };
 
   if (!isAdmin) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-zinc-800/50 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-red-600">Ruxsat etilmagan</h1>
-          <p className="text-gray-600 mt-2">Bu sahifaga faqat adminlar kirishi mumkin</p>
+          <p className="text-gray-600 dark:text-zinc-400 mt-2">Bu sahifaga faqat adminlar kirishi mumkin</p>
         </div>
       </div>
     );
@@ -196,9 +196,9 @@ export default function UserManagement() {
 
   return (
     <div className="max-w-7xl mx-auto p-6">
-      <div className="bg-white rounded-lg shadow">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-2xl font-bold text-gray-900">Foydalanuvchilar Boshqaruvi</h2>
+      <div className="bg-white dark:bg-zinc-900 rounded-lg shadow">
+        <div className="px-6 py-4 border-b border-gray-200 dark:border-zinc-800">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-zinc-100">Foydalanuvchilar Boshqaruvi</h2>
         </div>
         <div className="p-6 space-y-6">
           {/* Search and Filters */}
@@ -209,13 +209,13 @@ export default function UserManagement() {
                 placeholder="Ism, email yoki telefon bo'yicha qidirish..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-4 py-2 border border-gray-300 dark:border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="all">Barcha Holatlar</option>
               <option value="ACTIVE">Faol</option>
@@ -225,7 +225,7 @@ export default function UserManagement() {
             <select
               value={roleFilter}
               onChange={(e) => setRoleFilter(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-4 py-2 border border-gray-300 dark:border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="all">Barcha Rollar</option>
               <option value="ADMIN">Admin</option>
@@ -239,47 +239,47 @@ export default function UserManagement() {
             <div className="text-center py-8">Yuklanmoqda...</div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+              <table className="min-w-full divide-y divide-gray-200 dark:divide-zinc-800">
+                <thead className="bg-gray-50 dark:bg-zinc-800/50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-zinc-500 uppercase tracking-wider">
                       Foydalanuvchi
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-zinc-500 uppercase tracking-wider">
                       Kontakt
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-zinc-500 uppercase tracking-wider">
                       Rol / Holat
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-zinc-500 uppercase tracking-wider">
                       Obuna
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-zinc-500 uppercase tracking-wider">
                       AI Foydalanishi
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-zinc-500 uppercase tracking-wider">
                       Amallar
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-white dark:bg-zinc-900 divide-y divide-gray-200 dark:divide-zinc-800">
                   {users.map((user) => (
                     <tr key={user.id}>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
-                          <div className="text-sm font-medium text-gray-900">
+                          <div className="text-sm font-medium text-gray-900 dark:text-zinc-100">
                             {user.firstName && user.lastName 
                               ? `${user.firstName} ${user.lastName}` 
                               : 'Noma\'lum'}
                           </div>
-                          <div className="text-sm text-gray-500">
+                          <div className="text-sm text-gray-500 dark:text-zinc-500">
                             {new Date(user.createdAt).toLocaleDateString('uz-UZ')}
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{user.email}</div>
-                        <div className="text-sm text-gray-500">{user.phone || 'Telefon yo\'q'}</div>
+                        <div className="text-sm text-gray-900 dark:text-zinc-100">{user.email}</div>
+                        <div className="text-sm text-gray-500 dark:text-zinc-500">{user.phone || 'Telefon yo\'q'}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex flex-col gap-1">
@@ -296,22 +296,22 @@ export default function UserManagement() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         {user.subscription ? (
                           <div>
-                            <div className="text-sm font-medium text-gray-900">
+                            <div className="text-sm font-medium text-gray-900 dark:text-zinc-100">
                               {user.subscription.planName}
                             </div>
-                            <div className="text-sm text-gray-500">
+                            <div className="text-sm text-gray-500 dark:text-zinc-500">
                               {user.subscription.planPrice.toLocaleString('uz-UZ')} so'm/oy
                             </div>
-                            <div className="text-xs text-gray-400">
+                            <div className="text-xs text-gray-400 dark:text-zinc-500">
                               {new Date(user.subscription.currentPeriodEnd).toLocaleDateString('uz-UZ')}
                             </div>
                           </div>
                         ) : (
-                          <span className="text-sm text-gray-500">Obuna yo'q</span>
+                          <span className="text-sm text-gray-500 dark:text-zinc-500">Obuna yo'q</span>
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{user.aiUsageCount} ta so'rov</div>
+                        <div className="text-sm text-gray-900 dark:text-zinc-100">{user.aiUsageCount} ta so'rov</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex flex-col gap-2">
@@ -326,7 +326,7 @@ export default function UserManagement() {
                             </button>
                           ) : user.status === 'SUSPENDED' ? (
                             <button
-                              className="px-3 py-1 text-xs font-medium text-gray-700 bg-gray-200 border border-gray-300 rounded hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                              className="px-3 py-1 text-xs font-medium text-gray-700 dark:text-zinc-300 bg-gray-200 border border-gray-300 dark:border-zinc-700 rounded hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
                               onClick={() => handleUnblockUser(user.id)}
                               disabled={actionLoading === user.id}
                             >
@@ -343,7 +343,7 @@ export default function UserManagement() {
                               }
                             }}
                             disabled={actionLoading === user.id}
-                            className="text-sm px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                            className="text-sm px-2 py-1 border border-gray-300 dark:border-zinc-700 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
                           >
                             <option value="">Obunani o'zgartirish</option>
                             {plans.map((plan) => (
@@ -365,17 +365,17 @@ export default function UserManagement() {
           {totalPages > 1 && (
             <div className="flex justify-center items-center gap-2 mt-6">
               <button
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-zinc-300 bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded-md hover:bg-gray-50 dark:bg-zinc-800/50 disabled:opacity-50 disabled:cursor-not-allowed"
                 onClick={() => setPage(page - 1)}
                 disabled={page === 1}
               >
                 Oldingi
               </button>
-              <span className="text-sm text-gray-600">
+              <span className="text-sm text-gray-600 dark:text-zinc-400">
                 {page} / {totalPages}
               </span>
               <button
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-zinc-300 bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded-md hover:bg-gray-50 dark:bg-zinc-800/50 disabled:opacity-50 disabled:cursor-not-allowed"
                 onClick={() => setPage(page + 1)}
                 disabled={page === totalPages}
               >

@@ -24,11 +24,11 @@ const ProgressChart: React.FC<ProgressChartProps> = ({
 }) => {
   const getBarColor = (color?: string) => {
     switch (color) {
-      case 'success': return 'bg-green-500';
-      case 'warning': return 'bg-yellow-500';
-      case 'danger': return 'bg-red-500';
-      case 'info': return 'bg-blue-500';
-      default: return 'bg-blue-500';
+      case 'success': return 'bg-green-50 dark:bg-green-900/20';
+      case 'warning': return 'bg-yellow-50 dark:bg-yellow-900/20';
+      case 'danger': return 'bg-red-50 dark:bg-red-900/20';
+      case 'info': return 'bg-blue-50 dark:bg-blue-900/20';
+      default: return 'bg-blue-50 dark:bg-blue-900/20';
     }
   };
 
@@ -52,7 +52,7 @@ const ProgressChart: React.FC<ProgressChartProps> = ({
                 <span className="text-sm font-medium">{item.name}</span>
                 <div className="flex items-center space-x-2">
                   {showLabels && (
-                    <span className="text-sm text-gray-600">
+                    <span className="text-sm text-gray-600 dark:text-zinc-400">
                       {item.value}/{maxValue}
                     </span>
                   )}

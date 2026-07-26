@@ -67,13 +67,13 @@ export default function IRACAnalyzer() {
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl text-center">IRAC Tahlili</CardTitle>
-          <p className="text-center text-gray-600">
+          <p className="text-center text-gray-600 dark:text-zinc-400">
             Huquqiy holatni IRAC metodikasi bo'yicha tahlil qiling
           </p>
         </CardHeader>
         <CardContent className="space-y-6">
           <div>
-            <label htmlFor="caseText" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="caseText" className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
               Holat matni
             </label>
             <textarea
@@ -81,7 +81,7 @@ export default function IRACAnalyzer() {
               value={caseText}
               onChange={(e) => setCaseText(e.target.value)}
               placeholder="Holat haqida batafsil ma'lumotni kiriting..."
-              className="w-full h-32 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              className="w-full h-32 px-3 py-2 border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
 
@@ -113,7 +113,7 @@ export default function IRACAnalyzer() {
                     <CardTitle className="text-lg">I - Issue (Masala)</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-gray-700">{analysis.issue}</p>
+                    <p className="text-gray-700 dark:text-zinc-300">{analysis.issue}</p>
                   </CardContent>
                 </Card>
 
@@ -122,7 +122,7 @@ export default function IRACAnalyzer() {
                     <CardTitle className="text-lg">R - Rule (Qoida)</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-gray-700">{analysis.rule}</p>
+                    <p className="text-gray-700 dark:text-zinc-300">{analysis.rule}</p>
                   </CardContent>
                 </Card>
 
@@ -131,7 +131,7 @@ export default function IRACAnalyzer() {
                     <CardTitle className="text-lg">A - Application (Qo'llash)</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-gray-700">{analysis.application}</p>
+                    <p className="text-gray-700 dark:text-zinc-300">{analysis.application}</p>
                   </CardContent>
                 </Card>
 
@@ -140,7 +140,7 @@ export default function IRACAnalyzer() {
                     <CardTitle className="text-lg">C - Conclusion (Xulosa)</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-gray-700">{analysis.conclusion}</p>
+                    <p className="text-gray-700 dark:text-zinc-300">{analysis.conclusion}</p>
                   </CardContent>
                 </Card>
               </div>
@@ -154,8 +154,8 @@ export default function IRACAnalyzer() {
                     <div className="space-y-3">
                       {analysis.sources.map((source, index) => (
                         <div key={index} className="border-l-4 border-blue-500 pl-4">
-                          <h4 className="font-semibold text-gray-900">{source.title}</h4>
-                          <p className="text-sm text-gray-600">{source.article}</p>
+                          <h4 className="font-semibold text-gray-900 dark:text-zinc-100">{source.title}</h4>
+                          <p className="text-sm text-gray-600 dark:text-zinc-400">{source.article}</p>
                           <a
                             href={source.url}
                             target="_blank"

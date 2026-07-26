@@ -83,15 +83,15 @@ export default function LegalChat() {
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl text-center">Yuridik AI Yordamchi</CardTitle>
-          <p className="text-center text-gray-600">
+          <p className="text-center text-gray-600 dark:text-zinc-400">
             O'zbekiston qonunchiligi bo'yicha professional maslahat oling
           </p>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Chat Messages */}
-          <div className="h-96 overflow-y-auto border rounded-lg p-4 bg-gray-50">
+          <div className="h-96 overflow-y-auto border rounded-lg p-4 bg-gray-50 dark:bg-zinc-800/50">
             {messages.length === 0 ? (
-              <div className="text-center text-gray-500 py-8">
+              <div className="text-center text-gray-500 dark:text-zinc-500 py-8">
                 <p>Yuridik savolingizni yozing</p>
                 <p className="text-sm mt-2">Masalan: "Shartnomani bekor qilish tartibi qanday?"</p>
               </div>
@@ -108,7 +108,7 @@ export default function LegalChat() {
                       className={`max-w-lg px-4 py-2 rounded-lg ${
                         message.type === 'user'
                           ? 'bg-blue-600 text-white'
-                          : 'bg-white border'
+                          : 'bg-white dark:bg-zinc-900 border'
                       }`}
                     >
                       <p className="whitespace-pre-wrap">{message.content}</p>
@@ -139,7 +139,7 @@ export default function LegalChat() {
                 ))}
                 {loading && (
                   <div className="flex justify-start">
-                    <div className="bg-white border px-4 py-2 rounded-lg">
+                    <div className="bg-white dark:bg-zinc-900 border px-4 py-2 rounded-lg">
                       <div className="flex space-x-2">
                         <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
                         <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-100"></div>
@@ -163,7 +163,7 @@ export default function LegalChat() {
                 onChange={(e) => setInputMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="Yuridik savolingizni kiriting..."
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 resize-none"
+                className="flex-1 px-3 py-2 border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 resize-none"
                 rows={3}
                 disabled={loading}
               />
@@ -180,7 +180,7 @@ export default function LegalChat() {
 
           {/* Quick Questions */}
           <div className="border-t pt-4">
-            <p className="text-sm text-gray-600 mb-2">Tez savollar:</p>
+            <p className="text-sm text-gray-600 dark:text-zinc-400 mb-2">Tez savollar:</p>
             <div className="flex flex-wrap gap-2">
               {[
                 "Shartnomani bekor qilish",

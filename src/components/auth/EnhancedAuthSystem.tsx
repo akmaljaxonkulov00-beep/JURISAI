@@ -269,22 +269,22 @@ export default function EnhancedAuthSystem() {
       case 'SUPER_ADMIN': return 'bg-purple-100 text-purple-800';
       case 'ADMIN': return 'bg-blue-100 text-blue-800';
       case 'USER': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
+      default: return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200';
     }
   };
 
   const getStatusBadgeColor = (status: string) => {
     switch (status) {
       case 'ACTIVE': return 'bg-green-100 text-green-800';
-      case 'INACTIVE': return 'bg-gray-100 text-gray-800';
+      case 'INACTIVE': return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200';
       case 'SUSPENDED': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      default: return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200';
     }
   };
 
   if (isAuthenticated && currentUser) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gray-50 dark:bg-zinc-800/50 flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -295,7 +295,7 @@ export default function EnhancedAuthSystem() {
           <CardContent className="space-y-4">
             <div className="text-center">
               <div className="text-lg font-semibold">{currentUser.name}</div>
-              <div className="text-gray-600">{currentUser.email}</div>
+              <div className="text-gray-600 dark:text-zinc-400">{currentUser.email}</div>
               <div className="flex justify-center space-x-2 mt-2">
                 <Badge className={getRoleBadgeColor(currentUser.role)}>
                   {currentUser.role}
@@ -307,7 +307,7 @@ export default function EnhancedAuthSystem() {
             </div>
 
             <div className="space-y-2">
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-gray-600 dark:text-zinc-400">
                 <strong>Ruxsatlar:</strong>
               </div>
               <div className="flex flex-wrap gap-1">
@@ -320,7 +320,7 @@ export default function EnhancedAuthSystem() {
             </div>
 
             <div className="space-y-2">
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-gray-600 dark:text-zinc-400">
                 <strong>Tezkor harakatlar:</strong>
               </div>
               <div className="space-y-2">
@@ -358,26 +358,26 @@ export default function EnhancedAuthSystem() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gray-50 dark:bg-zinc-800/50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
             <Shield className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">JurisAI</h1>
-          <p className="text-gray-600">Huquqiy texnologiya platformasi</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-zinc-100">JurisAI</h1>
+          <p className="text-gray-600 dark:text-zinc-400">Huquqiy texnologiya platformasi</p>
         </div>
 
         <Card>
           <CardContent className="p-6">
             {/* Tab Navigation */}
-            <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg mb-6">
+            <div className="flex space-x-1 bg-gray-100 dark:bg-zinc-800/30 p-1 rounded-lg mb-6">
               <button
                 onClick={() => setActiveTab('login')}
                 className={`flex-1 flex items-center justify-center space-x-2 px-4 py-2 rounded-md transition-colors ${
                   activeTab === 'login' 
-                    ? 'bg-white text-blue-600 shadow-sm' 
-                    : 'text-gray-600 hover:text-gray-900'
+                    ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-sm' 
+                    : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100'
                 }`}
               >
                 <LogIn className="w-4 h-4" />
@@ -387,8 +387,8 @@ export default function EnhancedAuthSystem() {
                 onClick={() => setActiveTab('register')}
                 className={`flex-1 flex items-center justify-center space-x-2 px-4 py-2 rounded-md transition-colors ${
                   activeTab === 'register' 
-                    ? 'bg-white text-blue-600 shadow-sm' 
-                    : 'text-gray-600 hover:text-gray-900'
+                    ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-sm' 
+                    : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100'
                 }`}
               >
                 <UserPlus className="w-4 h-4" />
@@ -398,8 +398,8 @@ export default function EnhancedAuthSystem() {
                 onClick={() => setActiveTab('admin-login')}
                 className={`flex-1 flex items-center justify-center space-x-2 px-4 py-2 rounded-md transition-colors ${
                   activeTab === 'admin-login' 
-                    ? 'bg-white text-blue-600 shadow-sm' 
-                    : 'text-gray-600 hover:text-gray-900'
+                    ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-sm' 
+                    : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100'
                 }`}
               >
                 <Crown className="w-4 h-4" />
@@ -409,14 +409,14 @@ export default function EnhancedAuthSystem() {
 
             {/* Error and Success Messages */}
             {error && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md flex items-center space-x-2">
+              <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 rounded-md flex items-center space-x-2">
                 <AlertCircle className="w-4 h-4 text-red-600" />
                 <span className="text-red-700 text-sm">{error}</span>
               </div>
             )}
 
             {success && (
-              <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-md flex items-center space-x-2">
+              <div className="mb-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 rounded-md flex items-center space-x-2">
                 <CheckCircle className="w-4 h-4 text-green-600" />
                 <span className="text-green-700 text-sm">{success}</span>
               </div>
@@ -426,9 +426,9 @@ export default function EnhancedAuthSystem() {
             {activeTab === 'login' && (
               <form onSubmit={handleLogin} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Email</label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500 w-4 h-4" />
                     <Input
                       type="email"
                       placeholder="email@example.com"
@@ -442,9 +442,9 @@ export default function EnhancedAuthSystem() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Parol</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Parol</label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500 w-4 h-4" />
                     <Input
                       type={showPassword ? 'text' : 'password'}
                       placeholder="Parolingiz"
@@ -457,7 +457,7 @@ export default function EnhancedAuthSystem() {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:text-zinc-400"
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -472,7 +472,7 @@ export default function EnhancedAuthSystem() {
                       onChange={(e) => setLoginCredentials(prev => ({ ...prev, rememberMe: e.target.checked }))}
                       className="w-4 h-4 text-blue-600 rounded"
                     />
-                    <span className="text-sm text-gray-600">Eslab qolish</span>
+                    <span className="text-sm text-gray-600 dark:text-zinc-400">Eslab qolish</span>
                   </label>
                   <a href="#" className="text-sm text-blue-600 hover:text-blue-800">
                 Parolni unutdingizmi?
@@ -489,9 +489,9 @@ export default function EnhancedAuthSystem() {
             {activeTab === 'register' && (
               <form onSubmit={handleRegister} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Ism</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Ism</label>
                   <div className="relative">
-                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500 w-4 h-4" />
                     <Input
                       type="text"
                       placeholder="To'liq ismingiz"
@@ -505,9 +505,9 @@ export default function EnhancedAuthSystem() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Email</label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500 w-4 h-4" />
                     <Input
                       type="email"
                       placeholder="email@example.com"
@@ -521,9 +521,9 @@ export default function EnhancedAuthSystem() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Parol</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Parol</label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500 w-4 h-4" />
                     <Input
                       type={showPassword ? 'text' : 'password'}
                       placeholder="Parol"
@@ -536,7 +536,7 @@ export default function EnhancedAuthSystem() {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:text-zinc-400"
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -544,9 +544,9 @@ export default function EnhancedAuthSystem() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Parolni tasdiqlash</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Parolni tasdiqlash</label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500 w-4 h-4" />
                     <Input
                       type={showConfirmPassword ? 'text' : 'password'}
                       placeholder="Parolni qayta kiriting"
@@ -559,7 +559,7 @@ export default function EnhancedAuthSystem() {
                     <button
                       type="button"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:text-zinc-400"
                     >
                       {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -567,11 +567,11 @@ export default function EnhancedAuthSystem() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Hisob turi</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Hisob turi</label>
                   <select
                     value={registrationData.role}
                     onChange={(e) => setRegistrationData(prev => ({ ...prev, role: e.target.value as 'USER' | 'ADMIN' }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="USER">Oddiy foydalanuvchi</option>
                     <option value="ADMIN">Admin</option>
@@ -580,9 +580,9 @@ export default function EnhancedAuthSystem() {
 
                 {registrationData.role === 'ADMIN' && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Admin kod</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Admin kod</label>
                     <div className="relative">
-                      <Key className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                      <Key className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500 w-4 h-4" />
                       <Input
                         type="text"
                         placeholder="Admin kod"
@@ -592,7 +592,7 @@ export default function EnhancedAuthSystem() {
                         id="register-admin-code"
                       />
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">Admin uchun maxsus kod</p>
+                    <p className="text-xs text-gray-500 dark:text-zinc-500 mt-1">Admin uchun maxsus kod</p>
                   </div>
                 )}
 
@@ -604,7 +604,7 @@ export default function EnhancedAuthSystem() {
                     className="w-4 h-4 text-blue-600 rounded"
                     required
                   />
-                  <span className="text-sm text-gray-600">
+                  <span className="text-sm text-gray-600 dark:text-zinc-400">
                     <a href="#" className="text-blue-600 hover:text-blue-800">Shartnomalar</a> ni qabul qilaman
                   </span>
                 </label>
@@ -621,13 +621,13 @@ export default function EnhancedAuthSystem() {
                 <div className="text-center mb-4">
                   <Crown className="w-12 h-12 text-yellow-600 mx-auto mb-2" />
                   <h3 className="text-lg font-semibold">Admin Login</h3>
-                  <p className="text-sm text-gray-600">Admin panelga kirish</p>
+                  <p className="text-sm text-gray-600 dark:text-zinc-400">Admin panelga kirish</p>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Admin Email</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Admin Email</label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500 w-4 h-4" />
                     <Input
                       type="email"
                       placeholder="admin@example.com"
@@ -641,9 +641,9 @@ export default function EnhancedAuthSystem() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Admin Parol</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Admin Parol</label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500 w-4 h-4" />
                     <Input
                       type={showPassword ? 'text' : 'password'}
                       placeholder="Admin parol"
@@ -656,14 +656,14 @@ export default function EnhancedAuthSystem() {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:text-zinc-400"
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
                 </div>
 
-                <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3">
+                <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 rounded-md p-3">
                   <div className="flex items-center space-x-2">
                     <AlertCircle className="w-4 h-4 text-yellow-600" />
                     <span className="text-sm text-yellow-800">

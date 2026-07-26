@@ -101,18 +101,18 @@ const ActivityFeed: React.FC<ActivityFeedProps> = ({
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium text-gray-900">
+                    <p className="text-sm font-medium text-gray-900 dark:text-zinc-100">
                       {activity.user.name}
                     </p>
-                    <span className="text-xs text-gray-500">
+                    <span className="text-xs text-gray-500 dark:text-zinc-500">
                       {getRelativeTime(activity.timestamp)}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-600 mt-1">
+                  <p className="text-sm text-gray-600 dark:text-zinc-400 mt-1">
                     {activity.action}
                   </p>
                   {activity.details && (
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-gray-500 dark:text-zinc-500 mt-1">
                       {activity.details}
                     </p>
                   )}
@@ -151,7 +151,7 @@ const ActivityFeed: React.FC<ActivityFeedProps> = ({
               </div>
             ))
           ) : (
-            <div className="text-center text-gray-500 py-8">
+            <div className="text-center text-gray-500 dark:text-zinc-500 py-8">
               <p>Hali faoliyat yo'q</p>
             </div>
           )}

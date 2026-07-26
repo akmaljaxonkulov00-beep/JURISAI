@@ -68,7 +68,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ className }) => {
             <Button
               variant="outline"
               size="lg"
-              className="border-white text-white hover:bg-white hover:text-blue-900 px-8 py-4 text-lg font-medium transition-all duration-200"
+              className="border-white text-white hover:bg-white dark:bg-zinc-900 hover:text-blue-900 px-8 py-4 text-lg font-medium transition-all duration-200"
             >
               Demo tomosha qiling
             </Button>

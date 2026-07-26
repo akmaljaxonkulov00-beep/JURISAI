@@ -98,20 +98,20 @@ export default function LandingPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white dark:bg-zinc-900">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200">
+      <header className="bg-white dark:bg-zinc-900 border-b border-gray-200 dark:border-zinc-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center">
               <Shield className="w-8 h-8 text-blue-600 mr-3" />
-              <span className="text-xl font-bold text-gray-900">JURISAI</span>
+              <span className="text-xl font-bold text-gray-900 dark:text-zinc-100">JURISAI</span>
             </div>
             <nav className="hidden md:flex space-x-8">
-              <a href="#features" className="text-gray-600 hover:text-gray-900">Imkoniyatlar</a>
-              <a href="#lawyers" className="text-gray-600 hover:text-gray-900">Advokatlar</a>
-              <a href="#testimonials" className="text-gray-600 hover:text-gray-900">Fikrlar</a>
-              <a href="#pricing" className="text-gray-600 hover:text-gray-900">Narxlar</a>
+              <a href="#features" className="text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100">Imkoniyatlar</a>
+              <a href="#lawyers" className="text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100">Advokatlar</a>
+              <a href="#testimonials" className="text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100">Fikrlar</a>
+              <a href="#pricing" className="text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100">Narxlar</a>
             </nav>
             <div className="flex space-x-4">
               <Link href="/lawyer-login">
@@ -133,11 +133,11 @@ export default function LandingPage() {
               <Gavel className="w-4 h-4 mr-2" />
               Professional Advokatlar Platformasi
             </Badge>
-            <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
+            <h1 className="text-4xl md:text-6xl font-bold text-gray-900 dark:text-zinc-100 mb-6">
               Advokatlik faoliyatingizni
               <span className="text-blue-600"> zamonaviy darajaga olib chiqing</span>
             </h1>
-            <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
+            <p className="text-xl text-gray-600 dark:text-zinc-400 mb-8 max-w-3xl mx-auto">
               JURISAI - bu O\'zbekiston advokatlari uchun mo\'ljallangan zamonaviy platforma. 
               Mijozlar bazasini boshqaring, AI yordamida hujjatlarni tahliling va biznesingizni o\'stiring.
             </p>
@@ -160,13 +160,13 @@ export default function LandingPage() {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-20 bg-gray-50">
+      <section id="features" className="py-20 bg-gray-50 dark:bg-zinc-800/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-zinc-100 mb-4">
               Nima uchun JURISAI?
             </h2>
-            <p className="text-xl text-gray-600">
+            <p className="text-xl text-gray-600 dark:text-zinc-400">
               Advokatlar uchun yaratilgan to\'liq funksional platforma
             </p>
           </div>
@@ -178,10 +178,10 @@ export default function LandingPage() {
                   <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <feature.icon className="w-8 h-8 text-blue-600" />
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-zinc-100 mb-2">
                     {feature.title}
                   </h3>
-                  <p className="text-gray-600">
+                  <p className="text-gray-600 dark:text-zinc-400">
                     {feature.description}
                   </p>
                 </CardContent>
@@ -196,10 +196,10 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-6">
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-zinc-100 mb-6">
                 Advokatlar uchun imkoniyatlar
               </h2>
-              <p className="text-xl text-gray-600 mb-8">
+              <p className="text-xl text-gray-600 dark:text-zinc-400 mb-8">
                 Bizning platforma advokatlar uchun barcha kerakli vositalarni taqdim etadi
               </p>
               
@@ -207,7 +207,7 @@ export default function LandingPage() {
                 {lawyerBenefits.map((benefit, index) => (
                   <div key={index} className="flex items-center">
                     <CheckCircle className="w-6 h-6 text-green-500 mr-3" />
-                    <span className="text-gray-700">{benefit}</span>
+                    <span className="text-gray-700 dark:text-zinc-300">{benefit}</span>
                   </div>
                 ))}
               </div>
@@ -249,13 +249,13 @@ export default function LandingPage() {
       </section>
 
       {/* Testimonials Section */}
-      <section id="testimonials" className="py-20 bg-gray-50">
+      <section id="testimonials" className="py-20 bg-gray-50 dark:bg-zinc-800/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-zinc-100 mb-4">
               Advokatlarimiz nima deydi
             </h2>
-            <p className="text-xl text-gray-600">
+            <p className="text-xl text-gray-600 dark:text-zinc-400">
               Platformamizdan foydalanayotgan professional advokatlar fikrlari
             </p>
           </div>
@@ -269,7 +269,7 @@ export default function LandingPage() {
                       <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
                     ))}
                   </div>
-                  <p className="text-gray-700 mb-4">
+                  <p className="text-gray-700 dark:text-zinc-300 mb-4">
                     "{testimonial.content}"
                   </p>
                   <div className="flex items-center">
@@ -277,8 +277,8 @@ export default function LandingPage() {
                       <User className="w-5 h-5 text-blue-600" />
                     </div>
                     <div>
-                      <div className="font-semibold text-gray-900">{testimonial.name}</div>
-                      <div className="text-sm text-gray-600">{testimonial.role}</div>
+                      <div className="font-semibold text-gray-900 dark:text-zinc-100">{testimonial.name}</div>
+                      <div className="text-sm text-gray-600 dark:text-zinc-400">{testimonial.role}</div>
                     </div>
                   </div>
                 </CardContent>
@@ -299,7 +299,7 @@ export default function LandingPage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/lawyer-register">
-              <Button size="lg" variant="outline" className="text-lg px-8 py-3 bg-white text-blue-600 border-white hover:bg-blue-50">
+              <Button size="lg" variant="outline" className="text-lg px-8 py-3 bg-white dark:bg-zinc-900 text-blue-600 border-white hover:bg-blue-50 dark:bg-blue-900/20">
                 <Briefcase className="w-5 h-5 mr-2" />
                 Ro\'yxatdan o\'tish
               </Button>
@@ -323,14 +323,14 @@ export default function LandingPage() {
                 <Shield className="w-8 h-8 text-blue-400 mr-3" />
                 <span className="text-xl font-bold">JURISAI</span>
               </div>
-              <p className="text-gray-400">
+              <p className="text-gray-400 dark:text-zinc-500">
                 O\'zbekiston advokatlari uchun zamonaviy platforma
               </p>
             </div>
             
             <div>
               <h3 className="font-semibold mb-4">Platforma</h3>
-              <ul className="space-y-2 text-gray-400">
+              <ul className="space-y-2 text-gray-400 dark:text-zinc-500">
                 <li><a href="#features" className="hover:text-white">Imkoniyatlar</a></li>
                 <li><a href="#lawyers" className="hover:text-white">Advokatlar</a></li>
                 <li><a href="#pricing" className="hover:text-white">Narxlar</a></li>
@@ -339,7 +339,7 @@ export default function LandingPage() {
             
             <div>
               <h3 className="font-semibold mb-4">Huquqiy</h3>
-              <ul className="space-y-2 text-gray-400">
+              <ul className="space-y-2 text-gray-400 dark:text-zinc-500">
                 <li><a href="#" className="hover:text-white">Foydalanish shartlari</a></li>
                 <li><a href="#" className="hover:text-white">Maxfiylik siyosati</a></li>
                 <li><a href="#" className="hover:text-white">Qonunlar</a></li>
@@ -348,7 +348,7 @@ export default function LandingPage() {
             
             <div>
               <h3 className="font-semibold mb-4">Aloqa</h3>
-              <ul className="space-y-2 text-gray-400">
+              <ul className="space-y-2 text-gray-400 dark:text-zinc-500">
                 <li className="flex items-center">
                   <Mail className="w-4 h-4 mr-2" />
                   info@jurisai.uz
@@ -365,7 +365,7 @@ export default function LandingPage() {
             </div>
           </div>
           
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400 dark:text-zinc-500">
             <p>&copy; 2024 JURISAI. Barcha huquqlar himoyalangan.</p>
           </div>
         </div>

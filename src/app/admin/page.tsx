@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { firebaseAuth } from '@/services/firebase-auth';
 import MonitoringDashboard from '@/components/admin/MonitoringDashboard';
+import { saveSiteSettings, savePricingPlans, approvePayment as syncApprovePayment, rejectPayment as syncRejectPayment } from '@/lib/settings-sync';
 
 // Lightbox component for viewing receipt images
 function ImageLightbox({ image, onClose }: { image: string | null; onClose: () => void }) {
@@ -204,11 +205,39 @@ export default function AdminDashboard() {
           })));
         }
         if (d.users && Array.isArray(d.users) && d.users.length > 0) {
-          setAllUsers(d.users);
+          // Map snake_case Supabase records to camelCase (same pattern as payments)
+          const mapped = d.users.map((u: any) => ({
+            ...u,
+            id: u.id || u.user_id || u.uid,
+            uid: u.uid || u.id || u.user_id,
+            name: u.name || u.user_name || u.display_name || '',
+            email: u.email || u.user_email || '',
+            role: u.role || u.user_role || 'USER',
+            subscription_plan: u.subscription_plan || u.plan || 'free',
+            subscription_expires_at: u.subscription_expires_at || u.expires_at || '',
+            last_login: u.last_login || u.created_at || '',
+            blocked: u.blocked || false,
+            balance: u.balance || 0,
+            created_at: u.created_at || '',
+          }));
+          setAllUsers(mapped);
           setUsersLoading(false);
+          // Continue loading other data (payments, logins, tokens)
         }
         if (d.paymentRequests && Array.isArray(d.paymentRequests) && d.paymentRequests.length > 0) {
-          setPaymentRequests(d.paymentRequests);
+          // Map snake_case Supabase records to camelCase PaymentRequest type
+          const mapped = d.paymentRequests.map((p: any) => ({
+            id: p.id,
+            userId: p.user_id || p.userId || '',
+            userEmail: p.user_email || p.userEmail || '',
+            userName: p.user_name || p.userName || '',
+            plan: p.plan || '',
+            amount: p.amount || 0,
+            receiptImage: p.receipt_image || p.receiptImage || '',
+            status: p.status || 'pending',
+            createdAt: p.created_at || p.createdAt || p.created_at || '',
+          }));
+          setPaymentRequests(mapped);
         }
       }
     } catch (err) {
@@ -227,12 +256,52 @@ export default function AdminDashboard() {
   };
 
   const loadUsers = () => {
+    // Aggregate users from ALL available sources
+    const userMap = new Map();
+    
+    // 1. From localStorage 'registered_users' (written by firebase-auth.ts on login)
     try {
       const stored = localStorage.getItem('registered_users');
       if (stored) {
-        setAllUsers(JSON.parse(stored));
+        const users = JSON.parse(stored);
+        users.forEach((u: any) => {
+          const key = u.id || u.uid || u.email;
+          if (key) userMap.set(key, u);
+        });
       }
     } catch {}
+    
+    // 2. From current session (admins and regular users)
+    try {
+      const sessionUser = sessionStorage.getItem('jurisai_user') || sessionStorage.getItem('auth_user');
+      if (sessionUser) {
+        const u = JSON.parse(sessionUser);
+        const key = u.id || u.email;
+        if (key && !userMap.has(key)) {
+          userMap.set(key, u);
+        } else if (key) {
+          // Update existing with latest session data
+          userMap.set(key, { ...userMap.get(key), ...u, last_login: new Date().toISOString() });
+        }
+      }
+    } catch {}
+    
+    // 3. From auth_user localStorage (persisted across sessions)
+    try {
+      const authUser = localStorage.getItem('auth_user');
+      if (authUser) {
+        const u = JSON.parse(authUser);
+        const key = u.id || u.email;
+        if (key && !userMap.has(key)) {
+          userMap.set(key, u);
+        }
+      }
+    } catch {}
+    
+    const aggregated = Array.from(userMap.values());
+    if (aggregated.length > 0) {
+      setAllUsers(aggregated);
+    }
     setUsersLoading(false);
   };
 
@@ -390,32 +459,41 @@ export default function AdminDashboard() {
   };
 
   // ===== PAYMENT MANAGEMENT =====
-  const approvePayment = (paymentId: string) => {
+  const approvePayment = async (paymentId: string) => {
+    // Update local state immediately
     const updated = paymentRequests.map(p => {
       if (p.id === paymentId) {
-        updateUserSubscription(p.userId, p.plan === 'standart' ? 'standart' : 'pro');
-        // Also update active user session if they're logged in
+        // Update user session with subscription + balance
+        const plan = p.plan === 'pro' ? 'pro' : 'standart';
+        updateUserSubscription(p.userId, plan);
         try {
           const storedUser = sessionStorage.getItem('jurisai_user') || sessionStorage.getItem('auth_user');
           if (storedUser) {
             const userData = JSON.parse(storedUser);
             if (userData.id === p.userId || userData.email === p.userEmail) {
+              const currentBalance = Number(userData.balance || 0);
               const updatedUser = {
                 ...userData,
-                subscription_plan: p.plan === 'standart' ? 'standart' : 'pro',
+                subscription_plan: plan,
                 subscription_expires_at: new Date(Date.now() + 365 * 86400000).toISOString(),
+                balance: currentBalance + (p.amount || 0),
               };
               sessionStorage.setItem('jurisai_user', JSON.stringify(updatedUser));
               sessionStorage.setItem('auth_user', JSON.stringify(updatedUser));
+              localStorage.setItem('jurisai_user', JSON.stringify(updatedUser));
+              localStorage.setItem('auth_user', JSON.stringify(updatedUser));
             }
           }
-          // Write payment_history so user's profile can read it
+        } catch {}
+        // Save payment_history for user's profile
+        try {
           localStorage.setItem('payment_history', JSON.stringify({
             status: 'approved',
             amount: p.amount,
-            plan: p.plan,
+            plan: plan,
             date: new Date().toLocaleDateString('uz-UZ'),
             userId: p.userId,
+            userEmail: p.userEmail,
           }));
         } catch {}
         return { ...p, status: 'approved' as const };
@@ -423,31 +501,32 @@ export default function AdminDashboard() {
       return p;
     });
     setPaymentRequests(updated);
-    localStorage.setItem('payment_requests', JSON.stringify(updated));
     
-    // Log to Supabase
+    // Sync to Supabase (PRIMARY)
+    await syncApprovePayment(paymentId);
+    
+    // Update localStorage cache
     try {
-      fetch('/api/log/payment', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userEmail: 'admin@jurisai.uz',
-          plan: 'admin_approval',
-          amount: 0,
-          userId: 'admin',
-          userName: 'Admin',
-        }),
-      });
+      localStorage.setItem('payment_requests', JSON.stringify(updated));
+      localStorage.setItem('jurisai_payment_requests', JSON.stringify(updated));
     } catch {}
   };
 
-  const rejectPayment = (paymentId: string) => {
+  const rejectPayment = async (paymentId: string) => {
     const updated = paymentRequests.map(p => {
       if (p.id === paymentId) return { ...p, status: 'rejected' as const };
       return p;
     });
     setPaymentRequests(updated);
-    localStorage.setItem('payment_requests', JSON.stringify(updated));
+    
+    // Sync to Supabase (PRIMARY)
+    await syncRejectPayment(paymentId);
+    
+    // Update localStorage cache
+    try {
+      localStorage.setItem('payment_requests', JSON.stringify(updated));
+      localStorage.setItem('jurisai_payment_requests', JSON.stringify(updated));
+    } catch {}
   };
 
   // ===== PRICING MANAGEMENT =====
@@ -456,11 +535,12 @@ export default function AdminDashboard() {
     setEditPlanData({ ...plan });
   };
 
-  const savePlan = () => {
+  const savePlan = async () => {
     if (!editPlanData) return;
     const updated = pricingPlans.map(p => p.id === editingPlan ? editPlanData : p);
     setPricingPlans(updated);
-    localStorage.setItem('admin_pricing_plans', JSON.stringify(updated));
+    // Save to Supabase (PRIMARY)
+    await savePricingPlans(updated);
     setEditingPlan(null);
     setEditPlanData(null);
   };
@@ -484,17 +564,8 @@ export default function AdminDashboard() {
 
   // ===== SITE SETTINGS =====
   const saveSettings = async () => {
-    localStorage.setItem('admin_site_settings', JSON.stringify(siteSettings));
-    // Also publish to user-accessible key for cross-user sync
-    localStorage.setItem('siteSettings', JSON.stringify(siteSettings));
-    // Sync to Supabase
-    try {
-      await fetch('/api/admin/settings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ settings: siteSettings }),
-      });
-    } catch {}
+    // Save to Supabase FIRST (PRIMARY storage)
+    await saveSiteSettings(siteSettings);
     setSettingsSaved(true);
     setTimeout(() => setSettingsSaved(false), 2000);
   };
@@ -913,7 +984,7 @@ export default function AdminDashboard() {
                   Foydalanuvchilarni boshqarish
                 </CardTitle>
                 <div className="relative">
-                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-500" />
                   <input
                     type="text"
                     value={userSearchQuery}
@@ -947,7 +1018,7 @@ export default function AdminDashboard() {
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 flex-wrap">
                                 <span className="font-medium text-sm text-gray-800 dark:text-white">{u.name || u.email?.split('@')[0]}</span>
-                                <Badge className={u.role === 'ADMIN' || u.role === 'admin' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-600'}>
+                                <Badge className={u.role === 'ADMIN' || u.role === 'admin' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 dark:bg-zinc-800/30 text-gray-600 dark:text-zinc-400'}>
                                   {u.role === 'ADMIN' || u.role === 'admin' ? 'Admin' : 'Foydalanuvchi'}
                                 </Badge>
                                 {u.blocked && <Badge className="bg-red-100 text-red-800">Bloklangan</Badge>}
@@ -1019,10 +1090,19 @@ export default function AdminDashboard() {
           <div className="space-y-4">
             <Card className="card-default rounded-2xl">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-gray-800 dark:text-white">
-                  <CreditCard className="w-5 h-5 text-blue-500" />
-                  To'lov so'rovlarini boshqarish
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2 text-gray-800 dark:text-white">
+                    <CreditCard className="w-5 h-5 text-blue-500" />
+                    To'lov so'rovlarini boshqarish
+                  </CardTitle>
+                  <button
+                    onClick={loadFromSupabase}
+                    className="px-3 py-1.5 text-xs font-medium rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-all flex items-center gap-1"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                    Yangilash
+                  </button>
+                </div>
               </CardHeader>
               <CardContent>
                 {paymentRequests.length === 0 ? (
@@ -1133,7 +1213,7 @@ export default function AdminDashboard() {
                         <>
                           <div className="flex items-center justify-between mb-2">
                             <h3 className="font-bold text-gray-800 dark:text-white">{plan.name}</h3>
-                            <button onClick={() => startEditPlan(plan)} className="p-1 text-gray-400 hover:text-blue-600">
+                            <button onClick={() => startEditPlan(plan)} className="p-1 text-gray-400 dark:text-zinc-500 hover:text-blue-600 dark:hover:text-blue-400">
                               <Settings size={14} />
                             </button>
                           </div>

@@ -161,13 +161,13 @@ export default function LawyerRegisterPage() {
         <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
           <User className="w-8 h-8 text-blue-600" />
         </div>
-        <h2 className="text-2xl font-bold text-gray-900">Shaxsiy ma\'lumotlar</h2>
-        <p className="text-gray-600">Asosiy shaxsiy ma\'lumotlaringizni kiriting</p>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-zinc-100">Shaxsiy ma\'lumotlar</h2>
+        <p className="text-gray-600 dark:text-zinc-400">Asosiy shaxsiy ma\'lumotlaringizni kiriting</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Ism</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">Ism</label>
           <Input
             placeholder="Ismingiz"
             value={formData.firstName}
@@ -178,7 +178,7 @@ export default function LawyerRegisterPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Familiya</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">Familiya</label>
           <Input
             placeholder="Familiyangiz"
             value={formData.lastName}
@@ -189,7 +189,7 @@ export default function LawyerRegisterPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">Email</label>
           <Input
             type="email"
             placeholder="email@example.com"
@@ -201,7 +201,7 @@ export default function LawyerRegisterPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Telefon</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">Telefon</label>
           <Input
             placeholder="+998 XX XXX XX XX"
             value={formData.phone}
@@ -220,13 +220,13 @@ export default function LawyerRegisterPage() {
         <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
           <Award className="w-8 h-8 text-purple-600" />
         </div>
-        <h2 className="text-2xl font-bold text-gray-900">Kasbiy ma\'lumotlar</h2>
-        <p className="text-gray-600">Advokatlik faoliyati haqida ma\'lumot</p>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-zinc-100">Kasbiy ma\'lumotlar</h2>
+        <p className="text-gray-600 dark:text-zinc-400">Advokatlik faoliyati haqida ma\'lumot</p>
       </div>
 
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Litsenziya raqami</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">Litsenziya raqami</label>
           <Input
             placeholder="Advokat litsenziyasi raqami"
             value={formData.licenseNumber}
@@ -237,7 +237,7 @@ export default function LawyerRegisterPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Ixtisosliklar</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">Ixtisosliklar</label>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
             {specializations.map((spec) => (
               <button
@@ -246,8 +246,8 @@ export default function LawyerRegisterPage() {
                 onClick={() => handleSpecializationToggle(spec)}
                 className={`p-2 text-sm rounded-lg border transition-all ${
                   formData.specialization.includes(spec)
-                    ? 'border-blue-500 bg-blue-50 text-blue-700'
-                    : 'border-gray-200 hover:border-gray-300'
+                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700'
+                    : 'border-gray-200 dark:border-zinc-800 hover:border-gray-300 dark:border-zinc-700'
                 }`}
               >
                 {spec}
@@ -259,7 +259,7 @@ export default function LawyerRegisterPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Tajriba (yil)</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">Tajriba (yil)</label>
             <Input
               type="number"
               placeholder="Tajriba yillari"
@@ -269,7 +269,7 @@ export default function LawyerRegisterPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Advokatlar palatasi</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">Advokatlar palatasi</label>
             <Input
               placeholder="Qaysi palataga a\'zo"
               value={formData.barAssociation}
@@ -281,7 +281,7 @@ export default function LawyerRegisterPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Ma\'lumot</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">Ma\'lumot</label>
           <Input
             placeholder="Oliy ma\'lumot, universitet"
             value={formData.education}
@@ -300,13 +300,13 @@ export default function LawyerRegisterPage() {
         <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
           <Briefcase className="w-8 h-8 text-green-600" />
         </div>
-        <h2 className="text-2xl font-bold text-gray-900">Ish faoliyati</h2>
-        <p className="text-gray-600">Ofis va qo\'shimcha ma\'lumotlar</p>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-zinc-100">Ish faoliyati</h2>
+        <p className="text-gray-600 dark:text-zinc-400">Ofis va qo\'shimcha ma\'lumotlar</p>
       </div>
 
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Ofis manzili</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">Ofis manzili</label>
           <Input
             placeholder="To\'liq ofis manzili"
             value={formData.officeAddress}
@@ -317,11 +317,11 @@ export default function LawyerRegisterPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Bio</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">Bio</label>
           <textarea
             placeholder="O\'zingiz haqingizda qisqacha ma\'lumot..."
             rows={4}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full p-3 border border-gray-300 dark:border-zinc-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             value={formData.bio}
             onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
           />
@@ -330,7 +330,7 @@ export default function LawyerRegisterPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Veb-sayt (ixtiyoriy)</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">Veb-sayt (ixtiyoriy)</label>
             <Input
               placeholder="https://example.com"
               value={formData.website}
@@ -339,7 +339,7 @@ export default function LawyerRegisterPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">LinkedIn (ixtiyoriy)</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">LinkedIn (ixtiyoriy)</label>
             <Input
               placeholder="LinkedIn profil"
               value={formData.linkedin}
@@ -352,10 +352,10 @@ export default function LawyerRegisterPage() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4">
+    <div className="min-h-screen bg-gray-50 dark:bg-zinc-800/50 py-12 px-4">
       <div className="max-w-2xl mx-auto">
         <div className="mb-8">
-          <Link href="/" className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-4">
+          <Link href="/" className="inline-flex items-center text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100 mb-4">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Asosiy sahifaga qaytish
           </Link>
@@ -364,8 +364,8 @@ export default function LawyerRegisterPage() {
             <div className="w-20 h-20 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
               <Shield className="w-10 h-10 text-white" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900">Advokat ro\'yxatdan o\'tishi</h1>
-            <p className="text-gray-600 mt-2">JURISAI platformasiga professional advokat sifatida qo\'shiling</p>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-zinc-100">Advokat ro\'yxatdan o\'tishi</h1>
+            <p className="text-gray-600 dark:text-zinc-400 mt-2">JURISAI platformasiga professional advokat sifatida qo\'shiling</p>
           </div>
         </div>
 
@@ -379,7 +379,7 @@ export default function LawyerRegisterPage() {
                     className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
                       step <= currentStep
                         ? 'bg-blue-600 text-white'
-                        : 'bg-gray-200 text-gray-600'
+                        : 'bg-gray-200 text-gray-600 dark:text-zinc-400'
                     }`}
                   >
                     {step}
@@ -401,7 +401,7 @@ export default function LawyerRegisterPage() {
               {currentStep === 3 && renderStep3()}
 
               {errors.submit && (
-                <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 rounded-lg">
                   <p className="text-red-600">{errors.submit}</p>
                 </div>
               )}
@@ -430,7 +430,7 @@ export default function LawyerRegisterPage() {
           </CardContent>
         </Card>
 
-        <div className="mt-8 text-center text-gray-600">
+        <div className="mt-8 text-center text-gray-600 dark:text-zinc-400">
           <p>Avval ro\'yxatdan o\'tganmisiz? <Link href="/lawyer-login" className="text-blue-600 hover:text-blue-700">Kirish</Link></p>
         </div>
       </div>

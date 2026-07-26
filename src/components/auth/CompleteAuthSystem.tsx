@@ -641,9 +641,9 @@ export default function CompleteAuthSystem() {
   const getStatusBadgeColor = (status: string) => {
     switch (status) {
       case 'ACTIVE': return 'bg-green-100 text-green-800';
-      case 'INACTIVE': return 'bg-gray-100 text-gray-800';
+      case 'INACTIVE': return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200';
       case 'SUSPENDED': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      default: return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200';
     }
   };
 
@@ -655,10 +655,10 @@ export default function CompleteAuthSystem() {
 
   if (!isClient) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-zinc-800/50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Yuklanmoqda...</p>
+          <p className="text-gray-600 dark:text-zinc-400">Yuklanmoqda...</p>
         </div>
       </div>
     );
@@ -666,13 +666,13 @@ export default function CompleteAuthSystem() {
 
   if (isAuthenticated && currentUser) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-50 dark:bg-zinc-800/50">
         <div className="max-w-6xl mx-auto p-6">
-          <div className="bg-white rounded-lg shadow-lg p-6">
+          <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-lg p-6">
             <div className="flex justify-between items-center mb-6">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-                <p className="text-gray-600">Xush kelibsiz, {currentUser.name}!</p>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-zinc-100">Dashboard</h1>
+                <p className="text-gray-600 dark:text-zinc-400">Xush kelibsiz, {currentUser.name}!</p>
               </div>
               <div className="flex gap-3">
                 <Button 
@@ -695,7 +695,7 @@ export default function CompleteAuthSystem() {
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-gray-600">Status</p>
+                      <p className="text-sm text-gray-600 dark:text-zinc-400">Status</p>
                       <Badge className={getStatusBadgeColor(currentUser.status)}>
                         {currentUser.status}
                       </Badge>
@@ -709,7 +709,7 @@ export default function CompleteAuthSystem() {
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-gray-600">Role</p>
+                      <p className="text-sm text-gray-600 dark:text-zinc-400">Role</p>
                       <Badge className="bg-purple-100 text-purple-800">
                         {currentUser.role}
                       </Badge>
@@ -723,7 +723,7 @@ export default function CompleteAuthSystem() {
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-gray-600">Subscription</p>
+                      <p className="text-sm text-gray-600 dark:text-zinc-400">Subscription</p>
                       <Badge className="bg-yellow-100 text-yellow-800">
                         {currentUser.subscription}
                       </Badge>
@@ -745,15 +745,15 @@ export default function CompleteAuthSystem() {
                 <CardContent>
                   <div className="space-y-4">
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Login Count</span>
+                      <span className="text-gray-600 dark:text-zinc-400">Login Count</span>
                       <span className="font-semibold">{currentUser.statistics?.loginCount || 0}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Total Sessions</span>
+                      <span className="text-gray-600 dark:text-zinc-400">Total Sessions</span>
                       <span className="font-semibold">{currentUser.statistics?.totalSessions || 0}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Last Activity</span>
+                      <span className="text-gray-600 dark:text-zinc-400">Last Activity</span>
                       <span className="font-semibold">{formatDateTime(currentUser.statistics?.lastActivity || '')}</span>
                     </div>
                   </div>
@@ -770,12 +770,12 @@ export default function CompleteAuthSystem() {
                 <CardContent>
                   <div className="space-y-3">
                     {activeSessions.slice(-3).reverse().map((session) => (
-                      <div key={session.id} className="flex justify-between items-center p-3 bg-gray-50 rounded">
+                      <div key={session.id} className="flex justify-between items-center p-3 bg-gray-50 dark:bg-zinc-800/50 rounded">
                         <div>
                           <p className="text-sm font-medium">{session.browser}</p>
-                          <p className="text-xs text-gray-500">{formatDateTime(session.loginTime)}</p>
+                          <p className="text-xs text-gray-500 dark:text-zinc-500">{formatDateTime(session.loginTime)}</p>
                         </div>
-                        <Badge className={session.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}>
+                        <Badge className={session.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200'}>
                           {session.isActive ? 'Active' : 'Inactive'}
                         </Badge>
                       </div>
@@ -798,19 +798,19 @@ export default function CompleteAuthSystem() {
             <div className="mx-auto w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mb-4">
               <Shield className="w-8 h-8 text-white" />
             </div>
-            <CardTitle className="text-2xl font-bold text-gray-900">JurisAI</CardTitle>
-            <p className="text-gray-600">Huquqiy AI Platformasi</p>
+            <CardTitle className="text-2xl font-bold text-gray-900 dark:text-zinc-100">JurisAI</CardTitle>
+            <p className="text-gray-600 dark:text-zinc-400">Huquqiy AI Platformasi</p>
           </CardHeader>
 
           <CardContent>
             {/* Tab Navigation */}
-            <div className="flex space-x-1 mb-6 bg-gray-100 rounded-lg p-1">
+            <div className="flex space-x-1 mb-6 bg-gray-100 dark:bg-zinc-800/30 rounded-lg p-1">
               <button
                 onClick={() => setActiveTab('login')}
                 className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
                   activeTab === 'login'
-                    ? 'bg-white text-blue-600 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
+                    ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-sm'
+                    : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100'
                 }`}
               >
                 Kirish
@@ -819,8 +819,8 @@ export default function CompleteAuthSystem() {
                 onClick={() => setActiveTab('register')}
                 className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
                   activeTab === 'register'
-                    ? 'bg-white text-blue-600 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
+                    ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-sm'
+                    : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100'
                 }`}
               >
                 Ro'yxatdan o'tish
@@ -829,8 +829,8 @@ export default function CompleteAuthSystem() {
                 onClick={() => setActiveTab('admin-login')}
                 className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
                   activeTab === 'admin-login'
-                    ? 'bg-white text-blue-600 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
+                    ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-sm'
+                    : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100'
                 }`}
               >
                 Admin
@@ -839,14 +839,14 @@ export default function CompleteAuthSystem() {
 
             {/* Error and Success Messages */}
             {error && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md flex items-center space-x-2">
+              <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 rounded-md flex items-center space-x-2">
                 <XCircle className="w-4 h-4 text-red-600" />
                 <span className="text-red-700 text-sm">{error}</span>
               </div>
             )}
 
             {success && (
-              <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-md flex items-center space-x-2">
+              <div className="mb-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 rounded-md flex items-center space-x-2">
                 <CheckCircle className="w-4 h-4 text-green-600" />
                 <span className="text-green-700 text-sm">{success}</span>
               </div>
@@ -857,9 +857,9 @@ export default function CompleteAuthSystem() {
             {activeTab === 'login' && (
               <form onSubmit={handleLogin} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Email</label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500 w-4 h-4" />
                     <Input
                       type="email"
                       placeholder="Email (masalan: admin@jurisai.com)"
@@ -873,9 +873,9 @@ export default function CompleteAuthSystem() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Parol</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Parol</label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500 w-4 h-4" />
                     <Input
                       type={showPassword ? 'text' : 'password'}
                       placeholder="Parol"
@@ -888,7 +888,7 @@ export default function CompleteAuthSystem() {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:text-zinc-400"
                                           >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -903,7 +903,7 @@ export default function CompleteAuthSystem() {
                       onChange={(e) => setLoginCredentials(prev => ({ ...prev, rememberMe: e.target.checked }))}
                       className="w-4 h-4 text-blue-600 rounded"
                                           />
-                    <span className="text-sm text-gray-600">Eslab qolish</span>
+                    <span className="text-sm text-gray-600 dark:text-zinc-400">Eslab qolish</span>
                   </label>
                   <button
                     type="button"
@@ -927,9 +927,9 @@ export default function CompleteAuthSystem() {
                 </div>
 
                 {showAdvancedOptions && (
-                  <div className="p-3 bg-gray-50 rounded-md space-y-2">
+                  <div className="p-3 bg-gray-50 dark:bg-zinc-800/50 rounded-md space-y-2">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">2FA Kod (ixtiyoriy)</label>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">2FA Kod (ixtiyoriy)</label>
                       <Input
                         type="text"
                         placeholder="6 xonali kod"
@@ -946,7 +946,7 @@ export default function CompleteAuthSystem() {
                 </Button>
 
                 <div className="mt-4 text-center">
-                  <div className="text-sm text-gray-600 mb-2">Yoki advokat sifatida:</div>
+                  <div className="text-sm text-gray-600 dark:text-zinc-400 mb-2">Yoki advokat sifatida:</div>
                   <div className="flex space-x-2">
                     <a
                       href="/lawyer-login"
@@ -975,7 +975,7 @@ export default function CompleteAuthSystem() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Ism</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Ism</label>
                     <Input
                       type="text"
                       placeholder="Ism"
@@ -985,7 +985,7 @@ export default function CompleteAuthSystem() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Familiya</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Familiya</label>
                     <Input
                       type="text"
                       placeholder="Familiya"
@@ -997,9 +997,9 @@ export default function CompleteAuthSystem() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Email</label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500 w-4 h-4" />
                     <Input
                       type="email"
                       placeholder="Email"
@@ -1012,9 +1012,9 @@ export default function CompleteAuthSystem() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Parol</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Parol</label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500 w-4 h-4" />
                     <Input
                       type={showPassword ? 'text' : 'password'}
                       placeholder="Parol"
@@ -1026,7 +1026,7 @@ export default function CompleteAuthSystem() {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:text-zinc-400"
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -1034,9 +1034,9 @@ export default function CompleteAuthSystem() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Parolni tasdiqlash</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Parolni tasdiqlash</label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500 w-4 h-4" />
                     <Input
                       type={showConfirmPassword ? 'text' : 'password'}
                       placeholder="Parolni tasdiqlash"
@@ -1048,7 +1048,7 @@ export default function CompleteAuthSystem() {
                     <button
                       type="button"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:text-zinc-400"
                     >
                       {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -1064,7 +1064,7 @@ export default function CompleteAuthSystem() {
                     className="w-4 h-4 text-blue-600 rounded"
                     required
                   />
-                  <label htmlFor="terms" className="text-sm text-gray-600">
+                  <label htmlFor="terms" className="text-sm text-gray-600 dark:text-zinc-400">
                     <a href="#" className="text-blue-600 hover:text-blue-800">Foydalanish shartlari</a> bilan roziman
                   </label>
                 </div>
@@ -1084,9 +1084,9 @@ export default function CompleteAuthSystem() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Admin Email</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Admin Email</label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500 w-4 h-4" />
                     <Input
                       type="email"
                       placeholder="Admin email"
@@ -1100,9 +1100,9 @@ export default function CompleteAuthSystem() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Admin Parol</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Admin Parol</label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500 w-4 h-4" />
                     <Input
                       type={showPassword ? 'text' : 'password'}
                       placeholder="Admin parol"
@@ -1115,14 +1115,14 @@ export default function CompleteAuthSystem() {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:text-zinc-400"
                                           >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
                 </div>
 
-                <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3">
+                <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 rounded-md p-3">
                   <div className="flex items-center space-x-2">
                     <AlertCircle className="w-4 h-4 text-yellow-600" />
                     <span className="text-sm text-yellow-800">
@@ -1131,7 +1131,7 @@ export default function CompleteAuthSystem() {
                   </div>
                 </div>
 
-                <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 rounded-md p-3">
                   <div className="text-sm text-blue-800">
                     <strong>Test foydalanuvchilar:</strong><br/>
                     DOT Super Admin: admin@jurisai.com / admin123<br/>
@@ -1157,9 +1157,9 @@ export default function CompleteAuthSystem() {
                 {!passwordResetData.code ? (
                   <>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Email</label>
                       <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500 w-4 h-4" />
                         <Input
                           type="email"
                           placeholder="Email"
@@ -1178,7 +1178,7 @@ export default function CompleteAuthSystem() {
                 ) : (
                   <>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Tasdiqlash kodi</label>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Tasdiqlash kodi</label>
                       <Input
                         type="text"
                         placeholder="6 xonali kod"
@@ -1190,9 +1190,9 @@ export default function CompleteAuthSystem() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Yangi parol</label>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Yangi parol</label>
                       <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                        <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500 w-4 h-4" />
                         <Input
                           type={showPassword ? 'text' : 'password'}
                           placeholder="Yangi parol"
@@ -1204,7 +1204,7 @@ export default function CompleteAuthSystem() {
                         <button
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:text-zinc-400"
                         >
                           {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                         </button>
@@ -1212,9 +1212,9 @@ export default function CompleteAuthSystem() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Yangi parolni tasdiqlash</label>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Yangi parolni tasdiqlash</label>
                       <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                        <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500 w-4 h-4" />
                         <Input
                           type={showConfirmPassword ? 'text' : 'password'}
                           placeholder="Yangi parolni tasdiqlash"
@@ -1226,7 +1226,7 @@ export default function CompleteAuthSystem() {
                         <button
                           type="button"
                           onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:text-zinc-400"
                         >
                           {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                         </button>

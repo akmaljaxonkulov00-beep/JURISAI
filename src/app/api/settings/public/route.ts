@@ -7,30 +7,38 @@ export async function GET() {
     try {
       supabase = getSupabaseAdmin();
     } catch {
-      // Fallback: return empty — frontend will use localStorage fallback
-      return NextResponse.json({ success: true, data: null, source: 'fallback' });
+      return NextResponse.json({ success: false, error: 'Supabase not configured' });
     }
 
     const { data, error } = await supabase
       .from('site_settings')
-      .select('payment_card_number, payment_details, updated_at')
-      .order('updated_at', { ascending: false })
+      .select('*')
+      .order('created_at', { ascending: false })
       .limit(1)
       .single();
 
     if (error && error.code !== 'PGRST116') {
-      console.error('Public settings load error:', error);
-      return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+      console.error('[Settings Public] Error:', error);
     }
 
-    // Map snake_case to camelCase for frontend
-    const mapped = data ? {
-      paymentCardNumber: data.payment_card_number || '',
-      paymentDetails: data.payment_details || '',
-      updatedAt: data.updated_at,
-    } : null;
+    // Transform snake_case to camelCase for frontend
+    if (data) {
+      const transformed: Record<string, any> = {
+        announcementBanner: data.announcement_banner || '',
+        heroTitle: data.hero_title || '',
+        heroSubtitle: data.hero_subtitle || '',
+        contactEmail: data.contact_email || '',
+        contactPhone: data.contact_phone || '',
+        telegramLink: data.telegram_link || '',
+        legalDisclaimer: data.legal_disclaimer || '',
+        systemPrompt: data.system_prompt || '',
+        paymentCardNumber: data.payment_card_number || '',
+        paymentDetails: data.payment_details || '',
+      };
+      return NextResponse.json({ success: true, data: transformed });
+    }
 
-    return NextResponse.json({ success: true, data: mapped, source: 'supabase' });
+    return NextResponse.json({ success: true, data: null });
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error?.message }, { status: 500 });
   }

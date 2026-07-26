@@ -25,22 +25,12 @@ function PaymentContent() {
   }, []);
 
   const loadCardSettings = async () => {
-    try {
-      // Try Supabase first
-      const res = await fetch('/api/settings/public');
-      const result = await res.json();
-      if (result.success && result.data) {
-        setAdminSettings(result.data);
-        return;
-      }
-    } catch {}
-    // Fallback to localStorage
-    try {
-      const stored = localStorage.getItem('admin_site_settings') || localStorage.getItem('siteSettings');
-      if (stored) {
-        setAdminSettings(JSON.parse(stored));
-      }
-    } catch {}
+    // Use sync service — tries Supabase first, falls back to localStorage
+    const { getPublicSettings } = await import('@/lib/settings-sync');
+    const settings = await getPublicSettings();
+    if (settings) {
+      setAdminSettings(settings);
+    }
   };
 
   // Get dynamic card info from admin settings
@@ -156,12 +146,13 @@ function PaymentContent() {
         }));
       } catch {}
       
-      // Try Supabase log
+      // Try Supabase log — pass same ID so admin can look it up
       try {
         await fetch('/api/log/payment', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
+            id: paymentRecord.id,
             userId: user.id || 'unknown',
             userEmail: user.email || 'unknown',
             userName: user.name || '',
@@ -189,7 +180,7 @@ function PaymentContent() {
               <CheckCircle className="w-8 h-8 text-green-600" />
             </div>
             <CardTitle className="text-2xl text-gray-800 dark:text-white">Bepul reja faollashtirildi</CardTitle>
-            <p className="text-gray-500 dark:text-gray-400 mt-2">Bepul rejadan foydalanishni boshlashingiz mumkin</p>
+            <p className="text-gray-500 dark:text-gray-400 dark:text-zinc-500 mt-2">Bepul rejadan foydalanishni boshlashingiz mumkin</p>
           </CardHeader>
           <CardContent className="text-center">
             <Button onClick={() => router.push('/dashboard')} className="w-full">Dashboardga o'tish</Button>
@@ -214,8 +205,8 @@ function PaymentContent() {
               <p className="text-yellow-800 dark:text-yellow-300 text-sm">To'lovingiz moderator tomonidan tekshirilmoqda. 1-24 soat ichida tasdiqlanadi.</p>
             </div>
             <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4 text-left space-y-2">
-              <div className="flex justify-between"><span className="text-gray-500 dark:text-gray-400">Tarif:</span><span className="font-medium text-gray-800 dark:text-white">{planName}</span></div>
-              <div className="flex justify-between"><span className="text-gray-500 dark:text-gray-400">Summa:</span><span className="font-medium text-gray-800 dark:text-white">{amount.toLocaleString()} UZS</span></div>
+              <div className="flex justify-between"><span className="text-gray-500 dark:text-gray-400 dark:text-zinc-500">Tarif:</span><span className="font-medium text-gray-800 dark:text-white">{planName}</span></div>
+              <div className="flex justify-between"><span className="text-gray-500 dark:text-gray-400 dark:text-zinc-500">Summa:</span><span className="font-medium text-gray-800 dark:text-white">{amount.toLocaleString()} UZS</span></div>
             </div>
             {previewUrl && <img src={previewUrl} alt="Chek" className="w-full max-w-xs mx-auto rounded-lg shadow-sm" />}
             <Button onClick={() => router.push('/dashboard')} className="w-full">Dashboardga qaytish</Button>
@@ -229,7 +220,7 @@ function PaymentContent() {
     <div className="min-h-screen bg-page-custom p-4 md:p-6">
       <div className="max-w-6xl mx-auto">
         <div className="flex items-center gap-4 mb-8">
-          <button onClick={() => router.push('/premium')} className="flex items-center gap-2 px-3 py-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all">
+          <button onClick={() => router.push('/premium')} className="flex items-center gap-2 px-3 py-2 text-gray-500 dark:text-gray-400 dark:text-zinc-500 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all">
             <ArrowLeft className="w-4 h-4" /> <span className="text-sm font-medium">Orqaga</span>
           </button>
           <h1 className="text-2xl font-bold text-gray-800 dark:text-white">To'lov qilish</h1>
@@ -241,10 +232,10 @@ function PaymentContent() {
             <button key={p.id} onClick={() => handlePlanSelect(p.id, p.price)}
               className={`flex-1 p-6 rounded-2xl text-center transition-all border-2 ${planName === p.name ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-lg' : 'border-gray-200 dark:border-gray-700 card-default hover:border-blue-300'}`}>
               <h3 className="font-bold text-lg text-gray-800 dark:text-white mb-1">{p.name}</h3>
-              <p className="text-2xl font-bold text-blue-600">{p.price.toLocaleString()} <span className="text-sm font-normal text-gray-500">UZS/oy</span></p>
+              <p className="text-2xl font-bold text-blue-600">{p.price.toLocaleString()} <span className="text-sm font-normal text-gray-500 dark:text-zinc-500">UZS/oy</span></p>
               <ul className="mt-3 space-y-1 text-left">
                 {p.features.map((f, i) => (
-                  <li key={i} className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400"><CheckCircle className="w-3 h-3 text-green-500 flex-shrink-0" /> {f}</li>
+                  <li key={i} className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400 dark:text-zinc-500"><CheckCircle className="w-3 h-3 text-green-500 flex-shrink-0" /> {f}</li>
                 ))}
               </ul>
             </button>
@@ -268,20 +259,20 @@ function PaymentContent() {
                 <h3 className="font-medium text-gray-800 dark:text-white">To'lov usullari:</h3>
                 <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
                   <h4 className="font-medium text-gray-800 dark:text-white mb-2">Click / Payme</h4>
-                  <p className="font-mono text-sm text-gray-600 dark:text-gray-400">{cardNumber}</p>
-                  <p className="text-xs text-gray-500 mt-1">Click: *123# {amount.toLocaleString()} UZS</p>
+                  <p className="font-mono text-sm text-gray-600 dark:text-gray-400 dark:text-zinc-500">{cardNumber}</p>
+                  <p className="text-xs text-gray-500 dark:text-zinc-500 mt-1">Click: *123# {amount.toLocaleString()} UZS</p>
                 </div>
                 <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
                   <h4 className="font-medium text-gray-800 dark:text-white mb-2">Bank karta</h4>
-                  <p className="font-mono text-sm text-gray-600 dark:text-gray-400">{cardNumber}</p>
-                  <p className="text-xs text-gray-500 mt-1">Humo, Uzcard, Visa</p>
+                  <p className="font-mono text-sm text-gray-600 dark:text-gray-400 dark:text-zinc-500">{cardNumber}</p>
+                  <p className="text-xs text-gray-500 dark:text-zinc-500 mt-1">Humo, Uzcard, Visa</p>
                 </div>
                 <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl text-center">
                   <h4 className="font-medium text-gray-800 dark:text-white mb-2">QR kod</h4>
                   <div className="w-28 h-28 mx-auto bg-white dark:bg-gray-700 rounded-xl border dark:border-gray-600 flex items-center justify-center">
-                    <QrCode className="w-14 h-14 text-gray-400" />
+                    <QrCode className="w-14 h-14 text-gray-400 dark:text-zinc-500" />
                   </div>
-                  <p className="text-xs text-gray-500 mt-2">QR kodni skanerlang</p>
+                  <p className="text-xs text-gray-500 dark:text-zinc-500 mt-2">QR kodni skanerlang</p>
                 </div>
               </div>
             </CardContent>
@@ -304,9 +295,9 @@ function PaymentContent() {
               <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-8 text-center hover:border-blue-400 dark:hover:border-blue-500 transition-colors">
                 <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" id="check-upload" />
                 <label htmlFor="check-upload" className="cursor-pointer flex flex-col items-center gap-3">
-                  <Upload className="w-10 h-10 text-gray-400" />
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Chek rasmini yuklash uchun bosing</span>
-                  <span className="text-xs text-gray-400">PNG, JPG, WEBP (maks 5 MB)</span>
+                  <Upload className="w-10 h-10 text-gray-400 dark:text-zinc-500" />
+                  <span className="text-sm text-gray-600 dark:text-gray-400 dark:text-zinc-500">Chek rasmini yuklash uchun bosing</span>
+                  <span className="text-xs text-gray-400 dark:text-zinc-500">PNG, JPG, WEBP (maks 5 MB)</span>
                 </label>
               </div>
 

@@ -271,7 +271,7 @@ function LawBook({ mouseX, mouseY, index = 0 }: { mouseX: any; mouseY: any; inde
         </div>
         {/* Bookmark ribbon */}
         <motion.div
-          className="absolute -top-1 left-3 w-3 h-4 bg-red-500 rounded-t"
+          className="absolute -top-1 left-3 w-3 h-4 bg-red-50 dark:bg-red-900/20 rounded-t"
           animate={{ y: [0, -2, 0] }}
           transition={{ duration: 2, delay: index * 0.3, repeat: Infinity, ease: 'easeInOut' }}
         />
@@ -602,7 +602,7 @@ function FloatingScene({ mouseX, mouseY, onNavigate, stats, statsLoading }: Floa
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.8, type: 'spring' }}
             >
-              <span className="px-2 py-0.5 rounded-md bg-blue-500/20 border border-blue-500/30 text-[9px] text-blue-300 font-medium backdrop-blur-sm">
+              <span className="px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-900/20/20 border border-blue-500/30 text-[9px] text-blue-300 font-medium backdrop-blur-sm">
                 <AnimatedCounter value={stats.active_users_today} suffix="" compact stiffness={90} damping={20} className="text-blue-300" /> bugun
               </span>
               <span className="px-2 py-0.5 rounded-md bg-emerald-500/20 border border-emerald-500/30 text-[9px] text-emerald-300 font-medium backdrop-blur-sm">
@@ -662,7 +662,8 @@ function SignInContent() {
   const mouseY = useMotionValue(0.5)
   const lastMousePos = useRef({ x: 0, y: 0, time: 0 })
 
-  const [mode, setMode] = useState<'login' | 'register'>('login')
+  const initialMode = searchParams?.get('mode') === 'register' ? 'register' : 'login'
+  const [mode, setMode] = useState<'login' | 'register'>(initialMode)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [name, setName] = useState('')
@@ -962,9 +963,9 @@ function SignInContent() {
               transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
             />
 
-            <div className="relative p-6 sm:p-7 rounded-2xl glass-card shadow-xl border border-gray-200/50 dark:border-zinc-700/50 backdrop-blur-xl bg-white/70 dark:bg-zinc-900/70">
+            <div className="relative p-6 sm:p-7 rounded-2xl glass-card shadow-xl border border-gray-200 dark:border-zinc-800/50 dark:border-zinc-700/50 backdrop-blur-xl bg-white/70 dark:bg-zinc-900/70">
               {/* Mode Toggle */}
-              <div className="flex mb-5 bg-gray-100/80 dark:bg-zinc-800/80 rounded-lg p-0.5">
+              <div className="flex mb-5 bg-gray-100 dark:bg-zinc-800/30/80 dark:bg-zinc-800/80 rounded-lg p-0.5">
                 <button onClick={() => { setMode('login'); setError(''); setSuccessMsg('') }}
                   className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
                     mode === 'login'
@@ -997,7 +998,7 @@ function SignInContent() {
                 <motion.div
                   initial={{ opacity: 0, y: -5 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="mb-4 p-2.5 rounded-lg bg-red-50/90 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-xs text-red-700 dark:text-red-300 flex items-center gap-2"
+                  className="mb-4 p-2.5 rounded-lg bg-red-50 dark:bg-red-900/20/90 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-xs text-red-700 dark:text-red-300 flex items-center gap-2"
                 >
                   <svg className="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" />
@@ -1009,7 +1010,7 @@ function SignInContent() {
                 <motion.div
                   initial={{ opacity: 0, y: -5 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="mb-4 p-2.5 rounded-lg bg-green-50/90 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-xs text-green-700 dark:text-green-300 flex items-center gap-2"
+                  className="mb-4 p-2.5 rounded-lg bg-green-50 dark:bg-green-900/20/90 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-xs text-green-700 dark:text-green-300 flex items-center gap-2"
                 >
                   <svg className="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M22 11.08V12a10 10 0 11-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
@@ -1024,11 +1025,11 @@ function SignInContent() {
                   <div>
                     <label className="block text-xs font-medium text-gray-700 dark:text-zinc-300 mb-1">Ism Familiya</label>
                     <div className="relative">
-                      <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 dark:text-zinc-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /><circle cx="8.5" cy="7" r="4" />
                       </svg>
                       <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ismingiz"
-                        className="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-200 dark:border-zinc-700 bg-white/80 dark:bg-zinc-800/80 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition-all" />
+                        className="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-200 dark:border-zinc-700 bg-white/80 dark:bg-zinc-800/80 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition-all" />
                     </div>
                   </div>
                 )}
@@ -1036,23 +1037,23 @@ function SignInContent() {
                 <div>
                   <label className="block text-xs font-medium text-gray-700 dark:text-zinc-300 mb-1">Email</label>
                   <div className="relative">
-                    <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 dark:text-zinc-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" />
                     </svg>
                     <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email@example.com" required
-                      className="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-200 dark:border-zinc-700 bg-white/80 dark:bg-zinc-800/80 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition-all" />
+                      className="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-200 dark:border-zinc-700 bg-white/80 dark:bg-zinc-800/80 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition-all" />
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-xs font-medium text-gray-700 dark:text-zinc-300 mb-1">Parol</label>
                   <div className="relative">
-                    <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 dark:text-zinc-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0110 0v4" />
                     </svg>
                     <input type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Parol" required minLength={6}
-                      className="w-full pl-9 pr-9 py-2 rounded-lg border border-gray-200 dark:border-zinc-700 bg-white/80 dark:bg-zinc-800/80 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition-all" />
-                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-zinc-300">
+                      className="w-full pl-9 pr-9 py-2 rounded-lg border border-gray-200 dark:border-zinc-700 bg-white/80 dark:bg-zinc-800/80 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition-all" />
+                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:hover:text-zinc-300">
                       {showPassword
                         ? <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24" /><line x1="1" y1="1" x2="23" y2="23" /></svg>
                         : <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
@@ -1066,7 +1067,7 @@ function SignInContent() {
                   <div className="flex items-center justify-between">
                     <label className="flex items-center gap-1.5 cursor-pointer">
                       <input type="checkbox" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)}
-                        className="w-3.5 h-3.5 text-blue-600 border-gray-300 rounded focus:ring-blue-500" />
+                        className="w-3.5 h-3.5 text-blue-600 border-gray-300 dark:border-zinc-700 rounded focus:ring-blue-500" />
                       <span className="text-xs text-gray-600 dark:text-zinc-400">Meni eslab qol</span>
                     </label>
                     <button type="button" onClick={handleForgotPassword}
@@ -1148,9 +1149,9 @@ function SignInContent() {
           {/* Footer */}
           <p className="text-center text-[10px] text-gray-400 dark:text-zinc-500 mt-4">
             Davom etish orqali siz{' '}
-            <a href="/terms" className="text-blue-500 hover:text-blue-600 underline underline-offset-2">Foydalanish shartlari</a>
+            <a href="/terms" className="text-blue-500 hover:text-blue-600 dark:hover:text-blue-400 underline underline-offset-2">Foydalanish shartlari</a>
             {' '}va{' '}
-            <a href="/privacy" className="text-blue-500 hover:text-blue-600 underline underline-offset-2">Maxfiylik siyosati</a>
+            <a href="/privacy" className="text-blue-500 hover:text-blue-600 dark:hover:text-blue-400 underline underline-offset-2">Maxfiylik siyosati</a>
             {' '}ga rozilik bildirasiz
           </p>
         </div>

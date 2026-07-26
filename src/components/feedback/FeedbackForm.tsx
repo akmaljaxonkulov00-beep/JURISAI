@@ -78,7 +78,7 @@ export default function FeedbackForm() {
       case 'bug': return 'bg-red-100 text-red-800';
       case 'feature': return 'bg-green-100 text-green-800';
       case 'improvement': return 'bg-blue-100 text-blue-800';
-      default: return 'bg-gray-100 text-gray-800';
+      default: return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200';
     }
   };
 
@@ -113,7 +113,7 @@ export default function FeedbackForm() {
               />
             </svg>
           </div>
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-zinc-400">
             Fikringiz uchun rahmat! Biz uni tez orada ko'rib chiqamiz va kerakli choralarni ko'ramiz.
           </p>
           <Button
@@ -132,7 +132,7 @@ export default function FeedbackForm() {
     <Card>
       <CardHeader>
         <CardTitle className="text-lg">Takliflar va Fikrlar</CardTitle>
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-gray-600 dark:text-zinc-400">
           Platformani yaxshilash uchun fikringizni biz bilan ulashing
         </p>
       </CardHeader>
@@ -140,7 +140,7 @@ export default function FeedbackForm() {
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Feedback Type */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
               Taklif turi
             </label>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -151,8 +151,8 @@ export default function FeedbackForm() {
                   onClick={() => setFormData({ ...formData, type })}
                   className={`px-3 py-2 rounded-lg border text-sm font-medium transition-colors ${
                     formData.type === type
-                      ? 'border-blue-500 bg-blue-50 text-blue-700'
-                      : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
+                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700'
+                      : 'border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:bg-zinc-800/50'
                   }`}
                 >
                   <Badge className={`mb-1 ${getTypeColor(type)}`}>
@@ -165,7 +165,7 @@ export default function FeedbackForm() {
 
           {/* Title */}
           <div>
-            <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">
               Sarlavha
             </label>
             <input
@@ -174,14 +174,14 @@ export default function FeedbackForm() {
               value={formData.title || ''}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               placeholder="Qisqa sarlavha..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               required
             />
           </div>
 
           {/* Description */}
           <div>
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">
               Tafsilotlar
             </label>
             <textarea
@@ -190,14 +190,14 @@ export default function FeedbackForm() {
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               placeholder="Taklifingiz haqida batafsil ma'lumot..."
               rows={4}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               required
             />
           </div>
 
           {/* Email */}
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">
               Email (javob uchun)
             </label>
             <input
@@ -206,7 +206,7 @@ export default function FeedbackForm() {
               value={formData.email || ''}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               placeholder="email@example.com"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
 
@@ -223,7 +223,7 @@ export default function FeedbackForm() {
             Yuborish
           </Button>
 
-          <div className="text-xs text-gray-500 text-center">
+          <div className="text-xs text-gray-500 dark:text-zinc-500 text-center">
             Fikringiz biz uchun juda muhim. Platformani rivojlantirishda yordam bering!
           </div>
         </form>

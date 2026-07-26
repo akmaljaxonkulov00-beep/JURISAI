@@ -43,7 +43,7 @@ const Header: React.FC<HeaderProps> = ({ user, className }) => {
 
   return (
     <header className={cn(
-      'bg-white border-b border-gray-200 shadow-sm',
+      'bg-white dark:bg-zinc-900 border-b border-gray-200 dark:border-zinc-800 shadow-sm',
       className
     )}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -54,7 +54,7 @@ const Header: React.FC<HeaderProps> = ({ user, className }) => {
               <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-emerald-600 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-lg">J</span>
               </div>
-              <span className="text-xl font-bold text-gray-900">JurisAI</span>
+              <span className="text-xl font-bold text-gray-900 dark:text-white">JurisAI</span>
             </Link>
           </div>
 
@@ -64,7 +64,7 @@ const Header: React.FC<HeaderProps> = ({ user, className }) => {
               <Link
                 key={item.name}
                 href={item.href}
-                className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                className="text-gray-700 dark:text-zinc-300 hover:text-blue-600 dark:hover:text-blue-400 px-3 py-2 rounded-md text-sm font-medium transition-colors"
               >
                 {item.name}
               </Link>
@@ -100,7 +100,7 @@ const Header: React.FC<HeaderProps> = ({ user, className }) => {
                     <Link href="/profile" className="w-full">Profil</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem>
-                    <Link href="/settings" className="w-full">Sozlamalar</Link>
+                    <Link href="/profile" className="w-full">Sozlamalar</Link>
                   </DropdownMenuItem>
                   {user.role === 'admin' && (
                     <DropdownMenuItem>
@@ -166,7 +166,7 @@ const Header: React.FC<HeaderProps> = ({ user, className }) => {
                 <Link
                   key={item.name}
                   href={item.href}
-                  className="text-gray-700 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium"
+                  className="text-gray-700 dark:text-zinc-300 hover:text-blue-600 dark:hover:text-blue-400 block px-3 py-2 rounded-md text-base font-medium"
                   onClick={(e) => {
                     e.preventDefault();
                     setIsMobileMenuOpen(false);
@@ -178,22 +178,22 @@ const Header: React.FC<HeaderProps> = ({ user, className }) => {
               ))}
             </div>
             {!user && (
-              <div className="pt-4 pb-3 border-t border-gray-200">
+              <div className="pt-4 pb-3 border-t border-gray-200 dark:border-zinc-700">
                 <div className="px-2 space-y-2">
                   <Button variant="ghost" asChild className="w-full">
-                    <Link href="/login" onClick={(e) => {
+                    <Link href="/signin" onClick={(e) => {
                       e.preventDefault();
                       setIsMobileMenuOpen(false);
-                      router.push('/login');
+                      router.push('/signin');
                     }}>
                       Kirish
                     </Link>
                   </Button>
                   <Button asChild className="w-full">
-                    <Link href="/register" onClick={(e) => {
+                    <Link href="/signin?mode=register" onClick={(e) => {
                       e.preventDefault();
                       setIsMobileMenuOpen(false);
-                      router.push('/register');
+                      router.push('/signin?mode=register');
                     }}>
                       Ro'yxatdan o'tish
                     </Link>

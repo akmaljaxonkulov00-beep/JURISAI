@@ -6,11 +6,11 @@ export async function POST(request: NextRequest) {
     const { name, email, password } = await request.json();
 
     // Sign up user with Supabase
-    const result = await authHelpers.signUp(email, password, name);
+    const result = await (authHelpers as any).signUp(email, password, name);
 
     if (!result.success) {
       return NextResponse.json(
-        { error: result.error?.message || 'Signup failed' },
+        { error: result?.error?.message || 'Signup failed' },
         { status: 400 }
       );
     }

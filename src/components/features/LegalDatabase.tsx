@@ -371,7 +371,7 @@ export default function LegalDatabase() {
   const renderSearchTab = () => (
     <div className="space-y-6">
       {/* Search Interface */}
-      <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+      <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
         <CardHeader>
           <CardTitle className="text-blue-900">Qonunlarda Qidiruv</CardTitle>
         </CardHeader>
@@ -397,7 +397,7 @@ export default function LegalDatabase() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
                 Kategoriyani tanlang
               </label>
               <Select
@@ -411,7 +411,7 @@ export default function LegalDatabase() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
                 Hujjat turini tanlang
               </label>
               <Select
@@ -431,7 +431,7 @@ export default function LegalDatabase() {
           {/* Search Suggestions */}
           {searchResults?.suggestions && searchResults.suggestions.length > 0 && (
             <div className="flex flex-wrap gap-2">
-              <span className="text-sm text-gray-600">Takliflar:</span>
+              <span className="text-sm text-gray-600 dark:text-zinc-400">Takliflar:</span>
               {searchResults.suggestions.map((suggestion, index) => (
                 <Badge
                   key={index}
@@ -451,12 +451,12 @@ export default function LegalDatabase() {
 
       {/* Search Results */}
       {searchResults && (
-        <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+        <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
           <CardHeader>
             <CardTitle className="text-blue-900">
               Qidiruv Natijalari ({searchResults.total} ta)
             </CardTitle>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-600 dark:text-zinc-400">
               Qidiruv vaqti: {searchResults.search_time.toFixed(2)} soniya
             </p>
           </CardHeader>
@@ -474,7 +474,7 @@ export default function LegalDatabase() {
                       {article.article_number}
                     </Badge>
                   </div>
-                  <p className="text-sm text-gray-600 mb-2 line-clamp-2">
+                  <p className="text-sm text-gray-600 dark:text-zinc-400 mb-2 line-clamp-2">
                     {article.content}
                   </p>
                   <div className="flex justify-between items-center">
@@ -487,7 +487,7 @@ export default function LegalDatabase() {
                       </Badge>
                     </div>
                     <div className="flex gap-2">
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-gray-500 dark:text-zinc-500">
                         {article.view_count} marta ko'rilgan
                       </span>
                       <Button
@@ -550,7 +550,7 @@ export default function LegalDatabase() {
                 </div>
               </div>
               <div className="relative">
-                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-500" />
                 <input
                   type="text"
                   value={codeSearchQuery}
@@ -596,7 +596,7 @@ export default function LegalDatabase() {
                             {article.number}-modda
                           </span>
                           {article.category && (
-                            <Badge className="bg-gray-100 text-gray-600 dark:bg-zinc-700 dark:text-zinc-300 text-[10px]">
+                            <Badge className="bg-gray-100 dark:bg-zinc-800/30 text-gray-600 dark:bg-zinc-700 dark:text-zinc-300 text-[10px]">
                               {article.category}
                             </Badge>
                           )}
@@ -606,7 +606,7 @@ export default function LegalDatabase() {
                       </div>
                       <div className="flex-shrink-0 flex flex-col items-end gap-1">
                         {article.penalties && (
-                          <Badge className="bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-300 text-[10px]">
+                          <Badge className="bg-red-50 dark:bg-red-900/20 text-red-700 dark:bg-red-900/30 dark:text-red-300 text-[10px]">
                             {article.penalties.substring(0, 30)}...
                           </Badge>
                         )}
@@ -650,7 +650,7 @@ export default function LegalDatabase() {
                    category.id === 'civil_code' ? <Scale size={20} className="text-green-600" /> :
                    category.id === 'labor_code' ? <FileText size={20} className="text-orange-600" /> :
                    category.id === 'family_code' ? <BookOpen size={20} className="text-purple-600" /> :
-                   <FileText size={20} className="text-gray-600" />}
+                   <FileText size={20} className="text-gray-600 dark:text-zinc-400" />}
                   <h3 className="font-semibold text-gray-900 dark:text-white">{category.name}</h3>
                 </div>
                 <p className="text-sm text-secondary mb-3 line-clamp-2">{category.description}</p>
@@ -670,7 +670,7 @@ export default function LegalDatabase() {
 
   const renderPopularTab = () => (
     <div className="space-y-6">
-      <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+      <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
         <CardHeader>
           <CardTitle className="text-blue-900">
             Mashhur Qonun Hujjatlari
@@ -696,7 +696,7 @@ export default function LegalDatabase() {
                     {article.article_number}
                   </Badge>
                 </div>
-                <p className="text-sm text-gray-600 mb-2 line-clamp-2">
+                <p className="text-sm text-gray-600 dark:text-zinc-400 mb-2 line-clamp-2">
                   {article.content}
                 </p>
                 <div className="flex justify-between items-center">
@@ -722,14 +722,14 @@ export default function LegalDatabase() {
 
   const renderBookmarksTab = () => (
     <div className="space-y-6">
-      <Card className="bg-white/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
+      <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
         <CardHeader>
           <CardTitle className="text-blue-900">Bookmarklar ({bookmarks.length})</CardTitle>
         </CardHeader>
         <CardContent>
           {bookmarks.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-gray-600">Bookmarklar mavjud emas</p>
+              <p className="text-gray-600 dark:text-zinc-400">Bookmarklar mavjud emas</p>
               <Button
                 onClick={() => setActiveTab('search')}
                 className="mt-4 bg-blue-600 hover:bg-blue-700 text-white"
@@ -753,7 +753,7 @@ export default function LegalDatabase() {
                       <h3 className="font-semibold text-blue-900">
                         Hujjat ID: {bookmark.document_id}
                       </h3>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-gray-600 dark:text-zinc-400">
                         {new Date(bookmark.created_at).toLocaleDateString('uz-UZ')}
                       </p>
                     </div>
@@ -782,7 +782,7 @@ export default function LegalDatabase() {
 
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-        <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
           <div className="p-6">
             <div className="flex justify-between items-start mb-4">
               <div>
@@ -811,14 +811,14 @@ export default function LegalDatabase() {
 
             <div className="space-y-4">
               <div>
-                <h3 className="font-semibold text-gray-900 mb-2">Bob:</h3>
-                <p className="text-gray-700">{selectedArticle.chapter}</p>
+                <h3 className="font-semibold text-gray-900 dark:text-zinc-100 mb-2">Bob:</h3>
+                <p className="text-gray-700 dark:text-zinc-300">{selectedArticle.chapter}</p>
               </div>
 
               <div>
-                <h3 className="font-semibold text-gray-900 mb-2">Mazmun:</h3>
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <p className="text-gray-700 whitespace-pre-wrap">
+                <h3 className="font-semibold text-gray-900 dark:text-zinc-100 mb-2">Mazmun:</h3>
+                <div className="bg-gray-50 dark:bg-zinc-800/50 rounded-lg p-4">
+                  <p className="text-gray-700 dark:text-zinc-300 whitespace-pre-wrap">
                     {selectedArticle.content}
                   </p>
                 </div>
@@ -826,10 +826,10 @@ export default function LegalDatabase() {
 
               {selectedArticle.keywords.length > 0 && (
                 <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Kalit so'zlar:</h3>
+                  <h3 className="font-semibold text-gray-900 dark:text-zinc-100 mb-2">Kalit so'zlar:</h3>
                   <div className="flex flex-wrap gap-2">
                     {selectedArticle.keywords.map((keyword, index) => (
-                      <Badge key={index} className="bg-gray-100 text-gray-800">
+                      <Badge key={index} className="bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200">
                         {keyword}
                       </Badge>
                     ))}
@@ -838,7 +838,7 @@ export default function LegalDatabase() {
               )}
 
               <div className="flex justify-between items-center pt-4 border-t">
-                <div className="text-sm text-gray-600">
+                <div className="text-sm text-gray-600 dark:text-zinc-400">
                   Oxirgi yangilanish: {new Date(selectedArticle.last_updated).toLocaleDateString('uz-UZ')}
                 </div>
                 <div className="flex gap-2">
@@ -862,7 +862,7 @@ export default function LegalDatabase() {
       <div className="max-w-7xl mx-auto">
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Qonunlar Bazasi</h1>
-          <p className="text-gray-500 dark:text-gray-400">O'zbekiston qonunchilik ma'lumotlar bazasi</p>
+          <p className="text-gray-500 dark:text-gray-400 dark:text-zinc-500">O'zbekiston qonunchilik ma'lumotlar bazasi</p>
         </div>
 
         {/* Tabs */}
@@ -879,7 +879,7 @@ export default function LegalDatabase() {
               className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                 activeTab === tab.id
                   ? 'bg-blue-600 text-white shadow-md'
-                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  : 'text-gray-600 dark:text-gray-400 dark:text-zinc-500 hover:bg-gray-100 dark:hover:bg-gray-700'
               }`}
             >
               {tab.label}
