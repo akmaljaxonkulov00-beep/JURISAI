@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { ArrowLeft, CreditCard, Upload, CheckCircle, Clock, AlertCircle, QrCode } from 'lucide-react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import CheckoutModal from '@/components/payment/checkout-modal';
 
 function PaymentContent() {
   const router = useRouter();
@@ -16,6 +17,7 @@ function PaymentContent() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<'idle' | 'pending' | 'success'>('idle');
   const [adminSettings, setAdminSettings] = useState<any>(null);
+  const [showCheckout, setShowCheckout] = useState(false);
 
   useEffect(() => {
     // Load admin settings (bank cards from admin panel) — with Supabase sync
@@ -67,6 +69,9 @@ function PaymentContent() {
   const handlePlanSelect = (planId: string, price: number) => {
     setPlanName(planId === 'standart' ? 'Standart' : 'Pro');
     setAmount(price);
+    if (price > 0) {
+      setShowCheckout(true);
+    }
     router.replace(`/manual-payment?plan=${planId}&amount=${price}`);
   };
 
@@ -293,6 +298,19 @@ function PaymentContent() {
           </Card>
         </div>
       </div>
+
+      {/* Checkout Modal */}
+      <CheckoutModal
+        isOpen={showCheckout}
+        onClose={() => setShowCheckout(false)}
+        plan={{ id: planName.toLowerCase(), name: planName, price: amount }}
+        cardNumber={cardNumber}
+        paymentDetails={paymentDetails}
+        onSuccess={() => {
+          setPaymentStatus('pending');
+          setShowCheckout(false);
+        }}
+      />
     </div>
   );
 }

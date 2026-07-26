@@ -121,15 +121,15 @@ function ShineIcon() {
 }
 
 const floatingCards = [
-  { icon: <LegalShieldIcon />, title: 'AI Huquqiy Agent', desc: 'O\'zbekiston qonunchiligi asosida maslahat', color: 'from-blue-400/30 to-blue-600/20', depth: 4 },
-  { icon: <GavelIcon />, title: 'Virtual Sud AI', desc: 'Real vaqt rejimida sud simulyatsiyasi', color: 'from-emerald-400/30 to-emerald-600/20', depth: 6 },
-  { icon: <FileIcon />, title: 'AI Hujjat Generator', desc: 'Da\'vo, shartnoma, ishonchnoma yarating', color: 'from-amber-400/30 to-amber-600/20', depth: 3 },
-  { icon: <SearchIcon />, title: 'Smart Search', desc: 'Semantic va natural language qidiruv', color: 'from-purple-400/30 to-purple-600/20', depth: 7 },
-  { icon: <NetworkIcon />, title: 'O\'zbekiston Qonunchiligi', desc: '10 ta kodeks, 3000+ modda, AI tahlil', color: 'from-cyan-400/30 to-cyan-600/20', depth: 5 },
-  { icon: <ShineIcon />, title: 'AI Analitika', desc: 'Qonunlarni taqqoslash, risk analysis', color: 'from-rose-400/30 to-rose-600/20', depth: 8 },
+  { icon: <LegalShieldIcon />, title: 'AI Huquqiy Agent', desc: 'O\'zbekiston qonunchiligi asosida maslahat', color: 'from-blue-400/30 to-blue-600/20', depth: 4, href: '/ai-assistant' },
+  { icon: <GavelIcon />, title: 'Virtual Sud AI', desc: 'Real vaqt rejimida sud simulyatsiyasi', color: 'from-emerald-400/30 to-emerald-600/20', depth: 6, href: '/court-simulator' },
+  { icon: <FileIcon />, title: 'AI Hujjat Generator', desc: 'Da\'vo, shartnoma, ishonchnoma yarating', color: 'from-amber-400/30 to-amber-600/20', depth: 3, href: '/document-generator' },
+  { icon: <SearchIcon />, title: 'Smart Search', desc: 'Semantic va natural language qidiruv', color: 'from-purple-400/30 to-purple-600/20', depth: 7, href: '/qonunlar' },
+  { icon: <NetworkIcon />, title: 'O\'zbekiston Qonunchiligi', desc: '10 ta kodeks, 3000+ modda, AI tahlil', color: 'from-cyan-400/30 to-cyan-600/20', depth: 5, href: '/qonunlar' },
+  { icon: <ShineIcon />, title: 'AI Analitika', desc: 'Qonunlarni taqqoslash, risk analysis', color: 'from-rose-400/30 to-rose-600/20', depth: 8, href: '/statistics' },
 ]
 
-function FloatingScene({ mouseX, mouseY }: { mouseX: any; mouseY: any }) {
+function FloatingScene({ mouseX, mouseY, onNavigate }: { mouseX: any; mouseY: any; onNavigate?: (href: string) => void }) {
   return (
     <div className="relative w-full h-full flex items-center justify-center">
       {/* Central glow */}
@@ -163,15 +163,20 @@ function FloatingScene({ mouseX, mouseY }: { mouseX: any; mouseY: any }) {
                 }}
               >
                 <FloatingCard depth={card.depth} index={i} mouseX={mouseX} mouseY={mouseY}>
-                  <div className="flex items-start gap-2.5">
-                    <div className={`w-9 h-9 rounded-lg bg-gradient-to-br ${card.color} flex items-center justify-center text-white flex-shrink-0`}>
-                      {card.icon}
+                  <button
+                    onClick={() => onNavigate?.(card.href)}
+                    className="w-full text-left"
+                  >
+                    <div className="flex items-start gap-2.5">
+                      <div className={`w-9 h-9 rounded-lg bg-gradient-to-br ${card.color} flex items-center justify-center text-white flex-shrink-0`}>
+                        {card.icon}
+                      </div>
+                      <div className="min-w-0">
+                        <h3 className="text-xs font-semibold text-white/90 leading-tight">{card.title}</h3>
+                        <p className="text-[10px] text-white/50 mt-0.5 leading-tight">{card.desc}</p>
+                      </div>
                     </div>
-                    <div className="min-w-0">
-                      <h3 className="text-xs font-semibold text-white/90 leading-tight">{card.title}</h3>
-                      <p className="text-[10px] text-white/50 mt-0.5 leading-tight">{card.desc}</p>
-                    </div>
-                  </div>
+                  </button>
                 </FloatingCard>
               </motion.div>
             )
@@ -358,7 +363,7 @@ function SignInContent() {
 
         {/* Floating 3D Scene */}
         <div className="absolute inset-0 z-10">
-          <FloatingScene mouseX={mouseX} mouseY={mouseY} />
+          <FloatingScene mouseX={mouseX} mouseY={mouseY} onNavigate={(href) => router.push(href)} />
         </div>
 
         {/* Overlay text at top */}
@@ -409,15 +414,51 @@ function SignInContent() {
       <div className="min-h-screen flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950">
         <div className="w-full max-w-md mx-auto">
 
-          {/* Mobile Logo */}
+          {/* Mobile Logo with simplified animation */}
           <div className="lg:hidden text-center mb-6">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-green-500 shadow-lg mb-2">
-              <svg viewBox="0 0 24 24" className="w-6 h-6 text-white" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+              className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-emerald-500 shadow-xl mb-3"
+            >
+              <svg viewBox="0 0 24 24" className="w-8 h-8 text-white" fill="none" stroke="currentColor" strokeWidth="1.5">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
               </svg>
-            </div>
-            <h1 className="text-xl font-bold text-gray-900 dark:text-white">JURISAI</h1>
-            <p className="text-xs text-gray-500 dark:text-zinc-400 mt-0.5">Huquqiy AI yordamchingiz</p>
+            </motion.div>
+            <motion.h1
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15, duration: 0.4 }}
+              className="text-2xl font-bold text-gray-900 dark:text-white"
+            >
+              JURISAI
+            </motion.h1>
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3, duration: 0.4 }}
+              className="text-xs text-gray-500 dark:text-zinc-400 mt-0.5"
+            >
+              Huquqiy AI Platformasi
+            </motion.p>
+            {/* Mobile feature badges */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.45, duration: 0.4 }}
+              className="flex flex-wrap justify-center gap-2 mt-4"
+            >
+              <span className="px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 text-[10px] font-medium border border-blue-200 dark:border-blue-800">
+                AI Huquqiy Agent
+              </span>
+              <span className="px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 text-[10px] font-medium border border-emerald-200 dark:border-emerald-800">
+                Virtual Sud
+              </span>
+              <span className="px-2.5 py-1 rounded-lg bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 text-[10px] font-medium border border-amber-200 dark:border-amber-800">
+                Hujjat Generator
+              </span>
+            </motion.div>
           </div>
 
           {/* Glass Form Card */}
