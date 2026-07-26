@@ -8,133 +8,473 @@ import { useRealtimeStats } from '@/hooks/useRealtimeStats'
 import AnimatedCounter from '@/components/AnimatedCounter'
 
 // ═══════════════════════════════════════════════════════════════════════════
-// 3D Interactive Floating Scene with Framer Motion
+// PREMIUM 3D INTERACTIVE LEGAL ECOSYSTEM
+// Framer Motion — Spring Physics — Parallax — Glassmorphism
 // ═══════════════════════════════════════════════════════════════════════════
 
 import { motion, useSpring, useTransform, useMotionValue } from 'framer-motion'
 
-function FloatingCard({ children, depth = 0, index = 0, mouseX, mouseY }: {
+// ── 3D Glass Card with physics ──────────────────────────────────────────
+function FloatingCard({ children, depth = 0, index = 0, mouseX, mouseY, className = '' }: {
   children: React.ReactNode
   depth?: number
   index?: number
   mouseX: any
   mouseY: any
+  className?: string
 }) {
-  const rotateX = useTransform(mouseY, [0, 1], [depth * 2, -depth * 2])
-  const rotateY = useTransform(mouseX, [0, 1], [-depth * 2, depth * 2])
-  const springRotateX = useSpring(rotateX, { stiffness: 80, damping: 12 })
-  const springRotateY = useSpring(rotateY, { stiffness: 80, damping: 12 })
+  const rotateX = useTransform(mouseY, [0, 1], [depth * 2.5, -depth * 2.5])
+  const rotateY = useTransform(mouseX, [0, 1], [-depth * 2.5, depth * 2.5])
+  const springRotateX = useSpring(rotateX, { stiffness: 60, damping: 15 })
+  const springRotateY = useSpring(rotateY, { stiffness: 60, damping: 15 })
 
-  const floatDuration = 5 + index * 1.3
-  const floatDelay = index * 0.7
+  const floatDuration = 6 + index * 1.5
+  const floatDelay = index * 0.8
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 40 }}
+      initial={{ opacity: 0, y: 50, scale: 0.9 }}
       animate={{
         opacity: 1,
-        y: [0, -8 - index * 2, 0],
+        y: [0, -12 - index * 3, 0],
+        scale: [1, 1.02, 1],
         transition: {
-          opacity: { duration: 0.6, delay: index * 0.15 },
-          y: {
-            duration: floatDuration,
-            delay: floatDelay,
-            repeat: Infinity,
-            ease: 'easeInOut',
-          },
+          opacity: { duration: 0.7, delay: index * 0.15 },
+          y: { duration: floatDuration, delay: floatDelay, repeat: Infinity, ease: 'easeInOut' },
+          scale: { duration: floatDuration * 0.6, delay: floatDelay, repeat: Infinity, ease: 'easeInOut' },
         },
       }}
       style={{
         rotateX: springRotateX,
         rotateY: springRotateY,
-        perspective: 800,
+        perspective: 1000,
         transformStyle: 'preserve-3d',
       }}
       whileHover={{
-        scale: 1.03,
-        z: 30,
-        transition: { type: 'spring', stiffness: 300, damping: 15 },
+        scale: 1.06,
+        z: 40,
+        transition: { type: 'spring', stiffness: 250, damping: 12 },
       }}
-      className="relative group cursor-default"
+      className={`relative group cursor-default ${className}`}
     >
       <div
         className="relative rounded-2xl p-4 backdrop-blur-xl border border-white/20 shadow-2xl overflow-hidden"
         style={{
-          background: 'linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.04) 100%)',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.2)'
+          background: 'linear-gradient(145deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.05) 100%)',
+          boxShadow: '0 8px 40px rgba(0,0,0,0.15), 0 2px 8px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.25)'
         }}
       >
-        {/* Glass highlight */}
-        <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent" />
-        {/* Group hover glow */}
-        <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/10 to-emerald-500/10 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        {/* Glass highlight reflection */}
+        <div className="absolute inset-0 bg-gradient-to-br from-white/8 to-transparent" />
+        {/* Hover glow ring */}
+        <div className="absolute -inset-1.5 bg-gradient-to-r from-blue-500/12 to-emerald-500/12 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+        {/* Bottom reflection line */}
+        <div className="absolute bottom-0 left-4 right-4 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
         <div className="relative">{children}</div>
       </div>
     </motion.div>
   )
 }
 
-function LegalShieldIcon() {
+// ── 3D Judge Gavel (animated SVG) ──────────────────────────────────────
+function JudgeGavel({ mouseX, mouseY }: { mouseX: any; mouseY: any }) {
+  const rotateX = useTransform(mouseY, [0, 1], [8, -8])
+  const rotateY = useTransform(mouseX, [0, 1], [-8, 8])
+  const springRotateX = useSpring(rotateX, { stiffness: 40, damping: 20 })
+  const springRotateY = useSpring(rotateY, { stiffness: 40, damping: 20 })
+
   return (
-    <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.5">
+    <motion.div
+      className="relative"
+      style={{ rotateX: springRotateX, rotateY: springRotateY, perspective: 1000, transformStyle: 'preserve-3d' }}
+      animate={{ y: [0, -5, 0] }}
+      transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+    >
+      {/* Gavel body */}
+      <div className="w-16 h-16 mx-auto relative">
+        {/* Handle */}
+        <motion.div
+          className="absolute bottom-0 left-1/2 -translate-x-1/2 w-2 h-10 bg-gradient-to-t from-amber-700 to-amber-500 rounded-full"
+          style={{ transformStyle: 'preserve-3d', transform: 'translateZ(4px)' }}
+          animate={{ rotateZ: [-2, 2, -2] }}
+          transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+        />
+        {/* Head */}
+        <motion.div
+          className="absolute top-2 left-1/2 -translate-x-1/2 w-12 h-5 bg-gradient-to-b from-amber-600 to-amber-800 rounded-lg shadow-lg"
+          style={{ transformStyle: 'preserve-3d', transform: 'translateZ(8px)' }}
+          animate={{ rotateX: [0, 5, 0] }}
+          transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+        />
+        {/* Impact glow */}
+        <motion.div
+          className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-1 bg-amber-400/50 blur-sm rounded-full"
+          animate={{ opacity: [0, 0.6, 0], scale: [0.8, 1.2, 0.8] }}
+          transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
+        />
+      </div>
+    </motion.div>
+  )
+}
+
+// ── 3D AI Hologram with Neural Nodes ───────────────────────────────────
+function AIHologram({ mouseX, mouseY }: { mouseX: any; mouseY: any }) {
+  const rotateX = useTransform(mouseY, [0, 1], [10, -10])
+  const rotateY = useTransform(mouseX, [0, 1], [-10, 10])
+  const springRotateX = useSpring(rotateX, { stiffness: 35, damping: 18 })
+  const springRotateY = useSpring(rotateY, { stiffness: 35, damping: 18 })
+
+  // Neural network nodes positions
+  const nodes = [
+    { x: 0, y: -14, size: 3, delay: 0 },
+    { x: 10, y: -6, size: 2.5, delay: 0.5 },
+    { x: -10, y: -6, size: 2.5, delay: 1 },
+    { x: 7, y: 4, size: 2, delay: 1.5 },
+    { x: -7, y: 4, size: 2, delay: 2 },
+    { x: 0, y: 12, size: 3, delay: 2.5 },
+    { x: 14, y: -2, size: 2, delay: 0.8 },
+    { x: -14, y: -2, size: 2, delay: 1.3 },
+  ]
+
+  // Connection lines
+  const connections = [
+    [0, 1], [0, 2], [1, 6], [2, 7], [1, 3], [2, 4], [3, 5], [4, 5], [6, 3], [7, 4], [0, 6], [0, 7]
+  ]
+
+  return (
+    <motion.div
+      className="relative w-20 h-20 mx-auto"
+      style={{ rotateX: springRotateX, rotateY: springRotateY, perspective: 1000, transformStyle: 'preserve-3d' }}
+    >
+      {/* Outer glow ring */}
+      <motion.div
+        className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-400/20 to-emerald-400/20 blur-xl"
+        animate={{ scale: [1, 1.15, 1], opacity: [0.4, 0.8, 0.4] }}
+        transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+      />
+
+      {/* Neural connection lines */}
+      <svg className="absolute inset-0 w-full h-full" viewBox="-18 -18 36 36">
+        {connections.map(([from, to], i) => (
+          <motion.line
+            key={i}
+            x1={nodes[from].x}
+            y1={nodes[from].y}
+            x2={nodes[to].x}
+            y2={nodes[to].y}
+            stroke="rgba(147, 197, 253, 0.3)"
+            strokeWidth="0.5"
+            initial={{ pathLength: 0, opacity: 0 }}
+            animate={{ pathLength: 1, opacity: 0.6 }}
+            transition={{ duration: 1.5, delay: i * 0.1, repeat: Infinity, repeatType: 'reverse' }}
+          />
+        ))}
+      </svg>
+
+      {/* Neural nodes */}
+      {nodes.map((node, i) => (
+        <motion.div
+          key={i}
+          className="absolute rounded-full bg-blue-400/70"
+          style={{
+            width: node.size + 1,
+            height: node.size + 1,
+            left: `calc(50% + ${node.x}px - ${(node.size + 1) / 2}px)`,
+            top: `calc(50% + ${node.y}px - ${(node.size + 1) / 2}px)`,
+          }}
+          animate={{
+            opacity: [0.3, 1, 0.3],
+            scale: [1, 1.8, 1],
+            boxShadow: ['0 0 2px rgba(147,197,253,0.3)', '0 0 8px rgba(147,197,253,0.8)', '0 0 2px rgba(147,197,253,0.3)'],
+          }}
+          transition={{ duration: 2 + node.delay, delay: node.delay, repeat: Infinity, ease: 'easeInOut' }}
+        />
+      ))}
+
+      {/* Center AI core */}
+      <motion.div
+        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500/30 to-emerald-500/30 backdrop-blur-md border border-blue-400/30 flex items-center justify-center"
+        style={{ transformStyle: 'preserve-3d', transform: 'translateZ(12px)' }}
+        animate={{
+          boxShadow: ['0 0 10px rgba(59,130,246,0.2)', '0 0 25px rgba(59,130,246,0.4)', '0 0 10px rgba(59,130,246,0.2)'],
+        }}
+        transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+      >
+        <svg viewBox="0 0 24 24" className="w-5 h-5 text-blue-300" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <path d="M12 2a4 4 0 014 4c0 2-2 3-2 3s-2-1-2-3a4 4 0 014-4z" />
+          <path d="M6 16c0-2 2-3 2-3s2 1 2 3a4 4 0 01-4 4 4 4 0 01-4-4z" />
+          <path d="M18 16c0-2 2-3 2-3s2 1 2 3a4 4 0 01-4 4 4 4 0 01-4-4z" />
+          <circle cx="12" cy="7" r="1.5" fill="currentColor" opacity="0.5" />
+          <circle cx="8" cy="20" r="1.5" fill="currentColor" opacity="0.5" />
+          <circle cx="16" cy="20" r="1.5" fill="currentColor" opacity="0.5" />
+        </svg>
+      </motion.div>
+
+      {/* Thinking pulse rings */}
+      {[0, 1, 2].map((i) => (
+        <motion.div
+          key={`pulse-${i}`}
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full border border-blue-400/20"
+          animate={{
+            scale: [1, 2.5 + i * 0.5, 1],
+            opacity: [0.4, 0, 0.4],
+          }}
+          transition={{ duration: 2.5, delay: i * 0.8, repeat: Infinity, ease: 'easeOut' }}
+        />
+      ))}
+    </motion.div>
+  )
+}
+
+// ── Floating Law Book with page animation ──────────────────────────────
+function LawBook({ mouseX, mouseY, index = 0 }: { mouseX: any; mouseY: any; index?: number }) {
+  const rotateX = useTransform(mouseY, [0, 1], [6, -6])
+  const rotateY = useTransform(mouseX, [0, 1], [-6, 6])
+  const springRotateX = useSpring(rotateX, { stiffness: 45, damping: 20 })
+  const springRotateY = useSpring(rotateY, { stiffness: 45, damping: 20 })
+
+  const colors = [
+    { cover: 'from-blue-800 to-blue-600', pages: 'from-blue-100 to-white', label: 'JK' },
+    { cover: 'from-green-800 to-green-600', pages: 'from-green-100 to-white', label: 'FK' },
+    { cover: 'from-amber-800 to-amber-600', pages: 'from-amber-100 to-white', label: 'MK' },
+  ]
+  const color = colors[index % colors.length]
+
+  return (
+    <motion.div
+      className="relative mx-auto"
+      style={{
+        rotateX: springRotateX,
+        rotateY: springRotateY,
+        perspective: 1000,
+        transformStyle: 'preserve-3d',
+      }}
+      animate={{ y: [0, -6 - index * 2, 0], rotateZ: [-1 + index * 0.5, 1 + index * 0.5, -1 + index * 0.5] }}
+      transition={{ duration: 5 + index, delay: index * 0.5, repeat: Infinity, ease: 'easeInOut' }}
+    >
+      <div className="relative">
+        {/* Book body */}
+        <div className={`w-14 h-18 rounded-r-lg bg-gradient-to-b ${color.cover} shadow-xl relative`}
+          style={{ clipPath: 'polygon(0 0, 100% 0, 100% 100%, 10% 100%, 0 85%)' }}
+        >
+          {/* Pages visible on side */}
+          <div className={`absolute -right-0.5 top-1 bottom-1 w-1.5 rounded-r ${color.pages} opacity-60`} />
+          {/* Spine text */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <motion.span
+              className="text-[6px] font-bold text-white/80 tracking-wider"
+              style={{ writingMode: 'vertical-rl', textOrientation: 'mixed' }}
+            >
+              {color.label}
+            </motion.span>
+          </div>
+        </div>
+        {/* Bookmark ribbon */}
+        <motion.div
+          className="absolute -top-1 left-3 w-3 h-4 bg-red-500 rounded-t"
+          animate={{ y: [0, -2, 0] }}
+          transition={{ duration: 2, delay: index * 0.3, repeat: Infinity, ease: 'easeInOut' }}
+        />
+      </div>
+    </motion.div>
+  )
+}
+
+// ── 3D Court Scene ──────────────────────────────────────────────────────
+function CourtScene({ mouseX, mouseY }: { mouseX: any; mouseY: any }) {
+  const rotateX = useTransform(mouseY, [0, 1], [5, -5])
+  const rotateY = useTransform(mouseX, [0, 1], [-5, 5])
+  const springRotateX = useSpring(rotateX, { stiffness: 30, damping: 22 })
+  const springRotateY = useSpring(rotateY, { stiffness: 30, damping: 22 })
+
+  return (
+    <motion.div
+      className="relative w-20 h-16 mx-auto"
+      style={{ rotateX: springRotateX, rotateY: springRotateY, perspective: 1000, transformStyle: 'preserve-3d' }}
+    >
+      {/* Bench */}
+      <motion.div
+        className="absolute bottom-2 left-1/2 -translate-x-1/2 w-16 h-3 bg-gradient-to-r from-amber-800 to-amber-700 rounded shadow-lg"
+        style={{ transform: 'translateZ(4px)' }}
+      />
+      {/* Bench top */}
+      <motion.div
+        className="absolute bottom-4 left-1/2 -translate-x-1/2 w-18 h-1.5 bg-gradient-to-r from-amber-700 to-amber-600 rounded shadow-md"
+        style={{ transform: 'translateZ(8px)' }}
+        animate={{ width: [68, 72, 68] }}
+        transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+      />
+      {/* Pillars */}
+      <motion.div className="absolute bottom-5 left-5 w-1.5 h-8 bg-gradient-to-t from-amber-700/60 to-amber-500/40 rounded"
+        style={{ transform: 'translateZ(2px)' }}
+        animate={{ height: [30, 34, 30] }}
+        transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
+      />
+      <motion.div className="absolute bottom-5 right-5 w-1.5 h-8 bg-gradient-to-t from-amber-700/60 to-amber-500/40 rounded"
+        style={{ transform: 'translateZ(2px)' }}
+        animate={{ height: [30, 34, 30] }}
+        transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 0.8 }}
+      />
+      {/* Roof / canopy */}
+      <motion.div
+        className="absolute top-1 left-1/2 -translate-x-1/2 w-16 h-1.5 bg-gradient-to-r from-amber-700 to-amber-600 rounded shadow-md"
+        style={{ transform: 'translateZ(10px)' }}
+        animate={{ width: [62, 66, 62] }}
+        transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut' }}
+      />
+      {/* Scale symbol */}
+      <motion.div
+        className="absolute top-2 left-1/2 -translate-x-1/2 flex items-center gap-2"
+        style={{ transform: 'translateZ(6px)' }}
+        animate={{ rotateZ: [-3, 3, -3] }}
+        transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+      >
+        <div className="w-0.5 h-4 bg-amber-400/50" />
+        <div className="w-0.5 h-4 bg-amber-400/50" />
+        <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-amber-400/30" />
+      </motion.div>
+    </motion.div>
+  )
+}
+
+// ── Enhanced Particle System ────────────────────────────────────────────
+function ParticleField() {
+  const particles = useRef(
+    [...Array(20)].map((_, i) => ({
+      id: i,
+      left: `${5 + Math.random() * 90}%`,
+      top: `${5 + Math.random() * 90}%`,
+      size: 2 + Math.random() * 4,
+      duration: 4 + Math.random() * 8,
+      delay: Math.random() * 5,
+      driftX: (Math.random() - 0.5) * 40,
+      driftY: (Math.random() - 0.5) * 40,
+      opacity: 0.1 + Math.random() * 0.4,
+    }))
+  ).current
+
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none" style={{ perspective: '1200px' }}>
+      {particles.map((p) => (
+        <motion.div
+          key={p.id}
+          className="absolute rounded-full"
+          style={{
+            left: p.left,
+            top: p.top,
+            width: p.size,
+            height: p.size,
+            background: p.id % 3 === 0
+              ? 'radial-gradient(circle, rgba(59,130,246,0.5), transparent)'
+              : p.id % 3 === 1
+              ? 'radial-gradient(circle, rgba(16,185,129,0.5), transparent)'
+              : 'radial-gradient(circle, rgba(168,85,247,0.4), transparent)',
+            boxShadow: `0 0 ${p.size * 2}px rgba(255,255,255,0.05)`,
+          }}
+          animate={{
+            y: [0, p.driftY, 0],
+            x: [0, p.driftX, 0],
+            opacity: [p.opacity * 0.3, p.opacity, p.opacity * 0.3],
+            scale: [0.5, 1.5, 0.5],
+          }}
+          transition={{
+            duration: p.duration,
+            repeat: Infinity,
+            delay: p.delay,
+            ease: 'easeInOut',
+          }}
+        />
+      ))}
+    </div>
+  )
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ICON COMPONENTS
+// ═══════════════════════════════════════════════════════════════════════════
+
+function ShieldIcon({ className = '' }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.5">
       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
     </svg>
   )
 }
 
-function GavelIcon() {
+function GavelIcon({ className = '' }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.5">
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.5">
       <path d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
     </svg>
   )
 }
 
-function FileIcon() {
+function FileIcon({ className = '' }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.5">
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.5">
       <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="12" y1="18" x2="12" y2="12" /><line x1="9" y1="15" x2="15" y2="15" />
     </svg>
   )
 }
 
-function SearchIcon() {
+function SearchIcon({ className = '' }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.5">
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.5">
       <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
     </svg>
   )
 }
 
-function NetworkIcon() {
+function NetworkIcon({ className = '' }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.5">
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.5">
       <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
     </svg>
   )
 }
 
-function ShineIcon() {
+function SparkleIcon({ className = '' }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.5">
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.5">
       <path d="M12 3v3m0 12v3M3 12h3m12 0h3M5.636 5.636l2.121 2.121m8.486 8.486l2.121 2.121M18.364 5.636l-2.121 2.121m-8.486 8.486l-2.121 2.121" />
     </svg>
   )
 }
 
-const floatingCards = [
-  { icon: <LegalShieldIcon />, title: 'AI Huquqiy Agent', descKey: 'ai', color: 'from-blue-400/30 to-blue-600/20', depth: 4, href: '/ai-assistant' },
-  { icon: <GavelIcon />, title: 'Virtual Sud AI', descKey: 'court', color: 'from-emerald-400/30 to-emerald-600/20', depth: 6, href: '/court-simulator' },
-  { icon: <FileIcon />, title: 'AI Hujjat Generator', descKey: 'docs', color: 'from-amber-400/30 to-amber-600/20', depth: 3, href: '/document-generator' },
-  { icon: <SearchIcon />, title: 'Smart Search', descKey: 'search', color: 'from-purple-400/30 to-purple-600/20', depth: 7, href: '/qonunlar' },
-  { icon: <NetworkIcon />, title: 'O\'zbekiston Qonunchiligi', descKey: 'codes', color: 'from-cyan-400/30 to-cyan-600/20', depth: 5, href: '/qonunlar' },
-  { icon: <ShineIcon />, title: 'AI Analitika', descKey: 'analytics', color: 'from-rose-400/30 to-rose-600/20', depth: 8, href: '/statistics' },
+function BookIcon({ className = '' }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.5">
+      <path d="M4 19.5A2.5 2.5 0 016.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" />
+    </svg>
+  )
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// FLOATING SCENE — Premium 3D Legal Ecosystem
+// ═══════════════════════════════════════════════════════════════════════════
+
+interface FloatingSceneProps {
+  mouseX: any
+  mouseY: any
+  onNavigate: (href: string) => void
+  stats: any
+  statsLoading: boolean
+}
+
+// Premium legal cards with distinct visual identities
+const premiumCards = [
+  { icon: <ShieldIcon className="w-5 h-5" />, title: 'AI Huquqiy Agent', descKey: 'ai', color: 'from-blue-400/30 to-blue-600/20', depth: 4, href: '/ai-assistant', badge: '⚡' },
+  { icon: <GavelIcon className="w-5 h-5" />, title: 'Virtual Sud AI', descKey: 'court', color: 'from-emerald-400/30 to-emerald-600/20', depth: 6, href: '/court-simulator', badge: '🏛' },
+  { icon: <FileIcon className="w-5 h-5" />, title: 'Hujjat Generator', descKey: 'docs', color: 'from-amber-400/30 to-amber-600/20', depth: 3, href: '/document-generator', badge: '📄' },
+  { icon: <SearchIcon className="w-5 h-5" />, title: 'Smart Huquqiy Qidiruv', descKey: 'search', color: 'from-purple-400/30 to-purple-600/20', depth: 7, href: '/qonunlar', badge: '🔍' },
+  { icon: <BookIcon className="w-5 h-5" />, title: "O'zbekiston Qonunchiligi", descKey: 'codes', color: 'from-cyan-400/30 to-cyan-600/20', depth: 5, href: '/qonunlar', badge: '📚' },
+  { icon: <SparkleIcon className="w-5 h-5" />, title: 'AI Analitika', descKey: 'analytics', color: 'from-rose-400/30 to-rose-600/20', depth: 8, href: '/statistics', badge: '📊' },
 ]
 
 const CARD_DESC_MAP: Record<string, (s: any) => string> = {
-  ai: (s) => `${s.total_ai_requests.toLocaleString()}+ AI so\'rov, 100% O\'zR qonunchiligi`,
+  ai: (s) => `${s.total_ai_requests.toLocaleString()}+ AI so'rov, 100% O'zR qonunchiligi`,
   court: (s) => `${s.active_users_today} ta bugungi seans, real vaqt rejimi`,
-  docs: (s) => `${s.total_documents.toLocaleString()}+ hujjat yaratildi, da\'vo, shartnoma, ishonchnoma`,
+  docs: (s) => `${s.total_documents.toLocaleString()}+ hujjat yaratildi, da'vo, shartnoma, ishonchnoma`,
   search: (s) => `${(s.total_codes * 300).toLocaleString()}+ modda, semantic qidiruv`,
   codes: (s) => `${s.total_codes} ta kodeks, ${(s.total_codes * 300).toLocaleString()}+ modda, AI tahlil`,
   analytics: (s) => `${s.total_users.toLocaleString()}+ foydalanuvchi, risk analysis`,
@@ -145,31 +485,31 @@ function getCardDesc(descKey: string, stats: any): string {
   return fn ? fn(stats) : 'Keng qamrovli tahlil'
 }
 
-function FloatingScene({ mouseX, mouseY, onNavigate, stats, statsLoading }: {
-  mouseX: any
-  mouseY: any
-  onNavigate?: (href: string) => void
-  stats?: { total_users: number; total_documents: number; total_ai_requests: number; total_codes: number; active_users_today: number; documents_generated_today: number }
-  statsLoading?: boolean
-}) {
+function FloatingScene({ mouseX, mouseY, onNavigate, stats, statsLoading }: FloatingSceneProps) {
   return (
     <div className="relative w-full h-full flex items-center justify-center">
-      {/* Central glow */}
-      <div className="absolute w-64 h-64 bg-gradient-to-r from-blue-500/15 to-emerald-500/15 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '4s' }} />
+      {/* Central ambient glow */}
+      <motion.div
+        className="absolute w-80 h-80 rounded-full blur-3xl"
+        style={{
+          background: 'radial-gradient(circle, rgba(59,130,246,0.12) 0%, rgba(16,185,129,0.08) 30%, transparent 70%)',
+        }}
+        animate={{ scale: [1, 1.1, 1], opacity: [0.6, 1, 0.6] }}
+        transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+      />
 
-      {/* 3D Grid Cards — positioned in a ring around center */}
+      {/* 3D Cards Ring — Outer orbit premium legal ecosystem cards */}
       <div className="absolute inset-0 flex items-center justify-center">
-        <div className="relative w-[420px] h-[420px]">
-          {floatingCards.map((card, i) => {
-            const angle = (i / floatingCards.length) * Math.PI * 2 - Math.PI / 2
-            const radius = 170
+        <div className="relative w-[520px] h-[520px]">
+          {premiumCards.map((card, i) => {
+            const angle = (i / premiumCards.length) * Math.PI * 2 - Math.PI / 2
+            const radius = 200
             const x = Math.cos(angle) * radius
             const y = Math.sin(angle) * radius
-            const cardWidth = i % 2 === 0 ? 160 : 140
-            const cardHeight = 80
+            const cardWidth = i % 2 === 0 ? 170 : 150
+            const cardHeight = 88
 
-            // Live data for each card
-            const cardDesc = stats && !statsLoading ? getCardDesc(card.descKey, stats) : undefined
+            const cardDesc = stats && !statsLoading ? getCardDesc(card.descKey, stats) : ''
 
             return (
               <motion.div
@@ -188,18 +528,18 @@ function FloatingScene({ mouseX, mouseY, onNavigate, stats, statsLoading }: {
                 }}
               >
                 <FloatingCard depth={card.depth} index={i} mouseX={mouseX} mouseY={mouseY}>
-                  <button
-                    onClick={() => onNavigate?.(card.href)}
-                    className="w-full text-left"
-                  >
+                  <button onClick={() => onNavigate(card.href)} className="w-full text-left">
                     <div className="flex items-start gap-2.5">
-                      <div className={`w-9 h-9 rounded-lg bg-gradient-to-br ${card.color} flex items-center justify-center text-white flex-shrink-0`}>
+                      <div className={`w-9 h-9 rounded-lg bg-gradient-to-br ${card.color} flex items-center justify-center text-white flex-shrink-0 shadow-lg`}>
                         {card.icon}
                       </div>
-                      <div className="min-w-0">
-                        <h3 className="text-xs font-semibold text-white/90 leading-tight">{card.title}</h3>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1">
+                          <span className="text-xs">{card.badge}</span>
+                          <h3 className="text-xs font-semibold text-white/90 leading-tight">{card.title}</h3>
+                        </div>
                         {cardDesc ? (
-                          <p className="text-[10px] text-white/50 mt-0.5 leading-tight">{cardDesc}</p>
+                          <p className="text-[10px] text-white/50 mt-0.5 leading-tight line-clamp-2">{cardDesc}</p>
                         ) : (
                           <p className="text-[10px] text-white/50 mt-0.5 leading-tight">Yuklanmoqda...</p>
                         )}
@@ -211,29 +551,95 @@ function FloatingScene({ mouseX, mouseY, onNavigate, stats, statsLoading }: {
             )
           })}
 
-          {/* Live counter badges ring */}
+          {/* 3D Legal Objects Orbiting — Court, Gavel, AI Hologram, Law Books */}
+          <motion.div
+            className="absolute"
+            style={{ left: 'calc(50% - 140px)', top: 'calc(50% - 100px)', width: 80, height: 80 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6 }}
+          >
+            <CourtScene mouseX={mouseX} mouseY={mouseY} />
+          </motion.div>
+
+          <motion.div
+            className="absolute"
+            style={{ left: 'calc(50% + 70px)', top: 'calc(50% - 110px)', width: 80, height: 80 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.7 }}
+          >
+            <JudgeGavel mouseX={mouseX} mouseY={mouseY} />
+          </motion.div>
+
+          <motion.div
+            className="absolute"
+            style={{ left: 'calc(50% + 105px)', top: 'calc(50% + 40px)', width: 80, height: 80 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.8 }}
+          >
+            <AIHologram mouseX={mouseX} mouseY={mouseY} />
+          </motion.div>
+
+          <motion.div
+            className="absolute flex gap-2"
+            style={{ left: 'calc(50% - 130px)', top: 'calc(50% + 70px)' }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.9 }}
+          >
+            <LawBook mouseX={mouseX} mouseY={mouseY} index={0} />
+            <LawBook mouseX={mouseX} mouseY={mouseY} index={1} />
+            <LawBook mouseX={mouseX} mouseY={mouseY} index={2} />
+          </motion.div>
+
+          {/* Live counter badges */}
           {stats && !statsLoading && (
-            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 translate-y-16 flex items-center justify-center gap-2">
-              <span className="px-1.5 py-0.5 rounded-md bg-blue-500/20 border border-blue-500/30 text-[8px] text-blue-300 font-medium">
+            <motion.div
+              className="absolute left-1/2 top-1/2 -translate-x-1/2 translate-y-24 flex items-center justify-center gap-2"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.8, type: 'spring' }}
+            >
+              <span className="px-2 py-0.5 rounded-md bg-blue-500/20 border border-blue-500/30 text-[9px] text-blue-300 font-medium backdrop-blur-sm">
                 <AnimatedCounter value={stats.active_users_today} suffix="" compact stiffness={90} damping={20} className="text-blue-300" /> bugun
               </span>
-              <span className="px-1.5 py-0.5 rounded-md bg-emerald-500/20 border border-emerald-500/30 text-[8px] text-emerald-300 font-medium">
+              <span className="px-2 py-0.5 rounded-md bg-emerald-500/20 border border-emerald-500/30 text-[9px] text-emerald-300 font-medium backdrop-blur-sm">
                 +<AnimatedCounter value={stats.documents_generated_today} suffix="" compact stiffness={90} damping={20} className="text-emerald-300" /> hujjat
               </span>
-            </div>
+            </motion.div>
           )}
 
-          {/* Center logo */}
+          {/* Center core — Premium Shield Logo */}
           <motion.div
             className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.3, type: 'spring', stiffness: 200, damping: 15 }}
-            style={{ rotateX: useSpring(useTransform(mouseY, [0, 1], [5, -5]), { stiffness: 100 }), rotateY: useSpring(useTransform(mouseX, [0, 1], [-5, 5]), { stiffness: 100 }) }}
+            transition={{ delay: 0.3, type: 'spring', stiffness: 180, damping: 14 }}
+            style={{
+              rotateX: useSpring(useTransform(mouseY, [0, 1], [6, -6]), { stiffness: 80 }),
+              rotateY: useSpring(useTransform(mouseX, [0, 1], [-6, 6]), { stiffness: 80 }),
+            }}
           >
-            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500/30 to-emerald-500/30 backdrop-blur-xl border border-white/20 flex items-center justify-center shadow-2xl">
-              <LegalShieldIcon />
+            <div className="w-22 h-22 rounded-2xl bg-gradient-to-br from-blue-500/30 via-emerald-500/20 to-blue-500/30 backdrop-blur-xl border border-white/20 flex items-center justify-center shadow-2xl"
+              style={{ width: 80, height: 80 }}
+            >
+              <ShieldIcon className="w-8 h-8 text-white/80" />
             </div>
+            {/* Orbiting ring */}
+            <motion.div
+              className="absolute inset-0 rounded-full border border-blue-400/10"
+              animate={{ rotate: 360 }}
+              transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
+              style={{ width: 110, height: 110, left: -15, top: -15 }}
+            />
+            <motion.div
+              className="absolute inset-0 rounded-full border border-emerald-400/10"
+              animate={{ rotate: -360 }}
+              transition={{ duration: 25, repeat: Infinity, ease: 'linear' }}
+              style={{ width: 130, height: 130, left: -25, top: -25 }}
+            />
           </motion.div>
         </div>
       </div>
@@ -242,7 +648,7 @@ function FloatingScene({ mouseX, mouseY, onNavigate, stats, statsLoading }: {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Main SignIn Content
+// MAIN SIGN IN CONTENT
 // ═══════════════════════════════════════════════════════════════════════════
 
 function SignInContent() {
@@ -252,11 +658,10 @@ function SignInContent() {
 
   const { stats: liveStats, loading: statsLoading } = useRealtimeStats()
 
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
-  const [mouseSpeed, setMouseSpeed] = useState(0)
-  const lastMousePos = useRef({ x: 0, y: 0, time: 0 })
   const mouseX = useMotionValue(0.5)
   const mouseY = useMotionValue(0.5)
+  const lastMousePos = useRef({ x: 0, y: 0, time: 0 })
+
   const [mode, setMode] = useState<'login' | 'register'>('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -274,14 +679,11 @@ function SignInContent() {
     const y = (e.clientY - rect.top) / rect.height
     mouseX.set(x)
     mouseY.set(y)
-    setMousePos({ x: e.clientX, y: e.clientY })
     const now = Date.now()
     const last = lastMousePos.current
     const dt = Math.max(16, now - last.time)
     const dx = e.clientX - last.x
     const dy = e.clientY - last.y
-    const speed = Math.sqrt(dx * dx + dy * dy) / dt * 10
-    setMouseSpeed(Math.min(speed, 5))
     lastMousePos.current = { x: e.clientX, y: e.clientY, time: now }
   }, [mouseX, mouseY])
 
@@ -308,7 +710,6 @@ function SignInContent() {
     if (remembered) { setEmail(remembered); setRememberMe(true) }
   }, [])
 
-  // ── Email/Password Submit ──
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
@@ -320,7 +721,6 @@ function SignInContent() {
         if (result.success) {
           if (rememberMe) localStorage.setItem('rememberedEmail', email)
           else localStorage.removeItem('rememberedEmail')
-
           const emailNorm = result.data?.email?.toLowerCase().trim()
           router.push(emailNorm === 'akmaljaxonkulov00@gmail.com' ? '/admin' : '/dashboard')
         } else {
@@ -343,7 +743,6 @@ function SignInContent() {
     }
   }
 
-  // ── Google Login ──
   const handleGoogleLogin = async () => {
     setIsGoogleLoading(true)
     setError('')
@@ -362,7 +761,6 @@ function SignInContent() {
     }
   }
 
-  // ── Forgot Password ──
   const handleForgotPassword = async () => {
     if (!email) { setError('Avval email manzilingizni kiriting'); return }
     setIsSubmitting(true)
@@ -387,84 +785,128 @@ function SignInContent() {
   return (
     <div className="min-h-screen lg:grid lg:grid-cols-2" onMouseMove={handleMouseMove}>
 
-      {/* ═══ LEFT PANEL — 3D Floating Scene (desktop only) ═══ */}
-      <div className="hidden lg:block relative min-h-screen bg-gradient-to-br from-zinc-900 via-blue-950 to-emerald-950 overflow-hidden">
-        {/* Depth layers */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(59,130,246,0.08)_0%,transparent_60%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,rgba(16,185,129,0.05)_0%,transparent_60%)]" />
-        
-        {/* Animated grid overlay */}
-        <div className="absolute inset-0 opacity-[0.03]" style={{
-          backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)',
-          backgroundSize: '60px 60px'
-        }} />
+      {/* ═══════════════════════════════════════════════════════════════════
+          LEFT PANEL — PREMIUM 3D INTERACTIVE LEGAL ECOSYSTEM
+          ═══════════════════════════════════════════════════════════════════ */}
+      <div className="hidden lg:block relative min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-emerald-950 overflow-hidden">
 
-        {/* Floating 3D Scene */}
+        {/* Depth Layer 1: Animated ambient background */}
+        <motion.div
+          className="absolute inset-0"
+          animate={{
+            background: [
+              'radial-gradient(ellipse at 30% 20%, rgba(59,130,246,0.15) 0%, transparent 55%), radial-gradient(ellipse at 70% 80%, rgba(16,185,129,0.10) 0%, transparent 55%)',
+              'radial-gradient(ellipse at 45% 30%, rgba(99,102,241,0.12) 0%, transparent 55%), radial-gradient(ellipse at 55% 70%, rgba(16,185,129,0.12) 0%, transparent 55%)',
+              'radial-gradient(ellipse at 25% 25%, rgba(59,130,246,0.15) 0%, transparent 55%), radial-gradient(ellipse at 75% 75%, rgba(16,185,129,0.10) 0%, transparent 55%)',
+              'radial-gradient(ellipse at 30% 20%, rgba(59,130,246,0.15) 0%, transparent 55%), radial-gradient(ellipse at 70% 80%, rgba(16,185,129,0.10) 0%, transparent 55%)',
+            ],
+            transition: { duration: 10, repeat: Infinity, ease: 'easeInOut' }
+          }}
+        />
+
+        {/* Depth Layer 2: Animated grid with subtle parallax movement */}
+        <motion.div
+          className="absolute inset-0 opacity-[0.03]"
+          style={{
+            backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)',
+            backgroundSize: '50px 50px'
+          }}
+          animate={{ backgroundPosition: ['0px 0px', '25px 12px'] }}
+          transition={{ duration: 25, repeat: Infinity, ease: 'linear' }}
+        />
+
+        {/* Depth Layer 3: Second grid layer with different speed for parallax */}
+        <motion.div
+          className="absolute inset-0 opacity-[0.015]"
+          style={{
+            backgroundImage: 'linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px)',
+            backgroundSize: '100px 100px'
+          }}
+          animate={{ backgroundPosition: ['0px 0px', '-30px -15px'] }}
+          transition={{ duration: 35, repeat: Infinity, ease: 'linear' }}
+        />
+
+        {/* Depth Layer 4: Advanced particle field */}
+        <ParticleField />
+
+        {/* Depth Layer 5: Floating scene — 3D cards + legal objects */}
         <div className="absolute inset-0">
-          <FloatingScene mouseX={mouseX} mouseY={mouseY} onNavigate={(href) => router.push(href)} stats={liveStats} statsLoading={statsLoading} />
+          <FloatingScene
+            mouseX={mouseX}
+            mouseY={mouseY}
+            onNavigate={(href) => router.push(href)}
+            stats={liveStats}
+            statsLoading={statsLoading}
+          />
         </div>
 
-        {/* Overlay text at top */}
-        <div className="absolute z-10 top-12 left-0 right-0 text-center">
-          <motion.h1
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.6 }}
-            className="text-4xl font-bold text-white"
-          >
-            JURISAI
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4, duration: 0.6 }}
-            className="text-blue-200/60 text-sm mt-1"
-          >
+        {/* Header overlay */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.6 }}
+          className="absolute z-20 top-10 left-0 right-0 text-center pointer-events-none"
+        >
+          <h1 className="text-4xl font-bold text-white tracking-tight">
+            JURIS<span className="text-blue-400">AI</span>
+          </h1>
+          <p className="text-blue-200/50 text-sm mt-1 font-light tracking-wide">
             Huquqiy AI Platformasi
-          </motion.p>
-        </div>
+          </p>
+        </motion.div>
 
-        {/* Bottom stats */}
+        {/* Bottom stats bar */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.8, duration: 0.6 }}
-          className="absolute z-10 bottom-8 left-0 right-0 flex items-center justify-center gap-8"
+          className="absolute z-20 bottom-8 left-0 right-0 flex items-center justify-center gap-10"
         >
           <div className="text-center">
-            <div className="text-xl font-bold text-white">
+            <div className="text-lg font-bold text-white">
               {statsLoading ? <span className="text-white/40 animate-pulse">...</span> : (
                 <AnimatedCounter value={liveStats.total_users} suffix="+" compact stiffness={90} damping={20} />
               )}
             </div>
-            <div className="text-blue-200/60 text-[10px]">Faol foydalanuvchilar</div>
+            <div className="text-blue-200/50 text-[10px] tracking-wide">Faol foydalanuvchilar</div>
           </div>
-          <div className="w-px h-8 bg-white/10" />
+          <div className="w-px h-8 bg-white/8" />
           <div className="text-center">
-            <div className="text-xl font-bold text-white">
+            <div className="text-lg font-bold text-white">
               {statsLoading ? <span className="text-white/40 animate-pulse">...</span> : (
                 <AnimatedCounter value={liveStats.total_codes} stiffness={90} damping={20} />
               )}
             </div>
-            <div className="text-blue-200/60 text-[10px]">Qonun kodekslari</div>
+            <div className="text-blue-200/50 text-[10px] tracking-wide">Qonun kodekslari</div>
           </div>
-          <div className="w-px h-8 bg-white/10" />
+          <div className="w-px h-8 bg-white/8" />
           <div className="text-center">
-            <div className="text-xl font-bold text-white">
+            <div className="text-lg font-bold text-white">
               {statsLoading ? <span className="text-white/40 animate-pulse">...</span> : (
                 <AnimatedCounter value={liveStats.total_ai_requests} suffix="+" compact stiffness={90} damping={20} />
               )}
             </div>
-            <div className="text-blue-200/60 text-[10px]">AI so'rovlari</div>
+            <div className="text-blue-200/50 text-[10px] tracking-wide">AI so'rovlari</div>
+          </div>
+          <div className="w-px h-8 bg-white/8" />
+          <div className="text-center">
+            <div className="text-lg font-bold text-white">
+              {statsLoading ? <span className="text-white/40 animate-pulse">...</span> : (
+                <AnimatedCounter value={liveStats.total_documents} suffix="+" compact stiffness={90} damping={20} />
+              )}
+            </div>
+            <div className="text-blue-200/50 text-[10px] tracking-wide">Hujjatlar</div>
           </div>
         </motion.div>
       </div>
 
-      {/* ═══ RIGHT PANEL: Login / Register Form ═══ */}
+      {/* ═══════════════════════════════════════════════════════════════════
+          RIGHT PANEL — PREMIUM GLASS LOGIN / REGISTER FORM
+          ═══════════════════════════════════════════════════════════════════ */}
       <div className="min-h-screen flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950">
         <div className="w-full max-w-md mx-auto">
 
-          {/* Mobile Logo with simplified animation */}
+          {/* Mobile Logo + badges */}
           <div className="lg:hidden text-center mb-6">
             <motion.div
               initial={{ scale: 0.8, opacity: 0 }}
@@ -472,9 +914,7 @@ function SignInContent() {
               transition={{ type: 'spring', stiffness: 200, damping: 15 }}
               className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-emerald-500 shadow-xl mb-3"
             >
-              <svg viewBox="0 0 24 24" className="w-8 h-8 text-white" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-              </svg>
+              <ShieldIcon className="w-8 h-8 text-white" />
             </motion.div>
             <motion.h1
               initial={{ opacity: 0, y: -10 }}
@@ -492,7 +932,6 @@ function SignInContent() {
             >
               Huquqiy AI Platformasi
             </motion.p>
-            {/* Mobile feature badges */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -511,9 +950,17 @@ function SignInContent() {
             </motion.div>
           </div>
 
-          {/* Glass Form Card */}
+          {/* Premium Glass Form Card */}
           <div className="relative">
-            <div className="absolute -inset-1.5 bg-gradient-to-r from-blue-500/15 to-green-500/15 dark:from-blue-500/10 dark:to-green-500/10 rounded-2xl blur-xl" />
+            {/* Glow border */}
+            <motion.div
+              className="absolute -inset-1.5 rounded-2xl blur-xl"
+              style={{
+                background: 'linear-gradient(135deg, rgba(59,130,246,0.12), rgba(16,185,129,0.10), rgba(59,130,246,0.12))',
+              }}
+              animate={{ opacity: [0.6, 1, 0.6] }}
+              transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+            />
 
             <div className="relative p-6 sm:p-7 rounded-2xl glass-card shadow-xl border border-gray-200/50 dark:border-zinc-700/50 backdrop-blur-xl bg-white/70 dark:bg-zinc-900/70">
               {/* Mode Toggle */}
@@ -523,7 +970,8 @@ function SignInContent() {
                     mode === 'login'
                       ? 'bg-white dark:bg-zinc-700 text-blue-600 dark:text-blue-400 shadow-sm'
                       : 'text-gray-500 dark:text-zinc-400 hover:text-gray-700 dark:hover:text-zinc-200'
-                  }`}>
+                  }`}
+                >
                   <svg className="w-3.5 h-3.5 inline mr-1.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M13 12H3" />
                   </svg>
@@ -534,7 +982,8 @@ function SignInContent() {
                     mode === 'register'
                       ? 'bg-white dark:bg-zinc-700 text-blue-600 dark:text-blue-400 shadow-sm'
                       : 'text-gray-500 dark:text-zinc-400 hover:text-gray-700 dark:hover:text-zinc-200'
-                  }`}>
+                  }`}
+                >
                   <svg className="w-3.5 h-3.5 inline mr-1.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /><circle cx="8.5" cy="7" r="4" />
                     <line x1="20" y1="8" x2="20" y2="14" /><line x1="23" y1="11" x2="17" y2="11" />
@@ -543,22 +992,30 @@ function SignInContent() {
                 </button>
               </div>
 
-              {/* Error / Success */}
+              {/* Error / Success Messages */}
               {error && (
-                <div className="mb-4 p-2.5 rounded-lg bg-red-50/90 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-xs text-red-700 dark:text-red-300 flex items-center gap-2">
+                <motion.div
+                  initial={{ opacity: 0, y: -5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mb-4 p-2.5 rounded-lg bg-red-50/90 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-xs text-red-700 dark:text-red-300 flex items-center gap-2"
+                >
                   <svg className="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" />
                   </svg>
                   {error}
-                </div>
+                </motion.div>
               )}
               {successMsg && (
-                <div className="mb-4 p-2.5 rounded-lg bg-green-50/90 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-xs text-green-700 dark:text-green-300 flex items-center gap-2">
+                <motion.div
+                  initial={{ opacity: 0, y: -5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mb-4 p-2.5 rounded-lg bg-green-50/90 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-xs text-green-700 dark:text-green-300 flex items-center gap-2"
+                >
                   <svg className="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M22 11.08V12a10 10 0 11-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
                   </svg>
                   {successMsg}
-                </div>
+                </motion.div>
               )}
 
               {/* Form */}
@@ -597,12 +1054,8 @@ function SignInContent() {
                       className="w-full pl-9 pr-9 py-2 rounded-lg border border-gray-200 dark:border-zinc-700 bg-white/80 dark:bg-zinc-800/80 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition-all" />
                     <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-zinc-300">
                       {showPassword
-                        ? <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24" /><line x1="1" y1="1" x2="23" y2="23" />
-                          </svg>
-                        : <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" />
-                          </svg>
+                        ? <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24" /><line x1="1" y1="1" x2="23" y2="23" /></svg>
+                        : <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
                       }
                     </button>
                   </div>
@@ -623,9 +1076,14 @@ function SignInContent() {
                   </div>
                 )}
 
-                {/* Submit */}
-                <button type="submit" disabled={isSubmitting}
-                  className="w-full py-2 rounded-lg bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-700 hover:to-emerald-700 text-white text-sm font-medium shadow-md shadow-blue-500/20 hover:shadow-blue-500/30 transition-all disabled:opacity-60 flex items-center justify-center gap-2">
+                {/* Submit Button */}
+                <motion.button
+                  type="submit"
+                  disabled={isSubmitting}
+                  whileHover={{ scale: 1.01 }}
+                  whileTap={{ scale: 0.99 }}
+                  className="w-full py-2.5 rounded-lg bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-700 hover:to-emerald-700 text-white text-sm font-medium shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30 transition-all disabled:opacity-60 flex items-center justify-center gap-2"
+                >
                   {isSubmitting ? (
                     <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   ) : (
@@ -634,7 +1092,7 @@ function SignInContent() {
                     </svg>
                   )}
                   {mode === 'login' ? 'Kirish' : "Ro'yxatdan o'tish"}
-                </button>
+                </motion.button>
               </form>
 
               {/* Divider */}
@@ -646,8 +1104,13 @@ function SignInContent() {
               </div>
 
               {/* Google Button */}
-              <button onClick={handleGoogleLogin} disabled={isGoogleLoading}
-                className="w-full flex items-center justify-center gap-2.5 py-2 rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-700 dark:text-zinc-300 text-sm font-medium hover:bg-gray-50 dark:hover:bg-zinc-750 transition-all disabled:opacity-60 hover:shadow-sm active:scale-[0.98]">
+              <motion.button
+                onClick={handleGoogleLogin}
+                disabled={isGoogleLoading}
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.98 }}
+                className="w-full flex items-center justify-center gap-2.5 py-2.5 rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-700 dark:text-zinc-300 text-sm font-medium hover:bg-gray-50 dark:hover:bg-zinc-750 transition-all disabled:opacity-60 hover:shadow-sm"
+              >
                 {isGoogleLoading ? (
                   <div className="w-3.5 h-3.5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
                 ) : (
@@ -659,7 +1122,7 @@ function SignInContent() {
                   </svg>
                 )}
                 Google orqali kirish
-              </button>
+              </motion.button>
 
               {/* Mode Switch */}
               <div className="mt-4 text-center">
@@ -713,7 +1176,7 @@ function SignInContent() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Page Export
+// PAGE EXPORT
 // ═══════════════════════════════════════════════════════════════════════════
 
 export default function SignInPage() {
