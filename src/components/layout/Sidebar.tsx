@@ -48,7 +48,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   const handleLogout = async () => {
     await firebaseAuth.signOut();
-    window.location.href = '/signin';
+    // firebaseAuth.signOut() already does localStorage.clear() + sessionStorage.clear() + window.location.href = '/signin'
   };
 
   const navigationGroups = [

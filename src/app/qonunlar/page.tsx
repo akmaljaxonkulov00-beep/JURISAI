@@ -8,7 +8,7 @@ import { ALL_LEGAL_CODES, LegalCode, LegalArticle } from '@/data/legal-codes';
 import {
   Search, BookOpen, Scale, Gavel, Shield, FileText, Landmark,
   Users, DollarSign, TreePine, ChevronRight, ArrowLeft, BookMarked,
-  ExternalLink, AlertCircle
+  ExternalLink, AlertCircle, Briefcase, ScrollText
 } from 'lucide-react';
 
 const CODE_ICONS: Record<string, React.ReactNode> = {
@@ -20,6 +20,9 @@ const CODE_ICONS: Record<string, React.ReactNode> = {
   'land_code': <TreePine className="w-5 h-5" />,
   'admin_code': <Shield className="w-5 h-5" />,
   'constitution': <Landmark className="w-5 h-5" />,
+  'civil_procedure_code': <FileText className="w-5 h-5" />,
+  'criminal_procedure_code': <FileText className="w-5 h-5" />,
+  'economic_procedure_code': <DollarSign className="w-5 h-5" />,
 };
 
 const CODE_COLORS: Record<string, string> = {
@@ -31,6 +34,9 @@ const CODE_COLORS: Record<string, string> = {
   'land_code': 'from-amber-500 to-yellow-600',
   'admin_code': 'from-slate-500 to-gray-600',
   'constitution': 'from-blue-600 to-indigo-700',
+  'civil_procedure_code': 'from-cyan-500 to-sky-600',
+  'criminal_procedure_code': 'from-rose-500 to-red-600',
+  'economic_procedure_code': 'from-teal-500 to-emerald-600',
 };
 
 const CODE_BADGE_COLORS: Record<string, string> = {
@@ -42,6 +48,9 @@ const CODE_BADGE_COLORS: Record<string, string> = {
   'land_code': 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300',
   'admin_code': 'bg-slate-100 text-slate-800 dark:bg-slate-900/30 dark:text-slate-300',
   'constitution': 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300',
+  'civil_procedure_code': 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-300',
+  'criminal_procedure_code': 'bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-300',
+  'economic_procedure_code': 'bg-teal-100 text-teal-800 dark:bg-teal-900/30 dark:text-teal-300',
 };
 
 // Full display names (replacing abbreviations) for use in badges and headings
@@ -54,6 +63,9 @@ const CODE_DISPLAY_NAMES: Record<string, string> = {
   'land_code': 'O\'zbekiston Respublikasi Yer Kodeksi',
   'admin_code': 'O\'zbekiston Respublikasi Ma\'muriy Javobgarlik To\'g\'risidagi Kodeks',
   'constitution': 'O\'zbekiston Respublikasi Konstitutsiyasi',
+  'civil_procedure_code': 'O\'zbekiston Respublikasi Fuqarolik Protsessual Kodeksi',
+  'criminal_procedure_code': 'O\'zbekiston Respublikasi Jinoyat Protsessual Kodeksi',
+  'economic_procedure_code': 'O\'zbekiston Respublikasi Iqtisodiy Protsessual Kodeksi',
 };
 
 // CODE_SHORT_DISPLAY is intentionally NOT used — only full names are shown

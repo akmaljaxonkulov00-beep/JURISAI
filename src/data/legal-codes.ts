@@ -553,6 +553,103 @@ Yer uchastkasiga bo'lgan huquq davlat ro'yxatidan o'tkazilgan paytdan e'tiboran 
 };
 
 // ============================================================================
+// ============================================================================
+// FUQAROLIK PROTSESSUAL KODEKSI (FPK) — Civil Procedure Code
+// ============================================================================
+
+export const CIVIL_PROCEDURE_CODE: LegalCode = {
+  id: 'civil_procedure_code',
+  name: "O'zbekiston Respublikasi Fuqarolik Protsessual kodeksi",
+  shortName: 'FPK',
+  description: 'Fuqarolik ishlarini sudda ko\'rish tartibini belgilovchi asosiy qonun hujjati',
+  totalArticles: 476,
+  effectiveDate: '01.01.2000',
+  articles: [
+    {
+      number: '1',
+      title: 'Fuqarolik protsessining vazifalari',
+      content: `Fuqarolik protsessining vazifalari buzilgan huquqlarni himoya qilish, fuqarolik nizolarini hal qilish va adolatni ta'minlashdan iborat.
+
+Sud fuqarolik ishlarini qonunchilik asosida, teng huquqlilik va tortishuv prinsiplari asosida ko'radi.`,
+      category: 'Umumiy qoidalar'
+    },
+    {
+      number: '15',
+      title: 'Sudning vakolatlari',
+      content: `Sud fuqarolik ishlarini ko'rishda quyidagi vakolatlarga ega:
+1) Ishni muhokama qilish va hal qilish;
+2) Dalillarni tekshirish va baholash;
+3) Sud majlisini o'tkazish tartibini belgilash;
+4) Taraflarning iltimoslarini ko'rib chiqish;
+5) Sud qarori chiqarish.`,
+      category: 'Umumiy qoidalar'
+    }
+  ]
+};
+
+// ============================================================================
+// JINOYAT PROTSESSUAL KODEKSI (JPK) — Criminal Procedure Code
+// ============================================================================
+
+export const CRIMINAL_PROCEDURE_CODE: LegalCode = {
+  id: 'criminal_procedure_code',
+  name: "O'zbekiston Respublikasi Jinoyat Protsessual kodeksi",
+  shortName: 'JPK',
+  description: 'Jinoyat ishlarini tergov qilish va sudda ko\'rish tartibini belgilovchi qonun',
+  totalArticles: 598,
+  effectiveDate: '01.04.1995',
+  articles: [
+    {
+      number: '1',
+      title: 'Jinoyat protsessining vazifalari',
+      content: `Jinoyat protsessining vazifalari jinoyatlarni tezkor ochish, jinoyat sodir etgan shaxslarni aniqlash va ularga nisbatan qonuniy jazo qo'llanilishini ta'minlashdan iborat.
+
+Hech kim aybi isbotlanmaguncha va sud hukmi qonuniy kuchga kirmaguncha aybdor hisoblanmaydi.`,
+      category: 'Umumiy qoidalar'
+    },
+    {
+      number: '26',
+      title: 'Tomonlarning teng huquqliligi',
+      content: `Sud muhokamasi tomonlarning teng huquqliligi va tortishuv prinsipi asosida amalga oshiriladi.
+
+Tomondalar ayblov va himoya funksiyalarini amalga oshiradilar. Sud esa ishni xolisona hal qiladi.`,
+      category: 'Umumiy qoidalar'
+    }
+  ]
+};
+
+// ============================================================================
+// IQTISODIY PROTSESSUAL KODEKSI (IPK) — Economic Procedure Code
+// ============================================================================
+
+export const ECONOMIC_PROCEDURE_CODE: LegalCode = {
+  id: 'economic_procedure_code',
+  name: "O'zbekiston Respublikasi Iqtisodiy Protsessual kodeksi",
+  shortName: 'IPK',
+  description: 'Iqtisodiy nizolarni sudda ko\'rish tartibini belgilovchi asosiy qonun hujjati',
+  totalArticles: 324,
+  effectiveDate: '01.01.2005',
+  articles: [
+    {
+      number: '1',
+      title: 'Iqtisodiy protsessning vazifalari',
+      content: `Iqtisodiy protsessning vazifalari tadbirkorlik va iqtisodiy faoliyat sohasidagi buzilgan huquqlarni himoya qilish, xo'jalik nizolarini hal qilishdan iborat.
+
+Iqtisodiy sudlar yuridik shaxslar va yakka tartibdagi tadbirkorlar o'rtasidagi nizolarni ko'rib chiqadi.`,
+      category: 'Umumiy qoidalar'
+    },
+    {
+      number: '12',
+      title: 'Iqtisodiy sudga murojaat qilish',
+      content: `Yuridik shaxslar va yakka tartibdagi tadbirkorlar o'zlarining buzilgan huquqlarini himoya qilish uchun iqtisodiy sudga murojaat qilishga haqlidirlar.
+
+Sudga murojaat qilish da'vo arizasi yoki ariza berish orqali amalga oshiriladi.`,
+      category: 'Umumiy qoidalar'
+    }
+  ]
+};
+
+// ============================================================================
 // O'ZBEKISTON RESPUBLIKASI KONSTITUTSIYASI
 // ============================================================================
 
@@ -603,6 +700,9 @@ export const ALL_LEGAL_CODES = [
   TAX_CODE,
   LAND_CODE,
   ADMINISTRATIVE_CODE,
+  CIVIL_PROCEDURE_CODE,
+  CRIMINAL_PROCEDURE_CODE,
+  ECONOMIC_PROCEDURE_CODE,
   CONSTITUTION
 ];
 

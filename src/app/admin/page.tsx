@@ -16,6 +16,27 @@ import {
 import { firebaseAuth } from '@/services/firebase-auth';
 import MonitoringDashboard from '@/components/admin/MonitoringDashboard';
 
+// Lightbox component for viewing receipt images
+function ImageLightbox({ image, onClose }: { image: string | null; onClose: () => void }) {
+  if (!image) return null;
+  return (
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-200 p-4"
+    >
+      <button onClick={onClose} className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/20 text-white hover:bg-white/30 flex items-center justify-center transition-all">
+        <X size={20} />
+      </button>
+      <img
+        src={image}
+        alt="To'lov cheki"
+        onClick={(e) => e.stopPropagation()}
+        className="max-w-full max-h-[85vh] rounded-2xl shadow-2xl object-contain"
+      />
+    </div>
+  );
+}
+
 // ===== SUPER ADMIN HARDCODED CREDENTIALS =====
 const SUPER_ADMIN_EMAIL = 'akmaljaxonkulov00@gmail.com';
 
@@ -100,6 +121,7 @@ export default function AdminDashboard() {
 
   // Payments
   const [paymentRequests, setPaymentRequests] = useState<PaymentRequest[]>([]);
+  const [lightboxImage, setLightboxImage] = useState<string | null>(null);
 
   // Users
   const [allUsers, setAllUsers] = useState<any[]>([]);
@@ -1029,7 +1051,9 @@ export default function AdminDashboard() {
                         </div>
                         {p.receiptImage && (
                           <div className="mb-3">
-                            <img src={p.receiptImage} alt="Chek" className="w-full max-w-xs rounded-lg border dark:border-zinc-700" />
+                            <button onClick={() => setLightboxImage(p.receiptImage)} className="w-full max-w-xs block">
+                              <img src={p.receiptImage} alt="Chek" className="w-full rounded-lg border dark:border-zinc-700 hover:opacity-90 transition-opacity cursor-pointer" />
+                            </button>
                           </div>
                         )}
                         {p.status === 'pending' && (
@@ -1215,6 +1239,9 @@ export default function AdminDashboard() {
           </div>
         )}
       </div>
+
+      {/* Lightbox for receipt images */}
+      <ImageLightbox image={lightboxImage} onClose={() => setLightboxImage(null)} />
     </div>
   );
 }

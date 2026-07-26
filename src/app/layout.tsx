@@ -5,6 +5,7 @@ import { generateSEOMetadata } from "./metadata";
 import Providers from "./providers";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import MobileNav from "@/components/MobileNav";
+import AIChatFloatingWidget from "@/components/ai/AIChatFloatingWidget";
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -40,6 +41,7 @@ export default function RootLayout({
           <Providers>
             <MobileNav />
             {children}
+            <AIChatFloatingWidget />
           </Providers>
         </ErrorBoundary>
       </body>
