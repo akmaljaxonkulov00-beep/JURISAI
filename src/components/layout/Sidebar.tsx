@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { firebaseAuth } from '@/services/firebase-auth';
+import { firebaseAuth, signOut as nuclearSignOut } from '@/services/firebase-auth';
 import type { AuthUser } from '@/services/firebase-auth';
 
 function cn(...classes: string[]) {
@@ -48,7 +48,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   const handleLogout = async () => {
     await firebaseAuth.signOut();
-    // firebaseAuth.signOut() already does localStorage.clear() + sessionStorage.clear() + window.location.href = '/signin'
+    // firebaseAuth.signOut() already does nuclear clear + hard redirect to /login
   };
 
   const navigationGroups = [

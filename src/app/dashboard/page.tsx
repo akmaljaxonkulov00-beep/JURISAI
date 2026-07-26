@@ -8,6 +8,7 @@ import { Progress } from '@/components/ui/Progress';
 import { useAuth } from '@/app/providers';
 import { api } from '@/services/api';
 import { firebaseAuth } from '@/services/firebase-auth';
+import AIChatFloatingWidget from '@/components/ai/AIChatFloatingWidget';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -90,7 +91,7 @@ export default function Dashboard() {
     }
   }, [user]);  const handleLogout = async () => {
     await firebaseAuth.signOut();
-    window.location.href = '/signin';
+    // firebaseAuth.signOut() does nuclear clear + hard redirect to /login
   };
 
   const handleNavigation = (href: string) => {
@@ -566,6 +567,8 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+      {/* AI Chat Floating Widget — only on dashboard */}
+      <AIChatFloatingWidget />
     </div>
   );
 }

@@ -306,7 +306,7 @@ export async function signOut(): Promise<void> {
       localStorage.clear();
       sessionStorage.clear();
       // Hard redirect to force full page reload + session clear
-      window.location.href = '/signin';
+      window.location.href = '/login';
     }
   }
 }

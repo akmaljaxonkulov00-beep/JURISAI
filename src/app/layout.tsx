@@ -41,7 +41,6 @@ export default function RootLayout({
           <Providers>
             <MobileNav />
             {children}
-            <AIChatFloatingWidget />
           </Providers>
         </ErrorBoundary>
       </body>

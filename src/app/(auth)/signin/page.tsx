@@ -389,101 +389,30 @@ function SignInContent() {
           <ShieldCanvas mousePos={mousePos} />
         </div>
 
-        {/* 4 Interactive Feature Glass Cards */}
-        <div className="absolute z-20 inset-0 hidden lg:block">
-          {/* Top-left card */}
-          <div className="absolute left-[5%] top-[18%] w-[180px]" style={{ animation: 'floatBadge 7s ease-in-out 0s infinite', transform: `translate(${typeof window !== 'undefined' ? (mousePos.x / window.innerWidth - 0.5) * 10 : 0}px, ${typeof window !== 'undefined' ? (mousePos.y / window.innerHeight - 0.5) * 10 : 0}px)`, transition: 'transform 0.4s ease-out' }}>
-            <div className="p-3 rounded-xl glass-card shadow-lg border border-white/20 backdrop-blur-md">
-              <div className="flex items-start gap-2.5">
-                <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500/20 to-green-500/20 text-blue-300 shrink-0">
-                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" /></svg>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[11px] font-semibold text-white leading-tight">Virtual Sud Simulyatori AI</p>
-                  <p className="text-[9px] text-blue-200/60 mt-0.5 leading-tight">Real vaqtda sud jarayonlari modelingi</p>
-                </div>
-              </div>
-            </div>
-          </div>
-          {/* Top-right card */}
-          <div className="float-card absolute right-[5%] top-[15%] w-[180px]" style={{ animation: 'floatBadge 8s ease-in-out 0.8s infinite' }}>
-            <div className="p-3 rounded-xl glass-card shadow-lg border border-white/20 backdrop-blur-md">
-              <div className="flex items-start gap-2.5">
-                <div className="p-2 rounded-lg bg-gradient-to-br from-emerald-500/20 to-teal-500/20 text-emerald-300 shrink-0">
-                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14.5 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V7.5L14.5 2z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /></svg>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[11px] font-semibold text-white leading-tight">Gidravlik Hujjat Generator AI</p>
-                  <p className="text-[9px] text-emerald-200/60 mt-0.5 leading-tight">Soniyalar ichida shartnomalar</p>
-                </div>
-              </div>
-            </div>
-          </div>
-          {/* Bottom-left card */}
-          <div className="float-card absolute left-[5%] top-[62%] w-[180px]" style={{ animation: 'floatBadge 7.5s ease-in-out 1.5s infinite' }}>
-            <div className="p-3 rounded-xl glass-card shadow-lg border border-white/20 backdrop-blur-md">
-              <div className="flex items-start gap-2.5">
-                <div className="p-2 rounded-lg bg-gradient-to-br from-purple-500/20 to-violet-500/20 text-purple-300 shrink-0">
-                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></svg>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[11px] font-semibold text-white leading-tight">O'zR Qonunchiligiga 100% Mos AI</p>
-                  <p className="text-[9px] text-purple-200/60 mt-0.5 leading-tight">Milliy baza bilan integratsiya</p>
-                </div>
-              </div>
-            </div>
-          </div>
-          {/* Bottom-right card */}
-          <div className="float-card absolute right-[5%] bottom-[28%] w-[180px]" style={{ animation: 'floatBadge 6.5s ease-in-out 2.2s infinite' }}>
-            <div className="p-3 rounded-xl glass-card shadow-lg border border-white/20 backdrop-blur-md">
-              <div className="flex items-start gap-2.5">
-                <div className="p-2 rounded-lg bg-gradient-to-br from-amber-500/20 to-orange-500/20 text-amber-300 shrink-0">
-                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[11px] font-semibold text-white leading-tight">Barcha Qonunlar Intellektual Qidiruvi</p>
-                  <p className="text-[9px] text-amber-200/60 mt-0.5 leading-tight">Kodekslar bo'yicha smart qidiruv</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Existing badges */}
-        <div className="absolute z-20 inset-0 hidden lg:block">
+        {/* Badges — clean flex column layout, no overlapping */}
+        <div className="absolute z-20 inset-0 hidden lg:flex flex-col items-center justify-end pb-36 gap-3">
           <GlowingBadge
-            icon={<svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2l9 4.5v7c0 4.5-4 8.5-9 9-5-0.5-9-4.5-9-9v-7l9-4.5z" /></svg>}
-            text="10,000+ Yuridik Hujjatlar"
-            className="absolute left-[8%] top-[20%]"
+            icon={<svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2l9 4.5v7c0 4.5-4 8.5-9 9-5-0.5-9-4.5-9-9v-7l9-4.5z"/></svg>}
+            text="O'zR Qonunchiligiga 100% Mos AI"
             delay={0}
             mousePos={mousePos}
           />
           <GlowingBadge
-            icon={<svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></svg>}
-            text="O'zR Qonunchiligiga 100% Mos AI"
-            className="absolute right-[8%] top-[15%]"
+            icon={<svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"/></svg>}
+            text="Virtual Sud Simulyatori"
             delay={0.8}
             mousePos={mousePos}
           />
           <GlowingBadge
-            icon={<svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" /></svg>}
-            text="Virtual Sud Simulyatori"
-            className="absolute right-[8%] bottom-[30%]"
-            delay={2}
+            icon={<svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>}
+            text="10,000+ Yuridik Hujjatlar"
+            delay={1.6}
             mousePos={mousePos}
           />
           <GlowingBadge
-            icon={<svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" /></svg>}
-            text="8 ta Qonun Kodeksi"
-            className="absolute left-[8%] top-[65%]"
-            delay={1.2}
-            mousePos={mousePos}
-          />
-          <GlowingBadge
-            icon={<svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18M3 12h18M3 18h18" /><path d="M3 6l3-3M3 6l3 3" /></svg>}
+            icon={<svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18M3 12h18M3 18h18"/><path d="M3 6l3-3M3 6l3 3"/></svg>}
             text="IRAC Huquqiy Tahlil"
-            className="absolute left-[35%] top-[8%]"
-            delay={1.5}
+            delay={2.4}
             mousePos={mousePos}
           />
         </div>
@@ -519,7 +448,7 @@ function SignInContent() {
 
       {/* ═══ RIGHT PANEL: Login / Register Form ═══ */}
       <div className="min-h-screen flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950">
-        <div className="w-full max-w-[400px] mx-auto">
+        <div className="w-full max-w-md mx-auto">
 
           {/* Mobile Logo */}
           <div className="lg:hidden text-center mb-6">
