@@ -196,18 +196,12 @@ export default function AdminDashboard() {
     setLoading(false);
   };
 
-  // === LOGOUT ===
+  // === LOGOUT — nuclear clear + hard redirect ===
   const handleLogout = async () => {
-    try {
-      await firebaseAuth.signOut();
-    } catch {}
-    sessionStorage.clear();
-    localStorage.removeItem('auth_user');
-    localStorage.removeItem('jurisai_user');
-    localStorage.removeItem('auth_token');
+    await firebaseAuth.signOut();
+    // firebaseAuth.signOut() now does: localStorage.clear(), sessionStorage.clear(), window.location.href = '/signin'
     setAdminUser(null);
     setUser(null);
-    router.push('/signin');
   };
 
   const loadUsers = () => {

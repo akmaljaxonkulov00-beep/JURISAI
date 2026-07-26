@@ -290,7 +290,7 @@ export async function handleRedirectResult(): Promise<{ success: boolean; data?:
   }
 }
 
-// Sign out
+// Sign out — clears EVERYTHING and forces hard redirect to /signin
 export async function signOut(): Promise<void> {
   try {
     const user = getCurrentUser();
@@ -298,8 +298,16 @@ export async function signOut(): Promise<void> {
       logAuthEvent(user.email, 'logout', user.id, false);
     }
     await firebaseSignOut(auth);
+  } catch {
+    // Ignore Firebase signOut errors
   } finally {
-    clearUserFromLocal();
+    // Nuclear clear — remove ALL app data
+    if (typeof window !== 'undefined') {
+      localStorage.clear();
+      sessionStorage.clear();
+      // Hard redirect to force full page reload + session clear
+      window.location.href = '/signin';
+    }
   }
 }
 

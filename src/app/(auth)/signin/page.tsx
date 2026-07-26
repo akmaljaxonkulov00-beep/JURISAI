@@ -11,6 +11,8 @@ import { useAuth } from '@/app/providers'
 
 function ShieldCanvas({ mousePos }: { mousePos: { x: number; y: number } }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const speedRef = useRef(0)
+  const lastMouseRef = useRef({ x: 0, y: 0, time: 0 })
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -24,8 +26,9 @@ function ShieldCanvas({ mousePos }: { mousePos: { x: number; y: number } }) {
       x: number; y: number; vx: number; vy: number
       size: number; alpha: number; pulse: number
       orbitAngle: number; orbitSpeed: number; orbitRadius: number
+      baseRadius: number
     }[] = []
-    const PARTICLE_COUNT = 90
+    const PARTICLE_COUNT = 120
 
     const resize = () => {
       const parent = canvas.parentElement
@@ -39,18 +42,19 @@ function ShieldCanvas({ mousePos }: { mousePos: { x: number; y: number } }) {
 
     for (let i = 0; i < PARTICLE_COUNT; i++) {
       const angle = (i / PARTICLE_COUNT) * Math.PI * 2
-      const radius = 60 + Math.random() * 150
+      const radius = 50 + Math.random() * 160
       particles.push({
         x: canvas.width / 2 + Math.cos(angle) * radius,
         y: canvas.height / 2 + Math.sin(angle) * radius,
-        vx: (Math.random() - 0.5) * 0.3,
-        vy: (Math.random() - 0.5) * 0.3,
-        size: Math.random() * 2 + 0.5,
-        alpha: Math.random() * 0.5 + 0.2,
+        vx: (Math.random() - 0.5) * 0.4,
+        vy: (Math.random() - 0.5) * 0.4,
+        size: Math.random() * 2.5 + 0.5,
+        alpha: Math.random() * 0.6 + 0.2,
         pulse: Math.random() * Math.PI * 2,
         orbitAngle: angle,
-        orbitSpeed: (0.001 + Math.random() * 0.003) * (i % 2 === 0 ? 1 : -1),
+        orbitSpeed: (0.0008 + Math.random() * 0.003) * (i % 2 === 0 ? 1 : -1),
         orbitRadius: radius,
+        baseRadius: radius,
       })
     }
 
@@ -62,12 +66,28 @@ function ShieldCanvas({ mousePos }: { mousePos: { x: number; y: number } }) {
       const shieldY = cy() - 10
       const pulseScale = 1 + 0.02 * Math.sin(time * 0.5)
 
-      const glow = ctx.createRadialGradient(shieldX, shieldY, 30, shieldX, shieldY, 130)
-      glow.addColorStop(0, isDark ? 'rgba(59, 130, 246, 0.15)' : 'rgba(37, 99, 235, 0.08)')
-      glow.addColorStop(0.5, isDark ? 'rgba(16, 185, 129, 0.08)' : 'rgba(16, 185, 129, 0.04)')
+      // Outer glow with rotating highlight
+      const glow = ctx.createRadialGradient(shieldX, shieldY, 20, shieldX, shieldY, 140)
+      glow.addColorStop(0, isDark ? 'rgba(59, 130, 246, 0.2)' : 'rgba(37, 99, 235, 0.1)')
+      glow.addColorStop(0.4, isDark ? 'rgba(16, 185, 129, 0.1)' : 'rgba(16, 185, 129, 0.05)')
       glow.addColorStop(1, 'rgba(0,0,0,0)')
       ctx.fillStyle = glow
       ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+      // Rotating glint
+      const glintAngle = time * 0.3
+      ctx.save()
+      ctx.translate(shieldX, shieldY)
+      ctx.rotate(glintAngle)
+      const glint = ctx.createLinearGradient(-60, 0, 60, 0)
+      glint.addColorStop(0, 'rgba(255,255,255,0)')
+      glint.addColorStop(0.3, isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.06)')
+      glint.addColorStop(0.5, isDark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.1)')
+      glint.addColorStop(0.7, isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.06)')
+      glint.addColorStop(1, 'rgba(255,255,255,0)')
+      ctx.fillStyle = glint
+      ctx.fillRect(-60, -70, 120, 140)
+      ctx.restore()
 
       ctx.save()
       ctx.translate(shieldX, shieldY)
@@ -88,10 +108,10 @@ function ShieldCanvas({ mousePos }: { mousePos: { x: number; y: number } }) {
       grad.addColorStop(0.5, isDark ? '#10B981' : '#059669')
       grad.addColorStop(1, isDark ? '#1D4ED8' : '#2563EB')
       ctx.fillStyle = grad
-      ctx.globalAlpha = 0.12 + 0.04 * Math.sin(time * 0.8)
+      ctx.globalAlpha = 0.15 + 0.05 * Math.sin(time * 0.8)
       ctx.fill()
 
-      ctx.strokeStyle = isDark ? 'rgba(96, 165, 250, 0.25)' : 'rgba(37, 99, 235, 0.15)'
+      ctx.strokeStyle = isDark ? 'rgba(96, 165, 250, 0.3)' : 'rgba(37, 99, 235, 0.2)'
       ctx.lineWidth = 2
       ctx.stroke()
 
@@ -100,13 +120,13 @@ function ShieldCanvas({ mousePos }: { mousePos: { x: number; y: number } }) {
       ctx.lineTo(-12, -8)
       ctx.moveTo(12, 8)
       ctx.lineTo(12, -8)
-      ctx.strokeStyle = isDark ? 'rgba(96, 165, 250, 0.35)' : 'rgba(37, 99, 235, 0.25)'
+      ctx.strokeStyle = isDark ? 'rgba(96, 165, 250, 0.4)' : 'rgba(37, 99, 235, 0.3)'
       ctx.lineWidth = 2.5
       ctx.stroke()
 
       ctx.beginPath()
       ctx.arc(0, -4, 4 + 1.5 * Math.sin(time), 0, Math.PI)
-      ctx.strokeStyle = isDark ? 'rgba(16, 185, 129, 0.35)' : 'rgba(16, 185, 129, 0.25)'
+      ctx.strokeStyle = isDark ? 'rgba(16, 185, 129, 0.4)' : 'rgba(16, 185, 129, 0.3)'
       ctx.lineWidth = 1.5
       ctx.stroke()
 
@@ -120,44 +140,62 @@ function ShieldCanvas({ mousePos }: { mousePos: { x: number; y: number } }) {
       const isDark = document.documentElement.classList.contains('dark')
       drawShield(isDark)
 
-      particles.forEach((p) => {
-        p.orbitAngle += p.orbitSpeed
-        const targetX = cx() + Math.cos(p.orbitAngle) * p.orbitRadius
-        const targetY = cy() - 10 + Math.sin(p.orbitAngle) * p.orbitRadius * 0.7
-        p.x += (targetX - p.x) * 0.02 + p.vx
-        p.y += (targetY - p.y) * 0.02 + p.vy
-        p.pulse += 0.03
+      // Calculate mouse speed for burst effect
+      const now = Date.now()
+      const last = lastMouseRef.current
+      const dt = Math.max(16, now - last.time)
+      const dx = mousePos.x - last.x
+      const dy = mousePos.y - last.y
+      const speed = Math.sqrt(dx * dx + dy * dy) / dt * 8
+      speedRef.current = Math.min(speed, 4)
+      lastMouseRef.current = { x: mousePos.x, y: mousePos.y, time: now }
 
-        const dx = mousePos.x - p.x
-        const dy = mousePos.y - p.y
-        const dist = Math.sqrt(dx * dx + dy * dy)
-        if (dist < 150) {
-          const force = (150 - dist) / 150 * 0.05
-          p.x -= dx * force
-          p.y -= dy * force
+      const burstFactor = 1 + speedRef.current * 0.5
+
+      particles.forEach((p) => {
+        p.orbitAngle += p.orbitSpeed * (1 + speedRef.current * 0.2)
+        const targetRadius = p.baseRadius * burstFactor
+        const targetX = cx() + Math.cos(p.orbitAngle) * targetRadius
+        const targetY = cy() - 10 + Math.sin(p.orbitAngle) * targetRadius * 0.7
+        p.x += (targetX - p.x) * 0.025 + p.vx
+        p.y += (targetY - p.y) * 0.025 + p.vy
+        p.pulse += 0.04 + speedRef.current * 0.03
+
+        // Mouse repulsion
+        const mx = mousePos.x - p.x
+        const my = mousePos.y - p.y
+        const dist = Math.sqrt(mx * mx + my * my)
+        if (dist < 160) {
+          const force = (160 - dist) / 160 * 0.06 * (1 + speedRef.current * 0.5)
+          p.x -= mx * force
+          p.y -= my * force
         }
 
-        const alpha = p.alpha * (0.5 + 0.5 * Math.sin(p.pulse))
+        const alpha = p.alpha * (0.4 + 0.6 * Math.sin(p.pulse))
+        const sizeBoost = p.size * (1 + speedRef.current * 0.2)
         ctx.beginPath()
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2)
+        ctx.arc(p.x, p.y, sizeBoost, 0, Math.PI * 2)
         ctx.fillStyle = isDark ? `rgba(96, 165, 250, ${alpha})` : `rgba(37, 99, 235, ${alpha})`
         ctx.fill()
       })
 
-      for (let i = 0; i < particles.length; i += 3) {
+      // Dynamic connections — more visible when mouse moves fast
+      const maxDist = 100 + speedRef.current * 30
+      const connAlpha = 0.08 + speedRef.current * 0.04
+      for (let i = 0; i < particles.length; i += 4) {
         const p1 = particles[i]
-        for (let j = i + 1; j < particles.length; j += 3) {
+        for (let j = i + 1; j < particles.length; j += 4) {
           const p2 = particles[j]
           const dx = p2.x - p1.x
           const dy = p2.y - p1.y
           const dist2 = Math.sqrt(dx * dx + dy * dy)
-          if (dist2 < 120) {
-            const la = (1 - dist2 / 120) * 0.1
+          if (dist2 < maxDist) {
+            const la = (1 - dist2 / maxDist) * connAlpha
             ctx.beginPath()
             ctx.moveTo(p1.x, p1.y)
             ctx.lineTo(p2.x, p2.y)
             ctx.strokeStyle = isDark ? `rgba(96, 165, 250, ${la})` : `rgba(37, 99, 235, ${la})`
-            ctx.lineWidth = 0.5
+            ctx.lineWidth = 0.4 + speedRef.current * 0.15
             ctx.stroke()
           }
         }
@@ -178,14 +216,22 @@ function ShieldCanvas({ mousePos }: { mousePos: { x: number; y: number } }) {
 // ═══════════════════════════════════════════════════════════════════════════
 
 function GlowingBadge({
-  icon, text, className, delay = 0
+  icon, text, className, delay = 0, mousePos = { x: 0, y: 0 }
 }: {
-  icon: React.ReactNode; text: string; className?: string; delay?: number
+  icon: React.ReactNode; text: string; className?: string; delay?: number; mousePos?: { x: number; y: number }
 }) {
+  // Parallax offset: subtle movement based on cursor position (only in browser)
+  const isBrowser = typeof window !== 'undefined'
+  const px = isBrowser ? (mousePos.x / window.innerWidth - 0.5) * 8 : 0
+  const py = isBrowser ? (mousePos.y / window.innerHeight - 0.5) * 8 : 0
   return (
     <div
       className={`hidden lg:flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl glass-card shadow-lg border border-white/20 backdrop-blur-md whitespace-nowrap ${className || ''}`}
-      style={{ animation: `floatBadge 7s ease-in-out ${delay}s infinite` }}
+      style={{
+        animation: `floatBadge 7s ease-in-out ${delay}s infinite`,
+        transform: `translate(${px}px, ${py}px)`,
+        transition: 'transform 0.3s ease-out'
+      }}
     >
       <div className="p-1.5 rounded-lg bg-gradient-to-br from-blue-500/20 to-green-500/20 text-blue-600 dark:text-blue-400">
         {icon}
@@ -205,6 +251,8 @@ function SignInContent() {
   const { user, isLoading: authLoading } = useAuth()
 
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
+  const [mouseSpeed, setMouseSpeed] = useState(0)
+  const lastMousePos = useRef({ x: 0, y: 0, time: 0 })
   const [mode, setMode] = useState<'login' | 'register'>('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -218,6 +266,14 @@ function SignInContent() {
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     setMousePos({ x: e.clientX, y: e.clientY })
+    const now = Date.now()
+    const last = lastMousePos.current
+    const dt = Math.max(16, now - last.time)
+    const dx = e.clientX - last.x
+    const dy = e.clientY - last.y
+    const speed = Math.sqrt(dx * dx + dy * dy) / dt * 10
+    setMouseSpeed(Math.min(speed, 5))
+    lastMousePos.current = { x: e.clientX, y: e.clientY, time: now }
   }, [])
 
   // Handle Google OAuth redirect on mount
@@ -340,30 +396,35 @@ function SignInContent() {
             text="10,000+ Yuridik Hujjatlar"
             className="absolute left-[8%] top-[20%]"
             delay={0}
+            mousePos={mousePos}
           />
           <GlowingBadge
             icon={<svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></svg>}
             text="O'zR Qonunchiligiga 100% Mos AI"
             className="absolute right-[8%] top-[15%]"
             delay={0.8}
+            mousePos={mousePos}
           />
           <GlowingBadge
             icon={<svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" /></svg>}
             text="Virtual Sud Simulyatori"
             className="absolute right-[8%] bottom-[30%]"
             delay={2}
+            mousePos={mousePos}
           />
           <GlowingBadge
             icon={<svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" /></svg>}
             text="8 ta Qonun Kodeksi"
             className="absolute left-[8%] top-[65%]"
             delay={1.2}
+            mousePos={mousePos}
           />
           <GlowingBadge
             icon={<svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18M3 12h18M3 18h18" /><path d="M3 6l3-3M3 6l3 3" /></svg>}
             text="IRAC Huquqiy Tahlil"
             className="absolute left-[35%] top-[8%]"
             delay={1.5}
+            mousePos={mousePos}
           />
         </div>
 
