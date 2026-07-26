@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Progress } from '@/components/ui/Progress';
 import { useAuth } from '@/app/providers';
 import { api } from '@/services/api';
+import { firebaseAuth } from '@/services/firebase-auth';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -88,18 +89,8 @@ export default function Dashboard() {
       loadUserStats();
     }
   }, [user]);  const handleLogout = async () => {
-    try {
-      const { firebaseAuth } = await import('@/services/firebase-auth');
-      await firebaseAuth.signOut();
-    } catch {}
-    if (typeof window !== 'undefined') {
-      sessionStorage.clear();
-      localStorage.removeItem('auth_user');
-      localStorage.removeItem('jurisai_user');
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('profile_image');
-    }
-    router.push('/signin');
+    await firebaseAuth.signOut();
+    window.location.href = '/signin';
   };
 
   const handleNavigation = (href: string) => {

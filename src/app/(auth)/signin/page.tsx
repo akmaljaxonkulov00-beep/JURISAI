@@ -344,17 +344,6 @@ function SignInContent() {
     finally { setIsSubmitting(false) }
   }
 
-  // ── Clear all auth state (logout helper) ──
-  const clearAuthState = () => {
-    sessionStorage.clear()
-    localStorage.removeItem('auth_user')
-    localStorage.removeItem('jurisai_user')
-    localStorage.removeItem('auth_token')
-    localStorage.removeItem('profile_image')
-    localStorage.removeItem('rememberedEmail')
-    localStorage.removeItem('admin_site_settings')
-  }
-
   if (authLoading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-zinc-950 flex items-center justify-center">

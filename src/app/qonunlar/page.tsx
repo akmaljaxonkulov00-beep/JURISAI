@@ -44,6 +44,29 @@ const CODE_BADGE_COLORS: Record<string, string> = {
   'constitution': 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300',
 };
 
+// Full display names (replacing abbreviations) for use in badges and headings
+const CODE_DISPLAY_NAMES: Record<string, string> = {
+  'criminal_code': 'O\'zbekiston Respublikasi Jinoyat Kodeksi',
+  'civil_code': 'O\'zbekiston Respublikasi Fuqarolik Kodeksi',
+  'labor_code': 'O\'zbekiston Respublikasi Mehnat Kodeksi',
+  'family_code': 'O\'zbekiston Respublikasi Oila Kodeksi',
+  'tax_code': 'O\'zbekiston Respublikasi Soliq Kodeksi',
+  'land_code': 'O\'zbekiston Respublikasi Yer Kodeksi',
+  'admin_code': 'O\'zbekiston Respublikasi Ma\'muriy Javobgarlik To\'g\'risidagi Kodeks',
+  'constitution': 'O\'zbekiston Respublikasi Konstitutsiyasi',
+};
+
+const CODE_SHORT_DISPLAY: Record<string, string> = {
+  'criminal_code': 'JK - Jinoyat Kodeksi',
+  'civil_code': 'FK - Fuqarolik Kodeksi',
+  'labor_code': 'MK - Mehnat Kodeksi',
+  'family_code': 'OK - Oila Kodeksi',
+  'tax_code': 'SK - Soliq Kodeksi',
+  'land_code': 'ZK - Yer Kodeksi',
+  'admin_code': 'MJK - Ma\'muriy JK',
+  'constitution': 'Konstitutsiya',
+};
+
 export default function QonunlarPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCode, setSelectedCode] = useState<string | null>(null);
@@ -105,7 +128,7 @@ export default function QonunlarPage() {
             className="flex items-center gap-2 px-3 py-2 text-sm text-gray-500 dark:text-zinc-400 hover:text-gray-700 dark:hover:text-zinc-200 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl transition-all mb-4"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>{currentCode.shortName} ga qaytish</span>
+            <span>{CODE_SHORT_DISPLAY[currentCode.id] || currentCode.shortName} ga qaytish</span>
           </button>
 
           <Card className="card-default rounded-2xl">
@@ -113,8 +136,8 @@ export default function QonunlarPage() {
               <div className="flex items-start justify-between">
                 <div>
                   <div className="flex items-center gap-2 mb-2">
-                    <Badge className={CODE_BADGE_COLORS[currentCode.id] || ''}>
-                      {currentCode.shortName}
+                    <Badge className={CODE_BADGE_COLORS[currentCode.id] || ''} title={CODE_DISPLAY_NAMES[currentCode.id]}>
+                      {CODE_SHORT_DISPLAY[currentCode.id] || currentCode.shortName}
                     </Badge>
                     <Badge variant="outline" className="text-xs">
                       {selectedArticle.category || 'Modda'}
@@ -226,7 +249,7 @@ export default function QonunlarPage() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={`${currentCode.shortName} dan qidirish...`}
+              placeholder={`${CODE_SHORT_DISPLAY[currentCode.id] || currentCode.shortName} dan qidirish...`}
               className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
             />
           </div>
@@ -370,8 +393,8 @@ export default function QonunlarPage() {
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <Badge className={color}>
-                          {code.shortName}
+                        <Badge className={color} title={CODE_DISPLAY_NAMES[code.id]}>
+                          {CODE_SHORT_DISPLAY[code.id] || code.shortName}
                         </Badge>
                         <span className="font-medium text-sm text-gray-900 dark:text-white">
                           {article.number}-modda
@@ -412,11 +435,11 @@ export default function QonunlarPage() {
                         {CODE_ICONS[code.id] || <BookOpen className="w-6 h-6" />}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                          {code.shortName}
+                        <h3 className="font-semibold text-sm text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                          {CODE_DISPLAY_NAMES[code.id] || code.name}
                         </h3>
-                        <p className="text-xs text-gray-500 dark:text-zinc-400 mt-0.5 line-clamp-2">
-                          {code.name}
+                        <p className="text-[10px] text-gray-500 dark:text-zinc-400 mt-0.5 line-clamp-2">
+                          {code.description}
                         </p>
                         <div className="flex items-center gap-3 mt-2 text-xs text-gray-400 dark:text-zinc-500">
                           <span>{code.totalArticles} ta modda</span>
@@ -451,7 +474,7 @@ export default function QonunlarPage() {
                           {CODE_ICONS[code.id] || <BookOpen className="w-4 h-4" />}
                         </div>
                         <div>
-                          <h3 className="font-semibold text-sm text-gray-900 dark:text-white">{code.shortName}</h3>
+                          <h3 className="font-semibold text-sm text-gray-900 dark:text-white">{CODE_SHORT_DISPLAY[code.id] || code.shortName}</h3>
                           <p className="text-xs text-gray-500 dark:text-zinc-400">{cats.size} ta kategoriya</p>
                         </div>
                       </div>
@@ -494,7 +517,7 @@ export default function QonunlarPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <Badge className={color}>{code.shortName}</Badge>
+                        <Badge className={color} title={CODE_DISPLAY_NAMES[code.id]}>{CODE_SHORT_DISPLAY[code.id] || code.shortName}</Badge>
                         <span className="font-medium text-sm text-gray-900 dark:text-white">
                           {article.number}-modda
                         </span>
