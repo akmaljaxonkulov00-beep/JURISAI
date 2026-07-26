@@ -46,7 +46,7 @@ const CODE_BADGE_COLORS: Record<string, string> = {
   'family_code': 'bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-pink-300',
   'tax_code': 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300',
   'land_code': 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300',
-  'admin_code': 'bg-slate-100 text-slate-800 dark:bg-slate-900/30 dark:text-slate-300',
+  'admin_code': 'bg-slate-100 dark:bg-zinc-800/30 text-slate-800 dark:bg-slate-900/30 dark:text-slate-300',
   'constitution': 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300',
   'civil_procedure_code': 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-300',
   'criminal_procedure_code': 'bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-300',
@@ -204,7 +204,7 @@ export default function QonunlarPage() {
               )}
 
               <div className="flex items-center gap-4 pt-2 text-xs text-gray-400 dark:text-zinc-500">
-                <span>{currentCode.name}</span>
+                <span>{CODE_DISPLAY_NAMES[currentCode.id] || currentCode.name}</span>
                 <span>•</span>
                 <span>Kuchga kirgan: {currentCode.effectiveDate}</span>
               </div>
@@ -235,7 +235,7 @@ export default function QonunlarPage() {
                 {CODE_ICONS[currentCode.id] || <BookOpen className="w-8 h-8" />}
               </div>
               <div>
-                <h1 className="text-2xl font-bold">{currentCode.name}</h1>
+                <h1 className="text-2xl font-bold">{CODE_DISPLAY_NAMES[currentCode.id] || currentCode.name}</h1>
                 <p className="text-white/80 text-sm mt-1">{currentCode.description}</p>
                 <div className="flex items-center gap-4 mt-2 text-white/70 text-xs">
                   <span>{currentCode.totalArticles} ta modda</span>
@@ -248,13 +248,13 @@ export default function QonunlarPage() {
 
           {/* Search inside code */}
           <div className="relative mb-6">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-zinc-500" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={`${(CODE_DISPLAY_NAMES[currentCode.id] || currentCode.name).substring(0, 30)}... dan qidirish`}
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-gray-900 dark:text-white placeholder:text-gray-400 dark:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
             />
           </div>
 
@@ -279,7 +279,7 @@ export default function QonunlarPage() {
                         {article.title}
                       </span>
                     </div>
-                    <ChevronRight className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                    <ChevronRight className="w-4 h-4 text-gray-400 dark:text-zinc-500 flex-shrink-0" />
                   </div>
                 </button>
               ))}
@@ -352,13 +352,13 @@ export default function QonunlarPage() {
 
         {/* Search */}
         <div className="relative mb-8">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-zinc-500" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Qonun, modda yoki kodeks bo'yicha qidirish..."
-            className="w-full pl-12 pr-4 py-3 rounded-2xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm text-sm"
+            className="w-full pl-12 pr-4 py-3 rounded-2xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-gray-900 dark:text-white placeholder:text-gray-400 dark:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm text-sm"
           />
         </div>
 
