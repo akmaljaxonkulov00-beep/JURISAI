@@ -6,237 +6,191 @@ import { firebaseAuth } from '@/services/firebase-auth'
 import { useAuth } from '@/app/providers'
 
 // ═══════════════════════════════════════════════════════════════════════════
-// 3D Interactive Legal Shield Canvas
+// 3D Interactive Floating Scene with Framer Motion
 // ═══════════════════════════════════════════════════════════════════════════
 
-function ShieldCanvas({ mousePos }: { mousePos: { x: number; y: number } }) {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-  const speedRef = useRef(0)
-  const lastMouseRef = useRef({ x: 0, y: 0, time: 0 })
+import { motion, useSpring, useTransform, useMotionValue } from 'framer-motion'
 
-  useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
+function FloatingCard({ children, depth = 0, index = 0, mouseX, mouseY }: {
+  children: React.ReactNode
+  depth?: number
+  index?: number
+  mouseX: any
+  mouseY: any
+}) {
+  const rotateX = useTransform(mouseY, [0, 1], [depth * 2, -depth * 2])
+  const rotateY = useTransform(mouseX, [0, 1], [-depth * 2, depth * 2])
+  const springRotateX = useSpring(rotateX, { stiffness: 80, damping: 12 })
+  const springRotateY = useSpring(rotateY, { stiffness: 80, damping: 12 })
 
-    let animId: number
-    let time = 0
-    const particles: {
-      x: number; y: number; vx: number; vy: number
-      size: number; alpha: number; pulse: number
-      orbitAngle: number; orbitSpeed: number; orbitRadius: number
-      baseRadius: number
-    }[] = []
-    const PARTICLE_COUNT = 120
+  const floatDuration = 5 + index * 1.3
+  const floatDelay = index * 0.7
 
-    const resize = () => {
-      const parent = canvas.parentElement
-      if (parent) {
-        canvas.width = parent.clientWidth
-        canvas.height = parent.clientHeight
-      }
-    }
-    resize()
-    window.addEventListener('resize', resize)
-
-    for (let i = 0; i < PARTICLE_COUNT; i++) {
-      const angle = (i / PARTICLE_COUNT) * Math.PI * 2
-      const radius = 50 + Math.random() * 160
-      particles.push({
-        x: canvas.width / 2 + Math.cos(angle) * radius,
-        y: canvas.height / 2 + Math.sin(angle) * radius,
-        vx: (Math.random() - 0.5) * 0.4,
-        vy: (Math.random() - 0.5) * 0.4,
-        size: Math.random() * 2.5 + 0.5,
-        alpha: Math.random() * 0.6 + 0.2,
-        pulse: Math.random() * Math.PI * 2,
-        orbitAngle: angle,
-        orbitSpeed: (0.0008 + Math.random() * 0.003) * (i % 2 === 0 ? 1 : -1),
-        orbitRadius: radius,
-        baseRadius: radius,
-      })
-    }
-
-    const cx = () => canvas.width / 2
-    const cy = () => canvas.height / 2
-
-    const drawShield = (isDark: boolean) => {
-      const shieldX = cx()
-      const shieldY = cy() - 10
-      const pulseScale = 1 + 0.02 * Math.sin(time * 0.5)
-
-      // Outer glow with rotating highlight
-      const glow = ctx.createRadialGradient(shieldX, shieldY, 20, shieldX, shieldY, 140)
-      glow.addColorStop(0, isDark ? 'rgba(59, 130, 246, 0.2)' : 'rgba(37, 99, 235, 0.1)')
-      glow.addColorStop(0.4, isDark ? 'rgba(16, 185, 129, 0.1)' : 'rgba(16, 185, 129, 0.05)')
-      glow.addColorStop(1, 'rgba(0,0,0,0)')
-      ctx.fillStyle = glow
-      ctx.fillRect(0, 0, canvas.width, canvas.height)
-
-      // Rotating glint
-      const glintAngle = time * 0.3
-      ctx.save()
-      ctx.translate(shieldX, shieldY)
-      ctx.rotate(glintAngle)
-      const glint = ctx.createLinearGradient(-60, 0, 60, 0)
-      glint.addColorStop(0, 'rgba(255,255,255,0)')
-      glint.addColorStop(0.3, isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.06)')
-      glint.addColorStop(0.5, isDark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.1)')
-      glint.addColorStop(0.7, isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.06)')
-      glint.addColorStop(1, 'rgba(255,255,255,0)')
-      ctx.fillStyle = glint
-      ctx.fillRect(-60, -70, 120, 140)
-      ctx.restore()
-
-      ctx.save()
-      ctx.translate(shieldX, shieldY)
-      ctx.scale(pulseScale, pulseScale)
-
-      const sw = 80, sh = 100
-      ctx.beginPath()
-      ctx.moveTo(0, -sh / 2)
-      ctx.lineTo(sw / 2, -sh / 4)
-      ctx.lineTo(sw / 2, sh / 4)
-      ctx.quadraticCurveTo(sw / 2, sh / 2 + 10, 0, sh / 2 + 20)
-      ctx.quadraticCurveTo(-sw / 2, sh / 2 + 10, -sw / 2, sh / 4)
-      ctx.lineTo(-sw / 2, -sh / 4)
-      ctx.closePath()
-
-      const grad = ctx.createLinearGradient(-sw / 2, 0, sw / 2, 0)
-      grad.addColorStop(0, isDark ? '#1D4ED8' : '#2563EB')
-      grad.addColorStop(0.5, isDark ? '#10B981' : '#059669')
-      grad.addColorStop(1, isDark ? '#1D4ED8' : '#2563EB')
-      ctx.fillStyle = grad
-      ctx.globalAlpha = 0.15 + 0.05 * Math.sin(time * 0.8)
-      ctx.fill()
-
-      ctx.strokeStyle = isDark ? 'rgba(96, 165, 250, 0.3)' : 'rgba(37, 99, 235, 0.2)'
-      ctx.lineWidth = 2
-      ctx.stroke()
-
-      ctx.beginPath()
-      ctx.moveTo(-12, 8)
-      ctx.lineTo(-12, -8)
-      ctx.moveTo(12, 8)
-      ctx.lineTo(12, -8)
-      ctx.strokeStyle = isDark ? 'rgba(96, 165, 250, 0.4)' : 'rgba(37, 99, 235, 0.3)'
-      ctx.lineWidth = 2.5
-      ctx.stroke()
-
-      ctx.beginPath()
-      ctx.arc(0, -4, 4 + 1.5 * Math.sin(time), 0, Math.PI)
-      ctx.strokeStyle = isDark ? 'rgba(16, 185, 129, 0.4)' : 'rgba(16, 185, 129, 0.3)'
-      ctx.lineWidth = 1.5
-      ctx.stroke()
-
-      ctx.restore()
-    }
-
-    const animate = () => {
-      time += 0.02
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
-
-      const isDark = document.documentElement.classList.contains('dark')
-      drawShield(isDark)
-
-      // Calculate mouse speed for burst effect
-      const now = Date.now()
-      const last = lastMouseRef.current
-      const dt = Math.max(16, now - last.time)
-      const dx = mousePos.x - last.x
-      const dy = mousePos.y - last.y
-      const speed = Math.sqrt(dx * dx + dy * dy) / dt * 8
-      speedRef.current = Math.min(speed, 4)
-      lastMouseRef.current = { x: mousePos.x, y: mousePos.y, time: now }
-
-      const burstFactor = 1 + speedRef.current * 0.5
-
-      particles.forEach((p) => {
-        p.orbitAngle += p.orbitSpeed * (1 + speedRef.current * 0.2)
-        const targetRadius = p.baseRadius * burstFactor
-        const targetX = cx() + Math.cos(p.orbitAngle) * targetRadius
-        const targetY = cy() - 10 + Math.sin(p.orbitAngle) * targetRadius * 0.7
-        p.x += (targetX - p.x) * 0.025 + p.vx
-        p.y += (targetY - p.y) * 0.025 + p.vy
-        p.pulse += 0.04 + speedRef.current * 0.03
-
-        // Mouse repulsion
-        const mx = mousePos.x - p.x
-        const my = mousePos.y - p.y
-        const dist = Math.sqrt(mx * mx + my * my)
-        if (dist < 160) {
-          const force = (160 - dist) / 160 * 0.06 * (1 + speedRef.current * 0.5)
-          p.x -= mx * force
-          p.y -= my * force
-        }
-
-        const alpha = p.alpha * (0.4 + 0.6 * Math.sin(p.pulse))
-        const sizeBoost = p.size * (1 + speedRef.current * 0.2)
-        ctx.beginPath()
-        ctx.arc(p.x, p.y, sizeBoost, 0, Math.PI * 2)
-        ctx.fillStyle = isDark ? `rgba(96, 165, 250, ${alpha})` : `rgba(37, 99, 235, ${alpha})`
-        ctx.fill()
-      })
-
-      // Dynamic connections — more visible when mouse moves fast
-      const maxDist = 100 + speedRef.current * 30
-      const connAlpha = 0.08 + speedRef.current * 0.04
-      for (let i = 0; i < particles.length; i += 4) {
-        const p1 = particles[i]
-        for (let j = i + 1; j < particles.length; j += 4) {
-          const p2 = particles[j]
-          const dx = p2.x - p1.x
-          const dy = p2.y - p1.y
-          const dist2 = Math.sqrt(dx * dx + dy * dy)
-          if (dist2 < maxDist) {
-            const la = (1 - dist2 / maxDist) * connAlpha
-            ctx.beginPath()
-            ctx.moveTo(p1.x, p1.y)
-            ctx.lineTo(p2.x, p2.y)
-            ctx.strokeStyle = isDark ? `rgba(96, 165, 250, ${la})` : `rgba(37, 99, 235, ${la})`
-            ctx.lineWidth = 0.4 + speedRef.current * 0.15
-            ctx.stroke()
-          }
-        }
-      }
-
-      animId = requestAnimationFrame(animate)
-    }
-
-    animate()
-    return () => { cancelAnimationFrame(animId); window.removeEventListener('resize', resize) }
-  }, [mousePos])
-
-  return <canvas ref={canvasRef} className="w-full h-full" />
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 40 }}
+      animate={{
+        opacity: 1,
+        y: [0, -8 - index * 2, 0],
+        transition: {
+          opacity: { duration: 0.6, delay: index * 0.15 },
+          y: {
+            duration: floatDuration,
+            delay: floatDelay,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          },
+        },
+      }}
+      style={{
+        rotateX: springRotateX,
+        rotateY: springRotateY,
+        perspective: 800,
+        transformStyle: 'preserve-3d',
+      }}
+      whileHover={{
+        scale: 1.03,
+        z: 30,
+        transition: { type: 'spring', stiffness: 300, damping: 15 },
+      }}
+      className="relative group cursor-default"
+    >
+      <div
+        className="relative rounded-2xl p-4 backdrop-blur-xl border border-white/20 shadow-2xl overflow-hidden"
+        style={{
+          background: 'linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.04) 100%)',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.2)'
+        }}
+      >
+        {/* Glass highlight */}
+        <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent" />
+        {/* Group hover glow */}
+        <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/10 to-emerald-500/10 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        <div className="relative">{children}</div>
+      </div>
+    </motion.div>
+  )
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Floating Badge
-// ═══════════════════════════════════════════════════════════════════════════
-
-function GlowingBadge({
-  icon, text, className, delay = 0, mousePos = { x: 0, y: 0 }
-}: {
-  icon: React.ReactNode; text: string; className?: string; delay?: number; mousePos?: { x: number; y: number }
-}) {
-  // Parallax offset: subtle movement based on cursor position (only in browser)
-  const isBrowser = typeof window !== 'undefined'
-  const px = isBrowser ? (mousePos.x / window.innerWidth - 0.5) * 8 : 0
-  const py = isBrowser ? (mousePos.y / window.innerHeight - 0.5) * 8 : 0
+function LegalShieldIcon() {
   return (
-    <div
-      className={`hidden lg:flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl glass-card shadow-lg border border-white/20 backdrop-blur-md whitespace-nowrap ${className || ''}`}
-      style={{
-        animation: `floatBadge 7s ease-in-out ${delay}s infinite`,
-        transform: `translate(${px}px, ${py}px)`,
-        transition: 'transform 0.3s ease-out'
-      }}
-    >
-      <div className="p-1.5 rounded-lg bg-gradient-to-br from-blue-500/20 to-green-500/20 text-blue-600 dark:text-blue-400">
-        {icon}
+    <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+    </svg>
+  )
+}
+
+function GavelIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <path d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
+    </svg>
+  )
+}
+
+function FileIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="12" y1="18" x2="12" y2="12" /><line x1="9" y1="15" x2="15" y2="15" />
+    </svg>
+  )
+}
+
+function SearchIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+    </svg>
+  )
+}
+
+function NetworkIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+    </svg>
+  )
+}
+
+function ShineIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <path d="M12 3v3m0 12v3M3 12h3m12 0h3M5.636 5.636l2.121 2.121m8.486 8.486l2.121 2.121M18.364 5.636l-2.121 2.121m-8.486 8.486l-2.121 2.121" />
+    </svg>
+  )
+}
+
+const floatingCards = [
+  { icon: <LegalShieldIcon />, title: 'AI Huquqiy Agent', desc: 'O\'zbekiston qonunchiligi asosida maslahat', color: 'from-blue-400/30 to-blue-600/20', depth: 4 },
+  { icon: <GavelIcon />, title: 'Virtual Sud AI', desc: 'Real vaqt rejimida sud simulyatsiyasi', color: 'from-emerald-400/30 to-emerald-600/20', depth: 6 },
+  { icon: <FileIcon />, title: 'AI Hujjat Generator', desc: 'Da\'vo, shartnoma, ishonchnoma yarating', color: 'from-amber-400/30 to-amber-600/20', depth: 3 },
+  { icon: <SearchIcon />, title: 'Smart Search', desc: 'Semantic va natural language qidiruv', color: 'from-purple-400/30 to-purple-600/20', depth: 7 },
+  { icon: <NetworkIcon />, title: 'O\'zbekiston Qonunchiligi', desc: '10 ta kodeks, 3000+ modda, AI tahlil', color: 'from-cyan-400/30 to-cyan-600/20', depth: 5 },
+  { icon: <ShineIcon />, title: 'AI Analitika', desc: 'Qonunlarni taqqoslash, risk analysis', color: 'from-rose-400/30 to-rose-600/20', depth: 8 },
+]
+
+function FloatingScene({ mouseX, mouseY }: { mouseX: any; mouseY: any }) {
+  return (
+    <div className="relative w-full h-full flex items-center justify-center">
+      {/* Central glow */}
+      <div className="absolute w-64 h-64 bg-gradient-to-r from-blue-500/15 to-emerald-500/15 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '4s' }} />
+
+      {/* 3D Grid Cards — positioned in a ring around center */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div className="relative w-[420px] h-[420px]">
+          {floatingCards.map((card, i) => {
+            const angle = (i / floatingCards.length) * Math.PI * 2 - Math.PI / 2
+            const radius = 170
+            const x = Math.cos(angle) * radius
+            const y = Math.sin(angle) * radius
+            const cardWidth = i % 2 === 0 ? 160 : 140
+            const cardHeight = 80
+
+            return (
+              <motion.div
+                key={i}
+                className="absolute"
+                style={{
+                  left: `calc(50% + ${x}px - ${cardWidth / 2}px)`,
+                  top: `calc(50% + ${y}px - ${cardHeight / 2}px)`,
+                  width: cardWidth,
+                }}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{
+                  opacity: 1,
+                  scale: 1,
+                  transition: { delay: i * 0.12, duration: 0.5, ease: 'easeOut' },
+                }}
+              >
+                <FloatingCard depth={card.depth} index={i} mouseX={mouseX} mouseY={mouseY}>
+                  <div className="flex items-start gap-2.5">
+                    <div className={`w-9 h-9 rounded-lg bg-gradient-to-br ${card.color} flex items-center justify-center text-white flex-shrink-0`}>
+                      {card.icon}
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="text-xs font-semibold text-white/90 leading-tight">{card.title}</h3>
+                      <p className="text-[10px] text-white/50 mt-0.5 leading-tight">{card.desc}</p>
+                    </div>
+                  </div>
+                </FloatingCard>
+              </motion.div>
+            )
+          })}
+
+          {/* Center logo */}
+          <motion.div
+            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.3, type: 'spring', stiffness: 200, damping: 15 }}
+            style={{ rotateX: useSpring(useTransform(mouseY, [0, 1], [5, -5]), { stiffness: 100 }), rotateY: useSpring(useTransform(mouseX, [0, 1], [-5, 5]), { stiffness: 100 }) }}
+          >
+            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500/30 to-emerald-500/30 backdrop-blur-xl border border-white/20 flex items-center justify-center shadow-2xl">
+              <LegalShieldIcon />
+            </div>
+          </motion.div>
+        </div>
       </div>
-      <span className="text-xs font-semibold text-gray-800 dark:text-white">{text}</span>
     </div>
   )
 }
@@ -253,6 +207,8 @@ function SignInContent() {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
   const [mouseSpeed, setMouseSpeed] = useState(0)
   const lastMousePos = useRef({ x: 0, y: 0, time: 0 })
+  const mouseX = useMotionValue(0.5)
+  const mouseY = useMotionValue(0.5)
   const [mode, setMode] = useState<'login' | 'register'>('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -265,6 +221,11 @@ function SignInContent() {
   const [rememberMe, setRememberMe] = useState(false)
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    const rect = e.currentTarget.getBoundingClientRect()
+    const x = (e.clientX - rect.left) / rect.width
+    const y = (e.clientY - rect.top) / rect.height
+    mouseX.set(x)
+    mouseY.set(y)
     setMousePos({ x: e.clientX, y: e.clientY })
     const now = Date.now()
     const last = lastMousePos.current
@@ -274,7 +235,7 @@ function SignInContent() {
     const speed = Math.sqrt(dx * dx + dy * dy) / dt * 10
     setMouseSpeed(Math.min(speed, 5))
     lastMousePos.current = { x: e.clientX, y: e.clientY, time: now }
-  }, [])
+  }, [mouseX, mouseY])
 
   // Handle Google OAuth redirect on mount
   useEffect(() => {
@@ -378,72 +339,70 @@ function SignInContent() {
   return (
     <div className="min-h-screen lg:grid lg:grid-cols-2" onMouseMove={handleMouseMove}>
 
-      {/* ═══ LEFT PANEL (desktop only) ═══ */}
-      <div className="hidden lg:block relative min-h-screen bg-gradient-to-br from-blue-600 via-blue-700 to-green-700 overflow-hidden">
-        {/* Animated orbs */}
-        <div className="absolute -top-32 -left-32 w-96 h-96 bg-blue-400/20 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '4s' }} />
-        <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-green-400/20 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '6s' }} />
+      {/* ═══ LEFT PANEL — 3D Floating Scene (desktop only) ═══ */}
+      <div className="hidden lg:block relative min-h-screen bg-gradient-to-br from-zinc-900 via-blue-950 to-emerald-950 overflow-hidden">
+        {/* Depth layers */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(59,130,246,0.08)_0%,transparent_60%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,rgba(16,185,129,0.05)_0%,transparent_60%)]" />
+        
+        {/* Animated grid overlay */}
+        <div className="absolute inset-0 opacity-[0.03]" style={{
+          backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)',
+          backgroundSize: '60px 60px'
+        }} />
 
-        {/* Canvas */}
-        <div className="absolute inset-0 z-10">
+        {/* Floating Particles via Canvas */}
+        <div className="absolute inset-0">
           <ShieldCanvas mousePos={mousePos} />
         </div>
 
-        {/* Badges — clean flex column layout, no overlapping */}
-        <div className="absolute z-20 inset-0 hidden lg:flex flex-col items-center justify-end pb-36 gap-3">
-          <GlowingBadge
-            icon={<svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2l9 4.5v7c0 4.5-4 8.5-9 9-5-0.5-9-4.5-9-9v-7l9-4.5z"/></svg>}
-            text="O'zR Qonunchiligiga 100% Mos AI"
-            delay={0}
-            mousePos={mousePos}
-          />
-          <GlowingBadge
-            icon={<svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"/></svg>}
-            text="Virtual Sud Simulyatori"
-            delay={0.8}
-            mousePos={mousePos}
-          />
-          <GlowingBadge
-            icon={<svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>}
-            text="10,000+ Yuridik Hujjatlar"
-            delay={1.6}
-            mousePos={mousePos}
-          />
-          <GlowingBadge
-            icon={<svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18M3 12h18M3 18h18"/><path d="M3 6l3-3M3 6l3 3"/></svg>}
-            text="IRAC Huquqiy Tahlil"
-            delay={2.4}
-            mousePos={mousePos}
-          />
+        {/* Floating 3D Scene */}
+        <div className="absolute inset-0 z-10">
+          <FloatingScene mouseX={mouseX} mouseY={mouseY} />
         </div>
 
-        {/* Center text */}
-        <div className="absolute z-20 inset-0 flex flex-col items-center justify-center">
-          <h2 className="text-4xl font-bold text-white text-center leading-tight">
-            Huquqiy AI<br />Yordamchingiz
-          </h2>
-          <p className="text-blue-100/70 text-sm text-center max-w-xs mt-3">
-            O'zbekiston qonunchiligi bo'yicha eng zamonaviy sun'iy intellekt tizimi
-          </p>
+        {/* Overlay text at top */}
+        <div className="absolute z-10 top-12 left-0 right-0 text-center">
+          <motion.h1
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.6 }}
+            className="text-4xl font-bold text-white"
+          >
+            JURISAI
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4, duration: 0.6 }}
+            className="text-blue-200/60 text-sm mt-1"
+          >
+            Huquqiy AI Platformasi
+          </motion.p>
         </div>
 
         {/* Bottom stats */}
-        <div className="absolute z-20 bottom-8 left-0 right-0 flex items-center justify-center gap-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.8, duration: 0.6 }}
+          className="absolute z-10 bottom-8 left-0 right-0 flex items-center justify-center gap-8"
+        >
           <div className="text-center">
             <div className="text-xl font-bold text-white">50K+</div>
             <div className="text-blue-200/60 text-[10px]">Faol foydalanuvchilar</div>
           </div>
-          <div className="w-px h-8 bg-white/20" />
+          <div className="w-px h-8 bg-white/10" />
           <div className="text-center">
-            <div className="text-xl font-bold text-white">8</div>
+            <div className="text-xl font-bold text-white">10</div>
             <div className="text-blue-200/60 text-[10px]">Qonun kodekslari</div>
           </div>
-          <div className="w-px h-8 bg-white/20" />
+          <div className="w-px h-8 bg-white/10" />
           <div className="text-center">
             <div className="text-xl font-bold text-white">1M+</div>
             <div className="text-blue-200/60 text-[10px]">AI so'rovlari</div>
           </div>
-        </div>
+        </motion.div>
       </div>
 
       {/* ═══ RIGHT PANEL: Login / Register Form ═══ */}

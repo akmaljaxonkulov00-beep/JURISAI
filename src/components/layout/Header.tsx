@@ -26,9 +26,19 @@ const Header: React.FC<HeaderProps> = ({ user, className }) => {
     { name: 'Jamiyat', href: '/community' },
   ];
 
-  const handleLogout = () => {
-    toast.success('Tizimdan muvaffaqiyatli chiqdingiz');
-    // Handle logout logic here
+  const handleLogout = async () => {
+    try {
+      const { firebaseAuth } = await import('@/services/firebase-auth');
+      await firebaseAuth.signOut();
+    } catch {
+      // Nuclear clear fallback
+      localStorage.clear();
+      sessionStorage.clear();
+      document.cookie.split(';').forEach((c) => {
+        document.cookie = c.replace(/^ +/, '').replace(/=.*/, '=;expires=' + new Date().toUTCString() + ';path=/');
+      });
+      window.location.href = '/signin';
+    }
   };
 
   return (

@@ -305,6 +305,12 @@ export async function signOut(): Promise<void> {
     if (typeof window !== 'undefined') {
       localStorage.clear();
       sessionStorage.clear();
+      // Clear ALL cookies
+      document.cookie.split(';').forEach((c) => {
+        document.cookie = c
+          .replace(/^ +/, '')
+          .replace(/=.*/, '=;expires=' + new Date().toUTCString() + ';path=/');
+      });
       // Hard redirect to force full page reload + session clear
       window.location.href = '/login';
     }
