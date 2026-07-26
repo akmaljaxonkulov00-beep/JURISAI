@@ -15,6 +15,21 @@ function PaymentContent() {
   const [previewUrl, setPreviewUrl] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<'idle' | 'pending' | 'success'>('idle');
+  const [adminSettings, setAdminSettings] = useState<any>(null);
+
+  useEffect(() => {
+    // Load admin settings (bank cards from admin panel)
+    try {
+      const stored = localStorage.getItem('admin_site_settings') || localStorage.getItem('siteSettings');
+      if (stored) {
+        setAdminSettings(JSON.parse(stored));
+      }
+    } catch {}
+  }, []);
+
+  // Get dynamic card info from admin settings
+  const cardNumber = adminSettings?.paymentCardNumber || '8600 1234 5678 9012';
+  const paymentDetails = adminSettings?.paymentDetails || `Click: *123# ${amount.toLocaleString()} UZS / Payme: 8600 1234 5678 9012`;
 
   useEffect(() => {
     const plan = searchParams.get('plan') || 'standart';
@@ -187,12 +202,12 @@ function PaymentContent() {
                 <h3 className="font-medium text-gray-800 dark:text-white">To'lov usullari:</h3>
                 <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
                   <h4 className="font-medium text-gray-800 dark:text-white mb-2">Click / Payme</h4>
-                  <p className="font-mono text-sm text-gray-600 dark:text-gray-400">8600 1234 5678 9012</p>
+                  <p className="font-mono text-sm text-gray-600 dark:text-gray-400">{cardNumber}</p>
                   <p className="text-xs text-gray-500 mt-1">Click: *123# {amount.toLocaleString()} UZS</p>
                 </div>
                 <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
                   <h4 className="font-medium text-gray-800 dark:text-white mb-2">Bank karta</h4>
-                  <p className="font-mono text-sm text-gray-600 dark:text-gray-400">8600 1234 5678 9012</p>
+                  <p className="font-mono text-sm text-gray-600 dark:text-gray-400">{cardNumber}</p>
                   <p className="text-xs text-gray-500 mt-1">Humo, Uzcard, Visa</p>
                 </div>
                 <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl text-center">
