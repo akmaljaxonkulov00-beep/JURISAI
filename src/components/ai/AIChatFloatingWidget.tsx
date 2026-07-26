@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { MessageSquare, X, Send, History, Trash2, Sparkles, ChevronDown, Plus } from 'lucide-react';
+import { MessageSquare, X, Send, History, Trash2, Sparkles, ChevronDown, Plus, Mic, MicOff } from 'lucide-react';
 
 interface ChatMessage {
   id: string;
@@ -76,6 +76,9 @@ export default function AIChatFloatingWidget() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [isListening, setIsListening] = useState(false);
+  const [speechSupported, setSpeechSupported] = useState(false);
+  const recognitionRef = useRef<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const activeSession = sessions.find(s => s.id === activeSessionId);
@@ -108,6 +111,13 @@ export default function AIChatFloatingWidget() {
     setSessions(prev => [newSession, ...prev]);
     setActiveSessionId(newSession.id);
     setShowHistory(false);
+  }, []);
+
+  // Check if Speech Recognition is supported
+  useEffect(() => {
+    if (typeof window !== 'undefined' && ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
+      setSpeechSupported(true);
+    }
   }, []);
 
   // Auto-create first session
@@ -192,6 +202,64 @@ export default function AIChatFloatingWidget() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // ── Voice Input (STT) ──
+  const toggleListening = () => {
+    if (isListening) {
+      stopListening();
+      return;
+    }
+    startListening();
+  };
+
+  const startListening = () => {
+    if (!speechSupported) return;
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) { setSpeechSupported(false); return; }
+
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = true;
+    recognition.lang = 'uz-UZ';
+
+    recognition.onresult = (event: any) => {
+      let interimTranscript = '';
+      let finalTranscript = '';
+
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          finalTranscript += transcript;
+        } else {
+          interimTranscript += transcript;
+        }
+      }
+
+      if (finalTranscript) {
+        setInput(prev => (prev ? prev + ' ' : '') + finalTranscript);
+      }
+    };
+
+    recognition.onerror = () => {
+      setIsListening(false);
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+
+    recognitionRef.current = recognition;
+    recognition.start();
+    setIsListening(true);
+  };
+
+  const stopListening = () => {
+    if (recognitionRef.current) {
+      try { recognitionRef.current.stop(); } catch {}
+      recognitionRef.current = null;
+    }
+    setIsListening(false);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -350,11 +418,25 @@ export default function AIChatFloatingWidget() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Savolingizni yozing..."
+                placeholder={isListening ? 'Gapiryapsiz...' : 'Savolingizni yozing...'}
                 rows={1}
                 className="flex-1 px-3 py-2 rounded-xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800 text-sm text-gray-800 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 resize-none max-h-24"
                 disabled={loading}
               />
+              {speechSupported && (
+                <button
+                  onClick={toggleListening}
+                  disabled={loading}
+                  className={`p-2.5 rounded-xl transition-all active:scale-95 ${
+                    isListening
+                      ? 'bg-red-500 text-white shadow-lg shadow-red-500/30 animate-pulse'
+                      : 'bg-gray-200 dark:bg-zinc-700 text-gray-600 dark:text-zinc-300 hover:bg-gray-300 dark:hover:bg-zinc-600'
+                  }`}
+                  title={isListening ? "Yozishni to'xtatish" : 'Ovozli kiritish (STT)'}
+                >
+                  {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                </button>
+              )}
               <button
                 onClick={sendMessage}
                 disabled={!input.trim() || loading}
