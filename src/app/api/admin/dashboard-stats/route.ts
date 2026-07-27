@@ -105,8 +105,8 @@ export async function GET(request: NextRequest) {
 
           // Count premium users
           result.premium_users = authUsers.filter((u: any) => {
-            const plan = u.raw_user_meta_data?.subscription_plan;
-            return plan && plan !== 'free' && plan !== '' && plan !== null;
+            const plan = (u.raw_user_meta_data?.subscription_plan || '').toLowerCase();
+          return plan && plan !== 'free' && plan !== '';
           }).length;
         }
       }
