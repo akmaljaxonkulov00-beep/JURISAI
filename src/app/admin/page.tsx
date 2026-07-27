@@ -239,11 +239,31 @@ export default function AdminDashboard() {
     }
   };
 
-  // ===== USER MANAGEMENT =====
+  // ===== USER MANAGEMENT (local + Supabase sync) =====
+  const syncUserToSupabase = async (userData: any) => {
+    try {
+      await fetch('/api/admin/users', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: userData.id || userData.uid || userData.email,
+          email: userData.email,
+          role: userData.role,
+          subscription_plan: userData.subscription_plan,
+          subscription_expires_at: userData.subscription_expires_at,
+          blocked: userData.blocked,
+          name: userData.name,
+        }),
+      });
+    } catch {}
+  };
+
   const updateUserRole = (userId: string, newRole: string) => {
     const updated = allUsers.map((u: any) => {
       if (u.id === userId || u.uid === userId) {
-        return { ...u, role: newRole };
+        const newData = { ...u, role: newRole };
+        syncUserToSupabase(newData);
+        return newData;
       }
       return u;
     });
@@ -255,7 +275,9 @@ export default function AdminDashboard() {
     const updated = allUsers.map((u: any) => {
       if (u.id === userId || u.uid === userId) {
         const expiresAt = plan !== 'free' ? new Date(Date.now() + 365 * 86400000).toISOString() : '';
-        return { ...u, subscription_plan: plan, subscription_expires_at: expiresAt };
+        const newData = { ...u, subscription_plan: plan, subscription_expires_at: expiresAt };
+        syncUserToSupabase(newData);
+        return newData;
       }
       return u;
     });
@@ -266,7 +288,9 @@ export default function AdminDashboard() {
   const toggleUserBlock = (userId: string) => {
     const updated = allUsers.map((u: any) => {
       if (u.id === userId || u.uid === userId) {
-        return { ...u, blocked: !u.blocked };
+        const newData = { ...u, blocked: !u.blocked };
+        syncUserToSupabase(newData);
+        return newData;
       }
       return u;
     });
@@ -274,8 +298,15 @@ export default function AdminDashboard() {
     localStorage.setItem('registered_users', JSON.stringify(updated));
   };
 
-  const deleteUser = (userId: string) => {
+  const deleteUser = async (userId: string) => {
     if (!confirm('Bu foydalanuvchini o\'chirishni tasdiqlaysizmi?')) return;
+    try {
+      await fetch('/api/admin/users', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId }),
+      });
+    } catch {}
     const updated = allUsers.filter((u: any) => u.id !== userId && u.uid !== userId);
     setAllUsers(updated);
     localStorage.setItem('registered_users', JSON.stringify(updated));

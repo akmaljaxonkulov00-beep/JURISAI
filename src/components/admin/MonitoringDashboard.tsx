@@ -123,7 +123,8 @@ export default function MonitoringDashboard() {
   useEffect(() => {
     // Subscribe to tables that affect monitoring charts
     // This runs once on mount; the subscription is independent of `period`
-    const tables = ['payments', 'usage_logs', 'login_activity'];
+    // Match the analytics API table names exactly
+    const tables = ['payment_requests', 'usage_logs', 'auth_logs'];
     const channels: { unsubscribe: () => void }[] = [];
     let subscribedCount = 0;
 

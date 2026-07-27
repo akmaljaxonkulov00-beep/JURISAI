@@ -92,10 +92,12 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// PATCH - Admin-only: Update user status or subscription
+// PATCH - Admin-only: Update user fields (role, subscription, block status)
+// Accepts direct field updates — matches admin page syncUserToSupabase()
 export async function PATCH(request: NextRequest) {
   try {
-    const { userId, action, data } = await request.json();
+    const body = await request.json();
+    const { userId, action, data, ...directFields } = body;
 
     if (!userId) {
       return NextResponse.json(
@@ -104,117 +106,100 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    // Check if user exists
-    const { data: user, error: fetchError } = await supabase
-      .from('users')
-      .select('*')
+    // Support both action-based (legacy) and direct field updates
+    let updatePayload: Record<string, any> = {
+      updated_at: new Date().toISOString(),
+    };
+
+    if (action) {
+      switch (action) {
+        case 'block':
+          updatePayload.blocked = true;
+          break;
+        case 'unblock':
+          updatePayload.blocked = false;
+          break;
+        case 'changeRole':
+          updatePayload.role = data?.role || 'USER';
+          break;
+        case 'changeSubscription':
+          updatePayload.subscription_plan = data?.planId || 'free';
+          updatePayload.subscription_expires_at = data?.expiresAt || 
+            new Date(Date.now() + 365 * 86400000).toISOString();
+          break;
+        default:
+          return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
+      }
+    } else {
+      // Direct field updates from syncUserToSupabase
+      if (directFields.role !== undefined) updatePayload.role = directFields.role;
+      if (directFields.subscription_plan !== undefined) updatePayload.subscription_plan = directFields.subscription_plan;
+      if (directFields.subscription_expires_at !== undefined) updatePayload.subscription_expires_at = directFields.subscription_expires_at;
+      if (directFields.blocked !== undefined) updatePayload.blocked = directFields.blocked;
+      if (directFields.name !== undefined) updatePayload.name = directFields.name;
+      if (directFields.email !== undefined) updatePayload.email = directFields.email;
+    }
+
+    // Use the same table name as analytics API: registered_users
+    // Try update first to avoid creating phantom records
+    const { data: existing, error: checkError } = await supabase
+      .from('registered_users')
+      .select('id')
       .eq('id', userId)
-      .single();
+      .maybeSingle();
 
-    if (fetchError || !user) {
-      return NextResponse.json(
-        { error: 'Foydalanuvchi topilmadi' },
-        { status: 404 }
-      );
+    if (existing) {
+      // Update existing user
+      const { error: updateError } = await supabase
+        .from('registered_users')
+        .update(updatePayload)
+        .eq('id', userId);
+
+      if (updateError) {
+        console.error('[Admin Users] Update error:', updateError);
+        return NextResponse.json({ success: false, error: updateError.message }, { status: 500 });
+      }
+    } else {
+      // Fallback to 'users' table
+      const { error: fallbackError } = await supabase
+        .from('users')
+        .update(updatePayload)
+        .eq('id', userId);
+
+      if (fallbackError) {
+        console.error('[Admin Users] Fallback update error:', fallbackError);
+        return NextResponse.json({ success: false, error: fallbackError.message }, { status: 500 });
+      }
     }
 
-    let updatedUser;
-
-    switch (action) {
-      case 'block':
-        updatedUser = await supabase
-          .from('users')
-          .update({ status: 'SUSPENDED' })
-          .eq('id', userId)
-          .select()
-          .single();
-        break;
-
-      case 'unblock':
-        updatedUser = await supabase
-          .from('users')
-          .update({ status: 'ACTIVE' })
-          .eq('id', userId)
-          .select()
-          .single();
-        break;
-
-      case 'changeSubscription':
-        if (!data.planId) {
-          return NextResponse.json(
-            { error: 'Plan ID is required' },
-            { status: 400 }
-          );
-        }
-
-        const planPrices: Record<string, number> = {
-          basic: 49000,
-          pro: 99000,
-          premium: 199000
-        };
-
-        const planPrice = planPrices[data.planId] || 99000;
-        const expiresAt = new Date();
-        expiresAt.setMonth(expiresAt.getMonth() + 1);
-
-        // Update user subscription
-        updatedUser = await supabase
-          .from('users')
-          .update({
-            subscription_plan: data.planId,
-            subscription_expires_at: expiresAt.toISOString()
-          })
-          .eq('id', userId)
-          .select()
-          .single();
-
-        // Add to subscription history
-        await supabase
-          .from('subscription_history')
-          .insert({
-            id: crypto.randomUUID(),
-            user_id: userId,
-            plan_id: data.planId,
-            plan_name: data.planId.charAt(0).toUpperCase() + data.planId.slice(1),
-            plan_price: planPrice,
-            started_at: new Date().toISOString(),
-            expires_at: expiresAt.toISOString(),
-            payment_id: null
-          });
-        break;
-
-      case 'changeRole':
-        if (!data.role) {
-          return NextResponse.json(
-            { error: 'Role is required' },
-            { status: 400 }
-          );
-        }
-
-        updatedUser = await supabase
-          .from('users')
-          .update({ role: data.role })
-          .eq('id', userId)
-          .select()
-          .single();
-        break;
-
-      default:
-        return NextResponse.json(
-          { error: 'Invalid action' },
-          { status: 400 }
-        );
-    }
-
-    return NextResponse.json({
-      message: 'Foydalanuvchi ma\'lumotlari muvaffaqiyatli yangilandi',
-      user: updatedUser,
-    });
-  } catch (error) {
-    console.error('User update error:', error);
+    return NextResponse.json({ success: true, message: 'Foydalanuvchi maʼlumotlari yangilandi' });
+  } catch (error: any) {
+    console.error('[Admin Users] Error:', error);
     return NextResponse.json(
-      { error: 'Foydalanuvchini yangilashda xatolik yuz berdi' },
+      { success: false, error: error?.message || 'Xatolik yuz berdi' },
       { status: 500 }
     );
+  }
+}
+
+// DELETE - Admin-only: Remove user
+export async function DELETE(request: NextRequest) {
+  try {
+    const { userId } = await request.json();
+    
+    if (!userId) {
+      return NextResponse.json({ success: false, error: 'User ID is required' }, { status: 400 });
+    }
+
+    // Try registered_users first, fallback to users
+    const { error } = await supabase.from('registered_users').delete().eq('id', userId);
+    
+    if (error) {
+      await supabase.from('users').delete().eq('id', userId);
+    }
+
+    return NextResponse.json({ success: true, message: 'Foydalanuvchi o\'chirildi' });
+  } catch (error: any) {
+    return NextResponse.json({ success: false, error: error?.message }, { status: 500 });
   }
 }

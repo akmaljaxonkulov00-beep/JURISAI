@@ -69,63 +69,33 @@ function groupSessions(sessions: ChatSession[]) {
   return groups.filter(g => g.sessions.length > 0);
 }
 
-// Simple markdown-like renderer for AI responses
-function renderMarkdown(text: string): React.ReactNode {
-  // Split by double newlines for paragraphs
-  const blocks = text.split('\n\n').filter(Boolean);
+// Natural text renderer for AI responses — smooth paragraph flow
+function renderText(text: string): React.ReactNode {
+  const blocks = text.split(/\n\s*\n/).filter(Boolean);
   
   return blocks.map((block, bi) => {
     const trimmed = block.trim();
     
-    // Heading: ## Title
-    if (trimmed.startsWith('## ')) {
-      return (
-        <h3 key={bi} className="font-bold text-sm text-blue-700 dark:text-blue-400 mt-3 mb-1">
-          {trimmed.replace('## ', '')}
-        </h3>
-      );
-    }
-    
-    // Bullet list: • item
-    if (trimmed.startsWith('• ')) {
+    // Bullet list block (starts with • or - or digit.)
+    if (/^[•\-\d]/.test(trimmed)) {
       const lines = trimmed.split('\n').filter(l => l.trim());
       return (
-        <ul key={bi} className="list-disc list-inside space-y-0.5 my-1">
+        <ul key={bi} className="list-disc list-inside space-y-1 my-2 ml-1">
           {lines.map((line, li) => (
-            <li key={li} className="text-xs text-gray-700 dark:text-zinc-300">
-              {renderInline(line.replace(/^•\s*/, ''))}
+            <li key={li} className="text-sm text-gray-700 dark:text-zinc-300 leading-relaxed">
+              {line.replace(/^[•\-]\s*/, '').replace(/^\d+\)\s*/, '')}
             </li>
           ))}
         </ul>
       );
     }
     
-    // Bold list: **text** — description
-    if (trimmed.startsWith('**')) {
-      return (
-        <p key={bi} className="text-xs text-gray-700 dark:text-zinc-300 my-1">
-          {renderInline(trimmed)}
-        </p>
-      );
-    }
-    
-    // Regular paragraph
+    // Regular paragraph with natural spacing
     return (
-      <p key={bi} className="text-xs text-gray-700 dark:text-zinc-300 my-1">
-        {renderInline(trimmed)}
+      <p key={bi} className="text-sm text-gray-700 dark:text-zinc-300 leading-relaxed my-1.5">
+        {trimmed}
       </p>
     );
-  });
-}
-
-function renderInline(text: string): React.ReactNode {
-  // Bold: **text**
-  const parts = text.split(/(\*\*[^*]+\*\*)/g);
-  return parts.map((part, i) => {
-    if (part.startsWith('**') && part.endsWith('**')) {
-      return <strong key={i} className="font-semibold text-gray-900 dark:text-zinc-100">{part.slice(2, -2)}</strong>;
-    }
-    return part;
   });
 }
 
@@ -411,7 +381,7 @@ export default function AIChatFloatingWidget() {
                       : 'bg-gray-100 dark:bg-zinc-800 text-gray-800 dark:text-zinc-200 rounded-bl-md'
                   }`}>
                     {msg.role === 'assistant' ? (
-                      <div className="space-y-0.5">{renderMarkdown(msg.content)}</div>
+                      <div className="space-y-1">{renderText(msg.content)}</div>
                     ) : (
                       <p className="whitespace-pre-wrap">{msg.content}</p>
                     )}

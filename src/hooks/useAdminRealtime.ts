@@ -258,12 +258,16 @@ export function useAdminRealtime(): AdminRealtimeState {
 
     // 2. Supabase Realtime channels — instant updates!
     // We subscribe to tables that admin cares about
+    // IMPORTANT: Table names MUST match the analytics API queries
+    // Analytics API queries: payment_requests, usage_logs, auth_logs,
+    //   registered_users, site_settings, pricing_plans
     const tables = [
-      { name: 'payments', key: 'payments' },
+      { name: 'payment_requests', key: 'payments' },
       { name: 'usage_logs', key: 'usage_logs' },
-      { name: 'login_activity', key: 'login_activity' },
+      { name: 'auth_logs', key: 'login_activity' },
       { name: 'site_settings', key: 'settings' },
       { name: 'pricing_plans', key: 'pricing' },
+      { name: 'registered_users', key: 'users' },
     ];
 
     const channels: { unsubscribe: () => void }[] = [];
