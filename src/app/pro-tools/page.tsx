@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { CODE_DISPLAY_NAMES } from '@/data/legal-codes';
+import DocumentTemplates from '@/components/features/DocumentTemplates';
 
 // ── Type ──────────────────────────────────────────────────────────────
 
@@ -137,74 +138,10 @@ const CODE_FILTERS = [
   { id: 'tax_code', label: CODE_DISPLAY_NAMES['tax_code'] || "Soliq Kodeksi" },
 ];
 
-// ── Template Data ─────────────────────────────────────────────────────
-
-const TEMPLATE_GROUPS = [
-  {
-    cat: 'Sud hujjatlari',
-    icon: <Landmark className="w-4 h-4" />,
-    items: [
-      { name: "Da'vo arizasi (fuqarolik)", desc: "Fuqarolik ishi bo'yicha sudga da'vo arizasi" },
-      { name: "Da'vo arizasi (iqtisodiy)", desc: "Iqtisodiy sudga da'vo arizasi" },
-      { name: "Apellyatsiya shikoyati", desc: "Sud qaroriga apellyatsiya shikoyati" },
-      { name: "Kassatsiya shikoyati", desc: "Sud qaroriga kassatsiya shikoyati" },
-      { name: "Nazorat shikoyati", desc: "Nazorat tartibidagi shikoyat" },
-    ],
-  },
-  {
-    cat: 'Shartnomalar',
-    icon: <FileSignature className="w-4 h-4" />,
-    items: [
-      { name: "Mehnat shartnomasi", desc: "Ish beruvchi va xodim o'rtasidagi mehnat shartnomasi" },
-      { name: "Fuqarolik shartnomasi", desc: "Fuqarolik-huquqiy shartnoma" },
-      { name: "Oldi-sotdi shartnomasi", desc: "Ko'chmas mulk oldi-sotdi shartnomasi" },
-      { name: "Ijara shartnomasi", desc: "Mulk ijarasi shartnomasi" },
-      { name: "Qarz shartnomasi", desc: "Pul qarzi shartnomasi" },
-      { name: "Xizmat ko'rsatish", desc: "Xizmat ko'rsatish shartnomasi" },
-    ],
-  },
-  {
-    cat: 'Oila va meros',
-    icon: <Heart className="w-4 h-4" />,
-    items: [
-      { name: "Nikoh shartnomasi", desc: "Tomonlarning mulkiy munosabatlarini belgilovchi shartnoma" },
-      { name: "Aliment arizasi", desc: "Aliment undirish to'g'risidagi ariza" },
-      { name: "Ajrim arizasi", desc: "Nikohni bekor qilish to'g'risidagi ariza" },
-      { name: "Merosni qabul qilish", desc: "Merosni qabul qilish to'g'risidagi ariza" },
-      { name: "Bolani tarbiyalash", desc: "Bolani tarbiyalash huquqi to'g'risidagi da'vo" },
-    ],
-  },
-  {
-    cat: 'Vakolat va ishonchnomalar',
-    icon: <UserCheck className="w-4 h-4" />,
-    items: [
-      { name: "Ishonchnoma (umumiy)", desc: "Vakolat berish to'g'risidagi ishonchnoma" },
-      { name: "Advokat so'rovi", desc: "Advokatning ma'lumot so'rovi" },
-      { name: "Vakolatnoma", desc: "Vakolatli shaxsni belgilash" },
-      { name: "Notarial ishonchnoma", desc: "Notarial tasdiqlangan ishonchnoma" },
-    ],
-  },
-  {
-    cat: 'Mehnat huquqi',
-    icon: <Briefcase className="w-4 h-4" />,
-    items: [
-      { name: "Mehnat da'vosi", desc: "Mehnat huquqlarini himoya qilish da'vosi" },
-      { name: "Ishga tiklash", desc: "Ishga tiklash to'g'risidagi da'vo" },
-      { name: "Ish haqi undirish", desc: "Ish haqini undirish to'g'risidagi ariza" },
-      { name: "Kasallik varaqasi", desc: "Vaqtinchalik mehnatga layoqatsizlik varaqasi" },
-    ],
-  },
-  {
-    cat: 'Boshqa hujjatlar',
-    icon: <HelpCircle className="w-4 h-4" />,
-    items: [
-      { name: "Buyruq loyihasi", desc: "Korxona/ muassasa buyrug'i loyihasi" },
-      { name: "Hisobot xati", desc: "Rasmiy xat va murojaatlar" },
-      { name: "Shikoyat arizasi", desc: "Davlat organlariga shikoyat arizasi" },
-      { name: "So'rov xati", desc: "Ma'lumot olish uchun so'rov xati" },
-    ],
-  },
-];
+// ═══════════════════════════════════════════════════════════════════════
+//  Import REAL document templates — the TEMPLATE_GROUPS below are
+//  no longer used. See DocumentTemplates.tsx component instead.
+// ═══════════════════════════════════════════════════════════════════════
 
 // ── Tool Definitions ──────────────────────────────────────────────────
 
@@ -674,51 +611,8 @@ export default function ProTools() {
             </div>
           )}
 
-          {/* ════════════════ TEMPLATES ════════════════ */}
-          {tab === 'templates' && (
-            <div className="space-y-8">
-              {TEMPLATE_GROUPS.map((group, gi) => (
-                <div key={gi}>
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg text-blue-600">{group.icon}</div>
-                    <h3 className="font-bold text-gray-900 dark:text-white">{group.cat}</h3>
-                    <span className="text-xs text-gray-400 dark:text-zinc-500">({group.items.length} ta)</span>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {group.items.map((t, i) => (
-                      <Card key={i} className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl hover:shadow-lg transition-all hover:border-blue-200 dark:hover:border-blue-800">
-                        <CardContent className="p-4">
-                          <div className="flex items-center gap-2 mb-1">
-                            <FileCheck className="w-4 h-4 text-blue-500 shrink-0" />
-                            <h4 className="font-semibold text-sm text-gray-900 dark:text-white">{t.name}</h4>
-                          </div>
-                          <p className="text-xs text-gray-500 dark:text-zinc-400 mb-3">{t.desc}</p>
-                          <div className="flex gap-2">
-                            <Button size="sm" variant="outline" className="flex-1 text-xs px-2 py-1 h-8"
-                              onClick={() => {
-                                const content = `${t.name.toUpperCase()}\n\nHujjat namunasi\n\n${t.desc}\n\nUshbu hujjat namunasi O'zbekiston Respublikasi qonunchiligiga muvofiq tayyorlandi.\n\n---\n\nBu namuna. To'ldirish uchun shaxsiy ma'lumotlaringizni kiriting.`;
-                                const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-                                const url = URL.createObjectURL(blob);
-                                const a = document.createElement('a');
-                                a.href = url; a.download = `${t.name.toLowerCase().replace(/\s+/g, '_')}.txt`;
-                                a.click(); URL.revokeObjectURL(url);
-                              }}>
-                              <Download className="w-3 h-3 mr-1" /> Yuklab olish
-                            </Button>
-                            <Link href="/dashboard">
-                              <Button size="sm" className="text-xs px-2 py-1 h-8">
-                                <Zap className="w-3 h-3 mr-1" /> To'ldirish
-                              </Button>
-                            </Link>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+          {/* ════════════════ TEMPLATES — REAL DOCUMENTS ════════════════ */}
+          {tab === 'templates' && <DocumentTemplates />}
 
           {/* ════════════════ CASE TRACKER ════════════════ */}
           {tab === 'cases' && (
