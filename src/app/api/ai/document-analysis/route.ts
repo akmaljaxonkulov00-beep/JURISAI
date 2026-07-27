@@ -4,6 +4,19 @@ import { getSupabaseAdmin } from '@/lib/supabase-admin';
 const GROQ_API_KEY = process.env.GROQ_API_KEY || process.env.NEXT_PUBLIC_GROQ_API_KEY;
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
+const SYSTEM_PROMPT = 'You are JurisAI Document Analyzer — an expert legal document analysis system specialized in the legislation of the Republic of Uzbekistan (O\'zbekiston Respublikasi Qonunchiligi).\n\n' +
+  'STRICT RULES:\n' +
+  '1. ACCURACY FIRST: You must NEVER invent or hallucinate legal articles (moddalar) or punishments.\n' +
+  '2. FORMATTING: Use clean Markdown with headings, bold terms, and bullet points.\n' +
+  '3. LANGUAGE: Answer strictly in formal Uzbek language (O\'zbek tili).\n\n' +
+  'Analyze the legal document and provide:\n' +
+  '- Hujjatning qisqa tavsifi\n' +
+  '- Qonunchilikka moslik tekshiruvi\n' +
+  '- Mumkin bo\'lgan huquqiy risklar\n' +
+  '- Tavsiyalar va takliflar\n' +
+  '- Tegishli qonun moddalari\n\n' +
+  'MUHIM: Agar aniq modda raqamini bilmasangiz, taxmin qilmang. Hech qachon yolg\'on ma\'lumot bermang.';
+
 export async function POST(req: NextRequest) {
   try {
     const { documentText, documentType, userId } = await req.json();
@@ -41,7 +54,7 @@ export async function POST(req: NextRequest) {
         body: JSON.stringify({
           model: 'llama-3.3-70b-versatile',
           messages: [
-            { role: 'system', content: 'You are a legal document analysis AI. Analyze the document in Uzbek language and provide: compliance check, risks, and recommendations.' },
+            { role: 'system', content: SYSTEM_PROMPT },
             { role: 'user', content: documentText }
           ],
           temperature: 0.1,
@@ -68,5 +81,3 @@ export async function POST(req: NextRequest) {
     );
   }
 }
-
-

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { MessageSquare, X, Send, History, Trash2, Sparkles, ChevronDown, Plus, Mic, MicOff, Volume2 } from 'lucide-react';
+import { X, Send, History, Trash2, Sparkles, Plus, Mic, MicOff, Volume2, Maximize2, Minimize2 } from 'lucide-react';
 import { useSpeechToText } from '@/hooks/useSpeechToText';
 
 interface ChatMessage {
@@ -72,6 +72,7 @@ function groupSessions(sessions: ChatSession[]) {
 export default function AIChatFloatingWidget() {
   const [isOpen, setIsOpen] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [fullScreen, setFullScreen] = useState(false);
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [input, setInput] = useState('');
@@ -179,7 +180,7 @@ export default function AIChatFloatingWidget() {
       const res = await fetch('/api/ai/legal-chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question: userText }),
+        body: JSON.stringify({ message: userText }),
       });
 
       const data = await res.json();
@@ -225,21 +226,45 @@ export default function AIChatFloatingWidget() {
 
       {/* Chat Panel */}
       {isOpen && (
-        <div className="fixed bottom-24 right-6 z-50 w-[380px] max-w-[calc(100vw-2rem)] h-[580px] max-h-[calc(100vh-8rem)] rounded-2xl shadow-2xl border border-white/20 dark:border-zinc-700/50 overflow-hidden flex flex-col backdrop-blur-xl bg-white/95 dark:bg-zinc-900/95 animate-in slide-in-from-bottom-4 duration-300">
+        <div className={`fixed z-50 overflow-hidden flex flex-col backdrop-blur-xl bg-white/95 dark:bg-zinc-900/95 animate-in slide-in-from-bottom-4 duration-300 ${
+          fullScreen
+            ? 'inset-4 w-[calc(100vw-2rem)] h-[calc(100vh-2rem)] rounded-2xl shadow-2xl'
+            : 'bottom-24 right-6 w-[380px] max-w-[calc(100vw-2rem)] h-[580px] max-h-[calc(100vh-8rem)] rounded-2xl shadow-2xl border border-white/20 dark:border-zinc-700/50'
+        }`}>
           
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-zinc-700 shrink-0">
             <div className="flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-blue-600 dark:text-blue-400" />
               <span className="font-semibold text-sm text-gray-800 dark:text-white">AI Yordamchi</span>
+              {/* Full-screen indicator */}
+              {fullScreen && (
+                <span className="px-1.5 py-0.5 text-[10px] font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded">
+                  To'liq ekran
+                </span>
+              )}
             </div>
             <div className="flex items-center gap-1">
+              <button
+                onClick={() => setFullScreen(!fullScreen)}
+                className="p-1.5 rounded-lg text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:hover:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800 transition-all"
+                title={fullScreen ? 'Kichik oyna' : "To'liq ekran"}
+              >
+                {fullScreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+              </button>
               <button
                 onClick={() => setShowHistory(!showHistory)}
                 className={`p-1.5 rounded-lg transition-all ${showHistory ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600' : 'text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:hover:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800'}`}
                 title="Tarix"
               >
                 <History className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => { setFullScreen(false); setIsOpen(false); }}
+                className="p-1.5 rounded-lg text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:hover:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800 transition-all"
+                title="Yopish"
+              >
+                <X className="w-4 h-4" />
               </button>
               <button
                 onClick={createNewSession}
