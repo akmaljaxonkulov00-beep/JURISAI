@@ -317,6 +317,24 @@ export default function Dashboard() {
                   const Icon = item.icon;
                   const isActive = activeSection === item.id;
 
+                  // Logout special handling: use button with onClick instead of Link
+                  if (item.id === 'logout') {
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={handleLogout}
+                        className={`w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl cursor-pointer transition-colors ${
+                          isActive
+                            ? 'nav-item-active'
+                            : 'text-gray-600 dark:text-gray-400 dark:text-zinc-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20'
+                        }`}
+                      >
+                        <Icon className={`w-5 h-5 ${isActive ? '' : 'text-gray-400 dark:text-zinc-500'}`} />
+                        <span className="font-medium text-sm">{item.label}</span>
+                      </button>
+                    );
+                  }
+
                   return (
                     <Link key={item.id} href={item.href}>
                       <div
