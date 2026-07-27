@@ -38,7 +38,7 @@ const fallbackDocs: LegalArticle[] = [
     chapter: '3-bob. Jinoyat turlari',
     section: 'Jinoyat kodeksi umumiy qism',
     keywords: ['jinoyat', 'odam oldirish', 'qasd', 'jazo'],
-    cross_references: ['JK 98-modda', 'JK 25-modda'],
+    cross_references: ['O\'zbekiston Respublikasi Jinoyat Kodeksi 98-modda', 'O\'zbekiston Respublikasi Jinoyat Kodeksi 25-modda'],
     last_updated: '2023-09-01',
     relevance_score: 98,
     view_count: 12350
@@ -53,7 +53,7 @@ const fallbackDocs: LegalArticle[] = [
     chapter: '5-bob. Shartnoma huquqi',
     section: 'Shartnoma tushunchasi va turlari',
     keywords: ['fuqarolik', 'shartnoma', 'kelishuv', 'majburiyat'],
-    cross_references: ['FK 354-modda', 'FK 380-modda'],
+    cross_references: ['O\'zbekiston Respublikasi Fuqarolik Kodeksi 354-modda', 'O\'zbekiston Respublikasi Fuqarolik Kodeksi 380-modda'],
     last_updated: '2024-01-15',
     relevance_score: 95,
     view_count: 8920
@@ -68,7 +68,7 @@ const fallbackDocs: LegalArticle[] = [
     chapter: '1-bob. Umumiy qoidalar',
     section: 'Oila qonunchiligi asoslari',
     keywords: ['oila', 'nikoh', 'ajralish', 'bola huquqlari'],
-    cross_references: ['OK 15-modda', 'OK 22-modda'],
+    cross_references: ['O\'zbekiston Respublikasi Oila Kodeksi 15-modda', 'O\'zbekiston Respublikasi Oila Kodeksi 22-modda'],
     last_updated: '2023-06-01',
     relevance_score: 92,
     view_count: 7650
@@ -83,7 +83,7 @@ const fallbackDocs: LegalArticle[] = [
     chapter: '6-bob. Mehnat shartnomasi',
     section: '',
     keywords: ['mehnat', 'shartnoma', 'xodim', 'ish beruvchi'],
-    cross_references: ['MK 105-modda', 'MK 120-modda'],
+    cross_references: ['O\'zbekiston Respublikasi Mehnat Kodeksi 105-modda', 'O\'zbekiston Respublikasi Mehnat Kodeksi 120-modda'],
     last_updated: '2024-03-01',
     relevance_score: 90,
     view_count: 6540

@@ -280,11 +280,11 @@ export default function ProfessionalTools() {
 
   if (selectedTool) {
     return (
-      <div className="min-h-screen bg-[#f8faff]">
-        <div className="flex">
+      <div className="min-h-screen bg-[#f8faff] dark:bg-zinc-950">
+        <div className="flex flex-col lg:flex-row">
           {/* Sidebar */}
-          <div className="w-64 bg-white dark:bg-zinc-900 border-r border-gray-100 dark:border-zinc-800 min-h-screen">
-            <div className="p-6">
+          <div className="w-full lg:w-64 bg-white dark:bg-zinc-900 lg:border-r border-b lg:border-b-0 border-gray-100 dark:border-zinc-800 lg:min-h-screen">
+            <div className="p-4 sm:p-6">
               <button
                 onClick={() => setSelectedTool(null)}
                 className="flex items-center gap-3 px-3 py-2 text-gray-600 dark:text-zinc-400 hover:bg-gray-50 dark:bg-zinc-800/50 rounded-lg cursor-pointer mb-6"
@@ -340,11 +340,11 @@ export default function ProfessionalTools() {
 
           {/* Main Tool Content */}
           <div className="flex-1">
-            <header className="bg-white dark:bg-zinc-900 px-8 py-4 border-b border-gray-100 dark:border-zinc-800">
-              <div className="flex items-center justify-between">
+            <header className="bg-white dark:bg-zinc-900 px-4 sm:px-6 lg:px-8 py-4 border-b border-gray-100 dark:border-zinc-800">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-800 dark:text-zinc-200">{selectedTool.title}</h1>
-                  <p className="text-sm text-gray-600 dark:text-zinc-400">{selectedTool.description}</p>
+                  <h1 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-zinc-200">{selectedTool.title}</h1>
+                  <p className="text-xs sm:text-sm text-gray-600 dark:text-zinc-400">{selectedTool.description}</p>
                 </div>
                 <div className="flex items-center gap-2">
                   {selectedTool.isPro && (
@@ -357,7 +357,7 @@ export default function ProfessionalTools() {
               </div>
             </header>
 
-            <main className="p-8">
+            <main className="p-4 sm:p-6 lg:p-8">
               <div className="max-w-4xl mx-auto">
                 {/* Legal Calculators */}
                 {selectedTool.category === 'calculator' && (
@@ -728,11 +728,11 @@ export default function ProfessionalTools() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f8faff]">
-      <div className="flex">
+    <div className="min-h-screen bg-[#f8faff] dark:bg-zinc-950">
+      <div className="flex flex-col lg:flex-row">
         {/* Sidebar */}
-        <div className="w-64 bg-white dark:bg-zinc-900 border-r border-gray-100 dark:border-zinc-800 min-h-screen">
-          <div className="p-6">
+        <div className="w-full lg:w-64 bg-white dark:bg-zinc-900 lg:border-r border-b lg:border-b-0 border-gray-100 dark:border-zinc-800 lg:min-h-screen">
+          <div className="p-4 sm:p-6">
             <a href="/" className="flex items-center gap-3 px-3 py-2 text-gray-600 dark:text-zinc-400 hover:bg-gray-50 dark:bg-zinc-800/50 rounded-lg cursor-pointer mb-6">
               <ArrowLeft className="w-5 h-5" />
               <span>Orqaga</span>
@@ -767,11 +767,11 @@ export default function ProfessionalTools() {
         {/* Main Content */}
         <div className="flex-1">
           {/* Header */}
-          <header className="bg-white dark:bg-zinc-900 px-8 py-4 border-b border-gray-100 dark:border-zinc-800">
-            <div className="flex items-center justify-between">
+          <header className="bg-white dark:bg-zinc-900 px-4 sm:px-6 lg:px-8 py-4 border-b border-gray-100 dark:border-zinc-800">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <div>
-                <h1 className="text-2xl font-bold text-gray-800 dark:text-zinc-200">Professional Vositalar</h1>
-                <p className="text-sm text-gray-600 dark:text-zinc-400">Premium qismi - amaliyotchi yuristlar uchun</p>
+                <h1 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-zinc-200">Professional Vositalar</h1>
+                <p className="text-xs sm:text-sm text-gray-600 dark:text-zinc-400">Premium qismi - amaliyotchi yuristlar uchun</p>
               </div>
               
               <div className="flex items-center gap-2">
@@ -784,9 +784,9 @@ export default function ProfessionalTools() {
           </header>
 
           {/* Tool Grid */}
-          <main className="p-8">
+          <main className="p-4 sm:p-6 lg:p-8">
             <div className="max-w-6xl mx-auto">
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 {tools.map((tool) => (
                   <button
                     key={tool.id}
@@ -825,9 +825,9 @@ export default function ProfessionalTools() {
               </div>
               
               {/* Features Section */}
-              <div className="mt-8 bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-sm">
+              <div className="mt-8 bg-white dark:bg-zinc-900 rounded-2xl p-4 sm:p-6 shadow-sm">
                 <h3 className="text-lg font-bold text-gray-800 dark:text-zinc-200 mb-4">Pro Vositalar xususiyatlari</h3>
-                <div className="grid grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                   <div className="text-center">
                     <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
                       <Calculator className="w-6 h-6 text-blue-600" />

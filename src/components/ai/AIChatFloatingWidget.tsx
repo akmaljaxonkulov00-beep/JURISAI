@@ -69,6 +69,66 @@ function groupSessions(sessions: ChatSession[]) {
   return groups.filter(g => g.sessions.length > 0);
 }
 
+// Simple markdown-like renderer for AI responses
+function renderMarkdown(text: string): React.ReactNode {
+  // Split by double newlines for paragraphs
+  const blocks = text.split('\n\n').filter(Boolean);
+  
+  return blocks.map((block, bi) => {
+    const trimmed = block.trim();
+    
+    // Heading: ## Title
+    if (trimmed.startsWith('## ')) {
+      return (
+        <h3 key={bi} className="font-bold text-sm text-blue-700 dark:text-blue-400 mt-3 mb-1">
+          {trimmed.replace('## ', '')}
+        </h3>
+      );
+    }
+    
+    // Bullet list: • item
+    if (trimmed.startsWith('• ')) {
+      const lines = trimmed.split('\n').filter(l => l.trim());
+      return (
+        <ul key={bi} className="list-disc list-inside space-y-0.5 my-1">
+          {lines.map((line, li) => (
+            <li key={li} className="text-xs text-gray-700 dark:text-zinc-300">
+              {renderInline(line.replace(/^•\s*/, ''))}
+            </li>
+          ))}
+        </ul>
+      );
+    }
+    
+    // Bold list: **text** — description
+    if (trimmed.startsWith('**')) {
+      return (
+        <p key={bi} className="text-xs text-gray-700 dark:text-zinc-300 my-1">
+          {renderInline(trimmed)}
+        </p>
+      );
+    }
+    
+    // Regular paragraph
+    return (
+      <p key={bi} className="text-xs text-gray-700 dark:text-zinc-300 my-1">
+        {renderInline(trimmed)}
+      </p>
+    );
+  });
+}
+
+function renderInline(text: string): React.ReactNode {
+  // Bold: **text**
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  return parts.map((part, i) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={i} className="font-semibold text-gray-900 dark:text-zinc-100">{part.slice(2, -2)}</strong>;
+    }
+    return part;
+  });
+}
+
 export default function AIChatFloatingWidget() {
   const [isOpen, setIsOpen] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
@@ -350,7 +410,11 @@ export default function AIChatFloatingWidget() {
                       ? 'bg-gradient-to-r from-blue-600 to-emerald-600 text-white rounded-br-md'
                       : 'bg-gray-100 dark:bg-zinc-800 text-gray-800 dark:text-zinc-200 rounded-bl-md'
                   }`}>
-                    <p className="whitespace-pre-wrap">{msg.content}</p>
+                    {msg.role === 'assistant' ? (
+                      <div className="space-y-0.5">{renderMarkdown(msg.content)}</div>
+                    ) : (
+                      <p className="whitespace-pre-wrap">{msg.content}</p>
+                    )}
                     <p className={`text-[10px] mt-1 ${msg.role === 'user' ? 'text-blue-200' : 'text-gray-400 dark:text-zinc-500'}`}>
                       {formatTime(msg.timestamp)}
                     </p>

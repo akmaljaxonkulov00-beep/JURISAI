@@ -441,10 +441,10 @@ export default function ProTools() {
                   <div className="flex flex-wrap gap-2 mt-4">
                     {[
                       { id: '', label: 'Barchasi' },
-                      { id: 'constitution', label: 'Konstitutsiya' },
-                      { id: 'criminal_code', label: 'JK' },
-                      { id: 'civil_code', label: 'FK' },
-                      { id: 'admin_code', label: 'MJK' },
+                      { id: 'constitution', label: CODE_DISPLAY_NAMES['constitution'] },
+                      { id: 'criminal_code', label: CODE_DISPLAY_NAMES['criminal_code'] },
+                      { id: 'civil_code', label: CODE_DISPLAY_NAMES['civil_code'] },
+                      { id: 'admin_code', label: CODE_DISPLAY_NAMES['admin_code'] },
                     ].map(f => (
                       <button
                         key={f.id}
@@ -605,7 +605,7 @@ export default function ProTools() {
               { href: '/qonunlar', icon: <Database className="w-5 h-5 text-blue-600 dark:text-blue-400" />, title: "Qonunlar bazasi", desc: "Toliq qonunlar" },
               { href: '/help', icon: <BookOpen className="w-5 h-5 text-green-600 dark:text-green-400" />, title: "Qollanmalar", desc: "Yorignoma" },
               { href: '/profile', icon: <Settings className="w-5 h-5 text-purple-600 dark:text-purple-400" />, title: "Sozlamalar", desc: "Profil" },
-              { href: '/ai-assistant', icon: <Zap className="w-5 h-5 text-orange-600 dark:text-orange-400" />, title: "AI yordamchi", desc: "Smart yordamchi" },
+              { href: '/dashboard', icon: <Zap className="w-5 h-5 text-orange-600 dark:text-orange-400" />, title: "Bosh sahifa", desc: "Dashboard" },
             ].map((r, i) => (
               <Link key={i} href={r.href}>
                 <Card className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl hover:shadow-lg transition-all cursor-pointer h-full">
