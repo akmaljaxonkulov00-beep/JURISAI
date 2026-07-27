@@ -69,34 +69,170 @@ function groupSessions(sessions: ChatSession[]) {
   return groups.filter(g => g.sessions.length > 0);
 }
 
-// Natural text renderer for AI responses — smooth paragraph flow
+// ── Section header style map ──
+const SECTION_STYLES: Record<string, { bg: string; border: string; color: string; label: string }> = {
+  '📘': { bg: '#EFF6FF', border: '#BFDBFE', color: '#1D4ED8', label: 'Umumiy tushuncha' },
+  '⚖️': { bg: '#F5F3FF', border: '#DDD6FE', color: '#7C3AED', label: "Huquqiy izoh" },
+  '📚': { bg: '#F0FDF4', border: '#BBF7D0', color: '#15803D', label: 'Tegishli moddalar' },
+  '💡': { bg: '#FFF7ED', border: '#FED7AA', color: '#C2410C', label: 'Oddiy misol' },
+  '✅': { bg: '#F0FDF4', border: '#A7F3D0', color: '#059669', label: 'Xulosa' },
+}
+
+// Render bold text (**...** → <strong>)
+function renderBold(text: string): React.ReactNode {
+  const parts = text.split(/(\*\*[^\*]+\*\*)/g)
+  return parts.map((part, i) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={i} className="font-semibold">{part.slice(2, -2)}</strong>
+    }
+    return <span key={i}>{part}</span>
+  })
+}
+
+// Render content inside a section (bullets, numbered, paragraphs, or blockquote)
+function renderSectionContent(lines: string[], accentColor: string, darkFg: string): React.ReactNode[] {
+  return lines.map((line, li) => {
+    const l = line.trim()
+    if (!l) return null
+    // Blockquote
+    if (l.startsWith('>')) {
+      return (
+        <blockquote key={li} className="pl-3 border-l-2 text-sm italic leading-relaxed opacity-85" style={{ borderColor: accentColor, color: darkFg }}>
+          {renderBold(l.replace(/^>\s*/, ''))}
+        </blockquote>
+      )
+    }
+    // Bullet line
+    if (l.startsWith('•')) {
+      return (
+        <div key={li} className="flex gap-1.5 text-sm leading-relaxed" style={{ color: darkFg }}>
+          <span className="flex-shrink-0 select-none" style={{ color: accentColor }}>•</span>
+          <span>{renderBold(l.replace(/^•\s*/, ''))}</span>
+        </div>
+      )
+    }
+    // Numbered line (e.g., "1. Text")
+    if (/^\d+\./.test(l)) {
+      return (
+        <div key={li} className="flex gap-1.5 text-sm leading-relaxed" style={{ color: darkFg }}>
+          <span className="flex-shrink-0 text-xs font-medium" style={{ color: accentColor }}>
+            {l.match(/^\d+/)?.[0]}.
+          </span>
+          <span>{renderBold(l.replace(/^\d+\.\s*/, ''))}</span>
+        </div>
+      )
+    }
+    // Regular paragraph
+    return <p key={li} className="text-sm leading-relaxed" style={{ color: darkFg }}>{renderBold(l)}</p>
+  })
+}
+
+// Merge consecutive blocks that belong to a section header
+function mergeBlocks(blocks: string[]): string[] {
+  const result: string[] = []
+  let i = 0
+  while (i < blocks.length) {
+    const block = blocks[i].trim()
+    const headerEmoji = Object.keys(SECTION_STYLES).find(e => block.startsWith(e))
+    if (headerEmoji) {
+      // Collect header + following blocks until next header
+      let merged = block
+      let j = i + 1
+      while (j < blocks.length) {
+        const nextBlock = blocks[j].trim()
+        const nextHeader = Object.keys(SECTION_STYLES).find(e => nextBlock.startsWith(e))
+        if (nextHeader) break
+        merged += '\n\n' + nextBlock
+        j++
+      }
+      result.push(merged)
+      i = j
+    } else {
+      result.push(block)
+      i++
+    }
+  }
+  return result
+}
+
+// Natural text renderer with section support
 function renderText(text: string): React.ReactNode {
-  const blocks = text.split(/\n\s*\n/).filter(Boolean);
+  const rawBlocks = text.split(/\n\s*\n/).filter(Boolean)
+  const blocks = mergeBlocks(rawBlocks)
   
   return blocks.map((block, bi) => {
-    const trimmed = block.trim();
+    const trimmed = block.trim()
+    if (!trimmed) return null
     
-    // Bullet list block (starts with • or - or digit.)
-    if (/^[•\-\d]/.test(trimmed)) {
-      const lines = trimmed.split('\n').filter(l => l.trim());
+    // Detect section header by emoji
+    const headerEmoji = Object.keys(SECTION_STYLES).find(e => trimmed.startsWith(e))
+    if (headerEmoji) {
+      const style = SECTION_STYLES[headerEmoji]
+      // Split into lines, filter out the header line
+      const contentLines = trimmed.split('\n').filter(l => l.trim())
+      const bodyLines = contentLines.slice(1).filter(l => {
+        const t = l.trim()
+        return t && !Object.keys(SECTION_STYLES).some(e => t.startsWith(e))
+      })
+      
       return (
-        <ul key={bi} className="list-disc list-inside space-y-1 my-2 ml-1">
-          {lines.map((line, li) => (
-            <li key={li} className="text-sm text-gray-700 dark:text-zinc-300 leading-relaxed">
-              {line.replace(/^[•\-]\s*/, '').replace(/^\d+\)\s*/, '')}
-            </li>
-          ))}
-        </ul>
-      );
+        <div key={bi} className="my-3 rounded-xl overflow-hidden border" style={{ background: style.bg, borderColor: style.border }}>
+          <h3 className="px-3.5 py-2 text-xs font-bold tracking-wide m-0" style={{ color: style.color }}>
+            {headerEmoji} {style.label}
+          </h3>
+          <div className="px-3.5 pb-3 space-y-1.5">
+            {bodyLines.length > 0 ? (
+              renderSectionContent(bodyLines, style.color, '#1F2937')
+            ) : (
+              <p className="text-sm leading-relaxed" style={{ color: '#1F2937' }}>
+                {renderBold(trimmed.replace(headerEmoji, '').replace(style.label, '').trim())}
+              </p>
+            )}
+          </div>
+        </div>
+      )
+    }
+    
+    // Blockquote block (starts with >)
+    if (trimmed.startsWith('>')) {
+      const lines = trimmed.split('\n').filter(l => l.trim())
+      return (
+        <div key={bi} className="my-2 pl-3 border-l-2 border-blue-400 dark:border-blue-500 bg-blue-50/50 dark:bg-blue-900/10 rounded-r-lg py-1.5 pr-3">
+          {lines.map((line, li) => {
+            const t = line.trim().replace(/^>\s*/, '')
+            if (!t) return null
+            return <p key={li} className="text-sm text-gray-700 dark:text-zinc-300 italic leading-relaxed">{renderBold(t)}</p>
+          })}
+        </div>
+      )
+    }
+    
+    // Bullet list block (starts with •)
+    if (/^[•]/.test(trimmed)) {
+      const lines = trimmed.split('\n').filter(l => l.trim())
+      return (
+        <div key={bi} className="space-y-1 my-2">
+          {lines.map((line, li) => {
+            const l = line.trim().replace(/^•\s*/, '')
+            if (!l) return null
+            return (
+              <div key={li} className="flex gap-1.5 text-sm text-gray-700 dark:text-zinc-300 leading-relaxed">
+                <span className="flex-shrink-0 text-gray-400 dark:text-zinc-500">•</span>
+                <span>{renderBold(l)}</span>
+              </div>
+            )
+          })}
+        </div>
+      )
     }
     
     // Regular paragraph with natural spacing
     return (
       <p key={bi} className="text-sm text-gray-700 dark:text-zinc-300 leading-relaxed my-1.5">
-        {trimmed}
+        {renderBold(trimmed)}
       </p>
-    );
-  });
+    )
+  })
 }
 
 export default function AIChatFloatingWidget() {
