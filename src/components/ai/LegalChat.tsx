@@ -47,7 +47,7 @@ export default function LegalChat() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ question: inputMessage }),
+        body: JSON.stringify({ message: inputMessage }),
       });
 
       if (response.ok) {
