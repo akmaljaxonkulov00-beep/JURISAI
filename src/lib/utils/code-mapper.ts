@@ -1,97 +1,140 @@
 /**
- * CODE_MAPPINGS — O'zbekiston Respublikasi Qonun Kodekslari to'liq nomlari
+ * Kodeks nomlarini xaritalash (Mapping) utilitasi
  * 
- * Qisqartmalar faqat internal key sifatida ishlatiladi.
- * UI da hech qachon JK, FK, FPK kabi qisqartmalar ko'rsatilmaydi.
- * Faqat to'liq nomlar ishlatiladi.
+ * Yagona manba (Single source of truth) — barcha kodeks nomlari
+ * faqat shu fayl orqali boshqariladi.
+ * 
+ * QOIDALAR:
+ * 1. Hech qaerda slug (criminal_code) foydalanuvchiga ko'rinmasligi kerak
+ * 2. Hech qaerda qisqartma (JK, FK) foydalanuvchiga ko'rinmasligi kerak
+ * 3. Faqat to'liq o'zbekcha rasmiy nomlar ishlatiladi
  */
 
-export const CODE_MAPPINGS: Record<string, string> = {
-  JK: "Oʻzbekiston Respublikasi Jinoyat Kodeksi",
-  FK: "Oʻzbekiston Respublikasi Fuqarolik Kodeksi",
-  MK: "Oʻzbekiston Respublikasi Mehnat Kodeksi",
-  OK: "Oʻzbekiston Respublikasi Oila Kodeksi",
-  SK: "Oʻzbekiston Respublikasi Soliq Kodeksi",
-  ZK: "Oʻzbekiston Respublikasi Yer Kodeksi",
-  MJK: "Oʻzbekiston Respublikasi Maʼmuriy Javobgarlik Toʻgʻrisidagi Kodeksi",
-  FPK: "Oʻzbekiston Respublikasi Fuqarolik Protsessual Kodeksi",
-  JPK: "Oʻzbekiston Respublikasi Jinoyat Protsessual Kodeksi",
-  IPK: "Oʻzbekiston Respublikasi Iqtisodiy Protsessual Kodeksi",
-  KONST: "Oʻzbekiston Respublikasi Konstitutsiyasi",
+// ── TO'LIQ O'ZBEKCHA NOMLAR ───────────────────────────────────────────────
+
+/** Kodeks slug'idan to'liq o'zbekcha nomga */
+export const SLUG_TO_FULL_NAME: Record<string, string> = {
+  'criminal_code': 'Oʻzbekiston Respublikasi Jinoyat kodeksi',
+  'civil_code': 'Oʻzbekiston Respublikasi Fuqarolik kodeksi',
+  'labor_code': 'Oʻzbekiston Respublikasi Mehnat kodeksi',
+  'family_code': 'Oʻzbekiston Respublikasi Oila kodeksi',
+  'tax_code': 'Oʻzbekiston Respublikasi Soliq kodeksi',
+  'land_code': 'Oʻzbekiston Respublikasi Yer kodeksi',
+  'admin_code': 'Oʻzbekiston Respublikasi Maʼmuriy javobgarlik toʻgʻrisidagi kodeksi',
+  'constitution': 'Oʻzbekiston Respublikasi Konstitutsiyasi',
+  'civil_procedure_code': 'Oʻzbekiston Respublikasi Fuqarolik protsessual kodeksi',
+  'criminal_procedure_code': 'Oʻzbekiston Respublikasi Jinoyat-protsessual kodeksi',
+  'economic_procedure_code': 'Oʻzbekiston Respublikasi Iqtisodiy protsessual kodeksi',
+  'jk': 'Oʻzbekiston Respublikasi Jinoyat kodeksi',
+  'fk': 'Oʻzbekiston Respublikasi Fuqarolik kodeksi',
+  'mk': 'Oʻzbekiston Respublikasi Mehnat kodeksi',
+  'ok': 'Oʻzbekiston Respublikasi Oila kodeksi',
+  'sk': 'Oʻzbekiston Respublikasi Soliq kodeksi',
+  'zk': 'Oʻzbekiston Respublikasi Yer kodeksi',
+  'mjk': 'Oʻzbekiston Respublikasi Maʼmuriy javobgarlik toʻgʻrisidagi kodeksi',
+  'fpk': 'Oʻzbekiston Respublikasi Fuqarolik protsessual kodeksi',
+  'jpk': 'Oʻzbekiston Respublikasi Jinoyat-protsessual kodeksi',
+  'ipk': 'Oʻzbekiston Respublikasi Iqtisodiy protsessual kodeksi',
+  'konst': 'Oʻzbekiston Respublikasi Konstitutsiyasi',
 };
 
-export const CODE_ABBREVIATIONS = Object.keys(CODE_MAPPINGS);
+/** Qisqartmadan to'liq o'zbekcha nomga */
+export const CODE_MAPPINGS: Record<string, string> = {
+  JK: 'Oʻzbekiston Respublikasi Jinoyat kodeksi',
+  FK: 'Oʻzbekiston Respublikasi Fuqarolik kodeksi',
+  MK: 'Oʻzbekiston Respublikasi Mehnat kodeksi',
+  OK: 'Oʻzbekiston Respublikasi Oila kodeksi',
+  SK: 'Oʻzbekiston Respublikasi Soliq kodeksi',
+  ZK: 'Oʻzbekiston Respublikasi Yer kodeksi',
+  MJK: 'Oʻzbekiston Respublikasi Maʼmuriy javobgarlik toʻgʻrisidagi kodeksi',
+  FPK: 'Oʻzbekiston Respublikasi Fuqarolik protsessual kodeksi',
+  JPK: 'Oʻzbekiston Respublikasi Jinoyat-protsessual kodeksi',
+  IPK: 'Oʻzbekiston Respublikasi Iqtisodiy protsessual kodeksi',
+  KONST: 'Oʻzbekiston Respublikasi Konstitutsiyasi',
+};
+
+/** Slug'dan qisqartmaga */
+const SLUG_TO_ABBR: Record<string, string> = {
+  'criminal_code': 'JK',
+  'civil_code': 'FK',
+  'labor_code': 'MK',
+  'family_code': 'OK',
+  'tax_code': 'SK',
+  'land_code': 'ZK',
+  'admin_code': 'MJK',
+  'constitution': 'KONST',
+  'civil_procedure_code': 'FPK',
+  'criminal_procedure_code': 'JPK',
+  'economic_procedure_code': 'IPK',
+};
 
 /**
- * Replace code abbreviations in text with full names.
- * Example: "JK 97-modda" → "Oʻzbekiston Respublikasi Jinoyat Kodeksi 97-modda"
+ * Kodeks ID (slug) bo'yicha to'liq o'zbekcha nomni qaytaradi
+ * 
+ * @param codeId - Kodeks slug'i (masalan: 'criminal_code', 'JK')
+ * @returns To'liq o'zbekcha nom. Agar topilmasa, slug'ni o'zini qaytaradi
+ * 
+ * @example
+ * getDisplayNameFromCodeId('criminal_code')  // "Oʻzbekiston Respublikasi Jinoyat kodeksi"
+ * getDisplayNameFromCodeId('JK')             // "Oʻzbekiston Respublikasi Jinoyat kodeksi"
+ */
+export function getDisplayNameFromCodeId(codeId: string): string {
+  if (!codeId) return '';
+  
+  // 1. To'g'ridan-to'g'ri slug yoki qisqartma bo'yicha qidirish
+  if (SLUG_TO_FULL_NAME[codeId.toLowerCase()]) {
+    return SLUG_TO_FULL_NAME[codeId.toLowerCase()];
+  }
+  
+  // 2. Slug'dan qisqartma orqali qidirish
+  const abbr = SLUG_TO_ABBR[codeId];
+  if (abbr && CODE_MAPPINGS[abbr]) {
+    return CODE_MAPPINGS[abbr];
+  }
+  
+  // 3. To'g'ridan-to'g'ri qisqartma bo'yicha qidirish
+  if (CODE_MAPPINGS[codeId.toUpperCase()]) {
+    return CODE_MAPPINGS[codeId.toUpperCase()];
+  }
+  
+  // 4. Hech qanday mapping topilmasa — o'qishli nom yaratish
+  // Hech qachon raw slug'ni qaytarmaslik kerak!
+  const readable = codeId
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, c => c.toUpperCase());
+  return readable;
+}
+
+/**
+ * Matndagi barcha kodeks qisqartmalarini to'liq nomlar bilan almashtiradi
+ * 
+ * @param text - Matn (masalan: "JK 97-moddasi")
+ * @returns To'liq nomlar bilan almashtirilgan matn
+ * 
+ * @example
+ * expandCodeReferences("JK 97-moddasi")  // "Oʻzbekiston Respublikasi Jinoyat Kodeksi 97-moddasi"
  */
 export function expandCodeReferences(text: string): string {
   let result = text;
-  for (const [abbr, fullName] of Object.entries(CODE_MAPPINGS)) {
-    // Replace standalone abbreviations like "JK 97", "FK 342" etc.
+  const sorted = Object.keys(CODE_MAPPINGS).sort((a, b) => b.length - a.length);
+  for (const abbr of sorted) {
     const regex = new RegExp(`\\b${abbr}\\b`, 'g');
-    result = result.replace(regex, fullName);
+    result = result.replace(regex, CODE_MAPPINGS[abbr]);
   }
   return result;
 }
 
 /**
- * Get full name from abbreviation. Returns the abbreviation if not found.
+ * Qisqartma bo'yicha to'liq nomni qaytaradi
+ * 
+ * @deprecated getDisplayNameFromCodeId() bilan almashtirilsin
  */
-export function getCodeFullName(abbreviation: string): string {
-  return CODE_MAPPINGS[abbreviation] || abbreviation;
+export function getCodeFullName(codeId: string): string {
+  return getDisplayNameFromCodeId(codeId);
 }
 
 /**
- * All code IDs mapped to their internal keys
+ * CODE_DISPLAY_NAMES - Komponentlarda ishlatish uchun qulay mapping
+ * Bu yerda SLUG_TO_FULL_NAME dan referens olinadi (yagona manba)
  */
-export const CODE_ID_TO_KEY: Record<string, string> = {
-  criminal_code: 'JK',
-  civil_code: 'FK',
-  labor_code: 'MK',
-  family_code: 'OK',
-  tax_code: 'SK',
-  land_code: 'ZK',
-  admin_code: 'MJK',
-  civil_procedure_code: 'FPK',
-  criminal_procedure_code: 'JPK',
-  economic_procedure_code: 'IPK',
-  constitution: 'KONST',
-};
-
-/**
- * Direct slug-to-full-name mapping (no abbreviations in the middle)
- */
-const SLUG_TO_FULL_NAME: Record<string, string> = {
-  criminal_code: CODE_MAPPINGS.JK,
-  civil_code: CODE_MAPPINGS.FK,
-  labor_code: CODE_MAPPINGS.MK,
-  family_code: CODE_MAPPINGS.OK,
-  tax_code: CODE_MAPPINGS.SK,
-  land_code: CODE_MAPPINGS.ZK,
-  admin_code: CODE_MAPPINGS.MJK,
-  civil_procedure_code: CODE_MAPPINGS.FPK,
-  criminal_procedure_code: CODE_MAPPINGS.JPK,
-  economic_procedure_code: CODE_MAPPINGS.IPK,
-  constitution: CODE_MAPPINGS.KONST,
-};
-
-/**
- * Get full display name from code ID (slug).
- * Example: getDisplayNameFromCodeId('criminal_code') → "Oʻzbekiston Respublikasi Jinoyat Kodeksi"
- * NEVER returns the raw slug — always shows the full Uzbek name.
- */
-export function getDisplayNameFromCodeId(codeId: string): string {
-  // Direct slug lookup (fastest path)
-  if (SLUG_TO_FULL_NAME[codeId]) return SLUG_TO_FULL_NAME[codeId];
-  
-  // Fallback: try through abbreviation key
-  const key = CODE_ID_TO_KEY[codeId];
-  if (key && CODE_MAPPINGS[key]) {
-    return CODE_MAPPINGS[key];
-  }
-  
-  // Ultimate fallback — never show the raw slug, make it readable
-  return codeId.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-}
+export const CODE_DISPLAY_NAMES: Record<string, string> = { ...SLUG_TO_FULL_NAME };

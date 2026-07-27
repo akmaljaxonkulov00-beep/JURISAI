@@ -1,10 +1,20 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { ALL_LEGAL_CODES, LegalCode, LegalArticle, CODE_DISPLAY_NAMES } from '@/data/legal-codes';
+import { ALL_LEGAL_CODES, LegalCode, LegalArticle } from '@/data/legal-codes';
+import { getDisplayNameFromCodeId } from '@/lib/utils/code-mapper';
 
 export type { LegalCode, LegalArticle };
 
+/** CODE_DISPLAY_NAMES — yagona manbadan (code-mapper.ts) olinadi */
+export { getDisplayNameFromCodeId as CODE_DISPLAY_NAMES };
+
+/**
+ * Qonun kodekslarini yuklovchi hook
+ * 
+ * 1. Supabase'dan yuklashga urinadi
+ * 2. Agar muvaffaqiyatsiz bo'lsa, hardcoded ma'lumotlardan foydalanadi
+ */
 export function useLegalCodes() {
   const [codes, setCodes] = useState<LegalCode[]>(ALL_LEGAL_CODES);
   const [loading, setLoading] = useState(true);
@@ -13,17 +23,19 @@ export function useLegalCodes() {
 
   const fetchFromSupabase = useCallback(async () => {
     try {
-      // Try dynamic import of Supabase (may not be configured)
-      const supabaseMod = await import('@/lib/supabase').catch(() => null);
-      if (!supabaseMod?.supabase) throw new Error('Supabase not available');
+      let supabase: any = null;
+      try {
+        const mod = await import('@/lib/supabase');
+        supabase = mod.supabase;
+      } catch {
+        throw new Error('Supabase not available');
+      }
 
-      const { supabase } = supabaseMod;
-
-      // Fetch categories (legal codes)
+      // Fetch categories
       const { data: categories, error: catError } = await supabase
         .from('categories')
         .select('*')
-        .order('name');
+        .order('code_id');
 
       if (catError) throw catError;
       if (!categories || categories.length === 0) throw new Error('No categories found');
@@ -36,39 +48,46 @@ export function useLegalCodes() {
 
       if (artError) throw artError;
 
-      // Map Supabase data back to LegalCode format
+      // Map to LegalCode format
       const mapped: LegalCode[] = categories.map((cat: any) => {
         const codeArticles: LegalArticle[] = (articles || [])
-          .filter((a: any) => a.code_id === cat.id)
+          .filter((a: any) => a.code_id === cat.code_id)
           .map((a: any) => ({
             number: a.article_number,
             title: a.title,
             content: a.content,
-            category: a.category || 'Umumiy',
+            category: a.chapter || 'Umumiy',
             penalties: a.penalties || undefined,
-            references: Array.isArray(a.references) ? a.references : undefined,
+            references: Array.isArray(a.references) && a.references.length > 0
+              ? a.references
+              : undefined,
           }));
 
-        // Find matching hardcoded code for metadata
-        const hardcoded = ALL_LEGAL_CODES.find(c => c.id === cat.id);
+        const displayName = getDisplayNameFromCodeId(cat.code_id);
         return {
-          id: cat.id,
-          name: CODE_DISPLAY_NAMES[cat.id] || cat.name,
-          shortName: CODE_DISPLAY_NAMES[cat.id] || cat.name,
-          description: cat.description || hardcoded?.description || '',
-          totalArticles: codeArticles.length || hardcoded?.totalArticles || 0,
-          effectiveDate: hardcoded?.effectiveDate || '01.01.2024',
-          articles: codeArticles.length > 0 ? codeArticles : (hardcoded?.articles || []),
+          id: cat.code_id,
+          name: displayName,
+          shortName: displayName,
+          description: cat.description || '',
+          totalArticles: codeArticles.length || cat.article_count || 0,
+          effectiveDate: '01.01.2024',
+          articles: codeArticles.length > 0 ? codeArticles : [],
         };
       });
 
-      if (mapped.length > 0) {
+      // Only use Supabase data if we got at least SOME articles
+      const totalArticles = mapped.reduce((sum, c) => sum + c.articles.length, 0);
+      if (totalArticles > 0) {
         setCodes(mapped);
         setFromSupabase(true);
+      } else {
+        throw new Error('No articles found in Supabase');
       }
     } catch (err: any) {
-      console.warn('Supabase legal database fetch failed, using hardcoded data:', err.message);
-      // Fallback to hardcoded data is already set in initial state
+      console.warn('Supabase fetch failed, using hardcoded data:', err.message);
+      // Fallback: hardcoded data from legal-codes.ts
+      setCodes(ALL_LEGAL_CODES);
+      setFromSupabase(false);
     } finally {
       setLoading(false);
     }
@@ -78,7 +97,6 @@ export function useLegalCodes() {
     fetchFromSupabase();
   }, [fetchFromSupabase]);
 
-  // Search function
   const search = useCallback((query: string) => {
     if (!query.trim()) return [];
     const q = query.toLowerCase();
@@ -89,7 +107,7 @@ export function useLegalCodes() {
           article.number.toLowerCase().includes(q) ||
           article.title.toLowerCase().includes(q) ||
           article.content.toLowerCase().includes(q) ||
-          article.category?.toLowerCase().includes(q)
+          (article.category || '').toLowerCase().includes(q)
         ) {
           results.push({ code, article });
         }
@@ -98,7 +116,6 @@ export function useLegalCodes() {
     return results.slice(0, 30);
   }, [codes]);
 
-  // Get code by ID
   const getCode = useCallback((id: string) => {
     return codes.find(c => c.id === id) || null;
   }, [codes]);
@@ -113,5 +130,3 @@ export function useLegalCodes() {
     refresh: fetchFromSupabase,
   };
 }
-
-export { CODE_DISPLAY_NAMES };
