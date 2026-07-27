@@ -1,103 +1,65 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { supabase } from '@/lib/supabase-client';
 
 export interface PlatformStats {
   total_users: number;
-  total_documents: number;   // total articles
+  total_documents: number;
   total_ai_requests: number;
-  total_codes: number;        // total categories
+  total_codes: number;
   active_users_today: number;
   documents_generated_today: number;
+  users_this_month: number;
+  premium_users: number;
 }
 
 const DEFAULT_STATS: PlatformStats = {
   total_users: 0,
   total_documents: 0,
   total_ai_requests: 0,
-  total_codes: 10,
+  total_codes: 0,
   active_users_today: 0,
   documents_generated_today: 0,
+  users_this_month: 0,
+  premium_users: 0,
 };
 
 const POLL_INTERVAL = 30_000; // 30 seconds
 
 /**
- * Fetches aggregate platform statistics from Supabase.
- * Queries actual existing tables: categories, articles, registered_users.
- * Falls back to localStorage counts if Supabase is unavailable.
+ * Fetches aggregate platform statistics from the server-side API.
+ * The API uses service_role key with Accept-Profile: auth to query auth.users.
  */
 async function fetchStats(): Promise<PlatformStats> {
   try {
-    // ── 1. Categories (kodekslar soni) ──
-    let codesCount = 10;
-    try {
-      const { count: catCount } = await supabase
-        .from('categories')
-        .select('*', { count: 'exact', head: true });
-      if (catCount && catCount > 0) codesCount = catCount;
-    } catch { /* fallback */ }
+    const response = await fetch('/api/admin/dashboard-stats', {
+      cache: 'no-store',
+      headers: { 'Cache-Control': 'no-cache' },
+    });
 
-    // ── 2. Articles (moddalar soni = documents) ──
-    let articlesCount = 0;
-    try {
-      const { count: artCount } = await supabase
-        .from('articles')
-        .select('*', { count: 'exact', head: true });
-      articlesCount = artCount ?? 0;
-    } catch { /* fallback */ }
-
-    // ── 3. Users (foydalanuvchilar soni) ──
-    let usersCount = 0;
-    try {
-      const { count: userCount } = await supabase
-        .from('registered_users')
-        .select('*', { count: 'exact', head: true });
-      usersCount = userCount ?? 0;
-    } catch {
-      // Try to count from localStorage as fallback
-      try {
-        const stored = localStorage.getItem('admin_users') || localStorage.getItem('registered_users');
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          usersCount = Array.isArray(parsed) ? parsed.length : 0;
-        }
-      } catch { /* ignore */ }
+    if (!response.ok) {
+      console.warn('[Stats] API returned', response.status);
+      return getLocalFallbackStats();
     }
 
-    // ── 4. AI requests (taxminiy — articles * 0.3 yoki localStorage) ──
-    let aiRequests = Math.round(articlesCount * 0.3);
-    try {
-      const stored = localStorage.getItem('ai_chats');
-      if (stored) {
-        const chats = JSON.parse(stored);
-        aiRequests = Math.max(aiRequests, Array.isArray(chats) ? chats.length * 3 : 0);
-      }
-    } catch { /* ignore */ }
+    const data = await response.json();
+    if (data.success && data.stats) {
+      return {
+        total_users: data.stats.total_users || 0,
+        total_documents: data.stats.total_documents || 0,
+        total_ai_requests: data.stats.total_ai_requests || 0,
+        total_codes: data.stats.total_codes || 0,
+        active_users_today: data.stats.active_users_today || 0,
+        documents_generated_today: data.stats.documents_generated_today || 0,
+        users_this_month: data.stats.users_this_month || 0,
+        premium_users: data.stats.premium_users || 0,
+      };
+    }
 
-    // ── 5. Today's activity ──
-    let activeToday = 0;
-    try {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const { count: activeCount } = await supabase
-        .from('registered_users')
-        .select('*', { count: 'exact', head: true })
-        .gte('last_login', today.toISOString());
-      activeToday = activeCount ?? 0;
-    } catch { /* no last_login column or table doesn't exist */ }
-
-    return {
-      total_users: usersCount,
-      total_documents: articlesCount,
-      total_ai_requests: aiRequests,
-      total_codes: codesCount,
-      active_users_today: activeToday,
-      documents_generated_today: 0,
-    };
+    console.warn('[Stats] API returned invalid data:', data);
+    return getLocalFallbackStats();
   } catch (err) {
-    console.warn('[Stats] Supabase fetch failed, using fallback:', err);
+    console.warn('[Stats] Failed to fetch, using fallback:', err);
     return getLocalFallbackStats();
   }
 }
@@ -110,13 +72,18 @@ function getLocalFallbackStats(): PlatformStats {
     const chatsRaw = localStorage.getItem('ai_chats');
     const totalRequests = chatsRaw ? JSON.parse(chatsRaw).length * 3 : 0;
 
+    const codesRaw = localStorage.getItem('legal_codes');
+    const totalCodes = codesRaw ? JSON.parse(codesRaw).length : 10;
+
     return {
       total_users: totalUsers,
       total_documents: 0,
       total_ai_requests: totalRequests,
-      total_codes: 10,
+      total_codes: totalCodes,
       active_users_today: totalUsers,
       documents_generated_today: 0,
+      users_this_month: totalUsers,
+      premium_users: 0,
     };
   } catch {
     return DEFAULT_STATS;
@@ -124,7 +91,8 @@ function getLocalFallbackStats(): PlatformStats {
 }
 
 /**
- * Hook that fetches platform stats on mount and polls every 30 seconds.
+ * Hook that fetches platform stats from server API on mount and polls every 30 seconds.
+ * Uses auth.users via service_role key for real user count.
  */
 export function useRealtimeStats() {
   const [stats, setStats] = useState<PlatformStats>(DEFAULT_STATS);
