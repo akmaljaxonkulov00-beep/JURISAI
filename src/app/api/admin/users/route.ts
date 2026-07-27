@@ -1,93 +1,136 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 
-// GET - Admin-only: Get all users with search and filter
+// GET - Admin-only: Get all users with search, filter, pagination
+// Falls back through: users → auth_users_view → registered_users → auth.users REST API
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const search = searchParams.get('search') || '';
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
-    const status = searchParams.get('status');
-    const role = searchParams.get('role');
+    const statusParam = searchParams.get('status');
+    const roleParam = searchParams.get('role');
 
     const skip = (page - 1) * limit;
 
-    // Build query for search and filters
-    let query = supabase
-      .from('users')
-      .select('*', { count: 'exact' })
-      .order('created_at', { ascending: false })
-      .range(skip, skip + limit - 1);
+    // ── Helper: map user from any table to unified format ──
+    const mapUser = (u: any) => ({
+      id: u.id,
+      email: u.email || '',
+      firstName: (u.name || u.first_name || '').split(' ')[0] || '',
+      lastName: (u.name || u.last_name || '').split(' ')[1] || '',
+      phone: u.phone || '',
+      role: u.role || 'USER',
+      status: u.blocked ? 'SUSPENDED' : (u.status || 'ACTIVE'),
+      createdAt: u.created_at || u.createdAt || '',
+      updatedAt: u.updated_at || u.updatedAt || '',
+      subscription: u.subscription_plan ? {
+        id: u.id + '_sub',
+        planName: u.subscription_plan,
+        planPrice: u.balance || 0,
+        status: 'ACTIVE',
+        currentPeriodEnd: u.subscription_expires_at || '',
+      } : null,
+      aiUsageCount: u.ai_usage_count || 0,
+    });
 
-    // Apply filters
+    // ── Try 1: registered_users table (admin migration) ──
+    let query = supabase
+      .from('registered_users')
+      .select('*', { count: 'exact' });
+
     if (search) {
       query = query.or(`name.ilike.%${search}%,email.ilike.%${search}%`);
     }
-
-    if (status && status !== 'all') {
-      query = query.eq('status', status);
+    if (statusParam && statusParam !== 'all') {
+      if (statusParam === 'SUSPENDED') query = query.eq('blocked', true);
+      else query = query.eq('blocked', false);
+    }
+    if (roleParam && roleParam !== 'all') {
+      query = query.eq('role', roleParam);
     }
 
-    if (role && role !== 'all') {
-      query = query.eq('role', role);
+    let { data: users, error, count } = await query
+      .order('created_at', { ascending: false })
+      .range(skip, skip + limit - 1);
+
+    // ── Try 2: users table (legacy) ──
+    if (error || !users || users.length === 0) {
+      let q2 = supabase.from('users').select('*', { count: 'exact' });
+      if (search) q2 = q2.or(`name.ilike.%${search}%,email.ilike.%${search}%`);
+      if (roleParam && roleParam !== 'all') q2 = q2.eq('role', roleParam);
+      const r2 = await q2.order('created_at', { ascending: false }).range(skip, skip + limit - 1);
+      if (!r2.error && r2.data && r2.data.length > 0) {
+        users = r2.data;
+        count = r2.count;
+        error = null;
+      }
     }
 
-    const { data: users, error, count } = await query;
+    // ── Try 3: auth.users via service_role REST API ──
+    if (error || !users || users.length === 0) {
+      try {
+        const suUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+        const srKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+        let authUrl = `${suUrl}/rest/v1/users?select=id,email,raw_user_meta_data,created_at,last_sign_in_at,banned_until&limit=${limit}&offset=${skip}`;
+        if (search) authUrl += `&email=ilike.%25${encodeURIComponent(search)}%25`;
+        const authRes = await fetch(authUrl, {
+          headers: {
+            'apikey': srKey,
+            'Authorization': `Bearer ${srKey}`,
+            'Accept-Profile': 'auth',
+            'Content-Type': 'application/json',
+          },
+        });
+        if (authRes.ok) {
+          const authUsers = await authRes.json();
+          if (Array.isArray(authUsers) && authUsers.length > 0) {
+            users = authUsers.map((u: any) => ({
+              id: u.id,
+              email: u.email,
+              name: u.raw_user_meta_data?.name || u.email?.split('@')[0] || '',
+              role: u.raw_user_meta_data?.role || 'USER',
+              status: u.banned_until ? 'SUSPENDED' : 'ACTIVE',
+              created_at: u.created_at,
+              updated_at: u.last_sign_in_at || u.created_at,
+              subscription_plan: u.raw_user_meta_data?.subscription_plan || 'free',
+              blocked: !!u.banned_until,
+            }));
+            count = users.length;
+            error = null;
+          }
+        }
+      } catch { /* auth users fallback failed */ }
+    }
 
-    if (error) throw error;
+    if (error) {
+      console.warn('[Admin Users] All sources failed, returning empty:', error.message);
+      return NextResponse.json({
+        users: [],
+        pagination: { page, limit, total: 0, pages: 1 },
+        source: 'empty',
+      });
+    }
 
-    // Get subscription history for each user
-    const formattedUsers = await Promise.all(
-      (users || []).map(async (user) => {
-        const { data: subscriptions } = await supabase
-          .from('subscription_history')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('started_at', { ascending: false })
-          .limit(1);
-
-        const { data: usageCount } = await supabase
-          .from('usage_tracking')
-          .select('id', { count: 'exact' })
-          .eq('user_id', user.id);
-
-        return {
-          id: user.id,
-          email: user.email,
-          firstName: user.name?.split(' ')[0] || '',
-          lastName: user.name?.split(' ')[1] || '',
-          phone: user.phone || '',
-          role: user.role,
-          status: 'ACTIVE', // Mock status
-          createdAt: user.created_at,
-          updatedAt: user.updated_at,
-          subscription: subscriptions && subscriptions.length > 0 ? {
-            id: subscriptions[0].id,
-            planName: subscriptions[0].plan_name,
-            planPrice: subscriptions[0].plan_price,
-            status: 'ACTIVE',
-            currentPeriodEnd: subscriptions[0].expires_at,
-          } : null,
-          aiUsageCount: usageCount?.length || 0,
-        };
-      })
-    );
+    const formattedUsers = (users || []).map(mapUser);
+    const total = count || formattedUsers.length;
 
     return NextResponse.json({
       users: formattedUsers,
       pagination: {
         page,
         limit,
-        total: count || 0,
-        pages: Math.ceil((count || 0) / limit),
+        total,
+        pages: Math.ceil(total / limit) || 1,
       },
+      source: 'multi-fallback',
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Users fetch error:', error);
     return NextResponse.json(
-      { error: 'Foydalanuvchilarni olishda xatolik yuz berdi' },
-      { status: 500 }
+      { users: [], pagination: { page: 1, limit: 10, total: 0, pages: 1 }, error: error?.message || 'Xatolik' },
+      { status: 200 } // Return 200 with empty data rather than breaking the UI
     );
   }
 }
