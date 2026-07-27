@@ -144,16 +144,28 @@ export default function ProTools() {
     }, 200);
   }, [query, codeFilter]);
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
     if (!f) return;
     setFile(f);
     setAnalysisLoading(true);
     setAnalysis(null);
-    const reader = new FileReader();
-    reader.onload = () => {
-      const text = reader.result as string;
-      setTimeout(() => {
+    
+    try {
+      const text = await f.text();
+      
+      // Call real AI analysis API
+      const response = await fetch('/api/ai/document-analysis', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ documentText: text, documentType: f.name.split('.').pop() || 'unknown' }),
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        setAnalysis(result.analysis || 'Tahlil natijasi olinmadi.');
+      } else {
+        // Fallback: basic analysis without mock data
         const wordCount = text.split(/\s+/).length;
         setAnalysis(
           `📄 Hujjat tahlili:\n` +
@@ -166,10 +178,13 @@ export default function ProTools() {
           `  • Muhim shartlarni belgilang\n` +
           `  • Nizolarni hal qilish tartibini kiriting`
         );
-        setAnalysisLoading(false);
-      }, 500);
-    };
-    reader.readAsText(f);
+      }
+    } catch (error) {
+      console.log('Document analysis error:', error);
+      setAnalysis('❌ Hujjat tahlilida xatolik yuz berdi. Iltimos qayta urinib ko\'ring.');
+    } finally {
+      setAnalysisLoading(false);
+    }
   };
 
   return (

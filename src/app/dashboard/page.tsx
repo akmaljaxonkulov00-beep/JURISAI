@@ -239,11 +239,11 @@ export default function Dashboard() {
 
   const getRarityColor = (rarity: string) => {
     switch (rarity) {
-      case 'common': return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200 border-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600';
+      case 'common': return 'bg-gray-100 dark:bg-gray-700/40 text-gray-800 dark:text-zinc-200 border-gray-300 dark:border-gray-600';
       case 'rare': return 'bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800';
       case 'epic': return 'bg-green-100 text-green-800 border-green-300 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800';
       case 'legendary': return 'bg-yellow-100 text-yellow-800 border-yellow-300 dark:bg-yellow-900/30 dark:text-yellow-300 dark:border-yellow-800';
-      default: return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200 border-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600';
+      default: return 'bg-gray-100 dark:bg-gray-700/40 text-gray-800 dark:text-zinc-200 border-gray-300 dark:border-gray-600';
     }
   };
 
@@ -349,23 +349,22 @@ export default function Dashboard() {
       {/* Welcome Header */}
       <div className="relative overflow-hidden bg-gradient-to-br from-blue-600 to-green-600 rounded-2xl p-8 text-white shadow-2xl">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.12)_0%,transparent_60%)]" />
-        <div className="absolute -bottom-8 -right-8 w-48 h-48 bg-white/5 rounded-full blur-2xl" />
-        <div className="relative flex justify-between items-start">
-          <div>
-            <h1 className="text-3xl font-bold mb-2">Xush kelibsiz, {user?.name || 'Foydalanuvchi'}!</h1>
-            <p className="text-blue-100/80 text-lg">Huquqiy bilimlaringizni rivojlantirishni davom ettiring</p>
-            <div className="mt-6 flex items-center space-x-8">
+        <div className="absolute -bottom-8 -right-8 w-48 h-48 bg-white/5 rounded-full blur-2xl" />          <div className="relative flex flex-col sm:flex-row justify-between items-start">
+          <div className="w-full">
+            <h1 className="text-2xl sm:text-3xl font-bold mb-2">Xush kelibsiz, {user?.name || 'Foydalanuvchi'}!</h1>
+            <p className="text-blue-100/80 text-sm sm:text-lg">Huquqiy bilimlaringizni rivojlantirishni davom ettiring</p>
+            <div className="mt-6 grid grid-cols-3 gap-2 sm:gap-8 sm:flex">
               <div className="text-center">
-                <div className="text-3xl font-bold">{userStats?.completedCases || 0}</div>
-                <div className="text-blue-100/70 text-sm mt-1">Yechilgan ishlar</div>
+                <div className="text-xl sm:text-3xl font-bold">{userStats?.completedCases || 0}</div>
+                <div className="text-blue-100/70 text-xs sm:text-sm mt-1">Yechilgan ishlar</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold">{userStats?.xp || 0}</div>
-                <div className="text-blue-100/70 text-sm mt-1">Umumiy XP</div>
+                <div className="text-xl sm:text-3xl font-bold">{userStats?.xp || 0}</div>
+                <div className="text-blue-100/70 text-xs sm:text-sm mt-1">Umumiy XP</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold">{userStats?.weeklyProgress || 0}%</div>
-                <div className="text-blue-100/70 text-sm mt-1">Haftalik maqsad</div>
+                <div className="text-xl sm:text-3xl font-bold">{userStats?.weeklyProgress || 0}%</div>
+                <div className="text-blue-100/70 text-xs sm:text-sm mt-1">Haftalik maqsad</div>
               </div>
             </div>
           </div>

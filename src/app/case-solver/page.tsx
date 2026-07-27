@@ -438,7 +438,7 @@ export default function CaseSolver() {
                     value={userAnswers[steps[currentStep].id] || ''}
                     onChange={(e) => handleAnswerChange(steps[currentStep].id, e.target.value)}
                     placeholder={steps[currentStep].placeholder}
-                    className="w-full h-40 p-4 border border-gray-200 dark:border-zinc-700 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full h-28 sm:h-40 p-4 border border-gray-200 dark:border-zinc-700 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
                   />
 
                   {/* Score and Feedback */}
@@ -468,18 +468,18 @@ export default function CaseSolver() {
                   )}
 
                   {/* Action Buttons */}
-                  <div className="flex gap-3 mt-4">
+                  <div className="flex flex-col sm:flex-row gap-3 mt-4">
                     <button
                       onClick={handleCheckAnswer}
-                      className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                      className="flex-1 bg-blue-600 text-white px-4 py-2.5 rounded-lg hover:bg-blue-700 transition-colors text-sm"
                     >
                       Javobni tekshirish
                     </button>
                     <button
                       onClick={handleGetAdvice}
-                      className="flex-1 bg-yellow-50 dark:bg-yellow-900/20 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors"
+                      className="flex-1 bg-yellow-500 text-white px-4 py-2.5 rounded-lg hover:bg-yellow-600 transition-colors text-sm flex items-center justify-center gap-2"
                     >
-                      <Lightbulb className="w-4 h-4 inline mr-2" />
+                      <Lightbulb className="w-4 h-4" />
                       Maslahat
                     </button>
                   </div>
