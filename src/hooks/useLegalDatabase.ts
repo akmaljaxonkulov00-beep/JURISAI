@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { ALL_LEGAL_CODES, LegalCode, LegalArticle } from '@/data/legal-codes';
+import { LegalCode, LegalArticle } from '@/data/legal-codes';
 import { getDisplayNameFromCodeId } from '@/lib/utils/code-mapper';
 
 export type { LegalCode, LegalArticle };
@@ -12,81 +12,74 @@ export { getDisplayNameFromCodeId as CODE_DISPLAY_NAMES };
 /**
  * Qonun kodekslarini yuklovchi hook
  * 
- * 1. Supabase'dan yuklashga urinadi
- * 2. Agar muvaffaqiyatsiz bo'lsa, hardcoded ma'lumotlardan foydalanadi
+ * Supabase'dan haqiqiy ma'lumotlarni yuklaydi.
+ * HEECH QACHON hardcoded/data fayllariga tayanmaydi.
+ * Agar Supabase mavjud bo'lmasa, bo'sh array qaytaradi va xatolikni ko'rsatadi.
  */
 export function useLegalCodes() {
-  const [codes, setCodes] = useState<LegalCode[]>(ALL_LEGAL_CODES);
+  const [codes, setCodes] = useState<LegalCode[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [fromSupabase, setFromSupabase] = useState(false);
 
   const fetchFromSupabase = useCallback(async () => {
+    setLoading(true);
+    setError(null);
     try {
-      let supabase: any = null;
-      try {
-        const mod = await import('@/lib/supabase');
-        supabase = mod.supabase;
-      } catch {
-        throw new Error('Supabase not available');
-      }
-
-      // Fetch categories
-      const { data: categories, error: catError } = await supabase
-        .from('categories')
-        .select('*')
-        .order('code_id');
-
-      if (catError) throw catError;
-      if (!categories || categories.length === 0) throw new Error('No categories found');
-
-      // Fetch all articles
-      const { data: articles, error: artError } = await supabase
-        .from('articles')
-        .select('*')
-        .order('article_number');
-
-      if (artError) throw artError;
-
-      // Map to LegalCode format
-      const mapped: LegalCode[] = categories.map((cat: any) => {
-        const codeArticles: LegalArticle[] = (articles || [])
-          .filter((a: any) => a.code_id === cat.code_id)
-          .map((a: any) => ({
-            number: a.article_number,
-            title: a.title,
-            content: a.content,
-            category: a.chapter || 'Umumiy',
-            penalties: a.penalties || undefined,
-            references: Array.isArray(a.references) && a.references.length > 0
-              ? a.references
-              : undefined,
-          }));
-
-        const displayName = getDisplayNameFromCodeId(cat.code_id);
-        return {
-          id: cat.code_id,
-          name: displayName,
-          shortName: displayName,
-          description: cat.description || '',
-          totalArticles: codeArticles.length || cat.article_count || 0,
-          effectiveDate: '01.01.2024',
-          articles: codeArticles.length > 0 ? codeArticles : [],
-        };
+      // Call server-side API route (uses service_role key, bypass RLS)
+      const res = await fetch('/api/legal/codes', {
+        cache: 'no-cache',
+        headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' },
       });
-
-      // Only use Supabase data if we got at least SOME articles
-      const totalArticles = mapped.reduce((sum, c) => sum + c.articles.length, 0);
-      if (totalArticles > 0) {
-        setCodes(mapped);
-        setFromSupabase(true);
-      } else {
-        throw new Error('No articles found in Supabase');
+      
+      if (!res.ok) {
+        throw new Error(`API javob bermadi (${res.status})`);
       }
+      
+      const result = await res.json();
+      
+      if (!result.success) {
+        throw new Error(result.error || 'API xatolik qaytardi');
+      }
+      
+      if (!result.codes || result.codes.length === 0) {
+        setCodes([]);
+        setFromSupabase(true); // Supabase mavjud, lekin ma'lumot yo'q
+        return;
+      }
+      
+      if (result.total_articles === 0) {
+        setCodes([]);
+        setFromSupabase(true);
+        return;
+      }
+
+      // Convert API response to LegalCode format
+      const mapped: LegalCode[] = result.codes.map((c: any) => ({
+        id: c.id,
+        name: c.name,
+        shortName: c.shortName || c.name,
+        description: c.description || '',
+        totalArticles: c.articles?.length || 0,
+        effectiveDate: c.effectiveDate || '01.01.2024',
+        articles: (c.articles || []).map((a: any) => ({
+          number: a.number,
+          title: a.title || '',
+          content: a.content || '',
+          category: a.category || 'Umumiy',
+          penalties: a.penalties || undefined,
+          references: Array.isArray(a.references) && a.references.length > 0
+            ? a.references
+            : undefined,
+        })),
+      }));
+
+      setCodes(mapped);
+      setFromSupabase(true);
     } catch (err: any) {
-      console.warn('Supabase fetch failed, using hardcoded data:', err.message);
-      // Fallback: hardcoded data from legal-codes.ts
-      setCodes(ALL_LEGAL_CODES);
+      console.error('Supabase fetch failed:', err.message);
+      setError(err.message || 'Ma\'lumotlarni yuklashda xatolik yuz berdi');
+      setCodes([]);
       setFromSupabase(false);
     } finally {
       setLoading(false);

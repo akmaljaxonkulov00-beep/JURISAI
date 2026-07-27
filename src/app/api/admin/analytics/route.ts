@@ -16,13 +16,13 @@ export async function GET(request: NextRequest) {
 
     const result: Record<string, any> = {};
 
-    // Fetch users
+    // Fetch users — try registered_users first, then auth.users via service_role
     if (type === 'all' || type === 'users') {
       try {
         const { data: users, error: usersError } = await supabase
           .from('registered_users')
           .select('*');
-        if (!usersError && users) {
+        if (!usersError && users && users.length > 0) {
           result.users = users;
           result.totalUsers = users.length;
           const newUsers = users.filter((u: any) => {
@@ -41,8 +41,44 @@ export async function GET(request: NextRequest) {
 
           const premiumUsers = users.filter((u: any) => u.subscription_plan && u.subscription_plan !== 'free');
           result.premiumUsers = premiumUsers.length;
-        } else if (usersError) {
-          result.usersError = usersError.message;
+          result.userSource = 'registered_users';
+        } else {
+          // Fallback: try auth.users via service_role (must specify auth schema)
+          try {
+            const suUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+            const srKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+            const authRes = await fetch(
+              `${suUrl}/rest/v1/users?select=id,email,raw_user_meta_data,created_at,last_sign_in_at,banned_until`,
+              {
+                headers: {
+                  'apikey': srKey,
+                  'Authorization': `Bearer ${srKey}`,
+                  'Accept-Profile': 'auth',  // Required to access auth schema
+                  'Content-Type': 'application/json',
+                },
+              }
+            );
+            if (authRes.ok) {
+              const authUsers = await authRes.json();
+              if (Array.isArray(authUsers) && authUsers.length > 0) {
+                result.users = authUsers.map((u: any) => ({
+                  id: u.id,
+                  email: u.email || '',
+                  name: u.raw_user_meta_data?.name || u.email?.split('@')[0] || '',
+                  role: u.raw_user_meta_data?.role || 'USER',
+                  subscription_plan: u.raw_user_meta_data?.subscription_plan || 'free',
+                  subscription_expires_at: u.raw_user_meta_data?.subscription_expires_at || '',
+                  blocked: !!u.banned_until,
+                  balance: u.raw_user_meta_data?.balance || 0,
+                  created_at: u.created_at || '',
+                  last_login: u.last_sign_in_at || u.created_at || '',
+                  status: u.banned_until ? 'blocked' : 'active',
+                }));
+                result.totalUsers = authUsers.length;
+                result.userSource = 'auth.users';
+              }
+            }
+          } catch { /* fallback failed */ }
         }
       } catch (e: any) {
         result.usersError = e?.message || 'jadval mavjud emas';
