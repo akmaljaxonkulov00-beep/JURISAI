@@ -11,10 +11,11 @@ import {
   Settings, Shield, CheckCircle, Users, CreditCard, 
   DollarSign, Save, X, Trash2, Bell, Globe, BarChart3, 
   TrendingUp, TrendingDown, LogOut, CalendarDays, Clock, Activity,
-  UserCheck, UserX, Smartphone, Search, Download
+  UserCheck, UserX, Smartphone, Search, Download, FileText
 } from 'lucide-react';
 import { firebaseAuth } from '@/services/firebase-auth';
 import MonitoringDashboard from '@/components/admin/MonitoringDashboard';
+import AdminTemplateManager from '@/components/admin/AdminTemplateManager';
 import { useAdminRealtime } from '@/hooks/useAdminRealtime';
 import { saveSiteSettings, savePricingPlans, approvePayment as syncApprovePayment, rejectPayment as syncRejectPayment } from '@/lib/settings-sync';
 import UserProfileModal from '@/components/admin/UserProfileModal';
@@ -94,7 +95,7 @@ interface LoginActivity {
   method: 'email' | 'google';
 }
 
-type TabType = 'dashboard' | 'reports' | 'monitoring' | 'users' | 'payments' | 'pricing' | 'settings';
+type TabType = 'dashboard' | 'reports' | 'monitoring' | 'users' | 'payments' | 'pricing' | 'templates' | 'settings';
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -532,6 +533,7 @@ export default function AdminDashboard() {
     { id: 'users', label: 'Foydalanuvchilar', icon: Users, badge: realtime.newUsersCount > 0 ? realtime.newUsersCount : undefined },
     { id: 'payments', label: 'To\'lovlar', icon: CreditCard, badge: realtime.newPaymentsCount > 0 ? realtime.newPaymentsCount : undefined },
     { id: 'pricing', label: 'Narxlar', icon: DollarSign },
+    { id: 'templates', label: 'Namunalar', icon: FileText },
     { id: 'settings', label: 'Sozlamalar', icon: Settings },
   ];
 
@@ -1191,6 +1193,11 @@ export default function AdminDashboard() {
               </CardContent>
             </Card>
           </div>
+        )}
+
+        {/* ===== TEMPLATES ===== */}
+        {activeTab === 'templates' && (
+          <AdminTemplateManager />
         )}
 
         {/* ===== SETTINGS ===== */}

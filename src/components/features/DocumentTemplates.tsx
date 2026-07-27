@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import {
   Search, Download, FileText, X, Printer, Copy, CheckCircle,
   FileSignature, Scale, Heart, UserCheck, Briefcase, Users, Mail, DollarSign,
-  FileSpreadsheet, ArrowLeft, Upload, Eye, Edit3, Zap,
+  FileSpreadsheet, ArrowLeft, Upload, Eye, Edit3, Zap, Sparkles,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -42,9 +42,13 @@ export default function DocumentTemplates() {
   const [downloadFormat, setDownloadFormat] = useState<'TXT' | 'DOCX' | 'PDF'>('TXT');
   const [allTemplates, setAllTemplates] = useState<DocumentTemplate[]>([]);
   const [loading, setLoading] = useState(true);
+  const [formatFilter, setFormatFilter] = useState<string>('all');
+  const [aiEditing, setAiEditing] = useState(false);
+  const [aiEditContent, setAiEditContent] = useState('');
+  const aiPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Load templates from API with fallback to hardcoded data
-  useEffect(() => {
+  const loadTemplates = () => {
     fetch('/api/templates')
       .then(r => r.json())
       .then(data => {
@@ -59,6 +63,15 @@ export default function DocumentTemplates() {
         setAllTemplates(FALLBACK_TEMPLATES);
       })
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    loadTemplates();
+    // Poll every 30s for updates (admin changes)
+    aiPollRef.current = setInterval(loadTemplates, 30_000);
+    return () => {
+      if (aiPollRef.current) clearInterval(aiPollRef.current);
+    };
   }, []);
 
   // Filter and search templates
@@ -67,6 +80,11 @@ export default function DocumentTemplates() {
     let list = activeCategory === 'all'
       ? source
       : source.filter(t => t.category === activeCategory);
+
+    // Apply format filter
+    if (formatFilter !== 'all') {
+      list = list.filter(t => t.format === formatFilter);
+    }
 
     if (query.trim()) {
       const q = query.toLowerCase();
@@ -77,7 +95,7 @@ export default function DocumentTemplates() {
       );
     }
     return list;
-  }, [query, activeCategory]);
+  }, [query, activeCategory, formatFilter]);
 
   // Group filtered templates by category
   const groupedTemplates = useMemo(() => {
@@ -186,6 +204,87 @@ startxref
     printWindow.print();
   };
 
+  // ── AI Edit Modal ──
+  if (aiEditing && selectedTemplate) {
+    const t = selectedTemplate;
+    return (
+      <div className="space-y-6">
+        <button
+          onClick={() => { setAiEditing(false); setAiEditContent(''); }}
+          className="flex items-center gap-2 text-sm text-gray-500 dark:text-zinc-400 hover:text-gray-700 dark:hover:text-zinc-200 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" /> Tahrirni bekor qilish
+        </button>
+
+        <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl overflow-hidden">
+          <div className="p-6 border-b border-gray-100 dark:border-zinc-800">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl">
+                <Sparkles className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white">AI yordamida tahrirlash</h3>
+                <p className="text-xs text-gray-500 dark:text-zinc-400">{t.name}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 p-3 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-xl border border-purple-100 dark:border-purple-900/30">
+              <Sparkles className="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0" />
+              <p className="text-xs text-purple-700 dark:text-purple-300">
+                Quyidagi matnni o'z ehtiyojingizga qarab tahrir qiling. Matnni o'zgartirish, qo'shimchalar kiritish yoki formatlash mumkin. 
+                Tugatgach "Yuklab olish" tugmasini bosing.
+              </p>
+            </div>
+          </div>
+          <div className="p-6">
+            <textarea
+              value={aiEditContent}
+              onChange={(e) => setAiEditContent(e.target.value)}
+              className="w-full h-[500px] p-4 text-sm font-mono leading-relaxed border border-gray-200 dark:border-zinc-700 rounded-xl bg-white dark:bg-zinc-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 resize-y"
+              spellCheck={true}
+            />
+          </div>
+          <div className="px-6 py-4 bg-gray-50 dark:bg-zinc-800/50 border-t border-gray-100 dark:border-zinc-800 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-gray-500 dark:text-zinc-400">Yuklab olish formati:</span>
+              <div className="flex gap-1">
+                {(['TXT', 'DOCX', 'PDF'] as const).map(fmt => (
+                  <button
+                    key={fmt}
+                    onClick={() => setDownloadFormat(fmt)}
+                    className={`px-3 py-1 text-xs font-medium rounded-lg transition-all ${
+                      downloadFormat === fmt
+                        ? 'bg-purple-600 text-white'
+                        : 'bg-gray-200 dark:bg-zinc-700 text-gray-600 dark:text-zinc-300 hover:bg-gray-300 dark:hover:bg-zinc-600'
+                    }`}
+                  >
+                    {fmt}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button size="sm" variant="outline" onClick={() => copyContent(aiEditContent)} className="flex items-center gap-1">
+                {copied ? <CheckCircle className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
+                {copied ? 'Nusxalandi' : 'Nusxa olish'}
+              </Button>
+              <Button size="sm" onClick={() => {
+                const blob = new Blob([aiEditContent], { type: 'text/plain;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${t.id}_tahrirlangan.${downloadFormat === 'DOCX' ? 'docx' : downloadFormat === 'PDF' ? 'pdf' : 'txt'}`;
+                a.click();
+                URL.revokeObjectURL(url);
+              }} className="flex items-center gap-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700">
+                <Download className="w-3.5 h-3.5" /> Tahrirlanganni yuklab olish
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // ── Detail/Preview View ──
   if (selectedTemplate) {
     const t = selectedTemplate;
@@ -229,6 +328,12 @@ startxref
                 </Button>
                 <Button size="sm" variant="outline" onClick={() => printTemplate(t)} className="flex items-center gap-1">
                   <Printer className="w-3.5 h-3.5" /> Chop etish
+                </Button>
+                <Button size="sm" onClick={() => {
+                  setAiEditContent(t.content);
+                  setAiEditing(true);
+                }} className="flex items-center gap-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700 shadow-md">
+                  <Edit3 className="w-3.5 h-3.5" /> Matnni tahrirlash
                 </Button>
               </div>
             </div>
@@ -320,7 +425,7 @@ startxref
           }`}
         >
           <FileSpreadsheet className="w-3.5 h-3.5" />
-          Barchasi ({DOCUMENT_TEMPLATES.length})
+          Barchasi ({categoryCounts['all'] || 0})
         </button>
         {TEMPLATE_CATEGORIES.map(cat => (
           <button
@@ -334,6 +439,34 @@ startxref
           >
             {CATEGORY_ICONS[cat.id] || <FileText className="w-3.5 h-3.5" />}
             {cat.name} ({categoryCounts[cat.id] || 0})
+          </button>
+        ))}
+      </div>
+
+      {/* Format filter chips */}
+      <div className="flex flex-wrap gap-2">
+        <button
+          onClick={() => setFormatFilter('all')}
+          className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all flex items-center gap-1 ${
+            formatFilter === 'all'
+              ? 'bg-purple-600 text-white'
+              : 'bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-300 hover:bg-gray-200 dark:hover:bg-zinc-700'
+          }`}
+        >
+          <FileText className="w-3.5 h-3.5" />
+          Barcha formatlar
+        </button>
+        {['TXT', 'DOCX', 'PDF'].map(fmt => (
+          <button
+            key={fmt}
+            onClick={() => setFormatFilter(fmt)}
+            className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all flex items-center gap-1 ${
+              formatFilter === fmt
+                ? 'bg-purple-600 text-white'
+                : 'bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-300 hover:bg-gray-200 dark:hover:bg-zinc-700'
+            }`}
+          >
+            {fmt}
           </button>
         ))}
       </div>
