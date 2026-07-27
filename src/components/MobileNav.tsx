@@ -3,8 +3,9 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Scale, Building2, GitBranch, BookOpen, FileText, Wrench, Crown, Settings, HelpCircle, Shield, Moon, Sun, X } from 'lucide-react';
+import { LayoutDashboard, Scale, Building2, GitBranch, BookOpen, FileText, Wrench, Crown, Settings, HelpCircle, Shield, Moon, Sun, X, LogOut } from 'lucide-react';
 import { useTheme } from '@/context/ThemeContext';
+import { firebaseAuth } from '@/services/firebase-auth';
 
 const NAV_GROUPS = [
   {
@@ -131,6 +132,17 @@ export default function MobileNav() {
               </div>
             </div>
           ))}
+
+          {/* Logout Button */}
+          <button
+            onClick={async () => {
+              await firebaseAuth.signOut();
+            }}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 mt-2"
+          >
+            <LogOut className="w-4.5 h-4.5 flex-shrink-0" />
+            <span>Chiqish</span>
+          </button>
         </div>
       </nav>
     </>
