@@ -1,11 +1,12 @@
 'use client';
 
 // ═══════════════════════════════════════════════════════════════════════════
-// useSettingsSync.ts — Real-time settings sync hook
-// Admin panelidagi o'zgarishlarni foydalanuvchi sahifalariga yetkazadi
+// useSettingsSync.ts — Supabase Realtime + poll fallback
+// Admin panelidagi o'zgarishlar milisoniyalarda foydalanuvchiga yetadi
 // ═══════════════════════════════════════════════════════════════════════════
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { supabase } from '@/lib/supabase-client';
 import {
   getPublicSettings,
   getPricingPlans,
@@ -18,7 +19,7 @@ import {
   type PaymentRequest,
 } from '@/lib/settings-sync';
 
-const POLL_INTERVAL_MS = 15_000; // Har 15 sekundda yangilanadi
+const FALLBACK_POLL_MS = 60_000; // Fallback poll har 60 sekund (agar Realtime uzulsa)
 
 interface SettingsState {
   settings: SiteSettings | null;
@@ -30,7 +31,7 @@ interface SettingsState {
   refresh: () => Promise<void>;
 }
 
-// Sync user session with latest payment/subscription data from Supabase
+// ── Sync user session with latest payment/subscription data ──
 function syncUserSessionWithPayments(payments: PaymentRequest[]) {
   try {
     const sessionData = sessionStorage.getItem('jurisai_user') || sessionStorage.getItem('auth_user');
@@ -38,25 +39,19 @@ function syncUserSessionWithPayments(payments: PaymentRequest[]) {
     const user = JSON.parse(sessionData);
     if (!user?.email) return;
 
-    // Find approved payments for this user
     const userPayments = payments.filter(p =>
       p.status === 'approved' &&
       (p.userEmail === user.email || p.userId === user.id || p.userId === user.email)
     );
-
     if (userPayments.length === 0) return;
 
-    // Get the most recently approved payment
     const latestApproved = userPayments.sort((a, b) =>
       new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     )[0];
 
-    // Calculate total approved balance
     const totalApprovedBalance = userPayments.reduce((sum, p) => sum + (p.amount || 0), 0);
     const previousBalance = Number(user.balance || 0);
 
-    // Only update if the session balance is lower than what Supabase shows
-    // (this means admin approved after the user's last session update)
     if (totalApprovedBalance > previousBalance || !user.subscription_plan || user.subscription_plan === 'free') {
       const plan = latestApproved.plan === 'pro' ? 'pro' : 'standart';
       const updatedUser = {
@@ -70,7 +65,18 @@ function syncUserSessionWithPayments(payments: PaymentRequest[]) {
       localStorage.setItem('jurisai_user', JSON.stringify(updatedUser));
       localStorage.setItem('auth_user', JSON.stringify(updatedUser));
     }
-  } catch {}
+  } catch { /* silent */ }
+}
+
+// ── Re-fetch a single data source ──
+async function fetchOne(source: string): Promise<any> {
+  switch (source) {
+    case 'settings': return getPublicSettings();
+    case 'pricing': return getPricingPlans();
+    case 'payments': return getPaymentRequests();
+    case 'announcements': return getAnnouncements();
+    default: return null;
+  }
 }
 
 export function useSettingsSync(): SettingsState {
@@ -81,11 +87,12 @@ export function useSettingsSync(): SettingsState {
   const [loading, setLoading] = useState(true);
   const [lastSynced, setLastSynced] = useState<Date | null>(null);
   const mountedRef = useRef(true);
-  const pollTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const pollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const channelsRef = useRef<{ unsubscribe: () => void }[]>([]);
 
+  // ── Initial load (all sources) ──
   const loadAll = useCallback(async () => {
     if (!mountedRef.current) return;
-
     try {
       const [s, p, pr, a] = await Promise.allSettled([
         getPublicSettings(),
@@ -93,18 +100,14 @@ export function useSettingsSync(): SettingsState {
         getPaymentRequests(),
         getAnnouncements(),
       ]);
-
       if (!mountedRef.current) return;
-
       if (s.status === 'fulfilled' && s.value) setSettings(s.value);
       if (p.status === 'fulfilled') setPricingPlans(p.value);
       if (pr.status === 'fulfilled') {
         setPaymentRequests(pr.value);
-        // CRITICAL: Sync user session with latest payment data
         syncUserSessionWithPayments(pr.value);
       }
       if (a.status === 'fulfilled') setAnnouncements(a.value);
-
       setLastSynced(new Date());
     } catch (err) {
       console.warn('[useSettingsSync] Load error:', err);
@@ -119,34 +122,95 @@ export function useSettingsSync(): SettingsState {
     await loadAll();
   }, [loadAll]);
 
+  // ── Partial update (single source, called by Realtime) ──
+  const handleRealtimeUpdate = useCallback(async (source: string) => {
+    if (!mountedRef.current) return;
+    try {
+      const data = await fetchOne(source);
+      if (!mountedRef.current) return;
+      switch (source) {
+        case 'settings':
+          if (data) setSettings(data as SiteSettings);
+          break;
+        case 'pricing':
+          setPricingPlans(data as PricingPlan[]);
+          break;
+        case 'payments': {
+          const payments = data as PaymentRequest[];
+          setPaymentRequests(payments);
+          syncUserSessionWithPayments(payments);
+          break;
+        }
+        case 'announcements':
+          setAnnouncements(data);
+          break;
+      }
+      setLastSynced(new Date());
+    } catch { /* silent */ }
+  }, []);
+
+  // ── Subscribe to Supabase Realtime channels ──
   useEffect(() => {
     mountedRef.current = true;
 
-    // Initial load
+    // 1. Initial fetch
     loadAll();
 
-    // Fast poll for first 30 seconds (capture any admin changes)
-    const fastTimer = setTimeout(() => {
-      // After 30s, switch to normal polling
+    // 2. Supabase Realtime subscriptions (instant!)
+    const tables = [
+      { name: 'payments', key: 'payments' },
+      { name: 'site_settings', key: 'settings' },
+      { name: 'pricing_plans', key: 'pricing' },
+      { name: 'announcements', key: 'announcements' },
+    ];
+
+    const channels: { unsubscribe: () => void }[] = [];
+
+    for (const table of tables) {
+      const channelName = `jurisai-${table.name}-changes`;
+      const channel = supabase
+        .channel(channelName)
+        .on(
+          'postgres_changes' as any,
+          { event: '*', schema: 'public', table: table.name },
+          () => {
+            // Any INSERT / UPDATE / DELETE → re-fetch that table
+            handleRealtimeUpdate(table.key);
+          }
+        )
+        .subscribe((status: string) => {
+          if (status === 'SUBSCRIBED') {
+            // console.log(`[Realtime] ${table.name} kanaliga ulandi`);
+          } else if (status === 'CHANNEL_ERROR') {
+            // Realtime failed — fallback to polling handles this
+          }
+        });
+
+      channels.push({ unsubscribe: () => supabase.removeChannel(channel) });
+    }
+
+    channelsRef.current = channels;
+
+    // 3. Fallback polling (60s) — catches anything Realtime missed
+    pollTimerRef.current = setTimeout(function poll() {
       if (!mountedRef.current) return;
-    }, 30_000);
+      loadAll();
+      pollTimerRef.current = setTimeout(poll, FALLBACK_POLL_MS);
+    }, FALLBACK_POLL_MS);
 
-    // Normal polling
-    pollTimerRef.current = setInterval(() => {
-      if (mountedRef.current) {
-        loadAll();
-      }
-    }, POLL_INTERVAL_MS);
-
+    // ── Cleanup ──
     return () => {
       mountedRef.current = false;
-      clearTimeout(fastTimer);
       if (pollTimerRef.current) {
-        clearInterval(pollTimerRef.current);
+        clearTimeout(pollTimerRef.current);
         pollTimerRef.current = null;
       }
+      for (const ch of channelsRef.current) {
+        ch.unsubscribe();
+      }
+      channelsRef.current = [];
     };
-  }, [loadAll]);
+  }, [loadAll, handleRealtimeUpdate]);
 
   return {
     settings,

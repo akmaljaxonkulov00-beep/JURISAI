@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
-import { ALL_LEGAL_CODES, LegalCode, LegalArticle, CODE_DISPLAY_NAMES } from '@/data/legal-codes';
+import { useLegalCodes, LegalCode, LegalArticle, CODE_DISPLAY_NAMES } from '@/hooks/useLegalDatabase';
 import {
   Search, BookOpen, Scale, Gavel, Shield, FileText, Landmark,
   Users, DollarSign, TreePine, ChevronRight, ArrowLeft, BookMarked,
@@ -62,27 +62,12 @@ export default function QonunlarPage() {
   const [selectedArticle, setSelectedArticle] = useState<LegalArticle | null>(null);
   const [activeTab, setActiveTab] = useState<'all' | 'categories' | 'popular'>('all');
 
-  const codes = ALL_LEGAL_CODES;
+  const { codes, loading, fromSupabase, search: searchCodes } = useLegalCodes();
 
-  // Search results
+  // Search results using hook's search function
   const searchResults = useMemo(() => {
-    if (!searchQuery.trim()) return [];
-    const q = searchQuery.toLowerCase();
-    const results: { code: LegalCode; article: LegalArticle }[] = [];
-    codes.forEach(code => {
-      code.articles.forEach(article => {
-        if (
-          article.number.toLowerCase().includes(q) ||
-          article.title.toLowerCase().includes(q) ||
-          article.content.toLowerCase().includes(q) ||
-          article.category?.toLowerCase().includes(q)
-        ) {
-          results.push({ code, article });
-        }
-      });
-    });
-    return results.slice(0, 30);
-  }, [searchQuery, codes]);
+    return searchQuery.trim() ? searchCodes(searchQuery) : [];
+  }, [searchQuery, searchCodes]);
 
   // Get current code
   const currentCode = selectedCode ? codes.find(c => c.id === selectedCode) : null;

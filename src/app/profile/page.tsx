@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { useTheme } from '@/context/ThemeContext';
 import { useSearchParams } from 'next/navigation';
+import { useSettingsSync } from '@/hooks/useSettingsSync';
 
 interface UserProfile {
   id: string;
@@ -84,36 +85,61 @@ function ProfileContent() {
   const [showCurrentPass, setShowCurrentPass] = useState(false);
   const [showNewPass, setShowNewPass] = useState(false);
   const [settingsSaved, setSettingsSaved] = useState(false);
-  const [paymentStatus, setPaymentStatus] = useState<string | null>(null);
-  const [paymentAmount, setPaymentAmount] = useState<number>(0);
-  const [paymentDate, setPaymentDate] = useState<string>('');
   const [profileImage, setProfileImage] = useState<string | null>(() => {
     if (typeof window !== 'undefined') return localStorage.getItem('profile_image');
     return null;
   });
 
-  // Load payment status from localStorage/payment history
+  // ── Reactive sync: balance, subscription, payment history from Supabase ──
+  const sync = useSettingsSync();
+
+  // Current user email for filtering payments — safe parse
+  const currentUserEmail = typeof window !== 'undefined'
+    ? (() => {
+        try {
+          return (JSON.parse(localStorage.getItem('auth_user') || '{}') as any).email || '';
+        } catch { return ''; }
+      })()
+    : '';
+
+  // Filter this user's payment requests from sync data
+  const userPayments = sync.paymentRequests.filter(p =>
+    p.userEmail === currentUserEmail || p.userId === currentUserEmail
+  ).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+  // Compute total approved balance
+  const totalApprovedBalance = userPayments
+    .filter(p => p.status === 'approved')
+    .reduce((sum, p) => sum + (p.amount || 0), 0);
+
+  // Latest payment info for display
+  const latestPayment = userPayments[0];
+  const reactivePaymentStatus = latestPayment?.status || null;
+  const reactivePaymentAmount = latestPayment?.amount || 0;
+  const reactivePaymentDate = latestPayment?.createdAt
+    ? new Date(latestPayment.createdAt).toLocaleDateString('uz-UZ')
+    : '';
+
+  // Update subscription plan reactively from latest approved payment
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const stored = localStorage.getItem('auth_user');
-        const payHistory = localStorage.getItem('payment_history');
-        if (payHistory) {
-          const payData = JSON.parse(payHistory);
-          setPaymentStatus(payData.status || null);
-          setPaymentAmount(payData.amount || 0);
-          setPaymentDate(payData.date || '');
-        } else {
-          // Check if subscription is Pro and find payment info
-          const userData = stored ? JSON.parse(stored) : {};
-          if (userData.subscription_plan === 'pro') {
-            setPaymentStatus('approved');
-            setPaymentAmount(45000);
-          }
+    try {
+      const stored = localStorage.getItem('auth_user');
+      if (!stored) return;
+      const user = JSON.parse(stored);
+      const approvedPaid = userPayments.filter(p => p.status === 'approved' && p.amount > 0);
+      if (approvedPaid.length > 0) {
+        const plan = approvedPaid[0].plan || 'standart';
+        if (user.subscription_plan !== plan) {
+          user.subscription_plan = plan;
+          const updatedProfile = { ...profile, subscription: plan === 'pro' ? 'Pro' as const : 'Free' as const };
+          setProfile(updatedProfile);
+          setEditedProfile(updatedProfile);
+          localStorage.setItem('auth_user', JSON.stringify(user));
+          localStorage.setItem('jurisai_user', JSON.stringify(user));
         }
-      } catch {}
-    }
-  }, []);
+      }
+    } catch {}
+  }, [sync.paymentRequests]);
 
   const handleSave = () => {
     const userData = {
@@ -178,16 +204,58 @@ function ProfileContent() {
   };
 
   const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteSuccess, setDeleteSuccess] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
-  const handleDeleteAccount = () => {
+  const handleDeleteAccount = async () => {
     if (!deleteConfirm) {
       setDeleteConfirm(true);
       return;
     }
-    setDeleteSuccess('Hisob o\'chirildi. Xayr!');
-    setTimeout(() => setDeleteSuccess(null), 3000);
-    setDeleteConfirm(false);
+    setDeleteLoading(true);
+    setDeleteError(null);
+    
+    try {
+      const userData = JSON.parse(localStorage.getItem('auth_user') || '{}');
+      const authToken = sessionStorage.getItem('auth_token') || userData.id || userData.uid || '';
+      
+      // 1. Call the server to delete Supabase records
+      const res = await fetch('/api/user/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: userData.id || userData.uid,
+          email: userData.email,
+          authToken,
+        }),
+      });
+      const result = await res.json();
+      
+      // 2. Sign out from Firebase if available
+      try {
+        const { firebaseAuth } = await import('@/services/firebase-auth');
+        await firebaseAuth.signOut();
+      } catch {}
+      
+      if (result.success) {
+        setDeleteSuccess('Hisob o\'chirildi. Xayr!');
+        // Clear all local data after brief delay
+        setTimeout(() => {
+          localStorage.clear();
+          sessionStorage.clear();
+          window.location.href = '/signin';
+        }, 1500);
+      } else {
+        setDeleteError(result.error || 'Hisobni o\'chirishda xatolik yuz berdi');
+        setDeleteConfirm(false);
+      }
+    } catch (err) {
+      setDeleteError('Server bilan bog\'lanishda xatolik. Iltimos, qayta urinib ko\'ring.');
+      setDeleteConfirm(false);
+    } finally {
+      setDeleteLoading(false);
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -212,6 +280,7 @@ function ProfileContent() {
           {[
             { id: 'profil', label: 'Profil', icon: User },
             { id: 'personal', label: 'Shaxsiy ma\'lumotlar', icon: Edit3 },
+            { id: 'payments', label: 'To\'lovlar', icon: CreditCard },
             { id: 'notifications', label: 'Bildirishnomalar', icon: Bell },
             { id: 'appearance', label: 'Ko\'rinish', icon: Monitor },
             { id: 'security', label: 'Xavfsizlik', icon: Shield },
@@ -284,25 +353,51 @@ function ProfileContent() {
                 </div>
               </div>
             </div>
-            {/* Payment Status */}
-            {profile.subscription === 'Pro' && paymentStatus && (
+            {/* Payment Status — reactive from sync */}
+            {reactivePaymentStatus && (
               <div className={`p-4 rounded-xl flex items-center gap-3 ${
-                paymentStatus === 'approved' ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800' :
-                paymentStatus === 'pending' ? 'bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800' :
+                reactivePaymentStatus === 'approved' ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800' :
+                reactivePaymentStatus === 'pending' ? 'bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800' :
                 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800'
               }`}>
-                {paymentStatus === 'approved' ? <CheckCircle className="w-5 h-5 text-green-600" /> :
-                 paymentStatus === 'pending' ? <Clock className="w-5 h-5 text-yellow-600" /> :
+                {reactivePaymentStatus === 'approved' ? <CheckCircle className="w-5 h-5 text-green-600" /> :
+                 reactivePaymentStatus === 'pending' ? <Clock className="w-5 h-5 text-yellow-600" /> :
                  <AlertCircle className="w-5 h-5 text-red-600" />}
                 <div>
                   <p className="font-medium text-gray-800 dark:text-white">
-                    {paymentStatus === 'approved' && "To'lov tasdiqlandi ✅"}
-                    {paymentStatus === 'pending' && "To'lov tekshirilmoqda ⏳"}
-                    {paymentStatus === 'rejected' && "To'lov rad etildi ❌"}
+                    {reactivePaymentStatus === 'approved' && "To'lov tasdiqlandi ✅"}
+                    {reactivePaymentStatus === 'pending' && "To'lov tekshirilmoqda ⏳"}
+                    {reactivePaymentStatus === 'rejected' && "To'lov rad etildi ❌"}
                   </p>
                   <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-zinc-500">
-                    {paymentAmount > 0 && `${paymentAmount.toLocaleString()} UZS`}
-                    {paymentDate && ` — ${paymentDate}`}
+                    {reactivePaymentAmount > 0 && `${reactivePaymentAmount.toLocaleString()} UZS`}
+                    {reactivePaymentDate && ` — ${reactivePaymentDate}`}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Balance display */}
+            {totalApprovedBalance > 0 && (
+              <div className="p-4 rounded-xl bg-gradient-to-br from-blue-50 to-emerald-50 dark:from-blue-900/20 dark:to-emerald-900/20 border border-blue-200 dark:border-blue-800 flex items-center gap-3">
+                <CreditCard className="w-5 h-5 text-blue-600" />
+                <div>
+                  <p className="text-xs text-gray-500 dark:text-zinc-500">Balans</p>
+                  <p className="text-xl font-bold text-gray-800 dark:text-white">{totalApprovedBalance.toLocaleString()} UZS</p>
+                </div>
+              </div>
+            )}
+
+            {/* Processing payments */}
+            {userPayments.filter(p => p.status === 'pending').length > 0 && (
+              <div className="p-3 rounded-xl bg-yellow-50 dark:bg-yellow-900/10 border border-yellow-200 dark:border-yellow-800 flex items-center gap-3">
+                <Clock className="w-5 h-5 text-yellow-600 animate-pulse" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-yellow-800 dark:text-yellow-300">
+                    {userPayments.filter(p => p.status === 'pending').length} ta to'lov tekshirilmoqda
+                  </p>
+                  <p className="text-xs text-yellow-700 dark:text-yellow-400">
+                    Moderator tomonidan ko'rib chiqilmoqda
                   </p>
                 </div>
               </div>
@@ -407,6 +502,116 @@ function ProfileContent() {
             <div className="flex gap-3 pt-2">
               <button onClick={handleSave} className="px-6 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-medium">Saqlash</button>
               <button onClick={handleCancel} className="px-6 py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium">Bekor qilish</button>
+            </div>
+          </div>
+        )}
+
+        {/* Payments History */}
+        {settingsSubTab === 'payments' && (
+          <div className="space-y-4">
+            <div className="card-default rounded-2xl p-6">
+              <h2 className="text-lg font-bold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
+                <CreditCard className="w-5 h-5 text-blue-600" /> To'lovlar tarixi
+              </h2>
+
+              {/* Balance summary */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+                <div className="p-4 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-900/30 border border-blue-200 dark:border-blue-800">
+                  <p className="text-xs text-blue-600 dark:text-blue-400 font-medium">Balans</p>
+                  <p className="text-2xl font-bold text-gray-800 dark:text-white mt-1">{totalApprovedBalance.toLocaleString()} UZS</p>
+                </div>
+                <div className="p-4 rounded-xl bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-900/30 border border-green-200 dark:border-green-800">
+                  <p className="text-xs text-green-600 dark:text-green-400 font-medium">Tasdiqlangan</p>
+                  <p className="text-2xl font-bold text-gray-800 dark:text-white mt-1">{userPayments.filter(p => p.status === 'approved').length}</p>
+                </div>
+                <div className="p-4 rounded-xl bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/20 dark:to-amber-900/30 border border-amber-200 dark:border-amber-800">
+                  <p className="text-xs text-amber-600 dark:text-amber-400 font-medium">Kutilmoqda</p>
+                  <p className="text-2xl font-bold text-gray-800 dark:text-white mt-1">{userPayments.filter(p => p.status === 'pending').length}</p>
+                </div>
+              </div>
+
+              {/* Sync status */}
+              <div className="flex items-center justify-between mb-4">
+                {sync.loading ? (
+                  <p className="text-xs text-gray-400 dark:text-zinc-500 animate-pulse">
+                    Yangilanmoqda...
+                  </p>
+                ) : sync.lastSynced ? (
+                  <p className="text-xs text-gray-400 dark:text-zinc-500">
+                    So'nggi yangilanish: {sync.lastSynced.toLocaleTimeString('uz-UZ')}
+                    {' '}(har 15 sekundda)
+                  </p>
+                ) : (
+                  <p className="text-xs text-gray-400 dark:text-zinc-500">
+                    Ma'lumotlar yuklanmoqda...
+                  </p>
+                )}
+              </div>
+
+              {/* Payment list */}
+              {userPayments.length === 0 ? (
+                <div className="text-center py-12">
+                  <CreditCard className="w-12 h-12 text-gray-300 dark:text-zinc-600 mx-auto mb-3" />
+                  <p className="text-gray-500 dark:text-zinc-400 font-medium">Hali to'lovlar mavjud emas</p>
+                  <p className="text-xs text-gray-400 dark:text-zinc-500 mt-1">Premium tarifga o'tish uchun to'lov qiling</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {userPayments.map(pay => (
+                    <div key={pay.id} className={`p-4 rounded-xl border transition-all ${
+                      pay.status === 'approved'
+                        ? 'bg-green-50 dark:bg-green-900/10 border-green-200 dark:border-green-800'
+                        : pay.status === 'pending'
+                          ? 'bg-yellow-50 dark:bg-yellow-900/10 border-yellow-200 dark:border-yellow-800'
+                          : 'bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-800'
+                    }`}>
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                          {pay.status === 'approved' && <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />}
+                          {pay.status === 'pending' && <Clock className="w-5 h-5 text-yellow-600 flex-shrink-0 animate-pulse" />}
+                          {pay.status === 'rejected' && <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />}
+                          <div>
+                            <p className="font-medium text-gray-800 dark:text-white">
+                              {pay.plan === 'pro' ? 'Pro' : 'Standart'} tarif — {pay.amount.toLocaleString()} UZS
+                            </p>
+                            <p className="text-xs text-gray-500 dark:text-zinc-500">
+                              {new Date(pay.createdAt).toLocaleDateString('uz-UZ', {
+                                day: 'numeric', month: 'long', year: 'numeric',
+                                hour: '2-digit', minute: '2-digit'
+                              })}
+                            </p>
+                            {pay.status === 'approved' && (
+                              <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300">
+                                Tasdiqlangan
+                              </span>
+                            )}
+                            {pay.status === 'pending' && (
+                              <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300">
+                                Tekshirilmoqda
+                              </span>
+                            )}
+                            {pay.status === 'rejected' && (
+                              <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300">
+                                Rad etilgan
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        {pay.receiptImage && (pay.receiptImage.startsWith('data:') || pay.receiptImage.startsWith('http')) && (
+                          <a
+                            href={pay.receiptImage}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex-shrink-0 w-12 h-12 rounded-lg overflow-hidden border dark:border-zinc-700 hover:ring-2 ring-blue-500 transition-all block"
+                          >
+                            <img src={pay.receiptImage} alt="Chek" className="w-full h-full object-cover" />
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -569,14 +774,27 @@ function ProfileContent() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    {deleteConfirm && (
+                    {deleteLoading && (
+                      <div className="animate-spin w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full"></div>
+                    )}
+                    {deleteConfirm && !deleteLoading && (
                       <span className="text-xs text-red-600 dark:text-red-400 font-medium">Haqiqatan ham o'chirilsinmi?</span>
                     )}
-                    <button onClick={handleDeleteAccount} className="px-4 py-2 text-sm bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-xl hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors font-medium border border-red-200 dark:border-red-800">
-                      {deleteConfirm ? 'Tasdiqlash' : 'O\'chirish'}
+                    <button
+                      onClick={handleDeleteAccount}
+                      disabled={deleteLoading}
+                      className={`px-4 py-2 text-sm rounded-xl transition-colors font-medium border ${
+                        deleteLoading
+                          ? 'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
+                          : deleteConfirm
+                            ? 'bg-red-600 text-white hover:bg-red-700 border-red-600'
+                            : 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 border-red-200 dark:border-red-800'
+                      }`}
+                    >
+                      {deleteLoading ? 'O\'chirilmoqda...' : deleteConfirm ? 'Tasdiqlash' : 'O\'chirish'}
                     </button>
-                    {deleteConfirm && (
-                      <button onClick={() => setDeleteConfirm(false)} className="px-4 py-2 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl font-medium">
+                    {deleteConfirm && !deleteLoading && (
+                      <button onClick={() => { setDeleteConfirm(false); setDeleteError(null); }} className="px-4 py-2 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl font-medium">
                         Bekor qilish
                       </button>
                     )}
@@ -620,8 +838,13 @@ function ProfileContent() {
           </div>
         )}
         {deleteSuccess && (
+          <div className="mb-4 px-4 py-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl flex items-center gap-2 text-sm text-green-700 dark:text-green-300">
+            <CheckCircle className="w-4 h-4" /> {deleteSuccess}
+          </div>
+        )}
+        {deleteError && (
           <div className="mb-4 px-4 py-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl flex items-center gap-2 text-sm text-red-700 dark:text-red-300">
-            <span>{deleteSuccess}</span>
+            <AlertTriangle className="w-4 h-4" /> {deleteError}
           </div>
         )}
         {renderSettings()}

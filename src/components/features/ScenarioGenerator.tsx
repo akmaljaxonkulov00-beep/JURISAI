@@ -266,7 +266,7 @@ export default function ScenarioGenerator() {
         )}
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl p-1">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl p-1">
             <TabsTrigger value="create" className="rounded-xl data-[state=active]:bg-blue-600 data-[state=active]:text-white">
               Yaratish
             </TabsTrigger>

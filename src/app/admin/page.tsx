@@ -15,7 +15,11 @@ import {
 } from 'lucide-react';
 import { firebaseAuth } from '@/services/firebase-auth';
 import MonitoringDashboard from '@/components/admin/MonitoringDashboard';
+import { useAdminRealtime } from '@/hooks/useAdminRealtime';
 import { saveSiteSettings, savePricingPlans, approvePayment as syncApprovePayment, rejectPayment as syncRejectPayment } from '@/lib/settings-sync';
+import UserProfileModal from '@/components/admin/UserProfileModal';
+import OnlineUsersMonitor from '@/components/admin/OnlineUsersMonitor';
+import { useOnlineUsers } from '@/hooks/useOnlineUsers';
 
 // Lightbox component for viewing receipt images
 function ImageLightbox({ image, onClose }: { image: string | null; onClose: () => void }) {
@@ -108,6 +112,10 @@ export default function AdminDashboard() {
   const [loginActivities, setLoginActivities] = useState<LoginActivity[]>([]);
   const [tokenUsages, setTokenUsages] = useState<TokenUsage[]>([]);
 
+  // Real-time data subscription
+  const realtime = useAdminRealtime();
+  const onlineUsers = useOnlineUsers();
+
   // User search
   const [userSearchQuery, setUserSearchQuery] = useState('');
 
@@ -120,13 +128,16 @@ export default function AdminDashboard() {
   const [editingPlan, setEditingPlan] = useState<string | null>(null);
   const [editPlanData, setEditPlanData] = useState<PricingPlan | null>(null);
 
+  // Profile modal
+  const [profileModalUser, setProfileModalUser] = useState<any>(null);
+  const [profileModalOpen, setProfileModalOpen] = useState(false);
+
   // Payments
   const [paymentRequests, setPaymentRequests] = useState<PaymentRequest[]>([]);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
 
   // Users
   const [allUsers, setAllUsers] = useState<any[]>([]);
-  const [usersLoading, setUsersLoading] = useState(true);
 
   // Site settings
   const [siteSettings, setSiteSettings] = useState<SiteSettings>({
@@ -144,9 +155,21 @@ export default function AdminDashboard() {
   const [settingsSaved, setSettingsSaved] = useState(false);
 
   useEffect(() => {
-    loadFromLocalStorage();
-    loadFromSupabase();
-    loadUsers();
+    // Load legacy data from localStorage (settings, pricing cache)
+    try {
+      const stored = localStorage.getItem('admin_site_settings');
+      if (stored) setSiteSettings(JSON.parse(stored));
+      const storedPlans = localStorage.getItem('admin_pricing_plans');
+      if (storedPlans) setPricingPlans(JSON.parse(storedPlans));
+    } catch {}
+
+    // Wire real-time data to local state (initial load + continuous updates)
+    setPaymentRequests(realtime.paymentRequests);
+    setAllUsers(realtime.allUsers);
+    setLoginActivities(realtime.loginActivities);
+    setTokenUsages(realtime.tokenUsages);
+    setLoading(realtime.loading);
+
     
     try {
       const storedSession = sessionStorage.getItem('jurisai_user') || sessionStorage.getItem('auth_user');
@@ -162,90 +185,9 @@ export default function AdminDashboard() {
         }
       }
     } catch {}
-  }, []);
-
-  const loadFromLocalStorage = () => {
-    try {
-      const stored = localStorage.getItem('admin_site_settings');
-      if (stored) setSiteSettings(JSON.parse(stored));
-      const storedPlans = localStorage.getItem('admin_pricing_plans');
-      if (storedPlans) setPricingPlans(JSON.parse(storedPlans));
-      const storedPayments = localStorage.getItem('payment_requests');
-      if (storedPayments) setPaymentRequests(JSON.parse(storedPayments));
-      const storedTokens = localStorage.getItem('token_usage');
-      if (storedTokens) setTokenUsages(JSON.parse(storedTokens));
-      const storedLogins = localStorage.getItem('login_activity');
-      if (storedLogins) setLoginActivities(JSON.parse(storedLogins));
-    } catch {}
-  };
-
-  const loadFromSupabase = async () => {
-    try {
-      const res = await fetch('/api/admin/analytics?days=30&type=all');
-      const result = await res.json();
-      if (result.success && result.data) {
-        const d = result.data;
-        // Only override if Supabase has real data (not empty)
-        if (d.loginActivities && Array.isArray(d.loginActivities) && d.loginActivities.length > 0) {
-          setLoginActivities(d.loginActivities.map((l: any) => ({
-            userId: l.user_id || l.email,
-            userEmail: l.email,
-            date: l.created_at,
-            method: l.method || 'email'
-          })));
-        }
-        if (d.tokenUsages && Array.isArray(d.tokenUsages) && d.tokenUsages.length > 0) {
-          setTokenUsages(d.tokenUsages.map((t: any) => ({
-            userId: t.user_id || t.email,
-            userEmail: t.email,
-            userName: t.name || '',
-            tokens: t.tokens || 0,
-            date: t.created_at,
-            action: t.action || 'unknown'
-          })));
-        }
-        if (d.users && Array.isArray(d.users) && d.users.length > 0) {
-          // Map snake_case Supabase records to camelCase (same pattern as payments)
-          const mapped = d.users.map((u: any) => ({
-            ...u,
-            id: u.id || u.user_id || u.uid,
-            uid: u.uid || u.id || u.user_id,
-            name: u.name || u.user_name || u.display_name || '',
-            email: u.email || u.user_email || '',
-            role: u.role || u.user_role || 'USER',
-            subscription_plan: u.subscription_plan || u.plan || 'free',
-            subscription_expires_at: u.subscription_expires_at || u.expires_at || '',
-            last_login: u.last_login || u.created_at || '',
-            blocked: u.blocked || false,
-            balance: u.balance || 0,
-            created_at: u.created_at || '',
-          }));
-          setAllUsers(mapped);
-          setUsersLoading(false);
-          // Continue loading other data (payments, logins, tokens)
-        }
-        if (d.paymentRequests && Array.isArray(d.paymentRequests) && d.paymentRequests.length > 0) {
-          // Map snake_case Supabase records to camelCase PaymentRequest type
-          const mapped = d.paymentRequests.map((p: any) => ({
-            id: p.id,
-            userId: p.user_id || p.userId || '',
-            userEmail: p.user_email || p.userEmail || '',
-            userName: p.user_name || p.userName || '',
-            plan: p.plan || '',
-            amount: p.amount || 0,
-            receiptImage: p.receipt_image || p.receiptImage || '',
-            status: p.status || 'pending',
-            createdAt: p.created_at || p.createdAt || p.created_at || '',
-          }));
-          setPaymentRequests(mapped);
-        }
-      }
-    } catch (err) {
-      // Silently fall back to localStorage data
-      console.log('Supabase analytics unavailable, using localStorage');
-    }
+    
     setLoading(false);
-  };
+  }, [realtime.paymentRequests, realtime.allUsers, realtime.loginActivities, realtime.tokenUsages, realtime.loading, realtime.newPaymentsCount]);
 
   // === LOGOUT — nuclear clear + hard redirect ===
   const handleLogout = async () => {
@@ -255,55 +197,6 @@ export default function AdminDashboard() {
     setUser(null);
   };
 
-  const loadUsers = () => {
-    // Aggregate users from ALL available sources
-    const userMap = new Map();
-    
-    // 1. From localStorage 'registered_users' (written by firebase-auth.ts on login)
-    try {
-      const stored = localStorage.getItem('registered_users');
-      if (stored) {
-        const users = JSON.parse(stored);
-        users.forEach((u: any) => {
-          const key = u.id || u.uid || u.email;
-          if (key) userMap.set(key, u);
-        });
-      }
-    } catch {}
-    
-    // 2. From current session (admins and regular users)
-    try {
-      const sessionUser = sessionStorage.getItem('jurisai_user') || sessionStorage.getItem('auth_user');
-      if (sessionUser) {
-        const u = JSON.parse(sessionUser);
-        const key = u.id || u.email;
-        if (key && !userMap.has(key)) {
-          userMap.set(key, u);
-        } else if (key) {
-          // Update existing with latest session data
-          userMap.set(key, { ...userMap.get(key), ...u, last_login: new Date().toISOString() });
-        }
-      }
-    } catch {}
-    
-    // 3. From auth_user localStorage (persisted across sessions)
-    try {
-      const authUser = localStorage.getItem('auth_user');
-      if (authUser) {
-        const u = JSON.parse(authUser);
-        const key = u.id || u.email;
-        if (key && !userMap.has(key)) {
-          userMap.set(key, u);
-        }
-      }
-    } catch {}
-    
-    const aggregated = Array.from(userMap.values());
-    if (aggregated.length > 0) {
-      setAllUsers(aggregated);
-    }
-    setUsersLoading(false);
-  };
 
   // ===== ADMIN AUTH =====
   const handleAdminLogin = async () => {
@@ -601,12 +494,12 @@ export default function AdminDashboard() {
   const effectiveIsAdmin = isAdmin || isSuperAdmin || !!adminUser || autoDetectedAdmin;
   const effectiveUser = adminUser || user;
 
-  const tabs: { id: TabType; label: string; icon: any }[] = [
+  const tabs: { id: TabType; label: string; icon: any; badge?: number }[] = [
     { id: 'dashboard', label: 'Boshqaruv', icon: Shield },
     { id: 'monitoring', label: 'Monitoring', icon: Activity },
     { id: 'reports', label: 'Hisobotlar', icon: BarChart3 },
-    { id: 'users', label: 'Foydalanuvchilar', icon: Users },
-    { id: 'payments', label: 'To\'lovlar', icon: CreditCard },
+    { id: 'users', label: 'Foydalanuvchilar', icon: Users, badge: realtime.newUsersCount > 0 ? realtime.newUsersCount : undefined },
+    { id: 'payments', label: 'To\'lovlar', icon: CreditCard, badge: realtime.newPaymentsCount > 0 ? realtime.newPaymentsCount : undefined },
     { id: 'pricing', label: 'Narxlar', icon: DollarSign },
     { id: 'settings', label: 'Sozlamalar', icon: Settings },
   ];
@@ -680,8 +573,12 @@ export default function AdminDashboard() {
                   const Icon = tab.icon;
                   return (
                     <button key={tab.id}
-                      onClick={() => setActiveTab(tab.id)}
-                      className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all flex items-center gap-1 ${
+                      onClick={() => {
+                        setActiveTab(tab.id);
+                        if (tab.id === 'payments') realtime.refreshPayments();
+                        if (tab.id === 'users') realtime.refreshUsers();
+                      }}
+                      className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all flex items-center gap-1 relative ${
                         activeTab === tab.id
                           ? 'bg-blue-600 text-white shadow-sm'
                           : 'bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-300 hover:bg-gray-200 dark:hover:bg-zinc-700'
@@ -689,6 +586,11 @@ export default function AdminDashboard() {
                     >
                       <Icon size={14} />
                       {tab.label}
+                      {tab.badge && (
+                        <span className="absolute -top-1.5 -right-1.5 inline-flex items-center justify-center w-4 h-4 text-[9px] font-bold text-white bg-red-500 rounded-full animate-pulse">
+                          {tab.badge > 9 ? '9+' : tab.badge}
+                        </span>
+                      )}
                     </button>
                   );
                 })}
@@ -711,7 +613,7 @@ export default function AdminDashboard() {
               return (
                 <button key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`px-2 py-1 text-xs font-medium rounded-lg transition-all flex items-center gap-1 ${
+                  className={`px-2 py-1 text-xs font-medium rounded-lg transition-all flex items-center gap-1 relative ${
                     activeTab === tab.id
                       ? 'bg-blue-600 text-white shadow-sm'
                       : 'bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-300'
@@ -719,6 +621,11 @@ export default function AdminDashboard() {
                 >
                   <Icon size={12} />
                   {tab.label}
+                  {tab.badge && (
+                    <span className="inline-flex items-center justify-center w-3.5 h-3.5 text-[8px] font-bold text-white bg-red-500 rounded-full animate-pulse ml-1">
+                      {tab.badge}
+                    </span>
+                  )}
                 </button>
               );
             })}
@@ -730,6 +637,14 @@ export default function AdminDashboard() {
         {/* ===== DASHBOARD ===== */}
         {activeTab === 'dashboard' && (
           <div className="space-y-6">
+            {/* Online Users Monitor — premium card above stats */}
+            <div className="lg:max-w-sm">
+              <OnlineUsersMonitor
+                count={onlineUsers.count}
+                users={onlineUsers.users}
+                connected={onlineUsers.connected}
+              />
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <Card className="card-default rounded-2xl">
                 <CardContent className="p-5">
@@ -1036,6 +951,16 @@ export default function AdminDashboard() {
                               </div>
                             </div>
                             <div className="flex items-center gap-1 flex-wrap">
+                              <button
+                                onClick={() => {
+                                  setProfileModalUser(u);
+                                  setProfileModalOpen(true);
+                                }}
+                                className="p-1.5 rounded-lg text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-all"
+                                title="Profilni ko'rish"
+                              >
+                                <UserCheck size={14} />
+                              </button>
                               <select
                                 value={u.role || 'USER'}
                                 onChange={(e) => updateUserRole(u.id || u.uid, e.target.value)}
@@ -1096,7 +1021,7 @@ export default function AdminDashboard() {
                     To'lov so'rovlarini boshqarish
                   </CardTitle>
                   <button
-                    onClick={loadFromSupabase}
+                    onClick={realtime.refreshPayments}
                     className="px-3 py-1.5 text-xs font-medium rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-all flex items-center gap-1"
                   >
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
@@ -1322,6 +1247,16 @@ export default function AdminDashboard() {
 
       {/* Lightbox for receipt images */}
       <ImageLightbox image={lightboxImage} onClose={() => setLightboxImage(null)} />
+
+      {/* User Profile Modal */}
+      <UserProfileModal
+        isOpen={profileModalOpen}
+        onClose={() => setProfileModalOpen(false)}
+        user={profileModalUser}
+        paymentHistory={paymentRequests}
+        tokenHistory={tokenUsages}
+        loginHistory={loginActivities}
+      />
     </div>
   );
 }

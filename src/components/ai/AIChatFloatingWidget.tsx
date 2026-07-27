@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { MessageSquare, X, Send, History, Trash2, Sparkles, ChevronDown, Plus, Mic, MicOff } from 'lucide-react';
+import { MessageSquare, X, Send, History, Trash2, Sparkles, ChevronDown, Plus, Mic, MicOff, Volume2 } from 'lucide-react';
+import { useSpeechToText } from '@/hooks/useSpeechToText';
 
 interface ChatMessage {
   id: string;
@@ -76,9 +77,6 @@ export default function AIChatFloatingWidget() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [isListening, setIsListening] = useState(false);
-  const [speechSupported, setSpeechSupported] = useState(false);
-  const recognitionRef = useRef<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const activeSession = sessions.find(s => s.id === activeSessionId);
@@ -113,12 +111,13 @@ export default function AIChatFloatingWidget() {
     setShowHistory(false);
   }, []);
 
-  // Check if Speech Recognition is supported
-  useEffect(() => {
-    if (typeof window !== 'undefined' && ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
-      setSpeechSupported(true);
-    }
-  }, []);
+  // Speech-to-Text hook
+  const stt = useSpeechToText({
+    lang: 'uz-UZ',
+    onResult: (text) => {
+      setInput(prev => (prev ? prev + ' ' : '') + text);
+    },
+  });
 
   // Auto-create first session
   useEffect(() => {
@@ -204,63 +203,7 @@ export default function AIChatFloatingWidget() {
     }
   };
 
-  // ── Voice Input (STT) ──
-  const toggleListening = () => {
-    if (isListening) {
-      stopListening();
-      return;
-    }
-    startListening();
-  };
-
-  const startListening = () => {
-    if (!speechSupported) return;
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) { setSpeechSupported(false); return; }
-
-    const recognition = new SpeechRecognition();
-    recognition.continuous = false;
-    recognition.interimResults = true;
-    recognition.lang = 'uz-UZ';
-
-    recognition.onresult = (event: any) => {
-      let interimTranscript = '';
-      let finalTranscript = '';
-
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const transcript = event.results[i][0].transcript;
-        if (event.results[i].isFinal) {
-          finalTranscript += transcript;
-        } else {
-          interimTranscript += transcript;
-        }
-      }
-
-      if (finalTranscript) {
-        setInput(prev => (prev ? prev + ' ' : '') + finalTranscript);
-      }
-    };
-
-    recognition.onerror = () => {
-      setIsListening(false);
-    };
-
-    recognition.onend = () => {
-      setIsListening(false);
-    };
-
-    recognitionRef.current = recognition;
-    recognition.start();
-    setIsListening(true);
-  };
-
-  const stopListening = () => {
-    if (recognitionRef.current) {
-      try { recognitionRef.current.stop(); } catch {}
-      recognitionRef.current = null;
-    }
-    setIsListening(false);
-  };
+  // ── Voice Input (STT) — delegated to hook ──
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -423,19 +366,49 @@ export default function AIChatFloatingWidget() {
                 className="flex-1 px-3 py-2 rounded-xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800 text-sm text-gray-800 dark:text-white placeholder:text-gray-400 dark:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 resize-none max-h-24"
                 disabled={loading}
               />
-              {speechSupported && (
-                <button
-                  onClick={toggleListening}
-                  disabled={loading}
-                  className={`p-2.5 rounded-xl transition-all active:scale-95 ${
-                    isListening
-                      ? 'bg-red-50 dark:bg-red-900/20 text-white shadow-lg shadow-red-500/30 animate-pulse'
-                      : 'bg-gray-200 dark:bg-zinc-700 text-gray-600 dark:text-zinc-300 hover:bg-gray-300 dark:hover:bg-zinc-600'
-                  }`}
-                  title={isListening ? "Yozishni to'xtatish" : 'Ovozli kiritish (STT)'}
-                >
-                  {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
-                </button>
+              {stt.isSupported && (
+                <div className="relative">
+                  <button
+                    onClick={stt.toggleListening}
+                    disabled={loading}
+                    className={`p-2.5 rounded-xl transition-all active:scale-95 relative ${
+                      stt.isListening
+                        ? 'bg-gradient-to-r from-red-500 to-rose-500 text-white shadow-lg shadow-red-500/30'
+                        : 'bg-gray-200 dark:bg-zinc-700 text-gray-600 dark:text-zinc-300 hover:bg-gray-300 dark:hover:bg-zinc-600'
+                    }`}
+                    title={stt.isListening ? "Yozishni to'xtatish" : 'Ovozli kiritish (STT)'}
+                  >
+                    <div className="relative z-10">
+                      {stt.isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                    </div>
+                    {/* Pulse ring */}
+                    {stt.isListening && (
+                      <span className="absolute inset-0 rounded-xl animate-ping bg-red-400/40" />
+                    )}
+                  </button>
+                  {/* Audio wave visualization */}
+                  {stt.isListening && (
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 flex items-end gap-[2px] h-6">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <span
+                          key={i}
+                          className="w-[3px] bg-gradient-to-t from-red-400 to-rose-300 rounded-full transition-all duration-150"
+                          style={{
+                            height: `${Math.max(4, (stt.audioLevel / 100) * (16 + i * 6))}px`,
+                            opacity: 0.7 + (stt.audioLevel / 100) * 0.3,
+                          }}
+                        />
+                      ))}
+                    </div>
+                  )}
+                  {/* Interim transcription tooltip */}
+                  {stt.isListening && stt.interimText && (
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-10 min-w-[200px] max-w-[280px] px-3 py-2 rounded-lg bg-zinc-900 dark:bg-zinc-800 text-white text-xs text-center shadow-xl border border-zinc-700">
+                      <p className="italic">{stt.interimText}</p>
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 w-2 h-2 bg-zinc-900 dark:bg-zinc-800 rotate-45 -mt-1 border-r border-b border-zinc-700" />
+                    </div>
+                  )}
+                </div>
               )}
               <button
                 onClick={sendMessage}

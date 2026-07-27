@@ -7,7 +7,8 @@ import {
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { Activity, Users, CreditCard, DollarSign, RefreshCw } from 'lucide-react';
+import { Activity, Users, CreditCard, DollarSign, RefreshCw, Wifi, WifiOff } from 'lucide-react';
+import { supabase } from '@/lib/supabase-client';
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
@@ -116,7 +117,47 @@ export default function MonitoringDashboard() {
 
   useEffect(() => { loadData(); }, [period]);
 
-  // Auto-refresh every 30 seconds
+  // Supabase Realtime subscription — instant chart updates!
+  const [connected, setConnected] = useState(false);
+
+  useEffect(() => {
+    // Subscribe to tables that affect monitoring charts
+    // This runs once on mount; the subscription is independent of `period`
+    const tables = ['payments', 'usage_logs', 'login_activity'];
+    const channels: { unsubscribe: () => void }[] = [];
+    let subscribedCount = 0;
+
+    for (const table of tables) {
+      const chName = `monitoring-${table}-${self.crypto.randomUUID?.() || Math.random().toString(36).slice(2)}`;
+      try {
+        const channel = supabase
+          .channel(chName)
+          .on(
+            'postgres_changes' as any,
+            { event: '*', schema: 'public', table },
+            () => {
+              // Any DB change → reload chart data immediately
+              loadData(false);
+            }
+          )
+          .subscribe((status: string) => {
+            if (status === 'SUBSCRIBED') {
+              subscribedCount++;
+              if (subscribedCount === tables.length) {
+                setConnected(true);
+              }
+            }
+          });
+        channels.push({ unsubscribe: () => supabase.removeChannel(channel) });
+      } catch {}
+    }
+
+    return () => {
+      for (const ch of channels) ch.unsubscribe();
+    };
+  }, []);  // Only mount once
+
+  // Fallback polling (30s) — only if autoRefresh is on
   useEffect(() => {
     if (!autoRefresh) return;
     const interval = setInterval(() => loadData(false), 30000);
@@ -168,8 +209,19 @@ export default function MonitoringDashboard() {
         <Button size="sm" variant={autoRefresh ? 'default' : 'outline'} onClick={() => setAutoRefresh(!autoRefresh)}>
           {autoRefresh ? '🔄 Auto' : 'Auto'}
         </Button>
-        <Button size="sm" variant="outline" onClick={() => loadData()} className="ml-auto">
-          <RefreshCw size={14} className={`mr-1 ${autoRefresh ? 'animate-spin' : ''}`} /> Yangilash
+        {/* Realtime connection status */}
+        <div className="flex items-center gap-1.5">
+          {connected ? (
+            <Wifi size={12} className="text-green-500" />
+          ) : (
+            <WifiOff size={12} className="text-amber-500" />
+          )}
+          <span className={`text-[10px] ${connected ? 'text-green-600 dark:text-green-400' : 'text-amber-600 dark:text-amber-400'}`}>
+            {connected ? 'Real-time' : 'Polling'}
+          </span>
+        </div>
+        <Button size="sm" variant="outline" onClick={() => loadData()}>
+          <RefreshCw size={14} className="mr-1" /> Yangilash
         </Button>
         {lastUpdated && (
           <span className="text-xs text-gray-400 dark:text-gray-500 dark:text-zinc-500">So'nggi yangilanish: {lastUpdated}</span>

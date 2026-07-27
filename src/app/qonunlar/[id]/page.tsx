@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
-import { ALL_LEGAL_CODES, LegalArticle, CODE_DISPLAY_NAMES } from '@/data/legal-codes';
+import { useLegalCodes, LegalArticle, CODE_DISPLAY_NAMES } from '@/hooks/useLegalDatabase';
 import {
   Search, BookOpen, Scale, Gavel, Shield, FileText, Landmark,
   Users, DollarSign, TreePine, ChevronRight, ArrowLeft, BookMarked,
@@ -60,7 +60,8 @@ export default function CodeDetailPage() {
   const router = useRouter();
   const codeId = params?.id as string;
 
-  const code = ALL_LEGAL_CODES.find((c) => c.id === codeId);
+  const { getCode, search: searchCodes, loading } = useLegalCodes();
+  const code = getCode(codeId);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedArticle, setSelectedArticle] = useState<LegalArticle | null>(null);
@@ -77,17 +78,12 @@ export default function CodeDetailPage() {
     return Array.from(cats.entries());
   }, [code]);
 
-  // Search within this code
+  // Search within this code using hook
   const searchResults = useMemo(() => {
     if (!searchQuery.trim() || !code) return [];
-    const q = searchQuery.toLowerCase();
-    return code.articles.filter(
-      (a) =>
-        a.number.toLowerCase().includes(q) ||
-        a.title.toLowerCase().includes(q) ||
-        a.content.toLowerCase().includes(q)
-    ).slice(0, 30);
-  }, [searchQuery, code]);
+    const allResults = searchQuery.trim() ? searchCodes(searchQuery) : [];
+    return allResults.filter(r => r.code.id === codeId).map(r => r.article).slice(0, 30);
+  }, [searchQuery, code, codeId, searchCodes]);
 
   // Code not found
   if (!code) {

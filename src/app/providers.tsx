@@ -132,11 +132,17 @@ interface ProvidersProps {
   children: ReactNode;
 }
 
+import { ToastProvider } from '@/components/ui/Toast';
+import { PaymentNotificationListener } from '@/components/payment/PaymentNotificationListener';
+
 export default function Providers({ children }: ProvidersProps) {
   return (
     <ThemeProvider>
       <AuthProvider>
-        {children}
+        <ToastProvider>
+          {children}
+          <PaymentNotificationListener />
+        </ToastProvider>
       </AuthProvider>
     </ThemeProvider>
   );
