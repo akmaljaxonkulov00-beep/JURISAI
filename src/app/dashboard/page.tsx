@@ -371,7 +371,7 @@ export default function Dashboard() {
           <div className="w-full">
             <h1 className="text-2xl sm:text-3xl font-bold mb-2">Xush kelibsiz, {user?.name || 'Foydalanuvchi'}!</h1>
             <p className="text-blue-100/80 text-sm sm:text-lg">Huquqiy bilimlaringizni rivojlantirishni davom ettiring</p>
-            <div className="mt-6 grid grid-cols-3 gap-2 sm:gap-8 sm:flex">
+            <div className="mt-6 flex flex-wrap gap-4 sm:gap-8">
               <div className="text-center">
                 <div className="text-xl sm:text-3xl font-bold">{userStats?.completedCases || 0}</div>
                 <div className="text-blue-100/70 text-xs sm:text-sm mt-1">Yechilgan ishlar</div>
@@ -575,10 +575,10 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 p-3 md:p-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 mobile-safe-top p-3 md:p-6">
       <div className="max-w-full mx-auto">
         <div className="flex flex-col md:flex-row gap-4 md:gap-6">
-          <div className="desktop-sidebar">
+          <div className="desktop-sidebar w-full md:w-80 flex-shrink-0">
             {renderSidebar()}
           </div>
 

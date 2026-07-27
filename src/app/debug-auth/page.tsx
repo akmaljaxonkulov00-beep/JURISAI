@@ -96,7 +96,7 @@ export default function DebugAuthPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-zinc-950 p-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-zinc-950 mobile-safe-top p-4 md:p-8">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-3xl font-bold mb-8">Auth Debug Page</h1>
         

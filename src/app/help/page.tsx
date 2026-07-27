@@ -49,7 +49,7 @@ export default function Help() {
   };
 
   return (
-    <div className="min-h-screen bg-page-custom">
+    <div className="min-h-screen bg-page-custom mobile-safe-top">
       {/* Header */}
       <div className="relative overflow-hidden bg-gradient-to-r from-blue-600 to-green-600 text-white">
         <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
@@ -82,7 +82,7 @@ export default function Help() {
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Categories */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-12">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 md:gap-4 mb-12">
           {categories.map((cat) => {
             const Icon = cat.icon;
             return (
@@ -137,8 +137,7 @@ export default function Help() {
 
         {/* Contact */}
         <div className="card-default rounded-2xl p-8">
-          <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-6 text-center">Biz bilan bog\'laning</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-6 text-center">Biz bilan bog\'laning</h2>            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
             <div className="text-center p-4">
               <div className="flex justify-center mb-3">
                 <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center">

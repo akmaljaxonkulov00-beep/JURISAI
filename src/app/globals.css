@@ -230,33 +230,93 @@ body {
   }
 }
 
-/* Mobil responsive utility */
-@media (max-width: 768px) {
+/* ------------------------------------------------------------------ */
+/*  RESPONSIVE / MOBILE UTILITIES                                      */
+/* ------------------------------------------------------------------ */
+
+/* Ensure hamburger button doesn't overlap content */
+.mobile-safe-top {
+  padding-top: 60px;
+}
+
+@media (min-width: 768px) {
+  .mobile-safe-top {
+    padding-top: 0;
+  }
+}
+
+@media (max-width: 767px) {
   .desktop-sidebar {
     display: none !important;
   }
+
   .mobile-full {
     width: 100% !important;
     max-width: 100% !important;
-    padding-left: 12px !important;
-    padding-right: 12px !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
   }
+
   .mobile-stack {
     flex-direction: column !important;
   }
+
   .mobile-grid-1 {
     grid-template-columns: 1fr !important;
   }
+
   .mobile-grid-2 {
     grid-template-columns: repeat(2, 1fr) !important;
   }
+
   .mobile-text-sm {
     font-size: 13px !important;
   }
+
   .mobile-p-3 {
     padding: 12px !important;
   }
+
   .mobile-hidden {
     display: none !important;
+  }
+
+  .mobile-no-gap {
+    gap: 0 !important;
+  }
+
+  .mobile-mb-4 {
+    margin-bottom: 16px !important;
+  }
+
+  /* Fix for cards that overflow */
+  .mobile-card-full {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  /* Touch-friendly tap targets */
+  .mobile-touch-target {
+    min-height: 44px;
+  }
+}
+
+/* Tablet adjustments */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .tablet-grid-2 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  .tablet-flex-col {
+    flex-direction: column !important;
+  }
+
+  .tablet-sidebar-hidden {
+    display: none !important;
+  }
+
+  .tablet-w-full {
+    width: 100% !important;
   }
 }

@@ -239,7 +239,7 @@ export default function PaymentAdmin() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-zinc-800/50 p-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-zinc-800/50 mobile-safe-top p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">

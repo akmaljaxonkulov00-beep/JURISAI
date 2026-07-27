@@ -149,7 +149,7 @@ export default function Statistics() {
   const filteredData = getFilteredData();
 
   return (
-    <div className="min-h-screen bg-[#f8faff] dark:bg-gray-950">
+    <div className="min-h-screen mobile-safe-top bg-[#f8faff] dark:bg-gray-950">
       <div className="flex flex-col lg:flex-row">
         {/* Sidebar */}
         <div className="hidden lg:block w-64 bg-white dark:bg-zinc-900 border-r border-gray-100 dark:border-zinc-800 min-h-screen flex-shrink-0">

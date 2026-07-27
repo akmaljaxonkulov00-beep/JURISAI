@@ -350,8 +350,8 @@ export default function ProTools() {
   // ── Render ──────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-zinc-950">
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-12">
+    <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 mobile-safe-top">
+      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-8 md:py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center mb-6">
             <div className="p-3 bg-white/20 rounded-full backdrop-blur-sm mr-4"><Wrench className="w-8 h-8" /></div>

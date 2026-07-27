@@ -247,7 +247,7 @@ export default function Tasks() {
 
   if (selectedTask) {
     return (
-      <div className="min-h-screen bg-[#f8faff]">
+      <div className="min-h-screen bg-[#f8faff] mobile-safe-top">
         <div className="flex">
           {/* Sidebar */}
           <div className="w-64 bg-white dark:bg-zinc-900 border-r border-gray-100 dark:border-zinc-800 min-h-screen">
@@ -410,7 +410,7 @@ export default function Tasks() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f8faff]">
+    <div className="min-h-screen bg-[#f8faff] mobile-safe-top">
       <div className="flex">
         {/* Sidebar */}
         <div className="w-64 bg-white dark:bg-zinc-900 border-r border-gray-100 dark:border-zinc-800 min-h-screen">

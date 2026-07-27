@@ -291,7 +291,7 @@ export default function VirtualCourt() {
   // SELECTION SCREEN
   // ════════════════════════════════════════════════════════
   if (page === 'select') return (
-    <div style={{ minHeight: '100vh', background: '#F8FAFF' }}>
+    <div className="mobile-safe-top" style={{ minHeight: '100vh', background: '#F8FAFF' }}>
       <div className="flex-col md:flex-row" style={{ display: 'flex' }}>
         <aside className="hidden lg:block" style={{ width: 240, background: '#fff', borderRight: '1px solid #F1F5F9', minHeight: '100vh', padding: '24px 16px', flexShrink: 0 }}>
           <a href="/dashboard" style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#6B7280', textDecoration: 'none', fontSize: 14, marginBottom: 24 }}>

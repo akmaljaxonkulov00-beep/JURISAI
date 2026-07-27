@@ -328,7 +328,7 @@ export default function Community() {
   // ── Main Feed ──────────────────────────────────────────────────────────
   if (activeTab === 'feed') {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-zinc-950">
+      <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 mobile-safe-top">
         <div className="flex">
           {/* Sidebar */}
           <div className="w-64 bg-white dark:bg-zinc-900 border-r border-gray-200 dark:border-zinc-800 min-h-screen flex-shrink-0 hidden lg:block">
@@ -622,7 +622,7 @@ export default function Community() {
   // ── Notifications Tab ──────────────────────────────────────────────────
   if (activeTab === 'notification') {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-zinc-950">
+      <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 mobile-safe-top">
         <div className="flex">
           <div className="w-64 bg-white dark:bg-zinc-900 border-r border-gray-200 dark:border-zinc-800 min-h-screen flex-shrink-0 hidden lg:block">
             <div className="p-5">
@@ -697,7 +697,7 @@ export default function Community() {
   // ── Experts Tab ────────────────────────────────────────────────────
   if (activeTab === 'experts') {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-zinc-950">
+      <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 mobile-safe-top">
         <div className="flex">
           <div className="w-64 bg-white dark:bg-zinc-900 border-r border-gray-200 dark:border-zinc-800 min-h-screen flex-shrink-0 hidden lg:block">
             <div className="p-5">
@@ -763,7 +763,7 @@ export default function Community() {
   // ── Groups Tab ──────────────────────────────────────────────────────
   if (activeTab === 'groups') {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-zinc-950">
+      <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 mobile-safe-top">
         <div className="flex">
           <div className="w-64 bg-white dark:bg-zinc-900 border-r border-gray-200 dark:border-zinc-800 min-h-screen flex-shrink-0 hidden lg:block">
             <div className="p-5">
@@ -825,7 +825,7 @@ export default function Community() {
   // ── Webinars Tab ────────────────────────────────────────────────────
   if (activeTab === 'webinars') {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-zinc-950">
+      <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 mobile-safe-top">
         <div className="flex">
           <div className="w-64 bg-white dark:bg-zinc-900 border-r border-gray-200 dark:border-zinc-800 min-h-screen flex-shrink-0 hidden lg:block">
             <div className="p-5">

@@ -107,7 +107,7 @@ export default function CodeDetailPage() {
   // Article detail view
   if (selectedArticle) {
     return (
-      <div className="min-h-screen bg-page-custom p-4 md:p-6">
+      <div className="min-h-screen bg-page-custom mobile-safe-top p-4 md:p-6">
         <div className="max-w-4xl mx-auto">
           <button
             onClick={() => setSelectedArticle(null)}
@@ -195,7 +195,7 @@ export default function CodeDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-page-custom p-4 md:p-6">
+    <div className="min-h-screen bg-page-custom mobile-safe-top p-4 md:p-6">
       <div className="max-w-5xl mx-auto">
         <button
           onClick={() => router.push('/qonunlar')}

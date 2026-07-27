@@ -586,7 +586,7 @@ export default function AdminDashboard() {
   const reportStats = getReportStats();
 
   return (
-    <div className="min-h-screen bg-page-custom">
+    <div className="min-h-screen bg-page-custom mobile-safe-top">
       {/* ===== HEADER ===== */}
       <div className="card-default border-b border-card-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

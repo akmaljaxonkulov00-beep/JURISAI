@@ -106,13 +106,13 @@ export default function Billing() {
   }
 
   return (
-    <div className="min-h-screen bg-page-custom py-12">
+    <div className="min-h-screen bg-page-custom mobile-safe-top py-8 md:py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-4 mb-8">
+        <div className="flex flex-wrap items-center gap-3 mb-6 md:mb-8">
           <Link href="/dashboard" className="flex items-center gap-2 px-3 py-2 text-gray-500 dark:text-gray-400 dark:text-zinc-500 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all">
             <ArrowLeft className="w-4 h-4" /> <span className="text-sm font-medium">Orqaga</span>
           </Link>
-          <h1 className="text-2xl font-bold text-gray-800 dark:text-white">To\'lovlar</h1>
+          <h1 className="text-xl md:text-2xl font-bold text-gray-800 dark:text-white">To\'lovlar</h1>
         </div>
 
         {currentSubscription && (
@@ -148,7 +148,7 @@ export default function Billing() {
           </Card>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
           {plans.map((plan) => {
             const isCurrentPlan = currentSubscription?.plan.id === plan.id;
             return (

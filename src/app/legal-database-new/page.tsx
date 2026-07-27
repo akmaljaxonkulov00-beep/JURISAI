@@ -3,5 +3,5 @@
 import LegalDatabase from '@/components/features/LegalDatabase';
 
 export default function LegalDatabasePage() {
-  return <LegalDatabase />;
+  return <div className="mobile-safe-top"><LegalDatabase /></div>;
 }

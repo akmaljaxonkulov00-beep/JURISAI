@@ -4,5 +4,5 @@ import React from 'react';
 import ScenarioGenerator from '@/components/features/ScenarioGenerator';
 
 export default function ScenarioGeneratorPage() {
-  return <ScenarioGenerator />;
+  return <div className="mobile-safe-top"><ScenarioGenerator /></div>;
 }

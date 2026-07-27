@@ -57,19 +57,18 @@ export default function Premium() {
   ];
 
   return (
-    <div className="min-h-screen bg-page-custom">
+    <div className="min-h-screen bg-page-custom mobile-safe-top">
       {/* Hero Section */}
       <div className="relative overflow-hidden bg-gradient-to-r from-blue-600 to-green-600 text-white">
-        <div className="absolute inset-0 bg-black opacity-10" />
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+        <div className="absolute inset-0 bg-black opacity-10" />          <div className="px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
           <div className="text-center">
             <div className="flex justify-center mb-6">
               <div className="p-3 bg-white/20 rounded-full backdrop-blur-sm">
                 <Crown className="w-12 h-12" />
               </div>
             </div>
-            <h1 className="text-5xl font-bold mb-6">JurisAI Premium ga o'ting</h1>
-            <p className="text-xl text-white/90 mb-8 max-w-3xl mx-auto">
+            <h1 className="text-3xl sm:text-5xl font-bold mb-4 sm:mb-6">JurisAI Premium ga o'ting</h1>
+            <p className="text-base sm:text-xl text-white/90 mb-6 sm:mb-8 max-w-3xl mx-auto">
               Professional huquqchilar va talabalar uchun zamonaviy AI yordamchisi. 
               Vaqtingizni tejang, samaradorlikni oshiring.
             </p>
@@ -87,7 +86,7 @@ export default function Premium() {
 
       {/* Pricing Cards */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 mb-12 md:mb-16">
           {plans.map((plan, index) => {
             const priceFormatted = plan.price.toLocaleString() + ' UZS';
             const isPopular = index === 1; // Standart is popular
@@ -151,9 +150,8 @@ export default function Premium() {
           </div>
         </div>
 
-        {/* CTA Section */}
-        <div className="bg-gradient-to-r from-blue-600 to-green-600 rounded-2xl p-12 text-center text-white">
-          <h2 className="text-3xl font-bold mb-4">Huquqiy faoliyatingizni yangi bosqichga oshiring</h2>
+        {/* CTA Section */}            <div className="bg-gradient-to-r from-blue-600 to-green-600 rounded-2xl p-8 md:p-12 text-center text-white">
+          <h2 className="text-2xl md:text-3xl font-bold mb-3 md:mb-4">Huquqiy faoliyatingizni yangi bosqichga oshiring</h2>
           <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">14 kunlik bepul sinov muddati bilan boshlang. Hech qanday majburiyat yo'q.</p>
           <Link href="/manual-payment?plan=standart&amount=45000">
             <Button size="lg" className="bg-white dark:bg-zinc-900 text-blue-600 hover:bg-gray-100 dark:bg-zinc-800/30">

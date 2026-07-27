@@ -95,7 +95,7 @@ export default function QonunlarPage() {
   // Show article detail
   if (selectedArticle && currentCode) {
     return (
-      <div className="min-h-screen bg-page-custom p-4 md:p-6">
+      <div className="min-h-screen bg-page-custom mobile-safe-top p-4 md:p-6">
         <div className="max-w-4xl mx-auto">
           <button
             onClick={() => setSelectedArticle(null)}
@@ -188,7 +188,7 @@ export default function QonunlarPage() {
   // Show code detail with articles
   if (currentCode) {
     return (
-      <div className="min-h-screen bg-page-custom p-4 md:p-6">
+      <div className="min-h-screen bg-page-custom mobile-safe-top p-4 md:p-6">
         <div className="max-w-5xl mx-auto">
           <button
             onClick={() => setSelectedCode(null)}
@@ -303,7 +303,7 @@ export default function QonunlarPage() {
 
   // Main list view
   return (
-    <div className="min-h-screen bg-page-custom p-4 md:p-6">
+    <div className="min-h-screen bg-page-custom mobile-safe-top p-4 md:p-6">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8">

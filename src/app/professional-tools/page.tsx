@@ -809,7 +809,7 @@ export default function ProfessionalTools() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f8faff] dark:bg-zinc-950">
+    <div className="min-h-screen bg-[#f8faff] dark:bg-zinc-950 mobile-safe-top">
       <div className="flex flex-col lg:flex-row">
         {/* Sidebar */}
         <div className="w-full lg:w-64 bg-white dark:bg-zinc-900 lg:border-r border-b lg:border-b-0 border-gray-100 dark:border-zinc-800 lg:min-h-screen">

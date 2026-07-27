@@ -4,5 +4,5 @@ import React from 'react';
 import DocumentGenerator from '@/components/features/DocumentGenerator';
 
 export default function DocumentGeneratorPage() {
-  return <DocumentGenerator />;
+  return <div className="mobile-safe-top"><DocumentGenerator /></div>;
 }

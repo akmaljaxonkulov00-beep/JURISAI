@@ -6,7 +6,7 @@ import Link from 'next/link';
 
 export default function PricingPage() {
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-zinc-800/50">
+    <div className="min-h-screen bg-gray-50 dark:bg-zinc-800/50 mobile-safe-top">
       {/* Navigation */}
       <div className="bg-white dark:bg-zinc-900 shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
