@@ -18,75 +18,99 @@ export async function GET(request: NextRequest) {
 
     // Fetch users
     if (type === 'all' || type === 'users') {
-      const { data: users, error: usersError } = await supabase
-        .from('registered_users')
-        .select('*');
-      if (!usersError && users) {
-        result.users = users;
-        result.totalUsers = users.length;
-        const newUsers = users.filter((u: any) => {
-          const created = u.created_at || u.last_login;
-          return created && new Date(created) >= cutoff;
-        });
-        result.newUsers = newUsers.length;
+      try {
+        const { data: users, error: usersError } = await supabase
+          .from('registered_users')
+          .select('*');
+        if (!usersError && users) {
+          result.users = users;
+          result.totalUsers = users.length;
+          const newUsers = users.filter((u: any) => {
+            const created = u.created_at || u.last_login;
+            return created && new Date(created) >= cutoff;
+          });
+          result.newUsers = newUsers.length;
 
-        const prevNewUsers = users.filter((u: any) => {
-          const created = u.created_at || u.last_login;
-          return created && new Date(created) >= prevCutoff && new Date(created) < cutoff;
-        });
-        result.userGrowth = prevNewUsers.length > 0
-          ? Math.round(((newUsers.length - prevNewUsers.length) / prevNewUsers.length) * 100)
-          : 0;
+          const prevNewUsers = users.filter((u: any) => {
+            const created = u.created_at || u.last_login;
+            return created && new Date(created) >= prevCutoff && new Date(created) < cutoff;
+          });
+          result.userGrowth = prevNewUsers.length > 0
+            ? Math.round(((newUsers.length - prevNewUsers.length) / prevNewUsers.length) * 100)
+            : 0;
 
-        const premiumUsers = users.filter((u: any) => u.subscription_plan && u.subscription_plan !== 'free');
-        result.premiumUsers = premiumUsers.length;
+          const premiumUsers = users.filter((u: any) => u.subscription_plan && u.subscription_plan !== 'free');
+          result.premiumUsers = premiumUsers.length;
+        } else if (usersError) {
+          result.usersError = usersError.message;
+        }
+      } catch (e: any) {
+        result.usersError = e?.message || 'jadval mavjud emas';
       }
     }
 
     // Fetch login activity
     if (type === 'all' || type === 'logins') {
-      const { data: logins, error: loginsError } = await supabase
-        .from('auth_logs')
-        .select('*')
-        .gte('created_at', cutoff.toISOString())
-        .order('created_at', { ascending: false })
-        .limit(100);
-      if (!loginsError && logins) {
-        result.loginActivities = logins;
-        result.recentLogins = logins.length;
-        const activeUserIds = new Set(logins.map((l: any) => l.user_id || l.email));
-        result.activeUsers = activeUserIds.size;
+      try {
+        const { data: logins, error: loginsError } = await supabase
+          .from('auth_logs')
+          .select('*')
+          .gte('created_at', cutoff.toISOString())
+          .order('created_at', { ascending: false })
+          .limit(100);
+        if (!loginsError && logins) {
+          result.loginActivities = logins;
+          result.recentLogins = logins.length;
+          const activeUserIds = new Set(logins.map((l: any) => l.user_id || l.email));
+          result.activeUsers = activeUserIds.size;
+        } else if (loginsError) {
+          result.loginsError = loginsError.message;
+        }
+      } catch (e: any) {
+        result.loginsError = e?.message || 'jadval mavjud emas';
       }
     }
 
     // Fetch token usage
     if (type === 'all' || type === 'tokens') {
-      const { data: tokens, error: tokensError } = await supabase
-        .from('usage_logs')
-        .select('*')
-        .gte('created_at', cutoff.toISOString())
-        .order('created_at', { ascending: false })
-        .limit(100);
-      if (!tokensError && tokens) {
-        result.tokenUsages = tokens;
-        result.tokensUsed = tokens.reduce((sum: number, t: any) => sum + (t.tokens || 0), 0);
+      try {
+        const { data: tokens, error: tokensError } = await supabase
+          .from('usage_logs')
+          .select('*')
+          .gte('created_at', cutoff.toISOString())
+          .order('created_at', { ascending: false })
+          .limit(100);
+        if (!tokensError && tokens) {
+          result.tokenUsages = tokens;
+          result.tokensUsed = tokens.reduce((sum: number, t: any) => sum + (t.tokens || 0), 0);
+        } else if (tokensError) {
+          result.tokensError = tokensError.message;
+        }
+      } catch (e: any) {
+        result.tokensError = e?.message || 'jadval mavjud emas';
       }
     }
 
     // Fetch payments
     if (type === 'all' || type === 'payments') {
-      const { data: payments, error: paymentsError } = await supabase
-        .from('payment_requests')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(50);
-      if (!paymentsError && payments) {
-        result.paymentRequests = payments;
-        const approvedPayments = payments.filter((p: any) => p.status === 'approved');
-        const totalRevenue = approvedPayments.reduce((sum: number, p: any) => sum + (p.amount || 0), 0);
-        result.totalRevenue = totalRevenue;
-        result.pendingCount = payments.filter((p: any) => p.status === 'pending').length;
-        result.approvedCount = approvedPayments.length;
+      try {
+        const { data: payments, error: paymentsError } = await supabase
+          .from('payment_requests')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(50);
+        if (!paymentsError && payments) {
+          result.paymentRequests = payments;
+          const approvedPayments = payments.filter((p: any) => p.status === 'approved');
+          const totalRevenue = approvedPayments.reduce((sum: number, p: any) => sum + (p.amount || 0), 0);
+          result.totalRevenue = totalRevenue;
+          result.pendingCount = payments.filter((p: any) => p.status === 'pending').length;
+          result.approvedCount = approvedPayments.length;
+        } else if (paymentsError) {
+          result.paymentsError = paymentsError.message;
+        }
+      } catch (e: any) {
+        result.paymentsError = e?.message || 'jadval mavjud emas';
       }
     }
 

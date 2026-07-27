@@ -386,7 +386,7 @@ export default function AIChatFloatingWidget() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder={isListening ? 'Gapiryapsiz...' : 'Savolingizni yozing...'}
+                placeholder={stt.isListening ? 'Gapiryapsiz...' : 'Savolingizni yozing...'}
                 rows={1}
                 className="flex-1 px-3 py-2 rounded-xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800 text-sm text-gray-800 dark:text-white placeholder:text-gray-400 dark:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 resize-none max-h-24"
                 disabled={loading}

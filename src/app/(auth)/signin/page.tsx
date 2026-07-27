@@ -602,7 +602,7 @@ function FloatingScene({ mouseX, mouseY, onNavigate, stats, statsLoading }: Floa
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.8, type: 'spring' }}
             >
-              <span className="px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-900/20/20 border border-blue-500/30 text-[9px] text-blue-300 font-medium backdrop-blur-sm">
+              <span className="px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-900/20 border border-blue-500/30 text-[9px] text-blue-300 font-medium backdrop-blur-sm">
                 <AnimatedCounter value={stats.active_users_today} suffix="" compact stiffness={90} damping={20} className="text-blue-300" /> bugun
               </span>
               <span className="px-2 py-0.5 rounded-md bg-emerald-500/20 border border-emerald-500/30 text-[9px] text-emerald-300 font-medium backdrop-blur-sm">
@@ -965,7 +965,7 @@ function SignInContent() {
 
             <div className="relative p-6 sm:p-7 rounded-2xl glass-card shadow-xl border border-gray-200 dark:border-zinc-800/50 dark:border-zinc-700/50 backdrop-blur-xl bg-white/70 dark:bg-zinc-900/70">
               {/* Mode Toggle */}
-              <div className="flex mb-5 bg-gray-100 dark:bg-zinc-800/30/80 dark:bg-zinc-800/80 rounded-lg p-0.5">
+              <div className="flex mb-5 bg-gray-100 dark:bg-zinc-800/80 dark:bg-zinc-800/80 rounded-lg p-0.5">
                 <button onClick={() => { setMode('login'); setError(''); setSuccessMsg('') }}
                   className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
                     mode === 'login'
@@ -998,7 +998,7 @@ function SignInContent() {
                 <motion.div
                   initial={{ opacity: 0, y: -5 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="mb-4 p-2.5 rounded-lg bg-red-50 dark:bg-red-900/20/90 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-xs text-red-700 dark:text-red-300 flex items-center gap-2"
+                  className="mb-4 p-2.5 rounded-lg bg-red-50 dark:bg-red-900/20 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-xs text-red-700 dark:text-red-300 flex items-center gap-2"
                 >
                   <svg className="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" />
@@ -1010,7 +1010,7 @@ function SignInContent() {
                 <motion.div
                   initial={{ opacity: 0, y: -5 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="mb-4 p-2.5 rounded-lg bg-green-50 dark:bg-green-900/20/90 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-xs text-green-700 dark:text-green-300 flex items-center gap-2"
+                  className="mb-4 p-2.5 rounded-lg bg-green-50 dark:bg-green-900/20 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-xs text-green-700 dark:text-green-300 flex items-center gap-2"
                 >
                   <svg className="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M22 11.08V12a10 10 0 11-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
