@@ -7,7 +7,39 @@ export async function GET(request: NextRequest) {
     const days = parseInt(searchParams.get('days') || '30');
     const type = searchParams.get('type') || 'all';
 
-    const supabase = getSupabaseAdmin();
+    let supabase: any = null;
+    try {
+      supabase = getSupabaseAdmin();
+    } catch {
+      // Supabase not configured — return empty data below
+    }
+
+    // If Supabase is not available, return fallback data immediately
+    if (!supabase) {
+      const fallback = {
+        success: true,
+        data: {
+          users: [],
+          paymentRequests: [],
+          loginActivities: [],
+          tokenUsages: [],
+          totalUsers: 0,
+          newUsers: 0,
+          userGrowth: 0,
+          premiumUsers: 0,
+          totalRevenue: 0,
+          pendingCount: 0,
+          approvedCount: 0,
+          recentLogins: 0,
+          activeUsers: 0,
+          tokensUsed: 0,
+          source: 'fallback',
+          message: 'Supabase ulanishi mavjud emas',
+        },
+      };
+      return NextResponse.json(fallback);
+    }
+
     const now = new Date();
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - days);

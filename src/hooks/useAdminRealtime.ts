@@ -7,14 +7,13 @@
 // ═══════════════════════════════════════════════════════════════════════════
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { supabase } from '@/lib/supabase-client';
 import {
-  type SiteSettings,
-  type PricingPlan,
   type PaymentRequest,
 } from '@/lib/settings-sync';
 
-const FALLBACK_POLL_MS = 120_000; // 2 daqiqa — faqat Realtime uzilganda
+
+
+const FALLBACK_POLL_MS = 30_000; // 30 sekund — faol yangilanish
 
 interface LoginActivity {
   userId: string;
@@ -249,69 +248,18 @@ export function useAdminRealtime(): AdminRealtimeState {
     setNewUsersCount(0);
   }, [fetchAllData]);
 
-  // ── Initial load + Supabase Realtime subscriptions ──
+  // ── Initial load + periodic polling ──
+  // NOTE: Realtime WebSocket subscriptions are intentionally NOT used here
+  // because the Supabase Realtime client enters an infinite reconnection
+  // loop when the Supabase URL is unreachable (ERR_NAME_NOT_RESOLVED).
+  // Polling is silence in the console, reliable, and sufficient for admin.
   useEffect(() => {
     mountedRef.current = true;
 
     // 1. Initial fetch — all data
     fetchAllData(true);
 
-    // 2. Supabase Realtime channels — instant updates!
-    // We subscribe to tables that admin cares about
-    // IMPORTANT: Table names MUST match the analytics API queries
-    // Analytics API queries: payment_requests, usage_logs, auth_logs,
-    //   registered_users, site_settings, pricing_plans
-    const tables = [
-      { name: 'payment_requests', key: 'payments' },
-      { name: 'usage_logs', key: 'usage_logs' },
-      { name: 'auth_logs', key: 'login_activity' },
-      { name: 'site_settings', key: 'settings' },
-      { name: 'pricing_plans', key: 'pricing' },
-      { name: 'registered_users', key: 'users' },
-    ];
-
-    const channels: { unsubscribe: () => void }[] = [];
-
-    for (const table of tables) {
-      const channelName = `admin-${table.name}-realtime`;
-      try {
-        const channel = supabase
-          .channel(channelName)
-          .on(
-            'postgres_changes' as any,
-            { event: '*', schema: 'public', table: table.name },
-            (payload: any) => {
-              if (!mountedRef.current) return;
-              
-              // For payments: if INSERT/new pending, play a subtle notification
-              if (table.name === 'payments' && payload.eventType === 'INSERT') {
-                const newPayment = payload.new;
-                if (newPayment && newPayment.status === 'pending') {
-                  setNewPaymentsCount(prev => prev + 1);
-                }
-              }
-              
-              // For profiles/users: if INSERT, increment new user counter
-              if (table.name === 'profiles' && payload.eventType === 'INSERT') {
-                setNewUsersCount(prev => prev + 1);
-              }
-
-              // Re-fetch the changed table for fresh data
-              refreshSource(table.key);
-            }
-          )
-          .subscribe((status: string) => {
-            if (status === 'SUBSCRIBED') {
-              // console.log(`[Admin Realtime] ${table.name} kanaliga ulandi`);
-            }
-          });
-        channels.push({ unsubscribe: () => supabase.removeChannel(channel) });
-      } catch {
-        // Channel failed — fallback polling will handle
-      }
-    }
-
-    // 3. Fallback polling (2 min) — catches anything Realtime missed
+    // 2. Periodic polling (30s) — primary data source
     pollTimerRef.current = setTimeout(function poll() {
       if (!mountedRef.current) return;
       fetchAllData(false);
@@ -324,9 +272,6 @@ export function useAdminRealtime(): AdminRealtimeState {
       if (pollTimerRef.current) {
         clearTimeout(pollTimerRef.current);
         pollTimerRef.current = null;
-      }
-      for (const ch of channels) {
-        ch.unsubscribe();
       }
     };
   }, [fetchAllData, refreshSource]);

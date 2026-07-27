@@ -77,7 +77,7 @@ export function useLegalCodes() {
       setCodes(mapped);
       setFromSupabase(true);
     } catch (err: any) {
-      console.error('Supabase fetch failed:', err.message);
+      // Silent fail — Supabase not configured is expected in dev
       setError(err.message || 'Ma\'lumotlarni yuklashda xatolik yuz berdi');
       setCodes([]);
       setFromSupabase(false);
