@@ -1,204 +1,81 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
 
 export async function GET(request: NextRequest) {
   try {
-    // Mock legal categories
-    const mockCategories = [
-      {
-        id: 'cat_1',
-        name: 'Fuqarolik huquqi',
-        slug: 'civil',
-        description: 'Fuqarolik-huquqiy munosabatlar, shartnomalar, mulk huquqi',
-        document_count: 1250,
-        subcategories: [
-          {
-            id: 'subcat_1',
-            name: 'Shartnoma huquqi',
-            slug: 'contracts',
-            document_count: 450
-          },
-          {
-            id: 'subcat_2',
-            name: 'Mulk huquqi',
-            slug: 'property',
-            document_count: 320
-          },
-          {
-            id: 'subcat_3',
-            name: 'Meros huquqi',
-            slug: 'inheritance',
-            document_count: 180
-          },
-          {
-            id: 'subcat_4',
-            name: 'Huquqiy shaxslar',
-            slug: 'legal_entities',
-            document_count: 300
-          }
-        ]
-      },
-      {
-        id: 'cat_2',
-        name: 'Mehnat huquqi',
-        slug: 'labor',
-        description: 'Mehnat munosabatlari, ish haqi, mehnat xavfsizligi',
-        document_count: 890,
-        subcategories: [
-          {
-            id: 'subcat_5',
-            name: 'Ish haqi',
-            slug: 'wages',
-            document_count: 280
-          },
-          {
-            id: 'subcat_6',
-            name: 'Ish vaqti',
-            slug: 'working_hours',
-            document_count: 150
-          },
-          {
-            id: 'subcat_7',
-            name: 'Mehnat xavfsizligi',
-            slug: 'safety',
-            document_count: 220
-          },
-          {
-            id: 'subcat_8',
-            name: 'Mehnat munosabatlarini tugatish',
-            slug: 'termination',
-            document_count: 240
-          }
-        ]
-      },
-      {
-        id: 'cat_3',
-        name: 'Oilaviy huquq',
-        slug: 'family',
-        description: 'Oilaviy munosabatlar, nikoh, ajralish, vosa huquqi',
-        document_count: 650,
-        subcategories: [
-          {
-            id: 'subcat_9',
-            name: 'Nikoh',
-            slug: 'marriage',
-            document_count: 180
-          },
-          {
-            id: 'subcat_10',
-            name: 'Ajralish',
-            slug: 'divorce',
-            document_count: 150
-          },
-          {
-            id: 'subcat_11',
-            name: 'Vosa huquqi',
-            slug: 'child_rights',
-            document_count: 200
-          },
-          {
-            id: 'subcat_12',
-            name: 'Aliment',
-            slug: 'alimony',
-            document_count: 120
-          }
-        ]
-      },
-      {
-        id: 'cat_4',
-        name: 'Jinoyat huquqi',
-        slug: 'criminal',
-        description: 'Jinoyatlar, jazo choralari, jinoiy protsess',
-        document_count: 1120,
-        subcategories: [
-          {
-            id: 'subcat_13',
-            name: 'Jinoyat turlari',
-            slug: 'crimes',
-            document_count: 450
-          },
-          {
-            id: 'subcat_14',
-            name: 'Jazo turlari',
-            slug: 'punishments',
-            document_count: 280
-          },
-          {
-            id: 'subcat_15',
-            name: 'Jinoiy protsess',
-            slug: 'criminal_procedure',
-            document_count: 390
-          }
-        ]
-      },
-      {
-        id: 'cat_5',
-        name: 'Konstitutsion huquq',
-        slug: 'constitutional',
-        description: 'Konstitutsiya, inson huquqlari, davlat tuzilishi',
-        document_count: 340,
-        subcategories: [
-          {
-            id: 'subcat_16',
-            name: 'Inson huquqlari',
-            slug: 'human_rights',
-            document_count: 120
-          },
-          {
-            id: 'subcat_17',
-            name: 'Davlat hokimiyati',
-            slug: 'state_power',
-            document_count: 100
-          },
-          {
-            id: 'subcat_18',
-            name: 'Mahalliy hokimiyat',
-            slug: 'local_government',
-            document_count: 120
-          }
-        ]
-      },
-      {
-        id: 'cat_6',
-        name: 'Yer huquqi',
-        slug: 'land',
-        description: 'Yer munosabatlari, yer fondidan foydalanish',
-        document_count: 480,
-        subcategories: [
-          {
-            id: 'subcat_19',
-            name: 'Yer fondidan foydalanish',
-            slug: 'land_use',
-            document_count: 200
-          },
-          {
-            id: 'subcat_20',
-            name: 'Yer mulki',
-            slug: 'land_ownership',
-            document_count: 180
-          },
-          {
-            id: 'subcat_21',
-            name: 'Qishloq xo\'jalik yerlari',
-            slug: 'agricultural_land',
-            document_count: 100
-          }
-        ]
-      }
-    ];
+    // Try to load from Supabase
+    const { createClient } = await import('@supabase/supabase-js');
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    
+    if (!supabaseUrl || !supabaseKey) {
+      return NextResponse.json({
+        success: false,
+        error: 'Supabase not configured',
+        categories: [],
+        total_categories: 0,
+        total_documents: 0,
+      });
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Fetch categories with article counts
+    const { data: categories, error } = await supabase
+      .from('categories')
+      .select('*')
+      .order('code_id');
+
+    if (error) throw error;
+
+    if (!categories || categories.length === 0) {
+      return NextResponse.json({
+        success: true,
+        categories: [],
+        total_categories: 0,
+        total_documents: 0,
+        message: 'No categories found. Run the SQL migration first.',
+      });
+    }
+
+    // Get article count for each category
+    const { data: articleCounts, error: countError } = await supabase
+      .from('articles')
+      .select('code_id');
+
+    if (!countError && articleCounts) {
+      const countMap: Record<string, number> = {};
+      articleCounts.forEach((a: any) => {
+        countMap[a.code_id] = (countMap[a.code_id] || 0) + 1;
+      });
+
+      categories.forEach((cat: any) => {
+        cat.article_count = countMap[cat.code_id] || 0;
+      });
+    }
 
     return NextResponse.json({
-      categories: mockCategories,
-      total_categories: mockCategories.length,
-      total_documents: mockCategories.reduce((sum, cat) => sum + cat.document_count, 0),
-      last_updated: new Date().toISOString()
+      success: true,
+      categories: categories.map((cat: any) => ({
+        id: cat.code_id,
+        name: cat.name,
+        slug: cat.code_id,
+        description: cat.description || '',
+        document_count: cat.article_count || 0,
+        code_id: cat.code_id,
+      })),
+      total_categories: categories.length,
+      total_documents: categories.reduce((sum: number, c: any) => sum + (c.article_count || 0), 0),
+      last_updated: new Date().toISOString(),
     });
 
-  } catch (error) {
-    console.error('Legal categories get error:', error);
-    return NextResponse.json(
-      { error: 'Kategoriyalarni olishda xatolik yuz berdi' },
-      { status: 500 }
-    );
+  } catch (error: any) {
+    console.error('Legal categories API error:', error);
+    return NextResponse.json({
+      success: false,
+      error: error.message || 'Kategoriyalarni olishda xatolik',
+      categories: [],
+      total_categories: 0,
+      total_documents: 0,
+    });
   }
 }
