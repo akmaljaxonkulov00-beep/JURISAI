@@ -461,187 +461,308 @@ interface FloatingSceneProps {
   statsLoading: boolean
 }
 
-// Premium legal cards with distinct visual identities
-const premiumCards = [
-  { icon: <ShieldIcon className="w-5 h-5" />, title: 'AI Huquqiy Agent', descKey: 'ai', color: 'from-blue-400/30 to-blue-600/20', depth: 4, href: '/ai-assistant', badge: '⚡' },
-  { icon: <GavelIcon className="w-5 h-5" />, title: 'Virtual Sud AI', descKey: 'court', color: 'from-emerald-400/30 to-emerald-600/20', depth: 6, href: '/court-simulator', badge: '🏛' },
-  { icon: <FileIcon className="w-5 h-5" />, title: 'Hujjat Generator', descKey: 'docs', color: 'from-amber-400/30 to-amber-600/20', depth: 3, href: '/document-generator', badge: '📄' },
-  { icon: <SearchIcon className="w-5 h-5" />, title: 'Smart Huquqiy Qidiruv', descKey: 'search', color: 'from-purple-400/30 to-purple-600/20', depth: 7, href: '/qonunlar', badge: '🔍' },
-  { icon: <BookIcon className="w-5 h-5" />, title: "O'zbekiston Qonunchiligi", descKey: 'codes', color: 'from-cyan-400/30 to-cyan-600/20', depth: 5, href: '/qonunlar', badge: '📚' },
-  { icon: <SparkleIcon className="w-5 h-5" />, title: 'AI Analitika', descKey: 'analytics', color: 'from-rose-400/30 to-rose-600/20', depth: 8, href: '/statistics', badge: '📊' },
+// ── Legal AI Ecosystem — Network Node ───────────────────────────────────
+// Each node is a connected element in the premium legal ecosystem
+
+interface EcosystemNode {
+  id: string
+  icon: React.ReactNode
+  title: string
+  description: string
+  color: string
+  depth: number
+  x: number
+  y: number
+  floatAmp: number
+  floatDur: number
+  floatDelay: number
+  pulseDelay: number
+}
+
+const ECOSYSTEM_NODES: EcosystemNode[] = [
+  { 
+    id: 'court', icon: <GavelIcon className="w-4 h-4" />, 
+    title: 'Virtual Sud AI',
+    description: 'Sud jarayonlarini virtual simulyatsiya qilish va tahlil qilish',
+    color: 'from-emerald-400/40 to-emerald-600/30', depth: 5,
+    x: 0, y: -175, floatAmp: 10, floatDur: 5.5, floatDelay: 0.2, pulseDelay: 0
+  },
+  { 
+    id: 'gavel', icon: <SparkleIcon className="w-4 h-4" />, 
+    title: 'AI Huquqiy Agent',
+    description: "O'zbekiston Respublikasi qonunchiligi asosida AI yordamchisi",
+    color: 'from-blue-400/40 to-blue-600/30', depth: 4,
+    x: 155, y: -85, floatAmp: 8, floatDur: 6.2, floatDelay: 0.7, pulseDelay: 0.5
+  },
+  { 
+    id: 'documents', icon: <FileIcon className="w-4 h-4" />, 
+    title: 'AI Hujjat Generator',
+    description: "Da'vo arizalari, shartnomalar va huquqiy hujjatlarni avtomatik yaratish",
+    color: 'from-amber-400/40 to-amber-600/30', depth: 3,
+    x: 155, y: 85, floatAmp: 9, floatDur: 5.8, floatDelay: 1.2, pulseDelay: 1.0
+  },
+  { 
+    id: 'laws', icon: <BookIcon className="w-4 h-4" />, 
+    title: "O'zbekiston Qonunchiligi",
+    description: 'Barcha kodekslar, qonunlar va normativ hujjatlar yagona bazada',
+    color: 'from-cyan-400/40 to-cyan-600/30', depth: 6,
+    x: 0, y: 175, floatAmp: 7, floatDur: 6.8, floatDelay: 1.7, pulseDelay: 1.5
+  },
+  { 
+    id: 'search', icon: <SearchIcon className="w-4 h-4" />, 
+    title: 'Smart Huquqiy Qidiruv',
+    description: "Sun'iy intellekt yordamida tezkor va semantik qidiruv",
+    color: 'from-purple-400/40 to-purple-600/30', depth: 4,
+    x: -155, y: 85, floatAmp: 11, floatDur: 5.3, floatDelay: 2.2, pulseDelay: 2.0
+  },
+  { 
+    id: 'analytics', icon: <ShieldIcon className="w-4 h-4" />, 
+    title: 'AI Analitika',
+    description: 'Huquqiy ma\'lumotlarni tahlil qilish va tavsiyalar berish',
+    color: 'from-rose-400/40 to-rose-600/30', depth: 5,
+    x: -155, y: -85, floatAmp: 6, floatDur: 7.0, floatDelay: 0.5, pulseDelay: 0.3
+  },
 ]
 
-const CARD_DESC_MAP: Record<string, (s: any) => string> = {
-  ai: (s) => `${s.total_ai_requests.toLocaleString()}+ AI so'rov, 100% O'zR qonunchiligi`,
-  court: (s) => `${s.active_users_today} ta bugungi seans, real vaqt rejimi`,
-  docs: (s) => `${s.total_documents.toLocaleString()}+ hujjat yaratildi, da'vo, shartnoma, ishonchnoma`,
-  search: (s) => `${(s.total_codes * 300).toLocaleString()}+ modda, semantic qidiruv`,
-  codes: (s) => `${s.total_codes} ta kodeks, ${(s.total_codes * 300).toLocaleString()}+ modda, AI tahlil`,
-  analytics: (s) => `${s.total_users.toLocaleString()}+ foydalanuvchi, risk analysis`,
-}
-
-function getCardDesc(descKey: string, stats: any): string {
-  const fn = CARD_DESC_MAP[descKey]
-  return fn ? fn(stats) : 'Keng qamrovli tahlil'
-}
+// Hexagonal connection pairs (center-to-node + adjacent connections)
+const NODE_CONNECTIONS = [
+  [0, 1], [0, 2], [0, 3], [0, 4], [0, 5], [0, 6],  // center → all nodes (0=center, 1-6=nodes)
+  [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 1],   // hexagon ring
+]
 
 function FloatingScene({ mouseX, mouseY, onNavigate, stats, statsLoading }: FloatingSceneProps) {
+  // Stat badges for the bottom area
+  const liveBadge = stats && !statsLoading ? (
+    <motion.div
+      className="absolute left-1/2 -translate-x-1/2 top-[calc(50%+195px)] flex items-center justify-center gap-3"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 1.2, type: 'spring', stiffness: 100, damping: 18 }}
+    >
+      <span className="px-3 py-1 rounded-full bg-blue-500/15 border border-blue-500/25 text-[10px] text-blue-300 font-medium backdrop-blur-sm flex items-center gap-1.5">
+        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+        <AnimatedCounter value={stats.active_users_today || 0} suffix=" bugun" compact stiffness={90} damping={20} className="text-blue-300" />
+      </span>
+      <span className="px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/25 text-[10px] text-emerald-300 font-medium backdrop-blur-sm">
+        +<AnimatedCounter value={stats.documents_generated_today || 0} suffix=" hujjat" compact stiffness={90} damping={20} className="text-emerald-300" />
+      </span>
+    </motion.div>
+  ) : null
+
   return (
     <div className="relative w-full h-full flex items-center justify-center">
       {/* Central ambient glow */}
       <motion.div
-        className="absolute w-80 h-80 rounded-full blur-3xl"
+        className="absolute w-[450px] h-[450px] rounded-full blur-3xl pointer-events-none"
         style={{
-          background: 'radial-gradient(circle, rgba(59,130,246,0.12) 0%, rgba(16,185,129,0.08) 30%, transparent 70%)',
+          background: 'radial-gradient(circle, rgba(59,130,246,0.10) 0%, rgba(16,185,129,0.06) 30%, transparent 65%)',
         }}
-        animate={{ scale: [1, 1.1, 1], opacity: [0.6, 1, 0.6] }}
-        transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+        animate={{ scale: [1, 1.08, 1], opacity: [0.5, 0.9, 0.5] }}
+        transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
       />
 
-      {/* 3D Cards Ring — Outer orbit premium legal ecosystem cards */}
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div className="relative w-[520px] h-[520px]">
-          {premiumCards.map((card, i) => {
-            const angle = (i / premiumCards.length) * Math.PI * 2 - Math.PI / 2
-            const radius = 200
-            const x = Math.cos(angle) * radius
-            const y = Math.sin(angle) * radius
-            const cardWidth = i % 2 === 0 ? 170 : 150
-            const cardHeight = 88
-
-            const cardDesc = stats && !statsLoading ? getCardDesc(card.descKey, stats) : ''
-
+      <div className="relative w-[500px] h-[520px]">
+        {/* SVG Network Connection Lines */}
+        <svg 
+          className="absolute inset-0 w-full h-full pointer-events-none" 
+          viewBox="-250 -260 500 520"
+          style={{ overflow: 'visible' }}
+        >
+          <defs>
+            <linearGradient id="lineGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="rgba(59,130,246,0.15)" />
+              <stop offset="50%" stopColor="rgba(16,185,129,0.20)" />
+              <stop offset="100%" stopColor="rgba(59,130,246,0.15)" />
+            </linearGradient>
+          </defs>
+          {NODE_CONNECTIONS.map(([ci, cj], idx) => {
+            const i = ci - 1, j = cj - 1
+            const isCenter = ci === 0 || cj === 0
+            const a = ci === 0 ? { x: 0, y: 0 } : ECOSYSTEM_NODES[i]
+            const b = cj === 0 ? { x: 0, y: 0 } : ECOSYSTEM_NODES[j]
             return (
-              <motion.div
-                key={i}
-                className="absolute"
-                style={{
-                  left: `calc(50% + ${x}px - ${cardWidth / 2}px)`,
-                  top: `calc(50% + ${y}px - ${cardHeight / 2}px)`,
-                  width: cardWidth,
-                }}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{
-                  opacity: 1,
-                  scale: 1,
-                  transition: { delay: i * 0.12, duration: 0.5, ease: 'easeOut' },
-                }}
-              >
-                <FloatingCard depth={card.depth} index={i} mouseX={mouseX} mouseY={mouseY}>
-                  <button onClick={() => onNavigate(card.href)} className="w-full text-left">
-                    <div className="flex items-start gap-2.5">
-                      <div className={`w-9 h-9 rounded-lg bg-gradient-to-br ${card.color} flex items-center justify-center text-white flex-shrink-0 shadow-lg`}>
-                        {card.icon}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-1">
-                          <span className="text-xs">{card.badge}</span>
-                          <h3 className="text-xs font-semibold text-white/90 leading-tight">{card.title}</h3>
-                        </div>
-                        {cardDesc ? (
-                          <p className="text-[10px] text-white/50 mt-0.5 leading-tight line-clamp-2">{cardDesc}</p>
-                        ) : (
-                          <p className="text-[10px] text-white/50 mt-0.5 leading-tight">Yuklanmoqda...</p>
-                        )}
-                      </div>
-                    </div>
-                  </button>
-                </FloatingCard>
-              </motion.div>
+              <motion.line
+                key={idx}
+                x1={a.x}
+                y1={a.y}
+                x2={b.x}
+                y2={b.y}
+                stroke={isCenter ? 'rgba(59,130,246,0.12)' : 'rgba(59,130,246,0.06)'}
+                strokeWidth={isCenter ? 1 : 0.5}
+                strokeDasharray={isCenter ? '4 4' : '3 5'}
+                initial={{ pathLength: 0, opacity: 0 }}
+                animate={{ pathLength: 1, opacity: 1 }}
+                transition={{ duration: 1.8, delay: 0.5 + idx * 0.03, ease: 'easeInOut' }}
+              />
             )
           })}
+          {/* Pulse dots along center connections */}
+          {ECOSYSTEM_NODES.map((node, i) => (
+            <motion.circle
+              key={`pulse-${i}`}
+              r={2}
+              fill="rgba(96,165,250,0.4)"
+              initial={{ opacity: 0 }}
+              animate={{
+                opacity: [0, 0.8, 0],
+                cx: [node.x * 0.2, node.x * 0.8],
+                cy: [node.y * 0.2, node.y * 0.8],
+              }}
+              transition={{
+                duration: 2.5,
+                delay: node.pulseDelay,
+                repeat: Infinity,
+                ease: 'easeInOut',
+              }}
+            />
+          ))}
+        </svg>
 
-          {/* 3D Legal Objects Orbiting — Court, Gavel, AI Hologram, Law Books */}
-          <motion.div
-            className="absolute"
-            style={{ left: 'calc(50% - 140px)', top: 'calc(50% - 100px)', width: 80, height: 80 }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.6 }}
-          >
-            <CourtScene mouseX={mouseX} mouseY={mouseY} />
-          </motion.div>
-
-          <motion.div
-            className="absolute"
-            style={{ left: 'calc(50% + 70px)', top: 'calc(50% - 110px)', width: 80, height: 80 }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.7 }}
-          >
-            <JudgeGavel mouseX={mouseX} mouseY={mouseY} />
-          </motion.div>
-
-          <motion.div
-            className="absolute"
-            style={{ left: 'calc(50% + 105px)', top: 'calc(50% + 40px)', width: 80, height: 80 }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.8 }}
-          >
-            <AIHologram mouseX={mouseX} mouseY={mouseY} />
-          </motion.div>
-
-          <motion.div
-            className="absolute flex gap-2"
-            style={{ left: 'calc(50% - 130px)', top: 'calc(50% + 70px)' }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.9 }}
-          >
-            <LawBook mouseX={mouseX} mouseY={mouseY} index={0} />
-            <LawBook mouseX={mouseX} mouseY={mouseY} index={1} />
-            <LawBook mouseX={mouseX} mouseY={mouseY} index={2} />
-          </motion.div>
-
-          {/* Live counter badges */}
-          {stats && !statsLoading && (
+        {/* Ecosystem Nodes — positioned in hexagonal layout */}
+        {ECOSYSTEM_NODES.map((node, i) => {
+          const cardWidth = 172
+          const cardHeight = 82
+          return (
             <motion.div
-              className="absolute left-1/2 top-1/2 -translate-x-1/2 translate-y-24 flex items-center justify-center gap-2"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.8, type: 'spring' }}
+              key={node.id}
+              className="absolute"
+              style={{
+                left: `calc(50% + ${node.x}px - ${cardWidth / 2}px)`,
+                top: `calc(50% + ${node.y}px - ${cardHeight / 2}px)`,
+                width: cardWidth,
+              }}
+              initial={{ opacity: 0, scale: 0.7, y: node.y + 30 }}
+              animate={{
+                opacity: 1,
+                scale: 1,
+                y: 0,
+                transition: { delay: 0.3 + i * 0.12, duration: 0.6, ease: 'easeOut' },
+              }}
             >
-              <span className="px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-900/20 border border-blue-500/30 text-[9px] text-blue-300 font-medium backdrop-blur-sm">
-                <AnimatedCounter value={stats.active_users_today} suffix="" compact stiffness={90} damping={20} className="text-blue-300" /> bugun
-              </span>
-              <span className="px-2 py-0.5 rounded-md bg-emerald-500/20 border border-emerald-500/30 text-[9px] text-emerald-300 font-medium backdrop-blur-sm">
-                +<AnimatedCounter value={stats.documents_generated_today} suffix="" compact stiffness={90} damping={20} className="text-emerald-300" /> hujjat
-              </span>
+              <FloatingCard depth={node.depth} index={i} mouseX={mouseX} mouseY={mouseY}>
+                <button onClick={() => {
+                  const routeMap: Record<string, string> = {
+                    court: '/case-solver', gavel: '/ai-assistant', documents: '/document-generator',
+                    laws: '/qonunlar', search: '/qonunlar', analytics: '/statistics'
+                  }
+                  onNavigate(routeMap[node.id] || '/')
+                }} className="w-full text-left block">
+                  <div className="flex items-start gap-2.5">
+                    <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${node.color} flex items-center justify-center text-white/90 flex-shrink-0 shadow-lg`}>
+                      {node.icon}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-[11px] font-semibold text-white/90 leading-tight">{node.title}</h3>
+                      <p className="text-[9px] text-white/45 mt-0.5 leading-relaxed line-clamp-2">
+                        {stats && !statsLoading && node.id === 'gavel'
+                          ? `${(stats.total_ai_requests || 0).toLocaleString()}+ AI so'rov, O'zR qonunchiligi`
+                          : stats && !statsLoading && node.id === 'court'
+                          ? `${(stats.active_users_today || 0)} ta bugungi seans`
+                          : stats && !statsLoading && node.id === 'documents'
+                          ? `${(stats.total_documents || 0).toLocaleString()}+ hujjat yaratildi`
+                          : stats && !statsLoading && node.id === 'laws'
+                          ? `${(stats.total_codes || 0)} ta kodeks, AI tahlil`
+                          : stats && !statsLoading && node.id === 'search'
+                          ? `${((stats.total_codes || 0) * 200).toLocaleString()}+ modda, semantic qidiruv`
+                          : stats && !statsLoading && node.id === 'analytics'
+                          ? `${(stats.total_users || 0).toLocaleString()}+ foydalanuvchi`
+                          : node.description}
+                      </p>
+                    </div>
+                  </div>
+                </button>
+              </FloatingCard>
             </motion.div>
-          )}
+          )
+        })}
 
-          {/* Center core — Premium Shield Logo */}
-          <motion.div
-            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.3, type: 'spring', stiffness: 180, damping: 14 }}
-            style={{
-              rotateX: useSpring(useTransform(mouseY, [0, 1], [6, -6]), { stiffness: 80 }),
-              rotateY: useSpring(useTransform(mouseX, [0, 1], [-6, 6]), { stiffness: 80 }),
-            }}
+        {/* 3D Legal Objects — positioned between the center and the hexagonal cards */}
+        <motion.div
+          className="absolute"
+          style={{ left: 'calc(50% - 30px)', top: 'calc(50% - 82px)' }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.8 }}
+        >
+          <CourtScene mouseX={mouseX} mouseY={mouseY} />
+        </motion.div>
+
+        <motion.div
+          className="absolute"
+          style={{ left: 'calc(50% + 55px)', top: 'calc(50% - 52px)' }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.9 }}
+        >
+          <JudgeGavel mouseX={mouseX} mouseY={mouseY} />
+        </motion.div>
+
+        <motion.div
+          className="absolute"
+          style={{ left: 'calc(50% + 60px)', top: 'calc(50% + 42px)' }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.0 }}
+        >
+          <AIHologram mouseX={mouseX} mouseY={mouseY} />
+        </motion.div>
+
+        <motion.div
+          className="absolute flex gap-1.5"
+          style={{ left: 'calc(50% - 65px)', top: 'calc(50% + 52px)' }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.1 }}
+        >
+          <LawBook mouseX={mouseX} mouseY={mouseY} index={0} />
+          <LawBook mouseX={mouseX} mouseY={mouseY} index={1} />
+        </motion.div>
+
+        {/* Live badges */}
+        {liveBadge}
+
+        {/* Center core — Premium Shield Logo with rotating rings */}
+        <motion.div
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 0.4, type: 'spring', stiffness: 200, damping: 16 }}
+          style={{
+            rotateX: useSpring(useTransform(mouseY, [0, 1], [5, -5]), { stiffness: 70 }),
+            rotateY: useSpring(useTransform(mouseX, [0, 1], [-5, 5]), { stiffness: 70 }),
+          }}
+        >
+          <div 
+            className="rounded-2xl bg-gradient-to-br from-blue-500/25 via-emerald-500/15 to-blue-500/25 backdrop-blur-xl border border-white/15 flex items-center justify-center shadow-2xl"
+            style={{ width: 76, height: 76 }}
           >
-            <div className="w-22 h-22 rounded-2xl bg-gradient-to-br from-blue-500/30 via-emerald-500/20 to-blue-500/30 backdrop-blur-xl border border-white/20 flex items-center justify-center shadow-2xl"
-              style={{ width: 80, height: 80 }}
-            >
-              <ShieldIcon className="w-8 h-8 text-white/80" />
-            </div>
-            {/* Orbiting ring */}
-            <motion.div
-              className="absolute inset-0 rounded-full border border-blue-400/10"
-              animate={{ rotate: 360 }}
-              transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
-              style={{ width: 110, height: 110, left: -15, top: -15 }}
-            />
-            <motion.div
-              className="absolute inset-0 rounded-full border border-emerald-400/10"
-              animate={{ rotate: -360 }}
-              transition={{ duration: 25, repeat: Infinity, ease: 'linear' }}
-              style={{ width: 130, height: 130, left: -25, top: -25 }}
-            />
-          </motion.div>
-        </div>
+            <ShieldIcon className="w-8 h-8 text-white/80" />
+          </div>
+          {/* Inner ring */}
+          <motion.div
+            className="absolute inset-0 rounded-full border border-blue-400/10"
+            animate={{ rotate: 360 }}
+            transition={{ duration: 18, repeat: Infinity, ease: 'linear' }}
+            style={{ width: 102, height: 102, left: -13, top: -13 }}
+          />
+          {/* Outer ring */}
+          <motion.div
+            className="absolute inset-0 rounded-full border border-emerald-400/8"
+            animate={{ rotate: -360 }}
+            transition={{ duration: 22, repeat: Infinity, ease: 'linear' }}
+            style={{ width: 122, height: 122, left: -23, top: -23 }}
+          />
+          {/* Glow ring */}
+          <motion.div
+            className="absolute inset-0 rounded-full"
+            style={{
+              width: 140, height: 140, left: -32, top: -32,
+              background: 'radial-gradient(circle, rgba(59,130,246,0.06) 0%, transparent 70%)',
+            }}
+            animate={{ scale: [1, 1.05, 1], opacity: [0.5, 0.8, 0.5] }}
+            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+          />
+        </motion.div>
       </div>
     </div>
   )
