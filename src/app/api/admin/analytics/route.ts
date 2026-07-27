@@ -14,7 +14,23 @@ export async function GET(request: NextRequest) {
     const prevCutoff = new Date();
     prevCutoff.setDate(prevCutoff.getDate() - days * 2);
 
-    const result: Record<string, any> = {};
+    // ── Always return these fields, even if empty ──
+    const result: Record<string, any> = {
+      users: [],
+      paymentRequests: [],
+      loginActivities: [],
+      tokenUsages: [],
+      totalUsers: 0,
+      newUsers: 0,
+      userGrowth: 0,
+      premiumUsers: 0,
+      totalRevenue: 0,
+      pendingCount: 0,
+      approvedCount: 0,
+      recentLogins: 0,
+      activeUsers: 0,
+      tokensUsed: 0,
+    };
 
     // Fetch users — try registered_users first, then auth.users via service_role
     if (type === 'all' || type === 'users') {
