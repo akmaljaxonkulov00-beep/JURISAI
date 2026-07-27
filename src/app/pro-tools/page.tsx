@@ -5,88 +5,219 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import {
-  Wrench, Calculator, FileText, Search, Download, Upload, Clock, TrendingUp, Shield, Database, Settings, BookOpen, Target, Zap, X, FileCheck, Calendar,
+  Wrench, Calculator, FileText, Search, Download, Upload, Clock, TrendingUp, Shield,
+  Database, Settings, BookOpen, Target, Zap, X, FileCheck, Calendar, DollarSign,
+  AlertTriangle, CheckCircle, Scale, Heart, Home, Briefcase, FileSignature,
+  UserCheck, Users, Landmark, FileSpreadsheet, HelpCircle, Percent, PiggyBank,
 } from 'lucide-react';
 import Link from 'next/link';
-import { ALL_LEGAL_CODES, CODE_DISPLAY_NAMES } from '@/data/legal-codes';
+import { CODE_DISPLAY_NAMES } from '@/data/legal-codes';
 
-// ── Pure Functions ────────────────────────────────────────────────────
+// ── Type ──────────────────────────────────────────────────────────────
 
 type CalcResult = { result: string; details: string[] };
 
-function calcFine(crime: string, amount: number): CalcResult {
-  const f: Record<string, { mn: number; mx: number }> = {
-    "O'g'irlik": { mn: 5, mx: 50 }, Talonchilik: { mn: 10, mx: 100 },
-    Firibgarlik: { mn: 5, mx: 100 }, "Makon buzish": { mn: 3, mx: 30 },
-    "Jarohat yetkazish": { mn: 10, mx: 50 },
-  };
-  const r = f[crime] || { mn: 5, mx: 50 };
-  const bhm = 300000;
-  const mn = r.mn * bhm;
-  const mx = r.mx * bhm;
+// ── Calculator Functions ──────────────────────────────────────────────
+
+const BHM = 300000; // Base calculation unit in UZS
+
+function calcStateFee(amount: number): CalcResult {
+  let fee = 0;
+  if (amount <= 1000000) fee = amount * 0.05;
+  else if (amount <= 5000000) fee = 50000 + (amount - 1000000) * 0.04;
+  else if (amount <= 10000000) fee = 210000 + (amount - 5000000) * 0.03;
+  else if (amount <= 50000000) fee = 360000 + (amount - 10000000) * 0.02;
+  else fee = 1160000 + (amount - 50000000) * 0.01;
+  fee = Math.min(fee, amount * 0.15);
   return {
-    result: `${mn.toLocaleString()} - ${mx.toLocaleString()} UZS`,
-    details: [`Jinoyat: ${crime}`, `BHM: ${bhm.toLocaleString()} UZS`, `Min: ${mn.toLocaleString()} UZS`, `Max: ${mx.toLocaleString()} UZS`],
+    result: `${Math.round(fee).toLocaleString()} UZS`,
+    details: [
+      `Da'vo summasi: ${amount.toLocaleString()} UZS`,
+      `Boj stavkasi: ${fee > 0 ? ((fee / amount) * 100).toFixed(2) : '0'}%`,
+      `Hisoblangan boj: ${Math.round(fee).toLocaleString()} UZS`,
+    ],
   };
 }
 
-function calcComp(type: string, amount: number, income: number): CalcResult {
-  const m: Record<string, number> = { Moddiy: 1.0, Axloqiy: 0.5, Moral: 0.3 };
-  const mult = m[type] || 1.0;
+function calcPenya(amount: number, days: number, rate: number = 0.03): CalcResult {
+  const daily = amount * (rate / 100);
+  const total = daily * days;
+  return {
+    result: `${Math.round(total).toLocaleString()} UZS`,
+    details: [
+      `Qarz miqdori: ${amount.toLocaleString()} UZS`,
+      `Kechikish: ${days} kun`,
+      `Kunlik stavka: ${rate}%`,
+      `Kunlik penya: ${Math.round(daily).toLocaleString()} UZS`,
+      `Jami penya: ${Math.round(total).toLocaleString()} UZS`,
+    ],
+  };
+}
+
+function calcAliment(income: number, children: number): CalcResult {
+  const rates: Record<number, number> = { 1: 0.25, 2: 0.33, 3: 0.5 };
+  const rate = Math.min(children, 3);
+  const percent = rates[rate] || 0.5;
+  const monthly = income * percent;
+  const minA = BHM * 0.5;
+  const maxA = BHM * 5;
+  const final = Math.max(Math.min(monthly, maxA), minA);
+  return {
+    result: `${Math.round(final).toLocaleString()} UZS/oy`,
+    details: [
+      `Daromad: ${income.toLocaleString()} UZS`,
+      `Farzandlar: ${children} ta`,
+      `Ulush: ${(percent * 100).toFixed(0)}%`,
+      `Min: ${minA.toLocaleString()} UZS/oy`,
+      `Max: ${maxA.toLocaleString()} UZS/oy`,
+    ],
+  };
+}
+
+function calcPension(income: number, years: number): CalcResult {
+  const base = BHM * 0.55;
+  const expBonus = Math.max(0, years - 10) * 0.01;
+  const incomePct = income * 0.4;
+  const total = Math.max(base + BHM * expBonus, Math.min(incomePct, BHM * 10));
+  return {
+    result: `${Math.round(total).toLocaleString()} UZS`,
+    details: [
+      `O'rtacha oylik: ${income.toLocaleString()} UZS`,
+      `Ish staji: ${years} yil`,
+      `Bazaviy: ${Math.round(base).toLocaleString()} UZS`,
+      `Staj bonusi: ${Math.round(BHM * expBonus).toLocaleString()} UZS`,
+    ],
+  };
+}
+
+function calcCompensation(type: string, amount: number, income: number): CalcResult {
+  const multMap: Record<string, number> = { 'Moddiy': 1.0, 'Axloqiy': 0.5, 'Moral': 0.3 };
+  const mult = multMap[type] || 1.0;
   const total = (amount || 0) * mult + (income || 0) * 30;
   return {
-    result: `${total.toLocaleString()} UZS`,
-    details: [`Zarar: ${type}`, `Asos: ${((amount || 0) * mult).toLocaleString()} UZS`, `Yo'qotilgan: ${((income || 0) * 30).toLocaleString()} UZS`, `Jami: ${total.toLocaleString()} UZS`],
-  };
-}
-
-function calcAllow(type: string, income: number, exp: number): CalcResult {
-  const rates: Record<string, { r: number; m: number }> = {
-    Asosiy: { r: 0.6, m: 6 }, "Qo'shimcha": { r: 0.4, m: 3 }, Ishsizlik: { r: 0.3, m: 12 },
-  };
-  const r = rates[type] || { r: 0.5, m: 6 };
-  const monthly = (income || 0) * r.r * (1 + Math.min((exp || 0) * 0.02, 0.2));
-  return {
-    result: `${(monthly * r.m).toLocaleString()} UZS`,
-    details: [`Ish: ${type}`, `Oylik: ${(income || 0).toLocaleString()} UZS`, `Stavka: ${(r.r * 100).toFixed(0)}%`, `Jami: ${(monthly * r.m).toLocaleString()} UZS`],
+    result: `${Math.round(total).toLocaleString()} UZS`,
+    details: [
+      `Zarar turi: ${type}`,
+      `Asosiy: ${Math.round((amount || 0) * mult).toLocaleString()} UZS`,
+      `Yo'qotilgan daromad: ${Math.round((income || 0) * 30).toLocaleString()} UZS`,
+    ],
   };
 }
 
 function calcDeadline(date: string, type: string): CalcResult {
-  const days: Record<string, number> = { "Da'vo berish": 30, Apellyatsiya: 30, Kassatsiya: 30, Nazorat: 365 };
-  const d = days[type] || 30;
+  const daysMap: Record<string, number> = {
+    "Da'vo berish": 30, Apellyatsiya: 20, Kassatsiya: 30, Nazorat: 365,
+    "Sud qarori": 10, "Ijro muddati": 365, "Meros olish": 180, "Shartnoma": 30,
+  };
+  const d = daysMap[type] || 30;
   const end = new Date(date);
   end.setDate(end.getDate() + d);
   const rem = Math.max(0, Math.ceil((end.getTime() - Date.now()) / 86400000));
   return {
     result: end.toLocaleDateString('uz-UZ'),
-    details: [`Boshlang'ich: ${new Date(date).toLocaleDateString('uz-UZ')}`, `Muddat: ${d} kun`, `Oxirgi: ${end.toLocaleDateString('uz-UZ')}`, `Qolgan: ${rem} kun`],
+    details: [
+      `Boshlang'ich: ${new Date(date).toLocaleDateString('uz-UZ')}`,
+      `Muddat: ${d} kun`,
+      `Oxirgi kun: ${end.toLocaleDateString('uz-UZ')}`,
+      `Qolgan: ${rem} kun (${Math.ceil(rem / 30)} oy)`,
+    ],
   };
 }
 
-// ── Static Data ───────────────────────────────────────────────────────
+// ── Code Display Names ────────────────────────────────────────────────
 
-const TEMPLATES = [
-  { name: "Da'vo arizasi", desc: "Sudga da'vo berish arizasi", cat: "Sud hujjatlari" },
-  { name: "Shartnoma", desc: "Fuqarolik-huquqiy shartnoma", cat: "Fuqarolik-huquqiy" },
-  { name: "Vakolatnoma", desc: "Vakolat berish hujjati", cat: "Vakolat hujjatlari" },
-  { name: "Mehnat shartnomasi", desc: "Ish beruvchi va xodim", cat: "Mehnat huquqi" },
+const CODE_FILTERS = [
+  { id: '', label: 'Barchasi' },
+  { id: 'constitution', label: CODE_DISPLAY_NAMES['constitution'] || "Konstitutsiya" },
+  { id: 'criminal_code', label: CODE_DISPLAY_NAMES['criminal_code'] || "Jinoyat Kodeksi" },
+  { id: 'civil_code', label: CODE_DISPLAY_NAMES['civil_code'] || "Fuqarolik Kodeksi" },
+  { id: 'labor_code', label: CODE_DISPLAY_NAMES['labor_code'] || "Mehnat Kodeksi" },
+  { id: 'family_code', label: CODE_DISPLAY_NAMES['family_code'] || "Oila Kodeksi" },
+  { id: 'land_code', label: CODE_DISPLAY_NAMES['land_code'] || "Yer Kodeksi" },
+  { id: 'tax_code', label: CODE_DISPLAY_NAMES['tax_code'] || "Soliq Kodeksi" },
 ];
+
+// ── Template Data ─────────────────────────────────────────────────────
+
+const TEMPLATE_GROUPS = [
+  {
+    cat: 'Sud hujjatlari',
+    icon: <Landmark className="w-4 h-4" />,
+    items: [
+      { name: "Da'vo arizasi (fuqarolik)", desc: "Fuqarolik ishi bo'yicha sudga da'vo arizasi" },
+      { name: "Da'vo arizasi (iqtisodiy)", desc: "Iqtisodiy sudga da'vo arizasi" },
+      { name: "Apellyatsiya shikoyati", desc: "Sud qaroriga apellyatsiya shikoyati" },
+      { name: "Kassatsiya shikoyati", desc: "Sud qaroriga kassatsiya shikoyati" },
+      { name: "Nazorat shikoyati", desc: "Nazorat tartibidagi shikoyat" },
+    ],
+  },
+  {
+    cat: 'Shartnomalar',
+    icon: <FileSignature className="w-4 h-4" />,
+    items: [
+      { name: "Mehnat shartnomasi", desc: "Ish beruvchi va xodim o'rtasidagi mehnat shartnomasi" },
+      { name: "Fuqarolik shartnomasi", desc: "Fuqarolik-huquqiy shartnoma" },
+      { name: "Oldi-sotdi shartnomasi", desc: "Ko'chmas mulk oldi-sotdi shartnomasi" },
+      { name: "Ijara shartnomasi", desc: "Mulk ijarasi shartnomasi" },
+      { name: "Qarz shartnomasi", desc: "Pul qarzi shartnomasi" },
+      { name: "Xizmat ko'rsatish", desc: "Xizmat ko'rsatish shartnomasi" },
+    ],
+  },
+  {
+    cat: 'Oila va meros',
+    icon: <Heart className="w-4 h-4" />,
+    items: [
+      { name: "Nikoh shartnomasi", desc: "Tomonlarning mulkiy munosabatlarini belgilovchi shartnoma" },
+      { name: "Aliment arizasi", desc: "Aliment undirish to'g'risidagi ariza" },
+      { name: "Ajrim arizasi", desc: "Nikohni bekor qilish to'g'risidagi ariza" },
+      { name: "Merosni qabul qilish", desc: "Merosni qabul qilish to'g'risidagi ariza" },
+      { name: "Bolani tarbiyalash", desc: "Bolani tarbiyalash huquqi to'g'risidagi da'vo" },
+    ],
+  },
+  {
+    cat: 'Vakolat va ishonchnomalar',
+    icon: <UserCheck className="w-4 h-4" />,
+    items: [
+      { name: "Ishonchnoma (umumiy)", desc: "Vakolat berish to'g'risidagi ishonchnoma" },
+      { name: "Advokat so'rovi", desc: "Advokatning ma'lumot so'rovi" },
+      { name: "Vakolatnoma", desc: "Vakolatli shaxsni belgilash" },
+      { name: "Notarial ishonchnoma", desc: "Notarial tasdiqlangan ishonchnoma" },
+    ],
+  },
+  {
+    cat: 'Mehnat huquqi',
+    icon: <Briefcase className="w-4 h-4" />,
+    items: [
+      { name: "Mehnat da'vosi", desc: "Mehnat huquqlarini himoya qilish da'vosi" },
+      { name: "Ishga tiklash", desc: "Ishga tiklash to'g'risidagi da'vo" },
+      { name: "Ish haqi undirish", desc: "Ish haqini undirish to'g'risidagi ariza" },
+      { name: "Kasallik varaqasi", desc: "Vaqtinchalik mehnatga layoqatsizlik varaqasi" },
+    ],
+  },
+  {
+    cat: 'Boshqa hujjatlar',
+    icon: <HelpCircle className="w-4 h-4" />,
+    items: [
+      { name: "Buyruq loyihasi", desc: "Korxona/ muassasa buyrug'i loyihasi" },
+      { name: "Hisobot xati", desc: "Rasmiy xat va murojaatlar" },
+      { name: "Shikoyat arizasi", desc: "Davlat organlariga shikoyat arizasi" },
+      { name: "So'rov xati", desc: "Ma'lumot olish uchun so'rov xati" },
+    ],
+  },
+];
+
+// ── Tool Definitions ──────────────────────────────────────────────────
 
 type Tab = 'calc' | 'doc' | 'search' | 'templates' | 'cases' | 'deadline';
 
 const TOOLS: { id: Tab; n: string; icon: React.ReactNode; d: string; c: string; cat: string }[] = [
-  { id: 'calc', n: 'Huquqiy kalkulyator', icon: <Calculator className="w-6 h-6" />, d: 'Jarima va tovon hisoblash', c: 'bg-blue-100 dark:bg-blue-900/30 text-blue-600', cat: 'Hisob-kitob' },
+  { id: 'calc', n: 'Huquqiy kalkulyator', icon: <Calculator className="w-6 h-6" />, d: 'Jarima, boj, aliment va pensiya hisoblash', c: 'bg-blue-100 dark:bg-blue-900/30 text-blue-600', cat: 'Hisob-kitob' },
   { id: 'doc', n: 'Hujjat tahlili', icon: <FileText className="w-6 h-6" />, d: 'Hujjatlarni AI tahlili', c: 'bg-green-100 dark:bg-green-900/30 text-green-600', cat: 'Tahlil' },
   { id: 'search', n: 'Qonun qidiruvi', icon: <Search className="w-6 h-6" />, d: 'Qonunlarda tezkor qidiruv', c: 'bg-purple-100 dark:bg-purple-900/30 text-purple-600', cat: 'Qidiruv' },
-  { id: 'templates', n: 'Namunalar', icon: <Download className="w-6 h-6" />, d: 'Hujjat namunalari', c: 'bg-orange-100 dark:bg-orange-900/30 text-orange-600', cat: 'Yaratish' },
+  { id: 'templates', n: 'Namunalar', icon: <Download className="w-6 h-6" />, d: '30+ hujjat namunalari', c: 'bg-orange-100 dark:bg-orange-900/30 text-orange-600', cat: 'Yaratish' },
   { id: 'cases', n: 'Case kuzatuv', icon: <Clock className="w-6 h-6" />, d: 'Case holatini kuzatish', c: 'bg-red-100 dark:bg-red-900/30 text-red-600', cat: 'Kuzatuv' },
-  { id: 'deadline', n: 'Muddat hisoblash', icon: <Target className="w-6 h-6" />, d: 'Muddatlarni hisoblash', c: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600', cat: 'Eslatma' },
+  { id: 'deadline', n: 'Muddat hisoblash', icon: <Target className="w-6 h-6" />, d: 'Sud va hujjat muddatlari', c: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600', cat: 'Eslatma' },
 ];
-
-function badge(id: string) {
-  return CODE_DISPLAY_NAMES[id];
-}
 
 // ── Component ─────────────────────────────────────────────────────────
 
@@ -94,55 +225,74 @@ export default function ProTools() {
   const [tab, setTab] = useState<Tab>('calc');
   const [calcResult, setCalcResult] = useState<CalcResult | null>(null);
   const [calcLoading, setCalcLoading] = useState(false);
+
+  // Document analyzer
   const [file, setFile] = useState<File | null>(null);
   const [analysis, setAnalysis] = useState<string | null>(null);
   const [analysisLoading, setAnalysisLoading] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Legal search
   const [query, setQuery] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchRun, setSearchRun] = useState(false);
   const [codeFilter, setCodeFilter] = useState('');
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [searchError, setSearchError] = useState('');
 
-  // Calculator states
-  const [fineForm, setFineForm] = useState({ crime: '', amount: 0 });
-  const [compForm, setCompForm] = useState({ type: '', amount: 0, income: 0 });
-  const [allowForm, setAllowForm] = useState({ type: '', income: 0, exp: 0 });
+  // Calculator forms
+  const [calcType, setCalcType] = useState<'fee' | 'penya' | 'aliment' | 'pension' | 'comp'>('fee');
+  const [feeAmount, setFeeAmount] = useState(5000000);
+  const [penyaAmount, setPenyaAmount] = useState(10000000);
+  const [penyaDays, setPenyaDays] = useState(30);
+  const [penyaRate, setPenyaRate] = useState(0.03);
+  const [alimentIncome, setAlimentIncome] = useState(3000000);
+  const [alimentChildren, setAlimentChildren] = useState(2);
+  const [pensionIncome, setPensionIncome] = useState(3000000);
+  const [pensionYears, setPensionYears] = useState(15);
+  const [compType, setCompType] = useState('Moddiy');
+  const [compAmount, setCompAmount] = useState(1000000);
+  const [compIncome, setCompIncome] = useState(50000);
 
-  // Deadline states
+  // Deadline
   const [dlForm, setDlForm] = useState({ date: '', type: '' });
   const [dlResult, setDlResult] = useState<CalcResult | null>(null);
   const [dlLoading, setDlLoading] = useState(false);
 
   const doCalc = (fn: () => void) => {
     setCalcLoading(true);
-    setTimeout(() => { fn(); setCalcLoading(false); }, 200);
+    setTimeout(() => { fn(); setCalcLoading(false); }, 100);
   };
 
-  const doSearch = useCallback(() => {
+  // ── Search via Supabase API ─────────────────────────────────────────
+
+  const doSearch = useCallback(async () => {
     if (!query.trim()) return;
     setSearchLoading(true);
     setSearchRun(true);
-    setTimeout(() => {
-      const lq = query.toLowerCase();
-      const results: any[] = [];
-      ALL_LEGAL_CODES.forEach((code: any) => {
-        if (codeFilter && code.id !== codeFilter) return;
-        (code.articles || []).forEach((a: any) => {
-          if (
-            (a.number && a.number.toLowerCase().includes(lq)) ||
-            (a.title && a.title.toLowerCase().includes(lq)) ||
-            (a.content && a.content.toLowerCase().includes(lq)) ||
-            (a.category && a.category.toLowerCase().includes(lq))
-          ) {
-            results.push({ code, article: a });
-          }
-        });
-      });
-      setSearchResults(results.slice(0, 20));
+    setSearchError('');
+    try {
+      const params = new URLSearchParams({ q: query.trim() });
+      if (codeFilter) params.set('code_id', codeFilter);
+      params.set('limit', '20');
+      const res = await fetch(`/api/legal/articles/search?${params}`);
+      if (!res.ok) throw new Error('API xatosi');
+      const data = await res.json();
+      if (data.success) {
+        setSearchResults(data.articles || []);
+      } else {
+        setSearchError(data.error || 'Qidirishda xatolik');
+        setSearchResults([]);
+      }
+    } catch (err: any) {
+      setSearchError('Serverga ulanishda xatolik. Iltimos qayta urinib ko\'ring.');
+      setSearchResults([]);
+    } finally {
       setSearchLoading(false);
-    }, 200);
+    }
   }, [query, codeFilter]);
+
+  // ── Document Analysis ───────────────────────────────────────────────
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
@@ -150,42 +300,54 @@ export default function ProTools() {
     setFile(f);
     setAnalysisLoading(true);
     setAnalysis(null);
-    
     try {
       const text = await f.text();
-      
-      // Call real AI analysis API
       const response = await fetch('/api/ai/document-analysis', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ documentText: text, documentType: f.name.split('.').pop() || 'unknown' }),
       });
-      
       if (response.ok) {
         const result = await response.json();
         setAnalysis(result.analysis || 'Tahlil natijasi olinmadi.');
       } else {
-        // Fallback: basic analysis without mock data
         const wordCount = text.split(/\s+/).length;
         setAnalysis(
           `📄 Hujjat tahlili:\n` +
           `  • Tur: ${f.name.split('.').pop()?.toUpperCase() || 'Nomaʼlum'}\n` +
           `  • Hajm: ${f.size > 1024 ? (f.size / 1024).toFixed(1) + ' KB' : f.size + ' B'}\n` +
-          `  • So'zlar soni: ${wordCount.toLocaleString()}\n` +
-          `  • Baho: ${wordCount > 100 ? '✅ Qoniqarli' : '⚠️ Juda qisqa'}\n\n` +
-          `Takliflar:\n` +
+          `  • So'zlar soni: ${wordCount.toLocaleString()}\n\n` +
+          `Tavsiyalar:\n` +
           `  • Huquqiy jihatdan tekshirish tavsiya etiladi\n` +
           `  • Muhim shartlarni belgilang\n` +
           `  • Nizolarni hal qilish tartibini kiriting`
         );
       }
-    } catch (error) {
-      console.log('Document analysis error:', error);
-      setAnalysis('❌ Hujjat tahlilida xatolik yuz berdi. Iltimos qayta urinib ko\'ring.');
+    } catch (err) {
+      setAnalysis('❌ Hujjat tahlilida xatolik yuz berdi.');
     } finally {
       setAnalysisLoading(false);
     }
   };
+
+  // ── Calc Results ────────────────────────────────────────────────────
+
+  const calcResultBlock = calcResult ? (
+    <div className="p-5 bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-900/20 dark:to-green-900/20 rounded-xl border border-blue-100 dark:border-blue-900/30">
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="font-bold text-gray-900 dark:text-white">Natija:</h3>
+        <button onClick={() => setCalcResult(null)} className="p-1 hover:bg-gray-200 dark:hover:bg-zinc-700 rounded-full transition-colors"><X size={16} /></button>
+      </div>
+      <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{calcResult.result}</p>
+      <div className="mt-2 space-y-0.5">
+        {calcResult.details.map((d, i) => (
+          <p key={i} className="text-xs text-gray-600 dark:text-zinc-400">{d}</p>
+        ))}
+      </div>
+    </div>
+  ) : null;
+
+  // ── Render ──────────────────────────────────────────────────────────
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-zinc-950">
@@ -195,14 +357,14 @@ export default function ProTools() {
             <div className="p-3 bg-white/20 rounded-full backdrop-blur-sm mr-4"><Wrench className="w-8 h-8" /></div>
             <div>
               <h1 className="text-3xl font-bold mb-2">Professional Asboblar</h1>
-              <p className="text-white/90">Huquqchilar uchun maxsus asboblar</p>
+              <p className="text-white/90">Huquqshunoslar uchun maxsus asboblar to'plami</p>
             </div>
           </div>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* ── Tool Cards Grid ── */}
+        {/* Tool Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           {TOOLS.map(t => (
             <div
@@ -222,7 +384,6 @@ export default function ProTools() {
 
         {/* ── Tab Content ── */}
         <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 border border-gray-200 dark:border-zinc-800">
-          {/* Tab Navigation */}
           <div className="border-b border-gray-200 dark:border-zinc-800 mb-6 overflow-x-auto">
             <nav className="flex space-x-6 min-w-max">
               {TOOLS.map(t => (
@@ -244,154 +405,160 @@ export default function ProTools() {
           {/* ════════════════ CALCULATOR ════════════════ */}
           {tab === 'calc' && (
             <div className="space-y-6">
-              {calcResult && (
-                <div className="p-4 bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-900/20 dark:to-green-900/20 rounded-xl border border-blue-100 dark:border-blue-900/30">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-bold text-gray-900 dark:text-white">Natija:</h3>
-                    <button onClick={() => setCalcResult(null)} className="p-1 hover:bg-gray-200 dark:hover:bg-zinc-700 rounded-full transition-colors"><X size={16} /></button>
-                  </div>
-                  <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{calcResult.result}</p>
-                  <div className="mt-2 space-y-0.5">
-                    {calcResult.details.map((d, i) => (
-                      <p key={i} className="text-xs text-gray-600 dark:text-zinc-400">{d}</p>
-                    ))}
-                  </div>
-                </div>
-              )}
+              {calcResultBlock}
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Jarima */}
-                <Card className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-sm">
-                  <CardHeader>
-                    <div className="flex items-center gap-3">
-                      <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg text-blue-600"><Calculator className="w-6 h-6" /></div>
+              {/* Calculator type selector */}
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { id: 'fee', label: 'Davlat boji', icon: <DollarSign className="w-4 h-4" /> },
+                  { id: 'penya', label: 'Penya', icon: <Percent className="w-4 h-4" /> },
+                  { id: 'aliment', label: 'Aliment', icon: <Heart className="w-4 h-4" /> },
+                  { id: 'pension', label: 'Pensiya', icon: <PiggyBank className="w-4 h-4" /> },
+                  { id: 'comp', label: 'Tovon', icon: <Shield className="w-4 h-4" /> },
+                ].map(ct => (
+                  <button
+                    key={ct.id}
+                    onClick={() => { setCalcType(ct.id as any); setCalcResult(null); }}
+                    className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-xl transition-all ${
+                      calcType === ct.id
+                        ? 'bg-blue-600 text-white shadow-md'
+                        : 'bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-zinc-300 hover:bg-gray-200 dark:hover:bg-zinc-700'
+                    }`}
+                  >
+                    {ct.icon} {ct.label}
+                  </button>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Davlat Boji */}
+                {calcType === 'fee' && (
+                  <Card className="col-span-1 md:col-span-2 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl">
+                    <CardHeader><CardTitle className="text-gray-900 dark:text-white">Davlat boji hisoblash</CardTitle></CardHeader>
+                    <CardContent className="space-y-4">
                       <div>
-                        <CardTitle className="text-lg text-gray-900 dark:text-white">Jarima</CardTitle>
-                        <p className="text-xs text-gray-500 dark:text-zinc-400">JK va MJK boyicha</p>
+                        <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Da'vo summasi (so'm)</label>
+                        <input type="number" value={feeAmount} onChange={e => setFeeAmount(Number(e.target.value))}
+                          className="w-full px-4 py-2.5 rounded-xl border dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white" />
                       </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <select
-                      value={fineForm.crime}
-                      onChange={e => setFineForm({ ...fineForm, crime: e.target.value })}
-                      className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="">Jinoyat turi</option>
-                      <option value="O'g'irlik">O'g'irlik</option>
-                      <option value="Talonchilik">Talonchilik</option>
-                      <option value="Firibgarlik">Firibgarlik</option>
-                      <option value="Makon buzish">Makon buzish</option>
-                      <option value="Jarohat yetkazish">Jarohat yetkazish</option>
-                    </select>
-                    <input
-                      type="number"
-                      value={fineForm.amount || ''}
-                      onChange={e => setFineForm({ ...fineForm, amount: Number(e.target.value) })}
-                      placeholder="Zarar miqdori"
-                      className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <Button
-                      onClick={() => doCalc(() => setCalcResult(calcFine(fineForm.crime, fineForm.amount)))}
-                      disabled={calcLoading || !fineForm.crime}
-                      className="w-full"
-                    >
-                      {calcLoading ? 'Hisoblanmoqda...' : 'Hisoblash'}
-                    </Button>
-                  </CardContent>
-                </Card>
+                      <Button onClick={() => doCalc(() => setCalcResult(calcStateFee(feeAmount)))} disabled={calcLoading || feeAmount <= 0} className="w-full">
+                        {calcLoading ? 'Hisoblanmoqda...' : 'Hisoblash'}
+                      </Button>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Penya */}
+                {calcType === 'penya' && (
+                  <Card className="col-span-1 md:col-span-2 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl">
+                    <CardHeader><CardTitle className="text-gray-900 dark:text-white">Penya hisoblash</CardTitle></CardHeader>
+                    <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Qarz miqdori (so'm)</label>
+                        <input type="number" value={penyaAmount} onChange={e => setPenyaAmount(Number(e.target.value))}
+                          className="w-full px-4 py-2.5 rounded-xl border dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white" />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Kechikish (kun)</label>
+                        <input type="number" value={penyaDays} onChange={e => setPenyaDays(Number(e.target.value))}
+                          className="w-full px-4 py-2.5 rounded-xl border dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white" />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Kunlik stavka (%)</label>
+                        <input type="number" value={penyaRate} onChange={e => setPenyaRate(Number(e.target.value))} step="0.01"
+                          className="w-full px-4 py-2.5 rounded-xl border dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white" />
+                      </div>
+                      <div className="md:col-span-3">
+                        <Button onClick={() => doCalc(() => setCalcResult(calcPenya(penyaAmount, penyaDays, penyaRate)))} disabled={calcLoading || penyaAmount <= 0} className="w-full">
+                          {calcLoading ? 'Hisoblanmoqda...' : 'Hisoblash'}
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Aliment */}
+                {calcType === 'aliment' && (
+                  <Card className="col-span-1 md:col-span-2 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl">
+                    <CardHeader><CardTitle className="text-gray-900 dark:text-white">Aliment hisoblash</CardTitle></CardHeader>
+                    <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Oylik daromad (so'm)</label>
+                        <input type="number" value={alimentIncome} onChange={e => setAlimentIncome(Number(e.target.value))}
+                          className="w-full px-4 py-2.5 rounded-xl border dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white" />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Farzandlar soni</label>
+                        <select value={alimentChildren} onChange={e => setAlimentChildren(Number(e.target.value))}
+                          className="w-full px-4 py-2.5 rounded-xl border dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white">
+                          {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n} ta</option>)}
+                        </select>
+                      </div>
+                      <div className="md:col-span-2">
+                        <Button onClick={() => doCalc(() => setCalcResult(calcAliment(alimentIncome, alimentChildren)))} disabled={calcLoading || alimentIncome <= 0} className="w-full">
+                          {calcLoading ? 'Hisoblanmoqda...' : 'Hisoblash'}
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Pensiya */}
+                {calcType === 'pension' && (
+                  <Card className="col-span-1 md:col-span-2 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl">
+                    <CardHeader><CardTitle className="text-gray-900 dark:text-white">Pensiya hisoblash</CardTitle></CardHeader>
+                    <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">O'rtacha oylik (so'm)</label>
+                        <input type="number" value={pensionIncome} onChange={e => setPensionIncome(Number(e.target.value))}
+                          className="w-full px-4 py-2.5 rounded-xl border dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white" />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Ish staji (yil)</label>
+                        <input type="number" value={pensionYears} onChange={e => setPensionYears(Number(e.target.value))}
+                          className="w-full px-4 py-2.5 rounded-xl border dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white" />
+                      </div>
+                      <div className="md:col-span-2">
+                        <Button onClick={() => doCalc(() => setCalcResult(calcPension(pensionIncome, pensionYears)))} disabled={calcLoading || pensionIncome <= 0} className="w-full">
+                          {calcLoading ? 'Hisoblanmoqda...' : 'Hisoblash'}
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
 
                 {/* Tovon */}
-                <Card className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-sm">
-                  <CardHeader>
-                    <div className="flex items-center gap-3">
-                      <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg text-green-600"><TrendingUp className="w-6 h-6" /></div>
+                {calcType === 'comp' && (
+                  <Card className="col-span-1 md:col-span-2 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl">
+                    <CardHeader><CardTitle className="text-gray-900 dark:text-white">Tovon hisoblash</CardTitle></CardHeader>
+                    <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
-                        <CardTitle className="text-lg text-gray-900 dark:text-white">Tovon</CardTitle>
-                        <p className="text-xs text-gray-500 dark:text-zinc-400">Moddiy va axloqiy</p>
+                        <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Zarar turi</label>
+                        <select value={compType} onChange={e => setCompType(e.target.value)}
+                          className="w-full px-4 py-2.5 rounded-xl border dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white">
+                          <option value="Moddiy">Moddiy</option>
+                          <option value="Axloqiy">Axloqiy</option>
+                          <option value="Moral">Moral</option>
+                        </select>
                       </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <select
-                      value={compForm.type}
-                      onChange={e => setCompForm({ ...compForm, type: e.target.value })}
-                      className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="">Zarar turi</option>
-                      <option value="Moddiy">Moddiy</option>
-                      <option value="Axloqiy">Axloqiy</option>
-                      <option value="Moral">Moral</option>
-                    </select>
-                    <input
-                      type="number"
-                      value={compForm.amount || ''}
-                      onChange={e => setCompForm({ ...compForm, amount: Number(e.target.value) })}
-                      placeholder="Zarar miqdori"
-                      className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <input
-                      type="number"
-                      value={compForm.income || ''}
-                      onChange={e => setCompForm({ ...compForm, income: Number(e.target.value) })}
-                      placeholder="Kunlik daromad"
-                      className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <Button
-                      onClick={() => doCalc(() => setCalcResult(calcComp(compForm.type, compForm.amount, compForm.income)))}
-                      disabled={calcLoading || !compForm.type}
-                      className="w-full"
-                    >
-                      Hisoblash
-                    </Button>
-                  </CardContent>
-                </Card>
-
-                {/* Nafaqa */}
-                <Card className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-sm">
-                  <CardHeader>
-                    <div className="flex items-center gap-3">
-                      <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-lg text-purple-600"><Shield className="w-6 h-6" /></div>
                       <div>
-                        <CardTitle className="text-lg text-gray-900 dark:text-white">Nafaqa</CardTitle>
-                        <p className="text-xs text-gray-500 dark:text-zinc-400">Nafaqa hisoblash</p>
+                        <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Zarar miqdori (so'm)</label>
+                        <input type="number" value={compAmount} onChange={e => setCompAmount(Number(e.target.value))}
+                          className="w-full px-4 py-2.5 rounded-xl border dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white" />
                       </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <select
-                      value={allowForm.type}
-                      onChange={e => setAllowForm({ ...allowForm, type: e.target.value })}
-                      className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="">Ish turi</option>
-                      <option value="Asosiy">Asosiy</option>
-                      <option value="Qo'shimcha">Qo'shimcha</option>
-                      <option value="Ishsizlik">Ishsizlik</option>
-                    </select>
-                    <input
-                      type="number"
-                      value={allowForm.income || ''}
-                      onChange={e => setAllowForm({ ...allowForm, income: Number(e.target.value) })}
-                      placeholder="Oylik daromad"
-                      className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <input
-                      type="number"
-                      value={allowForm.exp || ''}
-                      onChange={e => setAllowForm({ ...allowForm, exp: Number(e.target.value) })}
-                      placeholder="Ish staji (yil)"
-                      className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <Button
-                      onClick={() => doCalc(() => setCalcResult(calcAllow(allowForm.type, allowForm.income, allowForm.exp)))}
-                      disabled={calcLoading || !allowForm.type}
-                      className="w-full"
-                    >
-                      Hisoblash
-                    </Button>
-                  </CardContent>
-                </Card>
+                      <div>
+                        <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Kunlik daromad (so'm)</label>
+                        <input type="number" value={compIncome} onChange={e => setCompIncome(Number(e.target.value))}
+                          className="w-full px-4 py-2.5 rounded-xl border dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white" />
+                      </div>
+                      <div className="md:col-span-3">
+                        <Button onClick={() => doCalc(() => setCalcResult(calcCompensation(compType, compAmount, compIncome)))} disabled={calcLoading} className="w-full">
+                          {calcLoading ? 'Hisoblanmoqda...' : 'Hisoblash'}
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
               </div>
             </div>
           )}
@@ -399,16 +566,14 @@ export default function ProTools() {
           {/* ════════════════ DOCUMENT ANALYZER ════════════════ */}
           {tab === 'doc' && (
             <div className="space-y-6">
-              <Card className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-sm">
+              <Card className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl">
                 <CardHeader>
                   <CardTitle className="text-gray-900 dark:text-white">Hujjatni AI tahlili</CardTitle>
-                  <p className="text-sm text-gray-500 dark:text-zinc-400">Hujjatni yuklang (PDF, DOC, TXT)</p>
+                  <p className="text-sm text-gray-500 dark:text-zinc-400">Hujjatni yuklang (PDF, DOC, TXT) — AI xatolarni topadi va tavsiyalar beradi</p>
                 </CardHeader>
                 <CardContent>
-                  <div
-                    onClick={() => inputRef.current?.click()}
-                    className="border-2 border-dashed border-gray-300 dark:border-zinc-700 rounded-xl p-8 text-center hover:border-blue-400 dark:hover:border-blue-500 transition-colors cursor-pointer"
-                  >
+                  <div onClick={() => inputRef.current?.click()}
+                    className="border-2 border-dashed border-gray-300 dark:border-zinc-700 rounded-xl p-8 text-center hover:border-blue-400 dark:hover:border-blue-500 transition-colors cursor-pointer">
                     <input ref={inputRef} type="file" accept=".pdf,.doc,.docx,.txt" className="hidden" onChange={handleFileUpload} />
                     <Upload className="w-12 h-12 text-gray-400 dark:text-zinc-500 mx-auto mb-4" />
                     <p className="text-gray-500 dark:text-zinc-400 mb-2">{file ? file.name : 'Hujjatni yuklash uchun bosing'}</p>
@@ -419,11 +584,11 @@ export default function ProTools() {
                   </div>
                   {analysisLoading && (
                     <div className="mt-6 p-4 bg-gray-50 dark:bg-zinc-800/50 rounded-xl text-center text-sm text-gray-500 dark:text-zinc-400">
-                      Tahlil qilinmoqda...
+                      AI tahlil qilmoqda...
                     </div>
                   )}
                   {analysis && !analysisLoading && (
-                    <div className="mt-6 p-4 bg-gray-50 dark:bg-zinc-800/50 rounded-xl whitespace-pre-wrap font-mono text-xs text-gray-800 dark:text-zinc-200">
+                    <div className="mt-6 p-5 bg-gray-50 dark:bg-zinc-800/50 rounded-xl whitespace-pre-wrap text-sm text-gray-800 dark:text-zinc-200 leading-relaxed">
                       {analysis}
                     </div>
                   )}
@@ -435,17 +600,16 @@ export default function ProTools() {
           {/* ════════════════ LEGAL SEARCH ════════════════ */}
           {tab === 'search' && (
             <div className="space-y-6">
-              <Card className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-sm">
+              <Card className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl">
                 <CardContent className="p-6">
                   <div className="flex flex-col sm:flex-row gap-3">
                     <div className="flex-1 relative">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-zinc-500" />
                       <input
-                        type="text"
-                        value={query}
+                        type="text" value={query}
                         onChange={e => setQuery(e.target.value)}
                         onKeyDown={e => e.key === 'Enter' && doSearch()}
-                        placeholder="Qonun, modda yoki kalit soz..."
+                        placeholder="Qonun, modda yoki kalit so'z..."
                         className="w-full pl-10 pr-4 py-2.5 text-sm rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -453,56 +617,56 @@ export default function ProTools() {
                       {searchLoading ? 'Qidirilmoqda...' : <><Search className="w-4 h-4" /> Qidirish</>}
                     </Button>
                   </div>
+
+                  {/* Code filter */}
                   <div className="flex flex-wrap gap-2 mt-4">
-                    {[
-                      { id: '', label: 'Barchasi' },
-                      { id: 'constitution', label: CODE_DISPLAY_NAMES['constitution'] },
-                      { id: 'criminal_code', label: CODE_DISPLAY_NAMES['criminal_code'] },
-                      { id: 'civil_code', label: CODE_DISPLAY_NAMES['civil_code'] },
-                      { id: 'admin_code', label: CODE_DISPLAY_NAMES['admin_code'] },
-                    ].map(f => (
-                      <button
-                        key={f.id}
-                        onClick={() => { setCodeFilter(f.id); setSearchRun(false); }}
+                    {CODE_FILTERS.map(f => (
+                      <button key={f.id} onClick={() => { setCodeFilter(f.id); setSearchRun(false); }}
                         className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
                           codeFilter === f.id
                             ? 'bg-blue-600 text-white'
                             : 'bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-300 hover:bg-gray-200 dark:hover:bg-zinc-700'
-                        }`}
-                      >
+                        }`}>
                         {f.label}
                       </button>
                     ))}
                   </div>
                 </CardContent>
               </Card>
+
               {searchRun && (
                 <div className="space-y-3">
                   {searchLoading ? (
-                    <div className="text-center py-8 text-gray-500 dark:text-zinc-400">Qidirilmoqda...</div>
+                    <div className="text-center py-8 text-gray-500 dark:text-zinc-400">Supabase'dan qidirilmoqda...</div>
+                  ) : searchError ? (
+                    <div className="text-center py-8">
+                      <AlertTriangle className="w-10 h-10 mx-auto mb-2 text-orange-400" />
+                      <p className="text-gray-500 dark:text-zinc-400">{searchError}</p>
+                    </div>
                   ) : searchResults.length > 0 ? (
                     <>
-                      <p className="text-sm text-gray-500 dark:text-zinc-400">{searchResults.length} ta natija</p>
-                      {searchResults.map(({ code, article }: any, i: number) => (
-                        <Link key={i} href={`/qonunlar/${code.id}`} className="block">
-                          <Card className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl hover:border-blue-300 dark:hover:border-blue-700 transition-all hover:shadow-sm cursor-pointer">
-                            <CardContent className="p-4">
-                              <div className="flex items-center gap-2 mb-1">
-                                <Badge className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 text-[10px]">
-                                  {badge(code.id) || code.id}
-                                </Badge>
-                                <span className="font-medium text-sm text-gray-900 dark:text-white">{article.number}-modda</span>
-                              </div>
-                              <p className="text-sm text-gray-600 dark:text-zinc-400">{article.title}</p>
-                            </CardContent>
-                          </Card>
+                      <p className="text-sm text-gray-500 dark:text-zinc-400">{searchResults.length} ta natija (Supabase)</p>
+                      {searchResults.map((item: any, i: number) => (
+                        <Link key={i} href={`/qonunlar?code_id=${item.code_id}&article=${item.article_number}`}
+                          className="block bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl p-4 hover:border-blue-300 dark:hover:border-blue-700 transition-all hover:shadow-sm"
+                        >
+                          <div className="flex items-center gap-2 mb-1">
+                            <Badge className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 text-[10px]">
+                              {CODE_DISPLAY_NAMES[item.code_id] || item.code_name || item.code_id}
+                            </Badge>
+                            <span className="font-medium text-sm text-gray-900 dark:text-white">{item.article_number}-modda</span>
+                          </div>
+                          {item.title && <p className="text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">{item.title}</p>}
+                          <div className="text-xs text-gray-500 dark:text-zinc-400 line-clamp-3"
+                            dangerouslySetInnerHTML={{ __html: item.content || '' }} />
                         </Link>
                       ))}
                     </>
                   ) : (
-                    <div className="text-center py-8 text-gray-500 dark:text-zinc-400">
-                      <Search className="w-10 h-10 mx-auto mb-2 opacity-40" />
-                      <p>Topilmadi</p>
+                    <div className="text-center py-8">
+                      <Search className="w-10 h-10 mx-auto mb-2 opacity-40 text-gray-400" />
+                      <p className="text-gray-500 dark:text-zinc-400">Hech qanday natija topilmadi</p>
+                      <p className="text-xs text-gray-400 dark:text-zinc-500 mt-1">Boshqa kalit so'z bilan urinib ko'ring</p>
                     </div>
                   )}
                 </div>
@@ -512,23 +676,46 @@ export default function ProTools() {
 
           {/* ════════════════ TEMPLATES ════════════════ */}
           {tab === 'templates' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {TEMPLATES.map((t, i) => (
-                <Card key={i} className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl hover:shadow-lg transition-all">
-                  <CardContent className="p-5">
-                    <div className="flex items-center gap-2 mb-2">
-                      <FileCheck className="w-5 h-5 text-blue-500" />
-                      <h3 className="font-semibold text-gray-900 dark:text-white">{t.name}</h3>
-                    </div>
-                    <p className="text-xs text-gray-500 dark:text-zinc-400 mb-1">{t.desc}</p>
-                    <Badge variant="outline" className="text-[10px]">{t.cat}</Badge>
-                    <div className="mt-4">
-                      <Link href={`/api/templates/${t.name.toLowerCase().replace(/ /g, '-')}`} download>
-                        <Button size="sm" className="w-full"><Download className="w-3 h-3 mr-1" /> Yuklab olish</Button>
-                      </Link>
-                    </div>
-                  </CardContent>
-                </Card>
+            <div className="space-y-8">
+              {TEMPLATE_GROUPS.map((group, gi) => (
+                <div key={gi}>
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg text-blue-600">{group.icon}</div>
+                    <h3 className="font-bold text-gray-900 dark:text-white">{group.cat}</h3>
+                    <span className="text-xs text-gray-400 dark:text-zinc-500">({group.items.length} ta)</span>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {group.items.map((t, i) => (
+                      <Card key={i} className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl hover:shadow-lg transition-all hover:border-blue-200 dark:hover:border-blue-800">
+                        <CardContent className="p-4">
+                          <div className="flex items-center gap-2 mb-1">
+                            <FileCheck className="w-4 h-4 text-blue-500 shrink-0" />
+                            <h4 className="font-semibold text-sm text-gray-900 dark:text-white">{t.name}</h4>
+                          </div>
+                          <p className="text-xs text-gray-500 dark:text-zinc-400 mb-3">{t.desc}</p>
+                          <div className="flex gap-2">
+                            <Button size="sm" variant="outline" className="flex-1 text-xs px-2 py-1 h-8"
+                              onClick={() => {
+                                const content = `${t.name.toUpperCase()}\n\nHujjat namunasi\n\n${t.desc}\n\nUshbu hujjat namunasi O'zbekiston Respublikasi qonunchiligiga muvofiq tayyorlandi.\n\n---\n\nBu namuna. To'ldirish uchun shaxsiy ma'lumotlaringizni kiriting.`;
+                                const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+                                const url = URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.href = url; a.download = `${t.name.toLowerCase().replace(/\s+/g, '_')}.txt`;
+                                a.click(); URL.revokeObjectURL(url);
+                              }}>
+                              <Download className="w-3 h-3 mr-1" /> Yuklab olish
+                            </Button>
+                            <Link href="/dashboard">
+                              <Button size="sm" className="text-xs px-2 py-1 h-8">
+                                <Zap className="w-3 h-3 mr-1" /> To'ldirish
+                              </Button>
+                            </Link>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
               ))}
             </div>
           )}
@@ -536,17 +723,18 @@ export default function ProTools() {
           {/* ════════════════ CASE TRACKER ════════════════ */}
           {tab === 'cases' && (
             <div className="space-y-6">
-              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 mb-4">
-              <p className="text-sm font-medium text-blue-700 dark:text-blue-300">Case kuzatuv tizimi</p>
-              <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">Hozircha case lar mavjud emas. Yangi case qo'shish uchun IRAC huquqiy tahlil sahifasidan foydalaning.</p>
-            </div>
+              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4">
+                <p className="text-sm font-medium text-blue-700 dark:text-blue-300">Case kuzatuv tizimi</p>
+                <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">Hozircha case lar mavjud emas. Yangi case qo'shish uchun IRAC huquqiy tahlil sahifasidan foydalaning.</p>
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {[
-                  { label: 'Jarayonda', value: 0, color: 'text-blue-600 dark:text-blue-400' },
-                  { label: 'Tugatilgan', value: 0, color: 'text-green-600 dark:text-green-400' },
-                  { label: 'Yangi', value: 0, color: 'text-orange-600 dark:text-orange-400' },
+                  { label: 'Jarayonda', value: 0, color: 'text-blue-600 dark:text-blue-400', icon: <Clock className="w-5 h-5" /> },
+                  { label: 'Tugatilgan', value: 0, color: 'text-green-600 dark:text-green-400', icon: <CheckCircle className="w-5 h-5" /> },
+                  { label: 'Yangi', value: 0, color: 'text-orange-600 dark:text-orange-400', icon: <FileText className="w-5 h-5" /> },
                 ].map(s => (
                   <div key={s.label} className="p-6 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl text-center">
+                    <div className={`flex justify-center mb-2 ${s.color}`}>{s.icon}</div>
                     <p className={`text-3xl font-bold ${s.color}`}>{s.value}</p>
                     <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1">{s.label}</p>
                   </div>
@@ -555,11 +743,11 @@ export default function ProTools() {
             </div>
           )}
 
-          {/* ════════════════ DEADLINE CALCULATOR ════════════════ */}
+          {/* ════════════════ DEADLINE ════════════════ */}
           {tab === 'deadline' && (
             <div className="space-y-6">
               {dlResult && (
-                <div className="p-4 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-xl border border-yellow-200 dark:border-yellow-800">
+                <div className="p-5 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-xl border border-yellow-200 dark:border-yellow-800">
                   <h3 className="font-bold text-gray-900 dark:text-white mb-2">Natija:</h3>
                   <p className="text-xl font-bold text-orange-600 dark:text-orange-400">Oxirgi kun: {dlResult.result}</p>
                   <div className="mt-2 space-y-0.5">
@@ -569,56 +757,51 @@ export default function ProTools() {
                   </div>
                 </div>
               )}
-              <Card className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-sm">
+              <Card className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-white">
                     <Calendar className="w-5 h-5 text-yellow-500" /> Muddat hisoblash
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <input
-                    type="date"
-                    value={dlForm.date}
-                    onChange={e => setDlForm({ ...dlForm, date: e.target.value })}
-                    className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <select
-                    value={dlForm.type}
-                    onChange={e => setDlForm({ ...dlForm, type: e.target.value })}
-                    className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Ish turi</option>
-                    <option value="Da'vo berish">Da'vo berish (30 kun)</option>
-                    <option value="Apellyatsiya">Apellyatsiya (30 kun)</option>
-                    <option value="Kassatsiya">Kassatsiya (30 kun)</option>
-                    <option value="Nazorat">Nazorat (1 yil)</option>
-                  </select>
-                  <Button
-                    onClick={() => {
-                      setDlLoading(true);
-                      setTimeout(() => {
-                        setDlResult(calcDeadline(dlForm.date, dlForm.type));
-                        setDlLoading(false);
-                      }, 200);
-                    }}
-                    disabled={dlLoading || !dlForm.date || !dlForm.type}
-                    className="w-full"
-                  >
-                    {dlLoading ? 'Hisoblanmoqda...' : 'Hisoblash'}
-                  </Button>
+                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Boshlanish sanasi</label>
+                    <input type="date" value={dlForm.date} onChange={e => setDlForm({ ...dlForm, date: e.target.value })}
+                      className="w-full px-4 py-2.5 rounded-xl border dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white" />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Muddat turi</label>
+                    <select value={dlForm.type} onChange={e => setDlForm({ ...dlForm, type: e.target.value })}
+                      className="w-full px-4 py-2.5 rounded-xl border dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white">
+                      <option value="">Tanlang</option>
+                      <option value="Da'vo berish">Da'vo berish muddati (30 kun)</option>
+                      <option value="Apellyatsiya">Apellyatsiya (20 kun)</option>
+                      <option value="Kassatsiya">Kassatsiya (30 kun)</option>
+                      <option value="Nazorat">Nazorat (1 yil)</option>
+                      <option value="Sud qarori">Sud qarori (10 kun)</option>
+                      <option value="Ijro muddati">Ijro muddati (1 yil)</option>
+                      <option value="Meros olish">Meros olish (6 oy)</option>
+                    </select>
+                  </div>
+                  <div className="md:col-span-2">
+                    <Button onClick={() => { setDlLoading(true); setTimeout(() => { setDlResult(calcDeadline(dlForm.date, dlForm.type)); setDlLoading(false); }, 100); }}
+                      disabled={dlLoading || !dlForm.date || !dlForm.type} className="w-full">
+                      {dlLoading ? 'Hisoblanmoqda...' : 'Hisoblash'}
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             </div>
           )}
         </div>
 
-        {/* ════════════════ Resources ════════════════ */}
+        {/* Resources */}
         <div className="mt-12">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Qoshimcha resurslar</h2>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Qo'shimcha resurslar</h2>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             {[
-              { href: '/qonunlar', icon: <Database className="w-5 h-5 text-blue-600 dark:text-blue-400" />, title: "Qonunlar bazasi", desc: "Toliq qonunlar" },
-              { href: '/help', icon: <BookOpen className="w-5 h-5 text-green-600 dark:text-green-400" />, title: "Qollanmalar", desc: "Yorignoma" },
+              { href: '/qonunlar', icon: <Database className="w-5 h-5 text-blue-600 dark:text-blue-400" />, title: "Qonunlar bazasi", desc: "To'liq qonunlar" },
+              { href: '/help', icon: <BookOpen className="w-5 h-5 text-green-600 dark:text-green-400" />, title: "Qo'llanmalar", desc: "Yo'riqnoma" },
               { href: '/profile', icon: <Settings className="w-5 h-5 text-purple-600 dark:text-purple-400" />, title: "Sozlamalar", desc: "Profil" },
               { href: '/dashboard', icon: <Zap className="w-5 h-5 text-orange-600 dark:text-orange-400" />, title: "Bosh sahifa", desc: "Dashboard" },
             ].map((r, i) => (
