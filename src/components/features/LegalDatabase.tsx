@@ -9,7 +9,7 @@ import { Select } from '@/components/ui/Select';
 import { Bookmark, Trash2, X, Search, ArrowLeft, FileText, Scale, Gavel, BookOpen, Landmark } from 'lucide-react';
 import { ALL_LEGAL_CODES } from '@/data/legal-codes';
 import type { LegalCode } from '@/data/legal-codes';
-import { getCodeFullName } from '@/lib/utils/code-mapper';
+import { getDisplayNameFromCodeId } from '@/lib/utils/code-mapper';
 
 // Fallback data - O'zbekiston qonunlari
 const fallbackDocs: LegalArticle[] = [
@@ -157,10 +157,10 @@ export default function LegalDatabase() {
       // Build categories from ALL_LEGAL_CODES for dynamic article counts
       const codeCategories: Category[] = ALL_LEGAL_CODES.map(code => ({
         id: code.id,
-        name: getCodeFullName(code.id),
+        name: getDisplayNameFromCodeId(code.id),
         description: code.description,
         document_count: code.totalArticles,
-        document_type: getCodeFullName(code.id),
+        document_type: getDisplayNameFromCodeId(code.id),
       }));
       
       // Also add procedural codes
@@ -542,7 +542,7 @@ export default function LegalDatabase() {
                      selectedCode.id === 'criminal_code' ? <Gavel size={20} className="text-red-500" /> : 
                      selectedCode.id === 'civil_code' ? <Scale size={20} className="text-green-500" /> : 
                      <BookOpen size={20} className="text-blue-500" />}
-                    {getCodeFullName(selectedCode.id)} — {selectedCode.name}
+                    {getDisplayNameFromCodeId(selectedCode.id)}
                   </CardTitle>
                   <p className="text-sm text-secondary mt-1">
                     {selectedCode.totalArticles} ta modda • Kuchga kirgan: {selectedCode.effectiveDate}
@@ -573,14 +573,14 @@ export default function LegalDatabase() {
                     onClick={() => {
                       setSelectedArticle({
                         id: `${selectedCode.id}-${article.number}`,
-                        title: `${getCodeFullName(selectedCode.id)} - ${article.number}-modda. ${article.title}`,
+                        title: `${getDisplayNameFromCodeId(selectedCode.id)} - ${article.number}-modda. ${article.title}`,
                         content: article.content,
                         category: article.category || 'Umumiy',
                         document_type: getCodeFullName(selectedCode.id),
                         article_number: `${article.number}-modda`,
                         chapter: article.category || '1-bob',
                         section: '',
-                        keywords: [getCodeFullName(selectedCode.id), ...article.title.split(' ').slice(0, 3)],
+                        keywords: [getDisplayNameFromCodeId(selectedCode.id), ...article.title.split(' ').slice(0, 3)],
                         cross_references: article.references || [],
                         last_updated: selectedCode.effectiveDate,
                         relevance_score: 100 - idx,

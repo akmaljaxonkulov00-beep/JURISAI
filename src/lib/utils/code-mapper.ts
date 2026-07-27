@@ -17,6 +17,7 @@ export const CODE_MAPPINGS: Record<string, string> = {
   FPK: "Oʻzbekiston Respublikasi Fuqarolik Protsessual Kodeksi",
   JPK: "Oʻzbekiston Respublikasi Jinoyat Protsessual Kodeksi",
   IPK: "Oʻzbekiston Respublikasi Iqtisodiy Protsessual Kodeksi",
+  KONST: "Oʻzbekiston Respublikasi Konstitutsiyasi",
 };
 
 export const CODE_ABBREVIATIONS = Object.keys(CODE_MAPPINGS);
@@ -60,12 +61,37 @@ export const CODE_ID_TO_KEY: Record<string, string> = {
 };
 
 /**
- * Get full display name from code ID
+ * Direct slug-to-full-name mapping (no abbreviations in the middle)
+ */
+const SLUG_TO_FULL_NAME: Record<string, string> = {
+  criminal_code: CODE_MAPPINGS.JK,
+  civil_code: CODE_MAPPINGS.FK,
+  labor_code: CODE_MAPPINGS.MK,
+  family_code: CODE_MAPPINGS.OK,
+  tax_code: CODE_MAPPINGS.SK,
+  land_code: CODE_MAPPINGS.ZK,
+  admin_code: CODE_MAPPINGS.MJK,
+  civil_procedure_code: CODE_MAPPINGS.FPK,
+  criminal_procedure_code: CODE_MAPPINGS.JPK,
+  economic_procedure_code: CODE_MAPPINGS.IPK,
+  constitution: CODE_MAPPINGS.KONST,
+};
+
+/**
+ * Get full display name from code ID (slug).
+ * Example: getDisplayNameFromCodeId('criminal_code') → "Oʻzbekiston Respublikasi Jinoyat Kodeksi"
+ * NEVER returns the raw slug — always shows the full Uzbek name.
  */
 export function getDisplayNameFromCodeId(codeId: string): string {
+  // Direct slug lookup (fastest path)
+  if (SLUG_TO_FULL_NAME[codeId]) return SLUG_TO_FULL_NAME[codeId];
+  
+  // Fallback: try through abbreviation key
   const key = CODE_ID_TO_KEY[codeId];
   if (key && CODE_MAPPINGS[key]) {
     return CODE_MAPPINGS[key];
   }
-  return codeId;
+  
+  // Ultimate fallback — never show the raw slug, make it readable
+  return codeId.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 }
