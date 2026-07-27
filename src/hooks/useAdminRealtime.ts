@@ -103,7 +103,7 @@ export function useAdminRealtime(): AdminRealtimeState {
       }
 
       // ── Users ──
-      if (d.users && Array.isArray(d.users)) {
+      if (d.users && Array.isArray(d.users) && d.users.length > 0) {
         const mappedUsers = d.users.map((u: any) => ({
           ...u,
           id: u.id || u.user_id || u.uid,
@@ -120,6 +120,26 @@ export function useAdminRealtime(): AdminRealtimeState {
         }));
         setAllUsers(mappedUsers);
         try { localStorage.setItem('admin_users', JSON.stringify(mappedUsers)); } catch {}
+      } else {
+        // Fallback: load registered users from localStorage (set during Firebase login)
+        try {
+          const stored = localStorage.getItem('registered_users');
+          if (stored && stored !== 'undefined') {
+            const parsed = JSON.parse(stored);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              setAllUsers(parsed);
+            }
+          } else {
+            // Try admin_users cache
+            const cached = localStorage.getItem('admin_users');
+            if (cached && cached !== 'undefined') {
+              const parsed = JSON.parse(cached);
+              if (Array.isArray(parsed) && parsed.length > 0) {
+                setAllUsers(parsed);
+              }
+            }
+          }
+        } catch {}
       }
 
       // ── Login activities ──
