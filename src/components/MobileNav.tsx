@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { LayoutDashboard, Scale, Building2, GitBranch, BookOpen, FileText, Wrench, Crown, Settings, HelpCircle, Shield, Moon, Sun, X, LogOut } from 'lucide-react';
@@ -41,10 +41,68 @@ const NAV_GROUPS = [
   }
 ];
 
+const SWIPE_THRESHOLD = 80; // px
+
 export default function MobileNav() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const { dark, toggle: toggleTheme } = useTheme();
+  const panelRef = useRef<HTMLDivElement>(null);
+  const touchStartX = useRef(0);
+  const touchStartY = useRef(0);
+  const isSwiping = useRef(false);
+
+  // ── Body scroll lock ─────────────────────────────────────────────
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.touchAction = 'none';
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+    };
+  }, [open]);
+
+  // ── ESC key close ────────────────────────────────────────────────
+  useEffect(() => {
+    if (!open) return;
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
+    document.addEventListener('keydown', handleEsc);
+    return () => document.removeEventListener('keydown', handleEsc);
+  }, [open]);
+
+  // ── Touch start on panel ─────────────────────────────────────────
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+    isSwiping.current = true;
+  }, []);
+
+  // ── Touch move on panel ──────────────────────────────────────────
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!isSwiping.current || !open) return;
+    const dx = e.touches[0].clientX - touchStartX.current;
+    const dy = Math.abs(e.touches[0].clientY - touchStartY.current);
+    // Only close on horizontal swipe (ignore vertical scroll attempts)
+    if (dy > 30) {
+      isSwiping.current = false;
+      return;
+    }
+    if (dx < 0) return; // Only right-to-left swipe (panel is on the left)
+    // If swiped far enough, close
+    if (dx > SWIPE_THRESHOLD) {
+      setOpen(false);
+      isSwiping.current = false;
+    }
+  }, [open]);
+
+  const close = useCallback(() => setOpen(false), []);
 
   return (
     <>
@@ -71,6 +129,9 @@ export default function MobileNav() {
 
       {/* Menu panel */}
       <nav
+        ref={panelRef}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
         className={`md:hidden fixed top-0 left-0 z-50 h-full w-72 bg-white dark:bg-zinc-900 shadow-2xl transform transition-transform duration-300 ease-in-out ${
           open ? 'translate-x-0' : '-translate-x-full'
         }`}
@@ -113,17 +174,16 @@ export default function MobileNav() {
                 {group.items.map(item => {
                   const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
                   const Icon = item.icon;
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      onClick={() => setOpen(false)}
-                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                        isActive
-                          ? 'bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 border border-blue-100 dark:border-blue-800'
-                          : 'text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800/50'
-                      }`}
-                    >
+                  return (                          <Link
+                              key={item.href}
+                              href={item.href}
+                              onClick={close}
+                              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                                isActive
+                                  ? 'bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 border border-blue-100 dark:border-blue-800'
+                                  : 'text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800/50'
+                              }`}
+                            >
                       <Icon className="w-4.5 h-4.5 flex-shrink-0" />
                       <span>{item.label}</span>
                     </Link>
@@ -136,6 +196,7 @@ export default function MobileNav() {
           {/* Logout Button */}
           <button
             onClick={async () => {
+              setOpen(false);
               await firebaseAuth.signOut();
             }}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 mt-2"

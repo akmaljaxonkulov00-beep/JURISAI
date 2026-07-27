@@ -337,7 +337,7 @@ function ProfileContent() {
                   )}
                 </div>
                 {/* Stats */}
-                <div className="grid grid-cols-3 gap-4 mt-6">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
                   <div className="text-center p-3 bg-white/60 dark:bg-gray-800/40 rounded-xl">
                     <p className="text-lg font-bold text-blue-600">{profile.coursesCount}</p>
                     <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-zinc-500">Kurslar</p>
