@@ -254,7 +254,7 @@ export default function LawyerDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {requests.slice(0, 3).map((request) => (
+              {(requests ?? []).slice(0, 3).map((request) => (
                 <div key={request.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-zinc-800/50 rounded-lg">
                   <div className="flex-1">
                     <p className="font-medium text-gray-900 dark:text-zinc-100">{request.clientName}</p>
@@ -280,7 +280,7 @@ export default function LawyerDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {documents.slice(0, 3).map((doc) => (
+              {(documents ?? []).slice(0, 3).map((doc) => (
                 <div key={doc.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-zinc-800/50 rounded-lg">
                   <div className="flex-1">
                     <p className="font-medium text-gray-900 dark:text-zinc-100">{doc.documentName}</p>

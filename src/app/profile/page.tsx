@@ -51,7 +51,7 @@ function ProfileContent() {
           return {
             id: user.id || '0',
             firstName: user.name?.split(' ')[0] || user.firstName || 'Foydalanuvchi',
-            lastName: user.name?.split(' ').slice(1).join(' ') || user.lastName || '',
+            lastName: (user.name?.split(' ') ?? []).slice(1).join(' ') || user.lastName || '',
             email: user.email || '',
             phone: user.phone || '+998 __ ___ __ __',
             status: 'Talaba' as const,

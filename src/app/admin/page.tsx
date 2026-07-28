@@ -869,7 +869,7 @@ export default function AdminDashboard() {
                     <p className="text-sm text-secondary text-center py-4">Hali login faolligi yo'q</p>
                   ) : (
                     <div className="space-y-2 max-h-60 overflow-y-auto">
-                      {loginActivities.slice(-10).reverse().map((log, i) => (
+                      {(loginActivities ?? []).slice(-10).reverse().map((log, i) => (
                         <div key={i} className="flex items-center justify-between p-2 rounded-lg bg-gray-50 dark:bg-zinc-800/50">
                           <div className="flex items-center gap-2">
                             {log.method === 'google' ? (
@@ -899,7 +899,7 @@ export default function AdminDashboard() {
                     <p className="text-sm text-secondary text-center py-4">Hali token ishlatilmagan</p>
                   ) : (
                     <div className="space-y-2 max-h-60 overflow-y-auto">
-                      {tokenUsages.slice(-10).reverse().map((t, i) => (
+                      {(tokenUsages ?? []).slice(-10).reverse().map((t, i) => (
                         <div key={i} className="flex items-center justify-between p-2 rounded-lg bg-gray-50 dark:bg-zinc-800/50">
                           <div className="flex-1 min-w-0">
                             <p className="text-xs text-gray-700 dark:text-zinc-300 truncate">{t.userEmail}</p>
@@ -1301,6 +1301,9 @@ export default function AdminDashboard() {
       <UserProfileModal
         isOpen={profileModalOpen}
         onClose={() => setProfileModalOpen(false)}
+        userId={profileModalUser?.id || profileModalUser?.uid || profileModalUser?.email}
+        userName={profileModalUser?.name || profileModalUser?.email}
+        userEmail={profileModalUser?.email}
         user={profileModalUser}
         paymentHistory={paymentRequests}
         tokenHistory={tokenUsages}

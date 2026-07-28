@@ -732,7 +732,7 @@ export default function DecisionTreeEngine() {
           textAnchor="middle"
           className="text-sm font-medium fill-gray-700 dark:fill-zinc-300 transition-colors"
         >
-          {isEditing ? '' : (node.label.length > 18 ? node.label.slice(0, 18) + '...' : node.label)}
+          {isEditing ? '' : (node.label?.length > 18 ? (node.label ?? '').slice(0, 18) + '...' : node.label ?? '')}
         </text>
 
         {/* Editing input (foreignObject overlay) — wider when suggestions present */}
@@ -768,7 +768,7 @@ export default function DecisionTreeEngine() {
                       Hech narsa topilmadi
                     </div>
                   )}
-                  {recommendations.slice(0, 3).map((rec, i) => (
+                  {(recommendations ?? []).slice(0, 3).map((rec, i) => (
                     <div key={i}
                       className="px-2 py-1.5 hover:bg-blue-50 dark:hover:bg-blue-900/20 cursor-pointer border-b border-gray-100 dark:border-zinc-700 last:border-b-0"
                       onClick={() => {

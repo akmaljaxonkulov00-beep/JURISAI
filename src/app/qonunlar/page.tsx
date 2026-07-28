@@ -90,9 +90,9 @@ export default function QonunlarPage() {
 
   // Popular articles (first few from each code)
   const popularArticles = useMemo(() => {
-    return codes
+    return (codes ?? [])
       .slice(0, 5)
-      .flatMap(code => code.articles.slice(0, 2).map(a => ({ code, article: a })))
+      .flatMap(code => (code.articles ?? []).slice(0, 2).map(a => ({ code, article: a })))
       .slice(0, 10);
   }, [codes]);
 
@@ -304,7 +304,7 @@ export default function QonunlarPage() {
               <p className="text-sm text-gray-500 dark:text-zinc-400 mb-2">
                 {searchResults.length} ta natija topildi
               </p>
-              {searchResults.slice(0, 10).map(({ article }, i) => (
+              {(searchResults ?? []).slice(0, 10).map(({ article }, i) => (
                 <button
                   key={i}
                   onClick={() => setSelectedArticle(article)}
@@ -334,7 +334,7 @@ export default function QonunlarPage() {
             {categories.map(([cat, articles]) => {
               const catKey = `${currentCode.id}:${cat}`;
               const visibleCount = getVisibleCount(catKey);
-              const visibleArticles = articles.slice(0, visibleCount);
+              const visibleArticles = (articles ?? []).slice(0, visibleCount);
               const hasMore = articles.length > visibleCount;
 
               return (
@@ -589,7 +589,7 @@ export default function QonunlarPage() {
                         </div>
                       </div>
                       <div className="flex flex-wrap gap-1.5">
-                        {Array.from(cats).slice(0, 5).map((cat, i) => (
+                        {Array.from(cats ?? new Set()).slice(0, 5).map((cat, i) => (
                           <Badge key={i} variant="outline" className="text-[10px]">
                             {cat}
                           </Badge>

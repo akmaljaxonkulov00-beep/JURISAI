@@ -630,7 +630,7 @@ export default function Statistics() {
                         So'nggi faoliyat
                       </h3>
                       <div className="space-y-2">
-                        {stats.recentActivity.slice(0, 5).map((a) => (
+                        {(stats.recentActivity ?? []).slice(0, 5).map((a) => (
                           <div key={a.id} className="flex items-start gap-3 p-2 sm:p-3 bg-gray-50 dark:bg-zinc-800/50 rounded-lg">
                             <div className={`mt-0.5 ${getActivityColor(a.type)}`}>{getActivityIcon(a.type)}</div>
                             <div className="flex-1 min-w-0">

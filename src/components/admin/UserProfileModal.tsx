@@ -48,13 +48,18 @@ interface UserDetails {
 }
 
 interface UserProfileModalProps {
-  userId: string;
-  userName: string;
-  userEmail: string;
+  userId?: string;
+  userName?: string;
+  userEmail?: string;
   onClose: () => void;
+  isOpen?: boolean;
+  user?: any;
+  paymentHistory?: any[];
+  tokenHistory?: any[];
+  loginHistory?: any[];
 }
 
-export default function UserProfileModal({ userId, userName, userEmail, onClose }: UserProfileModalProps) {
+export default function UserProfileModal({ userId, userName, userEmail, onClose, isOpen, user, paymentHistory, tokenHistory, loginHistory }: UserProfileModalProps) {
   const [details, setDetails] = useState<UserDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -65,7 +70,7 @@ export default function UserProfileModal({ userId, userName, userEmail, onClose 
   const [rejectReason, setRejectReason] = useState('');
 
   useEffect(() => {
-    fetchDetails();
+    if (userId) fetchDetails();
   }, [userId]);
 
   const fetchDetails = async () => {
@@ -140,7 +145,10 @@ export default function UserProfileModal({ userId, userName, userEmail, onClose 
     }
   };
 
-  const filteredPayments = details?.payments.filter(p =>
+  // If not open, render nothing
+  if (isOpen === false) return null;
+
+  const filteredPayments = (details?.payments || []).filter(p =>
     paymentFilter === 'all' ? true : p.status === paymentFilter
   ) || [];
 
@@ -486,7 +494,7 @@ export default function UserProfileModal({ userId, userName, userEmail, onClose 
                   <div className="mt-4">
                     <h3 className="text-sm font-semibold text-gray-800 dark:text-zinc-200 mb-3">Faoliyat xronologiyasi</h3>
                     <div className="space-y-3">
-                      {details.payments.slice(0, 5).map(p => (
+                      {(details.payments ?? []).slice(0, 5).map(p => (
                         <div key={`pay-${p.id}`} className="flex items-start gap-3">
                           <div className="mt-1 w-2 h-2 rounded-full bg-green-500 flex-shrink-0" />
                           <div>
@@ -497,7 +505,7 @@ export default function UserProfileModal({ userId, userName, userEmail, onClose 
                           </div>
                         </div>
                       ))}
-                      {details.usageLogs.slice(0, 5).map(log => (
+                      {(details.usageLogs ?? []).slice(0, 5).map(log => (
                         <div key={`log-${log.id}`} className="flex items-start gap-3">
                           <div className="mt-1 w-2 h-2 rounded-full bg-purple-500 flex-shrink-0" />
                           <div>
@@ -520,7 +528,7 @@ export default function UserProfileModal({ userId, userName, userEmail, onClose 
         {/* Footer */}
         <div className="px-6 py-3 border-t border-gray-200 dark:border-zinc-800 bg-gray-50 dark:bg-zinc-800/50 flex items-center justify-between">
           <span className="text-xs text-gray-400 dark:text-zinc-500">
-            ID: {userId.slice(0, 12)}...
+            ID: {(userId || user?.id || '').slice(0, 12)}...
           </span>
           <div className="flex items-center gap-2">
             <button onClick={onClose} className="px-4 py-1.5 text-sm text-gray-600 dark:text-zinc-400 hover:bg-gray-200 dark:hover:bg-zinc-700 rounded-lg transition-colors">

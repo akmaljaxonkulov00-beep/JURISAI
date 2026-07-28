@@ -86,7 +86,7 @@ export default function CodeDetailPage() {
   const searchResults = useMemo(() => {
     if (!searchQuery.trim() || !code) return [];
     const allResults = searchQuery.trim() ? searchCodes(searchQuery) : [];
-    return allResults.filter(r => r.code.id === codeId).map(r => r.article).slice(0, 30);
+    return (allResults ?? []).filter(r => r.code.id === codeId).map(r => r.article).slice(0, 30);
   }, [searchQuery, code, codeId, searchCodes]);
 
   // Pagination
@@ -314,7 +314,7 @@ export default function CodeDetailPage() {
             <p className="text-sm text-gray-500 dark:text-zinc-400 mb-2">
               {searchResults.length} ta natija topildi
             </p>
-            {searchResults.slice(0, 10).map((article, i) => (
+            {(searchResults ?? []).slice(0, 10).map((article, i) => (
               <button
                 key={i}
                 onClick={() => setSelectedArticle(article)}
@@ -343,8 +343,7 @@ export default function CodeDetailPage() {
         <div className="space-y-4">
           {categories.map(([cat, articles]) => {
             const catKey = `${code.id}:${cat}`;
-            const visibleCount = getVisibleCount(catKey);
-            const visibleArticles = articles.slice(0, visibleCount);
+            const visibleCount = getVisibleCount(catKey);              const visibleArticles = (articles ?? []).slice(0, visibleCount);
             const hasMore = articles.length > visibleCount;
 
             return (
