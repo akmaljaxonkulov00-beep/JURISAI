@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseAdmin } from '@/lib/supabase-admin';
+import { createClient } from '@supabase/supabase-js';
 
 export async function GET(request: NextRequest) {
   try {
@@ -7,15 +7,29 @@ export async function GET(request: NextRequest) {
     const days = parseInt(searchParams.get('days') || '30');
     const type = searchParams.get('type') || 'all';
 
+    // Try admin client first (service_role), fallback to anon client
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://blayqzykzlmrjuvhzvsk.supabase.co';
+    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJsYXlxenlremxtcmp1dmh6dnNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ3MzAzNzAsImV4cCI6MjEwMDMwNjM3MH0._4WASFfKkRenHpScrQM6vS2zPTZmyDfMCNr5GmAgOkw';
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
     let supabase: any = null;
-    try {
-      supabase = getSupabaseAdmin();
-    } catch {
-      // Supabase not configured — return empty data below
+
+    if (supabaseUrl && serviceKey) {
+      try {
+        supabase = createClient(supabaseUrl, serviceKey, {
+          auth: { autoRefreshToken: false, persistSession: false },
+        });
+      } catch {} // fall through to anon client
     }
 
-    // If Supabase is not available, return fallback data immediately
-    if (!supabase) {
+    if (!supabase && supabaseUrl && anonKey) {
+      supabase = createClient(supabaseUrl, anonKey, {
+        auth: { autoRefreshToken: false, persistSession: false },
+      });
+    }
+
+    // If Supabase is not available at all, return fallback data
+    if (!supabase || !supabaseUrl) {
       const fallback = {
         success: true,
         data: {
