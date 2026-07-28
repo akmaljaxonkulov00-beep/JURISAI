@@ -42,7 +42,7 @@ const supabase = createClient(SUPABASE_URL, SERVICE_KEY, {
 const CODE_MAP = {
   'FK.txt':    { code_id: 'civil_code',           name: "O'zbekiston Respublikasi Fuqarolik kodeksi" },
   'JK.txt':    { code_id: 'criminal_code',         name: "O'zbekiston Respublikasi Jinoyat kodeksi" },
-  'MK.txt':    { code_id: 'labor_code',            name: "O'zbekiston Respublikasi Mehnat kodeksi" },
+  'MK.txt':    { code_id: 'admin_code',            name: "O'zbekiston Respublikasi Ma'muriy javobgarlik to'g'risidagi kodeksi" },
   'Mehnat.txt':{ code_id: 'labor_code',            name: "O'zbekiston Respublikasi Mehnat kodeksi" },
   'Oila.txt':  { code_id: 'family_code',           name: "O'zbekiston Respublikasi Oila kodeksi" },
   'Yer.txt':   { code_id: 'land_code',             name: "O'zbekiston Respublikasi Yer kodeksi" },
