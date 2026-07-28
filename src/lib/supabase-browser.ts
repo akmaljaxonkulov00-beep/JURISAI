@@ -5,7 +5,7 @@ import { createClient } from '@supabase/supabase-js';
 // Vercel production env vars currently have yvacggsotzlsjwaduxyk.supabase.co
 // which does NOT resolve. These fallbacks use the correct, active project.
 const FALLBACK_URL = 'https://blayqzykzlmrjuvhzvsk.supabase.co';
-const FALLBACK_KEY = 'sb_publishable_PywCV9XQxn8064CzqEO49w_dKRNizRo';
+const FALLBACK_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJsYXlxenlremxtcmp1dmh6dnNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ3MzAzNzAsImV4cCI6MjEwMDMwNjM3MH0._4WASFfKkRenHpScrQM6vS2zPTZmyDfMCNr5GmAgOkw';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || FALLBACK_URL;
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || FALLBACK_KEY;
