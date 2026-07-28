@@ -114,10 +114,61 @@ export async function GET(request: NextRequest) {
     }
 
     const formattedUsers = (users || []).map(mapUser);
-    const total = count || formattedUsers.length;
+
+    // ── Enrich with payment & usage stats ──
+    // Fetch aggregate payment data per user
+    let paymentStatsMap: Record<string, { count: number; total: number }> = {};
+    try {
+      const { data: payments } = await supabase
+        .from('payment_requests')
+        .select('user_id, amount, status');
+      if (payments) {
+        for (const p of payments) {
+          const uid = p.user_id || '';
+          if (!uid) continue;
+          if (!paymentStatsMap[uid]) paymentStatsMap[uid] = { count: 0, total: 0 };
+          paymentStatsMap[uid].count += 1;
+          if (p.status === 'approved') {
+            paymentStatsMap[uid].total += (p.amount || 0);
+          }
+        }
+      }
+    } catch { /* payment stats non-critical */ }
+
+    // Fetch aggregate usage (AI request count) per user
+    let usageStatsMap: Record<string, number> = {};
+    try {
+      const { data: usageLogs } = await supabase
+        .from('usage_logs')
+        .select('user_id, email');
+      if (usageLogs) {
+        for (const u of usageLogs) {
+          const uid = u.user_id || u.email || '';
+          if (!uid) continue;
+          usageStatsMap[uid] = (usageStatsMap[uid] || 0) + 1;
+        }
+      }
+    } catch { /* usage stats non-critical */ }
+
+    // Enrich each user with stats
+    const enrichedUsers = formattedUsers.map((u: any) => {
+      // Prefer id-based lookup, fallback to email (avoids double-counting)
+      const pId = paymentStatsMap[u.id];
+      const pEmail = paymentStatsMap[u.email];
+      const pStats = pId || pEmail || { count: 0, total: 0 };
+      const uCount = usageStatsMap[u.id] || usageStatsMap[u.email] || 0;
+      return {
+        ...u,
+        paymentCount: pStats.count,
+        paymentTotal: pStats.total,
+        totalRequests: uCount,
+      };
+    });
+
+    const total = count || enrichedUsers.length;
 
     return NextResponse.json({
-      users: formattedUsers,
+      users: enrichedUsers,
       pagination: {
         page,
         limit,

@@ -146,7 +146,33 @@ function saveUserToLocal(user: AuthUser) {
   } catch (e) {
     // ignore localStorage errors
   }
+  // Sync to Supabase registered_users table (async, non-blocking)
+  syncUserToSupabase(userWithMeta).catch(() => {});
+
   return userWithMeta;
+}
+
+/**
+ * Foydalanuvchi ma'lumotlarini Supabase registered_users jadvaliga sinxronlash.
+ * Bu admin panelda foydalanuvchilar ko'rinishi uchun kerak.
+ */
+async function syncUserToSupabase(user: AuthUser): Promise<void> {
+  try {
+    await fetch('/api/auth/sync-user', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        subscription_plan: user.subscription_plan || 'free',
+      }),
+    });
+  } catch {
+    // Supabase sync is non-critical — silently fail
+    // Foydalanuvchi localStorage'da saqlanadi
+  }
 }
 
 function clearUserFromLocal() {

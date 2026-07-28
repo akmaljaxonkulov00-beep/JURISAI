@@ -163,12 +163,7 @@ export default function Dashboard() {
           icon: Brain,
           href: '/decision-tree'
         },
-        {
-          id: 'simulator',
-          label: 'Simulyator',
-          icon: Target,
-          href: '/simulator'
-        },
+
         {
           id: 'virtual-court',
           label: 'Virtual Sud',
