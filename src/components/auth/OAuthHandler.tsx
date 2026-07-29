@@ -32,7 +32,13 @@ export default function OAuthHandler() {
     const sbKeys: string[] = []
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i)
-      if (key && (key.startsWith('sb-') || key.includes('supabase') || key.includes('pkce') || key.includes('oauth'))) {
+      if (
+        key &&
+        (key.startsWith('sb-') ||
+          key.includes('supabase') ||
+          key.includes('pkce') ||
+          key.includes('oauth'))
+      ) {
         sbKeys.push(key)
       }
     }

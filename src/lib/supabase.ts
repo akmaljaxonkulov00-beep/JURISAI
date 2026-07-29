@@ -12,4 +12,9 @@
  * ═══════════════════════════════════════════════════════════════════
  */
 
-export { supabase, supabaseClient, supabaseServer, supabaseClient as default } from './supabase-client'
+export {
+  supabase,
+  supabaseClient,
+  supabaseServer,
+  supabaseClient as default,
+} from './supabase-client'
