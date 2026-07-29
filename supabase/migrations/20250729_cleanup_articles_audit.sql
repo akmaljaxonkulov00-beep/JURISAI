@@ -61,16 +61,11 @@ ORDER BY code_id, article_number;
 -- Remove articles that have the same code_id, article_number, AND content
 -- (keeping only the first one by id)
 DELETE FROM articles a1
-USING (
-  SELECT MIN(id) as keep_id, code_id, article_number, content
-  FROM articles
-  GROUP BY code_id, article_number, content
-  HAVING COUNT(*) > 1
-) dup
-WHERE a1.code_id = dup.code_id
-  AND a1.article_number = dup.article_number
-  AND a1.content = dup.content
-  AND a1.id <> dup.keep_id;
+USING articles a2
+WHERE a1.code_id = a2.code_id
+  AND a1.article_number = a2.article_number
+  AND a1.content = a2.content
+  AND a1.id > a2.id;
 
 -- ── 5. Remove articles that belong to codes the user didn't import ──
 -- User only imported these TXT files: FK.txt, JK.txt, MK.txt, Mehnat.txt, Oila.txt, Yer.txt

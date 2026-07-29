@@ -85,6 +85,7 @@ export async function GET(request: NextRequest) {
           .from('registered_users')
           .select('*');
         if (!usersError && users && users.length > 0) {
+          // registered_users has data — use it directly
           result.users = users;
           result.totalUsers = users.length;
           const newUsers = users.filter((u: any) => {
@@ -92,7 +93,6 @@ export async function GET(request: NextRequest) {
             return created && new Date(created) >= cutoff;
           });
           result.newUsers = newUsers.length;
-
           const prevNewUsers = users.filter((u: any) => {
             const created = u.created_at || u.last_login;
             return created && new Date(created) >= prevCutoff && new Date(created) < cutoff;
@@ -100,44 +100,46 @@ export async function GET(request: NextRequest) {
           result.userGrowth = prevNewUsers.length > 0
             ? Math.round(((newUsers.length - prevNewUsers.length) / prevNewUsers.length) * 100)
             : 0;
-
           const premiumUsers = users.filter((u: any) => u.subscription_plan && u.subscription_plan !== 'free');
           result.premiumUsers = premiumUsers.length;
           result.userSource = 'registered_users';
         } else {
-          // Fallback: try auth.users via service_role (must specify auth schema)
+          // Fallback: auth.users via Supabase REST API
+          // Requires SUPABASE_SERVICE_ROLE_KEY on the server
           try {
-            const suUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+            const suUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || supabaseUrl;
             const srKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
-            const authRes = await fetch(
-              `${suUrl}/rest/v1/users?select=id,email,raw_user_meta_data,created_at,last_sign_in_at,banned_until`,
-              {
-                headers: {
-                  'apikey': srKey,
-                  'Authorization': `Bearer ${srKey}`,
-                  'Accept-Profile': 'auth',  // Required to access auth schema
-                  'Content-Type': 'application/json',
-                },
-              }
-            );
-            if (authRes.ok) {
-              const authUsers = await authRes.json();
-              if (Array.isArray(authUsers) && authUsers.length > 0) {
-                result.users = authUsers.map((u: any) => ({
-                  id: u.id,
-                  email: u.email || '',
-                  name: u.raw_user_meta_data?.name || u.email?.split('@')[0] || '',
-                  role: u.raw_user_meta_data?.role || 'USER',
-                  subscription_plan: u.raw_user_meta_data?.subscription_plan || 'free',
-                  subscription_expires_at: u.raw_user_meta_data?.subscription_expires_at || '',
-                  blocked: !!u.banned_until,
-                  balance: u.raw_user_meta_data?.balance || 0,
-                  created_at: u.created_at || '',
-                  last_login: u.last_sign_in_at || u.created_at || '',
-                  status: u.banned_until ? 'blocked' : 'active',
-                }));
-                result.totalUsers = authUsers.length;
-                result.userSource = 'auth.users';
+            if (srKey) {
+              const authRes = await fetch(
+                `${suUrl}/rest/v1/users?select=id,email,raw_user_meta_data,created_at,last_sign_in_at,banned_until`,
+                {
+                  headers: {
+                    'apikey': srKey,
+                    'Authorization': `Bearer ${srKey}`,
+                    'Accept-Profile': 'auth',
+                    'Content-Type': 'application/json',
+                  },
+                }
+              );
+              if (authRes.ok) {
+                const authUsers = await authRes.json();
+                if (Array.isArray(authUsers) && authUsers.length > 0) {
+                  result.users = authUsers.map((u: any) => ({
+                    id: u.id,
+                    email: u.email || '',
+                    name: u.raw_user_meta_data?.name || u.email?.split('@')[0] || '',
+                    role: u.raw_user_meta_data?.role || 'USER',
+                    subscription_plan: u.raw_user_meta_data?.subscription_plan || 'free',
+                    subscription_expires_at: u.raw_user_meta_data?.subscription_expires_at || '',
+                    blocked: !!u.banned_until,
+                    balance: u.raw_user_meta_data?.balance || 0,
+                    created_at: u.created_at || '',
+                    last_login: u.last_sign_in_at || u.created_at || '',
+                    status: u.banned_until ? 'blocked' : 'active',
+                  }));
+                  result.totalUsers = authUsers.length;
+                  result.userSource = 'auth.users';
+                }
               }
             }
           } catch { /* fallback failed */ }

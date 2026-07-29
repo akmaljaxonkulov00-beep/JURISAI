@@ -164,32 +164,34 @@ export function useSettingsSync(): SettingsState {
       { name: 'announcements', key: 'announcements' },
     ];
 
-    const channels: { unsubscribe: () => void }[] = [];
+    const newChannels: { unsubscribe: () => void }[] = [];
+    const ts = Date.now();
 
     for (const table of tables) {
-      const channelName = `jurisai-${table.name}-changes`;
-      const channel = supabase
-        .channel(channelName)
-        .on(
-          'postgres_changes' as any,
-          { event: '*', schema: 'public', table: table.name },
-          () => {
-            // Any INSERT / UPDATE / DELETE → re-fetch that table
-            handleRealtimeUpdate(table.key);
-          }
-        )
-        .subscribe((status: string) => {
-          if (status === 'SUBSCRIBED') {
-            // console.log(`[Realtime] ${table.name} kanaliga ulandi`);
-          } else if (status === 'CHANNEL_ERROR') {
-            // Realtime failed — fallback to polling handles this
-          }
-        });
+      const channelName = `jurisai-${table.name}-${ts}-${Math.random().toString(36).slice(2, 6)}`;
+      try {
+        const channel = supabase
+          .channel(channelName)
+          .on(
+            'postgres_changes' as any,
+            { event: '*', schema: 'public', table: table.name },
+            (payload: any) => {
+              handleRealtimeUpdate(table.key);
+            }
+          )
+          .subscribe((status: string) => {
+            if (status === 'CHANNEL_ERROR') {
+              // Realtime failed — fallback to polling handles this
+            }
+          });
 
-      channels.push({ unsubscribe: () => supabase.removeChannel(channel) });
+        newChannels.push({ unsubscribe: () => supabase.removeChannel(channel) });
+      } catch {
+        // Channel creation failed — polling fallback will handle
+      }
     }
 
-    channelsRef.current = channels;
+    channelsRef.current = newChannels;
 
     // 3. Fallback polling (60s) — catches anything Realtime missed
     pollTimerRef.current = setTimeout(function poll() {

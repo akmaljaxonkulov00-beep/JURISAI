@@ -1,11 +1,13 @@
-import { getSupabaseClient } from './supabase-admin';
+import { supabase as browserSupabase } from './supabase-browser';
 
-export const supabase = getSupabaseClient();
+// ── SINGLETON SUPABASE CLIENT ─────────────────────────────
+// Uses the same client instance as supabase-browser.ts
+// to prevent Multiple GoTrueClient instances error.
+export const supabase = browserSupabase;
 export const supabaseClient = supabase;
 export default supabase;
 
-// Server-side client — uses service role for admin operations
-// Falls back to anonymous client for API routes
+// Server-side helper aliases
 export const supabaseServer = supabase;
 
 export const getCurrentUser = async () => {
