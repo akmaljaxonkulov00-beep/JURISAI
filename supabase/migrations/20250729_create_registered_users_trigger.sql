@@ -9,21 +9,51 @@
 -- ================================================================
 
 -- ── 1. CREATE registered_users TABLE ──────────────────────────
+-- Create table if it doesn't exist yet
 CREATE TABLE IF NOT EXISTS registered_users (
   id UUID PRIMARY KEY,
   email VARCHAR(255) NOT NULL,
   name VARCHAR(255) DEFAULT '',
-  role VARCHAR(50) DEFAULT 'USER' CHECK (role IN ('USER', 'ADMIN', 'admin', 'user', 'lawyer')),
+  role VARCHAR(50) DEFAULT 'USER',
   avatar TEXT DEFAULT '',
-  subscription_plan VARCHAR(50) DEFAULT 'free' CHECK (subscription_plan IN ('free', 'basic', 'standart', 'premium', 'pro')),
+  subscription_plan VARCHAR(50) DEFAULT 'free',
   subscription_expires_at TIMESTAMP WITH TIME ZONE DEFAULT NULL,
   balance DECIMAL(12, 2) DEFAULT 0,
   blocked BOOLEAN DEFAULT false,
-  status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'blocked', 'inactive')),
+  status VARCHAR(20) DEFAULT 'active',
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   last_login TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- Add missing columns if table already existed without them
+ALTER TABLE registered_users ADD COLUMN IF NOT EXISTS avatar TEXT DEFAULT '';
+ALTER TABLE registered_users ADD COLUMN IF NOT EXISTS subscription_plan VARCHAR(50) DEFAULT 'free';
+ALTER TABLE registered_users ADD COLUMN IF NOT EXISTS subscription_expires_at TIMESTAMP WITH TIME ZONE DEFAULT NULL;
+ALTER TABLE registered_users ADD COLUMN IF NOT EXISTS balance DECIMAL(12, 2) DEFAULT 0;
+ALTER TABLE registered_users ADD COLUMN IF NOT EXISTS blocked BOOLEAN DEFAULT false;
+ALTER TABLE registered_users ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'active';
+ALTER TABLE registered_users ADD COLUMN IF NOT EXISTS last_login TIMESTAMP WITH TIME ZONE DEFAULT NOW();
+ALTER TABLE registered_users ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();
+ALTER TABLE registered_users ADD COLUMN IF NOT EXISTS name VARCHAR(255) DEFAULT '';
+ALTER TABLE registered_users ADD COLUMN IF NOT EXISTS role VARCHAR(50) DEFAULT 'USER';
+
+-- Try to add CHECK constraints (may fail if already exists, which is ok)
+DO $$
+BEGIN
+  BEGIN
+    ALTER TABLE registered_users ADD CONSTRAINT registered_users_role_check CHECK (role IN ('USER', 'ADMIN', 'admin', 'user', 'lawyer'));
+  EXCEPTION WHEN duplicate_object THEN NULL;
+  END;
+  BEGIN
+    ALTER TABLE registered_users ADD CONSTRAINT registered_users_subscription_plan_check CHECK (subscription_plan IN ('free', 'basic', 'standart', 'premium', 'pro'));
+  EXCEPTION WHEN duplicate_object THEN NULL;
+  END;
+  BEGIN
+    ALTER TABLE registered_users ADD CONSTRAINT registered_users_status_check CHECK (status IN ('active', 'blocked', 'inactive'));
+  EXCEPTION WHEN duplicate_object THEN NULL;
+  END;
+END $$;
 
 -- ── 2. CREATE OR REPLACE FUNCTION: sync new auth user ─────────
 CREATE OR REPLACE FUNCTION sync_auth_user_to_registered()
