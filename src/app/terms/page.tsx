@@ -14,7 +14,7 @@ export default function TermsPage() {
             <h1 className="text-3xl font-bold text-gray-900 dark:text-zinc-100 mb-8">
               Foydalanish Shartlari
             </h1>
-            
+
             <div className="prose prose-lg max-w-none">
               <p className="text-gray-600 dark:text-zinc-400 mb-6">
                 Oxirgi yangilanish: {new Date().toLocaleDateString('uz-UZ')}
@@ -24,7 +24,8 @@ export default function TermsPage() {
                 1. Umumiy qoidalar
               </h2>
               <p className="text-gray-600 dark:text-zinc-400 mb-4">
-                JURISAI platformasidan foydalanish ushbu shartlarga muvofiq amalga oshiriladi. Platformadan foydalanish orqali siz ushbu shartlarni qabul qilasiz.
+                JURISAI platformasidan foydalanish ushbu shartlarga muvofiq amalga oshiriladi.
+                Platformadan foydalanish orqali siz ushbu shartlarni qabul qilasiz.
               </p>
 
               <h2 className="text-2xl font-semibold text-gray-900 dark:text-zinc-100 mt-8 mb-4">
@@ -153,7 +154,9 @@ export default function TermsPage() {
                 11. Shartlarni o'zgartirish
               </h2>
               <p className="text-gray-600 dark:text-zinc-400 mb-6">
-                Biz ushbu shartlarni istalgan vaqtda o'zgartirish huquqini saqlaymiz. O'zgarishlar platforma orqali e'lon qilinadi. Muhim o'zgarishlar foydalanuvchilarga email orqali ham xabardor qilinadi.
+                Biz ushbu shartlarni istalgan vaqtda o'zgartirish huquqini saqlaymiz. O'zgarishlar
+                platforma orqali e'lon qilinadi. Muhim o'zgarishlar foydalanuvchilarga email orqali
+                ham xabardor qilinadi.
               </p>
 
               <h2 className="text-2xl font-semibold text-gray-900 dark:text-zinc-100 mt-8 mb-4">
@@ -176,8 +179,10 @@ export default function TermsPage() {
               </p>
               <div className="bg-gray-50 dark:bg-zinc-800/50 p-4 rounded-lg mb-6">
                 <p className="text-gray-600 dark:text-zinc-400">
-                  <strong>Email:</strong> legal@jurisai.uz<br />
-                  <strong>Telefon:</strong> +998 90 123 45 67<br />
+                  <strong>Email:</strong> legal@jurisai.uz
+                  <br />
+                  <strong>Telefon:</strong> +998 90 123 45 67
+                  <br />
                   <strong>Manzil:</strong> Toshkent shahri, Yunusobod tumani
                 </p>
               </div>
@@ -186,7 +191,9 @@ export default function TermsPage() {
                 14. Qo'shimcha ma'lumot
               </h2>
               <p className="text-gray-600 dark:text-zinc-400 mb-6">
-                Ushbu shartlar O'zbekiston Respublikasining qonunlariga muvofiq tuzilgan. Platformadan foydalanish orqali siz O'zbekiston Respublikasi qonunlariga rioya qilishga rozilik bildirasiz.
+                Ushbu shartlar O'zbekiston Respublikasining qonunlariga muvofiq tuzilgan.
+                Platformadan foydalanish orqali siz O'zbekiston Respublikasi qonunlariga rioya
+                qilishga rozilik bildirasiz.
               </p>
             </div>
 

@@ -1,52 +1,52 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server'
 
 /**
  * POST /api/payments/reject
- * 
+ *
  * Admin tomonidan to'lovni rad etish.
  * payment_requests jadvalidagi statusni 'rejected' ga o'zgartiradi.
  */
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { paymentId, notes } = body;
+    const body = await request.json()
+    const { paymentId, notes } = body
 
     if (!paymentId) {
-      return NextResponse.json(
-        { success: false, error: 'Payment ID is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, error: 'Payment ID is required' }, { status: 400 })
     }
 
-    const { createClient } = await import('@supabase/supabase-js');
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const { createClient } = await import('@supabase/supabase-js')
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
     if (!supabaseUrl || !serviceRoleKey) {
-      return NextResponse.json({ success: false, error: 'Supabase not configured' }, { status: 500 });
+      return NextResponse.json(
+        { success: false, error: 'Supabase not configured' },
+        { status: 500 }
+      )
     }
 
     const supabase = createClient(supabaseUrl, serviceRoleKey, {
       auth: { autoRefreshToken: false, persistSession: false },
-    });
+    })
 
     // Try payment_requests first (table from admin migration)
     const { data: prData } = await supabase
       .from('payment_requests')
       .select('*')
       .eq('id', paymentId)
-      .single();
+      .single()
 
     if (prData) {
       await supabase
         .from('payment_requests')
         .update({ status: 'rejected', updated_at: new Date().toISOString() })
-        .eq('id', paymentId);
+        .eq('id', paymentId)
 
       return NextResponse.json({
         success: true,
-        message: 'To\'lov rad etildi',
-      });
+        message: "To'lov rad etildi",
+      })
     }
 
     // Fallback: try 'payments' table (legacy)
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
       .from('payments')
       .select('*')
       .eq('id', paymentId)
-      .single();
+      .single()
 
     if (legacyPayment) {
       await supabase
@@ -64,23 +64,20 @@ export async function POST(request: NextRequest) {
           processed_at: new Date().toISOString(),
           notes: notes || 'Payment rejected by admin',
         })
-        .eq('id', paymentId);
+        .eq('id', paymentId)
 
       return NextResponse.json({
         success: true,
-        message: 'To\'lov rad etildi',
-      });
+        message: "To'lov rad etildi",
+      })
     }
 
-    return NextResponse.json(
-      { success: false, error: 'To\'lov topilmadi' },
-      { status: 404 }
-    );
+    return NextResponse.json({ success: false, error: "To'lov topilmadi" }, { status: 404 })
   } catch (error: any) {
-    console.error('Error rejecting payment:', error);
+    console.error('Error rejecting payment:', error)
     return NextResponse.json(
-      { success: false, error: error?.message || 'To\'lovni rad etishda xatolik' },
+      { success: false, error: error?.message || "To'lovni rad etishda xatolik" },
       { status: 500 }
-    );
+    )
   }
 }

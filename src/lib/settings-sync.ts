@@ -4,37 +4,37 @@
 // ═══════════════════════════════════════════════════════════════════════════
 
 export interface SiteSettings {
-  announcementBanner: string;
-  heroTitle: string;
-  heroSubtitle: string;
-  contactEmail: string;
-  contactPhone: string;
-  telegramLink: string;
-  legalDisclaimer: string;
-  systemPrompt: string;
-  paymentCardNumber: string;
-  paymentDetails: string;
+  announcementBanner: string
+  heroTitle: string
+  heroSubtitle: string
+  contactEmail: string
+  contactPhone: string
+  telegramLink: string
+  legalDisclaimer: string
+  systemPrompt: string
+  paymentCardNumber: string
+  paymentDetails: string
 }
 
 export interface PricingPlan {
-  id: string;
-  name: string;
-  price: number;
-  features: string[];
-  caseLimit: number;
+  id: string
+  name: string
+  price: number
+  features: string[]
+  caseLimit: number
 }
 
 export interface PaymentRequest {
-  id: string;
-  userId: string;
-  userEmail: string;
-  userName: string;
-  plan: string;
-  amount: number;
-  receiptImage: string;
-  status: 'pending' | 'approved' | 'rejected';
-  createdAt: string;
-  rejectReason?: string;
+  id: string
+  userId: string
+  userEmail: string
+  userName: string
+  plan: string
+  amount: number
+  receiptImage: string
+  status: 'pending' | 'approved' | 'rejected'
+  createdAt: string
+  rejectReason?: string
 }
 
 // =========================================================================
@@ -43,15 +43,16 @@ export interface PaymentRequest {
 
 export async function getPublicSettings(): Promise<SiteSettings | null> {
   // 0. Optimistic cache read — return cached immediately, refresh in bg
-  let cachedData: SiteSettings | null = null;
+  let cachedData: SiteSettings | null = null
   try {
-    const cached = localStorage.getItem('jurisai_settings');
-    if (cached) cachedData = JSON.parse(cached) as SiteSettings;
+    const cached = localStorage.getItem('jurisai_settings')
+    if (cached) cachedData = JSON.parse(cached) as SiteSettings
   } catch {}
   if (!cachedData) {
     try {
-      const legacy = localStorage.getItem('admin_site_settings') || localStorage.getItem('siteSettings');
-      if (legacy) cachedData = JSON.parse(legacy) as SiteSettings;
+      const legacy =
+        localStorage.getItem('admin_site_settings') || localStorage.getItem('siteSettings')
+      if (legacy) cachedData = JSON.parse(legacy) as SiteSettings
     } catch {}
   }
 
@@ -60,23 +61,23 @@ export async function getPublicSettings(): Promise<SiteSettings | null> {
     const res = await fetch('/api/settings/public', {
       cache: 'no-cache',
       headers: { 'Cache-Control': 'no-cache' },
-    });
-    const result = await res.json();
+    })
+    const result = await res.json()
     if (result.success && result.data) {
-      const freshData = result.data as SiteSettings;
+      const freshData = result.data as SiteSettings
       try {
-        localStorage.setItem('jurisai_settings', JSON.stringify(freshData));
-        localStorage.setItem('admin_site_settings', JSON.stringify(freshData));
-        localStorage.setItem('siteSettings', JSON.stringify(freshData));
+        localStorage.setItem('jurisai_settings', JSON.stringify(freshData))
+        localStorage.setItem('admin_site_settings', JSON.stringify(freshData))
+        localStorage.setItem('siteSettings', JSON.stringify(freshData))
       } catch {}
-      return freshData;
+      return freshData
     }
   } catch {}
 
   // 2. Fresh data failed — return cached data
-  if (cachedData) return cachedData;
+  if (cachedData) return cachedData
 
-  return null;
+  return null
 }
 
 export async function saveSiteSettings(settings: SiteSettings): Promise<boolean> {
@@ -86,64 +87,87 @@ export async function saveSiteSettings(settings: SiteSettings): Promise<boolean>
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ settings }),
-    });
-    const result = await res.json();
+    })
+    const result = await res.json()
     if (!result.success) {
-      console.warn('[SettingsSync] Supabase save failed:', result.error);
+      console.warn('[SettingsSync] Supabase save failed:', result.error)
     }
   } catch (err) {
-    console.warn('[SettingsSync] Supabase save error:', err);
+    console.warn('[SettingsSync] Supabase save error:', err)
   }
 
   // 2. Save to localStorage cache (SECONDARY)
   try {
-    localStorage.setItem('jurisai_settings', JSON.stringify(settings));
-    localStorage.setItem('admin_site_settings', JSON.stringify(settings));
-    localStorage.setItem('siteSettings', JSON.stringify(settings));
+    localStorage.setItem('jurisai_settings', JSON.stringify(settings))
+    localStorage.setItem('admin_site_settings', JSON.stringify(settings))
+    localStorage.setItem('siteSettings', JSON.stringify(settings))
   } catch {}
 
-  return true;
+  return true
 }
 
 // =========================================================================
 // 2. PRICING PLANS — Narxlar va rejalar
 // =========================================================================
 
-const PRICING_STORAGE_KEY = 'jurisai_pricing_plans';
+const PRICING_STORAGE_KEY = 'jurisai_pricing_plans'
 
 export async function getPricingPlans(): Promise<PricingPlan[]> {
   // Try Supabase first
   try {
     const res = await fetch('/api/settings/pricing', {
       cache: 'no-cache',
-    });
-    const result = await res.json();
+    })
+    const result = await res.json()
     if (result.success && result.data && result.data.length > 0) {
       try {
-        localStorage.setItem(PRICING_STORAGE_KEY, JSON.stringify(result.data));
+        localStorage.setItem(PRICING_STORAGE_KEY, JSON.stringify(result.data))
       } catch {}
-      return result.data;
+      return result.data
     }
   } catch {}
 
   // Fallback to localStorage
   try {
-    const cached = localStorage.getItem(PRICING_STORAGE_KEY);
-    if (cached) return JSON.parse(cached);
+    const cached = localStorage.getItem(PRICING_STORAGE_KEY)
+    if (cached) return JSON.parse(cached)
   } catch {}
 
   // Fallback to legacy
   try {
-    const legacy = localStorage.getItem('admin_pricing_plans');
-    if (legacy) return JSON.parse(legacy);
+    const legacy = localStorage.getItem('admin_pricing_plans')
+    if (legacy) return JSON.parse(legacy)
   } catch {}
 
   // Default
   return [
-    { id: 'free', name: 'Bepul', price: 0, features: ['5 ta IRAC tahlili', 'Asosiy qonunlar bazasi', '10 ta AI so\'rovi'], caseLimit: 5 },
-    { id: 'standart', name: 'Standart', price: 45000, features: ['Cheksiz IRAC tahlili', 'To\'liq qonunlar bazasi', 'AI yordami 24/7', '50 hujjat'], caseLimit: 50 },
-    { id: 'pro', name: 'Pro', price: 140000, features: ['Cheksiz AI so\'rovlari', 'Cheksiz hujjat', 'Shaxsiy maslahatchi', 'Ekspert konsultatsiyasi'], caseLimit: -1 },
-  ];
+    {
+      id: 'free',
+      name: 'Bepul',
+      price: 0,
+      features: ['5 ta IRAC tahlili', 'Asosiy qonunlar bazasi', "10 ta AI so'rovi"],
+      caseLimit: 5,
+    },
+    {
+      id: 'standart',
+      name: 'Standart',
+      price: 45000,
+      features: ['Cheksiz IRAC tahlili', "To'liq qonunlar bazasi", 'AI yordami 24/7', '50 hujjat'],
+      caseLimit: 50,
+    },
+    {
+      id: 'pro',
+      name: 'Pro',
+      price: 140000,
+      features: [
+        "Cheksiz AI so'rovlari",
+        'Cheksiz hujjat',
+        'Shaxsiy maslahatchi',
+        'Ekspert konsultatsiyasi',
+      ],
+      caseLimit: -1,
+    },
+  ]
 }
 
 export async function savePricingPlans(plans: PricingPlan[]): Promise<boolean> {
@@ -153,22 +177,22 @@ export async function savePricingPlans(plans: PricingPlan[]): Promise<boolean> {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ plans }),
-    });
-    const result = await res.json();
+    })
+    const result = await res.json()
     if (!result.success) {
-      console.warn('[SettingsSync] Pricing save failed:', result.error);
+      console.warn('[SettingsSync] Pricing save failed:', result.error)
     }
   } catch (err) {
-    console.warn('[SettingsSync] Pricing save error:', err);
+    console.warn('[SettingsSync] Pricing save error:', err)
   }
 
   // Save to localStorage
   try {
-    localStorage.setItem(PRICING_STORAGE_KEY, JSON.stringify(plans));
-    localStorage.setItem('admin_pricing_plans', JSON.stringify(plans));
+    localStorage.setItem(PRICING_STORAGE_KEY, JSON.stringify(plans))
+    localStorage.setItem('admin_pricing_plans', JSON.stringify(plans))
   } catch {}
 
-  return true;
+  return true
 }
 
 // =========================================================================
@@ -179,8 +203,8 @@ export async function getPaymentRequests(): Promise<PaymentRequest[]> {
   try {
     const res = await fetch('/api/admin/analytics?type=payments', {
       cache: 'no-cache',
-    });
-    const result = await res.json();
+    })
+    const result = await res.json()
     if (result.success && result.data?.paymentRequests) {
       const mapped = (result.data.paymentRequests as any[]).map((p: any) => ({
         id: p.id,
@@ -193,34 +217,34 @@ export async function getPaymentRequests(): Promise<PaymentRequest[]> {
         status: p.status as 'pending' | 'approved' | 'rejected',
         createdAt: p.created_at || p.createdAt,
         rejectReason: p.reject_reason || p.rejectReason,
-      }));
+      }))
       try {
-        localStorage.setItem('jurisai_payment_requests', JSON.stringify(mapped));
+        localStorage.setItem('jurisai_payment_requests', JSON.stringify(mapped))
       } catch {}
-      return mapped;
+      return mapped
     }
   } catch {}
 
   // Fallback to localStorage
   try {
-    const cached = localStorage.getItem('jurisai_payment_requests');
-    if (cached) return JSON.parse(cached);
-    const legacy = localStorage.getItem('payment_requests');
-    if (legacy) return JSON.parse(legacy);
+    const cached = localStorage.getItem('jurisai_payment_requests')
+    if (cached) return JSON.parse(cached)
+    const legacy = localStorage.getItem('payment_requests')
+    if (legacy) return JSON.parse(legacy)
   } catch {}
 
-  return [];
+  return []
 }
 
 export async function submitPaymentRequest(
   payment: Omit<PaymentRequest, 'id' | 'createdAt'>
 ): Promise<{ success: boolean; id?: string; error?: string }> {
-  const id = 'pay_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8);
+  const id = 'pay_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8)
   const paymentRecord: PaymentRequest = {
     ...payment,
     id,
     createdAt: new Date().toISOString(),
-  };
+  }
 
   // Save to Supabase (PRIMARY)
   try {
@@ -235,33 +259,36 @@ export async function submitPaymentRequest(
         amount: payment.amount,
         receiptImage: payment.receiptImage,
       }),
-    });
-    const result = await res.json();
+    })
+    const result = await res.json()
     if (!result.success) {
-      console.warn('[SettingsSync] Payment submit failed:', result.error);
+      console.warn('[SettingsSync] Payment submit failed:', result.error)
     }
   } catch (err) {
-    console.warn('[SettingsSync] Payment submit error:', err);
+    console.warn('[SettingsSync] Payment submit error:', err)
   }
 
   // Save to localStorage
   try {
-    const existing = JSON.parse(localStorage.getItem('payment_requests') || '[]');
-    existing.push(paymentRecord);
-    localStorage.setItem('payment_requests', JSON.stringify(existing));
-    localStorage.setItem('jurisai_payment_requests', JSON.stringify(existing));
+    const existing = JSON.parse(localStorage.getItem('payment_requests') || '[]')
+    existing.push(paymentRecord)
+    localStorage.setItem('payment_requests', JSON.stringify(existing))
+    localStorage.setItem('jurisai_payment_requests', JSON.stringify(existing))
 
     // Also save as user's payment_history
-    localStorage.setItem('payment_history', JSON.stringify({
-      status: 'pending',
-      amount: payment.amount,
-      plan: payment.plan,
-      date: new Date().toLocaleDateString('uz-UZ'),
-      receiptImage: payment.receiptImage,
-    }));
+    localStorage.setItem(
+      'payment_history',
+      JSON.stringify({
+        status: 'pending',
+        amount: payment.amount,
+        plan: payment.plan,
+        date: new Date().toLocaleDateString('uz-UZ'),
+        receiptImage: payment.receiptImage,
+      })
+    )
   } catch {}
 
-  return { success: true, id };
+  return { success: true, id }
 }
 
 export async function approvePayment(paymentId: string): Promise<boolean> {
@@ -270,16 +297,16 @@ export async function approvePayment(paymentId: string): Promise<boolean> {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ paymentId, action: 'approve' }),
-    });
-    const result = await res.json();
+    })
+    const result = await res.json()
     if (!result.success) {
-      console.warn('[SettingsSync] Payment approve failed:', result.error);
-      return false;
+      console.warn('[SettingsSync] Payment approve failed:', result.error)
+      return false
     }
-    return true;
+    return true
   } catch (err) {
-    console.warn('[SettingsSync] Payment approve error:', err);
-    return false;
+    console.warn('[SettingsSync] Payment approve error:', err)
+    return false
   }
 }
 
@@ -289,16 +316,16 @@ export async function rejectPayment(paymentId: string, reason?: string): Promise
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ paymentId, action: 'reject', reason }),
-    });
-    const result = await res.json();
+    })
+    const result = await res.json()
     if (!result.success) {
-      console.warn('[SettingsSync] Payment reject failed:', result.error);
-      return false;
+      console.warn('[SettingsSync] Payment reject failed:', result.error)
+      return false
     }
-    return true;
+    return true
   } catch (err) {
-    console.warn('[SettingsSync] Payment reject error:', err);
-    return false;
+    console.warn('[SettingsSync] Payment reject error:', err)
+    return false
   }
 }
 
@@ -308,29 +335,29 @@ export async function rejectPayment(paymentId: string, reason?: string): Promise
 
 export function getUserProfile(): Record<string, any> | null {
   try {
-    const stored = sessionStorage.getItem('jurisai_user') || sessionStorage.getItem('auth_user');
-    if (stored) return JSON.parse(stored);
-    const localStored = localStorage.getItem('jurisai_user') || localStorage.getItem('auth_user');
-    if (localStored) return JSON.parse(localStored);
+    const stored = sessionStorage.getItem('jurisai_user') || sessionStorage.getItem('auth_user')
+    if (stored) return JSON.parse(stored)
+    const localStored = localStorage.getItem('jurisai_user') || localStorage.getItem('auth_user')
+    if (localStored) return JSON.parse(localStored)
   } catch {}
-  return null;
+  return null
 }
 
 export function updateUserSubscription(plan: string, expiresAt?: string): void {
   try {
-    const user = getUserProfile();
-    if (!user) return;
+    const user = getUserProfile()
+    if (!user) return
 
     const updated = {
       ...user,
       subscription_plan: plan,
       subscription_expires_at: expiresAt || new Date(Date.now() + 365 * 86400000).toISOString(),
-    };
+    }
 
-    sessionStorage.setItem('jurisai_user', JSON.stringify(updated));
-    sessionStorage.setItem('auth_user', JSON.stringify(updated));
-    localStorage.setItem('jurisai_user', JSON.stringify(updated));
-    localStorage.setItem('auth_user', JSON.stringify(updated));
+    sessionStorage.setItem('jurisai_user', JSON.stringify(updated))
+    sessionStorage.setItem('auth_user', JSON.stringify(updated))
+    localStorage.setItem('jurisai_user', JSON.stringify(updated))
+    localStorage.setItem('auth_user', JSON.stringify(updated))
   } catch {}
 }
 
@@ -338,26 +365,28 @@ export function updateUserSubscription(plan: string, expiresAt?: string): void {
 // 5. ANNOUNCEMENTS — E'lonlar va bannerlar
 // =========================================================================
 
-export async function getAnnouncements(): Promise<{ message: string; type: 'info' | 'warning' | 'success'; active: boolean }[]> {
+export async function getAnnouncements(): Promise<
+  { message: string; type: 'info' | 'warning' | 'success'; active: boolean }[]
+> {
   try {
     const res = await fetch('/api/settings/announcements', {
       cache: 'no-cache',
-    });
-    const result = await res.json();
+    })
+    const result = await res.json()
     if (result.success && result.data) {
       try {
-        localStorage.setItem('jurisai_announcements', JSON.stringify(result.data));
+        localStorage.setItem('jurisai_announcements', JSON.stringify(result.data))
       } catch {}
-      return result.data;
+      return result.data
     }
   } catch {}
 
   try {
-    const cached = localStorage.getItem('jurisai_announcements');
-    if (cached) return JSON.parse(cached);
+    const cached = localStorage.getItem('jurisai_announcements')
+    if (cached) return JSON.parse(cached)
   } catch {}
 
-  return [];
+  return []
 }
 
 // =========================================================================
@@ -370,5 +399,5 @@ export async function refreshAllSettings(): Promise<void> {
     getPricingPlans(),
     getPaymentRequests(),
     getAnnouncements(),
-  ]);
+  ])
 }

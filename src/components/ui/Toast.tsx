@@ -1,95 +1,95 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { cn } from '@/lib/utils';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { cn } from '@/lib/utils'
 
 interface Toast {
-  id: string;
-  title?: string;
-  description?: string;
-  variant?: 'default' | 'destructive' | 'success';
-  duration?: number;
+  id: string
+  title?: string
+  description?: string
+  variant?: 'default' | 'destructive' | 'success'
+  duration?: number
   action?: {
-    label: string;
-    onClick: () => void;
-  };
+    label: string
+    onClick: () => void
+  }
 }
 
 interface ToastContextType {
-  toasts: Toast[];
-  addToast: (toast: Omit<Toast, 'id'>) => void;
-  removeToast: (id: string) => void;
+  toasts: Toast[]
+  addToast: (toast: Omit<Toast, 'id'>) => void
+  removeToast: (id: string) => void
 }
 
-const ToastContext = createContext<ToastContextType | undefined>(undefined);
+const ToastContext = createContext<ToastContextType | undefined>(undefined)
 
 export const useToast = () => {
-  const context = useContext(ToastContext);
+  const context = useContext(ToastContext)
   if (!context) {
-    throw new Error('useToast must be used within a ToastProvider');
+    throw new Error('useToast must be used within a ToastProvider')
   }
-  return context;
-};
+  return context
+}
 
 export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [toasts, setToasts] = useState<Toast[]>([]);
+  const [toasts, setToasts] = useState<Toast[]>([])
 
   const addToast = (toast: Omit<Toast, 'id'>) => {
-    const id = Math.random().toString(36).substr(2, 9);
-    const newToast: Toast = { ...toast, id };
-    
-    setToasts((prev) => [...prev, newToast]);
-    
+    const id = Math.random().toString(36).substr(2, 9)
+    const newToast: Toast = { ...toast, id }
+
+    setToasts(prev => [...prev, newToast])
+
     // Auto remove after duration
-    const duration = toast.duration || 5000;
+    const duration = toast.duration || 5000
     setTimeout(() => {
-      removeToast(id);
-    }, duration);
-  };
+      removeToast(id)
+    }, duration)
+  }
 
   const removeToast = (id: string) => {
-    setToasts((prev) => prev.filter((toast) => toast.id !== id));
-  };
+    setToasts(prev => prev.filter(toast => toast.id !== id))
+  }
 
   return (
     <ToastContext.Provider value={{ toasts, addToast, removeToast }}>
       {children}
       <ToastContainer />
     </ToastContext.Provider>
-  );
-};
+  )
+}
 
 const ToastContainer: React.FC = () => {
-  const { toasts } = useToast();
+  const { toasts } = useToast()
 
   return (
     <div className="fixed top-0 right-0 z-50 flex flex-col gap-2 p-4 pointer-events-none">
-      {toasts.map((toast) => (
+      {toasts.map(toast => (
         <ToastItem key={toast.id} toast={toast} />
       ))}
     </div>
-  );
-};
+  )
+}
 
 const ToastItem: React.FC<{ toast: Toast }> = ({ toast }) => {
-  const { removeToast } = useToast();
+  const { removeToast } = useToast()
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      removeToast(toast.id);
-    }, toast.duration || 5000);
+      removeToast(toast.id)
+    }, toast.duration || 5000)
 
-    return () => clearTimeout(timer);
-  }, [toast.id, toast.duration, removeToast]);
+    return () => clearTimeout(timer)
+  }, [toast.id, toast.duration, removeToast])
 
   const getVariantClasses = (variant?: string) => {
     switch (variant) {
       case 'destructive':
-        return 'bg-destructive text-destructive-foreground border-destructive';
+        return 'bg-destructive text-destructive-foreground border-destructive'
       case 'success':
-        return 'bg-green-50 dark:bg-green-900/20 text-white border-green-600';
+        return 'bg-green-50 dark:bg-green-900/20 text-white border-green-600'
       default:
-        return 'bg-background text-foreground border-border';
+        return 'bg-background text-foreground border-border'
     }
-  };
+  }
 
   return (
     <div
@@ -99,12 +99,8 @@ const ToastItem: React.FC<{ toast: Toast }> = ({ toast }) => {
       )}
     >
       <div className="grid gap-1">
-        {toast.title && (
-          <div className="text-sm font-semibold">{toast.title}</div>
-        )}
-        {toast.description && (
-          <div className="text-sm opacity-90">{toast.description}</div>
-        )}
+        {toast.title && <div className="text-sm font-semibold">{toast.title}</div>}
+        {toast.description && <div className="text-sm opacity-90">{toast.description}</div>}
       </div>
       {toast.action && (
         <button
@@ -134,34 +130,34 @@ const ToastItem: React.FC<{ toast: Toast }> = ({ toast }) => {
         </svg>
       </button>
     </div>
-  );
-};
+  )
+}
 
 // Toast hook for convenience
 export const toast = {
   success: (title: string, description?: string) => {
     try {
-      const { addToast } = useToast();
-      addToast({ title, description, variant: 'success' });
+      const { addToast } = useToast()
+      addToast({ title, description, variant: 'success' })
     } catch {
       // Fallback if used outside provider
-      console.log('Toast:', { title, description, variant: 'success' });
+      console.log('Toast:', { title, description, variant: 'success' })
     }
   },
   error: (title: string, description?: string) => {
     try {
-      const { addToast } = useToast();
-      addToast({ title, description, variant: 'destructive' });
+      const { addToast } = useToast()
+      addToast({ title, description, variant: 'destructive' })
     } catch {
-      console.error('Toast:', { title, description, variant: 'destructive' });
+      console.error('Toast:', { title, description, variant: 'destructive' })
     }
   },
   info: (title: string, description?: string) => {
     try {
-      const { addToast } = useToast();
-      addToast({ title, description, variant: 'default' });
+      const { addToast } = useToast()
+      addToast({ title, description, variant: 'default' })
     } catch {
-      console.log('Toast:', { title, description, variant: 'default' });
+      console.log('Toast:', { title, description, variant: 'default' })
     }
   },
-};
+}

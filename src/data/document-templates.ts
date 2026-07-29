@@ -2,42 +2,42 @@
 // Har bir hujjat real qonunchilik talablariga asoslangan to'liq matn
 
 export interface DocumentTemplate {
-  id: string;
-  name: string;
-  category: string;
-  description: string;
-  content: string;
-  lawRef?: string;
-  format: 'TXT' | 'DOCX' | 'PDF';
-  size: string;
-  downloads: number;
-  createdAt: string;
-  tags: string[];
+  id: string
+  name: string
+  category: string
+  description: string
+  content: string
+  lawRef?: string
+  format: 'TXT' | 'DOCX' | 'PDF'
+  size: string
+  downloads: number
+  createdAt: string
+  tags: string[]
 }
 
 export const TEMPLATE_CATEGORIES = [
   { id: 'sud', name: 'Sud hujjatlari', icon: 'scale' },
   { id: 'shartnoma', name: 'Shartnomalar', icon: 'file-signature' },
-  { id: 'da\'vo', name: 'Da\'vo va arizalar', icon: 'file-text' },
+  { id: "da'vo", name: "Da'vo va arizalar", icon: 'file-text' },
   { id: 'mehnat', name: 'Mehnat huquqi', icon: 'briefcase' },
   { id: 'vakolat', name: 'Ishonchnoma va vakolat', icon: 'user-check' },
   { id: 'majlis', name: 'Majlis va bayonnomalar', icon: 'users' },
   { id: 'xat', name: 'Xat va murojaatlar', icon: 'mail' },
   { id: 'moliya', name: 'Moliya va hisobot', icon: 'dollar-sign' },
-];
+]
 
 export const DOCUMENT_TEMPLATES: DocumentTemplate[] = [
   {
     id: 'dav-ariza-fuqarolik',
     name: "Da'vo arizasi (fuqarolik ishi bo'yicha)",
-    category: 'da\'vo',
+    category: "da'vo",
     description: "Fuqarolik ishi bo'yicha sudga da'vo arizasi namunasi",
     lawRef: 'FPK 103-108-moddalari',
     format: 'DOCX',
     size: '24 KB',
     downloads: 1580,
     createdAt: '2026-01-15',
-    tags: ['fuqarolik', 'da\'vo', 'sud'],
+    tags: ['fuqarolik', "da'vo", 'sud'],
     content: `O'ZBEKISTON RESPUBLIKASI (tuman/shahar) SUDIGA
 
 Da'vogar: (F.I.Sh., yashash manzili, telefon raqami)
@@ -72,14 +72,14 @@ Sana: "___" ___________ 202___ y.           Imzo: ___________
   {
     id: 'dav-ariza-iqtisodiy',
     name: "Da'vo arizasi (iqtisodiy sud)",
-    category: 'da\'vo',
+    category: "da'vo",
     description: "Iqtisodiy sudga beriladigan da'vo arizasi",
     lawRef: 'IPK 91-96-moddalari',
     format: 'DOCX',
     size: '26 KB',
     downloads: 1200,
     createdAt: '2026-01-20',
-    tags: ['iqtisodiy', 'da\'vo', 'sud'],
+    tags: ['iqtisodiy', "da'vo", 'sud'],
     content: `O'ZBEKISTON RESPUBLIKASI IQTISODIY SUDIGA
 
 Da'vogar: (korxona nomi, STIR, bank rekvizitlari, manzili)
@@ -117,7 +117,7 @@ M.O'.`,
     id: 'apellyatsiya-shikoyati',
     name: 'Apellyatsiya shikoyati',
     category: 'sud',
-    description: "Sud qaroriga apellyatsiya tartibida shikoyat qilish",
+    description: 'Sud qaroriga apellyatsiya tartibida shikoyat qilish',
     lawRef: 'FPK 201-205-moddalari',
     format: 'DOCX',
     size: '22 KB',
@@ -158,7 +158,7 @@ Sana: "___" ___________ 202___ y.           Imzo: ___________
     id: 'kassatsiya-shikoyati',
     name: 'Kassatsiya shikoyati',
     category: 'sud',
-    description: "Apellyatsiya instansiyasi qaroriga kassatsiya shikoyati",
+    description: 'Apellyatsiya instansiyasi qaroriga kassatsiya shikoyati',
     lawRef: 'FPK 213-218-moddalari',
     format: 'DOCX',
     size: '24 KB',
@@ -255,7 +255,7 @@ Imzo: ________                     Imzo: ________
     id: 'mehnat-shartnoma',
     name: "Mehnat shartnomasi (ish beruvchi va xodim o'rtasida)",
     category: 'mehnat',
-    description: "Xodim bilan tuziladigan mehnat shartnomasi namunasi",
+    description: 'Xodim bilan tuziladigan mehnat shartnomasi namunasi',
     lawRef: 'MK 100-104-moddalari',
     format: 'DOCX',
     size: '35 KB',
@@ -307,7 +307,7 @@ M.O'.`,
     id: 'ijara-shartnoma',
     name: 'Mulk ijarasi shartnomasi',
     category: 'shartnoma',
-    description: "Turar joy/noturar joy ijarasi shartnomasi",
+    description: 'Turar joy/noturar joy ijarasi shartnomasi',
     lawRef: 'FK 353-357-moddalari',
     format: 'DOCX',
     size: '28 KB',
@@ -445,7 +445,7 @@ Imzo: ________                     Imzo: ________
     id: 'ishonchnoma',
     name: 'Ishonchnoma (umumiy)',
     category: 'vakolat',
-    description: "Jismoniy shaxs nomidan ish yuritish uchun ishonchnoma",
+    description: 'Jismoniy shaxs nomidan ish yuritish uchun ishonchnoma',
     lawRef: 'FK 158-moddasi',
     format: 'DOCX',
     size: '18 KB',
@@ -480,14 +480,14 @@ Reestr №: ________
   {
     id: 'aliment-ariza',
     name: "Aliment undirish to'g'risidagi ariza",
-    category: 'da\'vo',
+    category: "da'vo",
     description: "Voyaga yetmagan bolani ta'minlash uchun aliment undirish arizasi",
     lawRef: 'OK 98-109-moddalari',
     format: 'DOCX',
     size: '20 KB',
     downloads: 1400,
     createdAt: '2026-02-05',
-    tags: ['aliment', 'da\'vo', 'oila'],
+    tags: ['aliment', "da'vo", 'oila'],
     content: `O'ZBEKISTON RESPUBLIKASI (tuman/shahar) SUDIGA
 
 Da'vogar: (F.I.Sh., manzili, telefon)
@@ -519,14 +519,14 @@ Sana: "___" ___________ 202___ y.           Imzo: ___________
   {
     id: 'ajrim-ariza',
     name: "Nikohni bekor qilish to'g'risidagi da'vo arizasi",
-    category: 'da\'vo',
-    description: "Nikohni (ajrimni) sud orqali bekor qilish arizasi",
+    category: "da'vo",
+    description: 'Nikohni (ajrimni) sud orqali bekor qilish arizasi',
     lawRef: 'OK 37-41-moddalari',
     format: 'DOCX',
     size: '22 KB',
     downloads: 1200,
     createdAt: '2026-02-12',
-    tags: ['ajrim', 'da\'vo', 'oila'],
+    tags: ['ajrim', "da'vo", 'oila'],
     content: `O'ZBEKISTON RESPUBLIKASI (tuman/shahar) SUDIGA
 
 Da'vogar: (F.I.Sh., manzili, telefon)
@@ -559,7 +559,7 @@ Sana: "___" ___________ 202___ y.           Imzo: ___________
     id: 'ishga-qabul-ariza',
     name: "Ishga qabul qilish to'g'risidagi ariza",
     category: 'mehnat',
-    description: "Xodimning ishga qabul qilish haqidagi arizasi",
+    description: 'Xodimning ishga qabul qilish haqidagi arizasi',
     lawRef: 'MK 100-101-moddalari',
     format: 'DOCX',
     size: '16 KB',
@@ -598,7 +598,7 @@ Sana: "___" ___________ 202___ y.    Imzo: ___________
     size: '15 KB',
     downloads: 2800,
     createdAt: '2026-01-12',
-    tags: ['mehnat', 'ariza', 'bo\'shash'],
+    tags: ['mehnat', 'ariza', "bo'shash"],
     content: `Korxona rahbariga
 (korxona nomi)
 (rahbarning F.I.Sh.)
@@ -627,7 +627,7 @@ Sana: "___" ___________ 202___ y.    Imzo: ___________
     size: '18 KB',
     downloads: 950,
     createdAt: '2026-02-18',
-    tags: ['advokat', 'so\'rov', 'vakolat'],
+    tags: ['advokat', "so'rov", 'vakolat'],
     content: `(tashkilot nomi)
 (rahbarning F.I.Sh., lavozimi)
 
@@ -653,9 +653,9 @@ M.O'.`,
   },
   {
     id: 'sudga-murojaat',
-    name: "Sudga murojaat (umumiy namuna)",
+    name: 'Sudga murojaat (umumiy namuna)',
     category: 'sud',
-    description: "Sudga murojaat qilishning umumiy namunasi",
+    description: 'Sudga murojaat qilishning umumiy namunasi',
     lawRef: 'FPK 103-moddasi',
     format: 'DOCX',
     size: '20 KB',
@@ -690,7 +690,7 @@ Sana: "___" ___________ 202___ y.    Imzo: ___________
     id: 'kafolat-xati',
     name: 'Kafolat xati',
     category: 'xat',
-    description: "Moliyaviy yoki boshqa majburiyatlarni kafolatlash xati",
+    description: 'Moliyaviy yoki boshqa majburiyatlarni kafolatlash xati',
     lawRef: '',
     format: 'DOCX',
     size: '16 KB',
@@ -720,7 +720,7 @@ M.O'.`,
     id: 'ishonch-xati',
     name: 'Ishonch xati (tavsiya)',
     category: 'xat',
-    description: "Jismoniy yoki yuridik shaxsga beriladigan ishonch xati",
+    description: 'Jismoniy yoki yuridik shaxsga beriladigan ishonch xati',
     lawRef: '',
     format: 'DOCX',
     size: '15 KB',
@@ -747,9 +747,9 @@ M.O'.`,
   },
   {
     id: 'shikoyat-ariza',
-    name: "Davlat organiga shikoyat arizasi",
+    name: 'Davlat organiga shikoyat arizasi',
     category: 'xat',
-    description: "Davlat organlari va mansabdor shaxslarning harakatlari ustidan shikoyat",
+    description: 'Davlat organlari va mansabdor shaxslarning harakatlari ustidan shikoyat',
     lawRef: "Murojaatlar to'g'risidagi qonun",
     format: 'DOCX',
     size: '19 KB',
@@ -787,7 +787,7 @@ Sana: "___" ___________ 202___ y.    Imzo: ___________
     id: 'dalolatnoma',
     name: 'Dalolatnoma (umumiy namuna)',
     category: 'majlis',
-    description: "Turli xil holatlarni qayd etish uchun dalolatnoma",
+    description: 'Turli xil holatlarni qayd etish uchun dalolatnoma',
     lawRef: '',
     format: 'DOCX',
     size: '17 KB',
@@ -903,7 +903,7 @@ Buyruq bilan tanishtirildi:
     id: 'hadya-shartnoma',
     name: 'Hadya shartnomasi',
     category: 'shartnoma',
-    description: "Mulkni hadya qilish shartnomasi",
+    description: 'Mulkni hadya qilish shartnomasi',
     lawRef: 'FK 413-420-moddalari',
     format: 'DOCX',
     size: '20 KB',
@@ -969,7 +969,7 @@ Guvohlar:
     id: 'rozilik-xati',
     name: 'Rozilik xati',
     category: 'xat',
-    description: "Turli xil rozilik bildirish xatlari",
+    description: 'Turli xil rozilik bildirish xatlari',
     lawRef: '',
     format: 'DOCX',
     size: '14 KB',
@@ -994,7 +994,7 @@ Men, (F.I.Sh.) (masala) bo'yicha (tashkilot/qaror bilan) tanishdim va rozilik bi
     id: 'tushuntirish-xati',
     name: 'Tushuntirish xati',
     category: 'xat',
-    description: "Turli holatlar yuzasidan tushuntirish xati",
+    description: 'Turli holatlar yuzasidan tushuntirish xati',
     lawRef: '',
     format: 'DOCX',
     size: '16 KB',
@@ -1024,8 +1024,8 @@ Sana: _________
   {
     id: 'meros-ariza',
     name: "Merosni qabul qilish to'g'risidagi ariza",
-    category: 'da\'vo',
-    description: "Meros huquqini qabul qilish arizasi",
+    category: "da'vo",
+    description: 'Meros huquqini qabul qilish arizasi',
     lawRef: 'FK 1125-1140-moddalari',
     format: 'DOCX',
     size: '18 KB',
@@ -1059,14 +1059,14 @@ Sana: "___" ___________ 202___ y.    Imzo: ___________
   {
     id: 'mulk-bolish-davo',
     name: "Mulkni bo'lish to'g'risidagi da'vo arizasi",
-    category: 'da\'vo',
+    category: "da'vo",
     description: "Er-xotin o'rtasidagi umumiy mulkni bo'lish da'vosi",
     lawRef: 'OK 24-28-moddalari',
     format: 'DOCX',
     size: '24 KB',
     downloads: 680,
     createdAt: '2026-04-25',
-    tags: ['mulk', 'da\'vo', 'oila'],
+    tags: ['mulk', "da'vo", 'oila'],
     content: `O'ZBEKISTON RESPUBLIKASI (tuman/shahar) SUDIGA
 
 Da'vogar: (F.I.Sh., manzili, telefon)
@@ -1100,7 +1100,7 @@ Sana: "___" ___________ 202___ y.    Imzo: ___________
     id: 'sud-iltimosnoma',
     name: 'Sudga iltimosnoma',
     category: 'sud',
-    description: "Sudga turli xil iltimosnomalar berish namunasi",
+    description: 'Sudga turli xil iltimosnomalar berish namunasi',
     lawRef: 'FPK 56-moddasi',
     format: 'DOCX',
     size: '16 KB',
@@ -1133,7 +1133,7 @@ Sana: "___" ___________ 202___ y.    Imzo: ___________
     id: 'javob-xati',
     name: 'Javob xati',
     category: 'xat',
-    description: "Olingan murojaat va xatlarga javob xati",
+    description: 'Olingan murojaat va xatlarga javob xati',
     lawRef: '',
     format: 'DOCX',
     size: '14 KB',
@@ -1161,9 +1161,9 @@ Sizning (sana)dagi (hujjat raqami) sonli murojaatingizga javoban quyidagilarni m
   },
   {
     id: 'vakolatnoma',
-    name: "Vakolatnoma (ishonchli vakil tayinlash)",
+    name: 'Vakolatnoma (ishonchli vakil tayinlash)',
     category: 'vakolat',
-    description: "Jismoniy shaxs manfaatlarini himoya qilish uchun vakolatnoma",
+    description: 'Jismoniy shaxs manfaatlarini himoya qilish uchun vakolatnoma',
     lawRef: 'FK 158-moddasi',
     format: 'DOCX',
     size: '16 KB',
@@ -1197,7 +1197,7 @@ Imzo: ________                     Imzo: ________
     size: '14 KB',
     downloads: 1250,
     createdAt: '2026-05-15',
-    tags: ['so\'rov', 'xat'],
+    tags: ["so'rov", 'xat'],
     content: `(tashkilot nomi, rahbarning F.I.Sh.)
 
 SO'ROV XATI
@@ -1220,25 +1220,26 @@ So'ralgan ma'lumotni (muddat)gacha taqdim etishingizni so'raymiz.
                                      (imzo)
 `,
   },
-];
+]
 
 // ── GET helper ────────────────────────────────────────────────────────
 
 export function getTemplatesByCategory(category: string): DocumentTemplate[] {
-  if (category === 'all') return DOCUMENT_TEMPLATES;
-  return DOCUMENT_TEMPLATES.filter(t => t.category === category);
+  if (category === 'all') return DOCUMENT_TEMPLATES
+  return DOCUMENT_TEMPLATES.filter(t => t.category === category)
 }
 
 export function searchTemplates(query: string): DocumentTemplate[] {
-  const q = query.toLowerCase();
-  return DOCUMENT_TEMPLATES.filter(t =>
-    t.name.toLowerCase().includes(q) ||
-    t.description.toLowerCase().includes(q) ||
-    t.tags.some(tag => tag.includes(q)) ||
-    t.category.includes(q)
-  );
+  const q = query.toLowerCase()
+  return DOCUMENT_TEMPLATES.filter(
+    t =>
+      t.name.toLowerCase().includes(q) ||
+      t.description.toLowerCase().includes(q) ||
+      t.tags.some(tag => tag.includes(q)) ||
+      t.category.includes(q)
+  )
 }
 
 export function getTemplateById(id: string): DocumentTemplate | undefined {
-  return DOCUMENT_TEMPLATES.find(t => t.id === id);
+  return DOCUMENT_TEMPLATES.find(t => t.id === id)
 }

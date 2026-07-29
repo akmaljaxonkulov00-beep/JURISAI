@@ -1,14 +1,14 @@
-'use client';
+'use client'
 
-import React from 'react';
+import React from 'react'
 
-type SkeletonVariant = 'card' | 'list' | 'text' | 'chart' | 'table' | 'inline';
+type SkeletonVariant = 'card' | 'list' | 'text' | 'chart' | 'table' | 'inline'
 
 interface AnalysisSkeletonProps {
-  variant?: SkeletonVariant;
-  count?: number;
-  className?: string;
-  label?: string;
+  variant?: SkeletonVariant
+  count?: number
+  className?: string
+  label?: string
 }
 
 /**
@@ -27,7 +27,7 @@ export function AnalysisSkeleton({
   className = '',
   label,
 }: AnalysisSkeletonProps) {
-  const items = Array.from({ length: count }, (_, i) => i);
+  const items = Array.from({ length: count }, (_, i) => i)
 
   const renderItem = (key: number) => {
     switch (variant) {
@@ -54,14 +54,11 @@ export function AnalysisSkeleton({
             {/* Progress bar placeholder */}
             <div className="mt-4 h-2 bg-gray-100 dark:bg-zinc-800 rounded-full animate-pulse" />
           </div>
-        );
+        )
 
       case 'list':
         return (
-          <div
-            key={key}
-            className={`flex items-center gap-3 p-3 ${className}`}
-          >
+          <div key={key} className={`flex items-center gap-3 p-3 ${className}`}>
             <div className="w-8 h-8 bg-gray-200 dark:bg-zinc-700 rounded-lg flex-shrink-0 animate-pulse" />
             <div className="flex-1 min-w-0">
               <div className="h-3.5 bg-gray-200 dark:bg-zinc-700 rounded w-3/4 animate-pulse" />
@@ -69,7 +66,7 @@ export function AnalysisSkeleton({
             </div>
             <div className="w-16 h-5 bg-gray-100 dark:bg-zinc-800 rounded animate-pulse flex-shrink-0" />
           </div>
-        );
+        )
 
       case 'text':
         return (
@@ -78,9 +75,11 @@ export function AnalysisSkeleton({
             <div className="h-3.5 bg-gray-200 dark:bg-zinc-700 rounded w-11/12 animate-pulse" />
             <div className="h-3.5 bg-gray-100 dark:bg-zinc-800 rounded w-4/5 animate-pulse" />
             <div className="h-3.5 bg-gray-100 dark:bg-zinc-800 rounded w-3/5 animate-pulse" />
-            {count === 1 && <div className="h-3 bg-gray-100 dark:bg-zinc-800 rounded w-2/5 mt-1 animate-pulse" />}
+            {count === 1 && (
+              <div className="h-3 bg-gray-100 dark:bg-zinc-800 rounded w-2/5 mt-1 animate-pulse" />
+            )}
           </div>
-        );
+        )
 
       case 'chart':
         return (
@@ -93,17 +92,20 @@ export function AnalysisSkeleton({
               />
             ))}
           </div>
-        );
+        )
 
       case 'table':
         return (
-          <div key={key} className={`flex items-center gap-3 p-3 border-b border-gray-100 dark:border-zinc-800 last:border-0 ${className}`}>
+          <div
+            key={key}
+            className={`flex items-center gap-3 p-3 border-b border-gray-100 dark:border-zinc-800 last:border-0 ${className}`}
+          >
             <div className="h-3 bg-gray-200 dark:bg-zinc-700 rounded w-16 animate-pulse" />
             <div className="h-3 bg-gray-200 dark:bg-zinc-700 rounded flex-1 animate-pulse" />
             <div className="h-3 bg-gray-100 dark:bg-zinc-800 rounded w-20 animate-pulse" />
             <div className="h-6 w-16 bg-gray-100 dark:bg-zinc-800 rounded animate-pulse" />
           </div>
-        );
+        )
 
       case 'inline':
         return (
@@ -111,17 +113,17 @@ export function AnalysisSkeleton({
             <div className="w-4 h-4 bg-gray-200 dark:bg-zinc-700 rounded animate-pulse" />
             <div className="h-3 bg-gray-200 dark:bg-zinc-700 rounded w-24 animate-pulse" />
           </div>
-        );
+        )
 
       default:
-        return null;
+        return null
     }
-  };
+  }
 
   return (
     <div role="status" aria-label={label || 'Yuklanmoqda'}>
       {items.map(renderItem)}
       <span className="sr-only">{label || 'Yuklanmoqda...'}</span>
     </div>
-  );
+  )
 }

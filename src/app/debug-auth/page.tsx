@@ -4,7 +4,11 @@ import { useState } from 'react'
 import { runAllTests, testLogin, testAuthHelper } from '@/lib/test-auth'
 import { createAdminUser, createTestUsers } from '@/lib/create-admin-user'
 import { checkEnvironmentVariables, checkSupabaseAccess } from '@/lib/check-env'
-import { checkEnvLocalFile, checkRuntimeEnvironment, validateSupabaseConfig } from '@/lib/check-env-local'
+import {
+  checkEnvLocalFile,
+  checkRuntimeEnvironment,
+  validateSupabaseConfig,
+} from '@/lib/check-env-local'
 
 export default function DebugAuthPage() {
   const [isLoading, setIsLoading] = useState(false)
@@ -29,7 +33,7 @@ export default function DebugAuthPage() {
     try {
       const directResult = await testLogin(testEmail, testPassword)
       const helperResult = await testAuthHelper(testEmail, testPassword)
-      
+
       setResults({
         directLogin: directResult,
         authHelper: helperResult,
@@ -49,7 +53,7 @@ export default function DebugAuthPage() {
       const envLocalCheck = checkEnvLocalFile()
       const runtimeCheck = checkRuntimeEnvironment()
       const validationCheck = validateSupabaseConfig()
-      
+
       setResults({
         environment: envCheck,
         access: accessCheck,
@@ -83,7 +87,7 @@ export default function DebugAuthPage() {
     try {
       const adminResult = await createAdminUser()
       const testUsersResult = await createTestUsers()
-      
+
       setResults({
         adminCreation: adminResult,
         testUsersCreation: testUsersResult,
@@ -99,7 +103,7 @@ export default function DebugAuthPage() {
     <div className="min-h-screen bg-gray-50 dark:bg-zinc-950 mobile-safe-top p-4 md:p-8">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-3xl font-bold mb-8">Auth Debug Page</h1>
-        
+
         <div className="bg-white dark:bg-zinc-900 rounded-lg shadow p-6 mb-6">
           <h2 className="text-xl font-semibold mb-4">Test Credentials</h2>
           <div className="space-y-4">
@@ -108,7 +112,7 @@ export default function DebugAuthPage() {
               <input
                 type="email"
                 value={testEmail}
-                onChange={(e) => setTestEmail(e.target.value)}
+                onChange={e => setTestEmail(e.target.value)}
                 className="w-full px-3 py-2 border rounded-md"
               />
             </div>
@@ -117,12 +121,12 @@ export default function DebugAuthPage() {
               <input
                 type="password"
                 value={testPassword}
-                onChange={(e) => setTestPassword(e.target.value)}
+                onChange={e => setTestPassword(e.target.value)}
                 className="w-full px-3 py-2 border rounded-md"
               />
             </div>
           </div>
-          
+
           <div className="grid grid-cols-2 gap-4 mt-6">
             <button
               onClick={runTests}
@@ -174,9 +178,15 @@ export default function DebugAuthPage() {
         <div className="bg-white dark:bg-zinc-900 rounded-lg shadow p-6 mt-6">
           <h2 className="text-xl font-semibold mb-4">Test Accounts</h2>
           <div className="space-y-2 text-sm">
-            <p><strong>Admin:</strong> admin@jurisai.uz / password123</p>
-            <p><strong>User:</strong> user@jurisai.uz / password123</p>
-            <p><strong>Demo:</strong> demo@jurisai.uz / password123</p>
+            <p>
+              <strong>Admin:</strong> admin@jurisai.uz / password123
+            </p>
+            <p>
+              <strong>User:</strong> user@jurisai.uz / password123
+            </p>
+            <p>
+              <strong>Demo:</strong> demo@jurisai.uz / password123
+            </p>
           </div>
         </div>
       </div>

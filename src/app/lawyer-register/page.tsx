@@ -1,51 +1,51 @@
-'use client';
+'use client'
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { Badge } from '@/components/ui/Badge';
-import { 
-  User, 
-  Mail, 
-  Phone, 
-  Briefcase, 
-  Award, 
-  FileText, 
-  Shield, 
-  CheckCircle, 
+import React, { useState, useEffect } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
+import { Badge } from '@/components/ui/Badge'
+import {
+  User,
+  Mail,
+  Phone,
+  Briefcase,
+  Award,
+  FileText,
+  Shield,
+  CheckCircle,
   XCircle,
   ArrowLeft,
   Upload,
   MapPin,
-  Clock
-} from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+  Clock,
+} from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 
 interface LawyerRegistration {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  licenseNumber: string;
-  specialization: string[];
-  experience: number;
-  officeAddress: string;
-  education: string;
-  barAssociation: string;
-  bio: string;
-  website?: string;
-  linkedin?: string;
+  firstName: string
+  lastName: string
+  email: string
+  phone: string
+  licenseNumber: string
+  specialization: string[]
+  experience: number
+  officeAddress: string
+  education: string
+  barAssociation: string
+  bio: string
+  website?: string
+  linkedin?: string
 }
 
 export default function LawyerRegisterPage() {
-  const router = useRouter();
-  const [currentStep, setCurrentStep] = useState(1);
-  const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [isClient, setIsClient] = useState(false);
-  
+  const router = useRouter()
+  const [currentStep, setCurrentStep] = useState(1)
+  const [loading, setLoading] = useState(false)
+  const [errors, setErrors] = useState<Record<string, string>>({})
+  const [isClient, setIsClient] = useState(false)
+
   const [formData, setFormData] = useState<LawyerRegistration>({
     firstName: '',
     lastName: '',
@@ -59,13 +59,13 @@ export default function LawyerRegisterPage() {
     barAssociation: '',
     bio: '',
     website: '',
-    linkedin: ''
-  });
+    linkedin: '',
+  })
 
   // Prevent hydration mismatch
   useEffect(() => {
-    setIsClient(true);
-  }, []);
+    setIsClient(true)
+  }, [])
 
   const specializations = [
     'Jinoyat huquqi',
@@ -77,60 +77,63 @@ export default function LawyerRegisterPage() {
     'Mulk huquqi',
     'Intellektual mulk huquqi',
     'Xalqaro huquq',
-    'Bankrotlik huquqi'
-  ];
+    'Bankrotlik huquqi',
+  ]
 
   const validateStep = (step: number): boolean => {
-    const newErrors: Record<string, string> = {};
+    const newErrors: Record<string, string> = {}
 
     if (step === 1) {
-      if (!formData.firstName.trim()) newErrors.firstName = 'Ism kiritilishi shart';
-      if (!formData.lastName.trim()) newErrors.lastName = 'Familiya kiritilishi shart';
-      if (!formData.email.trim()) newErrors.email = 'Email kiritilishi shart';
-      if (!formData.phone.trim()) newErrors.phone = 'Telefon raqami kiritilishi shart';
+      if (!formData.firstName.trim()) newErrors.firstName = 'Ism kiritilishi shart'
+      if (!formData.lastName.trim()) newErrors.lastName = 'Familiya kiritilishi shart'
+      if (!formData.email.trim()) newErrors.email = 'Email kiritilishi shart'
+      if (!formData.phone.trim()) newErrors.phone = 'Telefon raqami kiritilishi shart'
     }
 
     if (step === 2) {
-      if (!formData.licenseNumber.trim()) newErrors.licenseNumber = 'Litsenziya raqami kiritilishi shart';
-      if (formData.specialization.length === 0) newErrors.specialization = 'Kamida bitta ixtisoslik tanlanishi shart';
-      if (!formData.education.trim()) newErrors.education = 'Ma\'lumot kiritilishi shart';
-      if (!formData.barAssociation.trim()) newErrors.barAssociation = 'Advokatlar palatasi kiritilishi shart';
+      if (!formData.licenseNumber.trim())
+        newErrors.licenseNumber = 'Litsenziya raqami kiritilishi shart'
+      if (formData.specialization.length === 0)
+        newErrors.specialization = 'Kamida bitta ixtisoslik tanlanishi shart'
+      if (!formData.education.trim()) newErrors.education = "Ma'lumot kiritilishi shart"
+      if (!formData.barAssociation.trim())
+        newErrors.barAssociation = 'Advokatlar palatasi kiritilishi shart'
     }
 
     if (step === 3) {
-      if (!formData.officeAddress.trim()) newErrors.officeAddress = 'Ofis manzili kiritilishi shart';
-      if (!formData.bio.trim()) newErrors.bio = 'Bio kiritilishi shart';
+      if (!formData.officeAddress.trim()) newErrors.officeAddress = 'Ofis manzili kiritilishi shart'
+      if (!formData.bio.trim()) newErrors.bio = 'Bio kiritilishi shart'
     }
 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
 
   const handleNext = () => {
     if (validateStep(currentStep)) {
-      setCurrentStep(currentStep + 1);
+      setCurrentStep(currentStep + 1)
     }
-  };
+  }
 
   const handlePrevious = () => {
-    setCurrentStep(currentStep - 1);
-  };
+    setCurrentStep(currentStep - 1)
+  }
 
   const handleSpecializationToggle = (spec: string) => {
     setFormData(prev => ({
       ...prev,
       specialization: prev.specialization.includes(spec)
         ? prev.specialization.filter(s => s !== spec)
-        : [...prev.specialization, spec]
-    }));
-  };
+        : [...prev.specialization, spec],
+    }))
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!validateStep(3)) return;
+    e.preventDefault()
 
-    setLoading(true);
+    if (!validateStep(3)) return
+
+    setLoading(true)
     try {
       const response = await fetch('/api/auth/lawyer-register', {
         method: 'POST',
@@ -138,22 +141,22 @@ export default function LawyerRegisterPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(formData),
-      });
+      })
 
-      const data = await response.json();
+      const data = await response.json()
 
       if (response.ok) {
         // Success - redirect to lawyer dashboard
-        router.push('/lawyer-dashboard');
+        router.push('/lawyer-dashboard')
       } else {
-        setErrors({ submit: data.error || 'Ro\'yxatdan o\'tishda xatolik yuz berdi' });
+        setErrors({ submit: data.error || "Ro'yxatdan o'tishda xatolik yuz berdi" })
       }
     } catch (error) {
-      setErrors({ submit: 'Server xatosi. Iltimos, qayta urinib ko\'ring.' });
+      setErrors({ submit: "Server xatosi. Iltimos, qayta urinib ko'ring." })
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const renderStep1 = () => (
     <div className="space-y-6">
@@ -161,58 +164,70 @@ export default function LawyerRegisterPage() {
         <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
           <User className="w-8 h-8 text-blue-600" />
         </div>
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-zinc-100">Shaxsiy ma\'lumotlar</h2>
-        <p className="text-gray-600 dark:text-zinc-400">Asosiy shaxsiy ma\'lumotlaringizni kiriting</p>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-zinc-100">
+          Shaxsiy ma\'lumotlar
+        </h2>
+        <p className="text-gray-600 dark:text-zinc-400">
+          Asosiy shaxsiy ma\'lumotlaringizni kiriting
+        </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">Ism</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
+            Ism
+          </label>
           <Input
             placeholder="Ismingiz"
             value={formData.firstName}
-            onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
+            onChange={e => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
             className={errors.firstName ? 'border-red-500' : ''}
           />
           {errors.firstName && <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>}
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">Familiya</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
+            Familiya
+          </label>
           <Input
             placeholder="Familiyangiz"
             value={formData.lastName}
-            onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
+            onChange={e => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
             className={errors.lastName ? 'border-red-500' : ''}
           />
           {errors.lastName && <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>}
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">Email</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
+            Email
+          </label>
           <Input
             type="email"
             placeholder="email@example.com"
             value={formData.email}
-            onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+            onChange={e => setFormData(prev => ({ ...prev, email: e.target.value }))}
             className={errors.email ? 'border-red-500' : ''}
           />
           {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">Telefon</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
+            Telefon
+          </label>
           <Input
             placeholder="+998 XX XXX XX XX"
             value={formData.phone}
-            onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+            onChange={e => setFormData(prev => ({ ...prev, phone: e.target.value }))}
             className={errors.phone ? 'border-red-500' : ''}
           />
           {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
         </div>
       </div>
     </div>
-  );
+  )
 
   const renderStep2 = () => (
     <div className="space-y-6">
@@ -226,20 +241,26 @@ export default function LawyerRegisterPage() {
 
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">Litsenziya raqami</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
+            Litsenziya raqami
+          </label>
           <Input
             placeholder="Advokat litsenziyasi raqami"
             value={formData.licenseNumber}
-            onChange={(e) => setFormData(prev => ({ ...prev, licenseNumber: e.target.value }))}
+            onChange={e => setFormData(prev => ({ ...prev, licenseNumber: e.target.value }))}
             className={errors.licenseNumber ? 'border-red-500' : ''}
           />
-          {errors.licenseNumber && <p className="text-red-500 text-sm mt-1">{errors.licenseNumber}</p>}
+          {errors.licenseNumber && (
+            <p className="text-red-500 text-sm mt-1">{errors.licenseNumber}</p>
+          )}
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">Ixtisosliklar</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
+            Ixtisosliklar
+          </label>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-            {specializations.map((spec) => (
+            {specializations.map(spec => (
               <button
                 key={spec}
                 type="button"
@@ -254,45 +275,57 @@ export default function LawyerRegisterPage() {
               </button>
             ))}
           </div>
-          {errors.specialization && <p className="text-red-500 text-sm mt-1">{errors.specialization}</p>}
+          {errors.specialization && (
+            <p className="text-red-500 text-sm mt-1">{errors.specialization}</p>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">Tajriba (yil)</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
+              Tajriba (yil)
+            </label>
             <Input
               type="number"
               placeholder="Tajriba yillari"
               value={formData.experience}
-              onChange={(e) => setFormData(prev => ({ ...prev, experience: parseInt(e.target.value) || 0 }))}
+              onChange={e =>
+                setFormData(prev => ({ ...prev, experience: parseInt(e.target.value) || 0 }))
+              }
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">Advokatlar palatasi</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
+              Advokatlar palatasi
+            </label>
             <Input
               placeholder="Qaysi palataga a\'zo"
               value={formData.barAssociation}
-              onChange={(e) => setFormData(prev => ({ ...prev, barAssociation: e.target.value }))}
+              onChange={e => setFormData(prev => ({ ...prev, barAssociation: e.target.value }))}
               className={errors.barAssociation ? 'border-red-500' : ''}
             />
-            {errors.barAssociation && <p className="text-red-500 text-sm mt-1">{errors.barAssociation}</p>}
+            {errors.barAssociation && (
+              <p className="text-red-500 text-sm mt-1">{errors.barAssociation}</p>
+            )}
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">Ma\'lumot</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
+            Ma\'lumot
+          </label>
           <Input
             placeholder="Oliy ma\'lumot, universitet"
             value={formData.education}
-            onChange={(e) => setFormData(prev => ({ ...prev, education: e.target.value }))}
+            onChange={e => setFormData(prev => ({ ...prev, education: e.target.value }))}
             className={errors.education ? 'border-red-500' : ''}
           />
           {errors.education && <p className="text-red-500 text-sm mt-1">{errors.education}</p>}
         </div>
       </div>
     </div>
-  );
+  )
 
   const renderStep3 = () => (
     <div className="space-y-6">
@@ -306,66 +339,83 @@ export default function LawyerRegisterPage() {
 
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">Ofis manzili</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
+            Ofis manzili
+          </label>
           <Input
             placeholder="To\'liq ofis manzili"
             value={formData.officeAddress}
-            onChange={(e) => setFormData(prev => ({ ...prev, officeAddress: e.target.value }))}
+            onChange={e => setFormData(prev => ({ ...prev, officeAddress: e.target.value }))}
             className={errors.officeAddress ? 'border-red-500' : ''}
           />
-          {errors.officeAddress && <p className="text-red-500 text-sm mt-1">{errors.officeAddress}</p>}
+          {errors.officeAddress && (
+            <p className="text-red-500 text-sm mt-1">{errors.officeAddress}</p>
+          )}
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">Bio</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
+            Bio
+          </label>
           <textarea
             placeholder="O\'zingiz haqingizda qisqacha ma\'lumot..."
             rows={4}
             className="w-full p-3 border border-gray-300 dark:border-zinc-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             value={formData.bio}
-            onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
+            onChange={e => setFormData(prev => ({ ...prev, bio: e.target.value }))}
           />
           {errors.bio && <p className="text-red-500 text-sm mt-1">{errors.bio}</p>}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">Veb-sayt (ixtiyoriy)</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
+              Veb-sayt (ixtiyoriy)
+            </label>
             <Input
               placeholder="https://example.com"
               value={formData.website}
-              onChange={(e) => setFormData(prev => ({ ...prev, website: e.target.value }))}
+              onChange={e => setFormData(prev => ({ ...prev, website: e.target.value }))}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">LinkedIn (ixtiyoriy)</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
+              LinkedIn (ixtiyoriy)
+            </label>
             <Input
               placeholder="LinkedIn profil"
               value={formData.linkedin}
-              onChange={(e) => setFormData(prev => ({ ...prev, linkedin: e.target.value }))}
+              onChange={e => setFormData(prev => ({ ...prev, linkedin: e.target.value }))}
             />
           </div>
         </div>
       </div>
     </div>
-  );
+  )
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-zinc-800/50 py-12 px-4">
       <div className="max-w-2xl mx-auto">
         <div className="mb-8">
-          <Link href="/" className="inline-flex items-center text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100 mb-4">
+          <Link
+            href="/"
+            className="inline-flex items-center text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100 mb-4"
+          >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Asosiy sahifaga qaytish
           </Link>
-          
+
           <div className="text-center">
             <div className="w-20 h-20 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
               <Shield className="w-10 h-10 text-white" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-zinc-100">Advokat ro\'yxatdan o\'tishi</h1>
-            <p className="text-gray-600 dark:text-zinc-400 mt-2">JURISAI platformasiga professional advokat sifatida qo\'shiling</p>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-zinc-100">
+              Advokat ro\'yxatdan o\'tishi
+            </h1>
+            <p className="text-gray-600 dark:text-zinc-400 mt-2">
+              JURISAI platformasiga professional advokat sifatida qo\'shiling
+            </p>
           </div>
         </div>
 
@@ -373,7 +423,7 @@ export default function LawyerRegisterPage() {
           <CardContent className="p-8">
             {/* Progress Steps */}
             <div className="flex items-center justify-between mb-8">
-              {[1, 2, 3].map((step) => (
+              {[1, 2, 3].map(step => (
                 <div key={step} className="flex items-center">
                   <div
                     className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
@@ -422,7 +472,7 @@ export default function LawyerRegisterPage() {
                   </Button>
                 ) : (
                   <Button type="submit" disabled={loading}>
-                    {loading ? 'Yuborilmoqda...' : 'Ro\'yxatdan o\'tish'}
+                    {loading ? 'Yuborilmoqda...' : "Ro'yxatdan o'tish"}
                   </Button>
                 )}
               </div>
@@ -431,9 +481,14 @@ export default function LawyerRegisterPage() {
         </Card>
 
         <div className="mt-8 text-center text-gray-600 dark:text-zinc-400">
-          <p>Avval ro\'yxatdan o\'tganmisiz? <Link href="/lawyer-login" className="text-blue-600 hover:text-blue-700">Kirish</Link></p>
+          <p>
+            Avval ro\'yxatdan o\'tganmisiz?{' '}
+            <Link href="/lawyer-login" className="text-blue-600 hover:text-blue-700">
+              Kirish
+            </Link>
+          </p>
         </div>
       </div>
     </div>
-  );
+  )
 }

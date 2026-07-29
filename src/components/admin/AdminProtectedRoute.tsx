@@ -1,65 +1,65 @@
-'use client';
+'use client'
 
-import React, { useEffect, useState } from 'react';
-import { useAuth } from '@/lib/auth/authMiddleware';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Shield, AlertTriangle, Lock, Crown, Users, Settings } from 'lucide-react';
+import React, { useEffect, useState } from 'react'
+import { useAuth } from '@/lib/auth/authMiddleware'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
+import { Shield, AlertTriangle, Lock, Crown, Users, Settings } from 'lucide-react'
 
 interface AdminProtectedRouteProps {
-  children: React.ReactNode;
-  requireSuperAdmin?: boolean;
-  requiredPermissions?: string[];
-  fallback?: React.ReactNode;
+  children: React.ReactNode
+  requireSuperAdmin?: boolean
+  requiredPermissions?: string[]
+  fallback?: React.ReactNode
 }
 
-export default function AdminProtectedRoute({ 
-  children, 
-  requireSuperAdmin = false, 
+export default function AdminProtectedRoute({
+  children,
+  requireSuperAdmin = false,
   requiredPermissions = [],
-  fallback 
+  fallback,
 }: AdminProtectedRouteProps) {
-  const { user, isAuthenticated, hasPermission, hasRole, logout } = useAuth();
-  const [isAuthorized, setIsAuthorized] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const { user, isAuthenticated, hasPermission, hasRole, logout } = useAuth()
+  const [isAuthorized, setIsAuthorized] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     const checkAuthorization = () => {
-      setIsLoading(true);
+      setIsLoading(true)
 
       // Check if user is authenticated
       if (!isAuthenticated) {
-        setIsLoading(false);
-        return;
+        setIsLoading(false)
+        return
       }
 
       // Check if user has admin role
       if (!hasRole('ADMIN') && !hasRole('SUPER_ADMIN')) {
-        setIsLoading(false);
-        return;
+        setIsLoading(false)
+        return
       }
 
       // Check if super admin is required
       if (requireSuperAdmin && !hasRole('SUPER_ADMIN')) {
-        setIsLoading(false);
-        return;
+        setIsLoading(false)
+        return
       }
 
       // Check required permissions
       if (requiredPermissions.length > 0) {
-        const hasAllPermissions = requiredPermissions.every(permission => hasPermission(permission));
+        const hasAllPermissions = requiredPermissions.every(permission => hasPermission(permission))
         if (!hasAllPermissions) {
-          setIsLoading(false);
-          return;
+          setIsLoading(false)
+          return
         }
       }
 
-      setIsAuthorized(true);
-      setIsLoading(false);
-    };
+      setIsAuthorized(true)
+      setIsLoading(false)
+    }
 
-    checkAuthorization();
-  }, [isAuthenticated, hasRole, hasPermission, requireSuperAdmin, requiredPermissions]);
+    checkAuthorization()
+  }, [isAuthenticated, hasRole, hasPermission, requireSuperAdmin, requiredPermissions])
 
   if (isLoading) {
     return (
@@ -69,12 +69,12 @@ export default function AdminProtectedRoute({
           <p className="text-gray-600 dark:text-zinc-400">Admin tekshiruvi o'tkazilmoqda...</p>
         </div>
       </div>
-    );
+    )
   }
 
   if (!isAuthorized) {
     if (fallback) {
-      return <>{fallback}</>;
+      return <>{fallback}</>
     }
 
     return (
@@ -93,7 +93,7 @@ export default function AdminProtectedRoute({
                 Bu sahifaga kirish uchun admin ruxsatlari kerak.
               </p>
               <p className="text-sm text-gray-600 dark:text-zinc-400">
-                Sizning rolingiz: {user?.role || 'Noma\'lum'}
+                Sizning rolingiz: {user?.role || "Noma'lum"}
               </p>
             </div>
 
@@ -125,18 +125,14 @@ export default function AdminProtectedRoute({
 
             <div className="space-y-2">
               <Button
-                onClick={() => window.location.href = '/dashboard'}
+                onClick={() => (window.location.href = '/dashboard')}
                 className="w-full"
                 variant="outline"
               >
                 <Settings className="w-4 h-4 mr-2" />
                 Dashboard
               </Button>
-              <Button
-                onClick={logout}
-                className="w-full"
-                variant="destructive"
-              >
+              <Button onClick={logout} className="w-full" variant="destructive">
                 <Shield className="w-4 h-4 mr-2" />
                 Chiqish
               </Button>
@@ -151,18 +147,18 @@ export default function AdminProtectedRoute({
           </CardContent>
         </Card>
       </div>
-    );
+    )
   }
 
-  return <>{children}</>;
+  return <>{children}</>
 }
 
 // Higher-order component for admin protection
 export function withAdminProtection<P extends object>(
   Component: React.ComponentType<P>,
   options?: {
-    requireSuperAdmin?: boolean;
-    requiredPermissions?: string[];
+    requireSuperAdmin?: boolean
+    requiredPermissions?: string[]
   }
 ) {
   return function AdminProtectedComponent(props: P) {
@@ -173,33 +169,25 @@ export function withAdminProtection<P extends object>(
       >
         <Component {...props} />
       </AdminProtectedRoute>
-    );
-  };
+    )
+  }
 }
 
 // Admin-specific protection components
 export function AdminOnly({ children }: { children: React.ReactNode }) {
   return (
-    <AdminProtectedRoute requiredPermissions={['user_management']}>
-      {children}
-    </AdminProtectedRoute>
-  );
+    <AdminProtectedRoute requiredPermissions={['user_management']}>{children}</AdminProtectedRoute>
+  )
 }
 
 export function SuperAdminOnly({ children }: { children: React.ReactNode }) {
-  return (
-    <AdminProtectedRoute requireSuperAdmin>
-      {children}
-    </AdminProtectedRoute>
-  );
+  return <AdminProtectedRoute requireSuperAdmin>{children}</AdminProtectedRoute>
 }
 
 export function AnalyticsAdmin({ children }: { children: React.ReactNode }) {
   return (
-    <AdminProtectedRoute requiredPermissions={['analytics_view']}>
-      {children}
-    </AdminProtectedRoute>
-  );
+    <AdminProtectedRoute requiredPermissions={['analytics_view']}>{children}</AdminProtectedRoute>
+  )
 }
 
 export function PaymentAdmin({ children }: { children: React.ReactNode }) {
@@ -207,13 +195,11 @@ export function PaymentAdmin({ children }: { children: React.ReactNode }) {
     <AdminProtectedRoute requiredPermissions={['payment_management']}>
       {children}
     </AdminProtectedRoute>
-  );
+  )
 }
 
 export function SystemAdmin({ children }: { children: React.ReactNode }) {
   return (
-    <AdminProtectedRoute requiredPermissions={['system_settings']}>
-      {children}
-    </AdminProtectedRoute>
-  );
+    <AdminProtectedRoute requiredPermissions={['system_settings']}>{children}</AdminProtectedRoute>
+  )
 }

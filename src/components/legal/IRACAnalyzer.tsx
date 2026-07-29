@@ -1,149 +1,161 @@
-import React, { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui';
-import { Button, Textarea, Tabs, TabsList, TabsTrigger, TabsContent, Badge, Progress } from '@/components/ui';
-import { LoadingSpinner } from '@/components/ui';
-import { toast } from '@/components/ui/Toast';
-import { cn } from '@/lib/utils';
+import React, { useState } from 'react'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui'
+import {
+  Button,
+  Textarea,
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+  Badge,
+  Progress,
+} from '@/components/ui'
+import { LoadingSpinner } from '@/components/ui'
+import { toast } from '@/components/ui/Toast'
+import { cn } from '@/lib/utils'
 
 interface IRACAnalysis {
-  issue: string;
-  rule: string;
-  application: string;
-  conclusion: string;
-  confidence_score: number;
-  legal_references: string[];
-  analysis_notes: string;
-  difficulty_level: string;
-  processing_time: number;
+  issue: string
+  rule: string
+  application: string
+  conclusion: string
+  confidence_score: number
+  legal_references: string[]
+  analysis_notes: string
+  difficulty_level: string
+  processing_time: number
 }
 
 interface IRACEvaluation {
   component_scores: {
-    issue: number;
-    rule: number;
-    application: number;
-    conclusion: number;
-  };
-  overall_score: number;
-  strengths: string[];
-  weaknesses: string[];
-  recommendations: string[];
-  detailed_feedback: string;
+    issue: number
+    rule: number
+    application: number
+    conclusion: number
+  }
+  overall_score: number
+  strengths: string[]
+  weaknesses: string[]
+  recommendations: string[]
+  detailed_feedback: string
 }
 
 const IRACAnalyzer: React.FC = () => {
-  const [caseText, setCaseText] = useState('');
-  const [difficulty, setDifficulty] = useState<'beginner' | 'intermediate' | 'advanced' | 'expert'>('intermediate');
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [analysis, setAnalysis] = useState<IRACAnalysis | null>(null);
-  const [evaluation, setEvaluation] = useState<IRACEvaluation | null>(null);
-  const [activeTab, setActiveTab] = useState('input');
+  const [caseText, setCaseText] = useState('')
+  const [difficulty, setDifficulty] = useState<'beginner' | 'intermediate' | 'advanced' | 'expert'>(
+    'intermediate'
+  )
+  const [isAnalyzing, setIsAnalyzing] = useState(false)
+  const [analysis, setAnalysis] = useState<IRACAnalysis | null>(null)
+  const [evaluation, setEvaluation] = useState<IRACEvaluation | null>(null)
+  const [activeTab, setActiveTab] = useState('input')
 
   const handleAnalyze = async () => {
     if (!caseText.trim()) {
-      toast.error('Iltimos, toliq matn kiriting');
-      return;
+      toast.error('Iltimos, toliq matn kiriting')
+      return
     }
 
-    setIsAnalyzing(true);
-    setActiveTab('analysis');
+    setIsAnalyzing(true)
+    setActiveTab('analysis')
 
     try {
       // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise(resolve => setTimeout(resolve, 2000))
 
       // Mock analysis result
       const mockAnalysis: IRACAnalysis = {
         issue: "Shartnomani buzish qonuniy mas'ulati belgilanganmi?",
         rule: "O'zbekiston Respublikasi Fuqarolik kodeksining 330-moddasiga ko'ra, shartnoma tomonlari o'z majburiyatlarini tegishli ravishda bajarishi shart. Majburiyatning bajarilmay qolishi qonuniy asoslarga ega bo'lishi lozim.",
-        application: "Berilgan holatda, A tomon B tomonga to'lanadigan summani vaqtida to'lamagan, bu esa shartnomada belgilangan majburiyatning buzilishini tashkil etadi. Bunda to'lov muddati shartnomada aniq belgilangan bo'lib, A tomon ushbu muddatni rioya qilmagan.",
-        conclusion: "Shu sabablarga ko'ra, A tomon shartnoma shartlarini buzganligi uchun qonuniy javobgarlikka tortilishi va B tomonga yetkazilgan zarar uchun tovon puli to'lashi majburiy.",
+        application:
+          "Berilgan holatda, A tomon B tomonga to'lanadigan summani vaqtida to'lamagan, bu esa shartnomada belgilangan majburiyatning buzilishini tashkil etadi. Bunda to'lov muddati shartnomada aniq belgilangan bo'lib, A tomon ushbu muddatni rioya qilmagan.",
+        conclusion:
+          "Shu sabablarga ko'ra, A tomon shartnoma shartlarini buzganligi uchun qonuniy javobgarlikka tortilishi va B tomonga yetkazilgan zarar uchun tovon puli to'lashi majburiy.",
         confidence_score: 0.85,
         legal_references: [
-          "Fuqarolik kodeksi 330-moddasi",
-          "Fuqarolik kodeksi 367-moddasi",
-          "Shartnoma huquqi to'g'risidagi qonun"
+          'Fuqarolik kodeksi 330-moddasi',
+          'Fuqarolik kodeksi 367-moddasi',
+          "Shartnoma huquqi to'g'risidagi qonun",
         ],
-        analysis_notes: "Kompleks tahlil yuqori ishonch darajasida bajarildi. Asosiy qonuniy asoslar aniqlandi.",
+        analysis_notes:
+          'Kompleks tahlil yuqori ishonch darajasida bajarildi. Asosiy qonuniy asoslar aniqlandi.',
         difficulty_level: difficulty,
-        processing_time: 2.3
-      };
+        processing_time: 2.3,
+      }
 
-      setAnalysis(mockAnalysis);
+      setAnalysis(mockAnalysis)
 
       // Auto-evaluate
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 1000))
       const mockEvaluation: IRACEvaluation = {
         component_scores: {
           issue: 0.9,
           rule: 0.85,
           application: 0.8,
-          conclusion: 0.85
+          conclusion: 0.85,
         },
         overall_score: 85,
         strengths: [
-          "Aniq huquqiy muammoni aniqlash",
+          'Aniq huquqiy muammoni aniqlash',
           "To'g'ri qonun havolasini keltirish",
-          "Mantiqiy xulosa chiqarish"
+          'Mantiqiy xulosa chiqarish',
         ],
-        weaknesses: [
-          "Qo'shimcha dalillar keltirish kerak",
-          "Pretsedent holatlarni ko'rib chiqish"
-        ],
+        weaknesses: ["Qo'shimcha dalillar keltirish kerak", "Pretsedent holatlarni ko'rib chiqish"],
         recommendations: [
-          "Shartnoma buzilishining oqibatlarini batafsilroq tahlil qiling",
+          'Shartnoma buzilishining oqibatlarini batafsilroq tahlil qiling',
           " Sud amaliyotidagi o'xshash holatlarni keltiring",
-          " To'lov kechikishiga oid qo'shimcha qoidalar haqida ma'lumot bering"
+          " To'lov kechikishiga oid qo'shimcha qoidalar haqida ma'lumot bering",
         ],
-        detailed_feedback: "Sizning IRAC tahlilingiz yaxshi darajada bajarilgan. Huquqiy masala to'g'ri aniqlangan va qonun havolalari to'g'ri keltirilgan. Biroq, tahlilni yanada chuqurlashtirish uchun qo'shimcha dalillar va pretsedent holatlarni keltirish tavsiya etiladi."
-      };
+        detailed_feedback:
+          "Sizning IRAC tahlilingiz yaxshi darajada bajarilgan. Huquqiy masala to'g'ri aniqlangan va qonun havolalari to'g'ri keltirilgan. Biroq, tahlilni yanada chuqurlashtirish uchun qo'shimcha dalillar va pretsedent holatlarni keltirish tavsiya etiladi.",
+      }
 
-      setEvaluation(mockEvaluation);
-      toast.success('Tahlil muvaffaqiyatli yakunlandi');
-
+      setEvaluation(mockEvaluation)
+      toast.success('Tahlil muvaffaqiyatli yakunlandi')
     } catch (error) {
-      toast.error('Tahlil jarayonida xatolik yuz berdi');
-      console.error('Analysis error:', error);
+      toast.error('Tahlil jarayonida xatolik yuz berdi')
+      console.error('Analysis error:', error)
     } finally {
-      setIsAnalyzing(false);
+      setIsAnalyzing(false)
     }
-  };
+  }
 
   const handleEvaluate = async () => {
-    if (!analysis) return;
+    if (!analysis) return
 
     try {
       // Simulate evaluation API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // This would be replaced with actual evaluation
-      setActiveTab('evaluation');
-      toast.success('Baholash muvaffaqiyatli yakunlandi');
+      await new Promise(resolve => setTimeout(resolve, 1500))
 
+      // This would be replaced with actual evaluation
+      setActiveTab('evaluation')
+      toast.success('Baholash muvaffaqiyatli yakunlandi')
     } catch (error) {
-      toast.error('Baholash jarayonida xatolik yuz berdi');
+      toast.error('Baholash jarayonida xatolik yuz berdi')
     }
-  };
+  }
 
   const getScoreColor = (score: number) => {
-    if (score >= 90) return 'text-green-600';
-    if (score >= 80) return 'text-blue-600';
-    if (score >= 70) return 'text-yellow-600';
-    return 'text-red-600';
-  };
+    if (score >= 90) return 'text-green-600'
+    if (score >= 80) return 'text-blue-600'
+    if (score >= 70) return 'text-yellow-600'
+    return 'text-red-600'
+  }
 
   const getScoreBadge = (score: number) => {
-    if (score >= 90) return 'success';
-    if (score >= 80) return 'default';
-    if (score >= 70) return 'warning';
-    return 'destructive';
-  };
+    if (score >= 90) return 'success'
+    if (score >= 80) return 'default'
+    if (score >= 70) return 'warning'
+    return 'destructive'
+  }
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       <div className="text-center space-y-2">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-zinc-100">IRAC Tahlilchi</h1>
-        <p className="text-gray-600 dark:text-zinc-400">Huquqiy ishlarni IRAC metodologiyasi bo'yicha tahlil qiling</p>
+        <p className="text-gray-600 dark:text-zinc-400">
+          Huquqiy ishlarni IRAC metodologiyasi bo'yicha tahlil qiling
+        </p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
@@ -165,15 +177,15 @@ const IRACAnalyzer: React.FC = () => {
                   Qiyinlik darajasi
                 </label>
                 <div className="flex space-x-2">
-                  {(['beginner', 'intermediate', 'advanced', 'expert'] as const).map((level) => (
+                  {(['beginner', 'intermediate', 'advanced', 'expert'] as const).map(level => (
                     <Button
                       key={level}
                       variant={difficulty === level ? 'default' : 'outline'}
                       size="sm"
                       onClick={() => setDifficulty(level)}
                     >
-                      {level === 'beginner' && 'Boshlang\'ich'}
-                      {level === 'intermediate' && 'O\'rta'}
+                      {level === 'beginner' && "Boshlang'ich"}
+                      {level === 'intermediate' && "O'rta"}
                       {level === 'advanced' && 'Yuqori'}
                       {level === 'expert' && 'Ekspert'}
                     </Button>
@@ -188,14 +200,14 @@ const IRACAnalyzer: React.FC = () => {
                 <Textarea
                   placeholder="Huquqiy holatning to'liq tavsifini kiriting..."
                   value={caseText}
-                  onChange={(e) => setCaseText(e.target.value)}
+                  onChange={e => setCaseText(e.target.value)}
                   rows={8}
                   className="w-full"
                 />
               </div>
 
-              <Button 
-                onClick={handleAnalyze} 
+              <Button
+                onClick={handleAnalyze}
                 disabled={isAnalyzing || !caseText.trim()}
                 className="w-full"
                 size="lg"
@@ -219,7 +231,9 @@ const IRACAnalyzer: React.FC = () => {
               <CardContent className="flex items-center justify-center py-12">
                 <div className="text-center space-y-4">
                   <LoadingSpinner size="lg" />
-                  <p className="text-gray-600 dark:text-zinc-400">Tahlil jarayoni davom etmoqda...</p>
+                  <p className="text-gray-600 dark:text-zinc-400">
+                    Tahlil jarayoni davom etmoqda...
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -234,9 +248,7 @@ const IRACAnalyzer: React.FC = () => {
                       <Badge variant={getScoreBadge(analysis.confidence_score * 100)}>
                         {Math.round(analysis.confidence_score * 100)}% ishonch
                       </Badge>
-                      <Badge variant="outline">
-                        {analysis.difficulty_level}
-                      </Badge>
+                      <Badge variant="outline">{analysis.difficulty_level}</Badge>
                     </div>
                   </CardTitle>
                 </CardHeader>
@@ -252,7 +264,9 @@ const IRACAnalyzer: React.FC = () => {
                     </div>
                   </div>
                   <Progress value={analysis.confidence_score * 100} className="mb-2" />
-                  <p className="text-sm text-gray-600 dark:text-zinc-400">{analysis.analysis_notes}</p>
+                  <p className="text-sm text-gray-600 dark:text-zinc-400">
+                    {analysis.analysis_notes}
+                  </p>
                 </CardContent>
               </Card>
 
@@ -341,10 +355,15 @@ const IRACAnalyzer: React.FC = () => {
                     <div className="text-6xl font-bold text-gray-900 dark:text-zinc-100">
                       {evaluation.overall_score}
                     </div>
-                    <Badge variant={getScoreBadge(evaluation.overall_score)} className="text-lg px-4 py-2">
-                      {evaluation.overall_score >= 90 && 'A\'lo'}
+                    <Badge
+                      variant={getScoreBadge(evaluation.overall_score)}
+                      className="text-lg px-4 py-2"
+                    >
+                      {evaluation.overall_score >= 90 && "A'lo"}
                       {evaluation.overall_score >= 80 && evaluation.overall_score < 90 && 'Yaxshi'}
-                      {evaluation.overall_score >= 70 && evaluation.overall_score < 80 && 'Qoniqarli'}
+                      {evaluation.overall_score >= 70 &&
+                        evaluation.overall_score < 80 &&
+                        'Qoniqarli'}
                       {evaluation.overall_score < 70 && 'Qoniqarsiz'}
                     </Badge>
                     <Progress value={evaluation.overall_score} className="max-w-md mx-auto" />
@@ -364,7 +383,7 @@ const IRACAnalyzer: React.FC = () => {
                         <span className="capitalize font-medium">{component}</span>
                         <div className="flex items-center space-x-2">
                           <Progress value={score} className="w-32" />
-                          <span className={cn("font-semibold", getScoreColor(score))}>
+                          <span className={cn('font-semibold', getScoreColor(score))}>
                             {score}%
                           </span>
                         </div>
@@ -432,7 +451,9 @@ const IRACAnalyzer: React.FC = () => {
                   <CardTitle>Batafsil fikr-mulohazalar</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-700 dark:text-zinc-300 leading-relaxed">{evaluation.detailed_feedback}</p>
+                  <p className="text-gray-700 dark:text-zinc-300 leading-relaxed">
+                    {evaluation.detailed_feedback}
+                  </p>
                 </CardContent>
               </Card>
             </div>
@@ -456,20 +477,50 @@ const IRACAnalyzer: React.FC = () => {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Button variant="outline" className="h-20 flex-col">
-                  <svg className="w-8 h-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  <svg
+                    className="w-8 h-8 mb-2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    />
                   </svg>
                   PDF
                 </Button>
                 <Button variant="outline" className="h-20 flex-col">
-                  <svg className="w-8 h-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  <svg
+                    className="w-8 h-8 mb-2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    />
                   </svg>
                   Word
                 </Button>
                 <Button variant="outline" className="h-20 flex-col">
-                  <svg className="w-8 h-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  <svg
+                    className="w-8 h-8 mb-2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                    />
                   </svg>
                   JSON
                 </Button>
@@ -479,7 +530,7 @@ const IRACAnalyzer: React.FC = () => {
         </TabsContent>
       </Tabs>
     </div>
-  );
-};
+  )
+}
 
-export { IRACAnalyzer };
+export { IRACAnalyzer }

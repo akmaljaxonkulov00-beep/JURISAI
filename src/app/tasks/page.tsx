@@ -1,42 +1,65 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import { ArrowLeft, CheckCircle, Clock, AlertTriangle, FileText, Search, Filter, Plus, Calendar, User, Target, BookOpen, Award, RefreshCw, Bell, Edit3, Send } from 'lucide-react';
+import { useState } from 'react'
+import {
+  ArrowLeft,
+  CheckCircle,
+  Clock,
+  AlertTriangle,
+  FileText,
+  Search,
+  Filter,
+  Plus,
+  Calendar,
+  User,
+  Target,
+  BookOpen,
+  Award,
+  RefreshCw,
+  Bell,
+  Edit3,
+  Send,
+} from 'lucide-react'
 
 interface Task {
-  id: string;
-  title: string;
-  description: string;
-  type: 'case-study' | 'document-prep' | 'research';
-  difficulty: 'easy' | 'medium' | 'hard';
-  status: 'new' | 'in-progress' | 'completed' | 'submitted' | 'graded';
-  deadline: string;
-  maxScore: number;
-  currentScore?: number;
-  feedback?: string;
-  instructor?: string;
-  createdAt: string;
-  submittedAt?: string;
-  gradedAt?: string;
-  canResubmit: boolean;
-  priority: 'low' | 'medium' | 'high';
-  estimatedTime: number; // in hours
+  id: string
+  title: string
+  description: string
+  type: 'case-study' | 'document-prep' | 'research'
+  difficulty: 'easy' | 'medium' | 'hard'
+  status: 'new' | 'in-progress' | 'completed' | 'submitted' | 'graded'
+  deadline: string
+  maxScore: number
+  currentScore?: number
+  feedback?: string
+  instructor?: string
+  createdAt: string
+  submittedAt?: string
+  gradedAt?: string
+  canResubmit: boolean
+  priority: 'low' | 'medium' | 'high'
+  estimatedTime: number // in hours
 }
 
 export default function Tasks() {
-  const [selectedFilter, setSelectedFilter] = useState<'all' | 'new' | 'in-progress' | 'completed'>('all');
-  const [selectedType, setSelectedType] = useState<'all' | 'case-study' | 'document-prep' | 'research'>('all');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [showSubmissionModal, setShowSubmissionModal] = useState(false);
-  const [submissionContent, setSubmissionContent] = useState('');
+  const [selectedFilter, setSelectedFilter] = useState<'all' | 'new' | 'in-progress' | 'completed'>(
+    'all'
+  )
+  const [selectedType, setSelectedType] = useState<
+    'all' | 'case-study' | 'document-prep' | 'research'
+  >('all')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null)
+  const [showSubmissionModal, setShowSubmissionModal] = useState(false)
+  const [submissionContent, setSubmissionContent] = useState('')
 
   // Mock tasks data
   const tasks: Task[] = [
     {
       id: '1',
-      title: 'Jinoyat ishi #245 - O\'g\'irlik holati',
-      description: 'Berilgan faktlar asosida jinoyat ishini IRAC metodi bilan tahlil qiling. Tuman prokuraturasi tomonidan qo\'yilgan ayblovni o\'rganing.',
+      title: "Jinoyat ishi #245 - O'g'irlik holati",
+      description:
+        "Berilgan faktlar asosida jinoyat ishini IRAC metodi bilan tahlil qiling. Tuman prokuraturasi tomonidan qo'yilgan ayblovni o'rganing.",
       type: 'case-study',
       difficulty: 'medium',
       status: 'new',
@@ -45,12 +68,13 @@ export default function Tasks() {
       priority: 'high',
       estimatedTime: 3,
       createdAt: '2024-03-20',
-      canResubmit: false
+      canResubmit: false,
     },
     {
       id: '2',
-      title: 'Da\'vo arizasi loyihasi',
-      description: 'Tijorat shartnomasining buzilishi holati uchun da\'vo arizasi loyihasini tayyorlang. Ariza Fuqarolik protsessual kodeksiga muvofiq bo\'lishi kerak.',
+      title: "Da'vo arizasi loyihasi",
+      description:
+        "Tijorat shartnomasining buzilishi holati uchun da'vo arizasi loyihasini tayyorlang. Ariza Fuqarolik protsessual kodeksiga muvofiq bo'lishi kerak.",
       type: 'document-prep',
       difficulty: 'hard',
       status: 'in-progress',
@@ -59,50 +83,54 @@ export default function Tasks() {
       priority: 'high',
       estimatedTime: 4,
       createdAt: '2024-03-18',
-      canResubmit: false
+      canResubmit: false,
     },
     {
       id: '3',
-      title: 'Mehnat kodeksidagi o\'zgarishlar',
-      description: '2024-yilda Mehnat kodeksiga kiritilgan 3 ta asosiy o\'zgarishni toping, ularning mohiyatini izohlang va amaliy ahamiyatini tahlil qiling.',
+      title: "Mehnat kodeksidagi o'zgarishlar",
+      description:
+        "2024-yilda Mehnat kodeksiga kiritilgan 3 ta asosiy o'zgarishni toping, ularning mohiyatini izohlang va amaliy ahamiyatini tahlil qiling.",
       type: 'research',
       difficulty: 'medium',
       status: 'submitted',
       deadline: '2024-03-25',
       maxScore: 100,
       currentScore: 75,
-      feedback: 'Yaxshi tadqiqot, lekin amaliy misollar ko\'proq bo\'lishi kerak edi. Qayta topshirish imkoniyati bor.',
+      feedback:
+        "Yaxshi tadqiqot, lekin amaliy misollar ko'proq bo'lishi kerak edi. Qayta topshirish imkoniyati bor.",
       instructor: 'Prof. Dilora Nazarova',
       createdAt: '2024-03-15',
       submittedAt: '2024-03-24',
       gradedAt: '2024-03-25',
       canResubmit: true,
       priority: 'medium',
-      estimatedTime: 2
+      estimatedTime: 2,
     },
     {
       id: '4',
-      title: 'Oilaviy nizo - Aliment to\'lovi',
-      description: 'Oila kodeksiga muvofiq ravishda, aliment to\'lovi bo\'yicha da\'vo arizasi tayyorlang. Bolaning yoshi va ota-onaning daromadini hisobga oling.',
+      title: "Oilaviy nizo - Aliment to'lovi",
+      description:
+        "Oila kodeksiga muvofiq ravishda, aliment to'lovi bo'yicha da'vo arizasi tayyorlang. Bolaning yoshi va ota-onaning daromadini hisobga oling.",
       type: 'document-prep',
       difficulty: 'easy',
       status: 'graded',
       deadline: '2024-03-22',
       maxScore: 100,
       currentScore: 92,
-      feedback: 'A\'lo ish! Ariza to\'liq, qonunga muvofiq va barcha talablarni qondirdi.',
+      feedback: "A'lo ish! Ariza to'liq, qonunga muvofiq va barcha talablarni qondirdi.",
       instructor: 'Dr. Aziz Karimov',
       createdAt: '2024-03-10',
       submittedAt: '2024-03-21',
       gradedAt: '2024-03-22',
       canResubmit: false,
       priority: 'low',
-      estimatedTime: 2
+      estimatedTime: 2,
     },
     {
       id: '5',
       title: 'Xalqaro arbitraj qarori tahlili',
-      description: 'Berilgan xalqaro arbitraj qarorini tahlil qiling. Qarorning qonuniy asoslari, qo\'llanilgan xalqaro konvensiyalar va amaliy ahamiyatini izohlang.',
+      description:
+        "Berilgan xalqaro arbitraj qarorini tahlil qiling. Qarorning qonuniy asoslari, qo'llanilgan xalqaro konvensiyalar va amaliy ahamiyatini izohlang.",
       type: 'case-study',
       difficulty: 'hard',
       status: 'new',
@@ -111,139 +139,171 @@ export default function Tasks() {
       priority: 'medium',
       estimatedTime: 5,
       createdAt: '2024-03-22',
-      canResubmit: false
-    }
-  ];
+      canResubmit: false,
+    },
+  ]
 
   const getFilteredTasks = () => {
-    let filtered = tasks;
+    let filtered = tasks
 
     // Filter by status
     if (selectedFilter !== 'all') {
       filtered = filtered.filter(task => {
-        if (selectedFilter === 'new') return task.status === 'new';
-        if (selectedFilter === 'in-progress') return task.status === 'in-progress';
-        if (selectedFilter === 'completed') return ['completed', 'submitted', 'graded'].includes(task.status);
-        return true;
-      });
+        if (selectedFilter === 'new') return task.status === 'new'
+        if (selectedFilter === 'in-progress') return task.status === 'in-progress'
+        if (selectedFilter === 'completed')
+          return ['completed', 'submitted', 'graded'].includes(task.status)
+        return true
+      })
     }
 
     // Filter by type
     if (selectedType !== 'all') {
-      filtered = filtered.filter(task => task.type === selectedType);
+      filtered = filtered.filter(task => task.type === selectedType)
     }
 
     // Filter by search
     if (searchQuery) {
-      filtered = filtered.filter(task =>
-        task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        task.description.toLowerCase().includes(searchQuery.toLowerCase())
-      );
+      filtered = filtered.filter(
+        task =>
+          task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          task.description.toLowerCase().includes(searchQuery.toLowerCase())
+      )
     }
 
-    return filtered;
-  };
+    return filtered
+  }
 
   const getTaskTypeIcon = (type: string) => {
     switch (type) {
-      case 'case-study': return <FileText className="w-5 h-5" />;
-      case 'document-prep': return <Edit3 className="w-5 h-5" />;
-      case 'research': return <BookOpen className="w-5 h-5" />;
-      default: return <FileText className="w-5 h-5" />;
+      case 'case-study':
+        return <FileText className="w-5 h-5" />
+      case 'document-prep':
+        return <Edit3 className="w-5 h-5" />
+      case 'research':
+        return <BookOpen className="w-5 h-5" />
+      default:
+        return <FileText className="w-5 h-5" />
     }
-  };
+  }
 
   const getTaskTypeText = (type: string) => {
     switch (type) {
-      case 'case-study': return 'Keys tahlili';
-      case 'document-prep': return 'Hujjat tayyorlash';
-      case 'research': return 'Tadqiqot vazifasi';
-      default: return type;
+      case 'case-study':
+        return 'Keys tahlili'
+      case 'document-prep':
+        return 'Hujjat tayyorlash'
+      case 'research':
+        return 'Tadqiqot vazifasi'
+      default:
+        return type
     }
-  };
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'new': return 'bg-blue-100 text-blue-700';
-      case 'in-progress': return 'bg-yellow-100 text-yellow-700';
-      case 'submitted': return 'bg-purple-100 text-purple-700';
-      case 'graded': return 'bg-green-100 text-green-700';
-      default: return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-700 dark:text-zinc-300';
+      case 'new':
+        return 'bg-blue-100 text-blue-700'
+      case 'in-progress':
+        return 'bg-yellow-100 text-yellow-700'
+      case 'submitted':
+        return 'bg-purple-100 text-purple-700'
+      case 'graded':
+        return 'bg-green-100 text-green-700'
+      default:
+        return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-700 dark:text-zinc-300'
     }
-  };
+  }
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'new': return 'Yangi';
-      case 'in-progress': return 'Jarayonda';
-      case 'submitted': return 'Topshirilgan';
-      case 'graded': return 'Baholangan';
-      default: return status;
+      case 'new':
+        return 'Yangi'
+      case 'in-progress':
+        return 'Jarayonda'
+      case 'submitted':
+        return 'Topshirilgan'
+      case 'graded':
+        return 'Baholangan'
+      default:
+        return status
     }
-  };
+  }
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
-      case 'easy': return 'bg-green-100 text-green-700';
-      case 'medium': return 'bg-yellow-100 text-yellow-700';
-      case 'hard': return 'bg-red-100 text-red-700';
-      default: return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-700 dark:text-zinc-300';
+      case 'easy':
+        return 'bg-green-100 text-green-700'
+      case 'medium':
+        return 'bg-yellow-100 text-yellow-700'
+      case 'hard':
+        return 'bg-red-100 text-red-700'
+      default:
+        return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-700 dark:text-zinc-300'
     }
-  };
+  }
 
   const getDifficultyText = (difficulty: string) => {
     switch (difficulty) {
-      case 'easy': return 'Oson';
-      case 'medium': return 'O\'rta';
-      case 'hard': return 'Qiyin';
-      default: return difficulty;
+      case 'easy':
+        return 'Oson'
+      case 'medium':
+        return "O'rta"
+      case 'hard':
+        return 'Qiyin'
+      default:
+        return difficulty
     }
-  };
+  }
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'high': return 'bg-red-50 dark:bg-red-900/20';
-      case 'medium': return 'bg-yellow-50 dark:bg-yellow-900/20';
-      case 'low': return 'bg-green-50 dark:bg-green-900/20';
-      default: return 'bg-gray-50 dark:bg-zinc-800/500';
+      case 'high':
+        return 'bg-red-50 dark:bg-red-900/20'
+      case 'medium':
+        return 'bg-yellow-50 dark:bg-yellow-900/20'
+      case 'low':
+        return 'bg-green-50 dark:bg-green-900/20'
+      default:
+        return 'bg-gray-50 dark:bg-zinc-800/500'
     }
-  };
+  }
 
   const getDaysUntilDeadline = (deadline: string) => {
-    const today = new Date();
-    const deadlineDate = new Date(deadline);
-    const diffTime = deadlineDate.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays;
-  };
+    const today = new Date()
+    const deadlineDate = new Date(deadline)
+    const diffTime = deadlineDate.getTime() - today.getTime()
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+    return diffDays
+  }
 
   const getDeadlineColor = (deadline: string) => {
-    const days = getDaysUntilDeadline(deadline);
-    if (days <= 1) return 'text-red-600';
-    if (days <= 3) return 'text-yellow-600';
-    return 'text-green-600';
-  };
+    const days = getDaysUntilDeadline(deadline)
+    if (days <= 1) return 'text-red-600'
+    if (days <= 3) return 'text-yellow-600'
+    return 'text-green-600'
+  }
 
   const getNewTasksCount = () => {
-    return tasks.filter(task => task.status === 'new').length;
-  };
+    return tasks.filter(task => task.status === 'new').length
+  }
 
   const handleTaskStart = (taskId: string) => {
     // In a real app, this would update the task status
-    console.log('Starting task:', taskId);
-  };
+    console.log('Starting task:', taskId)
+  }
 
   const handleTaskSubmit = () => {
-    if (!selectedTask || !submissionContent.trim()) return;
-    
-    // In a real app, this would submit the task
-    console.log('Submitting task:', selectedTask.id, submissionContent);
-    setShowSubmissionModal(false);
-    setSubmissionContent('');
-    setSelectedTask(null);
-  };
+    if (!selectedTask || !submissionContent.trim()) return
 
-  const filteredTasks = getFilteredTasks();
+    // In a real app, this would submit the task
+    console.log('Submitting task:', selectedTask.id, submissionContent)
+    setShowSubmissionModal(false)
+    setSubmissionContent('')
+    setSelectedTask(null)
+  }
+
+  const filteredTasks = getFilteredTasks()
 
   if (selectedTask) {
     return (
@@ -259,20 +319,28 @@ export default function Tasks() {
                 <ArrowLeft className="w-5 h-5" />
                 <span>Orqaga</span>
               </button>
-              
+
               {/* Task Info */}
               <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 mb-6">
-                <h3 className="font-semibold text-gray-800 dark:text-zinc-200 mb-2">{selectedTask.title}</h3>
+                <h3 className="font-semibold text-gray-800 dark:text-zinc-200 mb-2">
+                  {selectedTask.title}
+                </h3>
                 <div className="space-y-2 text-sm">
                   <div className="flex items-center gap-2">
                     {getTaskTypeIcon(selectedTask.type)}
-                    <span className="text-gray-600 dark:text-zinc-400">{getTaskTypeText(selectedTask.type)}</span>
+                    <span className="text-gray-600 dark:text-zinc-400">
+                      {getTaskTypeText(selectedTask.type)}
+                    </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className={`px-2 py-1 rounded text-xs ${getDifficultyColor(selectedTask.difficulty)}`}>
+                    <span
+                      className={`px-2 py-1 rounded text-xs ${getDifficultyColor(selectedTask.difficulty)}`}
+                    >
                       {getDifficultyText(selectedTask.difficulty)}
                     </span>
-                    <span className="text-gray-600 dark:text-zinc-400">{selectedTask.estimatedTime} soat</span>
+                    <span className="text-gray-600 dark:text-zinc-400">
+                      {selectedTask.estimatedTime} soat
+                    </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-gray-600 dark:text-zinc-400" />
@@ -282,7 +350,7 @@ export default function Tasks() {
                   </div>
                 </div>
               </div>
-              
+
               {/* Actions */}
               <div className="space-y-2">
                 <button
@@ -305,14 +373,22 @@ export default function Tasks() {
             <header className="bg-white dark:bg-zinc-900 px-8 py-4 border-b border-gray-100 dark:border-zinc-800">
               <div className="flex items-center justify-between">
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-800 dark:text-zinc-200">{selectedTask.title}</h1>
-                  <p className="text-sm text-gray-600 dark:text-zinc-400">{getTaskTypeText(selectedTask.type)}</p>
+                  <h1 className="text-2xl font-bold text-gray-800 dark:text-zinc-200">
+                    {selectedTask.title}
+                  </h1>
+                  <p className="text-sm text-gray-600 dark:text-zinc-400">
+                    {getTaskTypeText(selectedTask.type)}
+                  </p>
                 </div>
                 <div className="flex items-center gap-4">
-                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(selectedTask.status)}`}>
+                  <span
+                    className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(selectedTask.status)}`}
+                  >
                     {getStatusText(selectedTask.status)}
                   </span>
-                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${getDifficultyColor(selectedTask.difficulty)}`}>
+                  <span
+                    className={`px-3 py-1 rounded-full text-sm font-medium ${getDifficultyColor(selectedTask.difficulty)}`}
+                  >
                     {getDifficultyText(selectedTask.difficulty)}
                   </span>
                 </div>
@@ -323,29 +399,37 @@ export default function Tasks() {
               <div className="max-w-4xl mx-auto">
                 <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-sm">
                   <div className="mb-6">
-                    <h2 className="text-lg font-bold text-gray-800 dark:text-zinc-200 mb-2">Topshiriq tavsifi</h2>
-                    <p className="text-gray-700 dark:text-zinc-300 leading-relaxed">{selectedTask.description}</p>
+                    <h2 className="text-lg font-bold text-gray-800 dark:text-zinc-200 mb-2">
+                      Topshiriq tavsifi
+                    </h2>
+                    <p className="text-gray-700 dark:text-zinc-300 leading-relaxed">
+                      {selectedTask.description}
+                    </p>
                   </div>
-                  
+
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
                     <div className="bg-gray-50 dark:bg-zinc-800/50 rounded-lg p-4">
                       <div className="flex items-center gap-2 mb-2">
                         <Target className="w-5 h-5 text-blue-600" />
-                        <span className="font-medium text-gray-800 dark:text-zinc-200">Maksimal ball</span>
+                        <span className="font-medium text-gray-800 dark:text-zinc-200">
+                          Maksimal ball
+                        </span>
                       </div>
                       <p className="text-2xl font-bold text-blue-600">{selectedTask.maxScore}</p>
                     </div>
-                    
+
                     <div className="bg-gray-50 dark:bg-zinc-800/50 rounded-lg p-4">
                       <div className="flex items-center gap-2 mb-2">
                         <Clock className="w-5 h-5 text-orange-600" />
-                        <span className="font-medium text-gray-800 dark:text-zinc-200">Tugash muddati</span>
+                        <span className="font-medium text-gray-800 dark:text-zinc-200">
+                          Tugash muddati
+                        </span>
                       </div>
                       <p className={`text-lg font-bold ${getDeadlineColor(selectedTask.deadline)}`}>
                         {selectedTask.deadline}
                       </p>
                     </div>
-                    
+
                     <div className="bg-gray-50 dark:bg-zinc-800/50 rounded-lg p-4">
                       <div className="flex items-center gap-2 mb-2">
                         <User className="w-5 h-5 text-purple-600" />
@@ -356,13 +440,17 @@ export default function Tasks() {
                       </p>
                     </div>
                   </div>
-                  
+
                   {selectedTask.feedback && (
                     <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
-                      <h3 className="font-bold text-gray-800 dark:text-zinc-200 mb-2">Oldingi feedback</h3>
+                      <h3 className="font-bold text-gray-800 dark:text-zinc-200 mb-2">
+                        Oldingi feedback
+                      </h3>
                       <p className="text-gray-700 dark:text-zinc-300">{selectedTask.feedback}</p>
                       {selectedTask.instructor && (
-                        <p className="text-sm text-gray-600 dark:text-zinc-400 mt-2">- {selectedTask.instructor}</p>
+                        <p className="text-sm text-gray-600 dark:text-zinc-400 mt-2">
+                          - {selectedTask.instructor}
+                        </p>
                       )}
                     </div>
                   )}
@@ -371,23 +459,27 @@ export default function Tasks() {
             </main>
           </div>
         </div>
-        
+
         {/* Submission Modal */}
         {showSubmissionModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 max-w-2xl mx-4 w-full">
-              <h3 className="text-lg font-bold text-gray-800 dark:text-zinc-200 mb-4">Topshiriqni topshirish</h3>
-              
+              <h3 className="text-lg font-bold text-gray-800 dark:text-zinc-200 mb-4">
+                Topshiriqni topshirish
+              </h3>
+
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">Javobingiz</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
+                  Javobingiz
+                </label>
                 <textarea
                   value={submissionContent}
-                  onChange={(e) => setSubmissionContent(e.target.value)}
+                  onChange={e => setSubmissionContent(e.target.value)}
                   placeholder="Topshiriq bo'yicha javobingizni bu yerga yozing..."
                   className="w-full h-32 px-4 py-2 border border-gray-200 dark:border-zinc-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
-              
+
               <div className="flex justify-end gap-3">
                 <button
                   onClick={() => setShowSubmissionModal(false)}
@@ -406,7 +498,7 @@ export default function Tasks() {
           </div>
         )}
       </div>
-    );
+    )
   }
 
   return (
@@ -415,11 +507,14 @@ export default function Tasks() {
         {/* Sidebar */}
         <div className="w-64 bg-white dark:bg-zinc-900 border-r border-gray-100 dark:border-zinc-800 min-h-screen">
           <div className="p-6">
-            <a href="/" className="flex items-center gap-3 px-3 py-2 text-gray-600 dark:text-zinc-400 hover:bg-gray-50 dark:bg-zinc-800/50 rounded-lg cursor-pointer mb-6">
+            <a
+              href="/"
+              className="flex items-center gap-3 px-3 py-2 text-gray-600 dark:text-zinc-400 hover:bg-gray-50 dark:bg-zinc-800/50 rounded-lg cursor-pointer mb-6"
+            >
               <ArrowLeft className="w-5 h-5" />
               <span>Orqaga</span>
             </a>
-            
+
             {/* Menu Items */}
             <nav className="space-y-2">
               <div className="flex items-center gap-3 px-3 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 rounded-lg">
@@ -441,17 +536,21 @@ export default function Tasks() {
           <header className="bg-white dark:bg-zinc-900 px-8 py-4 border-b border-gray-100 dark:border-zinc-800">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-gray-800 dark:text-zinc-200">Topshiriqlar</h1>
-                <p className="text-sm text-gray-600 dark:text-zinc-400">Nazorat punkti - barcha amaliy vazifalar</p>
+                <h1 className="text-2xl font-bold text-gray-800 dark:text-zinc-200">
+                  Topshiriqlar
+                </h1>
+                <p className="text-sm text-gray-600 dark:text-zinc-400">
+                  Nazorat punkti - barcha amaliy vazifalar
+                </p>
               </div>
-              
+
               <div className="flex items-center gap-4">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500 w-4 h-4" />
                   <input
                     type="text"
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={e => setSearchQuery(e.target.value)}
                     placeholder="Qidirish..."
                     className="pl-10 pr-4 py-2 bg-gray-50 dark:bg-zinc-800/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
@@ -505,7 +604,8 @@ export default function Tasks() {
                     : 'text-gray-600 dark:text-zinc-400 hover:bg-gray-100 dark:bg-zinc-800/30'
                 }`}
               >
-                Bajarilgan ({tasks.filter(t => ['completed', 'submitted', 'graded'].includes(t.status)).length})
+                Bajarilgan (
+                {tasks.filter(t => ['completed', 'submitted', 'graded'].includes(t.status)).length})
               </button>
             </div>
           </div>
@@ -569,38 +669,49 @@ export default function Tasks() {
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-3">
-                          <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${getStatusColor(task.status)}`}>
+                          <div
+                            className={`w-10 h-10 rounded-lg flex items-center justify-center ${getStatusColor(task.status)}`}
+                          >
                             {getTaskTypeIcon(task.type)}
                           </div>
                           <div>
-                            <h3 className="font-bold text-gray-800 dark:text-zinc-200 text-lg">{task.title}</h3>
-                            <p className="text-sm text-gray-600 dark:text-zinc-400">{getTaskTypeText(task.type)}</p>
+                            <h3 className="font-bold text-gray-800 dark:text-zinc-200 text-lg">
+                              {task.title}
+                            </h3>
+                            <p className="text-sm text-gray-600 dark:text-zinc-400">
+                              {getTaskTypeText(task.type)}
+                            </p>
                           </div>
                         </div>
-                        
+
                         <div className="flex items-center gap-2">
-                          <span className={`px-2 py-1 rounded text-xs font-medium ${getDifficultyColor(task.difficulty)}`}>
+                          <span
+                            className={`px-2 py-1 rounded text-xs font-medium ${getDifficultyColor(task.difficulty)}`}
+                          >
                             {getDifficultyText(task.difficulty)}
                           </span>
-                          <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(task.status)}`}>
+                          <span
+                            className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(task.status)}`}
+                          >
                             {getStatusText(task.status)}
                           </span>
-                          <div className={`w-2 h-2 rounded-full ${getPriorityColor(task.priority)}`}></div>
+                          <div
+                            className={`w-2 h-2 rounded-full ${getPriorityColor(task.priority)}`}
+                          ></div>
                         </div>
                       </div>
                     </div>
-                    
+
                     <p className="text-gray-700 dark:text-zinc-300 mb-4">{task.description}</p>
-                    
+
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-zinc-400">
                         <div className="flex items-center gap-1">
                           <Calendar className="w-4 h-4" />
                           <span className={getDeadlineColor(task.deadline)}>
-                            {getDaysUntilDeadline(task.deadline) > 0 
+                            {getDaysUntilDeadline(task.deadline) > 0
                               ? `${getDaysUntilDeadline(task.deadline)} kun qoldi`
-                              : 'Muddati o\'tgan'
-                            }
+                              : "Muddati o'tgan"}
                           </span>
                         </div>
                         <div className="flex items-center gap-1">
@@ -612,31 +723,31 @@ export default function Tasks() {
                           <span>{task.maxScore} ball</span>
                         </div>
                       </div>
-                      
+
                       {task.status === 'new' && (
                         <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleTaskStart(task.id);
+                          onClick={e => {
+                            e.stopPropagation()
+                            handleTaskStart(task.id)
                           }}
                           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                         >
                           Boshlash
                         </button>
                       )}
-                      
+
                       {task.status === 'in-progress' && (
                         <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedTask(task);
+                          onClick={e => {
+                            e.stopPropagation()
+                            setSelectedTask(task)
                           }}
                           className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700"
                         >
                           Davom ettirish
                         </button>
                       )}
-                      
+
                       {(task.status === 'submitted' || task.status === 'graded') && (
                         <div className="flex items-center gap-2">
                           {task.currentScore && (
@@ -646,9 +757,9 @@ export default function Tasks() {
                           )}
                           {task.canResubmit && (
                             <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedTask(task);
+                              onClick={e => {
+                                e.stopPropagation()
+                                setSelectedTask(task)
                               }}
                               className="px-3 py-1 bg-orange-600 text-white rounded-lg hover:bg-orange-700 text-sm"
                             >
@@ -658,7 +769,7 @@ export default function Tasks() {
                         </div>
                       )}
                     </div>
-                    
+
                     {task.feedback && (
                       <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                         <div className="flex items-center gap-2 mb-1">
@@ -667,21 +778,27 @@ export default function Tasks() {
                         </div>
                         <p className="text-sm text-gray-700 dark:text-zinc-300">{task.feedback}</p>
                         {task.instructor && (
-                          <p className="text-xs text-gray-600 dark:text-zinc-400 mt-1">- {task.instructor}</p>
+                          <p className="text-xs text-gray-600 dark:text-zinc-400 mt-1">
+                            - {task.instructor}
+                          </p>
                         )}
                       </div>
                     )}
                   </div>
                 ))}
               </div>
-              
+
               {filteredTasks.length === 0 && (
                 <div className="text-center py-12">
                   <div className="w-16 h-16 bg-gray-100 dark:bg-zinc-800/30 rounded-full flex items-center justify-center mx-auto mb-4">
                     <CheckCircle className="w-8 h-8 text-gray-400 dark:text-zinc-500" />
                   </div>
-                  <h3 className="text-lg font-medium text-gray-800 dark:text-zinc-200 mb-2">Topshiriqlar topilmadi</h3>
-                  <p className="text-gray-600 dark:text-zinc-400">Tanlangan filtrga mos topshiriqlar mavjud emas</p>
+                  <h3 className="text-lg font-medium text-gray-800 dark:text-zinc-200 mb-2">
+                    Topshiriqlar topilmadi
+                  </h3>
+                  <p className="text-gray-600 dark:text-zinc-400">
+                    Tanlangan filtrga mos topshiriqlar mavjud emas
+                  </p>
                 </div>
               )}
             </div>
@@ -689,5 +806,5 @@ export default function Tasks() {
         </div>
       </div>
     </div>
-  );
+  )
 }

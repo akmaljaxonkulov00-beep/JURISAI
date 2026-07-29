@@ -1,18 +1,18 @@
-import React from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui';
-import { Badge } from '@/components/ui';
-import { cn } from '@/lib/utils';
+import React from 'react'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui'
+import { Badge } from '@/components/ui'
+import { cn } from '@/lib/utils'
 
 interface ProgressChartProps {
-  title: string;
+  title: string
   data: Array<{
-    name: string;
-    value: number;
-    color?: string;
-  }>;
-  maxValue?: number;
-  showLabels?: boolean;
-  className?: string;
+    name: string
+    value: number
+    color?: string
+  }>
+  maxValue?: number
+  showLabels?: boolean
+  className?: string
 }
 
 const ProgressChart: React.FC<ProgressChartProps> = ({
@@ -20,24 +20,29 @@ const ProgressChart: React.FC<ProgressChartProps> = ({
   data,
   maxValue = 100,
   showLabels = true,
-  className
+  className,
 }) => {
   const getBarColor = (color?: string) => {
     switch (color) {
-      case 'success': return 'bg-green-50 dark:bg-green-900/20';
-      case 'warning': return 'bg-yellow-50 dark:bg-yellow-900/20';
-      case 'danger': return 'bg-red-50 dark:bg-red-900/20';
-      case 'info': return 'bg-blue-50 dark:bg-blue-900/20';
-      default: return 'bg-blue-50 dark:bg-blue-900/20';
+      case 'success':
+        return 'bg-green-50 dark:bg-green-900/20'
+      case 'warning':
+        return 'bg-yellow-50 dark:bg-yellow-900/20'
+      case 'danger':
+        return 'bg-red-50 dark:bg-red-900/20'
+      case 'info':
+        return 'bg-blue-50 dark:bg-blue-900/20'
+      default:
+        return 'bg-blue-50 dark:bg-blue-900/20'
     }
-  };
+  }
 
   const getBadgeColor = (value: number) => {
-    if (value >= 80) return 'success';
-    if (value >= 60) return 'default';
-    if (value >= 40) return 'warning';
-    return 'destructive';
-  };
+    if (value >= 80) return 'success'
+    if (value >= 60) return 'default'
+    if (value >= 40) return 'warning'
+    return 'destructive'
+  }
 
   return (
     <Card className={className}>
@@ -75,7 +80,7 @@ const ProgressChart: React.FC<ProgressChartProps> = ({
         </div>
       </CardContent>
     </Card>
-  );
-};
+  )
+}
 
-export { ProgressChart };
+export { ProgressChart }

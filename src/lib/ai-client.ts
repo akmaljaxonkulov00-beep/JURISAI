@@ -3,23 +3,24 @@
  * Uses Node.js https module directly to bypass SSL issues in development
  */
 
-const GROQ_API_KEY = process.env.GROQ_API_KEY || process.env.NEXT_PUBLIC_GROQ_API_KEY || 'YOUR_GROQ_API_KEY_HERE';
-const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
+const GROQ_API_KEY =
+  process.env.GROQ_API_KEY || process.env.NEXT_PUBLIC_GROQ_API_KEY || 'YOUR_GROQ_API_KEY_HERE'
+const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
 
 export interface AIRequest {
-  prompt: string;
-  systemPrompt?: string;
-  temperature?: number;
-  maxTokens?: number;
+  prompt: string
+  systemPrompt?: string
+  temperature?: number
+  maxTokens?: number
 }
 
 export interface AIResponse {
-  text: string;
+  text: string
   usage?: {
-    promptTokens: number;
-    completionTokens: number;
-    totalTokens: number;
-  };
+    promptTokens: number
+    completionTokens: number
+    totalTokens: number
+  }
 }
 
 // Make HTTPS request using Node.js native https module to bypass SSL issues
@@ -27,8 +28,8 @@ async function httpsRequest(url: string, options: any, body: string): Promise<an
   return new Promise((resolve, reject) => {
     try {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const https = require('https');
-      const urlObj = new URL(url);
+      const https = require('https')
+      const urlObj = new URL(url)
 
       const reqOptions = {
         hostname: urlObj.hostname,
@@ -36,55 +37,57 @@ async function httpsRequest(url: string, options: any, body: string): Promise<an
         method: options.method || 'POST',
         headers: options.headers,
         rejectUnauthorized: process.env.NODE_ENV === 'production', // Production da true, development da false
-      };
+      }
 
       const req = https.request(reqOptions, (res: any) => {
-        let data = '';
-        res.on('data', (chunk: any) => { data += chunk; });
+        let data = ''
+        res.on('data', (chunk: any) => {
+          data += chunk
+        })
         res.on('end', () => {
           try {
-            const parsed = JSON.parse(data);
+            const parsed = JSON.parse(data)
             if (res.statusCode >= 400) {
-              reject(new Error(`API Error ${res.statusCode}: ${parsed?.error?.message || data}`));
+              reject(new Error(`API Error ${res.statusCode}: ${parsed?.error?.message || data}`))
             } else {
-              resolve({ ok: true, status: res.statusCode, data: parsed });
+              resolve({ ok: true, status: res.statusCode, data: parsed })
             }
           } catch {
-            reject(new Error(`JSON parse error: ${data.substring(0, 200)}`));
+            reject(new Error(`JSON parse error: ${data.substring(0, 200)}`))
           }
-        });
-      });
+        })
+      })
 
-      req.on('error', (err: any) => reject(err));
-      req.write(body);
-      req.end();
+      req.on('error', (err: any) => reject(err))
+      req.write(body)
+      req.end()
     } catch (err) {
-      reject(err);
+      reject(err)
     }
-  });
+  })
 }
 
 export class AIClient {
-  private apiKey: string;
+  private apiKey: string
 
   constructor(apiKey?: string) {
-    this.apiKey = apiKey || GROQ_API_KEY;
+    this.apiKey = apiKey || GROQ_API_KEY
     if (!this.apiKey) {
-      console.warn('[!] GROQ_API_KEY not found');
+      console.warn('[!] GROQ_API_KEY not found')
     }
   }
 
   async chat(request: AIRequest): Promise<AIResponse> {
     if (!this.apiKey) {
-      throw new Error('GROQ_API_KEY sozlanmagan');
+      throw new Error('GROQ_API_KEY sozlanmagan')
     }
 
-    const messages: Array<{ role: string; content: string }> = [];
+    const messages: Array<{ role: string; content: string }> = []
 
     if (request.systemPrompt) {
-      messages.push({ role: 'system', content: request.systemPrompt });
+      messages.push({ role: 'system', content: request.systemPrompt })
     }
-    messages.push({ role: 'user', content: request.prompt });
+    messages.push({ role: 'user', content: request.prompt })
 
     const requestBody = JSON.stringify({
       model: 'llama-3.3-70b-versatile',
@@ -93,7 +96,7 @@ export class AIClient {
       max_tokens: request.maxTokens ?? 500,
       frequency_penalty: 0.6,
       presence_penalty: 0.3,
-    });
+    })
 
     try {
       const result = await httpsRequest(
@@ -101,18 +104,18 @@ export class AIClient {
         {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${this.apiKey}`,
+            Authorization: `Bearer ${this.apiKey}`,
             'Content-Type': 'application/json',
             'Content-Length': Buffer.byteLength(requestBody),
           },
         },
         requestBody
-      );
+      )
 
-      const data = result.data;
+      const data = result.data
 
       if (!data.choices?.[0]?.message?.content) {
-        throw new Error('AI dan javob olinmadi');
+        throw new Error('AI dan javob olinmadi')
       }
 
       return {
@@ -122,10 +125,10 @@ export class AIClient {
           completionTokens: data.usage?.completion_tokens || 0,
           totalTokens: data.usage?.total_tokens || 0,
         },
-      };
+      }
     } catch (error) {
-      if (error instanceof Error) throw error;
-      throw new Error('Groq API bilan bog\'lanishda xatolik');
+      if (error instanceof Error) throw error
+      throw new Error("Groq API bilan bog'lanishda xatolik")
     }
   }
 
@@ -156,14 +159,14 @@ QAT'IY QOIDALAR:
 - Punktlar • belgisi bilan
 - Maksimal 130 so'z
 - Sodda, tushunarli o'zbek tili
-- 4 ta bo'lim ham bo'lishi SHART`;
+- 4 ta bo'lim ham bo'lishi SHART`
 
     return this.chat({
       systemPrompt: context && context.trim() ? context : defaultPrompt,
       prompt: message,
       temperature: 0.15,
       maxTokens: 350,
-    });
+    })
   }
 
   // IRAC Analysis
@@ -173,7 +176,7 @@ QAT'IY QOIDALAR:
       prompt: `IRAC tahlil qiling:\n\n${caseText}\n\nFormat:\n**ISSUE:** [masala]\n**RULE:** [qoidalar]\n**APPLICATION:** [qo'llash]\n**CONCLUSION:** [xulosa]`,
       temperature: 0.3,
       maxTokens: 800,
-    });
+    })
   }
 
   // Document Generation
@@ -183,7 +186,7 @@ QAT'IY QOIDALAR:
       prompt: `"${docType}" hujjat yarating:\n\n${details}`,
       temperature: 0.2,
       maxTokens: 1500,
-    });
+    })
   }
 
   // Weakness Detection
@@ -193,7 +196,7 @@ QAT'IY QOIDALAR:
       prompt: `Argumentni tahlil qiling:\n\n${argument}\n\nFormat:\n**ZAIF TOMONLAR:**\n- ...\n**KUCHLI TOMONLAR:**\n- ...\n**TAKLIFLAR:**\n- ...`,
       temperature: 0.3,
       maxTokens: 600,
-    });
+    })
   }
 
   // Scenario Generation
@@ -203,7 +206,7 @@ QAT'IY QOIDALAR:
       prompt: `"${topic}" mavzusida "${difficulty}" darajasida stsenariy yarat.`,
       temperature: 0.7,
       maxTokens: 800,
-    });
+    })
   }
 
   // Court Simulation
@@ -213,10 +216,9 @@ QAT'IY QOIDALAR:
       prompt: `Sud jarayoni: ${caseDetails}`,
       temperature: 0.4,
       maxTokens: 600,
-    });
+    })
   }
 }
 
 // Singleton instance
-export const aiClient = new AIClient();
-
+export const aiClient = new AIClient()

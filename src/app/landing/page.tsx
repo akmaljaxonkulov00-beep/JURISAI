@@ -1,17 +1,17 @@
-'use client';
+'use client'
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { Badge } from '@/components/ui/Badge';
-import { 
-  Shield, 
-  Users, 
-  FileText, 
-  MessageSquare, 
-  TrendingUp, 
-  CheckCircle, 
+import React, { useState } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
+import { Badge } from '@/components/ui/Badge'
+import {
+  Shield,
+  Users,
+  FileText,
+  MessageSquare,
+  TrendingUp,
+  CheckCircle,
   ArrowRight,
   Star,
   Award,
@@ -27,75 +27,77 @@ import {
   Mail,
   Search,
   PlayCircle,
-  User
-} from 'lucide-react';
-import Link from 'next/link';
+  User,
+} from 'lucide-react'
+import Link from 'next/link'
 
 export default function LandingPage() {
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState('')
 
   const features = [
     {
       icon: Shield,
       title: 'Xavfsiz huquqiy yordam',
-      description: 'Professional advokatlar tomonidan yuqori sifatli huquqiy xizmatlar'
+      description: 'Professional advokatlar tomonidan yuqori sifatli huquqiy xizmatlar',
     },
     {
       icon: Users,
       title: 'Mijozlar bazasi',
-      description: 'O\'z mijozlaringizni boshqaring va ular bilan aloqada bo\'ling'
+      description: "O'z mijozlaringizni boshqaring va ular bilan aloqada bo'ling",
     },
     {
       icon: FileText,
       title: 'AI hujjatlar tahlili',
-      description: 'Sun\'iy intellekt yordamida chuqur hujjatlar tahlili'
+      description: "Sun'iy intellekt yordamida chuqur hujjatlar tahlili",
     },
     {
       icon: MessageSquare,
-      title: 'So\'rovlar boshqaruvi',
-      description: 'Mijoz so\'rovlarini tez va samarali boshqaring'
+      title: "So'rovlar boshqaruvi",
+      description: "Mijoz so'rovlarini tez va samarali boshqaring",
     },
     {
       icon: TrendingUp,
       title: 'Statistika va analitika',
-      description: 'Biznesingiz o\'sishini kuzatib boring'
+      description: "Biznesingiz o'sishini kuzatib boring",
     },
     {
       icon: Gavel,
       title: 'Yuridik maslahatlar',
-      description: 'O\'zbekiston qonunchiligi bo\'yicha to\'liq maslahatlar'
-    }
-  ];
+      description: "O'zbekiston qonunchiligi bo'yicha to'liq maslahatlar",
+    },
+  ]
 
   const lawyerBenefits = [
     'Mijozlar bazasini boshqarish',
     'AI yordamida hujjatlar tahlili',
-    'So\'rovlar tez qabul qilish',
+    "So'rovlar tez qabul qilish",
     'Daromadni kuzatish',
     'Professional tasvir',
-    '24/7 kirish imkoniyati'
-  ];
+    '24/7 kirish imkoniyati',
+  ]
 
   const testimonials = [
     {
       name: 'Ali Karimov',
       role: 'Advokat',
-      content: 'JURISAI mening amaliyatimni butunlay o\'zgartirdi. Endi mijozlarim bilan ishlash ancha osonlashdi.',
-      rating: 5
+      content:
+        "JURISAI mening amaliyatimni butunlay o'zgartirdi. Endi mijozlarim bilan ishlash ancha osonlashdi.",
+      rating: 5,
     },
     {
       name: 'Dilora Toshmatova',
       role: 'Yuridik maslahatchi',
       content: 'AI hujjatlar tahlili juda foydali. Vaqtimni tejaydi va xatoliklarni kamaytiradi.',
-      rating: 5
+      rating: 5,
     },
     {
       name: 'Botir Sobirov',
       role: 'Advokat',
-      content: 'Mijozlar so\'rovlarini boshqarish endi juda oson. Platforma juda qulay va professional.',
-      rating: 5
-    }
-  ];
+      content:
+        "Mijozlar so'rovlarini boshqarish endi juda oson. Platforma juda qulay va professional.",
+      rating: 5,
+    },
+  ]
 
   return (
     <div className="min-h-screen bg-white dark:bg-zinc-900 mobile-safe-top">
@@ -108,10 +110,30 @@ export default function LandingPage() {
               <span className="text-xl font-bold text-gray-900 dark:text-zinc-100">JURISAI</span>
             </div>
             <nav className="hidden md:flex space-x-8">
-              <a href="#features" className="text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100">Imkoniyatlar</a>
-              <a href="#lawyers" className="text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100">Advokatlar</a>
-              <a href="#testimonials" className="text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100">Fikrlar</a>
-              <a href="#pricing" className="text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100">Narxlar</a>
+              <a
+                href="#features"
+                className="text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100"
+              >
+                Imkoniyatlar
+              </a>
+              <a
+                href="#lawyers"
+                className="text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100"
+              >
+                Advokatlar
+              </a>
+              <a
+                href="#testimonials"
+                className="text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100"
+              >
+                Fikrlar
+              </a>
+              <a
+                href="#pricing"
+                className="text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100"
+              >
+                Narxlar
+              </a>
             </nav>
             <div className="flex space-x-4">
               <Link href="/lawyer-login">
@@ -138,8 +160,9 @@ export default function LandingPage() {
               <span className="text-blue-600"> zamonaviy darajaga olib chiqing</span>
             </h1>
             <p className="text-xl text-gray-600 dark:text-zinc-400 mb-8 max-w-3xl mx-auto">
-              JURISAI - bu O\'zbekiston advokatlari uchun mo\'ljallangan zamonaviy platforma. 
-              Mijozlar bazasini boshqaring, AI yordamida hujjatlarni tahliling va biznesingizni o\'stiring.
+              JURISAI - bu O\'zbekiston advokatlari uchun mo\'ljallangan zamonaviy platforma.
+              Mijozlar bazasini boshqaring, AI yordamida hujjatlarni tahliling va biznesingizni
+              o\'stiring.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/lawyer-register">
@@ -170,7 +193,7 @@ export default function LandingPage() {
               Advokatlar uchun yaratilgan to\'liq funksional platforma
             </p>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => (
               <Card key={index} className="text-center">
@@ -181,9 +204,7 @@ export default function LandingPage() {
                   <h3 className="text-xl font-semibold text-gray-900 dark:text-zinc-100 mb-2">
                     {feature.title}
                   </h3>
-                  <p className="text-gray-600 dark:text-zinc-400">
-                    {feature.description}
-                  </p>
+                  <p className="text-gray-600 dark:text-zinc-400">{feature.description}</p>
                 </CardContent>
               </Card>
             ))}
@@ -202,7 +223,7 @@ export default function LandingPage() {
               <p className="text-xl text-gray-600 dark:text-zinc-400 mb-8">
                 Bizning platforma advokatlar uchun barcha kerakli vositalarni taqdim etadi
               </p>
-              
+
               <div className="space-y-4">
                 {lawyerBenefits.map((benefit, index) => (
                   <div key={index} className="flex items-center">
@@ -211,7 +232,7 @@ export default function LandingPage() {
                   </div>
                 ))}
               </div>
-              
+
               <div className="mt-8">
                 <Link href="/lawyer-register">
                   <Button size="lg">
@@ -221,16 +242,14 @@ export default function LandingPage() {
                 </Link>
               </div>
             </div>
-            
+
             <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-8 text-white">
               <div className="text-center">
                 <BarChart3 className="w-16 h-16 mx-auto mb-4" />
-                <h3 className="text-2xl font-bold mb-4">
-                  Statistikalar va analitika
-                </h3>
+                <h3 className="text-2xl font-bold mb-4">Statistikalar va analitika</h3>
                 <p className="mb-6">
-                  O\'z ish faoliyatingizni raqamlarda ko\'ring va 
-                  biznes qarorlarini ma\'lumotlar asosida qabul qiling
+                  O\'z ish faoliyatingizni raqamlarda ko\'ring va biznes qarorlarini ma\'lumotlar
+                  asosida qabul qiling
                 </p>
                 <div className="grid grid-cols-2 gap-4 text-center">
                   <div>
@@ -259,7 +278,7 @@ export default function LandingPage() {
               Platformamizdan foydalanayotgan professional advokatlar fikrlari
             </p>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {testimonials.map((testimonial, index) => (
               <Card key={index}>
@@ -269,16 +288,18 @@ export default function LandingPage() {
                       <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
                     ))}
                   </div>
-                  <p className="text-gray-700 dark:text-zinc-300 mb-4">
-                    "{testimonial.content}"
-                  </p>
+                  <p className="text-gray-700 dark:text-zinc-300 mb-4">"{testimonial.content}"</p>
                   <div className="flex items-center">
                     <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
                       <User className="w-5 h-5 text-blue-600" />
                     </div>
                     <div>
-                      <div className="font-semibold text-gray-900 dark:text-zinc-100">{testimonial.name}</div>
-                      <div className="text-sm text-gray-600 dark:text-zinc-400">{testimonial.role}</div>
+                      <div className="font-semibold text-gray-900 dark:text-zinc-100">
+                        {testimonial.name}
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-zinc-400">
+                        {testimonial.role}
+                      </div>
                     </div>
                   </div>
                 </CardContent>
@@ -299,13 +320,21 @@ export default function LandingPage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/lawyer-register">
-              <Button size="lg" variant="outline" className="text-lg px-8 py-3 bg-white dark:bg-zinc-900 text-blue-600 border-white hover:bg-blue-50 dark:bg-blue-900/20">
+              <Button
+                size="lg"
+                variant="outline"
+                className="text-lg px-8 py-3 bg-white dark:bg-zinc-900 text-blue-600 border-white hover:bg-blue-50 dark:bg-blue-900/20"
+              >
                 <Briefcase className="w-5 h-5 mr-2" />
                 Ro\'yxatdan o\'tish
               </Button>
             </Link>
             <Link href="/lawyer-login">
-              <Button size="lg" variant="outline" className="text-lg px-8 py-3 bg-transparent text-white border-white hover:bg-blue-700">
+              <Button
+                size="lg"
+                variant="outline"
+                className="text-lg px-8 py-3 bg-transparent text-white border-white hover:bg-blue-700"
+              >
                 <ArrowRight className="w-5 h-5 mr-2" />
                 Kirish
               </Button>
@@ -327,25 +356,49 @@ export default function LandingPage() {
                 O\'zbekiston advokatlari uchun zamonaviy platforma
               </p>
             </div>
-            
+
             <div>
               <h3 className="font-semibold mb-4">Platforma</h3>
               <ul className="space-y-2 text-gray-400 dark:text-zinc-500">
-                <li><a href="#features" className="hover:text-white">Imkoniyatlar</a></li>
-                <li><a href="#lawyers" className="hover:text-white">Advokatlar</a></li>
-                <li><a href="#pricing" className="hover:text-white">Narxlar</a></li>
+                <li>
+                  <a href="#features" className="hover:text-white">
+                    Imkoniyatlar
+                  </a>
+                </li>
+                <li>
+                  <a href="#lawyers" className="hover:text-white">
+                    Advokatlar
+                  </a>
+                </li>
+                <li>
+                  <a href="#pricing" className="hover:text-white">
+                    Narxlar
+                  </a>
+                </li>
               </ul>
             </div>
-            
+
             <div>
               <h3 className="font-semibold mb-4">Huquqiy</h3>
               <ul className="space-y-2 text-gray-400 dark:text-zinc-500">
-                <li><a href="#" className="hover:text-white">Foydalanish shartlari</a></li>
-                <li><a href="#" className="hover:text-white">Maxfiylik siyosati</a></li>
-                <li><a href="#" className="hover:text-white">Qonunlar</a></li>
+                <li>
+                  <a href="#" className="hover:text-white">
+                    Foydalanish shartlari
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-white">
+                    Maxfiylik siyosati
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-white">
+                    Qonunlar
+                  </a>
+                </li>
               </ul>
             </div>
-            
+
             <div>
               <h3 className="font-semibold mb-4">Aloqa</h3>
               <ul className="space-y-2 text-gray-400 dark:text-zinc-500">
@@ -364,12 +417,12 @@ export default function LandingPage() {
               </ul>
             </div>
           </div>
-          
+
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400 dark:text-zinc-500">
             <p>&copy; 2024 JURISAI. Barcha huquqlar himoyalangan.</p>
           </div>
         </div>
       </footer>
     </div>
-  );
+  )
 }

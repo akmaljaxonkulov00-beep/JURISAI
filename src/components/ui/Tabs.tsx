@@ -1,50 +1,48 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { cn } from '@/lib/utils';
+import React, { createContext, useContext, useState, ReactNode } from 'react'
+import { cn } from '@/lib/utils'
 
 interface TabsContextType {
-  activeTab: string;
-  setActiveTab: (value: string) => void;
+  activeTab: string
+  setActiveTab: (value: string) => void
 }
 
-const TabsContext = createContext<TabsContextType | undefined>(undefined);
+const TabsContext = createContext<TabsContextType | undefined>(undefined)
 
 interface TabsProps {
-  defaultValue?: string;
-  value?: string;
-  onValueChange?: (value: string) => void;
-  children: ReactNode;
-  className?: string;
+  defaultValue?: string
+  value?: string
+  onValueChange?: (value: string) => void
+  children: ReactNode
+  className?: string
 }
 
-const Tabs: React.FC<TabsProps> = ({ 
-  defaultValue, 
-  value: controlledValue, 
-  onValueChange, 
-  children, 
-  className 
+const Tabs: React.FC<TabsProps> = ({
+  defaultValue,
+  value: controlledValue,
+  onValueChange,
+  children,
+  className,
 }) => {
-  const [internalValue, setInternalValue] = useState(defaultValue || '');
-  const activeTab = controlledValue !== undefined ? controlledValue : internalValue;
-  
+  const [internalValue, setInternalValue] = useState(defaultValue || '')
+  const activeTab = controlledValue !== undefined ? controlledValue : internalValue
+
   const setActiveTab = (newValue: string) => {
     if (controlledValue === undefined) {
-      setInternalValue(newValue);
+      setInternalValue(newValue)
     }
-    onValueChange?.(newValue);
-  };
+    onValueChange?.(newValue)
+  }
 
   return (
     <TabsContext.Provider value={{ activeTab, setActiveTab }}>
-      <div className={cn('w-full', className)}>
-        {children}
-      </div>
+      <div className={cn('w-full', className)}>{children}</div>
     </TabsContext.Provider>
-  );
-};
+  )
+}
 
-const TabsList: React.FC<{ className?: string; children: ReactNode }> = ({ 
-  className, 
-  children 
+const TabsList: React.FC<{ className?: string; children: ReactNode }> = ({
+  className,
+  children,
 }) => (
   <div
     className={cn(
@@ -54,23 +52,18 @@ const TabsList: React.FC<{ className?: string; children: ReactNode }> = ({
   >
     {children}
   </div>
-);
+)
 
 interface TabsTriggerProps {
-  value: string;
-  className?: string;
-  children: ReactNode;
-  disabled?: boolean;
+  value: string
+  className?: string
+  children: ReactNode
+  disabled?: boolean
 }
 
-const TabsTrigger: React.FC<TabsTriggerProps> = ({ 
-  value, 
-  className, 
-  children, 
-  disabled 
-}) => {
-  const { activeTab, setActiveTab } = useTabs();
-  const isActive = activeTab === value;
+const TabsTrigger: React.FC<TabsTriggerProps> = ({ value, className, children, disabled }) => {
+  const { activeTab, setActiveTab } = useTabs()
+  const isActive = activeTab === value
 
   return (
     <button
@@ -90,20 +83,20 @@ const TabsTrigger: React.FC<TabsTriggerProps> = ({
     >
       {children}
     </button>
-  );
-};
+  )
+}
 
 interface TabsContentProps {
-  value: string;
-  className?: string;
-  children: ReactNode;
+  value: string
+  className?: string
+  children: ReactNode
 }
 
 const TabsContent: React.FC<TabsContentProps> = ({ value, className, children }) => {
-  const { activeTab } = useTabs();
-  const isActive = activeTab === value;
+  const { activeTab } = useTabs()
+  const isActive = activeTab === value
 
-  if (!isActive) return null;
+  if (!isActive) return null
 
   return (
     <div
@@ -117,15 +110,15 @@ const TabsContent: React.FC<TabsContentProps> = ({ value, className, children })
     >
       {children}
     </div>
-  );
-};
-
-function useTabs(): TabsContextType {
-  const context = useContext(TabsContext);
-  if (!context) {
-    throw new Error('Tabs components must be used within a Tabs provider');
-  }
-  return context;
+  )
 }
 
-export { Tabs, TabsList, TabsTrigger, TabsContent, useTabs };
+function useTabs(): TabsContextType {
+  const context = useContext(TabsContext)
+  if (!context) {
+    throw new Error('Tabs components must be used within a Tabs provider')
+  }
+  return context
+}
+
+export { Tabs, TabsList, TabsTrigger, TabsContent, useTabs }

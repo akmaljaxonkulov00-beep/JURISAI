@@ -12,16 +12,7 @@ interface AccessibleInputProps extends React.InputHTMLAttributes<HTMLInputElemen
 
 const AccessibleInput = React.forwardRef<HTMLInputElement, AccessibleInputProps>(
   (
-    {
-      label,
-      error,
-      helperText,
-      hideLabel = false,
-      className,
-      required,
-      disabled,
-      ...props
-    },
+    { label, error, helperText, hideLabel = false, className, required, disabled, ...props },
     ref
   ) => {
     const inputId = useId()
@@ -64,30 +55,18 @@ const AccessibleInput = React.forwardRef<HTMLInputElement, AccessibleInputProps>
           disabled={disabled}
           aria-required={required}
           aria-invalid={hasError}
-          aria-describedby={
-            clsx(
-              hasError && errorId,
-              helperText && helperId
-            ) || undefined
-          }
+          aria-describedby={clsx(hasError && errorId, helperText && helperId) || undefined}
           {...props}
         />
 
         {helperText && !error && (
-          <p
-            id={helperId}
-            className="mt-1 text-sm text-gray-500 dark:text-zinc-500"
-          >
+          <p id={helperId} className="mt-1 text-sm text-gray-500 dark:text-zinc-500">
             {helperText}
           </p>
         )}
 
         {error && (
-          <p
-            id={errorId}
-            className="mt-1 text-sm text-red-600"
-            role="alert"
-          >
+          <p id={errorId} className="mt-1 text-sm text-red-600" role="alert">
             {error}
           </p>
         )}

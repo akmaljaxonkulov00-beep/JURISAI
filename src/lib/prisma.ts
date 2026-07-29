@@ -1,2 +1,2 @@
 // Stub - Prisma hozircha ishlatilmaydi
-export const prisma = {} as any;
+export const prisma = {} as any

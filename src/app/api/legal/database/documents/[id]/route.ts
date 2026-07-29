@@ -1,24 +1,18 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { NextRequest, NextResponse } from 'next/server'
+import { supabase } from '@/lib/supabase'
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = await params;
+    const { id } = await params
 
     if (!id) {
-      return NextResponse.json(
-        { error: 'Document ID talab qilinadi' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Document ID talab qilinadi' }, { status: 400 })
     }
 
     // Mock document details
     const mockDocument = {
       id: id,
-      title: 'O\'zbekiston Respublikasi Fuqarolik kodeksi',
+      title: "O'zbekiston Respublikasi Fuqarolik kodeksi",
       type: 'code',
       category: 'civil',
       content: `O\'zbekiston Respublikasi Fuqarolik kodeksi
@@ -55,50 +49,49 @@ Majburiyatni noto\'g\'ri bajarish oqibatida yetkazilgan zarar to\'liq qoplanishi
       related_documents: [
         {
           id: 'doc_2',
-          title: 'O\'zbekiston Respublikasi Mehnat kodeksi',
-          relation_type: 'related'
+          title: "O'zbekiston Respublikasi Mehnat kodeksi",
+          relation_type: 'related',
         },
         {
           id: 'doc_3',
-          title: 'O\'zbekiston Respublikasi Oilaviy kodeksi',
-          relation_type: 'related'
-        }
+          title: "O'zbekiston Respublikasi Oilaviy kodeksi",
+          relation_type: 'related',
+        },
       ],
       sections: [
         {
           id: 'section_1',
           title: 'Umumiy qoidalar',
           articles_range: '1-11',
-          description: 'Fuqarolik qonunchiligining asosiy tamoyillari'
+          description: 'Fuqarolik qonunchiligining asosiy tamoyillari',
         },
         {
           id: 'section_2',
           title: 'Shartnomalar',
           articles_range: '350-453',
-          description: 'Shartnomalar tuzilishi va bajarilishi qoidalari'
+          description: 'Shartnomalar tuzilishi va bajarilishi qoidalari',
         },
         {
           id: 'section_3',
           title: 'Majburiyatlar',
           articles_range: '454-653',
-          description: 'Majburiyatlar turlari va bajarilishi'
-        }
+          description: 'Majburiyatlar turlari va bajarilishi',
+        },
       ],
       popularity_score: 95,
       view_count: 15420,
       download_count: 3280,
       bookmark_count: 892,
       created_at: '2024-01-01T00:00:00Z',
-      updated_at: '2024-01-01T00:00:00Z'
-    };
+      updated_at: '2024-01-01T00:00:00Z',
+    }
 
-    return NextResponse.json(mockDocument);
-
+    return NextResponse.json(mockDocument)
   } catch (error) {
-    console.error('Legal document get error:', error);
+    console.error('Legal document get error:', error)
     return NextResponse.json(
       { error: 'Qonun hujjatini olishda xatolik yuz berdi' },
       { status: 500 }
-    );
+    )
   }
 }

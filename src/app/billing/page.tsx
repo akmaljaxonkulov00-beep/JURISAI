@@ -1,98 +1,152 @@
-'use client';
+'use client'
 
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/app/providers';
-import { useRouter } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
-import { ArrowLeft, Crown, Check, ChevronRight } from 'lucide-react';
-import Link from 'next/link';
+import { useState, useEffect } from 'react'
+import { useAuth } from '@/app/providers'
+import { useRouter } from 'next/navigation'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
+import { Badge } from '@/components/ui/Badge'
+import { ArrowLeft, Crown, Check, ChevronRight } from 'lucide-react'
+import Link from 'next/link'
 
 interface SubscriptionPlan {
-  id: string;
-  name: string;
-  slug: string;
-  description: string;
-  price: number;
-  currency: string;
-  billingCycle: string;
-  features: string[];
-  limits: Record<string, any>;
-  isActive: boolean;
-  isPublic: boolean;
+  id: string
+  name: string
+  slug: string
+  description: string
+  price: number
+  currency: string
+  billingCycle: string
+  features: string[]
+  limits: Record<string, any>
+  isActive: boolean
+  isPublic: boolean
 }
 
 interface UserSubscription {
-  id: string;
-  status: string;
-  currentPeriodStart: string;
-  currentPeriodEnd: string;
-  plan: SubscriptionPlan;
+  id: string
+  status: string
+  currentPeriodStart: string
+  currentPeriodEnd: string
+  plan: SubscriptionPlan
 }
 
 export default function Billing() {
-  const { user } = useAuth();
-  const router = useRouter();
-  const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
-  const [currentSubscription, setCurrentSubscription] = useState<UserSubscription | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { user } = useAuth()
+  const router = useRouter()
+  const [plans, setPlans] = useState<SubscriptionPlan[]>([])
+  const [currentSubscription, setCurrentSubscription] = useState<UserSubscription | null>(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetchPlans();
-    fetchCurrentSubscription();
-  }, []);
+    fetchPlans()
+    fetchCurrentSubscription()
+  }, [])
 
   const fetchPlans = async () => {
     const mockPlans: SubscriptionPlan[] = [
       {
-        id: '1', name: 'Bepul', slug: 'free',
-        description: 'Boshlang\'ich uchun bepul reja',
-        price: 0, currency: 'so\'m', billingCycle: 'monthly',
-        features: ['5 ta IRAC tahlili', 'Asosiy qonunlar bazasi', 'Cheklangan AI yordami', 'Community forum'],
+        id: '1',
+        name: 'Bepul',
+        slug: 'free',
+        description: "Boshlang'ich uchun bepul reja",
+        price: 0,
+        currency: "so'm",
+        billingCycle: 'monthly',
+        features: [
+          '5 ta IRAC tahlili',
+          'Asosiy qonunlar bazasi',
+          'Cheklangan AI yordami',
+          'Community forum',
+        ],
         limits: { iracAnalysis: 5, aiRequests: 10, lawSearch: 50 },
-        isActive: true, isPublic: true
+        isActive: true,
+        isPublic: true,
       },
       {
-        id: '2', name: 'Pro', slug: 'pro',
+        id: '2',
+        name: 'Pro',
+        slug: 'pro',
         description: 'Professional foydalanuvchilar uchun',
-        price: 100000, currency: 'so\'m', billingCycle: 'monthly',
-        features: ['Cheksiz IRAC tahlili', 'To\'liq qonunlar bazasi', 'AI yordami 24/7', 'Hujjat generatsiyasi', 'Sud simulyatori', 'Priority support'],
+        price: 100000,
+        currency: "so'm",
+        billingCycle: 'monthly',
+        features: [
+          'Cheksiz IRAC tahlili',
+          "To'liq qonunlar bazasi",
+          'AI yordami 24/7',
+          'Hujjat generatsiyasi',
+          'Sud simulyatori',
+          'Priority support',
+        ],
         limits: { iracAnalysis: -1, aiRequests: 500, lawSearch: -1, documentGeneration: 50 },
-        isActive: true, isPublic: true
+        isActive: true,
+        isPublic: true,
       },
       {
-        id: '3', name: 'Premium', slug: 'premium',
+        id: '3',
+        name: 'Premium',
+        slug: 'premium',
         description: 'Katta firmalar va advokatlar uchun',
-        price: 250000, currency: 'so\'m', billingCycle: 'monthly',
-        features: ['Barcha Pro xususiyatlari', 'Cheksiz AI so\'rovlari', 'Shaxsiy konsultatsiya', 'Team management', 'Custom integrations', 'VIP support', 'White label options'],
-        limits: { iracAnalysis: -1, aiRequests: -1, lawSearch: -1, documentGeneration: -1, teamMembers: 10 },
-        isActive: true, isPublic: true
-      }
-    ];
-    setPlans(mockPlans);
-  };
+        price: 250000,
+        currency: "so'm",
+        billingCycle: 'monthly',
+        features: [
+          'Barcha Pro xususiyatlari',
+          "Cheksiz AI so'rovlari",
+          'Shaxsiy konsultatsiya',
+          'Team management',
+          'Custom integrations',
+          'VIP support',
+          'White label options',
+        ],
+        limits: {
+          iracAnalysis: -1,
+          aiRequests: -1,
+          lawSearch: -1,
+          documentGeneration: -1,
+          teamMembers: 10,
+        },
+        isActive: true,
+        isPublic: true,
+      },
+    ]
+    setPlans(mockPlans)
+  }
 
   const fetchCurrentSubscription = async () => {
     try {
       const mockSubscription: UserSubscription = {
-        id: 'sub_123', status: 'ACTIVE',
+        id: 'sub_123',
+        status: 'ACTIVE',
         currentPeriodStart: '2024-01-01T00:00:00Z',
         currentPeriodEnd: '2024-02-01T00:00:00Z',
         plan: {
-          id: '2', name: 'Pro', slug: 'pro',
+          id: '2',
+          name: 'Pro',
+          slug: 'pro',
           description: 'Professional foydalanuvchilar uchun',
-          price: 100000, currency: 'so\'m', billingCycle: 'monthly',
-          features: ['Cheksiz IRAC tahlili', 'To\'liq qonunlar bazasi', 'AI yordami 24/7', 'Hujjat generatsiyasi', 'Sud simulyatori', 'Priority support'],
+          price: 100000,
+          currency: "so'm",
+          billingCycle: 'monthly',
+          features: [
+            'Cheksiz IRAC tahlili',
+            "To'liq qonunlar bazasi",
+            'AI yordami 24/7',
+            'Hujjat generatsiyasi',
+            'Sud simulyatori',
+            'Priority support',
+          ],
           limits: { iracAnalysis: -1, aiRequests: 500, lawSearch: -1, documentGeneration: 50 },
-          isActive: true, isPublic: true
-        }
-      };
-      setCurrentSubscription(mockSubscription);
+          isActive: true,
+          isPublic: true,
+        },
+      }
+      setCurrentSubscription(mockSubscription)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   if (loading) {
     return (
@@ -102,17 +156,22 @@ export default function Billing() {
           <p className="text-gray-500 dark:text-gray-400 dark:text-zinc-500">Yuklanmoqda...</p>
         </div>
       </div>
-    );
+    )
   }
 
   return (
     <div className="min-h-screen bg-page-custom mobile-safe-top py-8 md:py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-wrap items-center gap-3 mb-6 md:mb-8">
-          <Link href="/dashboard" className="flex items-center gap-2 px-3 py-2 text-gray-500 dark:text-gray-400 dark:text-zinc-500 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all">
+          <Link
+            href="/dashboard"
+            className="flex items-center gap-2 px-3 py-2 text-gray-500 dark:text-gray-400 dark:text-zinc-500 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all"
+          >
             <ArrowLeft className="w-4 h-4" /> <span className="text-sm font-medium">Orqaga</span>
           </Link>
-          <h1 className="text-xl md:text-2xl font-bold text-gray-800 dark:text-white">To\'lovlar</h1>
+          <h1 className="text-xl md:text-2xl font-bold text-gray-800 dark:text-white">
+            To\'lovlar
+          </h1>
         </div>
 
         {currentSubscription && (
@@ -127,13 +186,20 @@ export default function Billing() {
                     <Crown className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-800 dark:text-white">{currentSubscription.plan.name}</h3>
+                    <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
+                      {currentSubscription.plan.name}
+                    </h3>
                     <div className="flex items-center gap-2 mt-1">
-                      <Badge variant={currentSubscription.status === 'ACTIVE' ? 'default' : 'secondary'}>
-                        {currentSubscription.status === 'ACTIVE' ? 'Faol' : currentSubscription.status}
+                      <Badge
+                        variant={currentSubscription.status === 'ACTIVE' ? 'default' : 'secondary'}
+                      >
+                        {currentSubscription.status === 'ACTIVE'
+                          ? 'Faol'
+                          : currentSubscription.status}
                       </Badge>
                       <span className="text-sm text-gray-500 dark:text-gray-400 dark:text-zinc-500">
-                        Qayta yangilanadi: {new Date(currentSubscription.currentPeriodEnd).toLocaleDateString('uz-UZ')}
+                        Qayta yangilanadi:{' '}
+                        {new Date(currentSubscription.currentPeriodEnd).toLocaleDateString('uz-UZ')}
                       </span>
                     </div>
                   </div>
@@ -149,23 +215,34 @@ export default function Billing() {
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-          {plans.map((plan) => {
-            const isCurrentPlan = currentSubscription?.plan.id === plan.id;
+          {plans.map(plan => {
+            const isCurrentPlan = currentSubscription?.plan.id === plan.id
             return (
-              <Card key={plan.id} className={`card-default rounded-2xl relative ${isCurrentPlan ? 'ring-2 ring-blue-500' : ''}`}>
+              <Card
+                key={plan.id}
+                className={`card-default rounded-2xl relative ${isCurrentPlan ? 'ring-2 ring-blue-500' : ''}`}
+              >
                 {isCurrentPlan && (
                   <div className="absolute -top-3 right-4">
-                    <Badge variant="default" className="bg-blue-600">Joriy reja</Badge>
+                    <Badge variant="default" className="bg-blue-600">
+                      Joriy reja
+                    </Badge>
                   </div>
                 )}
                 <CardHeader>
                   <CardTitle className="text-center">
-                    <h3 className="text-2xl font-bold text-gray-800 dark:text-white">{plan.name}</h3>
+                    <h3 className="text-2xl font-bold text-gray-800 dark:text-white">
+                      {plan.name}
+                    </h3>
                     <p className="text-4xl font-bold text-blue-600 dark:text-blue-400 mt-2">
                       {plan.price.toLocaleString('uz-UZ')}
-                      <span className="text-lg text-gray-500 dark:text-gray-400 dark:text-zinc-500 font-normal">/{plan.billingCycle === 'monthly' ? 'oy' : 'yil'}</span>
+                      <span className="text-lg text-gray-500 dark:text-gray-400 dark:text-zinc-500 font-normal">
+                        /{plan.billingCycle === 'monthly' ? 'oy' : 'yil'}
+                      </span>
                     </p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 dark:text-zinc-500 mt-1">{plan.description}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 dark:text-zinc-500 mt-1">
+                      {plan.description}
+                    </p>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -183,15 +260,19 @@ export default function Billing() {
                       variant={isCurrentPlan ? 'outline' : 'default'}
                       disabled={isCurrentPlan}
                     >
-                      {isCurrentPlan ? 'Joriy reja' : plan.price > 0 ? 'To\'lov qilish' : 'Bepul reja'}
+                      {isCurrentPlan
+                        ? 'Joriy reja'
+                        : plan.price > 0
+                          ? "To'lov qilish"
+                          : 'Bepul reja'}
                     </Button>
                   </Link>
                 </CardContent>
               </Card>
-            );
+            )
           })}
         </div>
       </div>
     </div>
-  );
+  )
 }

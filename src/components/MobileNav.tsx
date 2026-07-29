@@ -1,18 +1,32 @@
-'use client';
+'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Scale, Building2, GitBranch, BookOpen, FileText, Wrench, Crown, Settings, HelpCircle, Shield, Moon, Sun, X, LogOut } from 'lucide-react';
-import { useTheme } from '@/context/ThemeContext';
-import { firebaseAuth } from '@/services/firebase-auth';
+import { useState, useEffect, useRef, useCallback } from 'react'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import {
+  LayoutDashboard,
+  Scale,
+  Building2,
+  GitBranch,
+  BookOpen,
+  FileText,
+  Wrench,
+  Crown,
+  Settings,
+  HelpCircle,
+  Shield,
+  Moon,
+  Sun,
+  X,
+  LogOut,
+} from 'lucide-react'
+import { useTheme } from '@/context/ThemeContext'
+import { firebaseAuth } from '@/services/firebase-auth'
 
 const NAV_GROUPS = [
   {
     title: 'Asosiy',
-    items: [
-      { href: '/dashboard', label: 'Bosh sahifa', icon: LayoutDashboard },
-    ]
+    items: [{ href: '/dashboard', label: 'Bosh sahifa', icon: LayoutDashboard }],
   },
   {
     title: 'Amaliyot',
@@ -20,7 +34,7 @@ const NAV_GROUPS = [
       { href: '/case-solver', label: 'IRAC Huquqiy Tahlil', icon: Scale },
       { href: '/virtual-court', label: 'Virtual Sud', icon: Building2 },
       { href: '/decision-tree', label: 'Qarorlar Daraxti', icon: GitBranch },
-    ]
+    ],
   },
   {
     title: 'Resurslar',
@@ -28,7 +42,7 @@ const NAV_GROUPS = [
       { href: '/legal-database', label: 'Qonunlar Bazasi', icon: BookOpen },
       { href: '/document-generator', label: 'Hujjat Generator', icon: FileText },
       { href: '/professional-tools', label: 'Asboblar', icon: Wrench },
-    ]
+    ],
   },
   {
     title: 'Shaxsiy',
@@ -37,72 +51,75 @@ const NAV_GROUPS = [
       { href: '/profile', label: 'Sozlamalar', icon: Settings },
       { href: '/help', label: 'Yordam', icon: HelpCircle },
       { href: '/admin', label: 'Admin Panel', icon: Shield },
-    ]
-  }
-];
+    ],
+  },
+]
 
-const SWIPE_THRESHOLD = 80; // px
+const SWIPE_THRESHOLD = 80 // px
 
 export default function MobileNav() {
-  const [open, setOpen] = useState(false);
-  const pathname = usePathname();
-  const { dark, toggle: toggleTheme } = useTheme();
-  const panelRef = useRef<HTMLDivElement>(null);
-  const touchStartX = useRef(0);
-  const touchStartY = useRef(0);
-  const isSwiping = useRef(false);
+  const [open, setOpen] = useState(false)
+  const pathname = usePathname()
+  const { dark, toggle: toggleTheme } = useTheme()
+  const panelRef = useRef<HTMLDivElement>(null)
+  const touchStartX = useRef(0)
+  const touchStartY = useRef(0)
+  const isSwiping = useRef(false)
 
   // ── Body scroll lock ─────────────────────────────────────────────
   useEffect(() => {
     if (open) {
-      document.body.style.overflow = 'hidden';
-      document.body.style.touchAction = 'none';
+      document.body.style.overflow = 'hidden'
+      document.body.style.touchAction = 'none'
     } else {
-      document.body.style.overflow = '';
-      document.body.style.touchAction = '';
+      document.body.style.overflow = ''
+      document.body.style.touchAction = ''
     }
     return () => {
-      document.body.style.overflow = '';
-      document.body.style.touchAction = '';
-    };
-  }, [open]);
+      document.body.style.overflow = ''
+      document.body.style.touchAction = ''
+    }
+  }, [open])
 
   // ── ESC key close ────────────────────────────────────────────────
   useEffect(() => {
-    if (!open) return;
+    if (!open) return
     const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false);
-    };
-    document.addEventListener('keydown', handleEsc);
-    return () => document.removeEventListener('keydown', handleEsc);
-  }, [open]);
+      if (e.key === 'Escape') setOpen(false)
+    }
+    document.addEventListener('keydown', handleEsc)
+    return () => document.removeEventListener('keydown', handleEsc)
+  }, [open])
 
   // ── Touch start on panel ─────────────────────────────────────────
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX;
-    touchStartY.current = e.touches[0].clientY;
-    isSwiping.current = true;
-  }, []);
+    touchStartX.current = e.touches[0].clientX
+    touchStartY.current = e.touches[0].clientY
+    isSwiping.current = true
+  }, [])
 
   // ── Touch move on panel ──────────────────────────────────────────
-  const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    if (!isSwiping.current || !open) return;
-    const dx = e.touches[0].clientX - touchStartX.current;
-    const dy = Math.abs(e.touches[0].clientY - touchStartY.current);
-    // Only close on horizontal swipe (ignore vertical scroll attempts)
-    if (dy > 30) {
-      isSwiping.current = false;
-      return;
-    }
-    if (dx < 0) return; // Only right-to-left swipe (panel is on the left)
-    // If swiped far enough, close
-    if (dx > SWIPE_THRESHOLD) {
-      setOpen(false);
-      isSwiping.current = false;
-    }
-  }, [open]);
+  const handleTouchMove = useCallback(
+    (e: React.TouchEvent) => {
+      if (!isSwiping.current || !open) return
+      const dx = e.touches[0].clientX - touchStartX.current
+      const dy = Math.abs(e.touches[0].clientY - touchStartY.current)
+      // Only close on horizontal swipe (ignore vertical scroll attempts)
+      if (dy > 30) {
+        isSwiping.current = false
+        return
+      }
+      if (dx < 0) return // Only right-to-left swipe (panel is on the left)
+      // If swiped far enough, close
+      if (dx > SWIPE_THRESHOLD) {
+        setOpen(false)
+        isSwiping.current = false
+      }
+    },
+    [open]
+  )
 
-  const close = useCallback(() => setOpen(false), []);
+  const close = useCallback(() => setOpen(false), [])
 
   return (
     <>
@@ -112,7 +129,16 @@ export default function MobileNav() {
         className="md:hidden fixed top-3 left-3 z-50 p-2 bg-white dark:bg-[#1a2332] border border-gray-200 dark:border-zinc-700 rounded-lg shadow-md"
         aria-label="Menyu ochish"
       >
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" className="text-gray-700 dark:text-zinc-300">
+        <svg
+          width="22"
+          height="22"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          className="text-gray-700 dark:text-zinc-300"
+        >
           <line x1="3" y1="6" x2="21" y2="6" />
           <line x1="3" y1="12" x2="21" y2="12" />
           <line x1="3" y1="18" x2="21" y2="18" />
@@ -172,22 +198,23 @@ export default function MobileNav() {
               </p>
               <div className="space-y-0.5">
                 {group.items.map(item => {
-                  const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
-                  const Icon = item.icon;
-                  return (                          <Link
-                              key={item.href}
-                              href={item.href}
-                              onClick={close}
-                              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                                isActive
-                                  ? 'bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 border border-blue-100 dark:border-blue-800'
-                                  : 'text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800/50'
-                              }`}
-                            >
+                  const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
+                  const Icon = item.icon
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={close}
+                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                        isActive
+                          ? 'bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 border border-blue-100 dark:border-blue-800'
+                          : 'text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800/50'
+                      }`}
+                    >
                       <Icon className="w-4.5 h-4.5 flex-shrink-0" />
                       <span>{item.label}</span>
                     </Link>
-                  );
+                  )
                 })}
               </div>
             </div>
@@ -196,8 +223,8 @@ export default function MobileNav() {
           {/* Logout Button */}
           <button
             onClick={async () => {
-              setOpen(false);
-              await firebaseAuth.signOut();
+              setOpen(false)
+              await firebaseAuth.signOut()
             }}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 mt-2"
           >
@@ -207,5 +234,5 @@ export default function MobileNav() {
         </div>
       </nav>
     </>
-  );
+  )
 }

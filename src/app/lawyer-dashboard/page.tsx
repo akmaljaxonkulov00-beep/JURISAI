@@ -1,22 +1,22 @@
-'use client';
+'use client'
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
-import { Progress } from '@/components/ui/Progress';
-import { Input } from '@/components/ui/Input';
-import { useAuth } from '@/app/providers';
-import { supabaseClient } from '@/lib/supabase-client';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { 
-  Users, 
-  FileText, 
-  MessageSquare, 
-  TrendingUp, 
-  Clock, 
-  Search, 
+import React, { useState, useEffect } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
+import { Badge } from '@/components/ui/Badge'
+import { Progress } from '@/components/ui/Progress'
+import { Input } from '@/components/ui/Input'
+import { useAuth } from '@/app/providers'
+import { supabaseClient } from '@/lib/supabase-client'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import {
+  Users,
+  FileText,
+  MessageSquare,
+  TrendingUp,
+  Clock,
+  Search,
   Filter,
   Plus,
   Eye,
@@ -37,71 +37,73 @@ import {
   Activity,
   ArrowLeft,
   Settings,
-  LogOut
-} from 'lucide-react';
+  LogOut,
+} from 'lucide-react'
 
 interface Client {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  caseType: string;
-  status: 'active' | 'pending' | 'completed';
-  createdAt: string;
-  lastContact: string;
-  totalCases: number;
-  revenue: number;
+  id: string
+  name: string
+  email: string
+  phone: string
+  caseType: string
+  status: 'active' | 'pending' | 'completed'
+  createdAt: string
+  lastContact: string
+  totalCases: number
+  revenue: number
 }
 
 interface ClientRequest {
-  id: string;
-  clientId: string;
-  clientName: string;
-  subject: string;
-  description: string;
-  urgency: 'low' | 'medium' | 'high';
-  status: 'pending' | 'in_progress' | 'completed';
-  createdAt: string;
-  category: string;
+  id: string
+  clientId: string
+  clientName: string
+  subject: string
+  description: string
+  urgency: 'low' | 'medium' | 'high'
+  status: 'pending' | 'in_progress' | 'completed'
+  createdAt: string
+  category: string
 }
 
 interface DocumentAnalysis {
-  id: string;
-  documentName: string;
-  documentType: string;
+  id: string
+  documentName: string
+  documentType: string
   analysisResult: {
-    summary: string;
-    keyPoints: string[];
-    risks: string[];
-    recommendations: string[];
-    legalReferences: string[];
-  };
-  confidence: number;
-  createdAt: string;
-  status: 'analyzing' | 'completed' | 'error';
+    summary: string
+    keyPoints: string[]
+    risks: string[]
+    recommendations: string[]
+    legalReferences: string[]
+  }
+  confidence: number
+  createdAt: string
+  status: 'analyzing' | 'completed' | 'error'
 }
 
 interface LawyerStats {
-  totalClients: number;
-  activeCases: number;
-  pendingRequests: number;
-  completedCases: number;
-  totalRevenue: number;
-  monthlyRevenue: number;
-  averageResponseTime: number;
-  clientSatisfaction: number;
+  totalClients: number
+  activeCases: number
+  pendingRequests: number
+  completedCases: number
+  totalRevenue: number
+  monthlyRevenue: number
+  averageResponseTime: number
+  clientSatisfaction: number
 }
 
 export default function LawyerDashboard() {
-  const { user } = useAuth();
-  const router = useRouter();
-  const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'overview' | 'clients' | 'requests' | 'documents'>('overview');
-  const [searchTerm, setSearchTerm] = useState('');
-  
-  const [clients, setClients] = useState<Client[]>([]);
-  const [requests, setRequests] = useState<ClientRequest[]>([]);
-  const [documents, setDocuments] = useState<DocumentAnalysis[]>([]);
+  const { user } = useAuth()
+  const router = useRouter()
+  const [loading, setLoading] = useState(true)
+  const [activeTab, setActiveTab] = useState<'overview' | 'clients' | 'requests' | 'documents'>(
+    'overview'
+  )
+  const [searchTerm, setSearchTerm] = useState('')
+
+  const [clients, setClients] = useState<Client[]>([])
+  const [requests, setRequests] = useState<ClientRequest[]>([])
+  const [documents, setDocuments] = useState<DocumentAnalysis[]>([])
   const [stats, setStats] = useState<LawyerStats>({
     totalClients: 0,
     activeCases: 0,
@@ -110,36 +112,36 @@ export default function LawyerDashboard() {
     totalRevenue: 0,
     monthlyRevenue: 0,
     averageResponseTime: 0,
-    clientSatisfaction: 0
-  });
+    clientSatisfaction: 0,
+  })
 
   useEffect(() => {
     if (user) {
-      loadLawyerData();
+      loadLawyerData()
     }
-  }, [user]);
+  }, [user])
 
   const loadLawyerData = async () => {
     try {
-      setLoading(true);
-      
+      setLoading(true)
+
       // Get lawyer profile
       const { data: lawyerProfile } = await supabaseClient
         .from('lawyers')
         .select('*')
         .eq('user_id', user?.id)
-        .single();
+        .single()
 
       if (!lawyerProfile) {
-        router.push('/lawyer-login');
-        return;
+        router.push('/lawyer-login')
+        return
       }
 
       // Set default empty data (no demo data)
-      setClients([]);
-      setRequests([]);
-      setDocuments([]);
-      
+      setClients([])
+      setRequests([])
+      setDocuments([])
+
       setStats({
         totalClients: 0,
         activeCases: 0,
@@ -148,42 +150,41 @@ export default function LawyerDashboard() {
         totalRevenue: 0,
         monthlyRevenue: 0,
         averageResponseTime: 0,
-        clientSatisfaction: 0
-      });
-
+        clientSatisfaction: 0,
+      })
     } catch (error) {
-      console.error('Lawyer data loading error:', error);
+      console.error('Lawyer data loading error:', error)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active':
       case 'completed':
-        return 'bg-green-100 text-green-800';
+        return 'bg-green-100 text-green-800'
       case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-yellow-100 text-yellow-800'
       case 'in_progress':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-blue-100 text-blue-800'
       default:
-        return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200';
+        return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200'
     }
-  };
+  }
 
   const getUrgencyColor = (urgency: string) => {
     switch (urgency) {
       case 'high':
-        return 'bg-red-100 text-red-800';
+        return 'bg-red-100 text-red-800'
       case 'medium':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-yellow-100 text-yellow-800'
       case 'low':
-        return 'bg-green-100 text-green-800';
+        return 'bg-green-100 text-green-800'
       default:
-        return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200';
+        return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200'
     }
-  };
+  }
 
   const renderOverview = () => (
     <div className="space-y-6">
@@ -193,8 +194,12 @@ export default function LawyerDashboard() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-zinc-400">Jami mijozlar</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-zinc-100">{stats.totalClients}</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-zinc-400">
+                  Jami mijozlar
+                </p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-zinc-100">
+                  {stats.totalClients}
+                </p>
               </div>
               <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
                 <Users className="w-6 h-6 text-blue-600" />
@@ -208,7 +213,9 @@ export default function LawyerDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600 dark:text-zinc-400">Faol ishlar</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-zinc-100">{stats.activeCases}</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-zinc-100">
+                  {stats.activeCases}
+                </p>
               </div>
               <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
                 <Activity className="w-6 h-6 text-green-600" />
@@ -221,8 +228,12 @@ export default function LawyerDashboard() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-zinc-400">Kutilayotgan so\'rovlar</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-zinc-100">{stats.pendingRequests}</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-zinc-400">
+                  Kutilayotgan so\'rovlar
+                </p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-zinc-100">
+                  {stats.pendingRequests}
+                </p>
               </div>
               <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
                 <MessageSquare className="w-6 h-6 text-yellow-600" />
@@ -235,8 +246,12 @@ export default function LawyerDashboard() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-zinc-400">Oylik daromad</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-zinc-100">{stats.monthlyRevenue.toLocaleString()} so\'m</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-zinc-400">
+                  Oylik daromad
+                </p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-zinc-100">
+                  {stats.monthlyRevenue.toLocaleString()} so\'m
+                </p>
               </div>
               <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
                 <DollarSign className="w-6 h-6 text-purple-600" />
@@ -254,15 +269,24 @@ export default function LawyerDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {(requests ?? []).slice(0, 3).map((request) => (
-                <div key={request.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-zinc-800/50 rounded-lg">
+              {(requests ?? []).slice(0, 3).map(request => (
+                <div
+                  key={request.id}
+                  className="flex items-center justify-between p-3 bg-gray-50 dark:bg-zinc-800/50 rounded-lg"
+                >
                   <div className="flex-1">
-                    <p className="font-medium text-gray-900 dark:text-zinc-100">{request.clientName}</p>
+                    <p className="font-medium text-gray-900 dark:text-zinc-100">
+                      {request.clientName}
+                    </p>
                     <p className="text-sm text-gray-600 dark:text-zinc-400">{request.subject}</p>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Badge className={getUrgencyColor(request.urgency)}>
-                      {request.urgency === 'high' ? 'Yuqori' : request.urgency === 'medium' ? 'O\'rta' : 'Past'}
+                      {request.urgency === 'high'
+                        ? 'Yuqori'
+                        : request.urgency === 'medium'
+                          ? "O'rta"
+                          : 'Past'}
                     </Badge>
                     <Button size="sm" variant="outline">
                       <Eye className="w-4 h-4" />
@@ -280,14 +304,25 @@ export default function LawyerDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {(documents ?? []).slice(0, 3).map((doc) => (
-                <div key={doc.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-zinc-800/50 rounded-lg">
+              {(documents ?? []).slice(0, 3).map(doc => (
+                <div
+                  key={doc.id}
+                  className="flex items-center justify-between p-3 bg-gray-50 dark:bg-zinc-800/50 rounded-lg"
+                >
                   <div className="flex-1">
-                    <p className="font-medium text-gray-900 dark:text-zinc-100">{doc.documentName}</p>
+                    <p className="font-medium text-gray-900 dark:text-zinc-100">
+                      {doc.documentName}
+                    </p>
                     <p className="text-sm text-gray-600 dark:text-zinc-400">{doc.documentType}</p>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Badge className={doc.status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}>
+                    <Badge
+                      className={
+                        doc.status === 'completed'
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-blue-100 text-blue-800'
+                      }
+                    >
                       {doc.status === 'completed' ? 'Tahlil qilindi' : 'Tahlil qilinmoqda'}
                     </Badge>
                     <Button size="sm" variant="outline">
@@ -301,7 +336,7 @@ export default function LawyerDashboard() {
         </Card>
       </div>
     </div>
-  );
+  )
 
   const renderClients = () => (
     <div className="space-y-6">
@@ -311,7 +346,7 @@ export default function LawyerDashboard() {
           <Input
             placeholder="Mijozlarni qidirish..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={e => setSearchTerm(e.target.value)}
             className="w-64"
           />
           <Button>
@@ -322,7 +357,7 @@ export default function LawyerDashboard() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {clients.map((client) => (
+        {clients.map(client => (
           <Card key={client.id}>
             <CardContent className="p-6">
               <div className="flex items-start justify-between mb-4">
@@ -331,10 +366,14 @@ export default function LawyerDashboard() {
                   <p className="text-sm text-gray-600 dark:text-zinc-400">{client.caseType}</p>
                 </div>
                 <Badge className={getStatusColor(client.status)}>
-                  {client.status === 'active' ? 'Faol' : client.status === 'pending' ? 'Kutilmoqda' : 'Tugallangan'}
+                  {client.status === 'active'
+                    ? 'Faol'
+                    : client.status === 'pending'
+                      ? 'Kutilmoqda'
+                      : 'Tugallangan'}
                 </Badge>
               </div>
-              
+
               <div className="space-y-2 text-sm text-gray-600 dark:text-zinc-400">
                 <div className="flex items-center">
                   <Mail className="w-4 h-4 mr-2" />
@@ -369,7 +408,7 @@ export default function LawyerDashboard() {
         ))}
       </div>
     </div>
-  );
+  )
 
   const renderRequests = () => (
     <div className="space-y-6">
@@ -379,7 +418,7 @@ export default function LawyerDashboard() {
           <Input
             placeholder="So\'rovlarni qidirish..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={e => setSearchTerm(e.target.value)}
             className="w-64"
           />
           <Button variant="outline">
@@ -390,26 +429,40 @@ export default function LawyerDashboard() {
       </div>
 
       <div className="space-y-4">
-        {requests.map((request) => (
+        {requests.map(request => (
           <Card key={request.id}>
             <CardContent className="p-6">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
                   <div className="flex items-center space-x-2 mb-2">
-                    <h3 className="font-semibold text-gray-900 dark:text-zinc-100">{request.subject}</h3>
+                    <h3 className="font-semibold text-gray-900 dark:text-zinc-100">
+                      {request.subject}
+                    </h3>
                     <Badge className={getUrgencyColor(request.urgency)}>
-                      {request.urgency === 'high' ? 'Yuqori' : request.urgency === 'medium' ? 'O\'rta' : 'Past'}
+                      {request.urgency === 'high'
+                        ? 'Yuqori'
+                        : request.urgency === 'medium'
+                          ? "O'rta"
+                          : 'Past'}
                     </Badge>
                     <Badge className={getStatusColor(request.status)}>
-                      {request.status === 'pending' ? 'Kutilmoqda' : request.status === 'in_progress' ? 'Jarayonda' : 'Tugallangan'}
+                      {request.status === 'pending'
+                        ? 'Kutilmoqda'
+                        : request.status === 'in_progress'
+                          ? 'Jarayonda'
+                          : 'Tugallangan'}
                     </Badge>
                   </div>
-                  <p className="text-sm text-gray-600 dark:text-zinc-400 mb-1">Mijoz: {request.clientName}</p>
-                  <p className="text-sm text-gray-600 dark:text-zinc-400 mb-1">Kategoriya: {request.category}</p>
+                  <p className="text-sm text-gray-600 dark:text-zinc-400 mb-1">
+                    Mijoz: {request.clientName}
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-zinc-400 mb-1">
+                    Kategoriya: {request.category}
+                  </p>
                   <p className="text-gray-700 dark:text-zinc-300">{request.description}</p>
                 </div>
               </div>
-              
+
               <div className="flex items-center justify-between">
                 <p className="text-sm text-gray-500 dark:text-zinc-500">{request.createdAt}</p>
                 <div className="flex space-x-2">
@@ -430,7 +483,7 @@ export default function LawyerDashboard() {
         ))}
       </div>
     </div>
-  );
+  )
 
   const renderDocuments = () => (
     <div className="space-y-6">
@@ -443,16 +496,24 @@ export default function LawyerDashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {documents.map((doc) => (
+        {documents.map(doc => (
           <Card key={doc.id}>
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg">{doc.documentName}</CardTitle>
                 <div className="flex items-center space-x-2">
-                  <Badge className={doc.status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}>
+                  <Badge
+                    className={
+                      doc.status === 'completed'
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-blue-100 text-blue-800'
+                    }
+                  >
                     {doc.status === 'completed' ? 'Tahlil qilindi' : 'Tahlil qilinmoqda'}
                   </Badge>
-                  <span className="text-sm text-gray-600 dark:text-zinc-400">{doc.confidence}% ishonch</span>
+                  <span className="text-sm text-gray-600 dark:text-zinc-400">
+                    {doc.confidence}% ishonch
+                  </span>
                 </div>
               </div>
             </CardHeader>
@@ -460,11 +521,15 @@ export default function LawyerDashboard() {
               <div className="space-y-4">
                 <div>
                   <h4 className="font-medium text-gray-900 dark:text-zinc-100 mb-2">Xulosa</h4>
-                  <p className="text-sm text-gray-600 dark:text-zinc-400">{doc.analysisResult.summary}</p>
+                  <p className="text-sm text-gray-600 dark:text-zinc-400">
+                    {doc.analysisResult.summary}
+                  </p>
                 </div>
-                
+
                 <div>
-                  <h4 className="font-medium text-gray-900 dark:text-zinc-100 mb-2">Asosiy nuqtalar</h4>
+                  <h4 className="font-medium text-gray-900 dark:text-zinc-100 mb-2">
+                    Asosiy nuqtalar
+                  </h4>
                   <ul className="text-sm text-gray-600 dark:text-zinc-400 space-y-1">
                     {doc.analysisResult.keyPoints.map((point, index) => (
                       <li key={index} className="flex items-start">
@@ -515,7 +580,7 @@ export default function LawyerDashboard() {
         ))}
       </div>
     </div>
-  );
+  )
 
   if (loading) {
     return (
@@ -525,7 +590,7 @@ export default function LawyerDashboard() {
           <p className="text-gray-600 dark:text-zinc-400">Yuklanmoqda...</p>
         </div>
       </div>
-    );
+    )
   }
 
   return (
@@ -535,11 +600,16 @@ export default function LawyerDashboard() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-4">
-              <Link href="/" className="text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100">
+              <Link
+                href="/"
+                className="text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100"
+              >
                 <ArrowLeft className="w-5 h-5" />
               </Link>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-zinc-100">Advokat Dashboard</h1>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-zinc-100">
+                  Advokat Dashboard
+                </h1>
                 <p className="text-sm text-gray-600 dark:text-zinc-400">Boshqaruv markazi</p>
               </div>
             </div>
@@ -562,11 +632,11 @@ export default function LawyerDashboard() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex space-x-8">
             {[
-              { id: 'overview', label: 'Umumiy ko\'rinish', icon: BarChart3 },
+              { id: 'overview', label: "Umumiy ko'rinish", icon: BarChart3 },
               { id: 'clients', label: 'Mijozlar', icon: Users },
-              { id: 'requests', label: 'So\'rovlar', icon: MessageSquare },
-              { id: 'documents', label: 'Hujjatlar', icon: FileText }
-            ].map((tab) => (
+              { id: 'requests', label: "So'rovlar", icon: MessageSquare },
+              { id: 'documents', label: 'Hujjatlar', icon: FileText },
+            ].map(tab => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
@@ -592,5 +662,5 @@ export default function LawyerDashboard() {
         {activeTab === 'documents' && renderDocuments()}
       </div>
     </div>
-  );
+  )
 }

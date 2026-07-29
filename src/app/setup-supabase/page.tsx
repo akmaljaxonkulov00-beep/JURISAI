@@ -1,50 +1,50 @@
-'use client';
+'use client'
 
-import React, { useState } from 'react';
+import React, { useState } from 'react'
 
 export default function SetupSupabasePage() {
   const [envVars, setEnvVars] = useState({
     NEXT_PUBLIC_SUPABASE_URL: '',
     NEXT_PUBLIC_SUPABASE_ANON_KEY: '',
-    SUPABASE_SERVICE_ROLE_KEY: ''
-  });
+    SUPABASE_SERVICE_ROLE_KEY: '',
+  })
 
-  const [saved, setSaved] = useState(false);
+  const [saved, setSaved] = useState(false)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEnvVars({
       ...envVars,
-      [e.target.name]: e.target.value
-    });
-  };
+      [e.target.name]: e.target.value,
+    })
+  }
 
   const handleSave = () => {
     // Save to localStorage for development
     Object.entries(envVars).forEach(([key, value]) => {
       if (value) {
-        localStorage.setItem(key, value);
+        localStorage.setItem(key, value)
       }
-    });
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
-  };
+    })
+    setSaved(true)
+    setTimeout(() => setSaved(false), 3000)
+  }
 
   const handleLoad = () => {
     setEnvVars({
       NEXT_PUBLIC_SUPABASE_URL: localStorage.getItem('NEXT_PUBLIC_SUPABASE_URL') || '',
       NEXT_PUBLIC_SUPABASE_ANON_KEY: localStorage.getItem('NEXT_PUBLIC_SUPABASE_ANON_KEY') || '',
-      SUPABASE_SERVICE_ROLE_KEY: localStorage.getItem('SUPABASE_SERVICE_ROLE_KEY') || ''
-    });
-  };
+      SUPABASE_SERVICE_ROLE_KEY: localStorage.getItem('SUPABASE_SERVICE_ROLE_KEY') || '',
+    })
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-zinc-800/50 mobile-safe-top p-4 md:p-8">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-3xl font-bold mb-8">Supabase Setup</h1>
-        
+
         <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-md p-6">
           <h2 className="text-xl font-semibold mb-4">Environment Variables</h2>
-          
+
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
@@ -59,7 +59,7 @@ export default function SetupSupabasePage() {
                 className="w-full px-4 py-2 border border-gray-300 dark:border-zinc-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
                 Supabase Anon Key
@@ -73,7 +73,7 @@ export default function SetupSupabasePage() {
                 className="w-full px-4 py-2 border border-gray-300 dark:border-zinc-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
                 Supabase Service Role Key
@@ -88,7 +88,7 @@ export default function SetupSupabasePage() {
               />
             </div>
           </div>
-          
+
           <div className="mt-6 flex gap-4">
             <button
               onClick={handleSave}
@@ -96,7 +96,7 @@ export default function SetupSupabasePage() {
             >
               Save to LocalStorage
             </button>
-            
+
             <button
               onClick={handleLoad}
               className="bg-gray-600 text-white px-6 py-2 rounded-lg hover:bg-gray-700"
@@ -104,18 +104,28 @@ export default function SetupSupabasePage() {
               Load from LocalStorage
             </button>
           </div>
-          
+
           {saved && (
             <div className="mt-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">
               Environment variables saved to localStorage!
             </div>
           )}
         </div>
-        
+
         <div className="mt-8 bg-blue-50 dark:bg-blue-900/20 rounded-lg p-6">
           <h3 className="text-lg font-semibold mb-4">How to get Supabase credentials:</h3>
           <ol className="list-decimal list-inside space-y-2 text-gray-700 dark:text-zinc-300">
-            <li>Go to <a href="https://supabase.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">supabase.com</a></li>
+            <li>
+              Go to{' '}
+              <a
+                href="https://supabase.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:underline"
+              >
+                supabase.com
+              </a>
+            </li>
             <li>Create a new project or select existing one</li>
             <li>Go to Project Settings → API</li>
             <li>Copy the Project URL (NEXT_PUBLIC_SUPABASE_URL)</li>
@@ -124,7 +134,7 @@ export default function SetupSupabasePage() {
             <li>Paste them here and click "Save to LocalStorage"</li>
           </ol>
         </div>
-        
+
         <div className="mt-8 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-6">
           <h3 className="text-lg font-semibold mb-4">Important Notes:</h3>
           <ul className="list-disc list-inside space-y-2 text-gray-700 dark:text-zinc-300">
@@ -137,5 +147,5 @@ export default function SetupSupabasePage() {
         </div>
       </div>
     </div>
-  );
+  )
 }

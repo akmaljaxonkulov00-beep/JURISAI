@@ -7,62 +7,62 @@
  * ═══════════════════════════════════════════════════════════════════════════
  */
 
-import { supabase } from '@/lib/supabase-browser';
+import { supabase } from '@/lib/supabase-browser'
 
 export interface AuthUser {
-  id: string;
-  email: string;
-  name: string;
-  role: 'USER' | 'ADMIN';
-  subscription_plan?: string;
-  subscription_expires_at?: string;
-  avatar?: string;
-  phone?: string;
+  id: string
+  email: string
+  name: string
+  role: 'USER' | 'ADMIN'
+  subscription_plan?: string
+  subscription_expires_at?: string
+  avatar?: string
+  phone?: string
 }
 
 // ── Admin configuration ───────────────────────────────────────────
-const ADMIN_SETTING_KEY = 'jurisai_admin_email';
-const SUPER_ADMIN_EMAIL = 'akmaljaxonkulov00@gmail.com';
+const ADMIN_SETTING_KEY = 'jurisai_admin_email'
+const SUPER_ADMIN_EMAIL = 'akmaljaxonkulov00@gmail.com'
 
 function checkIsAdmin(user: AuthUser): boolean {
-  if (user.role === 'ADMIN') return true;
-  if (user.email === SUPER_ADMIN_EMAIL) return true;
+  if (user.role === 'ADMIN') return true
+  if (user.email === SUPER_ADMIN_EMAIL) return true
   try {
-    const adminEmail = localStorage.getItem(ADMIN_SETTING_KEY);
-    if (adminEmail && user.email === adminEmail) return true;
+    const adminEmail = localStorage.getItem(ADMIN_SETTING_KEY)
+    if (adminEmail && user.email === adminEmail) return true
   } catch {}
-  return false;
+  return false
 }
 
 export function setAdminEmail(email: string) {
-  localStorage.setItem(ADMIN_SETTING_KEY, email);
+  localStorage.setItem(ADMIN_SETTING_KEY, email)
 }
 
 export function getAdminEmail(): string | null {
-  return localStorage.getItem(ADMIN_SETTING_KEY);
+  return localStorage.getItem(ADMIN_SETTING_KEY)
 }
 
 export function ensureSuperAdmin(user: AuthUser): AuthUser {
   if (user.email === SUPER_ADMIN_EMAIL) {
-    const adminUser = { ...user, role: 'ADMIN' as const };
-    setAdminEmail(user.email);
-    return adminUser;
+    const adminUser = { ...user, role: 'ADMIN' as const }
+    setAdminEmail(user.email)
+    return adminUser
   }
-  return user;
+  return user
 }
 
 export function makeCurrentUserAdmin(user: AuthUser): AuthUser {
-  const adminUser = { ...user, role: 'ADMIN' as const };
-  saveUserToLocal(adminUser);
-  setAdminEmail(user.email);
-  return adminUser;
+  const adminUser = { ...user, role: 'ADMIN' as const }
+  saveUserToLocal(adminUser)
+  setAdminEmail(user.email)
+  return adminUser
 }
 
 // ── Helpers ────────────────────────────────────────────────────────
 
 /** Map Supabase user to our AuthUser interface */
 function mapSupabaseUser(sbUser: any): AuthUser {
-  const meta = sbUser.user_metadata || {};
+  const meta = sbUser.user_metadata || {}
   return {
     id: sbUser.id,
     email: sbUser.email || '',
@@ -72,7 +72,7 @@ function mapSupabaseUser(sbUser: any): AuthUser {
     subscription_expires_at: meta.subscription_expires_at || undefined,
     avatar: sbUser.avatar || meta.avatar || undefined,
     phone: sbUser.phone || meta.phone || undefined,
-  };
+  }
 }
 
 async function logAuthEvent(email: string, method: string, userId?: string, success?: boolean) {
@@ -81,55 +81,66 @@ async function logAuthEvent(email: string, method: string, userId?: string, succ
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, method, userId, success }),
-    });
+    })
   } catch {}
 }
 
-export async function logUsage(userId: string, email: string, name: string, tokens: number, action: string, metadata?: Record<string, any>) {
+export async function logUsage(
+  userId: string,
+  email: string,
+  name: string,
+  tokens: number,
+  action: string,
+  metadata?: Record<string, any>
+) {
   try {
     await fetch('/api/log/usage', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ userId, email, name, tokens, action, metadata }),
-    });
+    })
   } catch {}
 }
 
 // ── Local persistence ────────────────────────────────────────────
 
 function saveUserToLocal(user: AuthUser) {
-  const elevatedUser = ensureSuperAdmin(user);
-  const effectiveRole = checkIsAdmin(elevatedUser) ? 'ADMIN' : elevatedUser.role;
-  const userWithRole = { ...elevatedUser, role: effectiveRole };
+  const elevatedUser = ensureSuperAdmin(user)
+  const effectiveRole = checkIsAdmin(elevatedUser) ? 'ADMIN' : elevatedUser.role
+  const userWithRole = { ...elevatedUser, role: effectiveRole }
   const userWithMeta = {
     ...userWithRole,
     created_at: new Date().toISOString(),
     last_login: new Date().toISOString(),
-  };
-  sessionStorage.setItem('jurisai_user', JSON.stringify(userWithMeta));
-  sessionStorage.setItem('auth_user', JSON.stringify(userWithMeta));
-  sessionStorage.setItem('auth_token', user.id);
+  }
+  sessionStorage.setItem('jurisai_user', JSON.stringify(userWithMeta))
+  sessionStorage.setItem('auth_user', JSON.stringify(userWithMeta))
+  sessionStorage.setItem('auth_token', user.id)
   if (typeof document !== 'undefined') {
-    document.cookie = `jurisai_auth=1; path=/; max-age=${24 * 60 * 60}; SameSite=Lax`;
+    document.cookie = `jurisai_auth=1; path=/; max-age=${24 * 60 * 60}; SameSite=Lax`
   }
 
   // Append to registered_users list for admin
   try {
-    const stored = localStorage.getItem('registered_users');
-    const users = stored ? JSON.parse(stored) : [];
-    const existingIdx = users.findIndex((u: any) => u.id === user.id || u.uid === user.id);
+    const stored = localStorage.getItem('registered_users')
+    const users = stored ? JSON.parse(stored) : []
+    const existingIdx = users.findIndex((u: any) => u.id === user.id || u.uid === user.id)
     if (existingIdx >= 0) {
-      users[existingIdx] = { ...users[existingIdx], ...userWithMeta, last_login: new Date().toISOString() };
+      users[existingIdx] = {
+        ...users[existingIdx],
+        ...userWithMeta,
+        last_login: new Date().toISOString(),
+      }
     } else {
-      users.push(userWithMeta);
+      users.push(userWithMeta)
     }
-    localStorage.setItem('registered_users', JSON.stringify(users));
+    localStorage.setItem('registered_users', JSON.stringify(users))
   } catch {}
 
   // Sync to Supabase registered_users
-  syncUserToSupabase(userWithMeta).catch(() => {});
+  syncUserToSupabase(userWithMeta).catch(() => {})
 
-  return userWithMeta;
+  return userWithMeta
 }
 
 async function syncUserToSupabase(user: AuthUser): Promise<void> {
@@ -144,21 +155,24 @@ async function syncUserToSupabase(user: AuthUser): Promise<void> {
         role: user.role,
         subscription_plan: user.subscription_plan || 'free',
       }),
-    });
+    })
   } catch {}
 }
 
 function clearUserFromLocal() {
-  sessionStorage.removeItem('jurisai_user');
-  sessionStorage.removeItem('auth_user');
-  sessionStorage.removeItem('auth_token');
-  localStorage.removeItem('profile_image');
+  sessionStorage.removeItem('jurisai_user')
+  sessionStorage.removeItem('auth_user')
+  sessionStorage.removeItem('auth_token')
+  localStorage.removeItem('profile_image')
 }
 
 // ── AUTH API ─────────────────────────────────────────────────────
 
-export async function signIn(email: string, password: string): Promise<{ success: boolean; data?: AuthUser; error?: string }> {
-  const normalizedEmail = email.trim().toLowerCase();
+export async function signIn(
+  email: string,
+  password: string
+): Promise<{ success: boolean; data?: AuthUser; error?: string }> {
+  const normalizedEmail = email.trim().toLowerCase()
 
   // Super admin bypass (for development / recovery)
   if (normalizedEmail === SUPER_ADMIN_EMAIL.trim().toLowerCase()) {
@@ -168,36 +182,40 @@ export async function signIn(email: string, password: string): Promise<{ success
       name: 'Super Admin',
       role: 'ADMIN',
       subscription_plan: 'pro',
-    };
-    saveUserToLocal(adminData);
-    logAuthEvent(SUPER_ADMIN_EMAIL, 'email', 'super-admin', true);
-    return { success: true, data: adminData };
+    }
+    saveUserToLocal(adminData)
+    logAuthEvent(SUPER_ADMIN_EMAIL, 'email', 'super-admin', true)
+    return { success: true, data: adminData }
   }
 
   try {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) throw error;
-    if (!data?.user) throw new Error('Foydalanuvchi topilmadi');
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+    if (error) throw error
+    if (!data?.user) throw new Error('Foydalanuvchi topilmadi')
 
-    const user = mapSupabaseUser(data.user);
-    saveUserToLocal(user);
-    logAuthEvent(email, 'email', user.id, true);
-    return { success: true, data: user };
+    const user = mapSupabaseUser(data.user)
+    saveUserToLocal(user)
+    logAuthEvent(email, 'email', user.id, true)
+    return { success: true, data: user }
   } catch (error: any) {
-    let message = 'Login xatosi yuz berdi';
-    const code = error?.message || error?.code || '';
+    let message = 'Login xatosi yuz berdi'
+    const code = error?.message || error?.code || ''
     if (code.includes('Invalid login credentials') || code.includes('invalid_credentials')) {
-      message = 'Email yoki parol noto\'g\'ri';
+      message = "Email yoki parol noto'g'ri"
     } else if (code.includes('Email not confirmed')) {
-      message = 'Email tasdiqlanmagan. Iltimos, pochtangizni tekshiring.';
+      message = 'Email tasdiqlanmagan. Iltimos, pochtangizni tekshiring.'
     } else if (code.includes('rate_limit')) {
-      message = 'Juda ko\'p urinishlar. Birozdan so\'ng qayta urinib ko\'ring.';
+      message = "Juda ko'p urinishlar. Birozdan so'ng qayta urinib ko'ring."
     }
-    return { success: false, error: message };
+    return { success: false, error: message }
   }
 }
 
-export async function signUp(email: string, password: string, name: string): Promise<{ success: boolean; data?: AuthUser; error?: string }> {
+export async function signUp(
+  email: string,
+  password: string,
+  name: string
+): Promise<{ success: boolean; data?: AuthUser; error?: string }> {
   try {
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -205,77 +223,92 @@ export async function signUp(email: string, password: string, name: string): Pro
       options: {
         data: { name, role: 'USER', subscription_plan: 'free' },
       },
-    });
-    if (error) throw error;
-    if (!data?.user) throw new Error('Ro\'yxatdan o\'tish xatosi');
+    })
+    if (error) throw error
+    if (!data?.user) throw new Error("Ro'yxatdan o'tish xatosi")
 
-    const user = mapSupabaseUser({ ...data.user, user_metadata: { name, role: 'USER', subscription_plan: 'free' } });
-    saveUserToLocal(user);
-    return { success: true, data: user };
+    const user = mapSupabaseUser({
+      ...data.user,
+      user_metadata: { name, role: 'USER', subscription_plan: 'free' },
+    })
+    saveUserToLocal(user)
+    return { success: true, data: user }
   } catch (error: any) {
-    let message = 'Ro\'yxatdan o\'tish xatosi';
-    const code = error?.message || error?.code || '';
-    if (code.includes('already registered') || code.includes('already_exists') || code.includes('duplicate')) {
-      message = 'Bu email allaqachon ro\'yxatdan o\'tgan';
+    let message = "Ro'yxatdan o'tish xatosi"
+    const code = error?.message || error?.code || ''
+    if (
+      code.includes('already registered') ||
+      code.includes('already_exists') ||
+      code.includes('duplicate')
+    ) {
+      message = "Bu email allaqachon ro'yxatdan o'tgan"
     } else if (code.includes('weak_password') || code.includes('6 characters')) {
-      message = 'Parol juda oddiy. Kamida 6 belgidan iborat bo\'lishi kerak';
+      message = "Parol juda oddiy. Kamida 6 belgidan iborat bo'lishi kerak"
     } else if (code.includes('invalid')) {
-      message = 'Email formati noto\'g\'ri';
+      message = "Email formati noto'g'ri"
     }
-    return { success: false, error: message };
+    return { success: false, error: message }
   }
 }
 
-export async function signInWithGoogle(): Promise<{ success: boolean; data?: AuthUser; error?: string }> {
+export async function signInWithGoogle(): Promise<{
+  success: boolean
+  data?: AuthUser
+  error?: string
+}> {
   try {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo: `${window.location.origin}/auth/callback`,
       },
-    });
-    if (error) throw error;
+    })
+    if (error) throw error
     if (data?.url) {
       // Redirect user to Google OAuth page
-      window.location.href = data.url;
-      return { success: true };
+      window.location.href = data.url
+      return { success: true }
     }
-    return { success: false, error: 'Google orqali kirishda xatolik' };
+    return { success: false, error: 'Google orqali kirishda xatolik' }
   } catch (error: any) {
-    return { success: false, error: error?.message || 'Google orqali kirishda xatolik yuz berdi' };
+    return { success: false, error: error?.message || 'Google orqali kirishda xatolik yuz berdi' }
   }
 }
 
-export async function handleRedirectResult(): Promise<{ success: boolean; data?: AuthUser; error?: string }> {
+export async function handleRedirectResult(): Promise<{
+  success: boolean
+  data?: AuthUser
+  error?: string
+}> {
   try {
-    const { data } = await supabase.auth.getSession();
+    const { data } = await supabase.auth.getSession()
     if (data?.session?.user) {
-      const user = mapSupabaseUser(data.session.user);
-      saveUserToLocal(user);
-      return { success: true, data: user };
+      const user = mapSupabaseUser(data.session.user)
+      saveUserToLocal(user)
+      return { success: true, data: user }
     }
-    return { success: false };
+    return { success: false }
   } catch (error: any) {
-    return { success: false, error: error?.message || 'Qayta yo\'naltirish xatosi' };
+    return { success: false, error: error?.message || "Qayta yo'naltirish xatosi" }
   }
 }
 
 export async function signOut(): Promise<void> {
   try {
-    const user = getCurrentUser();
-    if (user) logAuthEvent(user.email, 'logout', user.id, false);
-    await supabase.auth.signOut();
+    const user = getCurrentUser()
+    if (user) logAuthEvent(user.email, 'logout', user.id, false)
+    await supabase.auth.signOut()
   } catch {
     // Ignore signOut errors
   } finally {
     if (typeof window !== 'undefined') {
       // Clear auth-related data only, preserve user preferences
-      sessionStorage.removeItem('jurisai_user');
-      sessionStorage.removeItem('auth_user');
-      sessionStorage.removeItem('auth_token');
+      sessionStorage.removeItem('jurisai_user')
+      sessionStorage.removeItem('auth_user')
+      sessionStorage.removeItem('auth_token')
       // Clear cookie
-      document.cookie = 'jurisai_auth=; path=/; max-age=0; SameSite=Lax';
-      window.location.href = '/signin';
+      document.cookie = 'jurisai_auth=; path=/; max-age=0; SameSite=Lax'
+      window.location.href = '/signin'
     }
   }
 }
@@ -284,83 +317,91 @@ export async function resetPassword(email: string): Promise<{ success: boolean; 
   try {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/reset-password`,
-    });
-    if (error) throw error;
-    return { success: true };
+    })
+    if (error) throw error
+    return { success: true }
   } catch (error: any) {
-    let message = 'Parolni tiklashda xatolik';
+    let message = 'Parolni tiklashda xatolik'
     if (error?.message?.includes('not found')) {
-      message = 'Bu email ro\'yxatdan o\'tmagan';
+      message = "Bu email ro'yxatdan o'tmagan"
     }
-    return { success: false, error: message };
+    return { success: false, error: message }
   }
 }
 
-export async function updateProfile(updates: Partial<AuthUser>): Promise<{ success: boolean; error?: string }> {
+export async function updateProfile(
+  updates: Partial<AuthUser>
+): Promise<{ success: boolean; error?: string }> {
   try {
-    const userToUpdate: any = {};
-    if (updates.name) userToUpdate.name = updates.name;
-    if (updates.role) userToUpdate.role = updates.role;
-    if (updates.subscription_plan) userToUpdate.subscription_plan = updates.subscription_plan;
-    if (updates.phone) userToUpdate.phone = updates.phone;
-    if (updates.avatar) userToUpdate.avatar = updates.avatar;
+    const userToUpdate: any = {}
+    if (updates.name) userToUpdate.name = updates.name
+    if (updates.role) userToUpdate.role = updates.role
+    if (updates.subscription_plan) userToUpdate.subscription_plan = updates.subscription_plan
+    if (updates.phone) userToUpdate.phone = updates.phone
+    if (updates.avatar) userToUpdate.avatar = updates.avatar
 
-    const { error } = await supabase.auth.updateUser({ data: userToUpdate });
-    if (error) throw error;
+    const { error } = await supabase.auth.updateUser({ data: userToUpdate })
+    if (error) throw error
 
-    const storedUser = localStorage.getItem('auth_user');
-    const existingUser = storedUser ? JSON.parse(storedUser) : {};
-    const updatedUser = { ...existingUser, ...updates };
-    saveUserToLocal(updatedUser);
-    return { success: true };
+    const storedUser = localStorage.getItem('auth_user')
+    const existingUser = storedUser ? JSON.parse(storedUser) : {}
+    const updatedUser = { ...existingUser, ...updates }
+    saveUserToLocal(updatedUser)
+    return { success: true }
   } catch (error: any) {
-    return { success: false, error: error?.message || 'Profilni yangilash xatosi' };
+    return { success: false, error: error?.message || 'Profilni yangilash xatosi' }
   }
 }
 
 export function getCurrentUser(): AuthUser | null {
-  if (typeof window === 'undefined') return null;
-  const stored = sessionStorage.getItem('jurisai_user') || sessionStorage.getItem('auth_user');
+  if (typeof window === 'undefined') return null
+  const stored = sessionStorage.getItem('jurisai_user') || sessionStorage.getItem('auth_user')
   if (stored) {
-    try { return JSON.parse(stored); } catch { return null; }
+    try {
+      return JSON.parse(stored)
+    } catch {
+      return null
+    }
   }
-  return null;
+  return null
 }
 
 export function isAuthenticated(): boolean {
-  return !!getCurrentUser() && !!sessionStorage.getItem('auth_token');
+  return !!getCurrentUser() && !!sessionStorage.getItem('auth_token')
 }
 
 export function onAuthChange(callback: (user: AuthUser | null) => void): () => void {
   // First, check sessionStorage
-  const storedUser = getCurrentUser();
-  if (storedUser) callback(storedUser);
+  const storedUser = getCurrentUser()
+  if (storedUser) callback(storedUser)
 
   // Subscribe to Supabase auth state changes
-  const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+  const {
+    data: { subscription },
+  } = supabase.auth.onAuthStateChange((event, session) => {
     if (session?.user) {
-      const existingSession = getCurrentUser();
+      const existingSession = getCurrentUser()
       if (existingSession && existingSession.id === session.user.id) {
-        const upgradedUser = ensureSuperAdmin(existingSession);
+        const upgradedUser = ensureSuperAdmin(existingSession)
         if (upgradedUser.role !== existingSession.role) {
-          saveUserToLocal(upgradedUser);
-          callback(upgradedUser);
+          saveUserToLocal(upgradedUser)
+          callback(upgradedUser)
         } else {
-          callback(existingSession);
+          callback(existingSession)
         }
-        return;
+        return
       }
-      const user = mapSupabaseUser(session.user);
-      const elevatedUser = ensureSuperAdmin(user);
-      const savedUser = saveUserToLocal(elevatedUser);
-      callback(savedUser);
+      const user = mapSupabaseUser(session.user)
+      const elevatedUser = ensureSuperAdmin(user)
+      const savedUser = saveUserToLocal(elevatedUser)
+      callback(savedUser)
     } else {
-      clearUserFromLocal();
-      callback(null);
+      clearUserFromLocal()
+      callback(null)
     }
-  });
+  })
 
-  return () => subscription.unsubscribe();
+  return () => subscription.unsubscribe()
 }
 
 export const firebaseAuth = {
@@ -374,4 +415,4 @@ export const firebaseAuth = {
   getCurrentUser,
   isAuthenticated,
   onAuthChange,
-};
+}

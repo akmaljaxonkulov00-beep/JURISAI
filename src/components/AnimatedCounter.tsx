@@ -1,16 +1,16 @@
-'use client';
+'use client'
 
-import { useEffect } from 'react';
-import { motion, useSpring, useTransform, useMotionValue } from 'framer-motion';
+import { useEffect } from 'react'
+import { motion, useSpring, useTransform, useMotionValue } from 'framer-motion'
 
 interface AnimatedCounterProps {
-  value: number;
-  suffix?: string;
-  prefix?: string;
-  stiffness?: number;
-  damping?: number;
-  className?: string;
-  compact?: boolean;
+  value: number
+  suffix?: string
+  prefix?: string
+  stiffness?: number
+  damping?: number
+  className?: string
+  compact?: boolean
 }
 
 /**
@@ -31,25 +31,25 @@ export default function AnimatedCounter({
   className = '',
   compact = false,
 }: AnimatedCounterProps) {
-  const motionValue = useMotionValue(0);
+  const motionValue = useMotionValue(0)
 
-  const springValue = useSpring(motionValue, { stiffness, damping });
+  const springValue = useSpring(motionValue, { stiffness, damping })
 
-  const displayValue = useTransform(springValue, (latest) => {
-    const rounded = Math.round(latest);
-    const formatted = compact ? formatCompact(rounded) : rounded.toLocaleString();
-    return `${prefix}${formatted}${suffix}`;
-  });
+  const displayValue = useTransform(springValue, latest => {
+    const rounded = Math.round(latest)
+    const formatted = compact ? formatCompact(rounded) : rounded.toLocaleString()
+    return `${prefix}${formatted}${suffix}`
+  })
 
   useEffect(() => {
-    motionValue.set(value);
-  }, [value, motionValue]);
+    motionValue.set(value)
+  }, [value, motionValue])
 
-  return <motion.span className={className}>{displayValue}</motion.span>;
+  return <motion.span className={className}>{displayValue}</motion.span>
 }
 
 function formatCompact(num: number): string {
-  if (num >= 1_000_000) return (num / 1_000_000).toFixed(1).replace(/\.0$/, '') + 'M';
-  if (num >= 1_000) return (num / 1_000).toFixed(1).replace(/\.0$/, '') + 'K';
-  return num.toString();
+  if (num >= 1_000_000) return (num / 1_000_000).toFixed(1).replace(/\.0$/, '') + 'M'
+  if (num >= 1_000) return (num / 1_000).toFixed(1).replace(/\.0$/, '') + 'K'
+  return num.toString()
 }

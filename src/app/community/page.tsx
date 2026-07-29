@@ -1,160 +1,241 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
+import { useState } from 'react'
 import {
-  ArrowLeft, Users, MessageCircle, ThumbsUp, ThumbsDown, TrendingUp,
-  Calendar, Star, Verified, Search, Plus, Filter, Award, Video, Clock, Eye,
-  UserCircle, Trash2, Edit3, X, Send, Bell, ChevronLeft, ChevronRight, Hash, Gavel
-} from 'lucide-react';
-import { useCommunity, CommunityPost } from '@/hooks/useCommunity';
+  ArrowLeft,
+  Users,
+  MessageCircle,
+  ThumbsUp,
+  ThumbsDown,
+  TrendingUp,
+  Calendar,
+  Star,
+  Verified,
+  Search,
+  Plus,
+  Filter,
+  Award,
+  Video,
+  Clock,
+  Eye,
+  UserCircle,
+  Trash2,
+  Edit3,
+  X,
+  Send,
+  Bell,
+  ChevronLeft,
+  ChevronRight,
+  Hash,
+  Gavel,
+} from 'lucide-react'
+import { useCommunity, CommunityPost } from '@/hooks/useCommunity'
 
 export default function Community() {
   const {
-    posts, allPosts, totalPosts, totalPages, page,
-    currentUser, notifications, unreadCount, loading, error,
-    createPost, updatePost, deletePost,
-    toggleLike, toggleDislike, addComment, deleteComment, incrementView,
-    markNotificationRead, clearNotifications,
-    searchQuery, setSearchQuery, categoryFilter, setCategoryFilter,
-    setPage, refresh, pauseRefresh, resumeRefresh, timeAgo,
-  } = useCommunity();
+    posts,
+    allPosts,
+    totalPosts,
+    totalPages,
+    page,
+    currentUser,
+    notifications,
+    unreadCount,
+    loading,
+    error,
+    createPost,
+    updatePost,
+    deletePost,
+    toggleLike,
+    toggleDislike,
+    addComment,
+    deleteComment,
+    incrementView,
+    markNotificationRead,
+    clearNotifications,
+    searchQuery,
+    setSearchQuery,
+    categoryFilter,
+    setCategoryFilter,
+    setPage,
+    refresh,
+    pauseRefresh,
+    resumeRefresh,
+    timeAgo,
+  } = useCommunity()
 
-  const [activeTab, setActiveTab] = useState<string>('feed');
-  const [showNewPost, setShowNewPost] = useState(false);
-  const [editingPost, setEditingPost] = useState<string | null>(null);
-  const [postContent, setPostContent] = useState('');
-  const [postCategory, setPostCategory] = useState<'question' | 'discussion' | 'case' | 'news'>('discussion');
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [expandedPost, setExpandedPost] = useState<string | null>(null);
-  const [commentInputs, setCommentInputs] = useState<Record<string, string>>({});
-  const [replyInputs, setReplyInputs] = useState<Record<string, string>>({});
-  const [showNotifications, setShowNotifications] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>('feed')
+  const [showNewPost, setShowNewPost] = useState(false)
+  const [editingPost, setEditingPost] = useState<string | null>(null)
+  const [postContent, setPostContent] = useState('')
+  const [postCategory, setPostCategory] = useState<'question' | 'discussion' | 'case' | 'news'>(
+    'discussion'
+  )
+  const [selectedTags, setSelectedTags] = useState<string[]>([])
+  const [expandedPost, setExpandedPost] = useState<string | null>(null)
+  const [commentInputs, setCommentInputs] = useState<Record<string, string>>({})
+  const [replyInputs, setReplyInputs] = useState<Record<string, string>>({})
+  const [showNotifications, setShowNotifications] = useState(false)
 
   const AVAILABLE_TAGS = [
-    'fuqarolik_huquqi', 'jinoyat_huquqi', 'mehnat_huquqi', 'oilaviy_kodeks',
-    'sud_qarori', 'shartnoma', 'aliment', 'stajirovka',
-    'kiberjinoyat', '2024_yangiliklari', 'xalqaro_huquq', 'korporativ_huquq',
-  ];
+    'fuqarolik_huquqi',
+    'jinoyat_huquqi',
+    'mehnat_huquqi',
+    'oilaviy_kodeks',
+    'sud_qarori',
+    'shartnoma',
+    'aliment',
+    'stajirovka',
+    'kiberjinoyat',
+    '2024_yangiliklari',
+    'xalqaro_huquq',
+    'korporativ_huquq',
+  ]
 
   const handlePostSubmit = () => {
-    if (!postContent.trim()) return;      if (editingPost) {
-      updatePost(editingPost, postContent, selectedTags, postCategory);
-      setEditingPost(null);
+    if (!postContent.trim()) return
+    if (editingPost) {
+      updatePost(editingPost, postContent, selectedTags, postCategory)
+      setEditingPost(null)
     } else {
-      createPost(postContent, postCategory, selectedTags);
+      createPost(postContent, postCategory, selectedTags)
     }
-    resumeRefresh();
-    setShowNewPost(false);
-    setPostContent('');
-    setSelectedTags([]);
-  };
+    resumeRefresh()
+    setShowNewPost(false)
+    setPostContent('')
+    setSelectedTags([])
+  }
 
   const handleEditPost = (post: CommunityPost) => {
-    pauseRefresh();
-    setPostContent(post.content);
-    setSelectedTags(post.tags);
-    setPostCategory(post.category);
-    setEditingPost(post.id);
-    setShowNewPost(true);
-  };
+    pauseRefresh()
+    setPostContent(post.content)
+    setSelectedTags(post.tags)
+    setPostCategory(post.category)
+    setEditingPost(post.id)
+    setShowNewPost(true)
+  }
 
   const handleDeletePost = (postId: string) => {
     if (confirm("Rostdan ham bu postni o'chirmoqchimisiz?")) {
-      deletePost(postId);
+      deletePost(postId)
     }
-  };
+  }
 
   const handleCommentSubmit = (postId: string) => {
-    const text = commentInputs[postId]?.trim();
-    if (!text) return;
-    addComment(postId, text);
-    setCommentInputs(prev => ({ ...prev, [postId]: '' }));
-  };
+    const text = commentInputs[postId]?.trim()
+    if (!text) return
+    addComment(postId, text)
+    setCommentInputs(prev => ({ ...prev, [postId]: '' }))
+  }
 
   const handleReplySubmit = (postId: string, commentId: string) => {
-    const key = `${postId}_${commentId}`;
-    const text = replyInputs[key]?.trim();
-    if (!text) return;
-    addComment(postId, text, commentId);
-    setReplyInputs(prev => ({ ...prev, [key]: '' }));
-  };
+    const key = `${postId}_${commentId}`
+    const text = replyInputs[key]?.trim()
+    if (!text) return
+    addComment(postId, text, commentId)
+    setReplyInputs(prev => ({ ...prev, [key]: '' }))
+  }
 
   const handleExpandPost = (postId: string) => {
     if (expandedPost !== postId) {
-      incrementView(postId);
+      incrementView(postId)
     }
-    setExpandedPost(expandedPost === postId ? null : postId);
-  };
-
-
+    setExpandedPost(expandedPost === postId ? null : postId)
+  }
 
   const handleTagToggle = (tag: string) => {
-    setSelectedTags(prev =>
-      prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
-    );
-  };
+    setSelectedTags(prev => (prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]))
+  }
 
   const getCategoryColor = (cat: string) => {
     switch (cat) {
-      case 'question': return 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300';
-      case 'discussion': return 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300';
-      case 'case': return 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300';
-      case 'news': return 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300';
-      default: return 'bg-gray-100 dark:bg-zinc-800/50 text-gray-700 dark:text-zinc-300';
+      case 'question':
+        return 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+      case 'discussion':
+        return 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+      case 'case':
+        return 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300'
+      case 'news':
+        return 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300'
+      default:
+        return 'bg-gray-100 dark:bg-zinc-800/50 text-gray-700 dark:text-zinc-300'
     }
-  };
+  }
 
   const getCategoryIcon = (cat: string) => {
     switch (cat) {
-      case 'question': return <MessageCircle className="w-3.5 h-3.5" />;
-      case 'discussion': return <Users className="w-3.5 h-3.5" />;
-      case 'case': return <Gavel className="w-3.5 h-3.5" />;
-      case 'news': return <TrendingUp className="w-3.5 h-3.5" />;
-      default: return <MessageCircle className="w-3.5 h-3.5" />;
+      case 'question':
+        return <MessageCircle className="w-3.5 h-3.5" />
+      case 'discussion':
+        return <Users className="w-3.5 h-3.5" />
+      case 'case':
+        return <Gavel className="w-3.5 h-3.5" />
+      case 'news':
+        return <TrendingUp className="w-3.5 h-3.5" />
+      default:
+        return <MessageCircle className="w-3.5 h-3.5" />
     }
-  };
+  }
 
   const getCategoryText = (cat: string) => {
     switch (cat) {
-      case 'question': return 'Savol';
-      case 'discussion': return 'Muhokama';
-      case 'case': return 'Keys';
-      case 'news': return 'Yangilik';
-      default: return cat;
+      case 'question':
+        return 'Savol'
+      case 'discussion':
+        return 'Muhokama'
+      case 'case':
+        return 'Keys'
+      case 'news':
+        return 'Yangilik'
+      default:
+        return cat
     }
-  };
+  }
 
   const renderComments = (postId: string) => {
-    const post = allPosts.find(p => p.id === postId);
-    if (!post || post.comments.length === 0) return null;
+    const post = allPosts.find(p => p.id === postId)
+    if (!post || post.comments.length === 0) return null
 
     const renderComment = (comment: any, depth: number = 0) => (
-      <div key={comment.id} className={`${depth > 0 ? 'ml-6 pl-4 border-l-2 border-gray-100 dark:border-zinc-700' : ''}`}>
+      <div
+        key={comment.id}
+        className={`${depth > 0 ? 'ml-6 pl-4 border-l-2 border-gray-100 dark:border-zinc-700' : ''}`}
+      >
         <div className="flex gap-2 py-2">
           <div className="w-6 h-6 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
             <UserCircle className="w-4 h-4 text-white" />
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-medium text-gray-800 dark:text-zinc-200">{comment.author.name}</span>
+              <span className="text-xs font-medium text-gray-800 dark:text-zinc-200">
+                {comment.author.name}
+              </span>
               {comment.author.verified && <Verified className="w-3 h-3 text-blue-500" />}
-              <span className="text-[10px] text-gray-400 dark:text-zinc-500">{timeAgo(comment.createdAt)}</span>
+              <span className="text-[10px] text-gray-400 dark:text-zinc-500">
+                {timeAgo(comment.createdAt)}
+              </span>
             </div>
             <p className="text-sm text-gray-700 dark:text-zinc-300 mt-0.5">{comment.content}</p>
             <div className="flex items-center gap-3 mt-1">
               <div className="flex items-center gap-1.5">
-                {comment.likes > 0 && <span className="text-[10px] text-gray-500 dark:text-zinc-400">{comment.likes} 👍</span>}
+                {comment.likes > 0 && (
+                  <span className="text-[10px] text-gray-500 dark:text-zinc-400">
+                    {comment.likes} 👍
+                  </span>
+                )}
               </div>
               <button
-                onClick={() => setReplyInputs(prev => {
-                  const key = `${postId}_${comment.id}`;
-                  if (prev[key] !== undefined) {
-                    const newInputs = { ...prev };
-                    delete newInputs[key];
-                    return newInputs;
-                  }
-                  return { ...prev, [key]: '' };
-                })}
+                onClick={() =>
+                  setReplyInputs(prev => {
+                    const key = `${postId}_${comment.id}`
+                    if (prev[key] !== undefined) {
+                      const newInputs = { ...prev }
+                      delete newInputs[key]
+                      return newInputs
+                    }
+                    return { ...prev, [key]: '' }
+                  })
+                }
                 className="text-[10px] text-blue-500 hover:text-blue-600"
               >
                 Javob
@@ -166,7 +247,12 @@ export default function Community() {
                 <input
                   type="text"
                   value={replyInputs[`${postId}_${comment.id}`] || ''}
-                  onChange={e => setReplyInputs(prev => ({ ...prev, [`${postId}_${comment.id}`]: e.target.value }))}
+                  onChange={e =>
+                    setReplyInputs(prev => ({
+                      ...prev,
+                      [`${postId}_${comment.id}`]: e.target.value,
+                    }))
+                  }
                   onKeyDown={e => e.key === 'Enter' && handleReplySubmit(postId, comment.id)}
                   placeholder="Javob yozish..."
                   className="flex-1 px-3 py-1.5 text-xs rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
@@ -188,26 +274,27 @@ export default function Community() {
           </div>
         </div>
       </div>
-    );
+    )
 
     return (
       <div className="mt-3 pt-3 border-t border-gray-100 dark:border-zinc-800">
-        <div className="space-y-1">
-          {post.comments.map((c: any) => renderComment(c))}
-        </div>
+        <div className="space-y-1">{post.comments.map((c: any) => renderComment(c))}</div>
       </div>
-    );
-  };
+    )
+  }
 
   // ── Post Card ──────────────────────────────────────────────────────────
   const renderPost = (post: CommunityPost) => {
-    const isExpanded = expandedPost === post.id;
-    const isOwner = currentUser.id === post.author.id;
-    const isLiked = post.likedBy.includes(currentUser.id);
-    const isDisliked = post.dislikedBy.includes(currentUser.id);
+    const isExpanded = expandedPost === post.id
+    const isOwner = currentUser.id === post.author.id
+    const isLiked = post.likedBy.includes(currentUser.id)
+    const isDisliked = post.dislikedBy.includes(currentUser.id)
 
     return (
-      <div key={post.id} className="bg-white dark:bg-zinc-900 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all border border-gray-100 dark:border-zinc-800">
+      <div
+        key={post.id}
+        className="bg-white dark:bg-zinc-900 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all border border-gray-100 dark:border-zinc-800"
+      >
         {/* Header */}
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-3">
@@ -216,37 +303,54 @@ export default function Community() {
             </div>
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="font-medium text-sm text-gray-800 dark:text-zinc-100">{post.author.name}</span>
+                <span className="font-medium text-sm text-gray-800 dark:text-zinc-100">
+                  {post.author.name}
+                </span>
                 {post.author.verified && <Verified className="w-3.5 h-3.5 text-blue-500" />}
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] text-gray-500 dark:text-zinc-400">{post.author.role}</span>
+                <span className="text-[10px] text-gray-500 dark:text-zinc-400">
+                  {post.author.role}
+                </span>
                 <span className="text-[10px] text-gray-400 dark:text-zinc-500">•</span>
-                <span className="text-[10px] text-gray-400 dark:text-zinc-500">{timeAgo(post.createdAt)}</span>
+                <span className="text-[10px] text-gray-400 dark:text-zinc-500">
+                  {timeAgo(post.createdAt)}
+                </span>
               </div>
             </div>
           </div>
           <div className="flex items-center gap-2">
             {post.isPinned && <Award className="w-4 h-4 text-orange-500" />}
-            <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium flex items-center gap-1 ${getCategoryColor(post.category)}`}>
+            <span
+              className={`px-2 py-0.5 rounded-full text-[10px] font-medium flex items-center gap-1 ${getCategoryColor(post.category)}`}
+            >
               {getCategoryIcon(post.category)}
               {getCategoryText(post.category)}
             </span>
             {isOwner && (
               <div className="flex gap-1 ml-1">
-                <button onClick={() => handleEditPost(post)} className="p-1 text-gray-400 dark:text-zinc-500 hover:text-blue-500 rounded transition-colors"><Edit3 className="w-3.5 h-3.5" /></button>
-                <button onClick={() => handleDeletePost(post.id)} className="p-1 text-gray-400 dark:text-zinc-500 hover:text-red-500 rounded transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+                <button
+                  onClick={() => handleEditPost(post)}
+                  className="p-1 text-gray-400 dark:text-zinc-500 hover:text-blue-500 rounded transition-colors"
+                >
+                  <Edit3 className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={() => handleDeletePost(post.id)}
+                  className="p-1 text-gray-400 dark:text-zinc-500 hover:text-red-500 rounded transition-colors"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
               </div>
             )}
           </div>
         </div>
 
         {/* Content */}
-        <div
-          onClick={() => handleExpandPost(post.id)}
-          className="cursor-pointer mb-3"
-        >
-          <p className={`text-sm text-gray-700 dark:text-zinc-300 leading-relaxed ${!isExpanded ? 'line-clamp-3' : ''}`}>
+        <div onClick={() => handleExpandPost(post.id)} className="cursor-pointer mb-3">
+          <p
+            className={`text-sm text-gray-700 dark:text-zinc-300 leading-relaxed ${!isExpanded ? 'line-clamp-3' : ''}`}
+          >
             {post.content}
           </p>
         </div>
@@ -255,7 +359,12 @@ export default function Community() {
         {post.tags.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mb-3">
             {post.tags.map(tag => (
-              <span key={tag} className="px-2 py-0.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded text-[10px] cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors">#{tag}</span>
+              <span
+                key={tag}
+                className="px-2 py-0.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded text-[10px] cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
+              >
+                #{tag}
+              </span>
             ))}
           </div>
         )}
@@ -278,10 +387,10 @@ export default function Community() {
               <span>{post.dislikes}</span>
             </button>
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                if (!isExpanded) handleExpandPost(post.id);
-                setExpandedPost(isExpanded ? null : post.id);
+              onClick={e => {
+                e.stopPropagation()
+                if (!isExpanded) handleExpandPost(post.id)
+                setExpandedPost(isExpanded ? null : post.id)
               }}
               className="flex items-center gap-1 text-xs text-gray-500 dark:text-zinc-400 hover:text-blue-500 transition-colors"
             >
@@ -322,8 +431,8 @@ export default function Community() {
           </div>
         )}
       </div>
-    );
-  };
+    )
+  }
 
   // ── Main Feed ──────────────────────────────────────────────────────────
   if (activeTab === 'feed') {
@@ -333,11 +442,20 @@ export default function Community() {
           {/* Sidebar */}
           <div className="w-64 bg-white dark:bg-zinc-900 border-r border-gray-200 dark:border-zinc-800 min-h-screen flex-shrink-0 hidden lg:block">
             <div className="p-5">
-              <a href="/" className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 dark:text-zinc-400 hover:bg-gray-50 dark:hover:bg-zinc-800 rounded-xl transition-colors mb-5">
+              <a
+                href="/"
+                className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 dark:text-zinc-400 hover:bg-gray-50 dark:hover:bg-zinc-800 rounded-xl transition-colors mb-5"
+              >
                 <ArrowLeft className="w-4 h-4" /> Orqaga
               </a>
               <button
-                onClick={() => { pauseRefresh(); setShowNewPost(true); setEditingPost(null); setPostContent(''); setSelectedTags([]); }}
+                onClick={() => {
+                  pauseRefresh()
+                  setShowNewPost(true)
+                  setEditingPost(null)
+                  setPostContent('')
+                  setSelectedTags([])
+                }}
                 className="w-full bg-blue-600 text-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-blue-700 transition-colors mb-5 flex items-center justify-center gap-2 shadow-sm"
               >
                 <Plus className="w-4 h-4" /> Yangi post
@@ -345,7 +463,12 @@ export default function Community() {
               <nav className="space-y-1">
                 {[
                   { id: 'feed', label: 'Lenta', icon: <MessageCircle className="w-4 h-4" /> },
-                  { id: 'notification', label: 'Bildirishnomalar', icon: <Bell className="w-4 h-4" />, badge: unreadCount },
+                  {
+                    id: 'notification',
+                    label: 'Bildirishnomalar',
+                    icon: <Bell className="w-4 h-4" />,
+                    badge: unreadCount,
+                  },
                   { id: 'experts', label: 'Ekspertlar', icon: <Star className="w-4 h-4" /> },
                   { id: 'groups', label: 'Guruhlar', icon: <Users className="w-4 h-4" /> },
                   { id: 'webinars', label: 'Vebinarlar', icon: <Video className="w-4 h-4" /> },
@@ -362,7 +485,9 @@ export default function Community() {
                     {item.icon}
                     <span>{item.label}</span>
                     {(item as any).badge > 0 && (
-                      <span className="ml-auto px-1.5 py-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] text-center">{(item as any).badge}</span>
+                      <span className="ml-auto px-1.5 py-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] text-center">
+                        {(item as any).badge}
+                      </span>
                     )}
                   </button>
                 ))}
@@ -376,12 +501,17 @@ export default function Community() {
             <header className="bg-white dark:bg-zinc-900 px-6 py-4 border-b border-gray-200 dark:border-zinc-800 sticky top-0 z-10">
               <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
-                  <button onClick={() => setActiveTab('feed')} className="lg:hidden p-2 text-gray-600 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl transition-colors">
+                  <button
+                    onClick={() => setActiveTab('feed')}
+                    className="lg:hidden p-2 text-gray-600 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl transition-colors"
+                  >
                     <ArrowLeft className="w-5 h-5" />
                   </button>
                   <div>
                     <h1 className="text-xl font-bold text-gray-900 dark:text-white">Jamiyat</h1>
-                    <p className="text-xs text-gray-500 dark:text-zinc-400">Huquqiy forum va muhokamalar</p>
+                    <p className="text-xs text-gray-500 dark:text-zinc-400">
+                      Huquqiy forum va muhokamalar
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -392,7 +522,9 @@ export default function Community() {
                   >
                     <Bell className="w-5 h-5" />
                     {unreadCount > 0 && (
-                      <span className="absolute -top-0.5 -right-0.5 px-1.5 py-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full">{unreadCount}</span>
+                      <span className="absolute -top-0.5 -right-0.5 px-1.5 py-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full">
+                        {unreadCount}
+                      </span>
                     )}
                   </button>
                   <div className="relative hidden sm:block">
@@ -438,7 +570,13 @@ export default function Community() {
                   ))}
                 </div>
                 <button
-                  onClick={() => { pauseRefresh(); setShowNewPost(true); setEditingPost(null); setPostContent(''); setSelectedTags([]); }}
+                  onClick={() => {
+                    pauseRefresh()
+                    setShowNewPost(true)
+                    setEditingPost(null)
+                    setPostContent('')
+                    setSelectedTags([])
+                  }}
                   className="w-full mt-3 bg-blue-600 text-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
                 >
                   <Plus className="w-4 h-4" /> Yangi post
@@ -484,7 +622,9 @@ export default function Community() {
               {error && (
                 <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-sm text-red-700 dark:text-red-400 mb-4">
                   {error}
-                  <button onClick={refresh} className="ml-2 underline hover:no-underline">Qayta urinish</button>
+                  <button onClick={refresh} className="ml-2 underline hover:no-underline">
+                    Qayta urinish
+                  </button>
                 </div>
               )}
 
@@ -494,10 +634,19 @@ export default function Community() {
                   {posts.length === 0 ? (
                     <div className="text-center py-16">
                       <MessageCircle className="w-16 h-16 text-gray-300 dark:text-zinc-700 mx-auto mb-4" />
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Hozircha postlar yo'q</h3>
-                      <p className="text-sm text-gray-500 dark:text-zinc-400 mb-6">Birinchi postni yozing va muhokamani boshlang!</p>
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                        Hozircha postlar yo'q
+                      </h3>
+                      <p className="text-sm text-gray-500 dark:text-zinc-400 mb-6">
+                        Birinchi postni yozing va muhokamani boshlang!
+                      </p>
                       <button
-                        onClick={() => { setShowNewPost(true); setEditingPost(null); setPostContent(''); setSelectedTags([]); }}
+                        onClick={() => {
+                          setShowNewPost(true)
+                          setEditingPost(null)
+                          setPostContent('')
+                          setSelectedTags([])
+                        }}
                         className="px-6 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 transition-colors"
                       >
                         <Plus className="w-4 h-4 inline mr-1" /> Yangi post
@@ -506,8 +655,15 @@ export default function Community() {
                   ) : (
                     <>
                       <div className="flex items-center justify-between mb-2">
-                        <p className="text-xs text-gray-500 dark:text-zinc-400">{totalPosts} ta post</p>
-                        <button onClick={refresh} className="text-xs text-blue-600 dark:text-blue-400 hover:underline">Yangilash</button>
+                        <p className="text-xs text-gray-500 dark:text-zinc-400">
+                          {totalPosts} ta post
+                        </p>
+                        <button
+                          onClick={refresh}
+                          className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                        >
+                          Yangilash
+                        </button>
                       </div>
                       {posts.map(renderPost)}
                     </>
@@ -553,13 +709,25 @@ export default function Community() {
 
         {/* New Post / Edit Post Modal */}
         {showNewPost && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowNewPost(false)}>
-            <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 max-w-xl w-full shadow-2xl" onClick={e => e.stopPropagation()}>
+          <div
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            onClick={() => setShowNewPost(false)}
+          >
+            <div
+              className="bg-white dark:bg-zinc-900 rounded-2xl p-6 max-w-xl w-full shadow-2xl"
+              onClick={e => e.stopPropagation()}
+            >
               <div className="flex items-center justify-between mb-5">
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white">
                   {editingPost ? 'Postni tahrirlash' : 'Yangi post yaratish'}
                 </h3>
-                <button onClick={() => { resumeRefresh(); setShowNewPost(false); }} className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-zinc-300 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors">
+                <button
+                  onClick={() => {
+                    resumeRefresh()
+                    setShowNewPost(false)
+                  }}
+                  className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-zinc-300 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
+                >
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -590,25 +758,53 @@ export default function Community() {
 
               {/* Tags */}
               <div className="mt-4">
-                <label className="block text-xs font-medium text-gray-700 dark:text-zinc-300 mb-2">Teglar</label>
+                <label className="block text-xs font-medium text-gray-700 dark:text-zinc-300 mb-2">
+                  Teglar
+                </label>
                 <div className="flex flex-wrap gap-1.5">
                   {selectedTags.map(tag => (
-                    <span key={tag} className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs flex items-center gap-1">
+                    <span
+                      key={tag}
+                      className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs flex items-center gap-1"
+                    >
                       #{tag}
-                      <button onClick={() => handleTagToggle(tag)} className="text-blue-500 hover:text-blue-700"><X className="w-3 h-3" /></button>
+                      <button
+                        onClick={() => handleTagToggle(tag)}
+                        className="text-blue-500 hover:text-blue-700"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
                     </span>
                   ))}
                 </div>
                 <div className="flex flex-wrap gap-1.5 mt-2">
                   {AVAILABLE_TAGS.filter(t => !selectedTags.includes(t)).map(tag => (
-                    <button key={tag} onClick={() => handleTagToggle(tag)} className="px-2 py-1 bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-400 rounded text-xs hover:bg-gray-200 dark:hover:bg-zinc-700 transition-colors">#{tag}</button>
+                    <button
+                      key={tag}
+                      onClick={() => handleTagToggle(tag)}
+                      className="px-2 py-1 bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-400 rounded text-xs hover:bg-gray-200 dark:hover:bg-zinc-700 transition-colors"
+                    >
+                      #{tag}
+                    </button>
                   ))}
                 </div>
               </div>
 
               <div className="flex justify-end gap-3 mt-6">
-                <button onClick={() => { resumeRefresh(); setShowNewPost(false); }} className="px-4 py-2 text-sm text-gray-600 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl transition-colors">Bekor qilish</button>
-                <button onClick={handlePostSubmit} disabled={!postContent.trim()} className="px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm">
+                <button
+                  onClick={() => {
+                    resumeRefresh()
+                    setShowNewPost(false)
+                  }}
+                  className="px-4 py-2 text-sm text-gray-600 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl transition-colors"
+                >
+                  Bekor qilish
+                </button>
+                <button
+                  onClick={handlePostSubmit}
+                  disabled={!postContent.trim()}
+                  className="px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+                >
                   {editingPost ? 'Saqlash' : 'Yuborish'}
                 </button>
               </div>
@@ -616,7 +812,7 @@ export default function Community() {
           </div>
         )}
       </div>
-    );
+    )
   }
 
   // ── Notifications Tab ──────────────────────────────────────────────────
@@ -626,7 +822,10 @@ export default function Community() {
         <div className="flex">
           <div className="w-64 bg-white dark:bg-zinc-900 border-r border-gray-200 dark:border-zinc-800 min-h-screen flex-shrink-0 hidden lg:block">
             <div className="p-5">
-              <button onClick={() => setActiveTab('feed')} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 dark:text-zinc-400 hover:bg-gray-50 dark:hover:bg-zinc-800 rounded-xl transition-colors mb-5">
+              <button
+                onClick={() => setActiveTab('feed')}
+                className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 dark:text-zinc-400 hover:bg-gray-50 dark:hover:bg-zinc-800 rounded-xl transition-colors mb-5"
+              >
                 <ArrowLeft className="w-4 h-4" /> Orqaga
               </button>
               <nav className="space-y-1">
@@ -634,7 +833,12 @@ export default function Community() {
                   onClick={() => setActiveTab('notification')}
                   className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-medium"
                 >
-                  <Bell className="w-4 h-4" /> Bildirishnomalar {unreadCount > 0 && <span className="ml-auto px-1.5 py-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full">{unreadCount}</span>}
+                  <Bell className="w-4 h-4" /> Bildirishnomalar{' '}
+                  {unreadCount > 0 && (
+                    <span className="ml-auto px-1.5 py-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full">
+                      {unreadCount}
+                    </span>
+                  )}
                 </button>
               </nav>
             </div>
@@ -644,13 +848,23 @@ export default function Community() {
             <header className="bg-white dark:bg-zinc-900 px-6 py-4 border-b border-gray-200 dark:border-zinc-800">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <button onClick={() => setActiveTab('feed')} className="lg:hidden p-2 text-gray-600 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl">
+                  <button
+                    onClick={() => setActiveTab('feed')}
+                    className="lg:hidden p-2 text-gray-600 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl"
+                  >
                     <ArrowLeft className="w-5 h-5" />
                   </button>
-                  <h1 className="text-xl font-bold text-gray-900 dark:text-white">Bildirishnomalar</h1>
+                  <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+                    Bildirishnomalar
+                  </h1>
                 </div>
                 {notifications.length > 0 && (
-                  <button onClick={clearNotifications} className="text-xs text-red-500 hover:text-red-600 hover:underline">Barchasini o'chirish</button>
+                  <button
+                    onClick={clearNotifications}
+                    className="text-xs text-red-500 hover:text-red-600 hover:underline"
+                  >
+                    Barchasini o'chirish
+                  </button>
                 )}
               </div>
             </header>
@@ -658,8 +872,12 @@ export default function Community() {
               {notifications.length === 0 ? (
                 <div className="text-center py-16">
                   <Bell className="w-16 h-16 text-gray-300 dark:text-zinc-700 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Bildirishnomalar yo'q</h3>
-                  <p className="text-sm text-gray-500 dark:text-zinc-400">Kimdir postingizga like bossa yoki izoh qoldirsa, bu yerda ko'rinadi.</p>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                    Bildirishnomalar yo'q
+                  </h3>
+                  <p className="text-sm text-gray-500 dark:text-zinc-400">
+                    Kimdir postingizga like bossa yoki izoh qoldirsa, bu yerda ko'rinadi.
+                  </p>
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -674,14 +892,28 @@ export default function Community() {
                       }`}
                     >
                       <div className="flex items-start gap-3">
-                        <div className={`p-2 rounded-lg ${notif.type === 'like' ? 'bg-red-100 dark:bg-red-900/30 text-red-500' : notif.type === 'comment' ? 'bg-green-100 dark:bg-green-900/30 text-green-500' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-500'}`}>
-                          {notif.type === 'like' ? <ThumbsUp className="w-4 h-4" /> : notif.type === 'comment' ? <MessageCircle className="w-4 h-4" /> : <Bell className="w-4 h-4" />}
+                        <div
+                          className={`p-2 rounded-lg ${notif.type === 'like' ? 'bg-red-100 dark:bg-red-900/30 text-red-500' : notif.type === 'comment' ? 'bg-green-100 dark:bg-green-900/30 text-green-500' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-500'}`}
+                        >
+                          {notif.type === 'like' ? (
+                            <ThumbsUp className="w-4 h-4" />
+                          ) : notif.type === 'comment' ? (
+                            <MessageCircle className="w-4 h-4" />
+                          ) : (
+                            <Bell className="w-4 h-4" />
+                          )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm text-gray-800 dark:text-zinc-200">{notif.message}</p>
-                          <p className="text-xs text-gray-400 dark:text-zinc-500 mt-1">{timeAgo(notif.createdAt)}</p>
+                          <p className="text-sm text-gray-800 dark:text-zinc-200">
+                            {notif.message}
+                          </p>
+                          <p className="text-xs text-gray-400 dark:text-zinc-500 mt-1">
+                            {timeAgo(notif.createdAt)}
+                          </p>
                         </div>
-                        {!notif.read && <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-2" />}
+                        {!notif.read && (
+                          <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-2" />
+                        )}
                       </div>
                     </div>
                   ))}
@@ -691,7 +923,7 @@ export default function Community() {
           </div>
         </div>
       </div>
-    );
+    )
   }
 
   // ── Experts Tab ────────────────────────────────────────────────────
@@ -701,7 +933,10 @@ export default function Community() {
         <div className="flex">
           <div className="w-64 bg-white dark:bg-zinc-900 border-r border-gray-200 dark:border-zinc-800 min-h-screen flex-shrink-0 hidden lg:block">
             <div className="p-5">
-              <button onClick={() => setActiveTab('feed')} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 dark:text-zinc-400 hover:bg-gray-50 dark:hover:bg-zinc-800 rounded-xl transition-colors mb-5">
+              <button
+                onClick={() => setActiveTab('feed')}
+                className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 dark:text-zinc-400 hover:bg-gray-50 dark:hover:bg-zinc-800 rounded-xl transition-colors mb-5"
+              >
                 <ArrowLeft className="w-4 h-4" /> Orqaga
               </button>
               <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-medium">
@@ -713,40 +948,80 @@ export default function Community() {
             <header className="bg-white dark:bg-zinc-900 px-6 py-4 border-b border-gray-200 dark:border-zinc-800">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <button onClick={() => setActiveTab('feed')} className="lg:hidden p-2 text-gray-600 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl">
+                  <button
+                    onClick={() => setActiveTab('feed')}
+                    className="lg:hidden p-2 text-gray-600 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl"
+                  >
                     <ArrowLeft className="w-5 h-5" />
                   </button>
-                  <h1 className="text-xl font-bold text-gray-900 dark:text-white">Ekspertlar va Mentorlar</h1>
+                  <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+                    Ekspertlar va Mentorlar
+                  </h1>
                 </div>
               </div>
             </header>
             <main className="p-4 sm:p-6 max-w-5xl mx-auto">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {[
-                  { name: 'Dr. Aziz Karimov', title: 'Huquqshunoslik fanlari doktori', spec: 'Fuqarolik va tijorat huquqi', rep: 2850, webinars: 12 },
-                  { name: 'Prof. Dilora Nazarova', title: 'Jinoyat huquqi professori', spec: 'Jinoyat huquqi va kriminologiya', rep: 3200, webinars: 18 },
-                  { name: 'Bahodir Toshmatov', title: 'Prokuratura boshlig\'i', spec: 'Jinoyat protsessi', rep: 1950, webinars: 6 },
-                  { name: 'Malika Umarova', title: 'Advokat', spec: 'Xalqaro arbitraj', rep: 1670, webinars: 8 },
+                  {
+                    name: 'Dr. Aziz Karimov',
+                    title: 'Huquqshunoslik fanlari doktori',
+                    spec: 'Fuqarolik va tijorat huquqi',
+                    rep: 2850,
+                    webinars: 12,
+                  },
+                  {
+                    name: 'Prof. Dilora Nazarova',
+                    title: 'Jinoyat huquqi professori',
+                    spec: 'Jinoyat huquqi va kriminologiya',
+                    rep: 3200,
+                    webinars: 18,
+                  },
+                  {
+                    name: 'Bahodir Toshmatov',
+                    title: "Prokuratura boshlig'i",
+                    spec: 'Jinoyat protsessi',
+                    rep: 1950,
+                    webinars: 6,
+                  },
+                  {
+                    name: 'Malika Umarova',
+                    title: 'Advokat',
+                    spec: 'Xalqaro arbitraj',
+                    rep: 1670,
+                    webinars: 8,
+                  },
                 ].map((e, i) => (
-                  <div key={i} className="bg-white dark:bg-zinc-900 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all border border-gray-100 dark:border-zinc-800">
+                  <div
+                    key={i}
+                    className="bg-white dark:bg-zinc-900 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all border border-gray-100 dark:border-zinc-800"
+                  >
                     <div className="flex items-start gap-3">
                       <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
                         <UserCircle className="w-7 h-7 text-white" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5 mb-0.5">
-                          <h3 className="font-semibold text-sm text-gray-900 dark:text-white">{e.name}</h3>
+                          <h3 className="font-semibold text-sm text-gray-900 dark:text-white">
+                            {e.name}
+                          </h3>
                           <Verified className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
                         </div>
                         <p className="text-xs text-gray-500 dark:text-zinc-400 mb-1">{e.title}</p>
-                        <p className="text-xs text-gray-600 dark:text-zinc-300 mb-2"><span className="font-medium">Mutaxassislik:</span> {e.spec}</p>
+                        <p className="text-xs text-gray-600 dark:text-zinc-300 mb-2">
+                          <span className="font-medium">Mutaxassislik:</span> {e.spec}
+                        </p>
                         <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-zinc-400 mb-3">
                           <span>⭐ {e.rep} rep</span>
                           <span>📺 {e.webinars} vebinar</span>
                         </div>
                         <div className="flex gap-2">
-                          <button className="flex-1 px-3 py-1.5 bg-blue-600 text-white text-xs rounded-lg hover:bg-blue-700 transition-colors">Maslahat so\'rash</button>
-                          <button className="px-3 py-1.5 bg-green-600 text-white text-xs rounded-lg hover:bg-green-700 transition-colors">Mentorlik</button>
+                          <button className="flex-1 px-3 py-1.5 bg-blue-600 text-white text-xs rounded-lg hover:bg-blue-700 transition-colors">
+                            Maslahat so\'rash
+                          </button>
+                          <button className="px-3 py-1.5 bg-green-600 text-white text-xs rounded-lg hover:bg-green-700 transition-colors">
+                            Mentorlik
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -757,7 +1032,7 @@ export default function Community() {
           </div>
         </div>
       </div>
-    );
+    )
   }
 
   // ── Groups Tab ──────────────────────────────────────────────────────
@@ -767,7 +1042,10 @@ export default function Community() {
         <div className="flex">
           <div className="w-64 bg-white dark:bg-zinc-900 border-r border-gray-200 dark:border-zinc-800 min-h-screen flex-shrink-0 hidden lg:block">
             <div className="p-5">
-              <button onClick={() => setActiveTab('feed')} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 dark:text-zinc-400 hover:bg-gray-50 dark:hover:bg-zinc-800 rounded-xl transition-colors mb-5">
+              <button
+                onClick={() => setActiveTab('feed')}
+                className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 dark:text-zinc-400 hover:bg-gray-50 dark:hover:bg-zinc-800 rounded-xl transition-colors mb-5"
+              >
                 <ArrowLeft className="w-4 h-4" /> Orqaga
               </button>
               <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-medium">
@@ -779,33 +1057,79 @@ export default function Community() {
             <header className="bg-white dark:bg-zinc-900 px-6 py-4 border-b border-gray-200 dark:border-zinc-800">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <button onClick={() => setActiveTab('feed')} className="lg:hidden p-2 text-gray-600 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl">
+                  <button
+                    onClick={() => setActiveTab('feed')}
+                    className="lg:hidden p-2 text-gray-600 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl"
+                  >
                     <ArrowLeft className="w-5 h-5" />
                   </button>
-                  <h1 className="text-xl font-bold text-gray-900 dark:text-white">Guruhlar va Klublar</h1>
+                  <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+                    Guruhlar va Klublar
+                  </h1>
                 </div>
               </div>
             </header>
             <main className="p-4 sm:p-6 max-w-5xl mx-auto">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {[
-                  { name: 'Xalqaro huquq ixlosmandlari', desc: 'Xalqaro huquq va konvensiyalar bo\'yicha muhokamalar', members: 234, cat: 'Xalqaro huquq', joined: true, icon: '🌍' },
-                  { name: 'Bo\'lajak advokatlar klubi', desc: 'Yosh advokatlar uchun qo\'llab-quvvatlash guruhi', members: 456, cat: 'Kasbiy rivojlanish', joined: false, icon: '💼' },
-                  { name: 'Sud ekspertizasi guruhi', desc: 'Sud ekspertizasi va sud-tibbiyot masalalari', members: 189, cat: 'Ekspertiza', joined: false, icon: '🔍' },
-                  { name: 'Mehnat huquqi mutaxassislari', desc: 'Mehnat huquqi va ishchi-huquqiy munosabatlar', members: 321, cat: 'Mehnat huquqi', joined: true, icon: '📋' },
+                  {
+                    name: 'Xalqaro huquq ixlosmandlari',
+                    desc: "Xalqaro huquq va konvensiyalar bo'yicha muhokamalar",
+                    members: 234,
+                    cat: 'Xalqaro huquq',
+                    joined: true,
+                    icon: '🌍',
+                  },
+                  {
+                    name: "Bo'lajak advokatlar klubi",
+                    desc: "Yosh advokatlar uchun qo'llab-quvvatlash guruhi",
+                    members: 456,
+                    cat: 'Kasbiy rivojlanish',
+                    joined: false,
+                    icon: '💼',
+                  },
+                  {
+                    name: 'Sud ekspertizasi guruhi',
+                    desc: 'Sud ekspertizasi va sud-tibbiyot masalalari',
+                    members: 189,
+                    cat: 'Ekspertiza',
+                    joined: false,
+                    icon: '🔍',
+                  },
+                  {
+                    name: 'Mehnat huquqi mutaxassislari',
+                    desc: 'Mehnat huquqi va ishchi-huquqiy munosabatlar',
+                    members: 321,
+                    cat: 'Mehnat huquqi',
+                    joined: true,
+                    icon: '📋',
+                  },
                 ].map((g, i) => (
-                  <div key={i} className="bg-white dark:bg-zinc-900 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all border border-gray-100 dark:border-zinc-800">
+                  <div
+                    key={i}
+                    className="bg-white dark:bg-zinc-900 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all border border-gray-100 dark:border-zinc-800"
+                  >
                     <div className="flex items-start gap-3">
-                      <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center text-lg flex-shrink-0">{g.icon}</div>
+                      <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center text-lg flex-shrink-0">
+                        {g.icon}
+                      </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-sm text-gray-900 dark:text-white mb-1">{g.name}</h3>
+                        <h3 className="font-semibold text-sm text-gray-900 dark:text-white mb-1">
+                          {g.name}
+                        </h3>
                         <p className="text-xs text-gray-500 dark:text-zinc-400 mb-2">{g.desc}</p>
                         <div className="flex items-center justify-between mb-3">
-                          <span className="text-xs text-gray-500 dark:text-zinc-400">👥 {g.members} a\'zo</span>
-                          <span className="px-2 py-0.5 bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-400 rounded text-[10px]">{g.cat}</span>
+                          <span className="text-xs text-gray-500 dark:text-zinc-400">
+                            👥 {g.members} a\'zo
+                          </span>
+                          <span className="px-2 py-0.5 bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-400 rounded text-[10px]">
+                            {g.cat}
+                          </span>
                         </div>
-                        <button className={`w-full px-3 py-1.5 text-xs rounded-lg transition-colors ${g.joined ? 'bg-gray-200 dark:bg-zinc-700 text-gray-700 dark:text-zinc-300' : 'bg-blue-600 text-white hover:bg-blue-700'}`}>
-                          {g.joined ? 'A\'zo bo\'lgan' : 'Qo\'shilish'}
+                        <button
+                          className={`w-full px-3 py-1.5 text-xs rounded-lg transition-colors ${g.joined ? 'bg-gray-200 dark:bg-zinc-700 text-gray-700 dark:text-zinc-300' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+                        >
+                          {g.joined ? "A'zo bo'lgan" : "Qo'shilish"}
                         </button>
                       </div>
                     </div>
@@ -819,7 +1143,7 @@ export default function Community() {
           </div>
         </div>
       </div>
-    );
+    )
   }
 
   // ── Webinars Tab ────────────────────────────────────────────────────
@@ -829,7 +1153,10 @@ export default function Community() {
         <div className="flex">
           <div className="w-64 bg-white dark:bg-zinc-900 border-r border-gray-200 dark:border-zinc-800 min-h-screen flex-shrink-0 hidden lg:block">
             <div className="p-5">
-              <button onClick={() => setActiveTab('feed')} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 dark:text-zinc-400 hover:bg-gray-50 dark:hover:bg-zinc-800 rounded-xl transition-colors mb-5">
+              <button
+                onClick={() => setActiveTab('feed')}
+                className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 dark:text-zinc-400 hover:bg-gray-50 dark:hover:bg-zinc-800 rounded-xl transition-colors mb-5"
+              >
                 <ArrowLeft className="w-4 h-4" /> Orqaga
               </button>
               <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-medium">
@@ -841,7 +1168,10 @@ export default function Community() {
             <header className="bg-white dark:bg-zinc-900 px-6 py-4 border-b border-gray-200 dark:border-zinc-800">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <button onClick={() => setActiveTab('feed')} className="lg:hidden p-2 text-gray-600 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl">
+                  <button
+                    onClick={() => setActiveTab('feed')}
+                    className="lg:hidden p-2 text-gray-600 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl"
+                  >
                     <ArrowLeft className="w-5 h-5" />
                   </button>
                   <h1 className="text-xl font-bold text-gray-900 dark:text-white">Vebinarlar</h1>
@@ -851,27 +1181,66 @@ export default function Community() {
             <main className="p-4 sm:p-6 max-w-5xl mx-auto">
               <div className="space-y-4">
                 {[
-                  { title: 'Kiberjinoyatlar: Yangi qonunchilik va amaliyot', host: 'Prof. Dilora Nazarova', date: '2024-03-25', dur: '1.5 soat', participants: 156, cat: 'Jinoyat huquqi', live: false },
-                  { title: 'Sud amaliyotida dalillarni yig\'ish usullari', host: 'Dr. Aziz Karimov', date: '2024-03-28', dur: '2 soat', participants: 89, cat: 'Sud amaliyoti', live: true },
-                  { title: 'Tijorat nizolari: Xalqaro tajriba', host: 'Malika Umarova', date: '2024-04-01', dur: '1 soat', participants: 234, cat: 'Tijorat huquqi', live: false },
+                  {
+                    title: 'Kiberjinoyatlar: Yangi qonunchilik va amaliyot',
+                    host: 'Prof. Dilora Nazarova',
+                    date: '2024-03-25',
+                    dur: '1.5 soat',
+                    participants: 156,
+                    cat: 'Jinoyat huquqi',
+                    live: false,
+                  },
+                  {
+                    title: "Sud amaliyotida dalillarni yig'ish usullari",
+                    host: 'Dr. Aziz Karimov',
+                    date: '2024-03-28',
+                    dur: '2 soat',
+                    participants: 89,
+                    cat: 'Sud amaliyoti',
+                    live: true,
+                  },
+                  {
+                    title: 'Tijorat nizolari: Xalqaro tajriba',
+                    host: 'Malika Umarova',
+                    date: '2024-04-01',
+                    dur: '1 soat',
+                    participants: 234,
+                    cat: 'Tijorat huquqi',
+                    live: false,
+                  },
                 ].map((w, i) => (
-                  <div key={i} className="bg-white dark:bg-zinc-900 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all border border-gray-100 dark:border-zinc-800">
+                  <div
+                    key={i}
+                    className="bg-white dark:bg-zinc-900 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all border border-gray-100 dark:border-zinc-800"
+                  >
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <h3 className="font-semibold text-sm text-gray-900 dark:text-white">{w.title}</h3>
-                          {w.live && <span className="px-1.5 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded text-[10px] font-medium animate-pulse">LIVE</span>}
+                          <h3 className="font-semibold text-sm text-gray-900 dark:text-white">
+                            {w.title}
+                          </h3>
+                          {w.live && (
+                            <span className="px-1.5 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded text-[10px] font-medium animate-pulse">
+                              LIVE
+                            </span>
+                          )}
                         </div>
-                        <p className="text-xs text-gray-500 dark:text-zinc-400 mb-2">O\'tkazuvchi: {w.host}</p>
+                        <p className="text-xs text-gray-500 dark:text-zinc-400 mb-2">
+                          O\'tkazuvchi: {w.host}
+                        </p>
                         <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-zinc-400 mb-2">
                           <span>📅 {w.date}</span>
                           <span>⏱ {w.dur}</span>
                           <span>👥 {w.participants}</span>
                         </div>
-                        <span className="px-2 py-0.5 bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-400 rounded text-[10px]">{w.cat}</span>
+                        <span className="px-2 py-0.5 bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-400 rounded text-[10px]">
+                          {w.cat}
+                        </span>
                       </div>
-                      <button className={`px-4 py-2 text-xs rounded-lg whitespace-nowrap transition-colors ${w.live ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-blue-600 text-white hover:bg-blue-700'}`}>
-                        {w.live ? 'Qo\'shilish' : 'Ro\'yxatdan o\'tish'}
+                      <button
+                        className={`px-4 py-2 text-xs rounded-lg whitespace-nowrap transition-colors ${w.live ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+                      >
+                        {w.live ? "Qo'shilish" : "Ro'yxatdan o'tish"}
                       </button>
                     </div>
                   </div>
@@ -881,9 +1250,9 @@ export default function Community() {
           </div>
         </div>
       </div>
-    );
+    )
   }
 
   // Fallback
-  return null;
+  return null
 }

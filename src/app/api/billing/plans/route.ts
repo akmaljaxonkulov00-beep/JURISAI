@@ -1,5 +1,5 @@
-import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { NextResponse } from 'next/server'
+import { prisma } from '@/lib/prisma'
 
 export async function GET() {
   try {
@@ -11,14 +11,11 @@ export async function GET() {
       orderBy: {
         sortOrder: 'asc',
       },
-    });
+    })
 
-    return NextResponse.json(plans);
+    return NextResponse.json(plans)
   } catch (error) {
-    console.error('Error fetching plans:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    console.error('Error fetching plans:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

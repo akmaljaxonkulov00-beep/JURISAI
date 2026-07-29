@@ -1,17 +1,17 @@
-'use client';
+'use client'
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
-import { Progress } from '@/components/ui/Progress';
-import { useAuth } from '@/app/providers';
-import { api } from '@/services/api';
-import { firebaseAuth } from '@/services/firebase-auth';
-import AIChatFloatingWidget from '@/components/ai/AIChatFloatingWidget';
-import OnboardingTour from '@/components/OnboardingTour';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+import React, { useState, useEffect } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
+import { Badge } from '@/components/ui/Badge'
+import { Progress } from '@/components/ui/Progress'
+import { useAuth } from '@/app/providers'
+import { api } from '@/services/api'
+import { firebaseAuth } from '@/services/firebase-auth'
+import AIChatFloatingWidget from '@/components/ai/AIChatFloatingWidget'
+import OnboardingTour from '@/components/OnboardingTour'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import {
   Home,
   FileText,
@@ -35,75 +35,75 @@ import {
   CheckCircle,
   Settings,
   HelpCircle,
-  LogOut
-} from 'lucide-react';
+  LogOut,
+} from 'lucide-react'
 
 interface UserStats {
-  xp: number;
-  level: number;
-  completedCases: number;
-  totalCases: number;
-  achievements: Achievement[];
-  recentActivity: Activity[];
-  weeklyProgress: number;
-  rank: string;
+  xp: number
+  level: number
+  completedCases: number
+  totalCases: number
+  achievements: Achievement[]
+  recentActivity: Activity[]
+  weeklyProgress: number
+  rank: string
 }
 
 interface Achievement {
-  id: string;
-  title: string;
-  description: string;
-  icon: string;
-  unlockedAt: string;
-  rarity: 'common' | 'rare' | 'epic' | 'legendary';
+  id: string
+  title: string
+  description: string
+  icon: string
+  unlockedAt: string
+  rarity: 'common' | 'rare' | 'epic' | 'legendary'
 }
 
 interface Activity {
-  id: string;
-  type: string;
-  title: string;
-  description: string;
-  timestamp: string;
-  xp: number;
+  id: string
+  type: string
+  title: string
+  description: string
+  timestamp: string
+  xp: number
 }
 
 export default function Dashboard() {
-  const { user, isLoading } = useAuth();
-  const router = useRouter();
-  const [activeSection, setActiveSection] = useState('overview');
-  const [userStats, setUserStats] = useState<UserStats | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [profileImage, setProfileImage] = useState<string | null>(null);
+  const { user, isLoading } = useAuth()
+  const router = useRouter()
+  const [activeSection, setActiveSection] = useState('overview')
+  const [userStats, setUserStats] = useState<UserStats | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [profileImage, setProfileImage] = useState<string | null>(null)
 
   // Auth guard - tizimga kirmagan foydalanuvchini signin sahifasiga yo'naltirish
   useEffect(() => {
     if (!isLoading && !user) {
-      router.replace('/signin');
+      router.replace('/signin')
     }
-  }, [user, isLoading, router]);
+  }, [user, isLoading, router])
 
   // ⚠️ ALL hooks MUST be before any early return — React Rules of Hooks
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      setProfileImage(localStorage.getItem('profile_image'));
+      setProfileImage(localStorage.getItem('profile_image'))
     }
     if (user) {
-      loadUserStats();
+      loadUserStats()
     }
-  }, [user]);
-  
+  }, [user])
+
   const handleLogout = async () => {
-    await firebaseAuth.signOut();
+    await firebaseAuth.signOut()
     // firebaseAuth.signOut() does nuclear clear + hard redirect to /signin
-  };
+  }
 
   const handleNavigation = (href: string) => {
     if (href === '/signin') {
-      handleLogout();
-      return;
+      handleLogout()
+      return
     }
-    router.push(href);
-  };
+    router.push(href)
+  }
 
   if (isLoading || !user) {
     return (
@@ -113,17 +113,17 @@ export default function Dashboard() {
           <p className="text-gray-600 dark:text-gray-400 dark:text-zinc-500">Yuklanmoqda...</p>
         </div>
       </div>
-    );
+    )
   }
 
   const loadUserStats = async () => {
     try {
-      setLoading(true);
+      setLoading(true)
 
       // Load stats from localStorage or use default empty values
-      const storedStats = localStorage.getItem('user_stats');
+      const storedStats = localStorage.getItem('user_stats')
       if (storedStats) {
-        setUserStats(JSON.parse(storedStats));
+        setUserStats(JSON.parse(storedStats))
       } else {
         // Default empty stats for new users
         const defaultStats: UserStats = {
@@ -134,20 +134,19 @@ export default function Dashboard() {
           weeklyProgress: 0,
           rank: 'Yangi boshlovchi',
           achievements: [],
-          recentActivity: []
-        };
-        setUserStats(defaultStats);
-        localStorage.setItem('user_stats', JSON.stringify(defaultStats));
+          recentActivity: [],
+        }
+        setUserStats(defaultStats)
+        localStorage.setItem('user_stats', JSON.stringify(defaultStats))
       }
     } catch (error) {
-      console.error('Dashboard stats error:', error);
+      console.error('Dashboard stats error:', error)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const navigationGroups = [
-
     {
       title: 'Amaliyot',
       items: [
@@ -155,22 +154,22 @@ export default function Dashboard() {
           id: 'case-solver',
           label: 'IRAC Huquqiy Tahlil',
           icon: Scale,
-          href: '/irac'
+          href: '/irac',
         },
         {
           id: 'decision-tree',
           label: 'Qarorlar Daraxti',
           icon: Brain,
-          href: '/decision-tree'
+          href: '/decision-tree',
         },
 
         {
           id: 'virtual-court',
           label: 'Virtual Sud',
           icon: Gavel,
-          href: '/virtual-court'
-        }
-      ]
+          href: '/virtual-court',
+        },
+      ],
     },
     {
       title: 'Resurslar',
@@ -179,27 +178,27 @@ export default function Dashboard() {
           id: 'legal-database',
           label: 'Qonunlar bazasi',
           icon: Database,
-          href: '/legal-database-new'
+          href: '/legal-database-new',
         },
         {
           id: 'pro-tools',
           label: 'Asboblar',
           icon: Wrench,
-          href: '/pro-tools'
+          href: '/pro-tools',
         },
         {
           id: 'community',
           label: 'Jamiyat',
           icon: Users2,
-          href: '/community'
+          href: '/community',
         },
         {
           id: 'statistics',
           label: 'Statistika',
           icon: BarChart3,
-          href: '/statistics'
-        }
-      ]
+          href: '/statistics',
+        },
+      ],
     },
     {
       title: 'Shaxsiy',
@@ -208,57 +207,87 @@ export default function Dashboard() {
           id: 'settings',
           label: 'Sozlamalar',
           icon: Settings,
-          href: '/profile'
+          href: '/profile',
         },
         {
           id: 'premium',
           label: 'Premium',
           icon: Crown,
-          href: '/premium'
+          href: '/premium',
         },
         {
           id: 'help',
           label: 'Yordam',
           icon: HelpCircle,
-          href: '/help'
+          href: '/help',
         },
         {
           id: 'logout',
           label: 'Chiqish',
           icon: LogOut,
-          href: '/signin'
-        }
-      ]
-    }
-  ];
+          href: '/signin',
+        },
+      ],
+    },
+  ]
 
   const getRarityColor = (rarity: string) => {
     switch (rarity) {
-      case 'common': return 'bg-gray-100 dark:bg-gray-700/40 text-gray-800 dark:text-zinc-200 border-gray-300 dark:border-gray-600';
-      case 'rare': return 'bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800';
-      case 'epic': return 'bg-green-100 text-green-800 border-green-300 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800';
-      case 'legendary': return 'bg-yellow-100 text-yellow-800 border-yellow-300 dark:bg-yellow-900/30 dark:text-yellow-300 dark:border-yellow-800';
-      default: return 'bg-gray-100 dark:bg-gray-700/40 text-gray-800 dark:text-zinc-200 border-gray-300 dark:border-gray-600';
+      case 'common':
+        return 'bg-gray-100 dark:bg-gray-700/40 text-gray-800 dark:text-zinc-200 border-gray-300 dark:border-gray-600'
+      case 'rare':
+        return 'bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800'
+      case 'epic':
+        return 'bg-green-100 text-green-800 border-green-300 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800'
+      case 'legendary':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-300 dark:bg-yellow-900/30 dark:text-yellow-300 dark:border-yellow-800'
+      default:
+        return 'bg-gray-100 dark:bg-gray-700/40 text-gray-800 dark:text-zinc-200 border-gray-300 dark:border-gray-600'
     }
-  };
+  }
 
   const getActivityIcon = (type: string) => {
     switch (type) {
-      case 'case_completed': return <div className="w-5 h-5 rounded-full bg-green-50 dark:bg-green-900/20 flex items-center justify-center"><CheckCircle className="w-3 h-3 text-white" /></div>;
-      case 'achievement_unlocked': return <div className="w-5 h-5 rounded-full bg-orange-500 flex items-center justify-center"><Award className="w-3 h-3 text-white" /></div>;
-      case 'daily_streak': return <div className="w-5 h-5 rounded-full bg-orange-500 flex items-center justify-center"><Zap className="w-3 h-3 text-white" /></div>;
-      default: return <div className="w-5 h-5 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center"><FileText className="w-3 h-3 text-white" /></div>;
+      case 'case_completed':
+        return (
+          <div className="w-5 h-5 rounded-full bg-green-50 dark:bg-green-900/20 flex items-center justify-center">
+            <CheckCircle className="w-3 h-3 text-white" />
+          </div>
+        )
+      case 'achievement_unlocked':
+        return (
+          <div className="w-5 h-5 rounded-full bg-orange-500 flex items-center justify-center">
+            <Award className="w-3 h-3 text-white" />
+          </div>
+        )
+      case 'daily_streak':
+        return (
+          <div className="w-5 h-5 rounded-full bg-orange-500 flex items-center justify-center">
+            <Zap className="w-3 h-3 text-white" />
+          </div>
+        )
+      default:
+        return (
+          <div className="w-5 h-5 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center">
+            <FileText className="w-3 h-3 text-white" />
+          </div>
+        )
     }
-  };
+  }
 
   const renderSidebar = () => (
     <div className="w-80 glass-strong rounded-2xl shadow-2xl overflow-hidden">
-      {/* User Profile Section */}            <div className="p-6 border-b border-gray-100 dark:border-zinc-800/50 dark:border-gray-700/50">
+      {/* User Profile Section */}{' '}
+      <div className="p-6 border-b border-gray-100 dark:border-zinc-800/50 dark:border-gray-700/50">
         <div className="flex items-center space-x-4">
           <a href="/profile" className="flex items-center space-x-4 group cursor-pointer">
             <div className="relative group">
               {profileImage ? (
-                <img src={profileImage} alt="Profile" className="w-16 h-16 rounded-full object-cover shadow-lg" />
+                <img
+                  src={profileImage}
+                  alt="Profile"
+                  className="w-16 h-16 rounded-full object-cover shadow-lg"
+                />
               ) : (
                 <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-green-500 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg transition-transform group-hover:scale-105 duration-200">
                   {user?.name?.charAt(0).toUpperCase() || 'U'}
@@ -269,8 +298,12 @@ export default function Dashboard() {
               </div>
             </div>
             <div className="flex-1">
-              <h3 className="font-bold text-gray-900 dark:text-white text-lg group-hover:text-blue-600 dark:hover:text-blue-400 transition-colors">{user?.name || 'User'}</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400 dark:text-zinc-500">{userStats?.rank || 'Huquqshunos'}</p>
+              <h3 className="font-bold text-gray-900 dark:text-white text-lg group-hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                {user?.name || 'User'}
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 dark:text-zinc-500">
+                {userStats?.rank || 'Huquqshunos'}
+              </p>
               <div className="flex items-center mt-2">
                 <div className="flex-1 bg-gray-100 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
                   <div
@@ -278,39 +311,47 @@ export default function Dashboard() {
                     style={{ width: `${((userStats?.level || 1) % 20) * 5}%` }}
                   />
                 </div>
-                <span className="ml-2 text-xs text-gray-500 dark:text-gray-400 dark:text-zinc-500 font-medium">Lv.{userStats?.level || 1}</span>
+                <span className="ml-2 text-xs text-gray-500 dark:text-gray-400 dark:text-zinc-500 font-medium">
+                  Lv.{userStats?.level || 1}
+                </span>
               </div>
             </div>
           </a>
         </div>
       </div>
-
       {/* XP and Stats */}
       <div className="px-6 py-4 border-b border-gray-100 dark:border-zinc-800/50 dark:border-gray-700/50">
         <div className="grid grid-cols-2 gap-4">
           <div className="text-center p-3 bg-blue-50 dark:bg-blue-900/20/50 rounded-xl hover:bg-blue-50 dark:bg-blue-900/20 transition-colors">
-            <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">{userStats?.xp || 0}</div>
-            <div className="text-xs text-gray-500 dark:text-gray-400 dark:text-zinc-500 mt-1">Total XP</div>
+            <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
+              {userStats?.xp || 0}
+            </div>
+            <div className="text-xs text-gray-500 dark:text-gray-400 dark:text-zinc-500 mt-1">
+              Total XP
+            </div>
           </div>
           <div className="text-center p-3 bg-emerald-50/50 rounded-xl hover:bg-emerald-50 transition-colors">
-            <div className="text-2xl font-bold text-emerald-600">{userStats?.weeklyProgress || 0}%</div>
-            <div className="text-xs text-gray-500 dark:text-gray-400 dark:text-zinc-500 mt-1">Haftalik maqsad</div>
+            <div className="text-2xl font-bold text-emerald-600">
+              {userStats?.weeklyProgress || 0}%
+            </div>
+            <div className="text-xs text-gray-500 dark:text-gray-400 dark:text-zinc-500 mt-1">
+              Haftalik maqsad
+            </div>
           </div>
         </div>
       </div>
-
       {/* Navigation */}
       <nav className="p-4">
         <div className="space-y-5">
-          {navigationGroups.map((group) => (
+          {navigationGroups.map(group => (
             <div key={group.title}>
               <h3 className="px-4 text-[11px] font-semibold text-gray-400 dark:text-zinc-500 uppercase tracking-[0.08em] mb-2">
                 {group.title}
               </h3>
               <div className="space-y-0.5">
-                {group.items.map((item) => {
-                  const Icon = item.icon;
-                  const isActive = activeSection === item.id;
+                {group.items.map(item => {
+                  const Icon = item.icon
+                  const isActive = activeSection === item.id
 
                   // Logout special handling: use button with onClick instead of Link
                   if (item.id === 'logout') {
@@ -324,10 +365,12 @@ export default function Dashboard() {
                             : 'text-gray-600 dark:text-gray-400 dark:text-zinc-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20'
                         }`}
                       >
-                        <Icon className={`w-5 h-5 ${isActive ? '' : 'text-gray-400 dark:text-zinc-500'}`} />
+                        <Icon
+                          className={`w-5 h-5 ${isActive ? '' : 'text-gray-400 dark:text-zinc-500'}`}
+                        />
                         <span className="font-medium text-sm">{item.label}</span>
                       </button>
-                    );
+                    )
                   }
 
                   return (
@@ -340,14 +383,16 @@ export default function Dashboard() {
                         }`}
                         onClick={() => setActiveSection(item.id)}
                       >
-                        <Icon className={`w-5 h-5 ${isActive ? '' : 'text-gray-400 dark:text-zinc-500 group-hover:text-gray-600 dark:text-zinc-400'}`} />
+                        <Icon
+                          className={`w-5 h-5 ${isActive ? '' : 'text-gray-400 dark:text-zinc-500 group-hover:text-gray-600 dark:text-zinc-400'}`}
+                        />
                         <span className="font-medium text-sm">{item.label}</span>
                         {isActive && (
                           <div className="ml-auto w-1.5 h-1.5 bg-white dark:bg-zinc-900 rounded-full shadow-[0_0_4px_rgba(255,255,255,0.5)]" />
                         )}
                       </div>
                     </Link>
-                  );
+                  )
                 })}
               </div>
             </div>
@@ -355,20 +400,27 @@ export default function Dashboard() {
         </div>
       </nav>
     </div>
-  );
+  )
 
   const renderOverview = () => (
     <div className="space-y-6 page-enter">
       {/* Welcome Header */}
       <div className="relative overflow-hidden bg-gradient-to-br from-blue-600 to-green-600 rounded-2xl p-8 text-white shadow-2xl">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.12)_0%,transparent_60%)]" />
-        <div className="absolute -bottom-8 -right-8 w-48 h-48 bg-white/5 rounded-full blur-2xl" />          <div className="relative flex flex-col sm:flex-row justify-between items-start">
+        <div className="absolute -bottom-8 -right-8 w-48 h-48 bg-white/5 rounded-full blur-2xl" />{' '}
+        <div className="relative flex flex-col sm:flex-row justify-between items-start">
           <div className="w-full">
-            <h1 className="text-2xl sm:text-3xl font-bold mb-2">Xush kelibsiz, {user?.name || 'Foydalanuvchi'}!</h1>
-            <p className="text-blue-100/80 text-sm sm:text-lg">Huquqiy bilimlaringizni rivojlantirishni davom ettiring</p>
+            <h1 className="text-2xl sm:text-3xl font-bold mb-2">
+              Xush kelibsiz, {user?.name || 'Foydalanuvchi'}!
+            </h1>
+            <p className="text-blue-100/80 text-sm sm:text-lg">
+              Huquqiy bilimlaringizni rivojlantirishni davom ettiring
+            </p>
             <div className="mt-6 flex flex-wrap gap-4 sm:gap-8">
               <div className="text-center">
-                <div className="text-xl sm:text-3xl font-bold">{userStats?.completedCases || 0}</div>
+                <div className="text-xl sm:text-3xl font-bold">
+                  {userStats?.completedCases || 0}
+                </div>
                 <div className="text-blue-100/70 text-xs sm:text-sm mt-1">Yechilgan ishlar</div>
               </div>
               <div className="text-center">
@@ -376,7 +428,9 @@ export default function Dashboard() {
                 <div className="text-blue-100/70 text-xs sm:text-sm mt-1">Umumiy XP</div>
               </div>
               <div className="text-center">
-                <div className="text-xl sm:text-3xl font-bold">{userStats?.weeklyProgress || 0}%</div>
+                <div className="text-xl sm:text-3xl font-bold">
+                  {userStats?.weeklyProgress || 0}%
+                </div>
                 <div className="text-blue-100/70 text-xs sm:text-sm mt-1">Haftalik maqsad</div>
               </div>
             </div>
@@ -384,7 +438,6 @@ export default function Dashboard() {
           <Scale className="w-20 h-20 opacity-10 text-white" />
         </div>
       </div>
-
       {/* Quick Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
         <Card className="card-default card-hover rounded-2xl">
@@ -392,8 +445,12 @@ export default function Dashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-secondary font-medium mb-1">Joriy daraja</p>
-                <p className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">{userStats?.level || 1}</p>
-                <p className="text-xs text-gray-400 dark:text-gray-500 dark:text-zinc-500 mt-1">{userStats?.rank || 'Beginner'}</p>
+                <p className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
+                  {userStats?.level || 1}
+                </p>
+                <p className="text-xs text-gray-400 dark:text-gray-500 dark:text-zinc-500 mt-1">
+                  {userStats?.rank || 'Beginner'}
+                </p>
               </div>
               <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/30 rounded-xl flex items-center justify-center glow-blue">
                 <TrendingUp className="w-6 h-6 text-blue-500" />
@@ -407,8 +464,12 @@ export default function Dashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-secondary font-medium mb-1">Umumiy XP</p>
-                <p className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-orange-400 bg-clip-text text-transparent">{userStats?.xp || 0}</p>
-                <p className="text-xs text-gray-400 dark:text-gray-500 dark:text-zinc-500 mt-1">+250 this week</p>
+                <p className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-orange-400 bg-clip-text text-transparent">
+                  {userStats?.xp || 0}
+                </p>
+                <p className="text-xs text-gray-400 dark:text-gray-500 dark:text-zinc-500 mt-1">
+                  +250 this week
+                </p>
               </div>
               <div className="w-12 h-12 bg-orange-50 dark:bg-orange-900/30 rounded-xl flex items-center justify-center">
                 <Zap className="w-6 h-6 text-orange-500" />
@@ -423,9 +484,14 @@ export default function Dashboard() {
               <div>
                 <p className="text-xs text-secondary font-medium mb-1">Muvaffaqiyat</p>
                 <p className="text-3xl font-bold text-emerald-600">
-                  {Math.round(((userStats?.completedCases || 0) / (userStats?.totalCases || 1)) * 100)}%
+                  {Math.round(
+                    ((userStats?.completedCases || 0) / (userStats?.totalCases || 1)) * 100
+                  )}
+                  %
                 </p>
-                <p className="text-xs text-gray-400 dark:text-gray-500 dark:text-zinc-500 mt-1">Above average</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500 dark:text-zinc-500 mt-1">
+                  Above average
+                </p>
               </div>
               <div className="w-12 h-12 bg-emerald-50 dark:bg-emerald-900/30 rounded-xl flex items-center justify-center">
                 <Target className="w-6 h-6 text-emerald-500" />
@@ -440,7 +506,9 @@ export default function Dashboard() {
               <div>
                 <p className="text-xs text-secondary font-medium mb-1">O'qish zanjiri</p>
                 <p className="text-3xl font-bold text-orange-600">7</p>
-                <p className="text-xs text-gray-400 dark:text-gray-500 dark:text-zinc-500 mt-1">Days in a row</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500 dark:text-zinc-500 mt-1">
+                  Days in a row
+                </p>
               </div>
               <div className="w-12 h-12 bg-orange-50 dark:bg-orange-900/30 rounded-xl flex items-center justify-center">
                 <Award className="w-6 h-6 text-orange-500" />
@@ -449,7 +517,6 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
-
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Recent Activity */}
@@ -463,18 +530,31 @@ export default function Dashboard() {
           <CardContent className="pt-5">
             <div className="space-y-3">
               {userStats?.recentActivity?.map((activity, idx) => (
-                <div key={activity.id} className="stagger-enter flex items-start space-x-4 p-4 rounded-xl hover:bg-gray-50 dark:bg-zinc-800/50/80 dark:hover:bg-gray-800/30 transition-all duration-200 card-hover" style={{ animationDelay: `${idx * 80}ms` }}>
+                <div
+                  key={activity.id}
+                  className="stagger-enter flex items-start space-x-4 p-4 rounded-xl hover:bg-gray-50 dark:bg-zinc-800/50/80 dark:hover:bg-gray-800/30 transition-all duration-200 card-hover"
+                  style={{ animationDelay: `${idx * 80}ms` }}
+                >
                   <div className="w-10 h-10 bg-gradient-to-br from-blue-50 to-green-50 rounded-xl flex items-center justify-center text-lg font-medium text-blue-600">
                     {getActivityIcon(activity.type)}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <h4 className="font-semibold text-gray-900 dark:text-white text-sm truncate">{activity.title}</h4>
-                      <Badge className="bg-emerald-50 text-emerald-700 border-0 text-xs font-medium ml-2 flex-shrink-0">+{activity.xp} XP</Badge>
+                      <h4 className="font-semibold text-gray-900 dark:text-white text-sm truncate">
+                        {activity.title}
+                      </h4>
+                      <Badge className="bg-emerald-50 text-emerald-700 border-0 text-xs font-medium ml-2 flex-shrink-0">
+                        +{activity.xp} XP
+                      </Badge>
                     </div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 dark:text-zinc-500 mt-0.5">{activity.description}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 dark:text-zinc-500 mt-0.5">
+                      {activity.description}
+                    </p>
                     <span className="text-xs text-gray-400 dark:text-gray-500 dark:text-zinc-500 mt-1 block">
-                      {new Date(activity.timestamp).toLocaleDateString('uz-UZ', { day: 'numeric', month: 'long' })}
+                      {new Date(activity.timestamp).toLocaleDateString('uz-UZ', {
+                        day: 'numeric',
+                        month: 'long',
+                      })}
                     </span>
                   </div>
                 </div>
@@ -493,20 +573,34 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent className="pt-5">
             <div className="space-y-3">
-              {userStats?.achievements?.map((achievement) => (
-                <div key={achievement.id} className={`p-3.5 rounded-xl border transition-all hover:shadow-sm dark:shadow-gray-900/50 ${getRarityColor(achievement.rarity)}`}>
+              {userStats?.achievements?.map(achievement => (
+                <div
+                  key={achievement.id}
+                  className={`p-3.5 rounded-xl border transition-all hover:shadow-sm dark:shadow-gray-900/50 ${getRarityColor(achievement.rarity)}`}
+                >
                   <div className="flex items-start space-x-3">
-                    <div className="w-9 h-9 rounded-lg bg-white/60 flex items-center justify-center text-lg">{achievement.icon}</div>
+                    <div className="w-9 h-9 rounded-lg bg-white/60 flex items-center justify-center text-lg">
+                      {achievement.icon}
+                    </div>
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-semibold text-sm text-gray-900 dark:text-white">{achievement.title}</h4>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-zinc-500 mt-0.5 line-clamp-2">{achievement.description}</p>
+                      <h4 className="font-semibold text-sm text-gray-900 dark:text-white">
+                        {achievement.title}
+                      </h4>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-zinc-500 mt-0.5 line-clamp-2">
+                        {achievement.description}
+                      </p>
                       <div className="mt-1.5">
-                        <span className={`inline-block px-2 py-0.5 rounded-md text-[10px] font-medium uppercase tracking-wider ${
-                          achievement.rarity === 'common' ? 'bg-gray-200 text-gray-600 dark:text-zinc-400' :
-                          achievement.rarity === 'rare' ? 'bg-blue-200 text-blue-700' :
-                          achievement.rarity === 'epic' ? 'bg-blue-200 text-blue-700' :
-                          'bg-amber-200 text-amber-700'
-                        }`}>
+                        <span
+                          className={`inline-block px-2 py-0.5 rounded-md text-[10px] font-medium uppercase tracking-wider ${
+                            achievement.rarity === 'common'
+                              ? 'bg-gray-200 text-gray-600 dark:text-zinc-400'
+                              : achievement.rarity === 'rare'
+                                ? 'bg-blue-200 text-blue-700'
+                                : achievement.rarity === 'epic'
+                                  ? 'bg-blue-200 text-blue-700'
+                                  : 'bg-amber-200 text-amber-700'
+                          }`}
+                        >
                           {achievement.rarity}
                         </span>
                       </div>
@@ -518,10 +612,10 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
-
-      {/* Quick Actions */}        <Card className="card-default rounded-2xl overflow-hidden">
-          <CardHeader className="border-b border-gray-100 dark:border-zinc-800/50 dark:border-gray-700/50 pb-4">
-            <CardTitle className="text-gray-800 dark:text-white text-lg">Tezkor amallar</CardTitle>
+      {/* Quick Actions */}{' '}
+      <Card className="card-default rounded-2xl overflow-hidden">
+        <CardHeader className="border-b border-gray-100 dark:border-zinc-800/50 dark:border-gray-700/50 pb-4">
+          <CardTitle className="text-gray-800 dark:text-white text-lg">Tezkor amallar</CardTitle>
         </CardHeader>
         <CardContent className="pt-5">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -540,8 +634,12 @@ export default function Dashboard() {
             >
               <div className="absolute -top-6 -right-6 w-20 h-20 bg-emerald-200/20 rounded-full blur-xl group-hover:scale-150 transition-transform duration-500" />
               <Database className="w-8 h-8 text-emerald-600 mb-3 group-hover:scale-110 transition-transform duration-200" />
-              <h3 className="font-semibold text-emerald-900 dark:text-emerald-300">Qonunlar bazasi</h3>
-              <p className="text-sm text-emerald-600/70 mt-1">Qonun va kodifikatsiyalarni qidiring</p>
+              <h3 className="font-semibold text-emerald-900 dark:text-emerald-300">
+                Qonunlar bazasi
+              </h3>
+              <p className="text-sm text-emerald-600/70 mt-1">
+                Qonun va kodifikatsiyalarni qidiring
+              </p>
             </div>
             <div
               onClick={() => handleNavigation('/virtual-court')}
@@ -556,7 +654,7 @@ export default function Dashboard() {
         </CardContent>
       </Card>
     </div>
-  );
+  )
 
   if (loading) {
     return (
@@ -566,20 +664,16 @@ export default function Dashboard() {
           <p className="text-gray-600 dark:text-gray-400 dark:text-zinc-500">Yuklanmoqda...</p>
         </div>
       </div>
-    );
+    )
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 mobile-safe-top p-3 md:p-6">
       <div className="max-w-full mx-auto">
         <div className="flex flex-col md:flex-row gap-4 md:gap-6">
-          <div className="desktop-sidebar w-full md:w-80 flex-shrink-0">
-            {renderSidebar()}
-          </div>
+          <div className="desktop-sidebar w-full md:w-80 flex-shrink-0">{renderSidebar()}</div>
 
-          <div className="flex-1">
-            {renderOverview()}
-          </div>
+          <div className="flex-1">{renderOverview()}</div>
         </div>
       </div>
       {/* AI Chat Floating Widget — only on dashboard */}
@@ -587,5 +681,5 @@ export default function Dashboard() {
       {/* Interactive onboarding tour for new users */}
       <OnboardingTour />
     </div>
-  );
+  )
 }

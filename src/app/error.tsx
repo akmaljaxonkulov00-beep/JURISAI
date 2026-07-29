@@ -1,20 +1,20 @@
-'use client';
+'use client'
 
-import { useEffect } from 'react';
-import { Button } from '@/components/ui/Button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { useEffect } from 'react'
+import { Button } from '@/components/ui/Button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 
 export default function Error({
   error,
   reset,
 }: {
-  error: Error & { digest?: string };
-  reset: () => void;
+  error: Error & { digest?: string }
+  reset: () => void
 }) {
   useEffect(() => {
     // Log the error to an error reporting service
-    console.error('Application error:', error);
-  }, [error]);
+    console.error('Application error:', error)
+  }, [error])
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-zinc-800/50 flex items-center justify-center px-4">
@@ -35,15 +35,20 @@ export default function Error({
               />
             </svg>
           </div>
-          <CardTitle className="text-2xl text-gray-900 dark:text-zinc-100">Xatolik yuz berdi</CardTitle>
+          <CardTitle className="text-2xl text-gray-900 dark:text-zinc-100">
+            Xatolik yuz berdi
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4 text-center">
           <p className="text-gray-600 dark:text-zinc-400">
-            Kechirasiz, ilovada kutmagan xatolik yuz berdi. Biz ushbu muammoni hal qilish ustida ishlamoqdamiz.
+            Kechirasiz, ilovada kutmagan xatolik yuz berdi. Biz ushbu muammoni hal qilish ustida
+            ishlamoqdamiz.
           </p>
-          
+
           <div className="bg-gray-50 dark:bg-zinc-800/50 rounded-lg p-3 text-left">
-            <p className="text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Xatolik tafsilotlari:</p>
+            <p className="text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">
+              Xatolik tafsilotlari:
+            </p>
             <p className="text-xs text-gray-600 dark:text-zinc-400 font-mono break-all">
               {error.message}
             </p>
@@ -61,7 +66,12 @@ export default function Error({
             <ul className="text-sm text-gray-500 dark:text-zinc-500 space-y-1 text-left">
               <li>Sahifani yangilab ko'ring</li>
               <li>Brauzerni qayta ishga tushiring</li>
-              <li><Link href="/dashboard" className="text-blue-600 hover:text-blue-500">Dashboard</Link> ga qaytib ko'ring</li>
+              <li>
+                <Link href="/dashboard" className="text-blue-600 hover:text-blue-500">
+                  Dashboard
+                </Link>{' '}
+                ga qaytib ko'ring
+              </li>
             </ul>
           </div>
 
@@ -70,9 +80,7 @@ export default function Error({
               Qayta urinish
             </Button>
             <Button variant="outline" asChild className="flex-1">
-              <Link href="/dashboard">
-                Dashboard
-              </Link>
+              <Link href="/dashboard">Dashboard</Link>
             </Button>
           </div>
 
@@ -88,10 +96,7 @@ export default function Error({
                 support@jurisai.uz
               </a>
               <span className="text-xs text-gray-400 dark:text-zinc-500">|</span>
-              <a
-                href="tel:+998901234567"
-                className="text-xs text-blue-600 hover:text-blue-500"
-              >
+              <a href="tel:+998901234567" className="text-xs text-blue-600 hover:text-blue-500">
                 +998 90 123 45 67
               </a>
             </div>
@@ -102,7 +107,7 @@ export default function Error({
         </CardContent>
       </Card>
     </div>
-  );
+  )
 }
 
-import Link from 'next/link';
+import Link from 'next/link'

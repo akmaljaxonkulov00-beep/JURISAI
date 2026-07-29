@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { supabaseServer } from '@/lib/supabase-client';
+import { NextRequest, NextResponse } from 'next/server'
+import { supabaseServer } from '@/lib/supabase-client'
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,21 +12,21 @@ export async function POST(request: NextRequest) {
       license_number: 'DEMO-001',
       specialization: ['Jinoyat huquqi', 'Fuqarolik huquqi'],
       experience: 5,
-      office_address: 'Toshkent shahar, Chilonzor tumani, Amir Temur ko\'chasi 123',
+      office_address: "Toshkent shahar, Chilonzor tumani, Amir Temur ko'chasi 123",
       education: 'Toshkent Davlat Yuridik Universiteti, 2015',
-      bar_association: 'O\'zbekiston Advokatlar Assotsiatsiyasi',
+      bar_association: "O'zbekiston Advokatlar Assotsiatsiyasi",
       bio: 'Professional advokat with 5+ years of experience in criminal and civil law. Committed to providing high-quality legal services to clients.',
       website: 'https://demo-lawyer.uz',
       linkedin: 'https://linkedin.com/in/demolawyer',
-      status: 'approved'
-    };
+      status: 'approved',
+    }
 
     // Check if demo lawyer already exists
     const { data: existingLawyer } = await supabaseServer
       .from('lawyers')
       .select('id')
       .eq('email', demoLawyer.email)
-      .single();
+      .single()
 
     if (existingLawyer) {
       return NextResponse.json({
@@ -34,8 +34,8 @@ export async function POST(request: NextRequest) {
         message: 'Demo advokat allaqachon mavjud',
         lawyer: existingLawyer,
         email: demoLawyer.email,
-        password: 'demo123456'
-      });
+        password: 'demo123456',
+      })
     }
 
     // Create lawyer profile
@@ -44,17 +44,17 @@ export async function POST(request: NextRequest) {
       .insert({
         ...demoLawyer,
         created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       })
       .select()
-      .single();
+      .single()
 
     if (lawyerError) {
-      console.error('Demo lawyer creation error:', lawyerError);
+      console.error('Demo lawyer creation error:', lawyerError)
       return NextResponse.json(
         { error: 'Demo advokatni yaratishda xatolik yuz berdi' },
         { status: 500 }
-      );
+      )
     }
 
     // Create user account for demo lawyer
@@ -66,32 +66,29 @@ export async function POST(request: NextRequest) {
         role: 'lawyer',
         lawyer_id: lawyerData.id,
         first_name: demoLawyer.first_name,
-        last_name: demoLawyer.last_name
-      }
-    });
+        last_name: demoLawyer.last_name,
+      },
+    })
 
     if (userError) {
-      console.error('Demo user creation error:', userError);
+      console.error('Demo user creation error:', userError)
       // Rollback lawyer creation
-      await supabaseServer
-        .from('lawyers')
-        .delete()
-        .eq('id', lawyerData.id);
-      
+      await supabaseServer.from('lawyers').delete().eq('id', lawyerData.id)
+
       return NextResponse.json(
         { error: 'Demo foydalanuvchi akkauntini yaratishda xatolik yuz berdi' },
         { status: 500 }
-      );
+      )
     }
 
     // Update lawyer with user ID
     const { error: updateError } = await supabaseServer
       .from('lawyers')
       .update({ user_id: userData.user.id })
-      .eq('id', lawyerData.id);
+      .eq('id', lawyerData.id)
 
     if (updateError) {
-      console.error('Lawyer update error:', updateError);
+      console.error('Lawyer update error:', updateError)
     }
 
     // Create demo clients
@@ -104,24 +101,21 @@ export async function POST(request: NextRequest) {
         address: 'Toshkent shahar, Yunusobod tumani',
         status: 'active',
         created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       },
       {
         lawyer_id: lawyerData.id,
         name: 'Dilora Toshmatova',
         email: 'dilora.toshmatova@example.com',
         phone: '+998 91 345 67 89',
-        address: 'Toshkent shahri, Mirzo Ulug\'bek tumani',
+        address: "Toshkent shahri, Mirzo Ulug'bek tumani",
         status: 'active',
         created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      }
-    ];
+        updated_at: new Date().toISOString(),
+      },
+    ]
 
-    const { data: clientsData } = await supabaseServer
-      .from('clients')
-      .insert(demoClients)
-      .select();
+    const { data: clientsData } = await supabaseServer.from('clients').insert(demoClients).select()
 
     // Create demo cases
     if (clientsData) {
@@ -130,11 +124,11 @@ export async function POST(request: NextRequest) {
           client_id: clientsData[0].id,
           lawyer_id: lawyerData.id,
           case_type: 'Jinoyat huquqi',
-          description: 'Mulkni o\'g\'irlash ishi bo\'yicha himoya',
+          description: "Mulkni o'g'irlash ishi bo'yicha himoya",
           status: 'active',
           revenue: 1500000,
           created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         },
         {
           client_id: clientsData[1].id,
@@ -144,13 +138,11 @@ export async function POST(request: NextRequest) {
           status: 'active',
           revenue: 800000,
           created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        }
-      ];
+          updated_at: new Date().toISOString(),
+        },
+      ]
 
-      await supabaseServer
-        .from('client_cases')
-        .insert(demoCases);
+      await supabaseServer.from('client_cases').insert(demoCases)
     }
 
     // Create demo requests
@@ -165,45 +157,42 @@ export async function POST(request: NextRequest) {
           category: 'Shartnoma huquqi',
           status: 'pending',
           created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         },
         {
           lawyer_id: lawyerData.id,
           client_id: clientsData[1].id,
           subject: 'Mehnat shartnomasi',
-          description: 'Ishdan bo\'shatish masalasi bo\'yicha maslahat kerak',
+          description: "Ishdan bo'shatish masalasi bo'yicha maslahat kerak",
           urgency: 'medium',
           category: 'Mehnat huquqi',
           status: 'pending',
           created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        }
-      ];
+          updated_at: new Date().toISOString(),
+        },
+      ]
 
-      await supabaseServer
-        .from('client_requests')
-        .insert(demoRequests);
+      await supabaseServer.from('client_requests').insert(demoRequests)
     }
 
     console.log('Demo lawyer created successfully:', {
       lawyerId: lawyerData.id,
       userId: userData.user.id,
-      email: demoLawyer.email
-    });
+      email: demoLawyer.email,
+    })
 
     return NextResponse.json({
       success: true,
       message: 'Demo advokat muvaffaqiyatli yaratildi',
       lawyer: lawyerData,
       email: demoLawyer.email,
-      password: 'demo123456'
-    });
-
+      password: 'demo123456',
+    })
   } catch (error) {
-    console.error('Demo lawyer creation error:', error);
+    console.error('Demo lawyer creation error:', error)
     return NextResponse.json(
-      { error: 'Server xatosi. Iltimos, qayta urinib ko\'ring.' },
+      { error: "Server xatosi. Iltimos, qayta urinib ko'ring." },
       { status: 500 }
-    );
+    )
   }
 }

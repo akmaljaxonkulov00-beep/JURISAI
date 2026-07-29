@@ -1,18 +1,18 @@
-'use client';
+'use client'
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react'
 
 export interface SiteSettings {
-  announcementBanner: string;
-  heroTitle: string;
-  heroSubtitle: string;
-  contactEmail: string;
-  contactPhone: string;
-  telegramLink: string;
-  legalDisclaimer: string;
-  systemPrompt: string;
-  paymentCardNumber: string;
-  paymentDetails: string;
+  announcementBanner: string
+  heroTitle: string
+  heroSubtitle: string
+  contactEmail: string
+  contactPhone: string
+  telegramLink: string
+  legalDisclaimer: string
+  systemPrompt: string
+  paymentCardNumber: string
+  paymentDetails: string
 }
 
 const DEFAULT_SETTINGS: SiteSettings = {
@@ -22,38 +22,39 @@ const DEFAULT_SETTINGS: SiteSettings = {
   contactEmail: 'support@jurisai.uz',
   contactPhone: '+998 90 123 45 67',
   telegramLink: 'https://t.me/jurisai_bot',
-  legalDisclaimer: 'JURISAI tomonidan berilgan ma\'lumotlar faqat ma\'lumot uchun. Rasmiy huquqiy maslahat o\'rnini bosa olmaydi.',
+  legalDisclaimer:
+    "JURISAI tomonidan berilgan ma'lumotlar faqat ma'lumot uchun. Rasmiy huquqiy maslahat o'rnini bosa olmaydi.",
   systemPrompt: 'You are JurisAI — an expert legal consultant...',
   paymentCardNumber: '8600 1234 5678 9012',
   paymentDetails: 'Click: *123# 45000 UZS / Payme: 8600 1234 5678 9012',
-};
+}
 
 export function useSiteSettings(): SiteSettings {
-  const [settings, setSettings] = useState<SiteSettings>(DEFAULT_SETTINGS);
+  const [settings, setSettings] = useState<SiteSettings>(DEFAULT_SETTINGS)
 
   useEffect(() => {
     // Read from the public key that admin writes to
     try {
-      const stored = localStorage.getItem('siteSettings');
+      const stored = localStorage.getItem('siteSettings')
       if (stored) {
-        const parsed = JSON.parse(stored);
-        setSettings({ ...DEFAULT_SETTINGS, ...parsed });
+        const parsed = JSON.parse(stored)
+        setSettings({ ...DEFAULT_SETTINGS, ...parsed })
       }
     } catch {}
-  }, []);
+  }, [])
 
-  return settings;
+  return settings
 }
 
 // Helper to get individual setting values in components
 export function getSetting(key: keyof SiteSettings): string {
-  if (typeof window === 'undefined') return DEFAULT_SETTINGS[key] || '';
+  if (typeof window === 'undefined') return DEFAULT_SETTINGS[key] || ''
   try {
-    const stored = localStorage.getItem('siteSettings');
+    const stored = localStorage.getItem('siteSettings')
     if (stored) {
-      const parsed = JSON.parse(stored);
-      return parsed[key] || DEFAULT_SETTINGS[key] || '';
+      const parsed = JSON.parse(stored)
+      return parsed[key] || DEFAULT_SETTINGS[key] || ''
     }
   } catch {}
-  return DEFAULT_SETTINGS[key] || '';
+  return DEFAULT_SETTINGS[key] || ''
 }

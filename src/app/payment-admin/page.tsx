@@ -1,73 +1,75 @@
-'use client';
+'use client'
 
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
-import { Input } from '@/components/ui/Input';
-import { useAuth } from '@/services/auth';
-import { api } from '@/services/api';
-import { 
-  ArrowLeft, 
-  CheckCircle, 
-  XCircle, 
-  Clock, 
-  Image, 
-  Download, 
+import { useState, useEffect } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
+import { Badge } from '@/components/ui/Badge'
+import { Input } from '@/components/ui/Input'
+import { useAuth } from '@/services/auth'
+import { api } from '@/services/api'
+import {
+  ArrowLeft,
+  CheckCircle,
+  XCircle,
+  Clock,
+  Image,
+  Download,
   Search,
   Filter,
   Eye,
   CreditCard,
   User,
   Calendar,
-  AlertCircle
-} from 'lucide-react';
+  AlertCircle,
+} from 'lucide-react'
 
 interface PaymentRequest {
-  id: string;
-  userId: string;
-  userName: string;
-  userEmail: string;
-  planId: string;
-  planName: string;
-  planPrice: number;
-  status: 'pending' | 'approved' | 'rejected';
-  checkImage?: string;
-  submittedAt: string;
-  processedAt?: string;
-  processedBy?: string;
-  notes?: string;
+  id: string
+  userId: string
+  userName: string
+  userEmail: string
+  planId: string
+  planName: string
+  planPrice: number
+  status: 'pending' | 'approved' | 'rejected'
+  checkImage?: string
+  submittedAt: string
+  processedAt?: string
+  processedBy?: string
+  notes?: string
 }
 
 export default function PaymentAdmin() {
-  const { user } = useAuth();
-  const [payments, setPayments] = useState<PaymentRequest[]>([]);
-  const [filteredPayments, setFilteredPayments] = useState<PaymentRequest[]>([]);
-  const [selectedPayment, setSelectedPayment] = useState<PaymentRequest | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
-  const [loading, setLoading] = useState(true);
-  const [actionLoading, setActionLoading] = useState(false);
+  const { user } = useAuth()
+  const [payments, setPayments] = useState<PaymentRequest[]>([])
+  const [filteredPayments, setFilteredPayments] = useState<PaymentRequest[]>([])
+  const [selectedPayment, setSelectedPayment] = useState<PaymentRequest | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>(
+    'all'
+  )
+  const [loading, setLoading] = useState(true)
+  const [actionLoading, setActionLoading] = useState(false)
 
   useEffect(() => {
     if (user?.role !== 'ADMIN') {
-      window.location.href = '/dashboard';
-      return;
+      window.location.href = '/dashboard'
+      return
     }
-    loadPayments();
-  }, [user]);
+    loadPayments()
+  }, [user])
 
   useEffect(() => {
-    filterPayments();
-  }, [payments, searchQuery, statusFilter]);
+    filterPayments()
+  }, [payments, searchQuery, statusFilter])
 
   const loadPayments = async () => {
     try {
-      setLoading(true);
-      
+      setLoading(true)
+
       // Mock API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
+      await new Promise(resolve => setTimeout(resolve, 1500))
+
       // Mock data
       const mockPayments: PaymentRequest[] = [
         {
@@ -80,7 +82,7 @@ export default function PaymentAdmin() {
           planPrice: 99000,
           status: 'pending',
           checkImage: '/api/placeholder/400/300',
-          submittedAt: '2024-01-20T10:30:00Z'
+          submittedAt: '2024-01-20T10:30:00Z',
         },
         {
           id: '2',
@@ -92,7 +94,7 @@ export default function PaymentAdmin() {
           planPrice: 49000,
           status: 'pending',
           checkImage: '/api/placeholder/400/300',
-          submittedAt: '2024-01-20T09:15:00Z'
+          submittedAt: '2024-01-20T09:15:00Z',
         },
         {
           id: '3',
@@ -106,7 +108,7 @@ export default function PaymentAdmin() {
           checkImage: '/api/placeholder/400/300',
           submittedAt: '2024-01-19T16:45:00Z',
           processedAt: '2024-01-19T17:30:00Z',
-          processedBy: 'Admin'
+          processedBy: 'Admin',
         },
         {
           id: '4',
@@ -121,111 +123,129 @@ export default function PaymentAdmin() {
           submittedAt: '2024-01-19T14:20:00Z',
           processedAt: '2024-01-19T15:00:00Z',
           processedBy: 'Admin',
-          notes: 'Chek aniq emas, summa mos kelmadi'
-        }
-      ];
-      
-      setPayments(mockPayments);
-      setLoading(false);
+          notes: 'Chek aniq emas, summa mos kelmadi',
+        },
+      ]
+
+      setPayments(mockPayments)
+      setLoading(false)
     } catch (error) {
-      console.error('Error loading payments:', error);
-      setLoading(false);
+      console.error('Error loading payments:', error)
+      setLoading(false)
     }
-  };
+  }
 
   const filterPayments = () => {
-    let filtered = payments;
+    let filtered = payments
 
     // Filter by status
     if (statusFilter !== 'all') {
-      filtered = filtered.filter(payment => payment.status === statusFilter);
+      filtered = filtered.filter(payment => payment.status === statusFilter)
     }
 
     // Filter by search query
     if (searchQuery) {
-      filtered = filtered.filter(payment => 
-        payment.userName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        payment.userEmail.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        payment.planName.toLowerCase().includes(searchQuery.toLowerCase())
-      );
+      filtered = filtered.filter(
+        payment =>
+          payment.userName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          payment.userEmail.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          payment.planName.toLowerCase().includes(searchQuery.toLowerCase())
+      )
     }
 
-    setFilteredPayments(filtered);
-  };
+    setFilteredPayments(filtered)
+  }
 
   const handleApprovePayment = async (paymentId: string) => {
     try {
-      setActionLoading(true);
-      
+      setActionLoading(true)
+
       // Mock API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
+      await new Promise(resolve => setTimeout(resolve, 2000))
+
       // Update payment status
-      setPayments(prev => prev.map(payment => 
-        payment.id === paymentId 
-          ? {
-              ...payment,
-              status: 'approved' as const,
-              processedAt: new Date().toISOString(),
-              processedBy: user?.name || 'Admin'
-            }
-          : payment
-      ));
+      setPayments(prev =>
+        prev.map(payment =>
+          payment.id === paymentId
+            ? {
+                ...payment,
+                status: 'approved' as const,
+                processedAt: new Date().toISOString(),
+                processedBy: user?.name || 'Admin',
+              }
+            : payment
+        )
+      )
 
       // Close modal if open
-      setSelectedPayment(null);
-      
+      setSelectedPayment(null)
     } catch (error) {
-      console.error('Error approving payment:', error);
-      alert('To\'lovni tasdiqlashda xatolik yuz berdi');
+      console.error('Error approving payment:', error)
+      alert("To'lovni tasdiqlashda xatolik yuz berdi")
     } finally {
-      setActionLoading(false);
+      setActionLoading(false)
     }
-  };
+  }
 
   const handleRejectPayment = async (paymentId: string, notes?: string) => {
     try {
-      setActionLoading(true);
-      
+      setActionLoading(true)
+
       // Mock API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
+      await new Promise(resolve => setTimeout(resolve, 2000))
+
       // Update payment status
-      setPayments(prev => prev.map(payment => 
-        payment.id === paymentId 
-          ? {
-              ...payment,
-              status: 'rejected' as const,
-              processedAt: new Date().toISOString(),
-              processedBy: user?.name || 'Admin',
-              notes
-            }
-          : payment
-      ));
+      setPayments(prev =>
+        prev.map(payment =>
+          payment.id === paymentId
+            ? {
+                ...payment,
+                status: 'rejected' as const,
+                processedAt: new Date().toISOString(),
+                processedBy: user?.name || 'Admin',
+                notes,
+              }
+            : payment
+        )
+      )
 
       // Close modal if open
-      setSelectedPayment(null);
-      
+      setSelectedPayment(null)
     } catch (error) {
-      console.error('Error rejecting payment:', error);
-      alert('To\'lovni rad etishda xatolik yuz berdi');
+      console.error('Error rejecting payment:', error)
+      alert("To'lovni rad etishda xatolik yuz berdi")
     } finally {
-      setActionLoading(false);
+      setActionLoading(false)
     }
-  };
+  }
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending':
-        return <Badge className="bg-yellow-100 text-yellow-800"><Clock className="w-3 h-3 mr-1" />Kutilmoqda</Badge>;
+        return (
+          <Badge className="bg-yellow-100 text-yellow-800">
+            <Clock className="w-3 h-3 mr-1" />
+            Kutilmoqda
+          </Badge>
+        )
       case 'approved':
-        return <Badge className="bg-green-100 text-green-800"><CheckCircle className="w-3 h-3 mr-1" />Tasdiqlangan</Badge>;
+        return (
+          <Badge className="bg-green-100 text-green-800">
+            <CheckCircle className="w-3 h-3 mr-1" />
+            Tasdiqlangan
+          </Badge>
+        )
       case 'rejected':
-        return <Badge className="bg-red-100 text-red-800"><XCircle className="w-3 h-3 mr-1" />Rad etilgan</Badge>;
+        return (
+          <Badge className="bg-red-100 text-red-800">
+            <XCircle className="w-3 h-3 mr-1" />
+            Rad etilgan
+          </Badge>
+        )
       default:
-        return <Badge>{status}</Badge>;
+        return <Badge>{status}</Badge>
     }
-  };
+  }
 
   if (loading) {
     return (
@@ -235,7 +255,7 @@ export default function PaymentAdmin() {
           <p className="text-gray-600 dark:text-zinc-400">Yuklanmoqda...</p>
         </div>
       </div>
-    );
+    )
   }
 
   return (
@@ -243,15 +263,17 @@ export default function PaymentAdmin() {
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
-            <Button 
+            <Button
               variant="outline"
-              onClick={() => window.location.href = '/admin'}
+              onClick={() => (window.location.href = '/admin')}
               className="flex items-center gap-2"
             >
               <ArrowLeft className="w-4 h-4" />
               Orqaga
             </Button>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-zinc-100">To'lovlar Admin Paneli</h1>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-zinc-100">
+              To'lovlar Admin Paneli
+            </h1>
           </div>
           <div className="flex items-center gap-2">
             <Badge className="bg-blue-100 text-blue-800">
@@ -270,7 +292,7 @@ export default function PaymentAdmin() {
                   <Input
                     placeholder="Foydalanuvchi, email yoki tarif nomi bo'yicha qidirish..."
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={e => setSearchQuery(e.target.value)}
                     className="pl-10"
                   />
                 </div>
@@ -311,7 +333,7 @@ export default function PaymentAdmin() {
 
         {/* Payment List */}
         <div className="grid gap-4">
-          {filteredPayments.map((payment) => (
+          {filteredPayments.map(payment => (
             <Card key={payment.id} className="hover:shadow-md transition-shadow">
               <CardContent className="p-6">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -321,12 +343,16 @@ export default function PaymentAdmin() {
                         <User className="w-5 h-5 text-blue-600" />
                       </div>
                       <div>
-                        <h3 className="font-semibold text-gray-900 dark:text-zinc-100">{payment.userName}</h3>
-                        <p className="text-sm text-gray-600 dark:text-zinc-400">{payment.userEmail}</p>
+                        <h3 className="font-semibold text-gray-900 dark:text-zinc-100">
+                          {payment.userName}
+                        </h3>
+                        <p className="text-sm text-gray-600 dark:text-zinc-400">
+                          {payment.userEmail}
+                        </p>
                       </div>
                       {getStatusBadge(payment.status)}
                     </div>
-                    
+
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                       <div className="flex items-center gap-2">
                         <CreditCard className="w-4 h-4 text-gray-400 dark:text-zinc-500" />
@@ -335,7 +361,9 @@ export default function PaymentAdmin() {
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="text-gray-600 dark:text-zinc-400">Summa:</span>
-                        <span className="font-medium">{payment.planPrice.toLocaleString()} UZS</span>
+                        <span className="font-medium">
+                          {payment.planPrice.toLocaleString()} UZS
+                        </span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Calendar className="w-4 h-4 text-gray-400 dark:text-zinc-500" />
@@ -362,7 +390,7 @@ export default function PaymentAdmin() {
                       <Eye className="w-4 h-4" />
                       Ko'rish
                     </Button>
-                    
+
                     {payment.status === 'pending' && (
                       <>
                         <Button
@@ -395,12 +423,13 @@ export default function PaymentAdmin() {
           <Card>
             <CardContent className="p-12 text-center">
               <AlertCircle className="w-12 h-12 text-gray-400 dark:text-zinc-500 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-zinc-100 mb-2">To'lovlar topilmadi</h3>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-zinc-100 mb-2">
+                To'lovlar topilmadi
+              </h3>
               <p className="text-gray-600 dark:text-zinc-400">
-                {searchQuery || statusFilter !== 'all' 
-                  ? 'Berilgan filtrlar bo\'yicha to\'lovlar topilmadi' 
-                  : 'Hozircha hech qanday to\'lov yo\'q'
-                }
+                {searchQuery || statusFilter !== 'all'
+                  ? "Berilgan filtrlar bo'yicha to'lovlar topilmadi"
+                  : "Hozircha hech qanday to'lov yo'q"}
               </p>
             </CardContent>
           </Card>
@@ -413,11 +442,7 @@ export default function PaymentAdmin() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle>To'lov Tafsilotlari</CardTitle>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => setSelectedPayment(null)}
-                  >
+                  <Button variant="outline" size="sm" onClick={() => setSelectedPayment(null)}>
                     Yopish
                   </Button>
                 </div>
@@ -426,7 +451,9 @@ export default function PaymentAdmin() {
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="space-y-4">
                     <div>
-                      <h3 className="font-medium text-gray-900 dark:text-zinc-100 mb-2">Foydalanuvchi ma'lumotlari</h3>
+                      <h3 className="font-medium text-gray-900 dark:text-zinc-100 mb-2">
+                        Foydalanuvchi ma'lumotlari
+                      </h3>
                       <div className="bg-gray-50 dark:bg-zinc-800/50 rounded-lg p-4 space-y-2">
                         <div className="flex justify-between">
                           <span className="text-gray-600 dark:text-zinc-400">Ism:</span>
@@ -444,7 +471,9 @@ export default function PaymentAdmin() {
                     </div>
 
                     <div>
-                      <h3 className="font-medium text-gray-900 dark:text-zinc-100 mb-2">To'lov ma'lumotlari</h3>
+                      <h3 className="font-medium text-gray-900 dark:text-zinc-100 mb-2">
+                        To'lov ma'lumotlari
+                      </h3>
                       <div className="bg-gray-50 dark:bg-zinc-800/50 rounded-lg p-4 space-y-2">
                         <div className="flex justify-between">
                           <span className="text-gray-600 dark:text-zinc-400">Tarif:</span>
@@ -452,7 +481,9 @@ export default function PaymentAdmin() {
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-600 dark:text-zinc-400">Summa:</span>
-                          <span className="font-medium">{selectedPayment.planPrice.toLocaleString()} UZS</span>
+                          <span className="font-medium">
+                            {selectedPayment.planPrice.toLocaleString()} UZS
+                          </span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-600 dark:text-zinc-400">Status:</span>
@@ -466,7 +497,9 @@ export default function PaymentAdmin() {
                         </div>
                         {selectedPayment.processedAt && (
                           <div className="flex justify-between">
-                            <span className="text-gray-600 dark:text-zinc-400">Qayta ishlangan vaqt:</span>
+                            <span className="text-gray-600 dark:text-zinc-400">
+                              Qayta ishlangan vaqt:
+                            </span>
                             <span className="font-medium">
                               {new Date(selectedPayment.processedAt).toLocaleString('uz-UZ')}
                             </span>
@@ -474,7 +507,9 @@ export default function PaymentAdmin() {
                         )}
                         {selectedPayment.processedBy && (
                           <div className="flex justify-between">
-                            <span className="text-gray-600 dark:text-zinc-400">Qayta ishlagan:</span>
+                            <span className="text-gray-600 dark:text-zinc-400">
+                              Qayta ishlagan:
+                            </span>
                             <span className="font-medium">{selectedPayment.processedBy}</span>
                           </div>
                         )}
@@ -484,12 +519,14 @@ export default function PaymentAdmin() {
 
                   <div className="space-y-4">
                     <div>
-                      <h3 className="font-medium text-gray-900 dark:text-zinc-100 mb-2">Chek rasmi</h3>
+                      <h3 className="font-medium text-gray-900 dark:text-zinc-100 mb-2">
+                        Chek rasmi
+                      </h3>
                       <div className="bg-gray-50 dark:bg-zinc-800/50 rounded-lg p-4">
                         {selectedPayment.checkImage ? (
-                          <img 
-                            src={selectedPayment.checkImage} 
-                            alt="Chek rasmi" 
+                          <img
+                            src={selectedPayment.checkImage}
+                            alt="Chek rasmi"
                             className="w-full rounded-lg shadow-sm"
                           />
                         ) : (
@@ -513,9 +550,9 @@ export default function PaymentAdmin() {
                         <Button
                           variant="destructive"
                           onClick={() => {
-                            const notes = prompt('Rad etish sababini kiriting:');
+                            const notes = prompt('Rad etish sababini kiriting:')
                             if (notes) {
-                              handleRejectPayment(selectedPayment.id, notes);
+                              handleRejectPayment(selectedPayment.id, notes)
                             }
                           }}
                           disabled={actionLoading}
@@ -534,5 +571,5 @@ export default function PaymentAdmin() {
         )}
       </div>
     </div>
-  );
+  )
 }

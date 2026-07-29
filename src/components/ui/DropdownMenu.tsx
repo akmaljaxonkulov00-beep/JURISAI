@@ -1,71 +1,69 @@
-import React, { createContext, useContext, useState, useRef, useEffect, ReactNode } from 'react';
-import { cn } from '@/lib/utils';
+import React, { createContext, useContext, useState, useRef, useEffect, ReactNode } from 'react'
+import { cn } from '@/lib/utils'
 
 interface DropdownMenuContextType {
-  isOpen: boolean;
-  setIsOpen: (open: boolean) => void;
-  triggerRef: React.RefObject<HTMLButtonElement | null>;
+  isOpen: boolean
+  setIsOpen: (open: boolean) => void
+  triggerRef: React.RefObject<HTMLButtonElement | null>
 }
 
-const DropdownMenuContext = createContext<DropdownMenuContextType | undefined>(undefined);
+const DropdownMenuContext = createContext<DropdownMenuContextType | undefined>(undefined)
 
 interface DropdownMenuProps {
-  children: ReactNode;
+  children: ReactNode
 }
 
 const DropdownMenu: React.FC<DropdownMenuProps> = ({ children }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const triggerRef = useRef<HTMLButtonElement>(null);
+  const [isOpen, setIsOpen] = useState(false)
+  const triggerRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (triggerRef.current && !triggerRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
+        setIsOpen(false)
       }
-    };
+    }
 
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        setIsOpen(false);
+        setIsOpen(false)
       }
-    };
+    }
 
     if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      document.addEventListener('keydown', handleEscape);
+      document.addEventListener('mousedown', handleClickOutside)
+      document.addEventListener('keydown', handleEscape)
     }
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('keydown', handleEscape);
-    };
-  }, [isOpen]);
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('keydown', handleEscape)
+    }
+  }, [isOpen])
 
   return (
     <DropdownMenuContext.Provider value={{ isOpen, setIsOpen, triggerRef }}>
-      <div className="relative inline-block text-left">
-        {children}
-      </div>
+      <div className="relative inline-block text-left">{children}</div>
     </DropdownMenuContext.Provider>
-  );
-};
-
-interface DropdownMenuTriggerProps {
-  asChild?: boolean;
-  children: ReactNode;
-  className?: string;
+  )
 }
 
-const DropdownMenuTrigger: React.FC<DropdownMenuTriggerProps> = ({ 
-  asChild, 
-  children, 
-  className 
+interface DropdownMenuTriggerProps {
+  asChild?: boolean
+  children: ReactNode
+  className?: string
+}
+
+const DropdownMenuTrigger: React.FC<DropdownMenuTriggerProps> = ({
+  asChild,
+  children,
+  className,
 }) => {
-  const { isOpen, setIsOpen, triggerRef } = useDropdownMenu();
+  const { isOpen, setIsOpen, triggerRef } = useDropdownMenu()
 
   const handleClick = () => {
-    setIsOpen(!isOpen);
-  };
+    setIsOpen(!isOpen)
+  }
 
   if (asChild && React.isValidElement(children)) {
     return React.cloneElement(children as React.ReactElement<any>, {
@@ -73,7 +71,7 @@ const DropdownMenuTrigger: React.FC<DropdownMenuTriggerProps> = ({
       onClick: handleClick,
       'aria-expanded': isOpen,
       'aria-haspopup': 'true',
-    });
+    })
   }
 
   return (
@@ -102,34 +100,34 @@ const DropdownMenuTrigger: React.FC<DropdownMenuTriggerProps> = ({
         />
       </svg>
     </button>
-  );
-};
-
-interface DropdownMenuContentProps {
-  children: ReactNode;
-  className?: string;
-  align?: 'start' | 'end';
+  )
 }
 
-const DropdownMenuContent: React.FC<DropdownMenuContentProps> = ({ 
-  children, 
-  className, 
-  align = 'end' 
-}) => {
-  const { isOpen, triggerRef } = useDropdownMenu();
+interface DropdownMenuContentProps {
+  children: ReactNode
+  className?: string
+  align?: 'start' | 'end'
+}
 
-  if (!isOpen) return null;
+const DropdownMenuContent: React.FC<DropdownMenuContentProps> = ({
+  children,
+  className,
+  align = 'end',
+}) => {
+  const { isOpen, triggerRef } = useDropdownMenu()
+
+  if (!isOpen) return null
 
   const getAlignmentClasses = (align: string) => {
     switch (align) {
       case 'start':
-        return 'left-0';
+        return 'left-0'
       case 'end':
-        return 'right-0';
+        return 'right-0'
       default:
-        return 'right-0';
+        return 'right-0'
     }
-  };
+  }
 
   return (
     <div
@@ -145,29 +143,29 @@ const DropdownMenuContent: React.FC<DropdownMenuContentProps> = ({
         {children}
       </div>
     </div>
-  );
-};
-
-interface DropdownMenuItemProps {
-  children: ReactNode;
-  onClick?: () => void;
-  disabled?: boolean;
-  className?: string;
+  )
 }
 
-const DropdownMenuItem: React.FC<DropdownMenuItemProps> = ({ 
-  children, 
-  onClick, 
-  disabled, 
-  className 
+interface DropdownMenuItemProps {
+  children: ReactNode
+  onClick?: () => void
+  disabled?: boolean
+  className?: string
+}
+
+const DropdownMenuItem: React.FC<DropdownMenuItemProps> = ({
+  children,
+  onClick,
+  disabled,
+  className,
 }) => {
-  const { setIsOpen } = useDropdownMenu();
+  const { setIsOpen } = useDropdownMenu()
 
   const handleClick = () => {
-    if (disabled) return;
-    onClick?.();
-    setIsOpen(false);
-  };
+    if (disabled) return
+    onClick?.()
+    setIsOpen(false)
+  }
 
   return (
     <button
@@ -183,34 +181,40 @@ const DropdownMenuItem: React.FC<DropdownMenuItemProps> = ({
     >
       {children}
     </button>
-  );
-};
+  )
+}
 
 interface DropdownMenuSeparatorProps {
-  className?: string;
+  className?: string
 }
 
 const DropdownMenuSeparator: React.FC<DropdownMenuSeparatorProps> = ({ className }) => (
-  <div className={cn('border-t border-gray-100 dark:border-zinc-800 my-1', className)} role="separator" />
-);
+  <div
+    className={cn('border-t border-gray-100 dark:border-zinc-800 my-1', className)}
+    role="separator"
+  />
+)
 
 interface DropdownMenuLabelProps {
-  children: ReactNode;
-  className?: string;
+  children: ReactNode
+  className?: string
 }
 
 const DropdownMenuLabel: React.FC<DropdownMenuLabelProps> = ({ children, className }) => (
-  <div className={cn('px-4 py-2 text-sm text-gray-500 dark:text-zinc-500', className)} role="menuitem">
+  <div
+    className={cn('px-4 py-2 text-sm text-gray-500 dark:text-zinc-500', className)}
+    role="menuitem"
+  >
     {children}
   </div>
-);
+)
 
 function useDropdownMenu(): DropdownMenuContextType {
-  const context = useContext(DropdownMenuContext);
+  const context = useContext(DropdownMenuContext)
   if (!context) {
-    throw new Error('DropdownMenu components must be used within a DropdownMenu provider');
+    throw new Error('DropdownMenu components must be used within a DropdownMenu provider')
   }
-  return context;
+  return context
 }
 
 export {
@@ -221,4 +225,4 @@ export {
   DropdownMenuSeparator,
   DropdownMenuLabel,
   useDropdownMenu,
-};
+}

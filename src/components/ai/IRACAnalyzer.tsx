@@ -1,37 +1,37 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import { Button } from '@/components/ui/Button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
+import { useState } from 'react'
+import { Button } from '@/components/ui/Button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import { Badge } from '@/components/ui/Badge'
 
 interface IRACAnalysis {
-  issue: string;
-  rule: string;
-  application: string;
-  conclusion: string;
+  issue: string
+  rule: string
+  application: string
+  conclusion: string
   sources: Array<{
-    title: string;
-    article: string;
-    url: string;
-  }>;
-  confidence: number;
+    title: string
+    article: string
+    url: string
+  }>
+  confidence: number
 }
 
 export default function IRACAnalyzer() {
-  const [caseText, setCaseText] = useState('');
-  const [analysis, setAnalysis] = useState<IRACAnalysis | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [caseText, setCaseText] = useState('')
+  const [analysis, setAnalysis] = useState<IRACAnalysis | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
   const analyzeCase = async () => {
     if (!caseText.trim()) {
-      setError('Iltimos, holat matnini kiriting');
-      return;
+      setError('Iltimos, holat matnini kiriting')
+      return
     }
 
-    setLoading(true);
-    setError('');
+    setLoading(true)
+    setError('')
 
     try {
       const response = await fetch('/api/ai/irac-analyze', {
@@ -40,27 +40,27 @@ export default function IRACAnalyzer() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ caseText }),
-      });
+      })
 
       if (response.ok) {
-        const data = await response.json();
-        setAnalysis(data);
+        const data = await response.json()
+        setAnalysis(data)
       } else {
-        const errorData = await response.json();
-        setError(errorData.error || 'Tahlil qilishda xatolik yuz berdi');
+        const errorData = await response.json()
+        setError(errorData.error || 'Tahlil qilishda xatolik yuz berdi')
       }
     } catch (error) {
-      setError('Tahlil qilishda xatolik yuz berdi. Iltimos, qayta urining.');
+      setError('Tahlil qilishda xatolik yuz berdi. Iltimos, qayta urining.')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const getConfidenceColor = (confidence: number) => {
-    if (confidence >= 80) return 'bg-green-100 text-green-800';
-    if (confidence >= 60) return 'bg-yellow-100 text-yellow-800';
-    return 'bg-red-100 text-red-800';
-  };
+    if (confidence >= 80) return 'bg-green-100 text-green-800'
+    if (confidence >= 60) return 'bg-yellow-100 text-yellow-800'
+    return 'bg-red-100 text-red-800'
+  }
 
   return (
     <div className="max-w-4xl mx-auto p-6">
@@ -73,21 +73,22 @@ export default function IRACAnalyzer() {
         </CardHeader>
         <CardContent className="space-y-6">
           <div>
-            <label htmlFor="caseText" className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
+            <label
+              htmlFor="caseText"
+              className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2"
+            >
               Holat matni
             </label>
             <textarea
               id="caseText"
               value={caseText}
-              onChange={(e) => setCaseText(e.target.value)}
+              onChange={e => setCaseText(e.target.value)}
               placeholder="Holat haqida batafsil ma'lumotni kiriting..."
               className="w-full h-32 px-3 py-2 border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
 
-          {error && (
-            <div className="text-red-600 text-sm">{error}</div>
-          )}
+          {error && <div className="text-red-600 text-sm">{error}</div>}
 
           <Button
             onClick={analyzeCase}
@@ -154,8 +155,12 @@ export default function IRACAnalyzer() {
                     <div className="space-y-3">
                       {analysis.sources.map((source, index) => (
                         <div key={index} className="border-l-4 border-blue-500 pl-4">
-                          <h4 className="font-semibold text-gray-900 dark:text-zinc-100">{source.title}</h4>
-                          <p className="text-sm text-gray-600 dark:text-zinc-400">{source.article}</p>
+                          <h4 className="font-semibold text-gray-900 dark:text-zinc-100">
+                            {source.title}
+                          </h4>
+                          <p className="text-sm text-gray-600 dark:text-zinc-400">
+                            {source.article}
+                          </p>
                           <a
                             href={source.url}
                             target="_blank"
@@ -175,14 +180,12 @@ export default function IRACAnalyzer() {
                 <Button variant="outline" onClick={() => setAnalysis(null)}>
                   Yangi tahlil
                 </Button>
-                <Button onClick={() => window.print()}>
-                  Natijalarni chop etish
-                </Button>
+                <Button onClick={() => window.print()}>Natijalarni chop etish</Button>
               </div>
             </div>
           )}
         </CardContent>
       </Card>
     </div>
-  );
+  )
 }

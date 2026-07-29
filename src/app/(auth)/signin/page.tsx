@@ -628,43 +628,8 @@ function SignInContent() {
     [mouseX, mouseY]
   )
 
-  // Handle OAuth callback result
+  // Check for existing session on mount (redirect if already logged in)
   useEffect(() => {
-    const oauth = searchParams?.get('oauth')
-    const oauthError = searchParams?.get('oauth_error')
-    
-    if (oauthError) {
-      setError('Google orqali kirishda xatolik: ' + decodeURIComponent(oauthError))
-    }
-    
-    if (oauth === 'success') {
-      // Session was stored by OAuth callback page, check it
-      firebaseAuth
-        .handleRedirectResult()
-        .then(result => {
-          if (result.success && result.data) {
-            const eNorm = result.data.email?.toLowerCase().trim()
-            router.replace(
-              eNorm === 'akmaljaxonkulov00@gmail.com'
-                ? '/admin'
-                : searchParams.get('redirectTo') || '/dashboard'
-            )
-          } else {
-            setError('Google orqali kirishda sessiya yaratilmadi. Iltimos, qayta urinib ko\'ring.')
-          }
-        })
-        .catch(() => {
-          setError('Google orqali kirishda xatolik yuz berdi')
-        })
-    }
-  }, [router, searchParams])
-  
-  // Also check for existing session on mount (normal redirect)
-  useEffect(() => {
-    // Only run if not already handled by OAuth flow
-    if (searchParams?.get('oauth') === 'success') return;
-    if (searchParams?.get('oauth_error')) return;
-    
     firebaseAuth
       .handleRedirectResult()
       .then(result => {
@@ -673,7 +638,7 @@ function SignInContent() {
           router.replace(
             eNorm === 'akmaljaxonkulov00@gmail.com'
               ? '/admin'
-              : searchParams.get('redirectTo') || '/dashboard'
+              : searchParams?.get('redirectTo') || '/dashboard'
           )
         }
       })

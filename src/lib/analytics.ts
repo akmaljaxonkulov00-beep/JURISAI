@@ -17,9 +17,7 @@ class Analytics {
   private isEnabled: boolean
 
   constructor() {
-    this.isEnabled =
-      process.env.NODE_ENV === 'production' &&
-      typeof window !== 'undefined'
+    this.isEnabled = process.env.NODE_ENV === 'production' && typeof window !== 'undefined'
   }
 
   /**

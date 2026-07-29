@@ -1,41 +1,41 @@
-import React, { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui';
-import { Button, Input, Badge, Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui';
-import { LoadingSpinner } from '@/components/ui';
-import { toast } from '@/components/ui/Toast';
-import { cn } from '@/lib/utils';
+import React, { useState } from 'react'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui'
+import { Button, Input, Badge, Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui'
+import { LoadingSpinner } from '@/components/ui'
+import { toast } from '@/components/ui/Toast'
+import { cn } from '@/lib/utils'
 
 interface LegalDocument {
-  id: string;
-  title: string;
-  type: string;
-  category: string;
-  description: string;
-  content: string;
-  publication_date: string;
-  effective_date: string;
-  status: 'active' | 'repealed' | 'amended';
-  keywords: string[];
-  related_documents: string[];
-  citations: number;
-  last_updated: string;
+  id: string
+  title: string
+  type: string
+  category: string
+  description: string
+  content: string
+  publication_date: string
+  effective_date: string
+  status: 'active' | 'repealed' | 'amended'
+  keywords: string[]
+  related_documents: string[]
+  citations: number
+  last_updated: string
 }
 
 interface SearchResult {
-  documents: LegalDocument[];
-  total_count: number;
-  search_time: number;
-  query: string;
+  documents: LegalDocument[]
+  total_count: number
+  search_time: number
+  query: string
 }
 
 const LegalDatabase: React.FC = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [selectedType, setSelectedType] = useState('all');
-  const [searchResults, setSearchResults] = useState<SearchResult | null>(null);
-  const [selectedDocument, setSelectedDocument] = useState<LegalDocument | null>(null);
-  const [isSearching, setIsSearching] = useState(false);
-  const [activeTab, setActiveTab] = useState('search');
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedCategory, setSelectedCategory] = useState('all')
+  const [selectedType, setSelectedType] = useState('all')
+  const [searchResults, setSearchResults] = useState<SearchResult | null>(null)
+  const [selectedDocument, setSelectedDocument] = useState<LegalDocument | null>(null)
+  const [isSearching, setIsSearching] = useState(false)
+  const [activeTab, setActiveTab] = useState('search')
 
   const categories = [
     { value: 'all', label: 'Barchasi' },
@@ -45,8 +45,8 @@ const LegalDatabase: React.FC = () => {
     { value: 'labor_code', label: 'Mehnat kodeksi' },
     { value: 'tax_code', label: 'Soliq kodeksi' },
     { value: 'constitutional', label: 'Konstitutsiyaviy' },
-    { value: 'administrative', label: 'Ma\'muriy' }
-  ];
+    { value: 'administrative', label: "Ma'muriy" },
+  ]
 
   const documentTypes = [
     { value: 'all', label: 'Barchasi' },
@@ -54,96 +54,99 @@ const LegalDatabase: React.FC = () => {
     { value: 'code', label: 'Kodeks' },
     { value: 'decree', label: 'Farmon' },
     { value: 'resolution', label: 'Qaror' },
-    { value: 'instruction', label: 'Ko\'rsatma' },
-    { value: 'regulation', label: 'Nizom' }
-  ];
+    { value: 'instruction', label: "Ko'rsatma" },
+    { value: 'regulation', label: 'Nizom' },
+  ]
 
   const mockDocuments: LegalDocument[] = [
     {
       id: '1',
-      title: 'O\'zbekiston Respublikasi Fuqarolik kodeksi',
+      title: "O'zbekiston Respublikasi Fuqarolik kodeksi",
       type: 'code',
       category: 'civil_code',
       description: 'Fuqarolik huquqiy munosabatlarini tartibga soluvchi asosiy qonun hujjati',
-      content: 'O\'zbekiston Respublikasi Fuqarolik kodeksi fuqarolik huquqiy munosabatlarini tartibga soladi...',
+      content:
+        "O'zbekiston Respublikasi Fuqarolik kodeksi fuqarolik huquqiy munosabatlarini tartibga soladi...",
       publication_date: '2022-12-25',
       effective_date: '2023-03-01',
       status: 'active',
-      keywords: ['fuqarolik huquqi', 'shartnoma', 'mulkiy mas\'uliyat', 'meros'],
+      keywords: ['fuqarolik huquqi', 'shartnoma', "mulkiy mas'uliyat", 'meros'],
       related_documents: ['2', '3'],
       citations: 15420,
-      last_updated: '2023-02-28'
+      last_updated: '2023-02-28',
     },
     {
       id: '2',
-      title: 'O\'zbekiston Respublikasi Jinoyat kodeksi',
+      title: "O'zbekiston Respublikasi Jinoyat kodeksi",
       type: 'code',
       category: 'criminal_code',
       description: 'Jinoyat va jazo huquqini belgilovchi asosiy qonun hujjati',
-      content: 'O\'zbekiston Respublikasi Jinoyat kodeksi jamiyat uchun xavfli bo\'lgan harakatlarni...',
+      content:
+        "O'zbekiston Respublikasi Jinoyat kodeksi jamiyat uchun xavfli bo'lgan harakatlarni...",
       publication_date: '1994-09-22',
       effective_date: '1994-10-01',
       status: 'active',
       keywords: ['jinoyat huquqi', 'jazo', 'jinoyat tarkibi', 'ayb'],
       related_documents: ['4', '5'],
       citations: 12350,
-      last_updated: '2023-01-15'
+      last_updated: '2023-01-15',
     },
     {
       id: '3',
-      title: 'O\'zbekiston Respublikasi Konstitutsiyasi',
+      title: "O'zbekiston Respublikasi Konstitutsiyasi",
       type: 'law',
       category: 'constitutional',
-      description: 'O\'zbekiston Respublikasining asosiy qonuni',
-      content: 'O\'zbekiston Respublikasi Konstitutsiyasi davlat suverenitetini, xalq hokimiyatini...',
+      description: "O'zbekiston Respublikasining asosiy qonuni",
+      content:
+        "O'zbekiston Respublikasi Konstitutsiyasi davlat suverenitetini, xalq hokimiyatini...",
       publication_date: '1992-12-08',
       effective_date: '1992-12-08',
       status: 'active',
       keywords: ['konstitutsiya', 'suverenitet', 'huquqiy davlat', 'inson huquqlari'],
       related_documents: ['1', '2'],
       citations: 45680,
-      last_updated: '2023-04-01'
+      last_updated: '2023-04-01',
     },
     {
       id: '4',
-      title: 'O\'zbekiston Respublikasi Mehnat kodeksi',
+      title: "O'zbekiston Respublikasi Mehnat kodeksi",
       type: 'code',
       category: 'labor_code',
       description: 'Mehnat huquqiy munosabatlarini tartibga soluvchi qonun hujjati',
-      content: 'O\'zbekiston Respublikasi Mehnat kodeksi mehnat huquqiy munosabatlarini...',
+      content: "O'zbekiston Respublikasi Mehnat kodeksi mehnat huquqiy munosabatlarini...",
       publication_date: '2022-09-23',
       effective_date: '2023-01-01',
       status: 'active',
       keywords: ['mehnat huquqi', 'ish haqi', 'mehnat shartnomasi', 'dam olish'],
       related_documents: ['5', '6'],
       citations: 8765,
-      last_updated: '2022-12-15'
+      last_updated: '2022-12-15',
     },
     {
       id: '5',
-      title: 'O\'zbekiston Respublikasi Soliq kodeksi',
+      title: "O'zbekiston Respublikasi Soliq kodeksi",
       type: 'code',
       category: 'tax_code',
       description: 'Soliqqa oid munosabatlarni tartibga soluvchi qonun hujjati',
-      content: 'O\'zbekiston Respublikasi Soliq kodeksi soliqqa oid munosabatlarni...',
+      content: "O'zbekiston Respublikasi Soliq kodeksi soliqqa oid munosabatlarni...",
       publication_date: '2022-12-30',
       effective_date: '2023-01-01',
       status: 'active',
-      keywords: ['soliq', 'byudjet', 'soliq to\'lovlari', 'soliq imtiyozlari'],
+      keywords: ['soliq', 'byudjet', "soliq to'lovlari", 'soliq imtiyozlari'],
       related_documents: ['7', '8'],
       citations: 6543,
-      last_updated: '2023-02-20'
-    }
-  ];
+      last_updated: '2023-02-20',
+    },
+  ]
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
-      toast.error('Iltimos, qidiruv so\'zini kiriting');
-      return;
+      toast.error("Iltimos, qidiruv so'zini kiriting")
+      return
     }
 
-    setIsSearching(true);
-    setActiveTab('results');
+    setIsSearching(true)
+    setActiveTab('results')
 
     try {
       // Real API call
@@ -154,92 +157,115 @@ const LegalDatabase: React.FC = () => {
           query: searchQuery.trim(),
           category: selectedCategory,
           type: selectedType,
-          limit: 20
-        })
-      });
+          limit: 20,
+        }),
+      })
 
       if (!response.ok) {
-        throw new Error('Qidiruv amalga oshmadi');
+        throw new Error('Qidiruv amalga oshmadi')
       }
 
-      const data = await response.json();
-      
+      const data = await response.json()
+
       const result: SearchResult = {
         documents: data.documents || [],
         total_count: data.total_count || 0,
         search_time: data.search_time / 1000 || 0.8, // Convert ms to seconds
-        query: data.query || searchQuery
-      };
+        query: data.query || searchQuery,
+      }
 
-      setSearchResults(result);
-      toast.success(`${result.total_count} ta hujjat topildi`);
-
+      setSearchResults(result)
+      toast.success(`${result.total_count} ta hujjat topildi`)
     } catch (error) {
-      toast.error('Qidiruv jarayonida xatolik yuz berdi');
-      console.error('Search error:', error);
-      
+      toast.error('Qidiruv jarayonida xatolik yuz berdi')
+      console.error('Search error:', error)
+
       // Fallback to empty results
       setSearchResults({
         documents: [],
         total_count: 0,
         search_time: 0,
-        query: searchQuery
-      });
+        query: searchQuery,
+      })
     } finally {
-      setIsSearching(false);
+      setIsSearching(false)
     }
-  };
+  }
 
   const handleDocumentSelect = (document: LegalDocument) => {
-    setSelectedDocument(document);
-    setActiveTab('document');
-  };
+    setSelectedDocument(document)
+    setActiveTab('document')
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return 'bg-green-100 text-green-800';
-      case 'repealed': return 'bg-red-100 text-red-800';
-      case 'amended': return 'bg-yellow-100 text-yellow-800';
-      default: return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200';
+      case 'active':
+        return 'bg-green-100 text-green-800'
+      case 'repealed':
+        return 'bg-red-100 text-red-800'
+      case 'amended':
+        return 'bg-yellow-100 text-yellow-800'
+      default:
+        return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200'
     }
-  };
+  }
 
   const getStatusName = (status: string) => {
     switch (status) {
-      case 'active': return 'Kuchda';
-      case 'repealed': return 'Bekor qilingan';
-      case 'amended': return 'O\'zgartirilgan';
-      default: return status;
+      case 'active':
+        return 'Kuchda'
+      case 'repealed':
+        return 'Bekor qilingan'
+      case 'amended':
+        return "O'zgartirilgan"
+      default:
+        return status
     }
-  };
+  }
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case 'law': return 'bg-blue-100 text-blue-800';
-      case 'code': return 'bg-purple-100 text-purple-800';
-      case 'decree': return 'bg-orange-100 text-orange-800';
-      case 'resolution': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200';
+      case 'law':
+        return 'bg-blue-100 text-blue-800'
+      case 'code':
+        return 'bg-purple-100 text-purple-800'
+      case 'decree':
+        return 'bg-orange-100 text-orange-800'
+      case 'resolution':
+        return 'bg-green-100 text-green-800'
+      default:
+        return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200'
     }
-  };
+  }
 
   const getTypeName = (type: string) => {
     switch (type) {
-      case 'law': return 'Qonun';
-      case 'code': return 'Kodeks';
-      case 'decree': return 'Farmon';
-      case 'resolution': return 'Qaror';
-      case 'instruction': return 'Ko\'rsatma';
-      case 'regulation': return 'Nizom';
-      default: return type;
+      case 'law':
+        return 'Qonun'
+      case 'code':
+        return 'Kodeks'
+      case 'decree':
+        return 'Farmon'
+      case 'resolution':
+        return 'Qaror'
+      case 'instruction':
+        return "Ko'rsatma"
+      case 'regulation':
+        return 'Nizom'
+      default:
+        return type
     }
-  };
+  }
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-zinc-100">Huquqiy ma\'lumotlar bazasi</h1>
-        <p className="text-gray-600 dark:text-zinc-400">O\'zbekiston qonun hujjatlarini qidiring va o\'qing</p>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-zinc-100">
+          Huquqiy ma\'lumotlar bazasi
+        </h1>
+        <p className="text-gray-600 dark:text-zinc-400">
+          O\'zbekiston qonun hujjatlarini qidiring va o\'qing
+        </p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
@@ -263,15 +289,12 @@ const LegalDatabase: React.FC = () => {
                 <div className="flex space-x-2">
                   <Input
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={e => setSearchQuery(e.target.value)}
                     placeholder="Qonun nomi, kalit so\'zlar yoki tavsif..."
                     className="flex-1"
-                    onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                    onKeyPress={e => e.key === 'Enter' && handleSearch()}
                   />
-                  <Button
-                    onClick={handleSearch}
-                    disabled={isSearching}
-                  >
+                  <Button onClick={handleSearch} disabled={isSearching}>
                     {isSearching ? (
                       <>
                         <LoadingSpinner size="sm" className="mr-2" />
@@ -291,7 +314,7 @@ const LegalDatabase: React.FC = () => {
                   </label>
                   <select
                     value={selectedCategory}
-                    onChange={(e) => setSelectedCategory(e.target.value)}
+                    onChange={e => setSelectedCategory(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     {categories.map(category => (
@@ -308,7 +331,7 @@ const LegalDatabase: React.FC = () => {
                   </label>
                   <select
                     value={selectedType}
-                    onChange={(e) => setSelectedType(e.target.value)}
+                    onChange={e => setSelectedType(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     {documentTypes.map(type => (
@@ -338,7 +361,7 @@ const LegalDatabase: React.FC = () => {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {mockDocuments.slice(0, 4).map((doc) => (
+                {mockDocuments.slice(0, 4).map(doc => (
                   <div
                     key={doc.id}
                     className="border rounded-lg p-4 cursor-pointer hover:bg-gray-50 dark:bg-zinc-800/50 transition-colors"
@@ -350,7 +373,9 @@ const LegalDatabase: React.FC = () => {
                         {getStatusName(doc.status)}
                       </Badge>
                     </div>
-                    <p className="text-xs text-gray-600 dark:text-zinc-400 mb-2">{doc.description}</p>
+                    <p className="text-xs text-gray-600 dark:text-zinc-400 mb-2">
+                      {doc.description}
+                    </p>
                     <div className="flex items-center justify-between text-xs text-gray-500 dark:text-zinc-500">
                       <span>{getTypeName(doc.type)}</span>
                       <span>{doc.citations.toLocaleString()} murojaat</span>
@@ -375,7 +400,7 @@ const LegalDatabase: React.FC = () => {
               </div>
 
               {searchResults.documents.length > 0 ? (
-                searchResults.documents.map((doc) => (
+                searchResults.documents.map(doc => (
                   <Card key={doc.id} className="cursor-pointer hover:shadow-lg transition-shadow">
                     <CardContent className="p-6">
                       <div className="flex items-start justify-between mb-4">
@@ -461,8 +486,10 @@ const LegalDatabase: React.FC = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    <p className="text-gray-700 dark:text-zinc-300">{selectedDocument.description}</p>
-                    
+                    <p className="text-gray-700 dark:text-zinc-300">
+                      {selectedDocument.description}
+                    </p>
+
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                       <div>
                         <span className="font-medium">Nashr sanasi:</span>
@@ -491,20 +518,50 @@ const LegalDatabase: React.FC = () => {
 
                     <div className="flex space-x-2">
                       <Button variant="outline">
-                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        <svg
+                          className="w-4 h-4 mr-2"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                          />
                         </svg>
                         Yuklab olish
                       </Button>
                       <Button variant="outline">
-                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                        <svg
+                          className="w-4 h-4 mr-2"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
+                          />
                         </svg>
                         Saqlash
                       </Button>
                       <Button variant="outline">
-                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 10-5.367-2.684 3 3 0 005.367 2.684z" />
+                        <svg
+                          className="w-4 h-4 mr-2"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 10-5.367-2.684 3 3 0 005.367 2.684z"
+                          />
                         </svg>
                         Ulashish
                       </Button>
@@ -550,7 +607,7 @@ const LegalDatabase: React.FC = () => {
         </TabsContent>
       </Tabs>
     </div>
-  );
-};
+  )
+}
 
-export { LegalDatabase };
+export { LegalDatabase }

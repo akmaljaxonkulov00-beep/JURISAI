@@ -1,27 +1,27 @@
-'use client';
+'use client'
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/app/providers';
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { useAuth } from '@/app/providers'
 
 export default function HomePage() {
-  const router = useRouter();
-  const { user, isLoading, isAdmin } = useAuth();
+  const router = useRouter()
+  const { user, isLoading, isAdmin } = useAuth()
 
   useEffect(() => {
-    if (isLoading) return;
-    
+    if (isLoading) return
+
     if (!user) {
       // Tizimga kirmagan → signin sahifasiga yo'naltirish
-      router.replace('/signin');
+      router.replace('/signin')
     } else if (isAdmin) {
       // Admin bo'lsa → admin panelga yo'naltirish
-      router.replace('/admin');
+      router.replace('/admin')
     } else {
       // Oddiy foydalanuvchi → dashboardga yo'naltirish
-      router.replace('/dashboard');
+      router.replace('/dashboard')
     }
-  }, [user, isLoading, isAdmin, router]);
+  }, [user, isLoading, isAdmin, router])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white dark:from-gray-900 dark:to-gray-950 flex items-center justify-center">
@@ -30,5 +30,5 @@ export default function HomePage() {
         <p className="text-gray-600 dark:text-gray-400 dark:text-zinc-500">Yuklanmoqda...</p>
       </div>
     </div>
-  );
+  )
 }

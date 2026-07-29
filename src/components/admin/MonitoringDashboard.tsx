@@ -1,186 +1,222 @@
-'use client';
+'use client'
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react'
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  LineChart, Line, AreaChart, Area, PieChart, Pie, Cell, Legend
-} from 'recharts';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Activity, Users, CreditCard, DollarSign, RefreshCw, Wifi, WifiOff } from 'lucide-react';
-import { supabase } from '@/lib/supabase-client';
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  AreaChart,
+  Area,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
+} from 'recharts'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
+import { Activity, Users, CreditCard, DollarSign, RefreshCw, Wifi, WifiOff } from 'lucide-react'
+import { supabase } from '@/lib/supabase-client'
 
-const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6']
 
 interface MonitoringData {
-  users: { date: string; count: number }[];
-  tokens: { date: string; count: number }[];
-  revenue: { date: string; amount: number }[];
-  logins: { date: string; count: number }[];
+  users: { date: string; count: number }[]
+  tokens: { date: string; count: number }[]
+  revenue: { date: string; amount: number }[]
+  logins: { date: string; count: number }[]
   totals: {
-    totalUsers: number;
-    totalTokens: number;
-    totalRevenue: number;
-    totalLogins: number;
-  };
+    totalUsers: number
+    totalTokens: number
+    totalRevenue: number
+    totalLogins: number
+  }
 }
 
 interface Alert {
-  type: 'success' | 'warning' | 'danger';
-  message: string;
-  icon: string;
+  type: 'success' | 'warning' | 'danger'
+  message: string
+  icon: string
 }
 
 export default function MonitoringDashboard() {
-  const [data, setData] = useState<MonitoringData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [period, setPeriod] = useState(7);
-  const [autoRefresh, setAutoRefresh] = useState(false);
-  const [alerts, setAlerts] = useState<Alert[]>([]);
-  const [lastUpdated, setLastUpdated] = useState<string>('');
+  const [data, setData] = useState<MonitoringData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [period, setPeriod] = useState(7)
+  const [autoRefresh, setAutoRefresh] = useState(false)
+  const [alerts, setAlerts] = useState<Alert[]>([])
+  const [lastUpdated, setLastUpdated] = useState<string>('')
 
   const loadData = async (showLoading = true) => {
-    if (showLoading) setLoading(true);
+    if (showLoading) setLoading(true)
     try {
-      const res = await fetch(`/api/admin/analytics?days=${period}&type=all`);
-      const result = await res.json();
+      const res = await fetch(`/api/admin/analytics?days=${period}&type=all`)
+      const result = await res.json()
       if (result.success && result.data) {
-        const d = result.data;
-        
+        const d = result.data
+
         // Build chart data from login activities
-        const loginMap: Record<string, number> = {};
-        (d.loginActivities || []).forEach((l: any) => {
-          const date = new Date(l.created_at).toLocaleDateString('uz-UZ');
-          loginMap[date] = (loginMap[date] || 0) + 1;
-        });
+        const loginMap: Record<string, number> = {}
+        ;(d.loginActivities || []).forEach((l: any) => {
+          const date = new Date(l.created_at).toLocaleDateString('uz-UZ')
+          loginMap[date] = (loginMap[date] || 0) + 1
+        })
 
         // Build token data from usage_logs
-        const tokenMap: Record<string, number> = {};
-        (d.tokenUsages || []).forEach((t: any) => {
-          const date = new Date(t.created_at).toLocaleDateString('uz-UZ');
-          tokenMap[date] = (tokenMap[date] || 0) + (t.tokens || 0);
-        });
+        const tokenMap: Record<string, number> = {}
+        ;(d.tokenUsages || []).forEach((t: any) => {
+          const date = new Date(t.created_at).toLocaleDateString('uz-UZ')
+          tokenMap[date] = (tokenMap[date] || 0) + (t.tokens || 0)
+        })
 
         // Build revenue data from payments
-        const revenueMap: Record<string, number> = {};
-        (d.paymentRequests || []).forEach((p: any) => {
+        const revenueMap: Record<string, number> = {}
+        ;(d.paymentRequests || []).forEach((p: any) => {
           if (p.status === 'approved') {
-            const date = new Date(p.created_at).toLocaleDateString('uz-UZ');
-            revenueMap[date] = (revenueMap[date] || 0) + (p.amount || 0);
+            const date = new Date(p.created_at).toLocaleDateString('uz-UZ')
+            revenueMap[date] = (revenueMap[date] || 0) + (p.amount || 0)
           }
-        });
+        })
 
         // Build user data from registered_users
-        const userMap: Record<string, number> = {};
-        (d.users || []).forEach((u: any) => {
-          const date = u.created_at ? new Date(u.created_at).toLocaleDateString('uz-UZ') : '';
-          if (date) userMap[date] = (userMap[date] || 0) + 1;
-        });
+        const userMap: Record<string, number> = {}
+        ;(d.users || []).forEach((u: any) => {
+          const date = u.created_at ? new Date(u.created_at).toLocaleDateString('uz-UZ') : ''
+          if (date) userMap[date] = (userMap[date] || 0) + 1
+        })
 
         // Convert to arrays
-        const allDates = [...new Set([...Object.keys(loginMap), ...Object.keys(tokenMap), ...Object.keys(revenueMap), ...Object.keys(userMap)])].sort();
+        const allDates = [
+          ...new Set([
+            ...Object.keys(loginMap),
+            ...Object.keys(tokenMap),
+            ...Object.keys(revenueMap),
+            ...Object.keys(userMap),
+          ]),
+        ].sort()
 
         const totals = {
           totalUsers: d.totalUsers || 0,
           totalTokens: d.tokensUsed || 0,
           totalRevenue: d.totalRevenue || 0,
           totalLogins: d.recentLogins || 0,
-        };
-        
+        }
+
         setData({
           users: allDates.map(date => ({ date, count: userMap[date] || 0 })),
           tokens: allDates.map(date => ({ date, count: tokenMap[date] || 0 })),
           revenue: allDates.map(date => ({ date, amount: revenueMap[date] || 0 })),
           logins: allDates.map(date => ({ date, count: loginMap[date] || 0 })),
           totals,
-        });
+        })
 
         // Generate alerts based on data
-        const newAlerts: Alert[] = [];
+        const newAlerts: Alert[] = []
         if (totals.totalUsers < 5) {
-          newAlerts.push({ type: 'warning', message: 'Foydalanuvchilar soni juda kam (< 5)', icon: '⚠️' });
+          newAlerts.push({
+            type: 'warning',
+            message: 'Foydalanuvchilar soni juda kam (< 5)',
+            icon: '⚠️',
+          })
         } else if (totals.totalUsers > 50) {
-          newAlerts.push({ type: 'success', message: `Foydalanuvchilar soni: ${totals.totalUsers} ta`, icon: '✅' });
+          newAlerts.push({
+            type: 'success',
+            message: `Foydalanuvchilar soni: ${totals.totalUsers} ta`,
+            icon: '✅',
+          })
         }
         if (totals.totalTokens > 100000) {
-          newAlerts.push({ type: 'warning', message: 'Token ishlatilishi yuqori: ' + totals.totalTokens.toLocaleString(), icon: '⚡' });
+          newAlerts.push({
+            type: 'warning',
+            message: 'Token ishlatilishi yuqori: ' + totals.totalTokens.toLocaleString(),
+            icon: '⚡',
+          })
         }
         if (totals.totalRevenue > 1000000) {
-          newAlerts.push({ type: 'success', message: `Daromad: ${totals.totalRevenue.toLocaleString()} UZS`, icon: '💰' });
+          newAlerts.push({
+            type: 'success',
+            message: `Daromad: ${totals.totalRevenue.toLocaleString()} UZS`,
+            icon: '💰',
+          })
         }
-        setAlerts(newAlerts);
-        setLastUpdated(new Date().toLocaleTimeString('uz-UZ'));
+        setAlerts(newAlerts)
+        setLastUpdated(new Date().toLocaleTimeString('uz-UZ'))
       }
     } catch {}
-    if (showLoading) setLoading(false);
-  };
+    if (showLoading) setLoading(false)
+  }
 
-  useEffect(() => { loadData(); }, [period]);
+  useEffect(() => {
+    loadData()
+  }, [period])
 
   // Supabase Realtime subscription — instant chart updates!
-  const [connected, setConnected] = useState(false);
+  const [connected, setConnected] = useState(false)
 
   useEffect(() => {
     // Subscribe to tables that affect monitoring charts
     // This runs once on mount; the subscription is independent of `period`
     // Match the analytics API table names exactly
-    const tables = ['payment_requests', 'usage_logs', 'auth_logs'];
-    const channels: { unsubscribe: () => void }[] = [];
-    let subscribedCount = 0;
+    const tables = ['payment_requests', 'usage_logs', 'auth_logs']
+    const channels: { unsubscribe: () => void }[] = []
+    let subscribedCount = 0
 
     for (const table of tables) {
-      const chName = `monitoring-${table}-${self.crypto.randomUUID?.() || Math.random().toString(36).slice(2)}`;
+      const chName = `monitoring-${table}-${self.crypto.randomUUID?.() || Math.random().toString(36).slice(2)}`
       try {
         const channel = supabase
           .channel(chName)
-          .on(
-            'postgres_changes' as any,
-            { event: '*', schema: 'public', table },
-            () => {
-              // Any DB change → reload chart data immediately
-              loadData(false);
-            }
-          )
+          .on('postgres_changes' as any, { event: '*', schema: 'public', table }, () => {
+            // Any DB change → reload chart data immediately
+            loadData(false)
+          })
           .subscribe((status: string) => {
             if (status === 'SUBSCRIBED') {
-              subscribedCount++;
+              subscribedCount++
               if (subscribedCount === tables.length) {
-                setConnected(true);
+                setConnected(true)
               }
             }
-          });
-        channels.push({ unsubscribe: () => supabase.removeChannel(channel) });
+          })
+        channels.push({ unsubscribe: () => supabase.removeChannel(channel) })
       } catch {}
     }
 
     return () => {
-      for (const ch of channels) ch.unsubscribe();
-    };
-  }, []);  // Only mount once
+      for (const ch of channels) ch.unsubscribe()
+    }
+  }, []) // Only mount once
 
   // Fallback polling (30s) — only if autoRefresh is on
   useEffect(() => {
-    if (!autoRefresh) return;
-    const interval = setInterval(() => loadData(false), 30000);
-    return () => clearInterval(interval);
-  }, [autoRefresh, period]);
+    if (!autoRefresh) return
+    const interval = setInterval(() => loadData(false), 30000)
+    return () => clearInterval(interval)
+  }, [autoRefresh, period])
 
   if (loading && !data) {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
       </div>
-    );
+    )
   }
 
-  const pieData = data ? [
-    { name: 'Foydalanuvchilar', value: data.totals.totalUsers },
-    { name: 'Tokenlar (x100)', value: Math.round(data.totals.totalTokens / 100) },
-    { name: 'Daromad (x1000 UZS)', value: Math.round(data.totals.totalRevenue / 1000) },
-    { name: 'Kirishlar', value: data.totals.totalLogins },
-  ].filter(d => d.value > 0) : [];
+  const pieData = data
+    ? [
+        { name: 'Foydalanuvchilar', value: data.totals.totalUsers },
+        { name: 'Tokenlar (x100)', value: Math.round(data.totals.totalTokens / 100) },
+        { name: 'Daromad (x1000 UZS)', value: Math.round(data.totals.totalRevenue / 1000) },
+        { name: 'Kirishlar', value: data.totals.totalLogins },
+      ].filter(d => d.value > 0)
+    : []
 
-  const hasChartData = pieData.length > 0;
+  const hasChartData = pieData.length > 0
 
   return (
     <div className="space-y-6">
@@ -188,11 +224,16 @@ export default function MonitoringDashboard() {
       {alerts.length > 0 && (
         <div className="space-y-2">
           {alerts.map((alert, idx) => (
-            <div key={idx} className={`px-4 py-3 rounded-xl flex items-center gap-2 text-sm ${
-              alert.type === 'success' ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-300' :
-              alert.type === 'warning' ? 'bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 text-yellow-700 dark:text-yellow-300' :
-              'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300'
-            }`}>
+            <div
+              key={idx}
+              className={`px-4 py-3 rounded-xl flex items-center gap-2 text-sm ${
+                alert.type === 'success'
+                  ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-300'
+                  : alert.type === 'warning'
+                    ? 'bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 text-yellow-700 dark:text-yellow-300'
+                    : 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300'
+              }`}
+            >
               <span>{alert.icon}</span>
               <span>{alert.message}</span>
             </div>
@@ -203,11 +244,20 @@ export default function MonitoringDashboard() {
       {/* Period selector */}
       <div className="flex items-center gap-2 flex-wrap">
         {[7, 30, 90].map(d => (
-          <Button key={d} variant={period === d ? 'default' : 'outline'} size="sm" onClick={() => setPeriod(d)}>
+          <Button
+            key={d}
+            variant={period === d ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setPeriod(d)}
+          >
             {d} kun
           </Button>
         ))}
-        <Button size="sm" variant={autoRefresh ? 'default' : 'outline'} onClick={() => setAutoRefresh(!autoRefresh)}>
+        <Button
+          size="sm"
+          variant={autoRefresh ? 'default' : 'outline'}
+          onClick={() => setAutoRefresh(!autoRefresh)}
+        >
           {autoRefresh ? '🔄 Auto' : 'Auto'}
         </Button>
         {/* Realtime connection status */}
@@ -217,7 +267,9 @@ export default function MonitoringDashboard() {
           ) : (
             <WifiOff size={12} className="text-amber-500" />
           )}
-          <span className={`text-[10px] ${connected ? 'text-green-600 dark:text-green-400' : 'text-amber-600 dark:text-amber-400'}`}>
+          <span
+            className={`text-[10px] ${connected ? 'text-green-600 dark:text-green-400' : 'text-amber-600 dark:text-amber-400'}`}
+          >
             {connected ? 'Real-time' : 'Polling'}
           </span>
         </div>
@@ -225,7 +277,9 @@ export default function MonitoringDashboard() {
           <RefreshCw size={14} className="mr-1" /> Yangilash
         </Button>
         {lastUpdated && (
-          <span className="text-xs text-gray-400 dark:text-gray-500 dark:text-zinc-500">So'nggi yangilanish: {lastUpdated}</span>
+          <span className="text-xs text-gray-400 dark:text-gray-500 dark:text-zinc-500">
+            So'nggi yangilanish: {lastUpdated}
+          </span>
         )}
       </div>
 
@@ -248,7 +302,9 @@ export default function MonitoringDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs text-secondary">Tokenlar</p>
-                  <p className="text-xl font-bold text-green-600 mt-1">{data.totals.totalTokens.toLocaleString()}</p>
+                  <p className="text-xl font-bold text-green-600 mt-1">
+                    {data.totals.totalTokens.toLocaleString()}
+                  </p>
                 </div>
                 <Activity className="w-6 h-6 text-green-400" />
               </div>
@@ -259,7 +315,9 @@ export default function MonitoringDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs text-secondary">Daromad</p>
-                  <p className="text-xl font-bold text-orange-600 mt-1">{data.totals.totalRevenue.toLocaleString()} UZS</p>
+                  <p className="text-xl font-bold text-orange-600 mt-1">
+                    {data.totals.totalRevenue.toLocaleString()} UZS
+                  </p>
                 </div>
                 <DollarSign className="w-6 h-6 text-orange-400" />
               </div>
@@ -270,7 +328,9 @@ export default function MonitoringDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs text-secondary">Kirishlar</p>
-                  <p className="text-xl font-bold text-purple-600 mt-1">{data.totals.totalLogins}</p>
+                  <p className="text-xl font-bold text-purple-600 mt-1">
+                    {data.totals.totalLogins}
+                  </p>
                 </div>
                 <CreditCard className="w-6 h-6 text-purple-400" />
               </div>
@@ -296,7 +356,13 @@ export default function MonitoringDashboard() {
                   <XAxis dataKey="date" tick={{ fontSize: 10 }} />
                   <YAxis tick={{ fontSize: 10 }} />
                   <Tooltip />
-                  <Area type="monotone" dataKey="count" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.1} />
+                  <Area
+                    type="monotone"
+                    dataKey="count"
+                    stroke="#3b82f6"
+                    fill="#3b82f6"
+                    fillOpacity={0.1}
+                  />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -362,7 +428,13 @@ export default function MonitoringDashboard() {
                   <XAxis dataKey="date" tick={{ fontSize: 10 }} />
                   <YAxis tick={{ fontSize: 10 }} />
                   <Tooltip />
-                  <Line type="monotone" dataKey="count" stroke="#8b5cf6" strokeWidth={2} dot={{ r: 3 }} />
+                  <Line
+                    type="monotone"
+                    dataKey="count"
+                    stroke="#8b5cf6"
+                    strokeWidth={2}
+                    dot={{ r: 3 }}
+                  />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -382,7 +454,13 @@ export default function MonitoringDashboard() {
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
-                  <Pie data={pieData} cx="50%" cy="50%" outerRadius={80} label={({ name, value }) => `${name}: ${value}`}>
+                  <Pie
+                    data={pieData}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={80}
+                    label={({ name, value }) => `${name}: ${value}`}
+                  >
                     {pieData.map((_, idx) => (
                       <Cell key={idx} fill={COLORS[idx % COLORS.length]} />
                     ))}
@@ -396,5 +474,5 @@ export default function MonitoringDashboard() {
         </Card>
       )}
     </div>
-  );
+  )
 }

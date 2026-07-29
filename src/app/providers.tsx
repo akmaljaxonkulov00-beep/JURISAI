@@ -1,103 +1,108 @@
-'use client';
+'use client'
 
-import { ReactNode, createContext, useContext, useState, useEffect } from 'react';
-import { ThemeProvider } from '@/context/ThemeContext';
-import { firebaseAuth } from '@/services/firebase-auth';
-import type { AuthUser } from '@/services/firebase-auth';
+import { ReactNode, createContext, useContext, useState, useEffect } from 'react'
+import { ThemeProvider } from '@/context/ThemeContext'
+import { firebaseAuth } from '@/services/firebase-auth'
+import type { AuthUser } from '@/services/firebase-auth'
 
 interface AuthContextType {
-  user: AuthUser | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  isAdmin: boolean;
-  hasActiveSubscription: boolean;
-  getSubscriptionPlan: string;
-  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  register: (userData: { name: string; email: string; password: string }) => Promise<{ success: boolean; error?: string }>;
-  logout: () => Promise<void>;
-  updateProfile: (updates: Partial<AuthUser>) => Promise<{ success: boolean; error?: string }>;
-  setUser: (user: AuthUser | null) => void;
+  user: AuthUser | null
+  isAuthenticated: boolean
+  isLoading: boolean
+  isAdmin: boolean
+  hasActiveSubscription: boolean
+  getSubscriptionPlan: string
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>
+  register: (userData: {
+    name: string
+    email: string
+    password: string
+  }) => Promise<{ success: boolean; error?: string }>
+  logout: () => Promise<void>
+  updateProfile: (updates: Partial<AuthUser>) => Promise<{ success: boolean; error?: string }>
+  setUser: (user: AuthUser | null) => void
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState<AuthUser | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
 
-  const isAuthenticated = !!user;
-  const isAdmin = user?.role === 'ADMIN' || user?.role === 'admin';
-  const hasActiveSubscription = user?.subscription_expires_at ? 
-    new Date(user.subscription_expires_at) > new Date() : false;
-  const getSubscriptionPlan = user?.subscription_plan || 'free';
+  const isAuthenticated = !!user
+  const isAdmin = user?.role === 'ADMIN' || user?.role === 'admin'
+  const hasActiveSubscription = user?.subscription_expires_at
+    ? new Date(user.subscription_expires_at) > new Date()
+    : false
+  const getSubscriptionPlan = user?.subscription_plan || 'free'
 
   useEffect(() => {
     // Subscribe to Firebase auth state changes
-    const unsubscribe = firebaseAuth.onAuthChange((authUser) => {
-      setUser(authUser);
-      setIsLoading(false);
-    });
+    const unsubscribe = firebaseAuth.onAuthChange(authUser => {
+      setUser(authUser)
+      setIsLoading(false)
+    })
 
-    return unsubscribe;
-  }, []);
+    return unsubscribe
+  }, [])
 
   const login = async (email: string, password: string) => {
-    setIsLoading(true);
+    setIsLoading(true)
     try {
-      const result = await firebaseAuth.signIn(email, password);
+      const result = await firebaseAuth.signIn(email, password)
       if (result.success && result.data) {
-        setUser(result.data);
-        return { success: true };
+        setUser(result.data)
+        return { success: true }
       }
-      return { success: false, error: result.error || 'Login xatosi' };
+      return { success: false, error: result.error || 'Login xatosi' }
     } catch (error: any) {
-      return { success: false, error: error?.message || 'Login xatosi' };
+      return { success: false, error: error?.message || 'Login xatosi' }
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   const register = async (userData: { name: string; email: string; password: string }) => {
-    setIsLoading(true);
+    setIsLoading(true)
     try {
-      const result = await firebaseAuth.signUp(userData.email, userData.password, userData.name);
+      const result = await firebaseAuth.signUp(userData.email, userData.password, userData.name)
       if (result.success && result.data) {
-        setUser(result.data);
-        return { success: true };
+        setUser(result.data)
+        return { success: true }
       }
-      return { success: false, error: result.error || 'Ro\'yxatdan o\'tish xatosi' };
+      return { success: false, error: result.error || "Ro'yxatdan o'tish xatosi" }
     } catch (error) {
-      return { success: false, error: 'Ro\'yxatdan o\'tish xatosi' };
+      return { success: false, error: "Ro'yxatdan o'tish xatosi" }
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   const logout = async () => {
-    await firebaseAuth.signOut();
-    setUser(null);
-  };
+    await firebaseAuth.signOut()
+    setUser(null)
+  }
 
   const updateProfile = async (updates: Partial<AuthUser>) => {
-    setIsLoading(true);
+    setIsLoading(true)
     try {
       if (!user) {
-        return { success: false, error: 'Foydalanuvchi tizimga kirmagan' };
+        return { success: false, error: 'Foydalanuvchi tizimga kirmagan' }
       }
 
-      const result = await firebaseAuth.updateProfile(updates);
+      const result = await firebaseAuth.updateProfile(updates)
       if (result.success) {
         // Update local state
-        const updatedUser = { ...user, ...updates };
-        setUser(updatedUser);
+        const updatedUser = { ...user, ...updates }
+        setUser(updatedUser)
       }
-      return result;
+      return result
     } catch (error) {
-      return { success: false, error: 'Profilni yangilash xatosi' };
+      return { success: false, error: 'Profilni yangilash xatosi' }
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   const value: AuthContextType = {
     user,
@@ -111,29 +116,25 @@ function AuthProvider({ children }: { children: ReactNode }) {
     logout,
     updateProfile,
     setUser,
-  };
+  }
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
 export function useAuth() {
-  const context = useContext(AuthContext);
+  const context = useContext(AuthContext)
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error('useAuth must be used within an AuthProvider')
   }
-  return context;
+  return context
 }
 
 interface ProvidersProps {
-  children: ReactNode;
+  children: ReactNode
 }
 
-import { ToastProvider } from '@/components/ui/Toast';
-import { PaymentNotificationListener } from '@/components/payment/PaymentNotificationListener';
+import { ToastProvider } from '@/components/ui/Toast'
+import { PaymentNotificationListener } from '@/components/payment/PaymentNotificationListener'
 
 export default function Providers({ children }: ProvidersProps) {
   return (
@@ -145,5 +146,5 @@ export default function Providers({ children }: ProvidersProps) {
         </ToastProvider>
       </AuthProvider>
     </ThemeProvider>
-  );
+  )
 }

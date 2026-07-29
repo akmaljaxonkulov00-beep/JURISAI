@@ -1,38 +1,50 @@
-'use client';
+'use client'
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
-import { Input } from '@/components/ui/Input';
-import { Select } from '@/components/ui/Select';
-import { Bell, BellOff, Check, X, Settings, Mail, MessageSquare, AlertTriangle, Info, CheckCircle, Shield } from 'lucide-react';
+import React, { useState, useEffect } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
+import { Badge } from '@/components/ui/Badge'
+import { Input } from '@/components/ui/Input'
+import { Select } from '@/components/ui/Select'
+import {
+  Bell,
+  BellOff,
+  Check,
+  X,
+  Settings,
+  Mail,
+  MessageSquare,
+  AlertTriangle,
+  Info,
+  CheckCircle,
+  Shield,
+} from 'lucide-react'
 
 interface Notification {
-  id: string;
-  type: 'info' | 'success' | 'warning' | 'error';
-  title: string;
-  message: string;
-  timestamp: string;
-  read: boolean;
-  category: 'system' | 'payment' | 'legal' | 'profile' | 'ai';
-  actionUrl?: string;
-  actionText?: string;
+  id: string
+  type: 'info' | 'success' | 'warning' | 'error'
+  title: string
+  message: string
+  timestamp: string
+  read: boolean
+  category: 'system' | 'payment' | 'legal' | 'profile' | 'ai'
+  actionUrl?: string
+  actionText?: string
 }
 
 interface NotificationSettings {
-  email: boolean;
-  push: boolean;
-  system: boolean;
-  payment: boolean;
-  legal: boolean;
-  profile: boolean;
-  ai: boolean;
+  email: boolean
+  push: boolean
+  system: boolean
+  payment: boolean
+  legal: boolean
+  profile: boolean
+  ai: boolean
 }
 
 export default function NotificationSystem() {
-  const [activeTab, setActiveTab] = useState<'notifications' | 'settings'>('notifications');
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [activeTab, setActiveTab] = useState<'notifications' | 'settings'>('notifications')
+  const [notifications, setNotifications] = useState<Notification[]>([])
   const [settings, setSettings] = useState<NotificationSettings>({
     email: true,
     push: true,
@@ -40,133 +52,154 @@ export default function NotificationSystem() {
     payment: true,
     legal: true,
     profile: false,
-    ai: true
-  });
-  const [loading, setLoading] = useState(false);
-  const [filter, setFilter] = useState<string>('all');
+    ai: true,
+  })
+  const [loading, setLoading] = useState(false)
+  const [filter, setFilter] = useState<string>('all')
 
   useEffect(() => {
-    loadNotifications();
-    loadSettings();
-  }, []);
+    loadNotifications()
+    loadSettings()
+  }, [])
 
   const loadSettings = () => {
     try {
-      const stored = localStorage.getItem('notification_settings');
+      const stored = localStorage.getItem('notification_settings')
       if (stored) {
-        setSettings(JSON.parse(stored));
+        setSettings(JSON.parse(stored))
       }
     } catch (error) {
-      console.error('Error loading settings:', error);
+      console.error('Error loading settings:', error)
     }
-  };
+  }
 
   const loadNotifications = async () => {
     try {
-      setLoading(true);
+      setLoading(true)
       // Load from localStorage
-      const stored = localStorage.getItem('user_notifications');
+      const stored = localStorage.getItem('user_notifications')
       if (stored) {
-        const parsedNotifications = JSON.parse(stored);
-        setNotifications(parsedNotifications);
+        const parsedNotifications = JSON.parse(stored)
+        setNotifications(parsedNotifications)
       } else {
         // Create initial welcome notification
         const welcomeNotification: Notification = {
           id: 'welcome_' + Date.now(),
           type: 'success',
           title: 'Xush kelibsiz!',
-          message: 'JurisAI platformasiga xush kelibsiz. Bu yerda sizning barcha bildirishnomalaringiz ko\'rsatiladi.',
+          message:
+            "JurisAI platformasiga xush kelibsiz. Bu yerda sizning barcha bildirishnomalaringiz ko'rsatiladi.",
           timestamp: new Date().toISOString(),
           read: false,
-          category: 'system'
-        };
-        setNotifications([welcomeNotification]);
-        localStorage.setItem('user_notifications', JSON.stringify([welcomeNotification]));
+          category: 'system',
+        }
+        setNotifications([welcomeNotification])
+        localStorage.setItem('user_notifications', JSON.stringify([welcomeNotification]))
       }
     } catch (error) {
-      console.error('Error loading notifications:', error);
-      setNotifications([]);
+      console.error('Error loading notifications:', error)
+      setNotifications([])
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const markAsRead = async (notificationId: string) => {
-    const updatedNotifications = notifications.map(n => 
+    const updatedNotifications = notifications.map(n =>
       n.id === notificationId ? { ...n, read: true } : n
-    );
-    setNotifications(updatedNotifications);
-    localStorage.setItem('user_notifications', JSON.stringify(updatedNotifications));
-  };
+    )
+    setNotifications(updatedNotifications)
+    localStorage.setItem('user_notifications', JSON.stringify(updatedNotifications))
+  }
 
   const markAllAsRead = async () => {
-    const updatedNotifications = notifications.map(n => ({ ...n, read: true }));
-    setNotifications(updatedNotifications);
-    localStorage.setItem('user_notifications', JSON.stringify(updatedNotifications));
-  };
+    const updatedNotifications = notifications.map(n => ({ ...n, read: true }))
+    setNotifications(updatedNotifications)
+    localStorage.setItem('user_notifications', JSON.stringify(updatedNotifications))
+  }
 
   const deleteNotification = async (notificationId: string) => {
-    const updatedNotifications = notifications.filter(n => n.id !== notificationId);
-    setNotifications(updatedNotifications);
-    localStorage.setItem('user_notifications', JSON.stringify(updatedNotifications));
-  };
+    const updatedNotifications = notifications.filter(n => n.id !== notificationId)
+    setNotifications(updatedNotifications)
+    localStorage.setItem('user_notifications', JSON.stringify(updatedNotifications))
+  }
 
   const updateSettings = async (newSettings: NotificationSettings) => {
     try {
-      setSettings(newSettings);
+      setSettings(newSettings)
       // Save to localStorage
-      localStorage.setItem('notification_settings', JSON.stringify(newSettings));
-      console.log('Notification settings saved:', newSettings);
+      localStorage.setItem('notification_settings', JSON.stringify(newSettings))
+      console.log('Notification settings saved:', newSettings)
     } catch (error) {
-      console.error('Error saving settings:', error);
+      console.error('Error saving settings:', error)
     }
-  };
+  }
 
   const getIcon = (type: string) => {
     switch (type) {
-      case 'success': return <CheckCircle className="w-5 h-5 text-green-600" />;
-      case 'warning': return <AlertTriangle className="w-5 h-5 text-yellow-600" />;
-      case 'error': return <X className="w-5 h-5 text-red-600" />;
-      case 'info': return <Info className="w-5 h-5 text-blue-600" />;
-      default: return <Bell className="w-5 h-5 text-gray-600 dark:text-zinc-400" />;
+      case 'success':
+        return <CheckCircle className="w-5 h-5 text-green-600" />
+      case 'warning':
+        return <AlertTriangle className="w-5 h-5 text-yellow-600" />
+      case 'error':
+        return <X className="w-5 h-5 text-red-600" />
+      case 'info':
+        return <Info className="w-5 h-5 text-blue-600" />
+      default:
+        return <Bell className="w-5 h-5 text-gray-600 dark:text-zinc-400" />
     }
-  };
+  }
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case 'success': return 'bg-green-50 dark:bg-green-900/20 border-green-200';
-      case 'warning': return 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200';
-      case 'error': return 'bg-red-50 dark:bg-red-900/20 border-red-200';
-      case 'info': return 'bg-blue-50 dark:bg-blue-900/20 border-blue-200';
-      default: return 'bg-gray-50 dark:bg-zinc-800/50 border-gray-200 dark:border-zinc-800';
+      case 'success':
+        return 'bg-green-50 dark:bg-green-900/20 border-green-200'
+      case 'warning':
+        return 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200'
+      case 'error':
+        return 'bg-red-50 dark:bg-red-900/20 border-red-200'
+      case 'info':
+        return 'bg-blue-50 dark:bg-blue-900/20 border-blue-200'
+      default:
+        return 'bg-gray-50 dark:bg-zinc-800/50 border-gray-200 dark:border-zinc-800'
     }
-  };
+  }
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
-      case 'payment': return <Shield className="w-4 h-4" />;
-      case 'legal': return <Mail className="w-4 h-4" />;
-      case 'profile': return <Settings className="w-4 h-4" />;
-      case 'ai': return <MessageSquare className="w-4 h-4" />;
-      case 'system': return <AlertTriangle className="w-4 h-4" />;
-      default: return <Bell className="w-4 h-4" />;
+      case 'payment':
+        return <Shield className="w-4 h-4" />
+      case 'legal':
+        return <Mail className="w-4 h-4" />
+      case 'profile':
+        return <Settings className="w-4 h-4" />
+      case 'ai':
+        return <MessageSquare className="w-4 h-4" />
+      case 'system':
+        return <AlertTriangle className="w-4 h-4" />
+      default:
+        return <Bell className="w-4 h-4" />
     }
-  };
+  }
 
   const filteredNotifications = notifications.filter(n => {
-    if (filter === 'all') return true;
-    if (filter === 'unread') return !n.read;
-    if (filter === 'read') return n.read;
-    return n.category === filter;
-  });
+    if (filter === 'all') return true
+    if (filter === 'unread') return !n.read
+    if (filter === 'read') return n.read
+    return n.category === filter
+  })
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const unreadCount = notifications.filter(n => !n.read).length
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-zinc-100 mb-2">Bildirishnomalar</h1>
-        <p className="text-gray-600 dark:text-zinc-400">Platforma yangiliklari va bildirishnomalarni boshqarish</p>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-zinc-100 mb-2">
+          Bildirishnomalar
+        </h1>
+        <p className="text-gray-600 dark:text-zinc-400">
+          Platforma yangiliklari va bildirishnomalarni boshqarish
+        </p>
       </div>
 
       {/* Tabs */}
@@ -175,8 +208,8 @@ export default function NotificationSystem() {
           <button
             onClick={() => setActiveTab('notifications')}
             className={`flex-1 flex items-center justify-center space-x-2 px-4 py-2 rounded-md transition-colors ${
-              activeTab === 'notifications' 
-                ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-sm' 
+              activeTab === 'notifications'
+                ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-sm'
                 : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100'
             }`}
           >
@@ -191,8 +224,8 @@ export default function NotificationSystem() {
           <button
             onClick={() => setActiveTab('settings')}
             className={`flex-1 flex items-center justify-center space-x-2 px-4 py-2 rounded-md transition-colors ${
-              activeTab === 'settings' 
-                ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-sm' 
+              activeTab === 'settings'
+                ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-sm'
                 : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100'
             }`}
           >
@@ -207,9 +240,9 @@ export default function NotificationSystem() {
           {/* Filter and Actions */}
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
             <div className="flex flex-wrap gap-2">
-              <select 
-                value={filter} 
-                onChange={(e) => setFilter(e.target.value)}
+              <select
+                value={filter}
+                onChange={e => setFilter(e.target.value)}
                 className="px-3 py-2 border border-gray-300 dark:border-zinc-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="all">Barchasi ({notifications.length})</option>
@@ -222,7 +255,7 @@ export default function NotificationSystem() {
                 <option value="system">Tizim</option>
               </select>
             </div>
-            
+
             <div className="flex gap-2">
               <Button
                 variant="outline"
@@ -251,20 +284,20 @@ export default function NotificationSystem() {
                 </CardContent>
               </Card>
             ) : (
-              filteredNotifications.map((notification) => (
-                <Card 
-                  key={notification.id} 
+              filteredNotifications.map(notification => (
+                <Card
+                  key={notification.id}
                   className={`${getTypeColor(notification.type)} ${!notification.read ? 'border-l-4' : ''}`}
                 >
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between">
                       <div className="flex items-start space-x-3 flex-1">
-                        <div className="mt-1">
-                          {getIcon(notification.type)}
-                        </div>
+                        <div className="mt-1">{getIcon(notification.type)}</div>
                         <div className="flex-1">
                           <div className="flex items-center space-x-2 mb-1">
-                            <h3 className={`font-semibold ${!notification.read ? 'text-gray-900 dark:text-zinc-100' : 'text-gray-700 dark:text-zinc-300'}`}>
+                            <h3
+                              className={`font-semibold ${!notification.read ? 'text-gray-900 dark:text-zinc-100' : 'text-gray-700 dark:text-zinc-300'}`}
+                            >
                               {notification.title}
                             </h3>
                             {!notification.read && (
@@ -279,14 +312,16 @@ export default function NotificationSystem() {
                               </span>
                             </div>
                           </div>
-                          <p className="text-gray-700 dark:text-zinc-300 mb-2">{notification.message}</p>
+                          <p className="text-gray-700 dark:text-zinc-300 mb-2">
+                            {notification.message}
+                          </p>
                           {notification.actionUrl && (
                             <Button
                               variant="outline"
                               size="sm"
                               onClick={() => {
                                 // Navigate to action URL
-                                console.log('Navigate to:', notification.actionUrl);
+                                console.log('Navigate to:', notification.actionUrl)
                               }}
                             >
                               {notification.actionText}
@@ -338,7 +373,7 @@ export default function NotificationSystem() {
                     <input
                       type="checkbox"
                       checked={settings.email}
-                      onChange={(e) => updateSettings({ ...settings, email: e.target.checked })}
+                      onChange={e => updateSettings({ ...settings, email: e.target.checked })}
                       className="w-4 h-4 text-blue-600 rounded"
                     />
                     <span>Email bildirishnomalarni yoqish</span>
@@ -356,7 +391,7 @@ export default function NotificationSystem() {
                     <input
                       type="checkbox"
                       checked={settings.push}
-                      onChange={(e) => updateSettings({ ...settings, push: e.target.checked })}
+                      onChange={e => updateSettings({ ...settings, push: e.target.checked })}
                       className="w-4 h-4 text-blue-600 rounded"
                     />
                     <span>Push bildirishnomalarni yoqish</span>
@@ -369,24 +404,40 @@ export default function NotificationSystem() {
               <h3 className="font-semibold mb-4">Bildirishnoma Turlari</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {[
-                  { key: 'system', label: 'Tizim xabarlari', icon: <AlertTriangle className="w-4 h-4" /> },
-                  { key: 'payment', label: 'To\'lov bildirishnomalari', icon: <Shield className="w-4 h-4" /> },
+                  {
+                    key: 'system',
+                    label: 'Tizim xabarlari',
+                    icon: <AlertTriangle className="w-4 h-4" />,
+                  },
+                  {
+                    key: 'payment',
+                    label: "To'lov bildirishnomalari",
+                    icon: <Shield className="w-4 h-4" />,
+                  },
                   { key: 'legal', label: 'Qonun yangiliklari', icon: <Mail className="w-4 h-4" /> },
-                  { key: 'profile', label: 'Profil o\'zgarishlari', icon: <Settings className="w-4 h-4" /> },
-                  { key: 'ai', label: 'AI xizmatlari', icon: <MessageSquare className="w-4 h-4" /> },
+                  {
+                    key: 'profile',
+                    label: "Profil o'zgarishlari",
+                    icon: <Settings className="w-4 h-4" />,
+                  },
+                  {
+                    key: 'ai',
+                    label: 'AI xizmatlari',
+                    icon: <MessageSquare className="w-4 h-4" />,
+                  },
                 ].map(({ key, label, icon }) => (
                   <label key={key} className="flex items-center space-x-3 p-3 border rounded-lg">
                     <div className="text-gray-600 dark:text-zinc-400">{icon}</div>
                     <div className="flex-1">
                       <div className="font-medium">{label}</div>
                       <div className="text-sm text-gray-500 dark:text-zinc-500">
-                        {settings[key as keyof NotificationSettings] ? 'Yoqilgan' : 'O\'chirilgan'}
+                        {settings[key as keyof NotificationSettings] ? 'Yoqilgan' : "O'chirilgan"}
                       </div>
                     </div>
                     <input
                       type="checkbox"
                       checked={settings[key as keyof NotificationSettings]}
-                      onChange={(e) => updateSettings({ ...settings, [key]: e.target.checked })}
+                      onChange={e => updateSettings({ ...settings, [key]: e.target.checked })}
                       className="w-4 h-4 text-blue-600 rounded"
                     />
                   </label>
@@ -395,13 +446,11 @@ export default function NotificationSystem() {
             </div>
 
             <div className="pt-4 border-t">
-              <Button onClick={() => updateSettings(settings)}>
-                Sozlamalarni saqlash
-              </Button>
+              <Button onClick={() => updateSettings(settings)}>Sozlamalarni saqlash</Button>
             </div>
           </CardContent>
         </Card>
       )}
     </div>
-  );
+  )
 }

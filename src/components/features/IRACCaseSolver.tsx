@@ -1,106 +1,106 @@
-'use client';
+'use client'
 
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Textarea } from '@/components/ui/Textarea';
-import { Select } from '@/components/ui/Select';
-import { Badge } from '@/components/ui/Badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs';
-import { useAuth } from '@/services/auth';
-import { aiClient } from '@/lib/ai-client';
+import { useState, useEffect } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
+import { Textarea } from '@/components/ui/Textarea'
+import { Select } from '@/components/ui/Select'
+import { Badge } from '@/components/ui/Badge'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs'
+import { useAuth } from '@/services/auth'
+import { aiClient } from '@/lib/ai-client'
 
 interface IRACAnalysis {
-  id: string;
-  issue: string;
-  rule: string;
-  application: string;
-  conclusion: string;
+  id: string
+  issue: string
+  rule: string
+  application: string
+  conclusion: string
   scores: {
-    issue: number;
-    rule: number;
-    application: number;
-    conclusion: number;
-  };
-  total_score: number;
-  feedback: string;
-  suggestions: string[];
-  processing_time: number;
-  status: string;
-  created_at: string;
-  case_type: string;
-  difficulty_level: string;
-  full_text?: string;
+    issue: number
+    rule: number
+    application: number
+    conclusion: number
+  }
+  total_score: number
+  feedback: string
+  suggestions: string[]
+  processing_time: number
+  status: string
+  created_at: string
+  case_type: string
+  difficulty_level: string
+  full_text?: string
 }
 
 export default function IRACCaseSolver() {
-  const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState('analyze');
-  const [caseText, setCaseText] = useState('');
-  const [caseType, setCaseType] = useState('civil');
-  const [difficultyLevel, setDifficultyLevel] = useState('medium');
-  const [currentAnalysis, setCurrentAnalysis] = useState<IRACAnalysis | null>(null);
-  const [editingComponent, setEditingComponent] = useState<string | null>(null);
-  const [editContent, setEditContent] = useState('');
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [analyses, setAnalyses] = useState<IRACAnalysis[]>([]);
-  const [error, setError] = useState<string | null>(null);
+  const { user } = useAuth()
+  const [activeTab, setActiveTab] = useState('analyze')
+  const [caseText, setCaseText] = useState('')
+  const [caseType, setCaseType] = useState('civil')
+  const [difficultyLevel, setDifficultyLevel] = useState('medium')
+  const [currentAnalysis, setCurrentAnalysis] = useState<IRACAnalysis | null>(null)
+  const [editingComponent, setEditingComponent] = useState<string | null>(null)
+  const [editContent, setEditContent] = useState('')
+  const [isAnalyzing, setIsAnalyzing] = useState(false)
+  const [analyses, setAnalyses] = useState<IRACAnalysis[]>([])
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (user) {
-      loadAnalyses();
+      loadAnalyses()
     }
-  }, [user]);
+  }, [user])
 
   const loadAnalyses = () => {
     // Load from localStorage
-    const stored = localStorage.getItem('irac_analyses');
+    const stored = localStorage.getItem('irac_analyses')
     if (stored) {
       try {
-        const parsed = JSON.parse(stored);
-        setAnalyses(parsed);
+        const parsed = JSON.parse(stored)
+        setAnalyses(parsed)
       } catch (e) {
-        console.error('Failed to load analyses:', e);
+        console.error('Failed to load analyses:', e)
       }
     }
-  };
+  }
 
   const saveAnalysis = (analysis: IRACAnalysis) => {
-    const updated = [analysis, ...analyses];
-    setAnalyses(updated);
-    localStorage.setItem('irac_analyses', JSON.stringify(updated));
-  };
+    const updated = [analysis, ...analyses]
+    setAnalyses(updated)
+    localStorage.setItem('irac_analyses', JSON.stringify(updated))
+  }
 
   const parseIRACResponse = (text: string): Partial<IRACAnalysis> => {
     const sections = {
       issue: '',
       rule: '',
       application: '',
-      conclusion: ''
-    };
+      conclusion: '',
+    }
 
     // Parse ISSUE
-    const issueMatch = text.match(/\*\*ISSUE[^:]*:\*\*\s*([\s\S]*?)(?=\*\*RULE|$)/i);
+    const issueMatch = text.match(/\*\*ISSUE[^:]*:\*\*\s*([\s\S]*?)(?=\*\*RULE|$)/i)
     if (issueMatch) {
-      sections.issue = issueMatch[1].trim();
+      sections.issue = issueMatch[1].trim()
     }
 
     // Parse RULE
-    const ruleMatch = text.match(/\*\*RULE[^:]*:\*\*\s*([\s\S]*?)(?=\*\*APPLICATION|$)/i);
+    const ruleMatch = text.match(/\*\*RULE[^:]*:\*\*\s*([\s\S]*?)(?=\*\*APPLICATION|$)/i)
     if (ruleMatch) {
-      sections.rule = ruleMatch[1].trim();
+      sections.rule = ruleMatch[1].trim()
     }
 
     // Parse APPLICATION
-    const appMatch = text.match(/\*\*APPLICATION[^:]*:\*\*\s*([\s\S]*?)(?=\*\*CONCLUSION|$)/i);
+    const appMatch = text.match(/\*\*APPLICATION[^:]*:\*\*\s*([\s\S]*?)(?=\*\*CONCLUSION|$)/i)
     if (appMatch) {
-      sections.application = appMatch[1].trim();
+      sections.application = appMatch[1].trim()
     }
 
     // Parse CONCLUSION
-    const conclusionMatch = text.match(/\*\*CONCLUSION[^:]*:\*\*\s*([\s\S]*?)$/i);
+    const conclusionMatch = text.match(/\*\*CONCLUSION[^:]*:\*\*\s*([\s\S]*?)$/i)
     if (conclusionMatch) {
-      sections.conclusion = conclusionMatch[1].trim();
+      sections.conclusion = conclusionMatch[1].trim()
     }
 
     // Generate scores based on content quality
@@ -108,36 +108,44 @@ export default function IRACCaseSolver() {
       issue: Math.min(95, 70 + Math.floor(sections.issue.length / 20)),
       rule: Math.min(95, 70 + Math.floor(sections.rule.length / 20)),
       application: Math.min(95, 70 + Math.floor(sections.application.length / 20)),
-      conclusion: Math.min(95, 70 + Math.floor(sections.conclusion.length / 20))
-    };
+      conclusion: Math.min(95, 70 + Math.floor(sections.conclusion.length / 20)),
+    }
 
-    const total_score = (scores.issue + scores.rule + scores.application + scores.conclusion) / 4;
+    const total_score = (scores.issue + scores.rule + scores.application + scores.conclusion) / 4
 
     return {
       ...sections,
       scores,
       total_score,
-      feedback: total_score >= 85 ? 'Mukammal tahlil!' : total_score >= 75 ? 'Yaxshi tahlil!' : 'Yaxshilanishi mumkin',
-      suggestions: total_score < 85 ? ['Har bir bo\'limni chuqurroq tahlil qiling', 'Qo\'shimcha dalillar keltiring'] : ['Davom eting!'],
-      full_text: text
-    };
-  };
+      feedback:
+        total_score >= 85
+          ? 'Mukammal tahlil!'
+          : total_score >= 75
+            ? 'Yaxshi tahlil!'
+            : 'Yaxshilanishi mumkin',
+      suggestions:
+        total_score < 85
+          ? ["Har bir bo'limni chuqurroq tahlil qiling", "Qo'shimcha dalillar keltiring"]
+          : ['Davom eting!'],
+      full_text: text,
+    }
+  }
 
   const handleAnalyze = async () => {
     if (!caseText.trim()) {
-      setError('Iltimos, case matnini kiriting');
-      return;
+      setError('Iltimos, case matnini kiriting')
+      return
     }
 
-    setIsAnalyzing(true);
-    setError(null);
-    const startTime = Date.now();
-    
-    try {
-      const response = await aiClient.analyzeIRAC(caseText);
-      const processingTime = (Date.now() - startTime) / 1000;
+    setIsAnalyzing(true)
+    setError(null)
+    const startTime = Date.now()
 
-      const parsed = parseIRACResponse(response.text);
+    try {
+      const response = await aiClient.analyzeIRAC(caseText)
+      const processingTime = (Date.now() - startTime) / 1000
+
+      const parsed = parseIRACResponse(response.text)
 
       const analysis: IRACAnalysis = {
         id: 'irac_' + Date.now(),
@@ -154,64 +162,64 @@ export default function IRACCaseSolver() {
         created_at: new Date().toISOString(),
         case_type: caseType,
         difficulty_level: difficultyLevel,
-        full_text: parsed.full_text
-      };
+        full_text: parsed.full_text,
+      }
 
-      setCurrentAnalysis(analysis);
-      saveAnalysis(analysis);
-      setActiveTab('results');
+      setCurrentAnalysis(analysis)
+      saveAnalysis(analysis)
+      setActiveTab('results')
     } catch (err) {
-      console.error('Analysis error:', err);
-      setError(err instanceof Error ? err.message : 'IRAC tahlilida xatolik yuz berdi');
+      console.error('Analysis error:', err)
+      setError(err instanceof Error ? err.message : 'IRAC tahlilida xatolik yuz berdi')
     } finally {
-      setIsAnalyzing(false);
+      setIsAnalyzing(false)
     }
-  };
+  }
 
   const handleEditComponent = (component: string, content: string) => {
-    setEditingComponent(component);
-    setEditContent(content);
-  };
+    setEditingComponent(component)
+    setEditContent(content)
+  }
 
   const handleSaveEdit = () => {
-    if (!currentAnalysis || !editingComponent) return;
+    if (!currentAnalysis || !editingComponent) return
 
     const updated = {
       ...currentAnalysis,
-      [editingComponent]: editContent
-    };
+      [editingComponent]: editContent,
+    }
 
-    setCurrentAnalysis(updated);
-    
+    setCurrentAnalysis(updated)
+
     // Update in analyses list
-    const updatedAnalyses = analyses.map(a => 
-      a.id === updated.id ? updated : a
-    );
-    setAnalyses(updatedAnalyses);
-    localStorage.setItem('irac_analyses', JSON.stringify(updatedAnalyses));
+    const updatedAnalyses = analyses.map(a => (a.id === updated.id ? updated : a))
+    setAnalyses(updatedAnalyses)
+    localStorage.setItem('irac_analyses', JSON.stringify(updatedAnalyses))
 
-    setEditingComponent(null);
-    setEditContent('');
-  };
+    setEditingComponent(null)
+    setEditContent('')
+  }
 
   const getScoreColor = (score: number) => {
-    if (score >= 80) return 'text-green-600';
-    if (score >= 60) return 'text-yellow-600';
-    return 'text-red-600';
-  };
+    if (score >= 80) return 'text-green-600'
+    if (score >= 60) return 'text-yellow-600'
+    return 'text-red-600'
+  }
 
   const getScoreBadge = (score: number) => {
-    if (score >= 80) return 'bg-green-100 text-green-800';
-    if (score >= 60) return 'bg-yellow-100 text-yellow-800';
-    return 'bg-red-100 text-red-800';
-  };
+    if (score >= 80) return 'bg-green-100 text-green-800'
+    if (score >= 60) return 'bg-yellow-100 text-yellow-800'
+    return 'bg-red-100 text-red-800'
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-blue-900 mb-2">IRAC Case Solver</h1>
-          <p className="text-blue-700">O'zbekiston qonunchiligiga moslashgan IRAC metodologiyasi bo'yicha tahlil</p>
+          <p className="text-blue-700">
+            O'zbekiston qonunchiligiga moslashgan IRAC metodologiyasi bo'yicha tahlil
+          </p>
         </div>
 
         {error && (
@@ -222,13 +230,22 @@ export default function IRACCaseSolver() {
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-3 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl p-1">
-            <TabsTrigger value="analyze" className="rounded-xl data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+            <TabsTrigger
+              value="analyze"
+              className="rounded-xl data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+            >
               Tahlil
             </TabsTrigger>
-            <TabsTrigger value="results" className="rounded-xl data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+            <TabsTrigger
+              value="results"
+              className="rounded-xl data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+            >
               Natijalar
             </TabsTrigger>
-            <TabsTrigger value="history" className="rounded-xl data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+            <TabsTrigger
+              value="history"
+              className="rounded-xl data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+            >
               Tarix
             </TabsTrigger>
           </TabsList>
@@ -244,45 +261,45 @@ export default function IRACCaseSolver() {
                     <Textarea
                       placeholder="Tahlil qilinadigan case matnini kiriting..."
                       value={caseText}
-                      onChange={(e) => setCaseText(e.target.value)}
+                      onChange={e => setCaseText(e.target.value)}
                       className="min-h-[300px] bg-white/50 rounded-xl border-blue-200 focus:border-blue-400"
                     />
-                    
+
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-blue-700 mb-2">
                           Case Turi
                         </label>
-                        <Select 
-                          value={caseType} 
-                          onChange={(e) => setCaseType(e.target.value)}
+                        <Select
+                          value={caseType}
+                          onChange={e => setCaseType(e.target.value)}
                           options={[
-                            { value: "civil", label: "Fuqarolik" },
-                            { value: "criminal", label: "Jinoyat" },
-                            { value: "family", label: "Oila" },
-                            { value: "labor", label: "Mehnat" },
-                            { value: "administrative", label: "Ma'muriy" }
+                            { value: 'civil', label: 'Fuqarolik' },
+                            { value: 'criminal', label: 'Jinoyat' },
+                            { value: 'family', label: 'Oila' },
+                            { value: 'labor', label: 'Mehnat' },
+                            { value: 'administrative', label: "Ma'muriy" },
                           ]}
                         />
                       </div>
-                      
+
                       <div>
                         <label className="block text-sm font-medium text-blue-700 mb-2">
                           Qiyinlik Darajasi
                         </label>
-                        <Select 
-                          value={difficultyLevel} 
-                          onChange={(e) => setDifficultyLevel(e.target.value)}
+                        <Select
+                          value={difficultyLevel}
+                          onChange={e => setDifficultyLevel(e.target.value)}
                           options={[
-                            { value: "beginner", label: "Boshlang'ich" },
-                            { value: "intermediate", label: "O'rta" },
-                            { value: "advanced", label: "Yuqori" },
-                            { value: "expert", label: "Ekspert" }
+                            { value: 'beginner', label: "Boshlang'ich" },
+                            { value: 'intermediate', label: "O'rta" },
+                            { value: 'advanced', label: 'Yuqori' },
+                            { value: 'expert', label: 'Ekspert' },
                           ]}
                         />
                       </div>
                     </div>
-                    
+
                     <Button
                       onClick={handleAnalyze}
                       disabled={isAnalyzing || !caseText.trim()}
@@ -302,19 +319,21 @@ export default function IRACCaseSolver() {
                   <CardContent className="space-y-4">
                     <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
                       <h4 className="font-semibold text-blue-900 mb-2">Issue</h4>
-                      <p className="text-sm text-blue-700">Masalani aniqlash va to'g'ri formulirovka qilish</p>
+                      <p className="text-sm text-blue-700">
+                        Masalani aniqlash va to'g'ri formulirovka qilish
+                      </p>
                     </div>
-                    
+
                     <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
                       <h4 className="font-semibold text-blue-900 mb-2">Rule</h4>
                       <p className="text-sm text-blue-700">Tegishli qonun va qoidalarni topish</p>
                     </div>
-                    
+
                     <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
                       <h4 className="font-semibold text-blue-900 mb-2">Application</h4>
                       <p className="text-sm text-blue-700">Qoidalarni vaziyatga qo'llash</p>
                     </div>
-                    
+
                     <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
                       <h4 className="font-semibold text-blue-900 mb-2">Conclusion</h4>
                       <p className="text-sm text-blue-700">Mantiqiy xulosa chiqarish</p>
@@ -342,15 +361,18 @@ export default function IRACCaseSolver() {
                         <div className="space-y-4">
                           <Textarea
                             value={editContent}
-                            onChange={(e) => setEditContent(e.target.value)}
+                            onChange={e => setEditContent(e.target.value)}
                             className="min-h-[100px] bg-white/50 rounded-xl border-blue-200"
                           />
                           <div className="flex gap-2">
-                            <Button onClick={handleSaveEdit} className="bg-blue-600 hover:bg-blue-700">
+                            <Button
+                              onClick={handleSaveEdit}
+                              className="bg-blue-600 hover:bg-blue-700"
+                            >
                               Saqlash
                             </Button>
-                            <Button 
-                              variant="outline" 
+                            <Button
+                              variant="outline"
                               onClick={() => setEditingComponent(null)}
                               className="border-blue-200 text-blue-700"
                             >
@@ -360,7 +382,9 @@ export default function IRACCaseSolver() {
                         </div>
                       ) : (
                         <div className="space-y-4">
-                          <p className="text-gray-700 dark:text-zinc-300 leading-relaxed">{currentAnalysis.issue}</p>
+                          <p className="text-gray-700 dark:text-zinc-300 leading-relaxed">
+                            {currentAnalysis.issue}
+                          </p>
                           <Button
                             variant="outline"
                             onClick={() => handleEditComponent('issue', currentAnalysis.issue)}
@@ -386,15 +410,18 @@ export default function IRACCaseSolver() {
                         <div className="space-y-4">
                           <Textarea
                             value={editContent}
-                            onChange={(e) => setEditContent(e.target.value)}
+                            onChange={e => setEditContent(e.target.value)}
                             className="min-h-[100px] bg-white/50 rounded-xl border-blue-200"
                           />
                           <div className="flex gap-2">
-                            <Button onClick={handleSaveEdit} className="bg-blue-600 hover:bg-blue-700">
+                            <Button
+                              onClick={handleSaveEdit}
+                              className="bg-blue-600 hover:bg-blue-700"
+                            >
                               Saqlash
                             </Button>
-                            <Button 
-                              variant="outline" 
+                            <Button
+                              variant="outline"
                               onClick={() => setEditingComponent(null)}
                               className="border-blue-200 text-blue-700"
                             >
@@ -404,7 +431,9 @@ export default function IRACCaseSolver() {
                         </div>
                       ) : (
                         <div className="space-y-4">
-                          <p className="text-gray-700 dark:text-zinc-300 leading-relaxed">{currentAnalysis.rule}</p>
+                          <p className="text-gray-700 dark:text-zinc-300 leading-relaxed">
+                            {currentAnalysis.rule}
+                          </p>
                           <Button
                             variant="outline"
                             onClick={() => handleEditComponent('rule', currentAnalysis.rule)}
@@ -432,15 +461,18 @@ export default function IRACCaseSolver() {
                         <div className="space-y-4">
                           <Textarea
                             value={editContent}
-                            onChange={(e) => setEditContent(e.target.value)}
+                            onChange={e => setEditContent(e.target.value)}
                             className="min-h-[100px] bg-white/50 rounded-xl border-blue-200"
                           />
                           <div className="flex gap-2">
-                            <Button onClick={handleSaveEdit} className="bg-blue-600 hover:bg-blue-700">
+                            <Button
+                              onClick={handleSaveEdit}
+                              className="bg-blue-600 hover:bg-blue-700"
+                            >
                               Saqlash
                             </Button>
-                            <Button 
-                              variant="outline" 
+                            <Button
+                              variant="outline"
                               onClick={() => setEditingComponent(null)}
                               className="border-blue-200 text-blue-700"
                             >
@@ -450,10 +482,14 @@ export default function IRACCaseSolver() {
                         </div>
                       ) : (
                         <div className="space-y-4">
-                          <p className="text-gray-700 dark:text-zinc-300 leading-relaxed">{currentAnalysis.application}</p>
+                          <p className="text-gray-700 dark:text-zinc-300 leading-relaxed">
+                            {currentAnalysis.application}
+                          </p>
                           <Button
                             variant="outline"
-                            onClick={() => handleEditComponent('application', currentAnalysis.application)}
+                            onClick={() =>
+                              handleEditComponent('application', currentAnalysis.application)
+                            }
                             className="border-blue-200 text-blue-700"
                           >
                             Tahrirlash
@@ -476,15 +512,18 @@ export default function IRACCaseSolver() {
                         <div className="space-y-4">
                           <Textarea
                             value={editContent}
-                            onChange={(e) => setEditContent(e.target.value)}
+                            onChange={e => setEditContent(e.target.value)}
                             className="min-h-[100px] bg-white/50 rounded-xl border-blue-200"
                           />
                           <div className="flex gap-2">
-                            <Button onClick={handleSaveEdit} className="bg-blue-600 hover:bg-blue-700">
+                            <Button
+                              onClick={handleSaveEdit}
+                              className="bg-blue-600 hover:bg-blue-700"
+                            >
                               Saqlash
                             </Button>
-                            <Button 
-                              variant="outline" 
+                            <Button
+                              variant="outline"
                               onClick={() => setEditingComponent(null)}
                               className="border-blue-200 text-blue-700"
                             >
@@ -494,10 +533,14 @@ export default function IRACCaseSolver() {
                         </div>
                       ) : (
                         <div className="space-y-4">
-                          <p className="text-gray-700 dark:text-zinc-300 leading-relaxed">{currentAnalysis.conclusion}</p>
+                          <p className="text-gray-700 dark:text-zinc-300 leading-relaxed">
+                            {currentAnalysis.conclusion}
+                          </p>
                           <Button
                             variant="outline"
-                            onClick={() => handleEditComponent('conclusion', currentAnalysis.conclusion)}
+                            onClick={() =>
+                              handleEditComponent('conclusion', currentAnalysis.conclusion)
+                            }
                             className="border-blue-200 text-blue-700"
                           >
                             Tahrirlash
@@ -511,8 +554,10 @@ export default function IRACCaseSolver() {
             ) : (
               <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
                 <CardContent className="text-center py-12">
-                  <p className="text-gray-500 dark:text-zinc-500 mb-4">Hali hech qanday tahlil o'tkazilmagan</p>
-                  <Button 
+                  <p className="text-gray-500 dark:text-zinc-500 mb-4">
+                    Hali hech qanday tahlil o'tkazilmagan
+                  </p>
+                  <Button
                     onClick={() => setActiveTab('analyze')}
                     className="bg-blue-600 hover:bg-blue-700"
                   >
@@ -525,19 +570,20 @@ export default function IRACCaseSolver() {
 
           <TabsContent value="history" className="mt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {analyses.map((analysis) => (
-                <Card 
-                  key={analysis.id} 
+              {analyses.map(analysis => (
+                <Card
+                  key={analysis.id}
                   className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl hover:shadow-2xl transition-shadow cursor-pointer"
                   onClick={() => {
-                    setCurrentAnalysis(analysis);
-                    setActiveTab('results');
+                    setCurrentAnalysis(analysis)
+                    setActiveTab('results')
                   }}
                 >
                   <CardHeader>
                     <div className="flex flex-row items-center justify-between">
                       <CardTitle className="text-blue-900 text-lg">
-                        {analysis.case_type.charAt(0).toUpperCase() + analysis.case_type.slice(1)} Case
+                        {analysis.case_type.charAt(0).toUpperCase() + analysis.case_type.slice(1)}{' '}
+                        Case
                       </CardTitle>
                       <Badge className={getScoreBadge(analysis.total_score)}>
                         {analysis.total_score.toFixed(1)}
@@ -550,7 +596,7 @@ export default function IRACCaseSolver() {
                         <span className="text-gray-600 dark:text-zinc-400">Qiyinlik:</span>
                         <span className="font-medium">{analysis.difficulty_level}</span>
                       </div>
-                      
+
                       <div className="space-y-2">
                         <div className="flex justify-between text-sm">
                           <span className="text-gray-600 dark:text-zinc-400">Issue:</span>
@@ -566,18 +612,22 @@ export default function IRACCaseSolver() {
                         </div>
                         <div className="flex justify-between text-sm">
                           <span className="text-gray-600 dark:text-zinc-400">Application:</span>
-                          <span className={`font-medium ${getScoreColor(analysis.scores.application)}`}>
+                          <span
+                            className={`font-medium ${getScoreColor(analysis.scores.application)}`}
+                          >
                             {analysis.scores.application.toFixed(1)}
                           </span>
                         </div>
                         <div className="flex justify-between text-sm">
                           <span className="text-gray-600 dark:text-zinc-400">Conclusion:</span>
-                          <span className={`font-medium ${getScoreColor(analysis.scores.conclusion)}`}>
+                          <span
+                            className={`font-medium ${getScoreColor(analysis.scores.conclusion)}`}
+                          >
                             {analysis.scores.conclusion.toFixed(1)}
                           </span>
                         </div>
                       </div>
-                      
+
                       <div className="pt-2 border-t border-gray-200 dark:border-zinc-800">
                         <p className="text-xs text-gray-500 dark:text-zinc-500">
                           {new Date(analysis.created_at).toLocaleDateString('uz-UZ')}
@@ -587,13 +637,15 @@ export default function IRACCaseSolver() {
                   </CardContent>
                 </Card>
               ))}
-              
+
               {analyses.length === 0 && (
                 <div className="col-span-full">
                   <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
                     <CardContent className="text-center py-12">
-                      <p className="text-gray-500 dark:text-zinc-500 mb-4">Hali hech qanday tahlillar mavjud emas</p>
-                      <Button 
+                      <p className="text-gray-500 dark:text-zinc-500 mb-4">
+                        Hali hech qanday tahlillar mavjud emas
+                      </p>
+                      <Button
                         onClick={() => setActiveTab('analyze')}
                         className="bg-blue-600 hover:bg-blue-700"
                       >
@@ -608,5 +660,5 @@ export default function IRACCaseSolver() {
         </Tabs>
       </div>
     </div>
-  );
+  )
 }

@@ -33,11 +33,11 @@ export {
   getAdminEmail,
   makeCurrentUserAdmin,
   logUsage,
-} from './firebase-auth';
+} from './firebase-auth'
 
 // Re-export types
-export type { AuthUser } from './firebase-auth';
+export type { AuthUser } from './firebase-auth'
 
 // Re-export the React useAuth hook from the app's context provider
 // This is what most components use for reactive auth state
-export { useAuth } from '@/app/providers';
+export { useAuth } from '@/app/providers'

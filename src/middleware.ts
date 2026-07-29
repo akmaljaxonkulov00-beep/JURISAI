@@ -1,5 +1,5 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
 
 /**
  * MIDDLEWARE — Route Protection
@@ -41,7 +41,7 @@ const PUBLIC_ROUTES = [
   '/missing-features',
   '/weakness-detector',
   '/scenario-generator',
-];
+]
 
 const PROTECTED_ROUTES = [
   '/dashboard',
@@ -70,41 +70,41 @@ const PROTECTED_ROUTES = [
   '/legal-database-new',
   '/ai-assistant',
   '/virtual-court',
-];
+]
 
 export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-  
+  const { pathname } = request.nextUrl
+
   // Always allow public routes and static files
   if (PUBLIC_ROUTES.some(route => pathname === route || pathname.startsWith(route + '/'))) {
-    return NextResponse.next();
+    return NextResponse.next()
   }
-  
+
   // Allow root path (client handles auth redirect)
   if (pathname === '/') {
-    return NextResponse.next();
+    return NextResponse.next()
   }
-  
+
   // Check if this is a protected route
-  const isProtected = PROTECTED_ROUTES.some(route => pathname === route || pathname.startsWith(route + '/'));
-  
+  const isProtected = PROTECTED_ROUTES.some(
+    route => pathname === route || pathname.startsWith(route + '/')
+  )
+
   if (isProtected) {
     // Check for auth cookie
-    const authCookie = request.cookies.get('jurisai_auth');
-    
+    const authCookie = request.cookies.get('jurisai_auth')
+
     if (!authCookie) {
       // No auth cookie — redirect to signin
-      const signinUrl = new URL('/signin', request.url);
-      signinUrl.searchParams.set('redirectTo', pathname);
-      return NextResponse.redirect(signinUrl);
+      const signinUrl = new URL('/signin', request.url)
+      signinUrl.searchParams.set('redirectTo', pathname)
+      return NextResponse.redirect(signinUrl)
     }
   }
-  
-  return NextResponse.next();
+
+  return NextResponse.next()
 }
 
 export const config = {
-  matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
-  ],
-};
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)'],
+}

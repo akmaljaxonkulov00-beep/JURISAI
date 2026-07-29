@@ -1,38 +1,29 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { auth as simpleAuth } from '@/lib/simple-auth';
+import { NextRequest, NextResponse } from 'next/server'
+import { auth as simpleAuth } from '@/lib/simple-auth'
 
-const auth = simpleAuth as any;
+const auth = simpleAuth as any
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, password } = await request.json();
+    const { email, password } = await request.json()
 
     if (!email || !password) {
-      return NextResponse.json(
-        { error: 'Email va parol talab qilinadi' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Email va parol talab qilinadi' }, { status: 400 })
     }
 
-    const result = await auth.login(email, password);
+    const result = await auth.login(email, password)
 
     if (result.success) {
       return NextResponse.json({
         success: true,
         message: 'Muvaffaqiyatli login qilindi',
-        user: auth.getUser()
-      });
+        user: auth.getUser(),
+      })
     } else {
-      return NextResponse.json(
-        { error: result.error },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: result.error }, { status: 401 })
     }
   } catch (error) {
-    console.error('Login error:', error);
-    return NextResponse.json(
-      { error: 'Login qilishda xatolik yuz berdi' },
-      { status: 500 }
-    );
+    console.error('Login error:', error)
+    return NextResponse.json({ error: 'Login qilishda xatolik yuz berdi' }, { status: 500 })
   }
 }

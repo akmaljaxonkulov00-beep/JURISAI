@@ -1,12 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server'
 
 /**
  * GET /api/admin/auth-users
- * 
+ *
  * Returns all authenticated users from Supabase Auth via service_role key.
  * This is the ONLY way to access auth.users (not queryable with anon key).
  * Used by admin panel to show real registered users.
- * 
+ *
  * Query params:
  *   ?search=email@example.com  — search by email or name
  *   ?page=1&limit=10           — pagination
@@ -15,17 +15,17 @@ import { NextRequest, NextResponse } from 'next/server';
  */
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const search = searchParams.get('search') || '';
-    const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
-    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '50')));
-    const sort = searchParams.get('sort') || 'created_at';
-    const order = searchParams.get('order') || 'desc';
-    const offset = (page - 1) * limit;
+    const { searchParams } = new URL(request.url)
+    const search = searchParams.get('search') || ''
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1'))
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '50')))
+    const sort = searchParams.get('sort') || 'created_at'
+    const order = searchParams.get('order') || 'desc'
+    const offset = (page - 1) * limit
 
-    const { createClient } = await import('@supabase/supabase-js');
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const { createClient } = await import('@supabase/supabase-js')
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
     if (!supabaseUrl || !serviceRoleKey) {
       return NextResponse.json({
@@ -33,36 +33,44 @@ export async function GET(request: NextRequest) {
         error: 'Supabase not configured',
         users: [],
         total: 0,
-      });
+      })
     }
 
     const supabase = createClient(supabaseUrl, serviceRoleKey, {
       auth: { autoRefreshToken: false, persistSession: false },
-    });
+    })
 
     // ── Query auth.users table (requires service_role key!) ──
     // Supabase stores all authenticated users in auth.users
-    let userQuery = supabase
-      .from('auth_users_view')
-      .select('*', { count: 'exact' });
+    let userQuery = supabase.from('auth_users_view').select('*', { count: 'exact' })
 
     // If search is provided, filter by email
     if (search) {
-      userQuery = userQuery.or(`email.ilike.%${search}%,raw_user_meta_data->>name.ilike.%${search}%`);
+      userQuery = userQuery.or(
+        `email.ilike.%${search}%,raw_user_meta_data->>name.ilike.%${search}%`
+      )
     }
 
-    const { data: authUsers, error: authError, count } = await userQuery
+    const {
+      data: authUsers,
+      error: authError,
+      count,
+    } = await userQuery
       .order(sort, { ascending: order === 'asc' })
-      .range(offset, offset + limit - 1);
+      .range(offset, offset + limit - 1)
 
     // If auth_users_view doesn't exist (it's a Supabase view), try the raw table
-    if (authError && authError.message?.includes('relation') || authError?.code === '42P01') {
+    if ((authError && authError.message?.includes('relation')) || authError?.code === '42P01') {
       // auth schema requires explicit schema prefix
-      const { data: users, error: usersError, count: usersCount } = await supabase
+      const {
+        data: users,
+        error: usersError,
+        count: usersCount,
+      } = await supabase
         .from('users')
         .select('*', { count: 'exact' })
         .limit(limit)
-        .order(sort === 'created_at' ? 'created_at' : sort, { ascending: order === 'asc' });
+        .order(sort === 'created_at' ? 'created_at' : sort, { ascending: order === 'asc' })
 
       if (!usersError && users) {
         const mapped = users.map((u: any) => ({
@@ -78,7 +86,7 @@ export async function GET(request: NextRequest) {
           last_login: u.last_login || u.lastLogin || '',
           status: u.blocked ? 'blocked' : 'active',
           source: 'users_table',
-        }));
+        }))
 
         return NextResponse.json({
           success: true,
@@ -87,15 +95,19 @@ export async function GET(request: NextRequest) {
           page,
           limit,
           source: 'users_table',
-        });
+        })
       }
 
       // Try registered_users as final fallback
-      const { data: regUsers, error: regError, count: regCount } = await supabase
+      const {
+        data: regUsers,
+        error: regError,
+        count: regCount,
+      } = await supabase
         .from('registered_users')
         .select('*', { count: 'exact' })
         .limit(limit)
-        .order('created_at', { ascending: order === 'asc' });
+        .order('created_at', { ascending: order === 'asc' })
 
       if (!regError && regUsers) {
         const mapped = regUsers.map((u: any) => ({
@@ -111,7 +123,7 @@ export async function GET(request: NextRequest) {
           last_login: u.last_login || '',
           status: u.blocked ? 'blocked' : 'active',
           source: 'registered_users',
-        }));
+        }))
 
         return NextResponse.json({
           success: true,
@@ -120,7 +132,7 @@ export async function GET(request: NextRequest) {
           page,
           limit,
           source: 'registered_users',
-        });
+        })
       }
 
       // All tables empty — return empty array, not mock data
@@ -130,12 +142,12 @@ export async function GET(request: NextRequest) {
         total: 0,
         page,
         limit,
-        message: 'Hali hech qanday foydalanuvchi ro\'yxatdan o\'tmagan',
+        message: "Hali hech qanday foydalanuvchi ro'yxatdan o'tmagan",
         source: 'empty',
-      });
+      })
     }
 
-    if (authError) throw authError;
+    if (authError) throw authError
 
     // Map auth.users to admin-friendly format
     const mapped = (authUsers || []).map((u: any) => ({
@@ -153,7 +165,7 @@ export async function GET(request: NextRequest) {
       source: 'auth.users',
       phone: u.phone || '',
       provider: u.app_metadata?.provider || 'email',
-    }));
+    }))
 
     return NextResponse.json({
       success: true,
@@ -162,14 +174,14 @@ export async function GET(request: NextRequest) {
       page,
       limit,
       source: 'auth.users',
-    });
+    })
   } catch (error: any) {
-    console.error('[Admin Auth Users] Error:', error);
+    console.error('[Admin Auth Users] Error:', error)
     return NextResponse.json({
       success: false,
       error: error?.message || 'Failed to fetch users',
       users: [],
       total: 0,
-    });
+    })
   }
 }

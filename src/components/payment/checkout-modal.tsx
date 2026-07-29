@@ -1,16 +1,16 @@
-'use client';
+'use client'
 
-import { useState, useRef } from 'react';
-import { X, Upload, Check, AlertCircle, Loader2, Shield, CreditCard } from 'lucide-react';
+import { useState, useRef } from 'react'
+import { X, Upload, Check, AlertCircle, Loader2, Shield, CreditCard } from 'lucide-react'
 
 interface CheckoutModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  plan?: { id: string; name: string; price: number };
-  cardNumber?: string;
-  paymentDetails?: string;
-  onSuccess?: () => void;
-  onError?: (error: string) => void;
+  isOpen: boolean
+  onClose: () => void
+  plan?: { id: string; name: string; price: number }
+  cardNumber?: string
+  paymentDetails?: string
+  onSuccess?: () => void
+  onError?: (error: string) => void
 }
 
 export default function CheckoutModal({
@@ -18,62 +18,62 @@ export default function CheckoutModal({
   onClose,
   plan,
   cardNumber = '8600 1234 5678 9012',
-  paymentDetails = "Click: *123# 45000 UZS / Payme: 8600 1234 5678 9012",
+  paymentDetails = 'Click: *123# 45000 UZS / Payme: 8600 1234 5678 9012',
   onSuccess,
   onError,
 }: CheckoutModalProps) {
-  const [file, setFile] = useState<File | null>(null);
-  const [preview, setPreview] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [status, setStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle');
-  const [errorMsg, setErrorMsg] = useState('');
-  const fileRef = useRef<HTMLInputElement>(null);
+  const [file, setFile] = useState<File | null>(null)
+  const [preview, setPreview] = useState<string | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [status, setStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle')
+  const [errorMsg, setErrorMsg] = useState('')
+  const fileRef = useRef<HTMLInputElement>(null)
 
-  if (!isOpen || !plan) return null;
+  if (!isOpen || !plan) return null
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const f = e.target.files?.[0];
-    if (!f) return;
+    const f = e.target.files?.[0]
+    if (!f) return
     if (!f.type.startsWith('image/')) {
-      setErrorMsg('Faqat rasm fayllari qabul qilinadi');
-      return;
+      setErrorMsg('Faqat rasm fayllari qabul qilinadi')
+      return
     }
     if (f.size > 10 * 1024 * 1024) {
-      setErrorMsg('Rasm hajmi 10MB dan oshmasligi kerak');
-      return;
+      setErrorMsg('Rasm hajmi 10MB dan oshmasligi kerak')
+      return
     }
-    setFile(f);
-    setPreview(URL.createObjectURL(f));
-    setErrorMsg('');
-    setStatus('idle');
-  };
+    setFile(f)
+    setPreview(URL.createObjectURL(f))
+    setErrorMsg('')
+    setStatus('idle')
+  }
 
   const handleSubmit = async () => {
     if (!file) {
-      setErrorMsg('Iltimos, to\'lov chekini yuklang');
-      return;
+      setErrorMsg("Iltimos, to'lov chekini yuklang")
+      return
     }
-    setIsSubmitting(true);
-    setStatus('uploading');
-    setErrorMsg('');
+    setIsSubmitting(true)
+    setStatus('uploading')
+    setErrorMsg('')
 
     try {
       // Upload to Supabase Storage
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('plan', plan.id);
-      formData.append('amount', String(plan.price));
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('plan', plan.id)
+      formData.append('amount', String(plan.price))
 
       const uploadRes = await fetch('/api/upload', {
         method: 'POST',
         body: formData,
-      });
+      })
 
-      let receiptUrl = preview || '';
+      let receiptUrl = preview || ''
 
       if (uploadRes.ok) {
-        const uploadData = await uploadRes.json();
-        receiptUrl = uploadData.url || receiptUrl;
+        const uploadData = await uploadRes.json()
+        receiptUrl = uploadData.url || receiptUrl
       }
 
       // Log payment request
@@ -86,10 +86,10 @@ export default function CheckoutModal({
           receiptImage: receiptUrl,
           payment_method: 'manual',
         }),
-      });
+      })
 
       // Save to localStorage as fallback
-      const existing = JSON.parse(localStorage.getItem('payment_requests') || '[]');
+      const existing = JSON.parse(localStorage.getItem('payment_requests') || '[]')
       existing.push({
         id: Date.now().toString(),
         plan: plan.id,
@@ -98,33 +98,42 @@ export default function CheckoutModal({
         status: 'pending',
         createdAt: new Date().toISOString(),
         userEmail: JSON.parse(sessionStorage.getItem('jurisai_user') || '{}').email || 'unknown',
-        userName: JSON.parse(sessionStorage.getItem('jurisai_user') || '{}').name || 'Foydalanuvchi',
-      });
-      localStorage.setItem('payment_requests', JSON.stringify(existing));
+        userName:
+          JSON.parse(sessionStorage.getItem('jurisai_user') || '{}').name || 'Foydalanuvchi',
+      })
+      localStorage.setItem('payment_requests', JSON.stringify(existing))
 
-      setStatus('success');
-      onSuccess?.();
-      setTimeout(() => { onClose(); }, 2000);
+      setStatus('success')
+      onSuccess?.()
+      setTimeout(() => {
+        onClose()
+      }, 2000)
     } catch (err: any) {
-      setStatus('error');
-      setErrorMsg(err.message || 'Yuklashda xatolik yuz berdi');
-      onError?.(err.message || 'Yuklashda xatolik');
+      setStatus('error')
+      setErrorMsg(err.message || 'Yuklashda xatolik yuz berdi')
+      onError?.(err.message || 'Yuklashda xatolik')
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false)
     }
-  };
+  }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+      onClick={onClose}
+    >
       <div
         className="relative w-full max-w-lg bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-zinc-800/60 dark:border-zinc-700/60 overflow-hidden"
-        onClick={(e) => e.stopPropagation()}
+        onClick={e => e.stopPropagation()}
       >
         {/* Gradient bar */}
         <div className="h-1.5 bg-gradient-to-r from-blue-500 via-emerald-500 to-amber-500" />
 
         {/* Close */}
-        <button onClick={onClose} className="absolute top-4 right-4 w-8 h-8 rounded-full bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 flex items-center justify-center text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:text-zinc-400 transition-all z-10">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 w-8 h-8 rounded-full bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 flex items-center justify-center text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:text-zinc-400 transition-all z-10"
+        >
           <X size={16} />
         </button>
 
@@ -135,8 +144,12 @@ export default function CheckoutModal({
               <Shield className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-gray-900 dark:text-white">{plan.name} tarifiga o'tish</h2>
-              <p className="text-sm text-gray-500 dark:text-zinc-400">{plan.price.toLocaleString()} UZS / {plan.id === 'pro' ? 'yil' : 'oy'}</p>
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+                {plan.name} tarifiga o'tish
+              </h2>
+              <p className="text-sm text-gray-500 dark:text-zinc-400">
+                {plan.price.toLocaleString()} UZS / {plan.id === 'pro' ? 'yil' : 'oy'}
+              </p>
             </div>
           </div>
 
@@ -144,10 +157,14 @@ export default function CheckoutModal({
           <div className="p-4 rounded-xl bg-gray-50 dark:bg-zinc-800/50 border border-gray-200 dark:border-zinc-700 mb-5">
             <div className="flex items-center gap-2 mb-2">
               <CreditCard className="w-4 h-4 text-blue-500" />
-              <span className="text-sm font-semibold text-gray-700 dark:text-zinc-300">To'lov ma'lumotlari</span>
+              <span className="text-sm font-semibold text-gray-700 dark:text-zinc-300">
+                To'lov ma'lumotlari
+              </span>
             </div>
             <p className="text-xs text-gray-500 dark:text-zinc-400 mb-1">Karta raqami:</p>
-            <p className="text-sm font-mono font-bold text-gray-900 dark:text-white">{cardNumber}</p>
+            <p className="text-sm font-mono font-bold text-gray-900 dark:text-white">
+              {cardNumber}
+            </p>
             <p className="text-xs text-gray-500 dark:text-zinc-400 mt-2">{paymentDetails}</p>
           </div>
 
@@ -155,7 +172,9 @@ export default function CheckoutModal({
           {status === 'success' && (
             <div className="p-3 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 flex items-center gap-2 mb-4">
               <Check className="w-4 h-4 text-green-600 flex-shrink-0" />
-              <span className="text-sm text-green-700 dark:text-green-300">To'lov chekingiz yuborildi! Admin tasdiqlashni kutmoqda.</span>
+              <span className="text-sm text-green-700 dark:text-green-300">
+                To'lov chekingiz yuborildi! Admin tasdiqlashni kutmoqda.
+              </span>
             </div>
           )}
 
@@ -174,7 +193,11 @@ export default function CheckoutModal({
                 className="relative border-2 border-dashed border-gray-300 dark:border-zinc-600 rounded-xl p-6 text-center cursor-pointer hover:border-blue-400 dark:hover:border-blue-500 transition-colors group"
               >
                 {preview ? (
-                  <img src={preview} alt="Chek rasmi" className="max-h-40 mx-auto rounded-lg object-contain" />
+                  <img
+                    src={preview}
+                    alt="Chek rasmi"
+                    className="max-h-40 mx-auto rounded-lg object-contain"
+                  />
                 ) : (
                   <div className="space-y-2">
                     <div className="w-12 h-12 mx-auto rounded-xl bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -220,5 +243,5 @@ export default function CheckoutModal({
         </div>
       </div>
     </div>
-  );
+  )
 }

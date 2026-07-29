@@ -1,12 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(request: NextRequest) {
   try {
     // Try to load from Supabase
-    const { createClient } = await import('@supabase/supabase-js');
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    
+    const { createClient } = await import('@supabase/supabase-js')
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
     if (!supabaseUrl || !supabaseKey) {
       return NextResponse.json({
         success: false,
@@ -14,18 +14,18 @@ export async function GET(request: NextRequest) {
         categories: [],
         total_categories: 0,
         total_documents: 0,
-      });
+      })
     }
 
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabase = createClient(supabaseUrl, supabaseKey)
 
     // Fetch categories with article counts
     const { data: categories, error } = await supabase
       .from('categories')
       .select('*')
-      .order('code_id');
+      .order('code_id')
 
-    if (error) throw error;
+    if (error) throw error
 
     if (!categories || categories.length === 0) {
       return NextResponse.json({
@@ -34,23 +34,23 @@ export async function GET(request: NextRequest) {
         total_categories: 0,
         total_documents: 0,
         message: 'No categories found. Run the SQL migration first.',
-      });
+      })
     }
 
     // Get article count for each category
     const { data: articleCounts, error: countError } = await supabase
       .from('articles')
-      .select('code_id');
+      .select('code_id')
 
     if (!countError && articleCounts) {
-      const countMap: Record<string, number> = {};
+      const countMap: Record<string, number> = {}
       articleCounts.forEach((a: any) => {
-        countMap[a.code_id] = (countMap[a.code_id] || 0) + 1;
-      });
+        countMap[a.code_id] = (countMap[a.code_id] || 0) + 1
+      })
 
       categories.forEach((cat: any) => {
-        cat.article_count = countMap[cat.code_id] || 0;
-      });
+        cat.article_count = countMap[cat.code_id] || 0
+      })
     }
 
     return NextResponse.json({
@@ -66,16 +66,15 @@ export async function GET(request: NextRequest) {
       total_categories: categories.length,
       total_documents: categories.reduce((sum: number, c: any) => sum + (c.article_count || 0), 0),
       last_updated: new Date().toISOString(),
-    });
-
+    })
   } catch (error: any) {
-    console.error('Legal categories API error:', error);
+    console.error('Legal categories API error:', error)
     return NextResponse.json({
       success: false,
       error: error.message || 'Kategoriyalarni olishda xatolik',
       categories: [],
       total_categories: 0,
       total_documents: 0,
-    });
+    })
   }
 }

@@ -1,11 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { NextRequest, NextResponse } from 'next/server'
+import { supabase } from '@/lib/supabase'
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const period = searchParams.get('period') || 'weekly';
-    const limit = parseInt(searchParams.get('limit') || '10');
+    const { searchParams } = new URL(request.url)
+    const period = searchParams.get('period') || 'weekly'
+    const limit = parseInt(searchParams.get('limit') || '10')
 
     // Mock leaderboard data
     const mockLeaderboard = [
@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
         current_streak: 5,
         best_score: 98,
         period_score: 450,
-        achievements: ['high_scorer', 'consistent', 'expert']
+        achievements: ['high_scorer', 'consistent', 'expert'],
       },
       {
         rank: 2,
@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
         current_streak: 3,
         best_score: 95,
         period_score: 420,
-        achievements: ['consistent', 'strategic']
+        achievements: ['consistent', 'strategic'],
       },
       {
         rank: 3,
@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
         current_streak: 2,
         best_score: 94,
         period_score: 380,
-        achievements: ['persistent', 'improving']
+        achievements: ['persistent', 'improving'],
       },
       {
         rank: 4,
@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
         current_streak: 1,
         best_score: 92,
         period_score: 350,
-        achievements: ['improving']
+        achievements: ['improving'],
       },
       {
         rank: 5,
@@ -77,7 +77,7 @@ export async function GET(request: NextRequest) {
         current_streak: 0,
         best_score: 91,
         period_score: 320,
-        achievements: ['persistent']
+        achievements: ['persistent'],
       },
       {
         rank: 6,
@@ -91,7 +91,7 @@ export async function GET(request: NextRequest) {
         current_streak: 0,
         best_score: 89,
         period_score: 310,
-        achievements: ['dedicated']
+        achievements: ['dedicated'],
       },
       {
         rank: 7,
@@ -105,7 +105,7 @@ export async function GET(request: NextRequest) {
         current_streak: 0,
         best_score: 88,
         period_score: 290,
-        achievements: []
+        achievements: [],
       },
       {
         rank: 8,
@@ -119,7 +119,7 @@ export async function GET(request: NextRequest) {
         current_streak: 0,
         best_score: 87,
         period_score: 270,
-        achievements: []
+        achievements: [],
       },
       {
         rank: 9,
@@ -133,7 +133,7 @@ export async function GET(request: NextRequest) {
         current_streak: 0,
         best_score: 85,
         period_score: 250,
-        achievements: []
+        achievements: [],
       },
       {
         rank: 10,
@@ -147,26 +147,26 @@ export async function GET(request: NextRequest) {
         current_streak: 0,
         best_score: 84,
         period_score: 240,
-        achievements: []
-      }
-    ];
+        achievements: [],
+      },
+    ]
 
     // Apply period filter (mock implementation)
-    let filteredLeaderboard = mockLeaderboard;
+    let filteredLeaderboard = mockLeaderboard
     if (period === 'weekly') {
       filteredLeaderboard = mockLeaderboard.map(user => ({
         ...user,
-        total_score: user.period_score
-      }));
+        total_score: user.period_score,
+      }))
     } else if (period === 'monthly') {
       filteredLeaderboard = mockLeaderboard.map(user => ({
         ...user,
-        total_score: Math.floor(user.period_score * 4.3) // Mock monthly calculation
-      }));
+        total_score: Math.floor(user.period_score * 4.3), // Mock monthly calculation
+      }))
     }
 
     // Apply limit
-    const limitedLeaderboard = filteredLeaderboard.slice(0, limit);
+    const limitedLeaderboard = filteredLeaderboard.slice(0, limit)
 
     return NextResponse.json({
       leaderboard: limitedLeaderboard,
@@ -175,17 +175,16 @@ export async function GET(request: NextRequest) {
       user_rank: limitedLeaderboard.findIndex(u => u.user_id === 'demo-user') + 1 || null,
       summary: {
         top_score: limitedLeaderboard[0]?.total_score || 0,
-        average_score: Math.round(limitedLeaderboard.reduce((sum, u) => sum + u.average_score, 0) / limitedLeaderboard.length),
-        total_simulations: limitedLeaderboard.reduce((sum, u) => sum + u.simulations_count, 0)
+        average_score: Math.round(
+          limitedLeaderboard.reduce((sum, u) => sum + u.average_score, 0) /
+            limitedLeaderboard.length
+        ),
+        total_simulations: limitedLeaderboard.reduce((sum, u) => sum + u.simulations_count, 0),
       },
-      last_updated: new Date().toISOString()
-    });
-
+      last_updated: new Date().toISOString(),
+    })
   } catch (error) {
-    console.error('Court leaderboard get error:', error);
-    return NextResponse.json(
-      { error: 'Leaderboardni olishda xatolik yuz berdi' },
-      { status: 500 }
-    );
+    console.error('Court leaderboard get error:', error)
+    return NextResponse.json({ error: 'Leaderboardni olishda xatolik yuz berdi' }, { status: 500 })
   }
 }

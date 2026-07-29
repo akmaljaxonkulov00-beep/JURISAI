@@ -1,39 +1,50 @@
-'use client';
+'use client'
 
-import React, { useState, forwardRef, HTMLAttributes, InputHTMLAttributes, TextareaHTMLAttributes, ButtonHTMLAttributes, ReactNode, createContext, useContext, useEffect } from 'react';
-import { cn } from '@/lib/utils';
+import React, {
+  useState,
+  forwardRef,
+  HTMLAttributes,
+  InputHTMLAttributes,
+  TextareaHTMLAttributes,
+  ButtonHTMLAttributes,
+  ReactNode,
+  createContext,
+  useContext,
+  useEffect,
+} from 'react'
+import { cn } from '@/lib/utils'
 
 // ==================== INPUT COMPONENT ====================
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
-  label?: string;
-  error?: string;
-  helperText?: string;
-  startIcon?: ReactNode;
-  endIcon?: ReactNode;
+  label?: string
+  error?: string
+  helperText?: string
+  startIcon?: ReactNode
+  endIcon?: ReactNode
 }
 
 const Input = forwardRef<HTMLInputElement, InputProps>(
   ({ className, type, label, error, helperText, startIcon, endIcon, id, ...props }, ref) => {
-    const inputId = id || `input-${Math.random().toString(36).substr(2, 9)}`;
-    
+    const inputId = id || `input-${Math.random().toString(36).substr(2, 9)}`
+
     return (
       <div className="space-y-2">
         {label && (
-          <label 
+          <label
             htmlFor={inputId}
             className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
           >
             {label}
           </label>
         )}
-        
+
         <div className="relative">
           {startIcon && (
             <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
               {startIcon}
             </div>
           )}
-          
+
           <input
             type={type}
             id={inputId}
@@ -47,51 +58,47 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             {...props}
           />
-          
+
           {endIcon && (
             <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
               {endIcon}
             </div>
           )}
         </div>
-        
-        {error && (
-          <p className="text-sm text-destructive">{error}</p>
-        )}
-        
-        {helperText && !error && (
-          <p className="text-sm text-muted-foreground">{helperText}</p>
-        )}
-      </div>
-    );
-  }
-);
 
-Input.displayName = 'Input';
+        {error && <p className="text-sm text-destructive">{error}</p>}
+
+        {helperText && !error && <p className="text-sm text-muted-foreground">{helperText}</p>}
+      </div>
+    )
+  }
+)
+
+Input.displayName = 'Input'
 
 // ==================== SELECT COMPONENT ====================
 interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
-  label?: string;
-  error?: string;
-  helperText?: string;
-  options: Array<{ value: string; label: string; disabled?: boolean }>;
+  label?: string
+  error?: string
+  helperText?: string
+  options: Array<{ value: string; label: string; disabled?: boolean }>
 }
 
 const Select = forwardRef<HTMLSelectElement, SelectProps>(
   ({ className, label, error, helperText, options, id, ...props }, ref) => {
-    const selectId = id || `select-${Math.random().toString(36).substr(2, 9)}`;
-    
+    const selectId = id || `select-${Math.random().toString(36).substr(2, 9)}`
+
     return (
       <div className="space-y-2">
         {label && (
-          <label 
+          <label
             htmlFor={selectId}
             className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
           >
             {label}
           </label>
         )}
-        
+
         <select
           id={selectId}
           className={cn(
@@ -102,54 +109,46 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
           ref={ref}
           {...props}
         >
-          {options.map((option) => (
-            <option 
-              key={option.value} 
-              value={option.value}
-              disabled={option.disabled}
-            >
+          {options.map(option => (
+            <option key={option.value} value={option.value} disabled={option.disabled}>
               {option.label}
             </option>
           ))}
         </select>
-        
-        {error && (
-          <p className="text-sm text-destructive">{error}</p>
-        )}
-        
-        {helperText && !error && (
-          <p className="text-sm text-muted-foreground">{helperText}</p>
-        )}
-      </div>
-    );
-  }
-);
 
-Select.displayName = 'Select';
+        {error && <p className="text-sm text-destructive">{error}</p>}
+
+        {helperText && !error && <p className="text-sm text-muted-foreground">{helperText}</p>}
+      </div>
+    )
+  }
+)
+
+Select.displayName = 'Select'
 
 // ==================== TEXTAREA COMPONENT ====================
 interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
-  label?: string;
-  error?: string;
-  helperText?: string;
-  rows?: number;
+  label?: string
+  error?: string
+  helperText?: string
+  rows?: number
 }
 
 const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
   ({ className, label, error, helperText, rows = 4, id, ...props }, ref) => {
-    const textareaId = id || `textarea-${Math.random().toString(36).substr(2, 9)}`;
-    
+    const textareaId = id || `textarea-${Math.random().toString(36).substr(2, 9)}`
+
     return (
       <div className="space-y-2">
         {label && (
-          <label 
+          <label
             htmlFor={textareaId}
             className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
           >
             {label}
           </label>
         )}
-        
+
         <textarea
           id={textareaId}
           rows={rows}
@@ -161,34 +160,43 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
           ref={ref}
           {...props}
         />
-        
-        {error && (
-          <p className="text-sm text-destructive">{error}</p>
-        )}
-        
-        {helperText && !error && (
-          <p className="text-sm text-muted-foreground">{helperText}</p>
-        )}
-      </div>
-    );
-  }
-);
 
-Textarea.displayName = 'Textarea';
+        {error && <p className="text-sm text-destructive">{error}</p>}
+
+        {helperText && !error && <p className="text-sm text-muted-foreground">{helperText}</p>}
+      </div>
+    )
+  }
+)
+
+Textarea.displayName = 'Textarea'
 
 // ==================== BUTTON COMPONENT ====================
 interface ButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'asChild'> {
-  variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
-  size?: 'default' | 'sm' | 'lg' | 'icon';
-  loading?: boolean;
-  asChild?: boolean;
-  children: ReactNode;
+  variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link'
+  size?: 'default' | 'sm' | 'lg' | 'icon'
+  loading?: boolean
+  asChild?: boolean
+  children: ReactNode
 }
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = 'default', size = 'default', loading, children, disabled, asChild, ...props }, ref) => {
-    const baseStyles = 'inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background';
-    
+  (
+    {
+      className,
+      variant = 'default',
+      size = 'default',
+      loading,
+      children,
+      disabled,
+      asChild,
+      ...props
+    },
+    ref
+  ) => {
+    const baseStyles =
+      'inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background'
+
     const variants = {
       default: 'bg-primary text-primary-foreground hover:bg-primary/90',
       destructive: 'bg-destructive text-destructive-foreground hover:bg-destructive/90',
@@ -196,17 +204,17 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
       ghost: 'hover:bg-accent hover:text-accent-foreground',
       link: 'text-primary underline-offset-4 hover:underline',
-    };
-    
+    }
+
     const sizes = {
       default: 'h-10 py-2 px-4',
       sm: 'h-9 px-3 rounded-md',
       lg: 'h-11 px-8 rounded-md',
       icon: 'h-10 w-10',
-    };
+    }
 
     if (asChild && React.isValidElement(children)) {
-      const childElement = children as React.ReactElement<any>;
+      const childElement = children as React.ReactElement<any>
       return React.cloneElement(childElement, {
         className: cn(
           baseStyles,
@@ -218,8 +226,8 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         ),
         ref,
         disabled: disabled || loading,
-        ...props
-      });
+        ...props,
+      })
     }
 
     return (
@@ -236,93 +244,90 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         {...props}
       >
         {loading && (
-          <svg className="animate-spin -ml-1 mr-3 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          <svg
+            className="animate-spin -ml-1 mr-3 h-4 w-4"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            ></circle>
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            ></path>
           </svg>
         )}
         {children}
       </button>
-    );
+    )
   }
-);
+)
 
-Button.displayName = 'Button';
+Button.displayName = 'Button'
 
 // ==================== CARD COMPONENT ====================
 interface CardProps extends HTMLAttributes<HTMLDivElement> {}
 
-const Card = forwardRef<HTMLDivElement, CardProps>(
-  ({ className, ...props }, ref) => (
-    <div
-      ref={ref}
-      className={cn(
-        'rounded-lg border bg-card text-card-foreground shadow-sm',
-        className
-      )}
-      {...props}
-    />
-  )
-);
-Card.displayName = 'Card';
+const Card = forwardRef<HTMLDivElement, CardProps>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn('rounded-lg border bg-card text-card-foreground shadow-sm', className)}
+    {...props}
+  />
+))
+Card.displayName = 'Card'
 
 const CardHeader = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
-    <div
-      ref={ref}
-      className={cn('flex flex-col space-y-1.5 p-6', className)}
-      {...props}
-    />
+    <div ref={ref} className={cn('flex flex-col space-y-1.5 p-6', className)} {...props} />
   )
-);
-CardHeader.displayName = 'CardHeader';
+)
+CardHeader.displayName = 'CardHeader'
 
 const CardTitle = forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLHeadingElement>>(
   ({ className, ...props }, ref) => (
     <h3
       ref={ref}
-      className={cn(
-        'text-2xl font-semibold leading-none tracking-tight',
-        className
-      )}
+      className={cn('text-2xl font-semibold leading-none tracking-tight', className)}
       {...props}
     />
   )
-);
-CardTitle.displayName = 'CardTitle';
+)
+CardTitle.displayName = 'CardTitle'
 
-const CardDescription = forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLParagraphElement>>(
-  ({ className, ...props }, ref) => (
-    <p
-      ref={ref}
-      className={cn('text-sm text-muted-foreground', className)}
-      {...props}
-    />
-  )
-);
-CardDescription.displayName = 'CardDescription';
+const CardDescription = forwardRef<
+  HTMLParagraphElement,
+  React.HTMLAttributes<HTMLParagraphElement>
+>(({ className, ...props }, ref) => (
+  <p ref={ref} className={cn('text-sm text-muted-foreground', className)} {...props} />
+))
+CardDescription.displayName = 'CardDescription'
 
 const CardContent = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
     <div ref={ref} className={cn('p-6 pt-0', className)} {...props} />
   )
-);
-CardContent.displayName = 'CardContent';
+)
+CardContent.displayName = 'CardContent'
 
 const CardFooter = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
-    <div
-      ref={ref}
-      className={cn('flex items-center p-6 pt-0', className)}
-      {...props}
-    />
+    <div ref={ref} className={cn('flex items-center p-6 pt-0', className)} {...props} />
   )
-);
-CardFooter.displayName = 'CardFooter';
+)
+CardFooter.displayName = 'CardFooter'
 
 // ==================== BADGE COMPONENT ====================
 interface BadgeProps extends HTMLAttributes<HTMLDivElement> {
-  variant?: 'default' | 'secondary' | 'destructive' | 'outline' | 'success' | 'warning' | 'info';
+  variant?: 'default' | 'secondary' | 'destructive' | 'outline' | 'success' | 'warning' | 'info'
 }
 
 const Badge = forwardRef<HTMLDivElement, BadgeProps>(
@@ -330,23 +335,23 @@ const Badge = forwardRef<HTMLDivElement, BadgeProps>(
     const getVariantClasses = (variant: string) => {
       switch (variant) {
         case 'default':
-          return 'border-transparent bg-primary text-primary-foreground hover:bg-primary/80';
+          return 'border-transparent bg-primary text-primary-foreground hover:bg-primary/80'
         case 'secondary':
-          return 'border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80';
+          return 'border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80'
         case 'destructive':
-          return 'border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80';
+          return 'border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80'
         case 'outline':
-          return 'text-foreground';
+          return 'text-foreground'
         case 'success':
-          return 'border-transparent bg-green-500 text-white hover:bg-green-600';
+          return 'border-transparent bg-green-500 text-white hover:bg-green-600'
         case 'warning':
-          return 'border-transparent bg-yellow-500 text-white hover:bg-yellow-600';
+          return 'border-transparent bg-yellow-500 text-white hover:bg-yellow-600'
         case 'info':
-          return 'border-transparent bg-blue-500 text-white hover:bg-blue-600';
+          return 'border-transparent bg-blue-500 text-white hover:bg-blue-600'
         default:
-          return 'border-transparent bg-primary text-primary-foreground hover:bg-primary/80';
+          return 'border-transparent bg-primary text-primary-foreground hover:bg-primary/80'
       }
-    };
+    }
 
     return (
       <div
@@ -358,99 +363,95 @@ const Badge = forwardRef<HTMLDivElement, BadgeProps>(
         )}
         {...props}
       />
-    );
+    )
   }
-);
+)
 
-Badge.displayName = 'Badge';
+Badge.displayName = 'Badge'
 
 // ==================== DIALOG COMPONENT ====================
 interface DialogContextType {
-  isOpen: boolean;
-  open: () => void;
-  close: () => void;
+  isOpen: boolean
+  open: () => void
+  close: () => void
 }
 
-const DialogContext = createContext<DialogContextType | undefined>(undefined);
+const DialogContext = createContext<DialogContextType | undefined>(undefined)
 
 interface DialogProps {
-  children: ReactNode;
-  open?: boolean;
-  onOpenChange?: (open: boolean) => void;
+  children: ReactNode
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }
 
 const Dialog: React.FC<DialogProps> = ({ children, open: controlledOpen, onOpenChange }) => {
-  const [internalOpen, setInternalOpen] = useState(false);
-  const isOpen = controlledOpen !== undefined ? controlledOpen : internalOpen;
-  
+  const [internalOpen, setInternalOpen] = useState(false)
+  const isOpen = controlledOpen !== undefined ? controlledOpen : internalOpen
+
   const open = () => {
     if (controlledOpen === undefined) {
-      setInternalOpen(true);
+      setInternalOpen(true)
     }
-    onOpenChange?.(true);
-  };
-  
+    onOpenChange?.(true)
+  }
+
   const close = () => {
     if (controlledOpen === undefined) {
-      setInternalOpen(false);
+      setInternalOpen(false)
     }
-    onOpenChange?.(false);
-  };
+    onOpenChange?.(false)
+  }
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isOpen) {
-        close();
+        close()
       }
-    };
+    }
 
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
-  }, [isOpen, close]);
+    document.addEventListener('keydown', handleEscape)
+    return () => document.removeEventListener('keydown', handleEscape)
+  }, [isOpen, close])
 
-  return (
-    <DialogContext.Provider value={{ isOpen, open, close }}>
-      {children}
-    </DialogContext.Provider>
-  );
-};
+  return <DialogContext.Provider value={{ isOpen, open, close }}>{children}</DialogContext.Provider>
+}
 
-const DialogTrigger: React.FC<{ asChild?: boolean; children: ReactNode }> = ({ 
-  asChild, 
-  children 
+const DialogTrigger: React.FC<{ asChild?: boolean; children: ReactNode }> = ({
+  asChild,
+  children,
 }) => {
-  const { open } = useDialog();
-  
+  const { open } = useDialog()
+
   if (asChild && React.isValidElement(children)) {
-    return React.cloneElement(children as React.ReactElement<any>, { onClick: open });
+    return React.cloneElement(children as React.ReactElement<any>, { onClick: open })
   }
-  
+
   return (
     <button onClick={open} type="button">
       {children}
     </button>
-  );
-};
+  )
+}
 
 const DialogPortal: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [mounted, setMounted] = useState(false);
-  
-  useEffect(() => {
-    setMounted(true);
-    return () => setMounted(false);
-  }, []);
+  const [mounted, setMounted] = useState(false)
 
-  if (!mounted) return null;
+  useEffect(() => {
+    setMounted(true)
+    return () => setMounted(false)
+  }, [])
+
+  if (!mounted) return null
 
   return typeof document !== 'undefined' && document.body
     ? (document.body as any).createPortal(children, document.body)
-    : null;
-};
+    : null
+}
 
 const DialogOverlay: React.FC<{ className?: string }> = ({ className }) => {
-  const { isOpen, close } = useDialog();
+  const { isOpen, close } = useDialog()
 
-  if (!isOpen) return null;
+  if (!isOpen) return null
 
   return (
     <DialogPortal>
@@ -462,16 +463,16 @@ const DialogOverlay: React.FC<{ className?: string }> = ({ className }) => {
         onClick={close}
       />
     </DialogPortal>
-  );
-};
+  )
+}
 
-const DialogContent: React.FC<{ className?: string; children: ReactNode }> = ({ 
-  className, 
-  children 
+const DialogContent: React.FC<{ className?: string; children: ReactNode }> = ({
+  className,
+  children,
 }) => {
-  const { isOpen } = useDialog();
+  const { isOpen } = useDialog()
 
-  if (!isOpen) return null;
+  if (!isOpen) return null
 
   return (
     <DialogPortal>
@@ -484,110 +485,98 @@ const DialogContent: React.FC<{ className?: string; children: ReactNode }> = ({
         {children}
       </div>
     </DialogPortal>
-  );
-};
+  )
+}
 
-const DialogHeader: React.FC<{ className?: string; children: ReactNode }> = ({ 
-  className, 
-  children 
+const DialogHeader: React.FC<{ className?: string; children: ReactNode }> = ({
+  className,
+  children,
 }) => (
   <div className={cn('flex flex-col space-y-1.5 text-center sm:text-left', className)}>
     {children}
   </div>
-);
+)
 
-const DialogFooter: React.FC<{ className?: string; children: ReactNode }> = ({ 
-  className, 
-  children 
+const DialogFooter: React.FC<{ className?: string; children: ReactNode }> = ({
+  className,
+  children,
 }) => (
   <div className={cn('flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2', className)}>
     {children}
   </div>
-);
+)
 
-const DialogTitle: React.FC<{ className?: string; children: ReactNode }> = ({ 
-  className, 
-  children 
+const DialogTitle: React.FC<{ className?: string; children: ReactNode }> = ({
+  className,
+  children,
 }) => (
-  <h2 className={cn('text-lg font-semibold leading-none tracking-tight', className)}>
-    {children}
-  </h2>
-);
+  <h2 className={cn('text-lg font-semibold leading-none tracking-tight', className)}>{children}</h2>
+)
 
-const DialogDescription: React.FC<{ className?: string; children: ReactNode }> = ({ 
-  className, 
-  children 
-}) => (
-  <p className={cn('text-sm text-muted-foreground', className)}>
-    {children}
-  </p>
-);
+const DialogDescription: React.FC<{ className?: string; children: ReactNode }> = ({
+  className,
+  children,
+}) => <p className={cn('text-sm text-muted-foreground', className)}>{children}</p>
 
-const DialogClose: React.FC<{ asChild?: boolean; children: ReactNode }> = ({ 
-  asChild, 
-  children 
+const DialogClose: React.FC<{ asChild?: boolean; children: ReactNode }> = ({
+  asChild,
+  children,
 }) => {
-  const { close } = useDialog();
-  
+  const { close } = useDialog()
+
   if (asChild && React.isValidElement(children)) {
-    return React.cloneElement(children as React.ReactElement<any>, { onClick: close });
+    return React.cloneElement(children as React.ReactElement<any>, { onClick: close })
   }
-  
+
   return (
     <button onClick={close} type="button">
       {children}
     </button>
-  );
-};
+  )
+}
 
 function useDialog(): DialogContextType {
-  const context = useContext(DialogContext);
+  const context = useContext(DialogContext)
   if (!context) {
-    throw new Error('Dialog components must be used within a Dialog provider');
+    throw new Error('Dialog components must be used within a Dialog provider')
   }
-  return context;
+  return context
 }
 
 // ==================== AVATAR COMPONENT ====================
 interface AvatarProps {
-  src?: string;
-  alt?: string;
-  fallback?: string;
-  size?: 'sm' | 'md' | 'lg' | 'xl';
-  className?: string;
+  src?: string
+  alt?: string
+  fallback?: string
+  size?: 'sm' | 'md' | 'lg' | 'xl'
+  className?: string
 }
 
-const Avatar: React.FC<AvatarProps> = ({ 
-  src, 
-  alt, 
-  fallback, 
-  size = 'md', 
-  className 
-}) => {
-  const [imageError, setImageError] = useState(false);
-  const [imageLoaded, setImageLoaded] = useState(false);
+const Avatar: React.FC<AvatarProps> = ({ src, alt, fallback, size = 'md', className }) => {
+  const [imageError, setImageError] = useState(false)
+  const [imageLoaded, setImageLoaded] = useState(false)
 
   const getSizeClasses = (size: string) => {
     switch (size) {
       case 'sm':
-        return 'h-8 w-8 text-xs';
+        return 'h-8 w-8 text-xs'
       case 'lg':
-        return 'h-16 w-16 text-lg';
+        return 'h-16 w-16 text-lg'
       case 'xl':
-        return 'h-20 w-20 text-xl';
+        return 'h-20 w-20 text-xl'
       default:
-        return 'h-12 w-12 text-sm';
+        return 'h-12 w-12 text-sm'
     }
-  };
+  }
 
   const getInitials = (text: string) => {
-    if (!text) return '';
+    if (!text) return ''
     return text
       .split(' ')
       .map(word => word.charAt(0).toUpperCase())
       .join('')
-      .substring(0, 2);
-  };
+      .substring(0, 2)
+  }
 
   const getRandomColor = () => {
     const colors = [
@@ -599,11 +588,11 @@ const Avatar: React.FC<AvatarProps> = ({
       'bg-pink-500',
       'bg-indigo-500',
       'bg-gray-500',
-    ];
-    return colors[Math.floor(Math.random() * colors.length)];
-  };
+    ]
+    return colors[Math.floor(Math.random() * colors.length)]
+  }
 
-  const showFallback = !src || imageError || !imageLoaded;
+  const showFallback = !src || imageError || !imageLoaded
 
   return (
     <div
@@ -616,9 +605,7 @@ const Avatar: React.FC<AvatarProps> = ({
       )}
     >
       {showFallback ? (
-        <span className="font-medium text-white">
-          {fallback ? getInitials(fallback) : '?'}
-        </span>
+        <span className="font-medium text-white">{fallback ? getInitials(fallback) : '?'}</span>
       ) : (
         <img
           src={src}
@@ -629,8 +616,8 @@ const Avatar: React.FC<AvatarProps> = ({
         />
       )}
     </div>
-  );
-};
+  )
+}
 
 // ==================== EXPORTS ====================
 export {
@@ -638,10 +625,10 @@ export {
   Input,
   Select,
   Textarea,
-  
+
   // Button Component
   Button,
-  
+
   // Card Components
   Card,
   CardHeader,
@@ -649,10 +636,10 @@ export {
   CardTitle,
   CardDescription,
   CardContent,
-  
+
   // Badge Component
   Badge,
-  
+
   // Dialog Components
   Dialog,
   DialogPortal,
@@ -664,10 +651,10 @@ export {
   DialogTitle,
   DialogDescription,
   DialogClose,
-  
+
   // Avatar Component
   Avatar,
-  
+
   // Types
   type InputProps,
   type SelectProps,
@@ -677,4 +664,4 @@ export {
   type BadgeProps,
   type DialogProps,
   type AvatarProps,
-};
+}

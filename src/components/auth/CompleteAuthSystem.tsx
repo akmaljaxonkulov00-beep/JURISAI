@@ -1,24 +1,24 @@
-'use client';
+'use client'
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
-import { Input } from '@/components/ui/Input';
-import { 
-  Mail, 
-  Lock, 
-  User, 
-  Shield, 
-  Eye, 
-  EyeOff, 
-  CheckCircle, 
-  XCircle, 
-  AlertCircle, 
-  Home, 
-  Settings, 
-  LogOut, 
+import React, { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
+import { Badge } from '@/components/ui/Badge'
+import { Input } from '@/components/ui/Input'
+import {
+  Mail,
+  Lock,
+  User,
+  Shield,
+  Eye,
+  EyeOff,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  Home,
+  Settings,
+  LogOut,
   RefreshCw,
   Key,
   Crown,
@@ -47,113 +47,115 @@ import {
   Check,
   Info,
   HelpCircle,
-  CreditCard as CreditCardIcon
-} from 'lucide-react';
+  CreditCard as CreditCardIcon,
+} from 'lucide-react'
 
 export interface AuthUser {
-  id: string;
-  email: string;
-  name: string;
-  role: 'USER' | 'ADMIN' | 'SUPER_ADMIN';
-  status: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
-  subscription: 'free' | 'pro' | 'premium';
-  createdAt: string;
-  lastLogin: string;
-  permissions: string[];
+  id: string
+  email: string
+  name: string
+  role: 'USER' | 'ADMIN' | 'SUPER_ADMIN'
+  status: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED'
+  subscription: 'free' | 'pro' | 'premium'
+  createdAt: string
+  lastLogin: string
+  permissions: string[]
   profile?: {
-    avatar?: string;
-    phone?: string;
-    address?: string;
-    bio?: string;
-    website?: string;
+    avatar?: string
+    phone?: string
+    address?: string
+    bio?: string
+    website?: string
     social?: {
-      twitter?: string;
-      linkedin?: string;
-      github?: string;
-    };
-  };
+      twitter?: string
+      linkedin?: string
+      github?: string
+    }
+  }
   statistics?: {
-    loginCount: number;
-    lastActivity: string;
-    totalSessions: number;
-    averageSessionDuration: number;
-    documentsCreated: number;
-    aiRequests: number;
-    paymentsProcessed: number;
-  };
+    loginCount: number
+    lastActivity: string
+    totalSessions: number
+    averageSessionDuration: number
+    documentsCreated: number
+    aiRequests: number
+    paymentsProcessed: number
+  }
   notifications?: {
-    email: boolean;
-    push: boolean;
-    sms: boolean;
-    marketing: boolean;
-    security: boolean;
-  };
+    email: boolean
+    push: boolean
+    sms: boolean
+    marketing: boolean
+    security: boolean
+  }
   preferences?: {
-    theme: 'light' | 'dark';
-    language: 'uz' | 'en' | 'ru';
-    timezone: string;
-    dateFormat: string;
-    currency: string;
-  };
+    theme: 'light' | 'dark'
+    language: 'uz' | 'en' | 'ru'
+    timezone: string
+    dateFormat: string
+    currency: string
+  }
 }
 
 interface AuthCredentials {
-  email: string;
-  password: string;
-  rememberMe: boolean;
-  twoFactorCode: string;
+  email: string
+  password: string
+  rememberMe: boolean
+  twoFactorCode: string
 }
 
 interface RegistrationData {
-  firstName: string;
-  lastName: string;
-  email: string;
-  password: string;
-  confirmPassword: string;
-  agreeToTerms: boolean;
-  adminCode?: string;
+  firstName: string
+  lastName: string
+  email: string
+  password: string
+  confirmPassword: string
+  agreeToTerms: boolean
+  adminCode?: string
 }
 
 interface PasswordResetData {
-  email: string;
-  code?: string;
-  newPassword?: string;
-  confirmPassword?: string;
+  email: string
+  code?: string
+  newPassword?: string
+  confirmPassword?: string
 }
 
 interface SessionData {
-  id: string;
-  device: string;
-  browser: string;
-  location: string;
-  ipAddress: string;
-  loginTime: string;
-  lastActivity: string;
-  isActive: boolean;
+  id: string
+  device: string
+  browser: string
+  location: string
+  ipAddress: string
+  loginTime: string
+  lastActivity: string
+  isActive: boolean
 }
 
 export default function CompleteAuthSystem() {
-  const router = useRouter();
-  const [activeTab, setActiveTab] = useState<'login' | 'register' | 'admin-login' | 'forgot-password' | 'two-factor'>('login');
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isClient, setIsClient] = useState(false);
-  const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
-  const [activeSessions, setActiveSessions] = useState<SessionData[]>([]);
-  const [loginAttempts, setLoginAttempts] = useState(0);
+  const router = useRouter()
+  const [activeTab, setActiveTab] = useState<
+    'login' | 'register' | 'admin-login' | 'forgot-password' | 'two-factor'
+  >('login')
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
+  const [currentUser, setCurrentUser] = useState<AuthUser | null>(null)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [isClient, setIsClient] = useState(false)
+  const [showAdvancedOptions, setShowAdvancedOptions] = useState(false)
+  const [activeSessions, setActiveSessions] = useState<SessionData[]>([])
+  const [loginAttempts, setLoginAttempts] = useState(0)
 
   // Login form state
   const [loginCredentials, setLoginCredentials] = useState<AuthCredentials>({
     email: '',
     password: '',
     rememberMe: false,
-    twoFactorCode: ''
-  });
+    twoFactorCode: '',
+  })
 
   // Registration form state
   const [registrationData, setRegistrationData] = useState<RegistrationData>({
@@ -163,33 +165,32 @@ export default function CompleteAuthSystem() {
     password: '',
     confirmPassword: '',
     agreeToTerms: false,
-    adminCode: ''
-  });
+    adminCode: '',
+  })
 
   // Password reset form state
   const [passwordResetData, setPasswordResetData] = useState<PasswordResetData>({
     email: '',
     code: '',
     newPassword: '',
-    confirmPassword: ''
-  });
+    confirmPassword: '',
+  })
 
   useEffect(() => {
-    setIsClient(true);
-    checkAuthStatus();
-    initializeDefaultUsers();
-  }, []);
+    setIsClient(true)
+    checkAuthStatus()
+    initializeDefaultUsers()
+  }, [])
 
   useEffect(() => {
-    loadActiveSessions();
-  }, []);
+    loadActiveSessions()
+  }, [])
 
-  
   const initializeDefaultUsers = () => {
     if (typeof window !== 'undefined') {
       // Always clear and recreate users to fix the issue
-      localStorage.removeItem('users');
-      
+      localStorage.removeItem('users')
+
       const defaultUsers = [
         {
           id: '1',
@@ -210,8 +211,8 @@ export default function CompleteAuthSystem() {
             social: {
               twitter: '@jurisai',
               linkedin: 'jurisai',
-              github: 'jurisai'
-            }
+              github: 'jurisai',
+            },
           },
           statistics: {
             loginCount: 0,
@@ -220,22 +221,22 @@ export default function CompleteAuthSystem() {
             averageSessionDuration: 0,
             documentsCreated: 0,
             aiRequests: 0,
-            paymentsProcessed: 0
+            paymentsProcessed: 0,
           },
           notifications: {
             email: true,
             push: true,
             sms: false,
             marketing: false,
-            security: true
+            security: true,
           },
           preferences: {
             theme: 'light',
             language: 'uz',
             timezone: 'Asia/Tashkent',
             dateFormat: 'DD/MM/YYYY',
-            currency: 'UZS'
-          }
+            currency: 'UZS',
+          },
         },
         {
           id: '2',
@@ -253,7 +254,7 @@ export default function CompleteAuthSystem() {
             address: 'Toshkent, Uzbekistan',
             bio: 'Administrator',
             website: '',
-            social: {}
+            social: {},
           },
           statistics: {
             loginCount: 0,
@@ -262,22 +263,22 @@ export default function CompleteAuthSystem() {
             averageSessionDuration: 0,
             documentsCreated: 0,
             aiRequests: 0,
-            paymentsProcessed: 0
+            paymentsProcessed: 0,
           },
           notifications: {
             email: true,
             push: true,
             sms: false,
             marketing: false,
-            security: true
+            security: true,
           },
           preferences: {
             theme: 'light',
             language: 'uz',
             timezone: 'Asia/Tashkent',
             dateFormat: 'DD/MM/YYYY',
-            currency: 'UZS'
-          }
+            currency: 'UZS',
+          },
         },
         {
           id: '3',
@@ -295,7 +296,7 @@ export default function CompleteAuthSystem() {
             address: 'Toshkent, Uzbekistan',
             bio: 'Regular User',
             website: '',
-            social: {}
+            social: {},
           },
           statistics: {
             loginCount: 0,
@@ -304,59 +305,62 @@ export default function CompleteAuthSystem() {
             averageSessionDuration: 0,
             documentsCreated: 0,
             aiRequests: 0,
-            paymentsProcessed: 0
+            paymentsProcessed: 0,
           },
           notifications: {
             email: true,
             push: false,
             sms: false,
             marketing: false,
-            security: true
+            security: true,
           },
           preferences: {
             theme: 'light',
             language: 'uz',
             timezone: 'Asia/Tashkent',
             dateFormat: 'DD/MM/YYYY',
-            currency: 'UZS'
-          }
-        }
-      ];
+            currency: 'UZS',
+          },
+        },
+      ]
 
-      localStorage.setItem('users', JSON.stringify(defaultUsers));
-      console.log('Default users initialized:', defaultUsers.map(u => u.email));
+      localStorage.setItem('users', JSON.stringify(defaultUsers))
+      console.log(
+        'Default users initialized:',
+        defaultUsers.map(u => u.email)
+      )
     }
-  };
+  }
 
   const checkAuthStatus = () => {
     if (typeof window !== 'undefined') {
-      const storedUser = localStorage.getItem('currentUser');
+      const storedUser = localStorage.getItem('currentUser')
       if (storedUser) {
         try {
-          const user = JSON.parse(storedUser);
-          setCurrentUser(user);
-          setIsAuthenticated(true);
-          setActiveSessions(JSON.parse(localStorage.getItem('activeSessions') || '[]'));
+          const user = JSON.parse(storedUser)
+          setCurrentUser(user)
+          setIsAuthenticated(true)
+          setActiveSessions(JSON.parse(localStorage.getItem('activeSessions') || '[]'))
         } catch (error) {
-          console.error('Error parsing stored user:', error);
-          localStorage.removeItem('currentUser');
+          console.error('Error parsing stored user:', error)
+          localStorage.removeItem('currentUser')
         }
       }
     }
-  };
+  }
 
   const loadActiveSessions = () => {
     if (typeof window !== 'undefined') {
-      const sessions = JSON.parse(localStorage.getItem('activeSessions') || '[]');
-      setActiveSessions(sessions);
+      const sessions = JSON.parse(localStorage.getItem('activeSessions') || '[]')
+      setActiveSessions(sessions)
     }
-  };
+  }
 
   const updateUserActivity = (userId: string) => {
     if (typeof window !== 'undefined') {
-      const users = JSON.parse(localStorage.getItem('users') || '[]');
-      const userIndex = users.findIndex((u: any) => u.id === userId);
-      
+      const users = JSON.parse(localStorage.getItem('users') || '[]')
+      const userIndex = users.findIndex((u: any) => u.id === userId)
+
       if (userIndex !== -1) {
         if (!users[userIndex].statistics) {
           users[userIndex].statistics = {
@@ -366,57 +370,59 @@ export default function CompleteAuthSystem() {
             averageSessionDuration: 0,
             documentsCreated: 0,
             aiRequests: 0,
-            paymentsProcessed: 0
-          };
+            paymentsProcessed: 0,
+          }
         }
-        users[userIndex].statistics.lastActivity = new Date().toISOString();
-        users[userIndex].statistics.totalSessions += 1;
-        localStorage.setItem('users', JSON.stringify(users));
+        users[userIndex].statistics.lastActivity = new Date().toISOString()
+        users[userIndex].statistics.totalSessions += 1
+        localStorage.setItem('users', JSON.stringify(users))
       }
     }
-  };
+  }
 
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
+    e.preventDefault()
+    setError('')
+    setLoading(true)
 
     try {
-      
       // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 1000))
 
-      const users = JSON.parse(localStorage.getItem('users') || '[]');
-      console.log('Available users:', users);
-      console.log('Trying to login with:', loginCredentials.email);
+      const users = JSON.parse(localStorage.getItem('users') || '[]')
+      console.log('Available users:', users)
+      console.log('Trying to login with:', loginCredentials.email)
 
-      const user = users.find((u: any) => u.email === loginCredentials.email);
+      const user = users.find((u: any) => u.email === loginCredentials.email)
 
       if (!user) {
-        setError(`Foydalanuvchi topilmadi: ${loginCredentials.email}`);
-        console.log('User not found. Available emails:', users.map((u: any) => u.email));
-        incrementLoginAttempts();
-        return;
+        setError(`Foydalanuvchi topilmadi: ${loginCredentials.email}`)
+        console.log(
+          'User not found. Available emails:',
+          users.map((u: any) => u.email)
+        )
+        incrementLoginAttempts()
+        return
       }
 
       if (user.password !== loginCredentials.password) {
-        setError('Noto\'g\'ri parol');
-        incrementLoginAttempts();
-        return;
+        setError("Noto'g'ri parol")
+        incrementLoginAttempts()
+        return
       }
 
       if (user.status === 'SUSPENDED') {
-        setError('Hisobingiz bloklangan');
-        return;
+        setError('Hisobingiz bloklangan')
+        return
       }
 
       if (user.status === 'INACTIVE') {
-        setError('Hisobingiz faol emas. Admin bilan bog\'laning.');
-        return;
+        setError("Hisobingiz faol emas. Admin bilan bog'laning.")
+        return
       }
 
       // Update user statistics
-      user.lastLogin = new Date().toISOString();
+      user.lastLogin = new Date().toISOString()
       if (!user.statistics) {
         user.statistics = {
           loginCount: 0,
@@ -425,13 +431,13 @@ export default function CompleteAuthSystem() {
           averageSessionDuration: 0,
           documentsCreated: 0,
           aiRequests: 0,
-          paymentsProcessed: 0
-        };
+          paymentsProcessed: 0,
+        }
       }
-      user.statistics.loginCount += 1;
-      user.statistics.lastActivity = new Date().toISOString();
-      
-      localStorage.setItem('users', JSON.stringify(users));
+      user.statistics.loginCount += 1
+      user.statistics.lastActivity = new Date().toISOString()
+
+      localStorage.setItem('users', JSON.stringify(users))
 
       // Create new session
       const newSession: SessionData = {
@@ -442,216 +448,215 @@ export default function CompleteAuthSystem() {
         ipAddress: '192.168.1.1',
         loginTime: new Date().toISOString(),
         lastActivity: new Date().toISOString(),
-        isActive: true
-      };
+        isActive: true,
+      }
 
-      const sessions = JSON.parse(localStorage.getItem('activeSessions') || '[]');
-      sessions.push(newSession);
-      localStorage.setItem('activeSessions', JSON.stringify(sessions));
+      const sessions = JSON.parse(localStorage.getItem('activeSessions') || '[]')
+      sessions.push(newSession)
+      localStorage.setItem('activeSessions', JSON.stringify(sessions))
 
       // Set current user
       const authUser: AuthUser = {
         ...user,
-        permissions: getPermissions(user.role)
-      };
+        permissions: getPermissions(user.role),
+      }
 
-      setCurrentUser(authUser);
-      setIsAuthenticated(true);
-      localStorage.setItem('currentUser', JSON.stringify(authUser));
-      setSuccess('Muvaffaqiyatli login qilindi!');
+      setCurrentUser(authUser)
+      setIsAuthenticated(true)
+      localStorage.setItem('currentUser', JSON.stringify(authUser))
+      setSuccess('Muvaffaqiyatli login qilindi!')
 
       // Reset login attempts
-      setLoginAttempts(0);
+      setLoginAttempts(0)
 
       // Redirect based on role
       setTimeout(() => {
         if (user.role === 'ADMIN' || user.role === 'SUPER_ADMIN') {
-          router.push('/admin');
+          router.push('/admin')
         } else {
-          router.push('/dashboard');
+          router.push('/dashboard')
         }
-      }, 1000);
-
+      }, 1000)
     } catch (error) {
-      setError('Login xatolik yuz berdi');
-      console.error('Login error:', error);
+      setError('Login xatolik yuz berdi')
+      console.error('Login error:', error)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const incrementLoginAttempts = () => {
-    const newAttempts = loginAttempts + 1;
-    setLoginAttempts(newAttempts);
-    
+    const newAttempts = loginAttempts + 1
+    setLoginAttempts(newAttempts)
+
     if (newAttempts >= 3) {
-      setError('Juda ko\'p urinishlar. Qayta urinib ko\'ring.');
-      setLoginAttempts(0); // Reset attempts after 3 tries
+      setError("Juda ko'p urinishlar. Qayta urinib ko'ring.")
+      setLoginAttempts(0) // Reset attempts after 3 tries
     }
-  };
+  }
 
   const getBrowserName = () => {
-    const userAgent = navigator.userAgent;
-    if (userAgent.indexOf('Chrome') > -1) return 'Chrome';
-    if (userAgent.indexOf('Safari') > -1) return 'Safari';
-    if (userAgent.indexOf('Firefox') > -1) return 'Firefox';
-    if (userAgent.indexOf('Edge') > -1) return 'Edge';
-    return 'Unknown';
-  };
+    const userAgent = navigator.userAgent
+    if (userAgent.indexOf('Chrome') > -1) return 'Chrome'
+    if (userAgent.indexOf('Safari') > -1) return 'Safari'
+    if (userAgent.indexOf('Firefox') > -1) return 'Firefox'
+    if (userAgent.indexOf('Edge') > -1) return 'Edge'
+    return 'Unknown'
+  }
 
   const getPermissions = (role: string): string[] => {
     switch (role) {
       case 'SUPER_ADMIN':
-        return ['all'];
+        return ['all']
       case 'ADMIN':
-        return ['manage_users', 'view_analytics', 'manage_content'];
+        return ['manage_users', 'view_analytics', 'manage_content']
       case 'USER':
-        return ['view_content', 'create_documents'];
+        return ['view_content', 'create_documents']
       default:
-        return [];
+        return []
     }
-  };
+  }
 
   const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
+    e.preventDefault()
+    setError('')
+    setLoading(true)
 
     try {
       // Use real Supabase authentication
-      const { useAuth } = await import('@/services/auth-real');
-      const authHook = useAuth();
-      
-      const success = await authHook.login(loginCredentials.email, loginCredentials.password);
-      
+      const { useAuth } = await import('@/services/auth-real')
+      const authHook = useAuth()
+
+      const success = await authHook.login(loginCredentials.email, loginCredentials.password)
+
       if (!success) {
-        setError('Login xatolik yuz berdi');
-        return;
+        setError('Login xatolik yuz berdi')
+        return
       }
 
       // Get auth state after login
       if (authHook.isAuthenticated && authHook.user) {
-        setSuccess('Muvaffaqiyatli login qilindi!');
-        
+        setSuccess('Muvaffaqiyatli login qilindi!')
+
         // Redirect based on role
         setTimeout(() => {
           if (authHook.user?.role === 'admin') {
-            router.push('/admin');
+            router.push('/admin')
           } else {
-            router.push('/dashboard');
+            router.push('/dashboard')
           }
-        }, 1000);
+        }, 1000)
       }
-
     } catch (error) {
-      setError('Ro\'yxatdan o\'tish xatolik yuz berdi');
+      setError("Ro'yxatdan o'tish xatolik yuz berdi")
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const handlePasswordReset = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
+    e.preventDefault()
+    setError('')
+    setLoading(true)
 
     try {
       // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 1000))
 
-      const users = JSON.parse(localStorage.getItem('users') || '[]');
-      const user = users.find((u: any) => u.email === passwordResetData.email);
+      const users = JSON.parse(localStorage.getItem('users') || '[]')
+      const user = users.find((u: any) => u.email === passwordResetData.email)
 
       if (!user) {
-        setError('Bu email bilan foydalanuvchi topilmadi');
-        return;
+        setError('Bu email bilan foydalanuvchi topilmadi')
+        return
       }
 
       // Generate reset code
-      const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
-      localStorage.setItem('resetCode', resetCode);
-      localStorage.setItem('resetEmail', passwordResetData.email);
+      const resetCode = Math.floor(100000 + Math.random() * 900000).toString()
+      localStorage.setItem('resetCode', resetCode)
+      localStorage.setItem('resetEmail', passwordResetData.email)
 
-      setSuccess(`Tasdiqlash kodi yuborildi: ${resetCode}`);
-      setPasswordResetData(prev => ({ ...prev, code: '' }));
-
+      setSuccess(`Tasdiqlash kodi yuborildi: ${resetCode}`)
+      setPasswordResetData(prev => ({ ...prev, code: '' }))
     } catch (error) {
-      setError('Parolni tiklash xatolik yuz berdi');
+      setError('Parolni tiklash xatolik yuz berdi')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const handlePasswordResetConfirm = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
+    e.preventDefault()
+    setError('')
+    setLoading(true)
 
     try {
-      const storedCode = localStorage.getItem('resetCode');
-      const storedEmail = localStorage.getItem('resetEmail');
+      const storedCode = localStorage.getItem('resetCode')
+      const storedEmail = localStorage.getItem('resetEmail')
 
       if (!storedCode || storedCode !== passwordResetData.code) {
-        setError('Noto\'g\'ri tasdiqlash kodi');
-        return;
+        setError("Noto'g'ri tasdiqlash kodi")
+        return
       }
 
       if ((passwordResetData.newPassword || '') !== (passwordResetData.confirmPassword || '')) {
-        setError('Yangi parollar mos kelmadi');
-        return;
+        setError('Yangi parollar mos kelmadi')
+        return
       }
 
       if ((passwordResetData.newPassword || '').length < 8) {
-        setError('Yangi parol kamida 8 ta belgidan iborat bo\'lishi kerak');
-        return;
+        setError("Yangi parol kamida 8 ta belgidan iborat bo'lishi kerak")
+        return
       }
 
-      const users = JSON.parse(localStorage.getItem('users') || '[]');
-      const userIndex = users.findIndex((u: any) => u.email === storedEmail);
+      const users = JSON.parse(localStorage.getItem('users') || '[]')
+      const userIndex = users.findIndex((u: any) => u.email === storedEmail)
 
       if (userIndex === -1) {
-        setError('Foydalanuvchi topilmadi');
-        return;
+        setError('Foydalanuvchi topilmadi')
+        return
       }
 
-      users[userIndex].password = passwordResetData.newPassword || '';
-      localStorage.setItem('users', JSON.stringify(users));
+      users[userIndex].password = passwordResetData.newPassword || ''
+      localStorage.setItem('users', JSON.stringify(users))
 
-      localStorage.removeItem('resetCode');
-      localStorage.removeItem('resetEmail');
+      localStorage.removeItem('resetCode')
+      localStorage.removeItem('resetEmail')
 
-      setSuccess('Parol muvaffaqiyatli o\'zgartirildi!');
-      setActiveTab('login');
-
+      setSuccess("Parol muvaffaqiyatli o'zgartirildi!")
+      setActiveTab('login')
     } catch (error) {
-      setError('Parolni o\'zgartirish xatolik yuz berdi');
+      setError("Parolni o'zgartirish xatolik yuz berdi")
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const handleLogout = () => {
-    localStorage.removeItem('currentUser');
-    setCurrentUser(null);
-    setIsAuthenticated(false);
-    setActiveTab('login');
-    window.location.href = '/signin';
-  };
+    localStorage.removeItem('currentUser')
+    setCurrentUser(null)
+    setIsAuthenticated(false)
+    setActiveTab('login')
+    window.location.href = '/signin'
+  }
 
   const getStatusBadgeColor = (status: string) => {
     switch (status) {
-      case 'ACTIVE': return 'bg-green-100 text-green-800';
-      case 'INACTIVE': return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200';
-      case 'SUSPENDED': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200';
+      case 'ACTIVE':
+        return 'bg-green-100 text-green-800'
+      case 'INACTIVE':
+        return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200'
+      case 'SUSPENDED':
+        return 'bg-red-100 text-red-800'
+      default:
+        return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200'
     }
-  };
+  }
 
-  
   const formatDateTime = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleString('uz-UZ');
-  };
+    const date = new Date(dateString)
+    return date.toLocaleString('uz-UZ')
+  }
 
   if (!isClient) {
     return (
@@ -661,7 +666,7 @@ export default function CompleteAuthSystem() {
           <p className="text-gray-600 dark:text-zinc-400">Yuklanmoqda...</p>
         </div>
       </div>
-    );
+    )
   }
 
   if (isAuthenticated && currentUser) {
@@ -672,11 +677,13 @@ export default function CompleteAuthSystem() {
             <div className="flex justify-between items-center mb-6">
               <div>
                 <h1 className="text-2xl font-bold text-gray-900 dark:text-zinc-100">Dashboard</h1>
-                <p className="text-gray-600 dark:text-zinc-400">Xush kelibsiz, {currentUser.name}!</p>
+                <p className="text-gray-600 dark:text-zinc-400">
+                  Xush kelibsiz, {currentUser.name}!
+                </p>
               </div>
               <div className="flex gap-3">
-                <Button 
-                  onClick={() => window.location.href = '/pricing'} 
+                <Button
+                  onClick={() => (window.location.href = '/pricing')}
                   variant="outline"
                   className="flex items-center"
                 >
@@ -710,9 +717,7 @@ export default function CompleteAuthSystem() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-gray-600 dark:text-zinc-400">Role</p>
-                      <Badge className="bg-purple-100 text-purple-800">
-                        {currentUser.role}
-                      </Badge>
+                      <Badge className="bg-purple-100 text-purple-800">{currentUser.role}</Badge>
                     </div>
                     <Crown className="w-8 h-8 text-purple-600" />
                   </div>
@@ -746,15 +751,21 @@ export default function CompleteAuthSystem() {
                   <div className="space-y-4">
                     <div className="flex justify-between">
                       <span className="text-gray-600 dark:text-zinc-400">Login Count</span>
-                      <span className="font-semibold">{currentUser.statistics?.loginCount || 0}</span>
+                      <span className="font-semibold">
+                        {currentUser.statistics?.loginCount || 0}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600 dark:text-zinc-400">Total Sessions</span>
-                      <span className="font-semibold">{currentUser.statistics?.totalSessions || 0}</span>
+                      <span className="font-semibold">
+                        {currentUser.statistics?.totalSessions || 0}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600 dark:text-zinc-400">Last Activity</span>
-                      <span className="font-semibold">{formatDateTime(currentUser.statistics?.lastActivity || '')}</span>
+                      <span className="font-semibold">
+                        {formatDateTime(currentUser.statistics?.lastActivity || '')}
+                      </span>
                     </div>
                   </div>
                 </CardContent>
@@ -769,17 +780,31 @@ export default function CompleteAuthSystem() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {activeSessions.slice(-3).reverse().map((session) => (
-                      <div key={session.id} className="flex justify-between items-center p-3 bg-gray-50 dark:bg-zinc-800/50 rounded">
-                        <div>
-                          <p className="text-sm font-medium">{session.browser}</p>
-                          <p className="text-xs text-gray-500 dark:text-zinc-500">{formatDateTime(session.loginTime)}</p>
+                    {activeSessions
+                      .slice(-3)
+                      .reverse()
+                      .map(session => (
+                        <div
+                          key={session.id}
+                          className="flex justify-between items-center p-3 bg-gray-50 dark:bg-zinc-800/50 rounded"
+                        >
+                          <div>
+                            <p className="text-sm font-medium">{session.browser}</p>
+                            <p className="text-xs text-gray-500 dark:text-zinc-500">
+                              {formatDateTime(session.loginTime)}
+                            </p>
+                          </div>
+                          <Badge
+                            className={
+                              session.isActive
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200'
+                            }
+                          >
+                            {session.isActive ? 'Active' : 'Inactive'}
+                          </Badge>
                         </div>
-                        <Badge className={session.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200'}>
-                          {session.isActive ? 'Active' : 'Inactive'}
-                        </Badge>
-                      </div>
-                    ))}
+                      ))}
                   </div>
                 </CardContent>
               </Card>
@@ -787,7 +812,7 @@ export default function CompleteAuthSystem() {
           </div>
         </div>
       </div>
-    );
+    )
   }
 
   return (
@@ -798,7 +823,9 @@ export default function CompleteAuthSystem() {
             <div className="mx-auto w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mb-4">
               <Shield className="w-8 h-8 text-white" />
             </div>
-            <CardTitle className="text-2xl font-bold text-gray-900 dark:text-zinc-100">JurisAI</CardTitle>
+            <CardTitle className="text-2xl font-bold text-gray-900 dark:text-zinc-100">
+              JurisAI
+            </CardTitle>
             <p className="text-gray-600 dark:text-zinc-400">Huquqiy AI Platformasi</p>
           </CardHeader>
 
@@ -852,44 +879,51 @@ export default function CompleteAuthSystem() {
               </div>
             )}
 
-            
             {/* Login Form */}
             {activeTab === 'login' && (
               <form onSubmit={handleLogin} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Email</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">
+                    Email
+                  </label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500 w-4 h-4" />
                     <Input
                       type="email"
                       placeholder="Email (masalan: admin@jurisai.com)"
                       value={loginCredentials.email}
-                      onChange={(e) => setLoginCredentials(prev => ({ ...prev, email: e.target.value }))}
+                      onChange={e =>
+                        setLoginCredentials(prev => ({ ...prev, email: e.target.value }))
+                      }
                       className="pl-10"
                       required
                       id="login-email"
-                                          />
+                    />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Parol</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">
+                    Parol
+                  </label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500 w-4 h-4" />
                     <Input
                       type={showPassword ? 'text' : 'password'}
                       placeholder="Parol"
                       value={loginCredentials.password}
-                      onChange={(e) => setLoginCredentials(prev => ({ ...prev, password: e.target.value }))}
+                      onChange={e =>
+                        setLoginCredentials(prev => ({ ...prev, password: e.target.value }))
+                      }
                       className="pl-10 pr-10"
                       required
                       id="login-password"
-                                          />
+                    />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:text-zinc-400"
-                                          >
+                    >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
@@ -900,16 +934,18 @@ export default function CompleteAuthSystem() {
                     <input
                       type="checkbox"
                       checked={loginCredentials.rememberMe}
-                      onChange={(e) => setLoginCredentials(prev => ({ ...prev, rememberMe: e.target.checked }))}
+                      onChange={e =>
+                        setLoginCredentials(prev => ({ ...prev, rememberMe: e.target.checked }))
+                      }
                       className="w-4 h-4 text-blue-600 rounded"
-                                          />
+                    />
                     <span className="text-sm text-gray-600 dark:text-zinc-400">Eslab qolish</span>
                   </label>
                   <button
                     type="button"
                     onClick={() => setActiveTab('forgot-password')}
                     className="text-sm text-blue-600 hover:text-blue-800"
-                                      >
+                  >
                     Parolni unutdingizmi?
                   </button>
                 </div>
@@ -929,14 +965,18 @@ export default function CompleteAuthSystem() {
                 {showAdvancedOptions && (
                   <div className="p-3 bg-gray-50 dark:bg-zinc-800/50 rounded-md space-y-2">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">2FA Kod (ixtiyoriy)</label>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">
+                        2FA Kod (ixtiyoriy)
+                      </label>
                       <Input
                         type="text"
                         placeholder="6 xonali kod"
                         value={loginCredentials.twoFactorCode}
-                        onChange={(e) => setLoginCredentials(prev => ({ ...prev, twoFactorCode: e.target.value }))}
+                        onChange={e =>
+                          setLoginCredentials(prev => ({ ...prev, twoFactorCode: e.target.value }))
+                        }
                         maxLength={6}
-                                              />
+                      />
                     </div>
                   </div>
                 )}
@@ -946,7 +986,9 @@ export default function CompleteAuthSystem() {
                 </Button>
 
                 <div className="mt-4 text-center">
-                  <div className="text-sm text-gray-600 dark:text-zinc-400 mb-2">Yoki advokat sifatida:</div>
+                  <div className="text-sm text-gray-600 dark:text-zinc-400 mb-2">
+                    Yoki advokat sifatida:
+                  </div>
                   <div className="flex space-x-2">
                     <a
                       href="/lawyer-login"
@@ -975,36 +1017,48 @@ export default function CompleteAuthSystem() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Ism</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">
+                      Ism
+                    </label>
                     <Input
                       type="text"
                       placeholder="Ism"
                       value={registrationData.firstName}
-                      onChange={(e) => setRegistrationData(prev => ({ ...prev, firstName: e.target.value }))}
+                      onChange={e =>
+                        setRegistrationData(prev => ({ ...prev, firstName: e.target.value }))
+                      }
                       required
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Familiya</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">
+                      Familiya
+                    </label>
                     <Input
                       type="text"
                       placeholder="Familiya"
                       value={registrationData.lastName}
-                      onChange={(e) => setRegistrationData(prev => ({ ...prev, lastName: e.target.value }))}
+                      onChange={e =>
+                        setRegistrationData(prev => ({ ...prev, lastName: e.target.value }))
+                      }
                       required
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Email</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">
+                    Email
+                  </label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500 w-4 h-4" />
                     <Input
                       type="email"
                       placeholder="Email"
                       value={registrationData.email}
-                      onChange={(e) => setRegistrationData(prev => ({ ...prev, email: e.target.value }))}
+                      onChange={e =>
+                        setRegistrationData(prev => ({ ...prev, email: e.target.value }))
+                      }
                       className="pl-10"
                       required
                     />
@@ -1012,14 +1066,18 @@ export default function CompleteAuthSystem() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Parol</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">
+                    Parol
+                  </label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500 w-4 h-4" />
                     <Input
                       type={showPassword ? 'text' : 'password'}
                       placeholder="Parol"
                       value={registrationData.password}
-                      onChange={(e) => setRegistrationData(prev => ({ ...prev, password: e.target.value }))}
+                      onChange={e =>
+                        setRegistrationData(prev => ({ ...prev, password: e.target.value }))
+                      }
                       className="pl-10 pr-10"
                       required
                     />
@@ -1034,14 +1092,18 @@ export default function CompleteAuthSystem() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Parolni tasdiqlash</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">
+                    Parolni tasdiqlash
+                  </label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500 w-4 h-4" />
                     <Input
                       type={showConfirmPassword ? 'text' : 'password'}
                       placeholder="Parolni tasdiqlash"
                       value={registrationData.confirmPassword}
-                      onChange={(e) => setRegistrationData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                      onChange={e =>
+                        setRegistrationData(prev => ({ ...prev, confirmPassword: e.target.value }))
+                      }
                       className="pl-10 pr-10"
                       required
                     />
@@ -1050,7 +1112,11 @@ export default function CompleteAuthSystem() {
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                       className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:text-zinc-400"
                     >
-                      {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      {showConfirmPassword ? (
+                        <EyeOff className="w-4 h-4" />
+                      ) : (
+                        <Eye className="w-4 h-4" />
+                      )}
                     </button>
                   </div>
                 </div>
@@ -1060,17 +1126,22 @@ export default function CompleteAuthSystem() {
                     type="checkbox"
                     id="terms"
                     checked={registrationData.agreeToTerms}
-                    onChange={(e) => setRegistrationData(prev => ({ ...prev, agreeToTerms: e.target.checked }))}
+                    onChange={e =>
+                      setRegistrationData(prev => ({ ...prev, agreeToTerms: e.target.checked }))
+                    }
                     className="w-4 h-4 text-blue-600 rounded"
                     required
                   />
                   <label htmlFor="terms" className="text-sm text-gray-600 dark:text-zinc-400">
-                    <a href="#" className="text-blue-600 hover:text-blue-800">Foydalanish shartlari</a> bilan roziman
+                    <a href="#" className="text-blue-600 hover:text-blue-800">
+                      Foydalanish shartlari
+                    </a>{' '}
+                    bilan roziman
                   </label>
                 </div>
 
                 <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? 'Ro\'yxatdan o\'tilmoqda...' : 'Ro\'yxatdan o\'tish'}
+                  {loading ? "Ro'yxatdan o'tilmoqda..." : "Ro'yxatdan o'tish"}
                 </Button>
               </form>
             )}
@@ -1084,39 +1155,47 @@ export default function CompleteAuthSystem() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Admin Email</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">
+                    Admin Email
+                  </label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500 w-4 h-4" />
                     <Input
                       type="email"
                       placeholder="Admin email"
                       value={loginCredentials.email}
-                      onChange={(e) => setLoginCredentials(prev => ({ ...prev, email: e.target.value }))}
+                      onChange={e =>
+                        setLoginCredentials(prev => ({ ...prev, email: e.target.value }))
+                      }
                       className="pl-10"
                       required
                       id="admin-email"
-                                          />
+                    />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Admin Parol</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">
+                    Admin Parol
+                  </label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500 w-4 h-4" />
                     <Input
                       type={showPassword ? 'text' : 'password'}
                       placeholder="Admin parol"
                       value={loginCredentials.password}
-                      onChange={(e) => setLoginCredentials(prev => ({ ...prev, password: e.target.value }))}
+                      onChange={e =>
+                        setLoginCredentials(prev => ({ ...prev, password: e.target.value }))
+                      }
                       className="pl-10 pr-10"
                       required
                       id="admin-password"
-                                          />
+                    />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:text-zinc-400"
-                                          >
+                    >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
@@ -1125,17 +1204,18 @@ export default function CompleteAuthSystem() {
                 <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 rounded-md p-3">
                   <div className="flex items-center space-x-2">
                     <AlertCircle className="w-4 h-4 text-yellow-600" />
-                    <span className="text-sm text-yellow-800">
-                      Faqat adminlar kirishi mumkin
-                    </span>
+                    <span className="text-sm text-yellow-800">Faqat adminlar kirishi mumkin</span>
                   </div>
                 </div>
 
                 <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 rounded-md p-3">
                   <div className="text-sm text-blue-800">
-                    <strong>Test foydalanuvchilar:</strong><br/>
-                    DOT Super Admin: admin@jurisai.com / admin123<br/>
-                    DOT Admin: admin2@jurisai.com / admin123<br/>
+                    <strong>Test foydalanuvchilar:</strong>
+                    <br />
+                    DOT Super Admin: admin@jurisai.com / admin123
+                    <br />
+                    DOT Admin: admin2@jurisai.com / admin123
+                    <br />
                     DOT User: user@jurisai.com / user123
                   </div>
                 </div>
@@ -1148,7 +1228,10 @@ export default function CompleteAuthSystem() {
 
             {/* Forgot Password Form */}
             {activeTab === 'forgot-password' && (
-              <form onSubmit={passwordResetData.code ? handlePasswordResetConfirm : handlePasswordReset} className="space-y-4">
+              <form
+                onSubmit={passwordResetData.code ? handlePasswordResetConfirm : handlePasswordReset}
+                className="space-y-4"
+              >
                 <div className="text-center mb-4">
                   <Key className="w-12 h-12 text-blue-600 mx-auto mb-2" />
                   <h3 className="text-lg font-semibold">Parolni Tiklash</h3>
@@ -1157,14 +1240,18 @@ export default function CompleteAuthSystem() {
                 {!passwordResetData.code ? (
                   <>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Email</label>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">
+                        Email
+                      </label>
                       <div className="relative">
                         <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500 w-4 h-4" />
                         <Input
                           type="email"
                           placeholder="Email"
                           value={passwordResetData.email}
-                          onChange={(e) => setPasswordResetData(prev => ({ ...prev, email: e.target.value }))}
+                          onChange={e =>
+                            setPasswordResetData(prev => ({ ...prev, email: e.target.value }))
+                          }
                           className="pl-10"
                           required
                         />
@@ -1178,26 +1265,34 @@ export default function CompleteAuthSystem() {
                 ) : (
                   <>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Tasdiqlash kodi</label>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">
+                        Tasdiqlash kodi
+                      </label>
                       <Input
                         type="text"
                         placeholder="6 xonali kod"
                         value={passwordResetData.code}
-                        onChange={(e) => setPasswordResetData(prev => ({ ...prev, code: e.target.value }))}
+                        onChange={e =>
+                          setPasswordResetData(prev => ({ ...prev, code: e.target.value }))
+                        }
                         maxLength={6}
                         required
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Yangi parol</label>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">
+                        Yangi parol
+                      </label>
                       <div className="relative">
                         <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500 w-4 h-4" />
                         <Input
                           type={showPassword ? 'text' : 'password'}
                           placeholder="Yangi parol"
                           value={passwordResetData.newPassword || ''}
-                          onChange={(e) => setPasswordResetData(prev => ({ ...prev, newPassword: e.target.value }))}
+                          onChange={e =>
+                            setPasswordResetData(prev => ({ ...prev, newPassword: e.target.value }))
+                          }
                           className="pl-10 pr-10"
                           required
                         />
@@ -1206,20 +1301,31 @@ export default function CompleteAuthSystem() {
                           onClick={() => setShowPassword(!showPassword)}
                           className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:text-zinc-400"
                         >
-                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          {showPassword ? (
+                            <EyeOff className="w-4 h-4" />
+                          ) : (
+                            <Eye className="w-4 h-4" />
+                          )}
                         </button>
                       </div>
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Yangi parolni tasdiqlash</label>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">
+                        Yangi parolni tasdiqlash
+                      </label>
                       <div className="relative">
                         <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500 w-4 h-4" />
                         <Input
                           type={showConfirmPassword ? 'text' : 'password'}
                           placeholder="Yangi parolni tasdiqlash"
                           value={passwordResetData.confirmPassword || ''}
-                          onChange={(e) => setPasswordResetData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                          onChange={e =>
+                            setPasswordResetData(prev => ({
+                              ...prev,
+                              confirmPassword: e.target.value,
+                            }))
+                          }
                           className="pl-10 pr-10"
                           required
                         />
@@ -1228,13 +1334,17 @@ export default function CompleteAuthSystem() {
                           onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                           className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:text-zinc-400"
                         >
-                          {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          {showConfirmPassword ? (
+                            <EyeOff className="w-4 h-4" />
+                          ) : (
+                            <Eye className="w-4 h-4" />
+                          )}
                         </button>
                       </div>
                     </div>
 
                     <Button type="submit" className="w-full" disabled={loading}>
-                      {loading ? 'Saqlanmoqda...' : 'Parolni o\'zgartirish'}
+                      {loading ? 'Saqlanmoqda...' : "Parolni o'zgartirish"}
                     </Button>
                   </>
                 )}
@@ -1254,5 +1364,5 @@ export default function CompleteAuthSystem() {
         </Card>
       </div>
     </div>
-  );
+  )
 }

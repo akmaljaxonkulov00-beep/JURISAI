@@ -1,12 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { NextRequest, NextResponse } from 'next/server'
+import { supabase } from '@/lib/supabase'
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const case_type = searchParams.get('case_type');
-    const limit = parseInt(searchParams.get('limit') || '20');
-    const offset = parseInt(searchParams.get('offset') || '0');
+    const { searchParams } = new URL(request.url)
+    const case_type = searchParams.get('case_type')
+    const limit = parseInt(searchParams.get('limit') || '20')
+    const offset = parseInt(searchParams.get('offset') || '0')
 
     // Mock decision trees
     const mockDecisionTrees = [
@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
         id: 'tree_1',
         title: 'Tijorat shartnomasi nizosi',
         case_type: 'civil',
-        description: 'Shartnoma buzilishi bo\'yicha nizolarni hal qilish uchun qaror yo\'nalishi',
+        description: "Shartnoma buzilishi bo'yicha nizolarni hal qilish uchun qaror yo'nalishi",
         complexity_level: 'medium',
         created_at: '2024-01-15T10:00:00Z',
         updated_at: '2024-01-15T14:30:00Z',
@@ -27,27 +27,27 @@ export async function GET(request: NextRequest) {
         estimated_completion: '2024-01-17T16:00:00Z',
         outcomes: [
           {
-            path: 'Qonuniy yo\'l',
+            path: "Qonuniy yo'l",
             probability: 0.65,
-            confidence: 0.88
+            confidence: 0.88,
           },
           {
-            path: 'Tuzatish yo\'li',
+            path: "Tuzatish yo'li",
             probability: 0.25,
-            confidence: 0.72
+            confidence: 0.72,
           },
           {
-            path: 'Arbitraj yo\'li',
-            probability: 0.10,
-            confidence: 0.65
-          }
-        ]
+            path: "Arbitraj yo'li",
+            probability: 0.1,
+            confidence: 0.65,
+          },
+        ],
       },
       {
         id: 'tree_2',
         title: 'Ish haqi nizosi',
         case_type: 'labor',
-        description: 'Ish haqi to\'lanmaganligi bo\'yicha nizolarni hal qilish',
+        description: "Ish haqi to'lanmaganligi bo'yicha nizolarni hal qilish",
         complexity_level: 'low',
         created_at: '2024-01-14T09:00:00Z',
         updated_at: '2024-01-14T17:20:00Z',
@@ -60,22 +60,22 @@ export async function GET(request: NextRequest) {
         estimated_completion: '2024-01-14T17:20:00Z',
         outcomes: [
           {
-            path: 'Ma\'muriy yo\'l',
-            probability: 0.70,
-            confidence: 0.85
+            path: "Ma'muriy yo'l",
+            probability: 0.7,
+            confidence: 0.85,
           },
           {
-            path: 'Sud yo\'li',
-            probability: 0.30,
-            confidence: 0.78
-          }
-        ]
+            path: "Sud yo'li",
+            probability: 0.3,
+            confidence: 0.78,
+          },
+        ],
       },
       {
         id: 'tree_3',
-        title: 'Oilaviy mulk bo\'linishi',
+        title: "Oilaviy mulk bo'linishi",
         case_type: 'family',
-        description: 'Ajralish paytida umumiy mulkning bo\'linishi masalasi',
+        description: "Ajralish paytida umumiy mulkning bo'linishi masalasi",
         complexity_level: 'high',
         created_at: '2024-01-13T11:00:00Z',
         updated_at: '2024-01-15T09:15:00Z',
@@ -88,22 +88,22 @@ export async function GET(request: NextRequest) {
         estimated_completion: '2024-01-18T12:00:00Z',
         outcomes: [
           {
-            path: 'Tinchlik yo\'li',
+            path: "Tinchlik yo'li",
             probability: 0.45,
-            confidence: 0.70
+            confidence: 0.7,
           },
           {
-            path: 'Sud yo\'li',
+            path: "Sud yo'li",
             probability: 0.55,
-            confidence: 0.68
-          }
-        ]
+            confidence: 0.68,
+          },
+        ],
       },
       {
         id: 'tree_4',
         title: 'Ijaraga olish nizosi',
         case_type: 'property',
-        description: 'Ijaraga olingan mulk bo\'yicha nizolarni hal qilish',
+        description: "Ijaraga olingan mulk bo'yicha nizolarni hal qilish",
         complexity_level: 'medium',
         created_at: '2024-01-12T14:00:00Z',
         updated_at: '2024-01-12T18:45:00Z',
@@ -117,21 +117,21 @@ export async function GET(request: NextRequest) {
         outcomes: [
           {
             path: 'Shartnomani bekor qilish',
-            probability: 0.60,
-            confidence: 0.82
+            probability: 0.6,
+            confidence: 0.82,
           },
           {
-            path: 'Shartnomani o\'zgartirish',
-            probability: 0.40,
-            confidence: 0.78
-          }
-        ]
+            path: "Shartnomani o'zgartirish",
+            probability: 0.4,
+            confidence: 0.78,
+          },
+        ],
       },
       {
         id: 'tree_5',
         title: 'Qarz nizosi',
         case_type: 'financial',
-        description: 'Qarz majburiyatlarini bajarish bo\'yicha nizolarni hal qilish',
+        description: "Qarz majburiyatlarini bajarish bo'yicha nizolarni hal qilish",
         complexity_level: 'high',
         created_at: '2024-01-11T16:00:00Z',
         updated_at: '2024-01-15T10:30:00Z',
@@ -144,34 +144,34 @@ export async function GET(request: NextRequest) {
         estimated_completion: '2024-01-17T15:00:00Z',
         outcomes: [
           {
-            path: 'To\'lov rejasi',
+            path: "To'lov rejasi",
             probability: 0.55,
-            confidence: 0.75
+            confidence: 0.75,
           },
           {
-            path: 'Sud yo\'li',
+            path: "Sud yo'li",
             probability: 0.35,
-            confidence: 0.70
+            confidence: 0.7,
           },
           {
             path: 'Bankrotlik',
-            probability: 0.10,
-            confidence: 0.60
-          }
-        ]
-      }
-    ];
+            probability: 0.1,
+            confidence: 0.6,
+          },
+        ],
+      },
+    ]
 
     // Filter by case type if provided
-    let filteredTrees = mockDecisionTrees;
+    let filteredTrees = mockDecisionTrees
     if (case_type) {
-      filteredTrees = mockDecisionTrees.filter(tree => tree.case_type === case_type);
+      filteredTrees = mockDecisionTrees.filter(tree => tree.case_type === case_type)
     }
 
     // Apply pagination
-    const startIndex = offset;
-    const endIndex = startIndex + limit;
-    const paginatedTrees = filteredTrees.slice(startIndex, endIndex);
+    const startIndex = offset
+    const endIndex = startIndex + limit
+    const paginatedTrees = filteredTrees.slice(startIndex, endIndex)
 
     return NextResponse.json({
       trees: paginatedTrees,
@@ -179,25 +179,26 @@ export async function GET(request: NextRequest) {
         total: filteredTrees.length,
         limit: limit,
         offset: offset,
-        has_more: endIndex < filteredTrees.length
+        has_more: endIndex < filteredTrees.length,
       },
       filters: {
-        case_type: case_type
+        case_type: case_type,
       },
       summary: {
         total_trees: filteredTrees.length,
         active_trees: filteredTrees.filter(t => t.status === 'active').length,
         completed_trees: filteredTrees.filter(t => t.status === 'completed').length,
-        average_confidence: Math.round(filteredTrees.reduce((sum, t) => sum + t.confidence_score, 0) / filteredTrees.length)
+        average_confidence: Math.round(
+          filteredTrees.reduce((sum, t) => sum + t.confidence_score, 0) / filteredTrees.length
+        ),
       },
-      last_updated: new Date().toISOString()
-    });
-
+      last_updated: new Date().toISOString(),
+    })
   } catch (error) {
-    console.error('Decision trees get error:', error);
+    console.error('Decision trees get error:', error)
     return NextResponse.json(
       { error: 'Qaror daraxtlarini olishda xatolik yuz berdi' },
       { status: 500 }
-    );
+    )
   }
 }

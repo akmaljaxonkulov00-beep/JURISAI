@@ -1,13 +1,13 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseAdmin } from '@/lib/supabase-admin';
+import { NextRequest, NextResponse } from 'next/server'
+import { getSupabaseAdmin } from '@/lib/supabase-admin'
 
 export async function GET() {
   try {
-    let supabase;
+    let supabase
     try {
-      supabase = getSupabaseAdmin();
+      supabase = getSupabaseAdmin()
     } catch {
-      return NextResponse.json({ success: false, error: 'Supabase not configured' });
+      return NextResponse.json({ success: false, error: 'Supabase not configured' })
     }
 
     const { data, error } = await supabase
@@ -15,40 +15,40 @@ export async function GET() {
       .select('*')
       .order('created_at', { ascending: false })
       .limit(1)
-      .single();
+      .single()
 
     if (error && error.code !== 'PGRST116') {
-      console.error('Settings load error:', error);
+      console.error('Settings load error:', error)
     }
 
-    return NextResponse.json({ success: true, data: data || null });
+    return NextResponse.json({ success: true, data: data || null })
   } catch (error: any) {
-    return NextResponse.json({ success: false, error: error?.message }, { status: 500 });
+    return NextResponse.json({ success: false, error: error?.message }, { status: 500 })
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { settings } = body;
+    const body = await request.json()
+    const { settings } = body
 
     if (!settings) {
-      return NextResponse.json({ success: false, error: 'Settings are required' }, { status: 400 });
+      return NextResponse.json({ success: false, error: 'Settings are required' }, { status: 400 })
     }
 
-    let supabase;
+    let supabase
     try {
-      supabase = getSupabaseAdmin();
+      supabase = getSupabaseAdmin()
     } catch {
-      return NextResponse.json({ success: false, error: 'Supabase not configured' });
+      return NextResponse.json({ success: false, error: 'Supabase not configured' })
     }
 
     // Convert camelCase keys to snake_case for Supabase table
     const snakeCaseSettings: Record<string, any> = {
       id: 'global',
       updated_at: new Date().toISOString(),
-    };
-    
+    }
+
     const keyMap: Record<string, string> = {
       announcementBanner: 'announcement_banner',
       heroTitle: 'hero_title',
@@ -60,22 +60,22 @@ export async function POST(request: NextRequest) {
       systemPrompt: 'system_prompt',
       paymentCardNumber: 'payment_card_number',
       paymentDetails: 'payment_details',
-    };
-    
-    for (const [camelKey, value] of Object.entries(settings)) {
-      const snakeKey = keyMap[camelKey] || camelKey;
-      snakeCaseSettings[snakeKey] = value;
     }
 
-    const { error } = await supabase.from('site_settings').upsert(snakeCaseSettings);
+    for (const [camelKey, value] of Object.entries(settings)) {
+      const snakeKey = keyMap[camelKey] || camelKey
+      snakeCaseSettings[snakeKey] = value
+    }
+
+    const { error } = await supabase.from('site_settings').upsert(snakeCaseSettings)
 
     if (error) {
-      console.error('Settings save error:', error);
-      return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+      console.error('Settings save error:', error)
+      return NextResponse.json({ success: false, error: error.message }, { status: 500 })
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true })
   } catch (error: any) {
-    return NextResponse.json({ success: false, error: error?.message }, { status: 500 });
+    return NextResponse.json({ success: false, error: error?.message }, { status: 500 })
   }
 }

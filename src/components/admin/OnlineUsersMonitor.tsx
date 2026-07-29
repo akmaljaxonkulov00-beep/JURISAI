@@ -1,13 +1,13 @@
-'use client';
+'use client'
 
-import React from 'react';
-import { Users, Wifi, WifiOff, User } from 'lucide-react';
-import type { OnlineUser } from '@/hooks/useOnlineUsers';
+import React from 'react'
+import { Users, Wifi, WifiOff, User } from 'lucide-react'
+import type { OnlineUser } from '@/hooks/useOnlineUsers'
 
 interface OnlineUsersMonitorProps {
-  count: number;
-  users: OnlineUser[];
-  connected: boolean;
+  count: number
+  users: OnlineUser[]
+  connected: boolean
 }
 
 export default function OnlineUsersMonitor({ count, users, connected }: OnlineUsersMonitorProps) {
@@ -38,12 +38,8 @@ export default function OnlineUsersMonitor({ count, users, connected }: OnlineUs
 
         {/* User count — big animated number */}
         <div className="flex items-baseline gap-2 mb-3">
-          <span className="text-5xl font-black text-white tabular-nums">
-            {count}
-          </span>
-          <span className="text-sm text-slate-400 font-medium">
-            foydalanuvchi
-          </span>
+          <span className="text-5xl font-black text-white tabular-nums">{count}</span>
+          <span className="text-sm text-slate-400 font-medium">foydalanuvchi</span>
         </div>
 
         {/* Progress bar showing approximate capacity */}
@@ -57,7 +53,7 @@ export default function OnlineUsersMonitor({ count, users, connected }: OnlineUs
         {/* Online users list */}
         {users.length > 0 && (
           <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1 scrollbar-thin">
-            {users.map((u) => (
+            {users.map(u => (
               <div
                 key={u.userId}
                 className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10"
@@ -69,14 +65,8 @@ export default function OnlineUsersMonitor({ count, users, connected }: OnlineUs
                   <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-400 border-2 border-slate-900 rounded-full" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium text-white truncate">
-                    {u.name}
-                  </p>
-                  {u.email && (
-                    <p className="text-[10px] text-slate-400 truncate">
-                      {u.email}
-                    </p>
-                  )}
+                  <p className="text-xs font-medium text-white truncate">{u.name}</p>
+                  {u.email && <p className="text-[10px] text-slate-400 truncate">{u.email}</p>}
                 </div>
                 <span className="text-[10px] text-slate-500 flex-shrink-0">
                   {new Date(u.joinedAt).toLocaleTimeString('uz-UZ', {
@@ -99,5 +89,5 @@ export default function OnlineUsersMonitor({ count, users, connected }: OnlineUs
         )}
       </div>
     </div>
-  );
+  )
 }

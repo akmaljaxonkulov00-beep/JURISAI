@@ -1,25 +1,25 @@
-import React, { InputHTMLAttributes, forwardRef } from 'react';
-import { cn } from '@/lib/utils';
+import React, { InputHTMLAttributes, forwardRef } from 'react'
+import { cn } from '@/lib/utils'
 
 interface CheckboxProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> {
-  label?: string;
-  error?: string;
-  helperText?: string;
-  indeterminate?: boolean;
+  label?: string
+  error?: string
+  helperText?: string
+  indeterminate?: boolean
 }
 
 const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
   ({ className, label, error, helperText, indeterminate, id, checked, ...props }, ref) => {
-    const checkboxId = id || `checkbox-${Math.random().toString(36).substr(2, 9)}`;
-    const inputRef = React.useRef<HTMLInputElement>(null);
+    const checkboxId = id || `checkbox-${Math.random().toString(36).substr(2, 9)}`
+    const inputRef = React.useRef<HTMLInputElement>(null)
 
-    React.useImperativeHandle(ref, () => inputRef.current!);
+    React.useImperativeHandle(ref, () => inputRef.current!)
 
     React.useEffect(() => {
       if (inputRef.current) {
-        inputRef.current.indeterminate = indeterminate || false;
+        inputRef.current.indeterminate = indeterminate || false
       }
-    }, [indeterminate]);
+    }, [indeterminate])
 
     return (
       <div className="space-y-2">
@@ -37,7 +37,7 @@ const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
             {...props}
           />
           {label && (
-            <label 
+            <label
               htmlFor={checkboxId}
               className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
             >
@@ -45,19 +45,15 @@ const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
             </label>
           )}
         </div>
-        
-        {error && (
-          <p className="text-sm text-destructive">{error}</p>
-        )}
-        
-        {helperText && !error && (
-          <p className="text-sm text-muted-foreground">{helperText}</p>
-        )}
+
+        {error && <p className="text-sm text-destructive">{error}</p>}
+
+        {helperText && !error && <p className="text-sm text-muted-foreground">{helperText}</p>}
       </div>
-    );
+    )
   }
-);
+)
 
-Checkbox.displayName = 'Checkbox';
+Checkbox.displayName = 'Checkbox'
 
-export { Checkbox, type CheckboxProps };
+export { Checkbox, type CheckboxProps }

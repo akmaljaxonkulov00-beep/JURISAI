@@ -1,22 +1,22 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseAdmin } from '@/lib/supabase-admin';
+import { NextRequest, NextResponse } from 'next/server'
+import { getSupabaseAdmin } from '@/lib/supabase-admin'
 
-const GROQ_API_KEY = process.env.GROQ_API_KEY || process.env.NEXT_PUBLIC_GROQ_API_KEY;
-const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
+const GROQ_API_KEY = process.env.GROQ_API_KEY || process.env.NEXT_PUBLIC_GROQ_API_KEY
+const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
 
 export async function POST(request: NextRequest) {
   try {
-    const { caseText } = await request.json();
+    const { caseText } = await request.json()
 
     if (!caseText || caseText.trim().length < 50) {
       return NextResponse.json(
-        { error: 'Holat matni kamida 50 ta belgidan iborat bo\'lishi kerak' },
+        { error: "Holat matni kamida 50 ta belgidan iborat bo'lishi kerak" },
         { status: 400 }
-      );
+      )
     }
 
     if (!GROQ_API_KEY) {
-      return NextResponse.json({ error: 'AI xizmati sozlanmagan' }, { status: 500 });
+      return NextResponse.json({ error: 'AI xizmati sozlanmagan' }, { status: 500 })
     }
 
     const systemPrompt = `You are JurisAI IRAC — an expert legal analysis system specialized in the legislation of the Republic of Uzbekistan (O'zbekiston Respublikasi Qonunchiligi).
@@ -40,33 +40,33 @@ Analyze the following legal case using IRAC methodology:
 ## Xulosa (Conclusion)
 (Yakuniy pozitsiyani bildiring va amaliy tavsiyalar bering)
 
-MUHIM: Agar aniq modda raqamini bilmasangiz, "aniq modda uchun qonunlar bazasiga qarang" deb yozing. Hech qachon yolg'on modda raqami to'qimang.`;
+MUHIM: Agar aniq modda raqamini bilmasangiz, "aniq modda uchun qonunlar bazasiga qarang" deb yozing. Hech qachon yolg'on modda raqami to'qimang.`
 
     const response = await fetch(GROQ_API_URL, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${GROQ_API_KEY}`,
+        Authorization: `Bearer ${GROQ_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         model: 'llama-3.3-70b-versatile',
         messages: [
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: caseText }
+          { role: 'user', content: caseText },
         ],
         temperature: 0.1,
         max_tokens: 2048,
       }),
-    });
+    })
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Groq API error:', errorText);
-      return NextResponse.json({ error: 'AI tahlil xatosi' }, { status: response.status });
+      const errorText = await response.text()
+      console.error('Groq API error:', errorText)
+      return NextResponse.json({ error: 'AI tahlil xatosi' }, { status: response.status })
     }
 
-    const data = await response.json();
-    const analysisText = data.choices[0]?.message?.content || 'Tahlil olinmadi';
+    const data = await response.json()
+    const analysisText = data.choices[0]?.message?.content || 'Tahlil olinmadi'
 
     // Parse IRAC sections from the response
     const extractSection = (text: string, sectionName: string): string => {
@@ -74,43 +74,44 @@ MUHIM: Agar aniq modda raqamini bilmasangiz, "aniq modda uchun qonunlar bazasiga
         new RegExp(`## ${sectionName}\\s*\\([^)]+\\)\\s*\\n([\\s\\S]*?)(?=\\n## |$)`, 'i'),
         new RegExp(`## ${sectionName}\\s*\\n([\\s\\S]*?)(?=\\n## |$)`, 'i'),
         new RegExp(`\\*\\*${sectionName}\\*\\*:\\s*([\\s\\S]*?)(?=\\n\\*\\*|$)`, 'i'),
-      ];
+      ]
       for (const pattern of patterns) {
-        const match = text.match(pattern);
-        if (match) return match[1].trim();
+        const match = text.match(pattern)
+        if (match) return match[1].trim()
       }
-      return ''; // not found — empty string, caller will use analysisText as fallback
-    };
+      return '' // not found — empty string, caller will use analysisText as fallback
+    }
 
-    const issue = extractSection(analysisText, 'Muammo');
-    const rule = extractSection(analysisText, 'Qoida');
-    const application = extractSection(analysisText, "Qo'llash");
-    const conclusion = extractSection(analysisText, 'Xulosa');
+    const issue = extractSection(analysisText, 'Muammo')
+    const rule = extractSection(analysisText, 'Qoida')
+    const application = extractSection(analysisText, "Qo'llash")
+    const conclusion = extractSection(analysisText, 'Xulosa')
 
     // Extract source citations from the text
-    const sources: Array<{ title: string; article: string; url: string }> = [];
-    const sourcePattern = /(O'zbekiston Respublikasi\s+[A-Za-z\s]+kodeks(i)?)\s+(dastlabki\s+)?(\d+(-modda)?)/gi;
-    let match;
+    const sources: Array<{ title: string; article: string; url: string }> = []
+    const sourcePattern =
+      /(O'zbekiston Respublikasi\s+[A-Za-z\s]+kodeks(i)?)\s+(dastlabki\s+)?(\d+(-modda)?)/gi
+    let match
     while ((match = sourcePattern.exec(analysisText)) !== null) {
       sources.push({
         title: match[1].trim(),
         article: match[0].trim(),
         url: 'https://lex.uz',
-      });
+      })
     }
 
     // Calculate confidence based on completeness
-    let confidence = 50;
-    if (issue && issue.length > 20) confidence += 10;
-    if (rule && rule.length > 20) confidence += 15;
-    if (application && application.length > 20) confidence += 15;
-    if (conclusion && conclusion.length > 20) confidence += 10;
-    if (sources.length > 0) confidence += 10;
-    confidence = Math.min(confidence, 95);
+    let confidence = 50
+    if (issue && issue.length > 20) confidence += 10
+    if (rule && rule.length > 20) confidence += 15
+    if (application && application.length > 20) confidence += 15
+    if (conclusion && conclusion.length > 20) confidence += 10
+    if (sources.length > 0) confidence += 10
+    confidence = Math.min(confidence, 95)
 
     // Track usage
     try {
-      const supabase = getSupabaseAdmin();
+      const supabase = getSupabaseAdmin()
       await supabase.from('usage_logs').insert({
         user_id: 'api',
         email: 'api@jurisai.uz',
@@ -119,8 +120,10 @@ MUHIM: Agar aniq modda raqamini bilmasangiz, "aniq modda uchun qonunlar bazasiga
         action: 'irac_analysis',
         metadata: { text_length: caseText.length, confidence },
         created_at: new Date().toISOString(),
-      });
-    } catch { /* silent */ }
+      })
+    } catch {
+      /* silent */
+    }
 
     return NextResponse.json({
       issue: issue || analysisText,
@@ -129,12 +132,9 @@ MUHIM: Agar aniq modda raqamini bilmasangiz, "aniq modda uchun qonunlar bazasiga
       conclusion: conclusion || analysisText,
       sources: sources.slice(0, 5),
       confidence,
-    });
+    })
   } catch (error) {
-    console.error('IRAC analysis error:', error);
-    return NextResponse.json(
-      { error: 'Tahlil qilishda xatolik yuz berdi' },
-      { status: 500 }
-    );
+    console.error('IRAC analysis error:', error)
+    return NextResponse.json({ error: 'Tahlil qilishda xatolik yuz berdi' }, { status: 500 })
   }
 }

@@ -29,7 +29,7 @@ class AuthService {
     user: null,
     session: null,
     loading: false,
-    error: null
+    error: null,
   }
   private listeners: Array<(state: AuthState) => void> = []
 
@@ -52,8 +52,11 @@ class AuthService {
     }
 
     try {
-      const { data: { session }, error } = await supabaseClient.auth.getSession()
-      
+      const {
+        data: { session },
+        error,
+      } = await supabaseClient.auth.getSession()
+
       if (error) {
         console.error('Error getting session:', error)
         this.authState.error = error.message
@@ -97,10 +100,12 @@ class AuthService {
         // Get subscription info
         const { data: subscription } = await supabaseClient!
           .from('subscriptions')
-          .select(`
+          .select(
+            `
             *,
             subscription_plans(*)
-          `)
+          `
+          )
           .eq('user_id', session.user.id)
           .eq('status', 'ACTIVE')
           .single()
@@ -111,12 +116,14 @@ class AuthService {
           firstName: profile.first_name || undefined,
           lastName: profile.last_name || undefined,
           role: profile.role || 'user',
-          subscription: subscription ? {
-            plan: subscription.subscription_plans.slug as any,
-            status: 'active',
-            expiresAt: subscription.current_period_end
-          } : undefined,
-          createdAt: profile.created_at
+          subscription: subscription
+            ? {
+                plan: subscription.subscription_plans.slug as any,
+                status: 'active',
+                expiresAt: subscription.current_period_end,
+              }
+            : undefined,
+          createdAt: profile.created_at,
         }
       } else {
         // Create user profile if it doesn't exist
@@ -135,14 +142,12 @@ class AuthService {
     if (!supabaseClient) return
 
     try {
-      const { error } = await supabaseClient
-        .from('users')
-        .insert({
-          id: user.id,
-          email: user.email,
-          role: 'user',
-          created_at: new Date().toISOString()
-        })
+      const { error } = await supabaseClient.from('users').insert({
+        id: user.id,
+        email: user.email,
+        role: 'user',
+        created_at: new Date().toISOString(),
+      })
 
       if (error) {
         console.error('Error creating user profile:', error)
@@ -152,7 +157,7 @@ class AuthService {
           id: user.id,
           email: user.email || '',
           role: 'user',
-          createdAt: new Date().toISOString()
+          createdAt: new Date().toISOString(),
         }
       }
     } catch (error) {
@@ -173,7 +178,7 @@ class AuthService {
     try {
       const { data, error } = await supabaseClient.auth.signInWithPassword({
         email,
-        password
+        password,
       })
 
       if (error) {
@@ -207,9 +212,9 @@ class AuthService {
         options: {
           data: {
             first_name: firstName,
-            last_name: lastName
-          }
-        }
+            last_name: lastName,
+          },
+        },
       })
 
       if (error) {
@@ -234,7 +239,7 @@ class AuthService {
 
     try {
       const { error } = await supabaseClient.auth.signOut()
-      
+
       if (error) {
         console.error('Sign out error:', error)
         this.authState.error = error.message
@@ -252,7 +257,7 @@ class AuthService {
 
     try {
       const { error } = await supabaseClient.auth.resetPasswordForEmail(email)
-      
+
       if (error) {
         throw error
       }
@@ -267,7 +272,7 @@ class AuthService {
   subscribe(listener: (state: AuthState) => void) {
     this.listeners.push(listener)
     listener(this.authState)
-    
+
     return () => {
       const index = this.listeners.indexOf(listener)
       if (index > -1) {
@@ -297,11 +302,11 @@ class AuthService {
     if (!subscription || subscription.status !== 'active') {
       return false
     }
-    
+
     if (plan) {
       return subscription.plan === plan || subscription.plan === 'premium'
     }
-    
+
     return subscription.plan !== 'free'
   }
 
@@ -313,7 +318,7 @@ class AuthService {
     if (this.isAdmin()) return true
 
     const subscription = user.subscription
-    
+
     // Free plan features
     const freeFeatures = ['legal-database', 'basic-search', 'profile']
     if (freeFeatures.includes(feature)) return true

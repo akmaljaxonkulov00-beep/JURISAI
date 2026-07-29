@@ -1,8 +1,8 @@
-import React, { HTMLAttributes, forwardRef } from 'react';
-import { cn } from '@/lib/utils';
+import React, { HTMLAttributes, forwardRef } from 'react'
+import { cn } from '@/lib/utils'
 
 interface BadgeProps extends HTMLAttributes<HTMLDivElement> {
-  variant?: 'default' | 'secondary' | 'destructive' | 'outline' | 'success' | 'warning' | 'info';
+  variant?: 'default' | 'secondary' | 'destructive' | 'outline' | 'success' | 'warning' | 'info'
 }
 
 const Badge = forwardRef<HTMLDivElement, BadgeProps>(
@@ -10,23 +10,23 @@ const Badge = forwardRef<HTMLDivElement, BadgeProps>(
     const getVariantClasses = (variant: string) => {
       switch (variant) {
         case 'default':
-          return 'border-transparent bg-primary text-primary-foreground hover:bg-primary/80';
+          return 'border-transparent bg-primary text-primary-foreground hover:bg-primary/80'
         case 'secondary':
-          return 'border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80';
+          return 'border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80'
         case 'destructive':
-          return 'border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80';
+          return 'border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80'
         case 'outline':
-          return 'text-foreground';
+          return 'text-foreground'
         case 'success':
-          return 'border-transparent bg-green-50 dark:bg-green-900/20 text-white hover:bg-green-600';
+          return 'border-transparent bg-green-50 dark:bg-green-900/20 text-white hover:bg-green-600'
         case 'warning':
-          return 'border-transparent bg-yellow-50 dark:bg-yellow-900/20 text-white hover:bg-yellow-600';
+          return 'border-transparent bg-yellow-50 dark:bg-yellow-900/20 text-white hover:bg-yellow-600'
         case 'info':
-          return 'border-transparent bg-blue-50 dark:bg-blue-900/20 text-white hover:bg-blue-600';
+          return 'border-transparent bg-blue-50 dark:bg-blue-900/20 text-white hover:bg-blue-600'
         default:
-          return 'border-transparent bg-primary text-primary-foreground hover:bg-primary/80';
+          return 'border-transparent bg-primary text-primary-foreground hover:bg-primary/80'
       }
-    };
+    }
 
     return (
       <div
@@ -38,10 +38,10 @@ const Badge = forwardRef<HTMLDivElement, BadgeProps>(
         )}
         {...props}
       />
-    );
+    )
   }
-);
+)
 
-Badge.displayName = 'Badge';
+Badge.displayName = 'Badge'
 
-export { Badge };
+export { Badge }

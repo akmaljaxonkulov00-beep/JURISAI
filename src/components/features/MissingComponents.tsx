@@ -1,20 +1,34 @@
-'use client';
+'use client'
 
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
-import { AlertTriangle, CheckCircle, Wrench, Zap, Database, Shield, Calculator, FileText, Users, BarChart, Trophy, Settings, HelpCircle } from 'lucide-react';
+import React from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
+import { Badge } from '@/components/ui/Badge'
+import {
+  AlertTriangle,
+  CheckCircle,
+  Wrench,
+  Zap,
+  Database,
+  Shield,
+  Calculator,
+  FileText,
+  Users,
+  BarChart,
+  Trophy,
+  Settings,
+  HelpCircle,
+} from 'lucide-react'
 
 interface MissingFeature {
-  id: string;
-  title: string;
-  description: string;
-  priority: 'high' | 'medium' | 'low';
-  status: 'missing' | 'partial' | 'implemented';
-  component?: string;
-  api?: string;
-  icon: React.ReactNode;
+  id: string
+  title: string
+  description: string
+  priority: 'high' | 'medium' | 'low'
+  status: 'missing' | 'partial' | 'implemented'
+  component?: string
+  api?: string
+  icon: React.ReactNode
 }
 
 const missingFeatures: MissingFeature[] = [
@@ -26,7 +40,7 @@ const missingFeatures: MissingFeature[] = [
     status: 'missing',
     component: 'TelegramService',
     api: '/api/telegram/webhook',
-    icon: <Zap className="w-5 h-5" />
+    icon: <Zap className="w-5 h-5" />,
   },
   {
     id: 'payment-processing',
@@ -36,7 +50,7 @@ const missingFeatures: MissingFeature[] = [
     status: 'partial',
     component: 'PaymentProcessor',
     api: '/api/billing/payment',
-    icon: <Shield className="w-5 h-5" />
+    icon: <Shield className="w-5 h-5" />,
   },
   {
     id: 'user-profile-management',
@@ -46,7 +60,7 @@ const missingFeatures: MissingFeature[] = [
     status: 'partial',
     component: 'UserProfile',
     api: '/api/user/profile',
-    icon: <Users className="w-5 h-5" />
+    icon: <Users className="w-5 h-5" />,
   },
   {
     id: 'advanced-search',
@@ -56,7 +70,7 @@ const missingFeatures: MissingFeature[] = [
     status: 'partial',
     component: 'AdvancedSearch',
     api: '/api/legal/search',
-    icon: <Database className="w-5 h-5" />
+    icon: <Database className="w-5 h-5" />,
   },
   {
     id: 'analytics-dashboard',
@@ -66,7 +80,7 @@ const missingFeatures: MissingFeature[] = [
     status: 'missing',
     component: 'AnalyticsDashboard',
     api: '/api/analytics',
-    icon: <BarChart className="w-5 h-5" />
+    icon: <BarChart className="w-5 h-5" />,
   },
   {
     id: 'achievement-system',
@@ -76,7 +90,7 @@ const missingFeatures: MissingFeature[] = [
     status: 'partial',
     component: 'AchievementSystem',
     api: '/api/achievements',
-    icon: <Trophy className="w-5 h-5" />
+    icon: <Trophy className="w-5 h-5" />,
   },
   {
     id: 'notification-system',
@@ -86,7 +100,7 @@ const missingFeatures: MissingFeature[] = [
     status: 'missing',
     component: 'NotificationSystem',
     api: '/api/notifications',
-    icon: <AlertTriangle className="w-5 h-5" />
+    icon: <AlertTriangle className="w-5 h-5" />,
   },
   {
     id: 'document-templates',
@@ -96,43 +110,59 @@ const missingFeatures: MissingFeature[] = [
     status: 'partial',
     component: 'DocumentTemplates',
     api: '/api/documents/templates',
-    icon: <FileText className="w-5 h-5" />
-  }
-];
+    icon: <FileText className="w-5 h-5" />,
+  },
+]
 
 export default function MissingComponents() {
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'implemented': return 'bg-green-100 text-green-800';
-      case 'partial': return 'bg-yellow-100 text-yellow-800';
-      case 'missing': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200';
+      case 'implemented':
+        return 'bg-green-100 text-green-800'
+      case 'partial':
+        return 'bg-yellow-100 text-yellow-800'
+      case 'missing':
+        return 'bg-red-100 text-red-800'
+      default:
+        return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200'
     }
-  };
+  }
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'high': return 'bg-red-50 dark:bg-red-900/20 border-red-200';
-      case 'medium': return 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200';
-      case 'low': return 'bg-green-50 dark:bg-green-900/20 border-green-200';
-      default: return 'bg-gray-50 dark:bg-zinc-800/50 border-gray-200 dark:border-zinc-800';
+      case 'high':
+        return 'bg-red-50 dark:bg-red-900/20 border-red-200'
+      case 'medium':
+        return 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200'
+      case 'low':
+        return 'bg-green-50 dark:bg-green-900/20 border-green-200'
+      default:
+        return 'bg-gray-50 dark:bg-zinc-800/50 border-gray-200 dark:border-zinc-800'
     }
-  };
+  }
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'implemented': return <CheckCircle className="w-4 h-4 text-green-600" />;
-      case 'partial': return <Wrench className="w-4 h-4 text-yellow-600" />;
-      case 'missing': return <AlertTriangle className="w-4 h-4 text-red-600" />;
-      default: return null;
+      case 'implemented':
+        return <CheckCircle className="w-4 h-4 text-green-600" />
+      case 'partial':
+        return <Wrench className="w-4 h-4 text-yellow-600" />
+      case 'missing':
+        return <AlertTriangle className="w-4 h-4 text-red-600" />
+      default:
+        return null
     }
-  };
+  }
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-zinc-100 mb-2">JurisAI - To'liq Funksional Tahlili</h1>
-        <p className="text-gray-600 dark:text-zinc-400">Platformaning hozirgi holati va to'ldirilishi kerak bo'lgan funksiyalar</p>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-zinc-100 mb-2">
+          JurisAI - To'liq Funksional Tahlili
+        </h1>
+        <p className="text-gray-600 dark:text-zinc-400">
+          Platformaning hozirgi holati va to'ldirilishi kerak bo'lgan funksiyalar
+        </p>
       </div>
 
       {/* Summary Cards */}
@@ -188,7 +218,7 @@ export default function MissingComponents() {
 
       {/* Features Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {missingFeatures.map((feature) => (
+        {missingFeatures.map(feature => (
           <Card key={feature.id} className={`${getPriorityColor(feature.priority)}`}>
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -199,53 +229,70 @@ export default function MissingComponents() {
                 <div className="flex items-center space-x-2">
                   {getStatusIcon(feature.status)}
                   <Badge className={getStatusColor(feature.status)}>
-                    {feature.status === 'implemented' ? 'Ishlayapti' : 
-                     feature.status === 'partial' ? 'Qisman' : 'Yo\'q'}
+                    {feature.status === 'implemented'
+                      ? 'Ishlayapti'
+                      : feature.status === 'partial'
+                        ? 'Qisman'
+                        : "Yo'q"}
                   </Badge>
                 </div>
               </div>
             </CardHeader>
             <CardContent>
               <p className="text-gray-700 dark:text-zinc-300 mb-4">{feature.description}</p>
-              
+
               <div className="space-y-2">
                 {feature.component && (
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-gray-600 dark:text-zinc-400">Component:</span>
-                    <code className="bg-gray-100 dark:bg-zinc-800/30 px-2 py-1 rounded">{feature.component}</code>
+                    <code className="bg-gray-100 dark:bg-zinc-800/30 px-2 py-1 rounded">
+                      {feature.component}
+                    </code>
                   </div>
                 )}
-                
+
                 {feature.api && (
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-gray-600 dark:text-zinc-400">API:</span>
-                    <code className="bg-gray-100 dark:bg-zinc-800/30 px-2 py-1 rounded">{feature.api}</code>
+                    <code className="bg-gray-100 dark:bg-zinc-800/30 px-2 py-1 rounded">
+                      {feature.api}
+                    </code>
                   </div>
                 )}
-                
+
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-gray-600 dark:text-zinc-400">Priority:</span>
-                  <Badge variant={feature.priority === 'high' ? 'destructive' : 
-                                 feature.priority === 'medium' ? 'default' : 'secondary'}>
-                    {feature.priority === 'high' ? 'Yuqori' : 
-                     feature.priority === 'medium' ? "O'rta" : 'Past'}
+                  <Badge
+                    variant={
+                      feature.priority === 'high'
+                        ? 'destructive'
+                        : feature.priority === 'medium'
+                          ? 'default'
+                          : 'secondary'
+                    }
+                  >
+                    {feature.priority === 'high'
+                      ? 'Yuqori'
+                      : feature.priority === 'medium'
+                        ? "O'rta"
+                        : 'Past'}
                   </Badge>
                 </div>
               </div>
 
               {feature.status !== 'implemented' && (
                 <div className="mt-4 pt-4 border-t border-gray-200 dark:border-zinc-800">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
+                  <Button
+                    variant="outline"
+                    size="sm"
                     className="w-full"
                     onClick={() => {
                       // This would typically navigate to implement the feature
-                      console.log(`Implement ${feature.title}`);
+                      console.log(`Implement ${feature.title}`)
                     }}
                   >
                     <Wrench className="w-4 h-4 mr-2" />
-                    {feature.status === 'missing' ? 'Yaratish' : 'To\'ldirish'}
+                    {feature.status === 'missing' ? 'Yaratish' : "To'ldirish"}
                   </Button>
                 </div>
               )}
@@ -271,7 +318,7 @@ export default function MissingComponents() {
                 <li>To'liq to'lov tizimi - Payme/Click integratsiyasi</li>
               </ul>
             </div>
-            
+
             <div>
               <h3 className="font-semibold text-lg mb-2">2. O'rta Prioritet</h3>
               <ul className="list-disc list-inside space-y-1 text-gray-700 dark:text-zinc-300">
@@ -280,7 +327,7 @@ export default function MissingComponents() {
                 <li>Analitika - platforma statistikasi</li>
               </ul>
             </div>
-            
+
             <div>
               <h3 className="font-semibold text-lg mb-2">3. Past Prioritet</h3>
               <ul className="list-disc list-inside space-y-1 text-gray-700 dark:text-zinc-300">
@@ -292,5 +339,5 @@ export default function MissingComponents() {
         </CardContent>
       </Card>
     </div>
-  );
+  )
 }

@@ -1,47 +1,43 @@
-import React from 'react';
-import { cn } from '@/lib/utils';
+import React from 'react'
+import { cn } from '@/lib/utils'
 
 interface LoadingSpinnerProps {
-  size?: 'sm' | 'md' | 'lg';
-  className?: string;
-  color?: 'primary' | 'secondary' | 'white';
+  size?: 'sm' | 'md' | 'lg'
+  className?: string
+  color?: 'primary' | 'secondary' | 'white'
 }
 
-const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ 
-  size = 'md', 
-  className, 
-  color = 'primary' 
+const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
+  size = 'md',
+  className,
+  color = 'primary',
 }) => {
   const getSizeClasses = (size: string) => {
     switch (size) {
       case 'sm':
-        return 'h-4 w-4';
+        return 'h-4 w-4'
       case 'lg':
-        return 'h-8 w-8';
+        return 'h-8 w-8'
       default:
-        return 'h-6 w-6';
+        return 'h-6 w-6'
     }
-  };
+  }
 
   const getColorClasses = (color: string) => {
     switch (color) {
       case 'secondary':
-        return 'text-gray-500 dark:text-zinc-500';
+        return 'text-gray-500 dark:text-zinc-500'
       case 'white':
-        return 'text-white';
+        return 'text-white'
       default:
-        return 'text-primary';
+        return 'text-primary'
     }
-  };
+  }
 
   return (
     <div className={cn('flex items-center justify-center', className)}>
       <svg
-        className={cn(
-          'animate-spin',
-          getSizeClasses(size),
-          getColorClasses(color)
-        )}
+        className={cn('animate-spin', getSizeClasses(size), getColorClasses(color))}
         xmlns="http://www.w3.org/2000/svg"
         fill="none"
         viewBox="0 0 24 24"
@@ -61,7 +57,7 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
         ></path>
       </svg>
     </div>
-  );
-};
+  )
+}
 
-export { LoadingSpinner };
+export { LoadingSpinner }

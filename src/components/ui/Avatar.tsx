@@ -1,45 +1,39 @@
-import React, { useState } from 'react';
-import { cn } from '@/lib/utils';
+import React, { useState } from 'react'
+import { cn } from '@/lib/utils'
 
 interface AvatarProps {
-  src?: string;
-  alt?: string;
-  fallback?: string;
-  size?: 'sm' | 'md' | 'lg' | 'xl';
-  className?: string;
+  src?: string
+  alt?: string
+  fallback?: string
+  size?: 'sm' | 'md' | 'lg' | 'xl'
+  className?: string
 }
 
-const Avatar: React.FC<AvatarProps> = ({ 
-  src, 
-  alt, 
-  fallback, 
-  size = 'md', 
-  className 
-}) => {
-  const [imageError, setImageError] = useState(false);
-  const [imageLoaded, setImageLoaded] = useState(false);
+const Avatar: React.FC<AvatarProps> = ({ src, alt, fallback, size = 'md', className }) => {
+  const [imageError, setImageError] = useState(false)
+  const [imageLoaded, setImageLoaded] = useState(false)
 
   const getSizeClasses = (size: string) => {
     switch (size) {
       case 'sm':
-        return 'h-8 w-8 text-xs';
+        return 'h-8 w-8 text-xs'
       case 'lg':
-        return 'h-16 w-16 text-lg';
+        return 'h-16 w-16 text-lg'
       case 'xl':
-        return 'h-20 w-20 text-xl';
+        return 'h-20 w-20 text-xl'
       default:
-        return 'h-12 w-12 text-sm';
+        return 'h-12 w-12 text-sm'
     }
-  };
+  }
 
   const getInitials = (text: string) => {
-    if (!text) return '';
+    if (!text) return ''
     return text
       .split(' ')
       .map(word => word.charAt(0).toUpperCase())
       .join('')
-      .substring(0, 2);
-  };
+      .substring(0, 2)
+  }
 
   const getRandomColor = () => {
     const colors = [
@@ -51,11 +45,11 @@ const Avatar: React.FC<AvatarProps> = ({
       'bg-pink-500',
       'bg-indigo-50 dark:bg-indigo-900/20',
       'bg-gray-50 dark:bg-zinc-800/500',
-    ];
-    return colors[Math.floor(Math.random() * colors.length)];
-  };
+    ]
+    return colors[Math.floor(Math.random() * colors.length)]
+  }
 
-  const showFallback = !src || imageError || !imageLoaded;
+  const showFallback = !src || imageError || !imageLoaded
 
   return (
     <div
@@ -68,9 +62,7 @@ const Avatar: React.FC<AvatarProps> = ({
       )}
     >
       {showFallback ? (
-        <span className="font-medium text-white">
-          {fallback ? getInitials(fallback) : '?'}
-        </span>
+        <span className="font-medium text-white">{fallback ? getInitials(fallback) : '?'}</span>
       ) : (
         <img
           src={src}
@@ -81,7 +73,7 @@ const Avatar: React.FC<AvatarProps> = ({
         />
       )}
     </div>
-  );
-};
+  )
+}
 
-export { Avatar };
+export { Avatar }

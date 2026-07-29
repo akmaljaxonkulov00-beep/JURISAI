@@ -24,10 +24,10 @@ export default function CreateAdminPage() {
     try {
       const adminResult = await createAdminUser()
       const testUsersResult = await createTestUsers()
-      
+
       setResults({
         admin: adminResult,
-        testUsers: testUsersResult
+        testUsers: testUsersResult,
       })
     } catch (error) {
       console.error('Create users error:', error)
@@ -40,16 +40,26 @@ export default function CreateAdminPage() {
     <div className="min-h-screen bg-gray-50 dark:bg-zinc-950 mobile-safe-top p-4 md:p-8">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-3xl font-bold mb-8 text-gray-900 dark:text-white">Create Admin User</h1>
-        
+
         <div className="bg-white dark:bg-zinc-900 rounded-lg shadow p-6 mb-6">
-          <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Admin Credentials</h2>
+          <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
+            Admin Credentials
+          </h2>
           <div className="space-y-2 text-sm mb-6">
-            <p><strong>Email:</strong> admin@jurisai.uz</p>
-            <p><strong>Password:</strong> password123</p>
-            <p><strong>Name:</strong> Admin User</p>
-            <p><strong>Role:</strong> ADMIN</p>
+            <p>
+              <strong>Email:</strong> admin@jurisai.uz
+            </p>
+            <p>
+              <strong>Password:</strong> password123
+            </p>
+            <p>
+              <strong>Name:</strong> Admin User
+            </p>
+            <p>
+              <strong>Role:</strong> ADMIN
+            </p>
           </div>
-          
+
           <div className="flex gap-4">
             <button
               onClick={createAdmin}
@@ -80,9 +90,15 @@ export default function CreateAdminPage() {
         <div className="bg-white dark:bg-zinc-900 rounded-lg shadow p-6 mt-6">
           <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Test Users</h2>
           <div className="space-y-2 text-sm">
-            <p><strong>User:</strong> user@jurisai.uz / password123</p>
-            <p><strong>Demo:</strong> demo@jurisai.uz / password123</p>
-            <p><strong>Test:</strong> test@jurisai.uz / password123</p>
+            <p>
+              <strong>User:</strong> user@jurisai.uz / password123
+            </p>
+            <p>
+              <strong>Demo:</strong> demo@jurisai.uz / password123
+            </p>
+            <p>
+              <strong>Test:</strong> test@jurisai.uz / password123
+            </p>
           </div>
         </div>
 

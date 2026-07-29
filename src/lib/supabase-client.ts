@@ -1,30 +1,36 @@
-import { supabase as browserSupabase } from './supabase-browser';
+import { supabase as browserSupabase } from './supabase-browser'
 
 // ── SINGLETON SUPABASE CLIENT ─────────────────────────────
 // Uses the same client instance as supabase-browser.ts
 // to prevent Multiple GoTrueClient instances error.
-export const supabase = browserSupabase;
-export const supabaseClient = supabase;
-export default supabase;
+export const supabase = browserSupabase
+export const supabaseClient = supabase
+export default supabase
 
 // Server-side helper aliases
-export const supabaseServer = supabase;
+export const supabaseServer = supabase
 
 export const getCurrentUser = async () => {
-  const { data: { user } } = await supabase.auth.getUser();
-  return user;
-};
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  return user
+}
 
 export const authHelpers = {
   signIn: async (...args: any[]) => null,
   signOut: async (...args: any[]) => null,
   signUp: async (...args: any[]) => null,
   getSession: async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    return session;
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+    return session
   },
   getUser: async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    return user;
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    return user
   },
-};
+}

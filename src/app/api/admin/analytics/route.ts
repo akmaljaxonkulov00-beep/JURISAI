@@ -1,31 +1,34 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const days = parseInt(searchParams.get('days') || '30');
-    const type = searchParams.get('type') || 'all';
+    const { searchParams } = new URL(request.url)
+    const days = parseInt(searchParams.get('days') || '30')
+    const type = searchParams.get('type') || 'all'
 
     // Try admin client first (service_role), fallback to anon client
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://blayqzykzlmrjuvhzvsk.supabase.co';
-    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJsYXlxenlremxtcmp1dmh6dnNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ3MzAzNzAsImV4cCI6MjEwMDMwNjM3MH0._4WASFfKkRenHpScrQM6vS2zPTZmyDfMCNr5GmAgOkw';
-    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const supabaseUrl =
+      process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://blayqzykzlmrjuvhzvsk.supabase.co'
+    const anonKey =
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJsYXlxenlremxtcmp1dmh6dnNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ3MzAzNzAsImV4cCI6MjEwMDMwNjM3MH0._4WASFfKkRenHpScrQM6vS2zPTZmyDfMCNr5GmAgOkw'
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-    let supabase: any = null;
+    let supabase: any = null
 
     if (supabaseUrl && serviceKey) {
       try {
         supabase = createClient(supabaseUrl, serviceKey, {
           auth: { autoRefreshToken: false, persistSession: false },
-        });
+        })
       } catch {} // fall through to anon client
     }
 
     if (!supabase && supabaseUrl && anonKey) {
       supabase = createClient(supabaseUrl, anonKey, {
         auth: { autoRefreshToken: false, persistSession: false },
-      });
+      })
     }
 
     // If Supabase is not available at all, return fallback data
@@ -50,15 +53,15 @@ export async function GET(request: NextRequest) {
           source: 'fallback',
           message: 'Supabase ulanishi mavjud emas',
         },
-      };
-      return NextResponse.json(fallback);
+      }
+      return NextResponse.json(fallback)
     }
 
-    const now = new Date();
-    const cutoff = new Date();
-    cutoff.setDate(cutoff.getDate() - days);
-    const prevCutoff = new Date();
-    prevCutoff.setDate(prevCutoff.getDate() - days * 2);
+    const now = new Date()
+    const cutoff = new Date()
+    cutoff.setDate(cutoff.getDate() - days)
+    const prevCutoff = new Date()
+    prevCutoff.setDate(prevCutoff.getDate() - days * 2)
 
     // ── Always return these fields, even if empty ──
     const result: Record<string, any> = {
@@ -76,53 +79,56 @@ export async function GET(request: NextRequest) {
       recentLogins: 0,
       activeUsers: 0,
       tokensUsed: 0,
-    };
+    }
 
     // Fetch users — try registered_users first, then auth.users via service_role
     if (type === 'all' || type === 'users') {
       try {
         const { data: users, error: usersError } = await supabase
           .from('registered_users')
-          .select('*');
+          .select('*')
         if (!usersError && users && users.length > 0) {
           // registered_users has data — use it directly
-          result.users = users;
-          result.totalUsers = users.length;
+          result.users = users
+          result.totalUsers = users.length
           const newUsers = users.filter((u: any) => {
-            const created = u.created_at || u.last_login;
-            return created && new Date(created) >= cutoff;
-          });
-          result.newUsers = newUsers.length;
+            const created = u.created_at || u.last_login
+            return created && new Date(created) >= cutoff
+          })
+          result.newUsers = newUsers.length
           const prevNewUsers = users.filter((u: any) => {
-            const created = u.created_at || u.last_login;
-            return created && new Date(created) >= prevCutoff && new Date(created) < cutoff;
-          });
-          result.userGrowth = prevNewUsers.length > 0
-            ? Math.round(((newUsers.length - prevNewUsers.length) / prevNewUsers.length) * 100)
-            : 0;
-          const premiumUsers = users.filter((u: any) => u.subscription_plan && u.subscription_plan !== 'free');
-          result.premiumUsers = premiumUsers.length;
-          result.userSource = 'registered_users';
+            const created = u.created_at || u.last_login
+            return created && new Date(created) >= prevCutoff && new Date(created) < cutoff
+          })
+          result.userGrowth =
+            prevNewUsers.length > 0
+              ? Math.round(((newUsers.length - prevNewUsers.length) / prevNewUsers.length) * 100)
+              : 0
+          const premiumUsers = users.filter(
+            (u: any) => u.subscription_plan && u.subscription_plan !== 'free'
+          )
+          result.premiumUsers = premiumUsers.length
+          result.userSource = 'registered_users'
         } else {
           // Fallback: auth.users via Supabase REST API
           // Requires SUPABASE_SERVICE_ROLE_KEY on the server
           try {
-            const suUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || supabaseUrl;
-            const srKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+            const suUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || supabaseUrl
+            const srKey = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
             if (srKey) {
               const authRes = await fetch(
                 `${suUrl}/rest/v1/users?select=id,email,raw_user_meta_data,created_at,last_sign_in_at,banned_until`,
                 {
                   headers: {
-                    'apikey': srKey,
-                    'Authorization': `Bearer ${srKey}`,
+                    apikey: srKey,
+                    Authorization: `Bearer ${srKey}`,
                     'Accept-Profile': 'auth',
                     'Content-Type': 'application/json',
                   },
                 }
-              );
+              )
               if (authRes.ok) {
-                const authUsers = await authRes.json();
+                const authUsers = await authRes.json()
                 if (Array.isArray(authUsers) && authUsers.length > 0) {
                   result.users = authUsers.map((u: any) => ({
                     id: u.id,
@@ -136,16 +142,18 @@ export async function GET(request: NextRequest) {
                     created_at: u.created_at || '',
                     last_login: u.last_sign_in_at || u.created_at || '',
                     status: u.banned_until ? 'blocked' : 'active',
-                  }));
-                  result.totalUsers = authUsers.length;
-                  result.userSource = 'auth.users';
+                  }))
+                  result.totalUsers = authUsers.length
+                  result.userSource = 'auth.users'
                 }
               }
             }
-          } catch { /* fallback failed */ }
+          } catch {
+            /* fallback failed */
+          }
         }
       } catch (e: any) {
-        result.usersError = e?.message || 'jadval mavjud emas';
+        result.usersError = e?.message || 'jadval mavjud emas'
       }
     }
 
@@ -157,17 +165,17 @@ export async function GET(request: NextRequest) {
           .select('*')
           .gte('created_at', cutoff.toISOString())
           .order('created_at', { ascending: false })
-          .limit(100);
+          .limit(100)
         if (!loginsError && logins) {
-          result.loginActivities = logins;
-          result.recentLogins = logins.length;
-          const activeUserIds = new Set(logins.map((l: any) => l.user_id || l.email));
-          result.activeUsers = activeUserIds.size;
+          result.loginActivities = logins
+          result.recentLogins = logins.length
+          const activeUserIds = new Set(logins.map((l: any) => l.user_id || l.email))
+          result.activeUsers = activeUserIds.size
         } else if (loginsError) {
-          result.loginsError = loginsError.message;
+          result.loginsError = loginsError.message
         }
       } catch (e: any) {
-        result.loginsError = e?.message || 'jadval mavjud emas';
+        result.loginsError = e?.message || 'jadval mavjud emas'
       }
     }
 
@@ -179,15 +187,15 @@ export async function GET(request: NextRequest) {
           .select('*')
           .gte('created_at', cutoff.toISOString())
           .order('created_at', { ascending: false })
-          .limit(100);
+          .limit(100)
         if (!tokensError && tokens) {
-          result.tokenUsages = tokens;
-          result.tokensUsed = tokens.reduce((sum: number, t: any) => sum + (t.tokens || 0), 0);
+          result.tokenUsages = tokens
+          result.tokensUsed = tokens.reduce((sum: number, t: any) => sum + (t.tokens || 0), 0)
         } else if (tokensError) {
-          result.tokensError = tokensError.message;
+          result.tokensError = tokensError.message
         }
       } catch (e: any) {
-        result.tokensError = e?.message || 'jadval mavjud emas';
+        result.tokensError = e?.message || 'jadval mavjud emas'
       }
     }
 
@@ -198,29 +206,32 @@ export async function GET(request: NextRequest) {
           .from('payment_requests')
           .select('*')
           .order('created_at', { ascending: false })
-          .limit(50);
+          .limit(50)
         if (!paymentsError && payments) {
-          result.paymentRequests = payments;
-          const approvedPayments = payments.filter((p: any) => p.status === 'approved');
-          const totalRevenue = approvedPayments.reduce((sum: number, p: any) => sum + (p.amount || 0), 0);
-          result.totalRevenue = totalRevenue;
-          result.pendingCount = payments.filter((p: any) => p.status === 'pending').length;
-          result.approvedCount = approvedPayments.length;
+          result.paymentRequests = payments
+          const approvedPayments = payments.filter((p: any) => p.status === 'approved')
+          const totalRevenue = approvedPayments.reduce(
+            (sum: number, p: any) => sum + (p.amount || 0),
+            0
+          )
+          result.totalRevenue = totalRevenue
+          result.pendingCount = payments.filter((p: any) => p.status === 'pending').length
+          result.approvedCount = approvedPayments.length
         } else if (paymentsError) {
-          result.paymentsError = paymentsError.message;
+          result.paymentsError = paymentsError.message
         }
       } catch (e: any) {
-        result.paymentsError = e?.message || 'jadval mavjud emas';
+        result.paymentsError = e?.message || 'jadval mavjud emas'
       }
     }
 
-    result.source = 'supabase';
-    return NextResponse.json({ success: true, data: result });
+    result.source = 'supabase'
+    return NextResponse.json({ success: true, data: result })
   } catch (error: any) {
-    console.error('Admin analytics API error:', error);
+    console.error('Admin analytics API error:', error)
     return NextResponse.json(
       { success: false, error: error?.message || 'Failed to fetch analytics' },
       { status: 500 }
-    );
+    )
   }
 }

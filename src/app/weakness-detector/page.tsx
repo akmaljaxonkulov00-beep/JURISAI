@@ -1,8 +1,12 @@
-'use client';
+'use client'
 
-import React from 'react';
-import WeaknessDetector from '@/components/features/WeaknessDetector';
+import React from 'react'
+import WeaknessDetector from '@/components/features/WeaknessDetector'
 
 export default function WeaknessDetectorPage() {
-  return <div className="mobile-safe-top"><WeaknessDetector /></div>;
+  return (
+    <div className="mobile-safe-top">
+      <WeaknessDetector />
+    </div>
+  )
 }

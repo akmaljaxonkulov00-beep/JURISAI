@@ -1,51 +1,63 @@
-import React, { useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { Button, Avatar, DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui';
-import { toast } from '@/components/ui/Toast';
-import { cn } from '@/lib/utils';
+import React, { useState } from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import {
+  Button,
+  Avatar,
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from '@/components/ui'
+import { toast } from '@/components/ui/Toast'
+import { cn } from '@/lib/utils'
 
 interface HeaderProps {
   user?: {
-    name: string;
-    email: string;
-    avatar?: string;
-    role?: string;
-  };
-  className?: string;
+    name: string
+    email: string
+    avatar?: string
+    role?: string
+  }
+  className?: string
 }
 
 const Header: React.FC<HeaderProps> = ({ user, className }) => {
-  const router = useRouter();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const router = useRouter()
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   const navigation = [
     { name: 'Bosh sahifa', href: '/' },
     { name: 'IRAC Tahlil', href: '/case-solver' },
     { name: 'Qaror daraxti', href: '/decision-tree' },
     { name: 'Jamiyat', href: '/community' },
-  ];
+  ]
 
   const handleLogout = async () => {
     try {
-      const { firebaseAuth } = await import('@/services/firebase-auth');
-      await firebaseAuth.signOut();
+      const { firebaseAuth } = await import('@/services/firebase-auth')
+      await firebaseAuth.signOut()
     } catch {
       // Nuclear clear fallback
-      localStorage.clear();
-      sessionStorage.clear();
-      document.cookie.split(';').forEach((c) => {
-        document.cookie = c.replace(/^ +/, '').replace(/=.*/, '=;expires=' + new Date().toUTCString() + ';path=/');
-      });
-      window.location.href = '/signin';
+      localStorage.clear()
+      sessionStorage.clear()
+      document.cookie.split(';').forEach(c => {
+        document.cookie = c
+          .replace(/^ +/, '')
+          .replace(/=.*/, '=;expires=' + new Date().toUTCString() + ';path=/')
+      })
+      window.location.href = '/signin'
     }
-  };
+  }
 
   return (
-    <header className={cn(
-      'bg-white dark:bg-zinc-900 border-b border-gray-200 dark:border-zinc-800 shadow-sm',
-      className
-    )}>
+    <header
+      className={cn(
+        'bg-white dark:bg-zinc-900 border-b border-gray-200 dark:border-zinc-800 shadow-sm',
+        className
+      )}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
@@ -60,7 +72,7 @@ const Header: React.FC<HeaderProps> = ({ user, className }) => {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex space-x-8">
-            {navigation.map((item) => (
+            {navigation.map(item => (
               <Link
                 key={item.name}
                 href={item.href}
@@ -77,11 +89,7 @@ const Header: React.FC<HeaderProps> = ({ user, className }) => {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                    <Avatar
-                      src={user.avatar}
-                      fallback={user.name}
-                      size="sm"
-                    />
+                    <Avatar src={user.avatar} fallback={user.name} size="sm" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
@@ -97,20 +105,24 @@ const Header: React.FC<HeaderProps> = ({ user, className }) => {
                   </div>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem>
-                    <Link href="/profile" className="w-full">Profil</Link>
+                    <Link href="/profile" className="w-full">
+                      Profil
+                    </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem>
-                    <Link href="/profile" className="w-full">Sozlamalar</Link>
+                    <Link href="/profile" className="w-full">
+                      Sozlamalar
+                    </Link>
                   </DropdownMenuItem>
                   {user.role === 'admin' && (
                     <DropdownMenuItem>
-                      <Link href="/admin" className="w-full">Admin panel</Link>
+                      <Link href="/admin" className="w-full">
+                        Admin panel
+                      </Link>
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout}>
-                    Chiqish
-                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleLogout}>Chiqish</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
@@ -131,12 +143,7 @@ const Header: React.FC<HeaderProps> = ({ user, className }) => {
                 size="icon"
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               >
-                <svg
-                  className="h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   {isMobileMenuOpen ? (
                     <path
                       strokeLinecap="round"
@@ -162,15 +169,15 @@ const Header: React.FC<HeaderProps> = ({ user, className }) => {
         {isMobileMenuOpen && (
           <div className="md:hidden">
             <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-              {navigation.map((item) => (
+              {navigation.map(item => (
                 <Link
                   key={item.name}
                   href={item.href}
                   className="text-gray-700 dark:text-zinc-300 hover:text-blue-600 dark:hover:text-blue-400 block px-3 py-2 rounded-md text-base font-medium"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setIsMobileMenuOpen(false);
-                    router.push(item.href);
+                  onClick={e => {
+                    e.preventDefault()
+                    setIsMobileMenuOpen(false)
+                    router.push(item.href)
                   }}
                 >
                   {item.name}
@@ -181,20 +188,26 @@ const Header: React.FC<HeaderProps> = ({ user, className }) => {
               <div className="pt-4 pb-3 border-t border-gray-200 dark:border-zinc-700">
                 <div className="px-2 space-y-2">
                   <Button variant="ghost" asChild className="w-full">
-                    <Link href="/signin" onClick={(e) => {
-                      e.preventDefault();
-                      setIsMobileMenuOpen(false);
-                      router.push('/signin');
-                    }}>
+                    <Link
+                      href="/signin"
+                      onClick={e => {
+                        e.preventDefault()
+                        setIsMobileMenuOpen(false)
+                        router.push('/signin')
+                      }}
+                    >
                       Kirish
                     </Link>
                   </Button>
                   <Button asChild className="w-full">
-                    <Link href="/signin?mode=register" onClick={(e) => {
-                      e.preventDefault();
-                      setIsMobileMenuOpen(false);
-                      router.push('/signin?mode=register');
-                    }}>
+                    <Link
+                      href="/signin?mode=register"
+                      onClick={e => {
+                        e.preventDefault()
+                        setIsMobileMenuOpen(false)
+                        router.push('/signin?mode=register')
+                      }}
+                    >
                       Ro'yxatdan o'tish
                     </Link>
                   </Button>
@@ -205,7 +218,7 @@ const Header: React.FC<HeaderProps> = ({ user, className }) => {
         )}
       </div>
     </header>
-  );
-};
+  )
+}
 
-export { Header };
+export { Header }

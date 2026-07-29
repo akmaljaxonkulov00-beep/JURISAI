@@ -1,16 +1,16 @@
-'use client';
+'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react'
 
 export interface PlatformStats {
-  total_users: number;
-  total_documents: number;
-  total_ai_requests: number;
-  total_codes: number;
-  active_users_today: number;
-  documents_generated_today: number;
-  users_this_month: number;
-  premium_users: number;
+  total_users: number
+  total_documents: number
+  total_ai_requests: number
+  total_codes: number
+  active_users_today: number
+  documents_generated_today: number
+  users_this_month: number
+  premium_users: number
 }
 
 const DEFAULT_STATS: PlatformStats = {
@@ -22,9 +22,9 @@ const DEFAULT_STATS: PlatformStats = {
   documents_generated_today: 0,
   users_this_month: 0,
   premium_users: 0,
-};
+}
 
-const POLL_INTERVAL = 30_000; // 30 seconds
+const POLL_INTERVAL = 30_000 // 30 seconds
 
 /**
  * Fetches aggregate platform statistics from the server-side API.
@@ -35,14 +35,14 @@ async function fetchStats(): Promise<PlatformStats> {
     const response = await fetch('/api/admin/dashboard-stats', {
       cache: 'no-store',
       headers: { 'Cache-Control': 'no-cache' },
-    });
+    })
 
     if (!response.ok) {
-      console.warn('[Stats] API returned', response.status);
-      return getLocalFallbackStats();
+      console.warn('[Stats] API returned', response.status)
+      return getLocalFallbackStats()
     }
 
-    const data = await response.json();
+    const data = await response.json()
     if (data.success && data.stats) {
       return {
         total_users: data.stats.total_users || 0,
@@ -53,27 +53,27 @@ async function fetchStats(): Promise<PlatformStats> {
         documents_generated_today: data.stats.documents_generated_today || 0,
         users_this_month: data.stats.users_this_month || 0,
         premium_users: data.stats.premium_users || 0,
-      };
+      }
     }
 
-    console.warn('[Stats] API returned invalid data:', data);
-    return getLocalFallbackStats();
+    console.warn('[Stats] API returned invalid data:', data)
+    return getLocalFallbackStats()
   } catch (err) {
-    console.warn('[Stats] Failed to fetch, using fallback:', err);
-    return getLocalFallbackStats();
+    console.warn('[Stats] Failed to fetch, using fallback:', err)
+    return getLocalFallbackStats()
   }
 }
 
 function getLocalFallbackStats(): PlatformStats {
   try {
-    const usersRaw = localStorage.getItem('admin_users') || localStorage.getItem('registered_users');
-    const totalUsers = usersRaw ? JSON.parse(usersRaw).length : 0;
+    const usersRaw = localStorage.getItem('admin_users') || localStorage.getItem('registered_users')
+    const totalUsers = usersRaw ? JSON.parse(usersRaw).length : 0
 
-    const chatsRaw = localStorage.getItem('ai_chats');
-    const totalRequests = chatsRaw ? JSON.parse(chatsRaw).length * 3 : 0;
+    const chatsRaw = localStorage.getItem('ai_chats')
+    const totalRequests = chatsRaw ? JSON.parse(chatsRaw).length * 3 : 0
 
-    const codesRaw = localStorage.getItem('legal_codes');
-    const totalCodes = codesRaw ? JSON.parse(codesRaw).length : 10;
+    const codesRaw = localStorage.getItem('legal_codes')
+    const totalCodes = codesRaw ? JSON.parse(codesRaw).length : 10
 
     return {
       total_users: totalUsers,
@@ -84,9 +84,9 @@ function getLocalFallbackStats(): PlatformStats {
       documents_generated_today: 0,
       users_this_month: totalUsers,
       premium_users: 0,
-    };
+    }
   } catch {
-    return DEFAULT_STATS;
+    return DEFAULT_STATS
   }
 }
 
@@ -95,28 +95,28 @@ function getLocalFallbackStats(): PlatformStats {
  * Uses auth.users via service_role key for real user count.
  */
 export function useRealtimeStats() {
-  const [stats, setStats] = useState<PlatformStats>(DEFAULT_STATS);
-  const [loading, setLoading] = useState(true);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [stats, setStats] = useState<PlatformStats>(DEFAULT_STATS)
+  const [loading, setLoading] = useState(true)
+  const intervalRef = useRef<NodeJS.Timeout | null>(null)
 
   const load = useCallback(async () => {
     try {
-      const data = await fetchStats();
-      setStats(data);
+      const data = await fetchStats()
+      setStats(data)
     } catch {
       // Silently fail — keep previous stats
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  }, []);
+  }, [])
 
   useEffect(() => {
-    load();
-    intervalRef.current = setInterval(load, POLL_INTERVAL);
+    load()
+    intervalRef.current = setInterval(load, POLL_INTERVAL)
     return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, [load]);
+      if (intervalRef.current) clearInterval(intervalRef.current)
+    }
+  }, [load])
 
-  return { stats, loading, refetch: load };
+  return { stats, loading, refetch: load }
 }

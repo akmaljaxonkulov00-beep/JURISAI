@@ -1,2 +1,2 @@
-export const createAdminUser = async () => null;
-export const createTestUsers = async () => null;
+export const createAdminUser = async () => null
+export const createTestUsers = async () => null

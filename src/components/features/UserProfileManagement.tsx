@@ -1,74 +1,92 @@
-'use client';
+'use client'
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
-import { Input } from '@/components/ui/Input';
-import { Textarea } from '@/components/ui/Textarea';
-import { Select } from '@/components/ui/Select';
-import { User, Mail, Phone, Calendar, Shield, Settings, Camera, Save, Edit2, Check, X, Award, TrendingUp, Clock, Target } from 'lucide-react';
+import React, { useState, useEffect } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
+import { Badge } from '@/components/ui/Badge'
+import { Input } from '@/components/ui/Input'
+import { Textarea } from '@/components/ui/Textarea'
+import { Select } from '@/components/ui/Select'
+import {
+  User,
+  Mail,
+  Phone,
+  Calendar,
+  Shield,
+  Settings,
+  Camera,
+  Save,
+  Edit2,
+  Check,
+  X,
+  Award,
+  TrendingUp,
+  Clock,
+  Target,
+} from 'lucide-react'
 
 interface UserProfile {
-  id: string;
-  email: string;
-  name: string;
-  phone?: string;
-  avatar?: string;
-  bio?: string;
-  specialization?: string;
-  experience_years?: number;
-  education?: string;
-  location?: string;
-  website?: string;
-  linkedin?: string;
-  subscription_plan: 'free' | 'pro' | 'premium';
-  subscription_expires_at?: string;
-  created_at: string;
-  last_login: string;
+  id: string
+  email: string
+  name: string
+  phone?: string
+  avatar?: string
+  bio?: string
+  specialization?: string
+  experience_years?: number
+  education?: string
+  location?: string
+  website?: string
+  linkedin?: string
+  subscription_plan: 'free' | 'pro' | 'premium'
+  subscription_expires_at?: string
+  created_at: string
+  last_login: string
   stats: {
-    cases_analyzed: number;
-    documents_generated: number;
-    ai_requests: number;
-    study_hours: number;
-  };
-  achievements: Achievement[];
+    cases_analyzed: number
+    documents_generated: number
+    ai_requests: number
+    study_hours: number
+  }
+  achievements: Achievement[]
 }
 
 interface Achievement {
-  id: string;
-  title: string;
-  description: string;
-  icon: string;
-  unlocked_at: string;
-  rarity: 'common' | 'rare' | 'epic' | 'legendary';
-  progress?: number;
-  max_progress?: number;
+  id: string
+  title: string
+  description: string
+  icon: string
+  unlocked_at: string
+  rarity: 'common' | 'rare' | 'epic' | 'legendary'
+  progress?: number
+  max_progress?: number
 }
 
 export default function UserProfileManagement() {
-  const [activeTab, setActiveTab] = useState<'profile' | 'settings' | 'achievements' | 'statistics'>('profile');
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [editing, setEditing] = useState(false);
-  const [formData, setFormData] = useState<Partial<UserProfile>>({});
-  const [loading, setLoading] = useState(false);
-  const [avatarPreview, setAvatarPreview] = useState<string>('');
+  const [activeTab, setActiveTab] = useState<
+    'profile' | 'settings' | 'achievements' | 'statistics'
+  >('profile')
+  const [profile, setProfile] = useState<UserProfile | null>(null)
+  const [editing, setEditing] = useState(false)
+  const [formData, setFormData] = useState<Partial<UserProfile>>({})
+  const [loading, setLoading] = useState(false)
+  const [avatarPreview, setAvatarPreview] = useState<string>('')
 
   useEffect(() => {
-    loadUserProfile();
-  }, []);
+    loadUserProfile()
+  }, [])
 
   const loadUserProfile = async () => {
     try {
-      setLoading(true);
-      
+      setLoading(true)
+
       // Try to load from localStorage first
-      const storedProfile = localStorage.getItem('user_profile');
-      
+      const storedProfile = localStorage.getItem('user_profile')
+
       if (storedProfile) {
-        const parsedProfile = JSON.parse(storedProfile);
-        setProfile(parsedProfile);
-        setFormData(parsedProfile);
+        const parsedProfile = JSON.parse(storedProfile)
+        setProfile(parsedProfile)
+        setFormData(parsedProfile)
       } else {
         // Create default profile
         const defaultProfile: UserProfile = {
@@ -81,7 +99,7 @@ export default function UserProfileManagement() {
           specialization: '',
           experience_years: 0,
           education: '',
-          location: 'Toshkent, O\'zbekiston',
+          location: "Toshkent, O'zbekiston",
           website: '',
           linkedin: '',
           subscription_plan: 'free',
@@ -92,73 +110,82 @@ export default function UserProfileManagement() {
             cases_analyzed: 0,
             documents_generated: 0,
             ai_requests: 0,
-            study_hours: 0
+            study_hours: 0,
           },
-          achievements: []
-        };
-        
-        setProfile(defaultProfile);
-        setFormData(defaultProfile);
-        localStorage.setItem('user_profile', JSON.stringify(defaultProfile));
+          achievements: [],
+        }
+
+        setProfile(defaultProfile)
+        setFormData(defaultProfile)
+        localStorage.setItem('user_profile', JSON.stringify(defaultProfile))
       }
     } catch (error) {
-      console.error('Error loading profile:', error);
+      console.error('Error loading profile:', error)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const handleSaveProfile = async () => {
     try {
-      setLoading(true);
-      
+      setLoading(true)
+
       // Save to localStorage
-      const updatedProfile = { ...profile, ...formData, last_login: new Date().toISOString() };
-      setProfile(updatedProfile as UserProfile);
-      localStorage.setItem('user_profile', JSON.stringify(updatedProfile));
-      
-      setEditing(false);
-      alert('Profil muvaffaqiyatli saqlandi!');
-      
-      console.log('Profile saved:', formData);
+      const updatedProfile = { ...profile, ...formData, last_login: new Date().toISOString() }
+      setProfile(updatedProfile as UserProfile)
+      localStorage.setItem('user_profile', JSON.stringify(updatedProfile))
+
+      setEditing(false)
+      alert('Profil muvaffaqiyatli saqlandi!')
+
+      console.log('Profile saved:', formData)
     } catch (error) {
-      console.error('Error saving profile:', error);
-      alert('Profilni saqlashda xatolik yuz berdi.');
+      console.error('Error saving profile:', error)
+      alert('Profilni saqlashda xatolik yuz berdi.')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+    const file = e.target.files?.[0]
     if (file) {
-      const reader = new FileReader();
+      const reader = new FileReader()
       reader.onloadend = () => {
-        setAvatarPreview(reader.result as string);
-        setFormData(prev => ({ ...prev, avatar: reader.result as string }));
-      };
-      reader.readAsDataURL(file);
+        setAvatarPreview(reader.result as string)
+        setFormData(prev => ({ ...prev, avatar: reader.result as string }))
+      }
+      reader.readAsDataURL(file)
     }
-  };
+  }
 
   const getRarityColor = (rarity: string) => {
     switch (rarity) {
-      case 'common': return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200 border-gray-300 dark:border-zinc-700';
-      case 'rare': return 'bg-blue-100 text-blue-800 border-blue-300';
-      case 'epic': return 'bg-purple-100 text-purple-800 border-purple-300';
-      case 'legendary': return 'bg-yellow-100 text-yellow-800 border-yellow-300';
-      default: return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200 border-gray-300 dark:border-zinc-700';
+      case 'common':
+        return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200 border-gray-300 dark:border-zinc-700'
+      case 'rare':
+        return 'bg-blue-100 text-blue-800 border-blue-300'
+      case 'epic':
+        return 'bg-purple-100 text-purple-800 border-purple-300'
+      case 'legendary':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-300'
+      default:
+        return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200 border-gray-300 dark:border-zinc-700'
     }
-  };
+  }
 
   const getSubscriptionColor = (plan: string) => {
     switch (plan) {
-      case 'free': return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200';
-      case 'pro': return 'bg-blue-100 text-blue-800';
-      case 'premium': return 'bg-purple-100 text-purple-800';
-      default: return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200';
+      case 'free':
+        return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200'
+      case 'pro':
+        return 'bg-blue-100 text-blue-800'
+      case 'premium':
+        return 'bg-purple-100 text-purple-800'
+      default:
+        return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200'
     }
-  };
+  }
 
   if (loading && !profile) {
     return (
@@ -168,13 +195,15 @@ export default function UserProfileManagement() {
           <p className="text-gray-600 dark:text-zinc-400 mt-4">Profil yuklanmoqda...</p>
         </div>
       </div>
-    );
+    )
   }
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-zinc-100 mb-2">Profil Menejmenti</h1>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-zinc-100 mb-2">
+          Profil Menejmenti
+        </h1>
         <p className="text-gray-600 dark:text-zinc-400">Shaxsiy ma'lumotlaringizni boshqarish</p>
       </div>
 
@@ -184,8 +213,8 @@ export default function UserProfileManagement() {
           <button
             onClick={() => setActiveTab('profile')}
             className={`flex-1 flex items-center justify-center space-x-2 px-4 py-2 rounded-md transition-colors ${
-              activeTab === 'profile' 
-                ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-sm' 
+              activeTab === 'profile'
+                ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-sm'
                 : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100'
             }`}
           >
@@ -195,8 +224,8 @@ export default function UserProfileManagement() {
           <button
             onClick={() => setActiveTab('settings')}
             className={`flex-1 flex items-center justify-center space-x-2 px-4 py-2 rounded-md transition-colors ${
-              activeTab === 'settings' 
-                ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-sm' 
+              activeTab === 'settings'
+                ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-sm'
                 : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100'
             }`}
           >
@@ -206,8 +235,8 @@ export default function UserProfileManagement() {
           <button
             onClick={() => setActiveTab('achievements')}
             className={`flex-1 flex items-center justify-center space-x-2 px-4 py-2 rounded-md transition-colors ${
-              activeTab === 'achievements' 
-                ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-sm' 
+              activeTab === 'achievements'
+                ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-sm'
                 : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100'
             }`}
           >
@@ -217,8 +246,8 @@ export default function UserProfileManagement() {
           <button
             onClick={() => setActiveTab('statistics')}
             className={`flex-1 flex items-center justify-center space-x-2 px-4 py-2 rounded-md transition-colors ${
-              activeTab === 'statistics' 
-                ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-sm' 
+              activeTab === 'statistics'
+                ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-sm'
                 : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100'
             }`}
           >
@@ -243,27 +272,19 @@ export default function UserProfileManagement() {
                           variant="outline"
                           size="sm"
                           onClick={() => {
-                            setEditing(false);
-                            setFormData(profile);
+                            setEditing(false)
+                            setFormData(profile)
                           }}
                         >
                           <X className="w-4 h-4" />
                         </Button>
-                        <Button
-                          size="sm"
-                          onClick={handleSaveProfile}
-                          disabled={loading}
-                        >
+                        <Button size="sm" onClick={handleSaveProfile} disabled={loading}>
                           <Save className="w-4 h-4 mr-1" />
                           Saqlash
                         </Button>
                       </>
                     ) : (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setEditing(true)}
-                      >
+                      <Button variant="outline" size="sm" onClick={() => setEditing(true)}>
                         <Edit2 className="w-4 h-4 mr-1" />
                         Tahrirlash
                       </Button>
@@ -277,9 +298,9 @@ export default function UserProfileManagement() {
                   <div className="relative">
                     <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
                       {avatarPreview || formData.avatar ? (
-                        <img 
-                          src={avatarPreview || formData.avatar} 
-                          alt="Avatar" 
+                        <img
+                          src={avatarPreview || formData.avatar}
+                          alt="Avatar"
                           className="w-full h-full object-cover"
                         />
                       ) : (
@@ -310,104 +331,149 @@ export default function UserProfileManagement() {
                 {/* Basic Information */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Ism</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">
+                      Ism
+                    </label>
                     {editing ? (
                       <Input
                         value={formData.name || ''}
-                        onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                        onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))}
                       />
                     ) : (
                       <p className="text-gray-900 dark:text-zinc-100">{profile.name}</p>
                     )}
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Email</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">
+                      Email
+                    </label>
                     <p className="text-gray-900 dark:text-zinc-100">{profile.email}</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Telefon</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">
+                      Telefon
+                    </label>
                     {editing ? (
                       <Input
                         value={formData.phone || ''}
-                        onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                        onChange={e => setFormData(prev => ({ ...prev, phone: e.target.value }))}
                       />
                     ) : (
-                      <p className="text-gray-900 dark:text-zinc-100">{profile.phone || 'Ko\'rsatilmagan'}</p>
+                      <p className="text-gray-900 dark:text-zinc-100">
+                        {profile.phone || "Ko'rsatilmagan"}
+                      </p>
                     )}
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Manzil</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">
+                      Manzil
+                    </label>
                     {editing ? (
                       <Input
                         value={formData.location || ''}
-                        onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
+                        onChange={e => setFormData(prev => ({ ...prev, location: e.target.value }))}
                       />
                     ) : (
-                      <p className="text-gray-900 dark:text-zinc-100">{profile.location || 'Ko\'rsatilmagan'}</p>
+                      <p className="text-gray-900 dark:text-zinc-100">
+                        {profile.location || "Ko'rsatilmagan"}
+                      </p>
                     )}
                   </div>
                 </div>
 
                 {/* Professional Information */}
                 <div className="space-y-4">
-                  <h4 className="font-semibold text-gray-900 dark:text-zinc-100">Professional Ma'lumotlar</h4>
+                  <h4 className="font-semibold text-gray-900 dark:text-zinc-100">
+                    Professional Ma'lumotlar
+                  </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Mutaxassislik</label>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">
+                        Mutaxassislik
+                      </label>
                       {editing ? (
                         <Input
                           value={formData.specialization || ''}
-                          onChange={(e) => setFormData(prev => ({ ...prev, specialization: e.target.value }))}
+                          onChange={e =>
+                            setFormData(prev => ({ ...prev, specialization: e.target.value }))
+                          }
                         />
                       ) : (
-                        <p className="text-gray-900 dark:text-zinc-100">{profile.specialization || 'Ko\'rsatilmagan'}</p>
+                        <p className="text-gray-900 dark:text-zinc-100">
+                          {profile.specialization || "Ko'rsatilmagan"}
+                        </p>
                       )}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Tajriba (yil)</label>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">
+                        Tajriba (yil)
+                      </label>
                       {editing ? (
                         <Input
                           type="number"
                           value={formData.experience_years || ''}
-                          onChange={(e) => setFormData(prev => ({ ...prev, experience_years: parseInt(e.target.value) }))}
+                          onChange={e =>
+                            setFormData(prev => ({
+                              ...prev,
+                              experience_years: parseInt(e.target.value),
+                            }))
+                          }
                         />
                       ) : (
-                        <p className="text-gray-900 dark:text-zinc-100">{profile.experience_years || '0'} yil</p>
+                        <p className="text-gray-900 dark:text-zinc-100">
+                          {profile.experience_years || '0'} yil
+                        </p>
                       )}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Ta'lim</label>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">
+                        Ta'lim
+                      </label>
                       {editing ? (
                         <Input
                           value={formData.education || ''}
-                          onChange={(e) => setFormData(prev => ({ ...prev, education: e.target.value }))}
+                          onChange={e =>
+                            setFormData(prev => ({ ...prev, education: e.target.value }))
+                          }
                         />
                       ) : (
-                        <p className="text-gray-900 dark:text-zinc-100">{profile.education || 'Ko\'rsatilmagan'}</p>
+                        <p className="text-gray-900 dark:text-zinc-100">
+                          {profile.education || "Ko'rsatilmagan"}
+                        </p>
                       )}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Website</label>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">
+                        Website
+                      </label>
                       {editing ? (
                         <Input
                           value={formData.website || ''}
-                          onChange={(e) => setFormData(prev => ({ ...prev, website: e.target.value }))}
+                          onChange={e =>
+                            setFormData(prev => ({ ...prev, website: e.target.value }))
+                          }
                         />
                       ) : (
-                        <p className="text-gray-900 dark:text-zinc-100">{profile.website || 'Ko\'rsatilmagan'}</p>
+                        <p className="text-gray-900 dark:text-zinc-100">
+                          {profile.website || "Ko'rsatilmagan"}
+                        </p>
                       )}
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Bio</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">
+                      Bio
+                    </label>
                     {editing ? (
                       <Textarea
                         value={formData.bio || ''}
-                        onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
+                        onChange={e => setFormData(prev => ({ ...prev, bio: e.target.value }))}
                         rows={3}
                       />
                     ) : (
-                      <p className="text-gray-900 dark:text-zinc-100">{profile.bio || 'Bio yo\'q'}</p>
+                      <p className="text-gray-900 dark:text-zinc-100">
+                        {profile.bio || "Bio yo'q"}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -441,9 +507,7 @@ export default function UserProfileManagement() {
                       </p>
                     </div>
                   )}
-                  <Button className="w-full">
-                    Obunani yangilash
-                  </Button>
+                  <Button className="w-full">Obunani yangilash</Button>
                 </div>
               </CardContent>
             </Card>
@@ -459,11 +523,15 @@ export default function UserProfileManagement() {
               <CardContent>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600 dark:text-zinc-400">Tahlil qilingan ishlar</span>
+                    <span className="text-sm text-gray-600 dark:text-zinc-400">
+                      Tahlil qilingan ishlar
+                    </span>
                     <span className="font-semibold">{profile.stats.cases_analyzed}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600 dark:text-zinc-400">Yaratilgan hujjatlar</span>
+                    <span className="text-sm text-gray-600 dark:text-zinc-400">
+                      Yaratilgan hujjatlar
+                    </span>
                     <span className="font-semibold">{profile.stats.documents_generated}</span>
                   </div>
                   <div className="flex items-center justify-between">
@@ -471,7 +539,9 @@ export default function UserProfileManagement() {
                     <span className="font-semibold">{profile.stats.ai_requests}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600 dark:text-zinc-400">O'qish soatlari</span>
+                    <span className="text-sm text-gray-600 dark:text-zinc-400">
+                      O'qish soatlari
+                    </span>
                     <span className="font-semibold">{profile.stats.study_hours}</span>
                   </div>
                 </div>
@@ -483,13 +553,15 @@ export default function UserProfileManagement() {
 
       {activeTab === 'achievements' && profile && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {profile.achievements.map((achievement) => (
+          {profile.achievements.map(achievement => (
             <Card key={achievement.id} className={getRarityColor(achievement.rarity)}>
               <CardContent className="p-6">
                 <div className="text-center">
                   <div className="text-4xl mb-4">{achievement.icon}</div>
                   <h3 className="font-semibold text-lg mb-2">{achievement.title}</h3>
-                  <p className="text-gray-600 dark:text-zinc-400 text-sm mb-4">{achievement.description}</p>
+                  <p className="text-gray-600 dark:text-zinc-400 text-sm mb-4">
+                    {achievement.description}
+                  </p>
                   <div className="flex items-center justify-between text-xs text-gray-500 dark:text-zinc-500">
                     <span>{new Date(achievement.unlocked_at).toLocaleDateString('uz-UZ')}</span>
                     <Badge variant="outline" className="text-xs">
@@ -516,25 +588,33 @@ export default function UserProfileManagement() {
               <div className="space-y-6">
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm text-gray-600 dark:text-zinc-400">Tahlil qilingan ishlar</span>
+                    <span className="text-sm text-gray-600 dark:text-zinc-400">
+                      Tahlil qilingan ishlar
+                    </span>
                     <span className="font-semibold">{profile.stats.cases_analyzed}</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div 
-                      className="bg-blue-600 h-2 rounded-full" 
-                      style={{ width: `${Math.min((profile.stats.cases_analyzed / 200) * 100, 100)}%` }}
+                    <div
+                      className="bg-blue-600 h-2 rounded-full"
+                      style={{
+                        width: `${Math.min((profile.stats.cases_analyzed / 200) * 100, 100)}%`,
+                      }}
                     />
                   </div>
                 </div>
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm text-gray-600 dark:text-zinc-400">Yaratilgan hujjatlar</span>
+                    <span className="text-sm text-gray-600 dark:text-zinc-400">
+                      Yaratilgan hujjatlar
+                    </span>
                     <span className="font-semibold">{profile.stats.documents_generated}</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div 
-                      className="bg-green-600 h-2 rounded-full" 
-                      style={{ width: `${Math.min((profile.stats.documents_generated / 100) * 100, 100)}%` }}
+                    <div
+                      className="bg-green-600 h-2 rounded-full"
+                      style={{
+                        width: `${Math.min((profile.stats.documents_generated / 100) * 100, 100)}%`,
+                      }}
                     />
                   </div>
                 </div>
@@ -544,9 +624,11 @@ export default function UserProfileManagement() {
                     <span className="font-semibold">{profile.stats.ai_requests}</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div 
-                      className="bg-purple-600 h-2 rounded-full" 
-                      style={{ width: `${Math.min((profile.stats.ai_requests / 1000) * 100, 100)}%` }}
+                    <div
+                      className="bg-purple-600 h-2 rounded-full"
+                      style={{
+                        width: `${Math.min((profile.stats.ai_requests / 1000) * 100, 100)}%`,
+                      }}
                     />
                   </div>
                 </div>
@@ -564,20 +646,28 @@ export default function UserProfileManagement() {
             <CardContent>
               <div className="space-y-4">
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-blue-600">{profile.stats.study_hours}</div>
+                  <div className="text-3xl font-bold text-blue-600">
+                    {profile.stats.study_hours}
+                  </div>
                   <p className="text-gray-600 dark:text-zinc-400">Jami o'qish soatlari</p>
                 </div>
                 <div className="grid grid-cols-3 gap-4 text-center">
                   <div>
-                    <div className="text-xl font-semibold">{Math.floor(profile.stats.study_hours / 7)}</div>
+                    <div className="text-xl font-semibold">
+                      {Math.floor(profile.stats.study_hours / 7)}
+                    </div>
                     <p className="text-xs text-gray-600 dark:text-zinc-400">Hafta</p>
                   </div>
                   <div>
-                    <div className="text-xl font-semibold">{Math.floor(profile.stats.study_hours / 30)}</div>
+                    <div className="text-xl font-semibold">
+                      {Math.floor(profile.stats.study_hours / 30)}
+                    </div>
                     <p className="text-xs text-gray-600 dark:text-zinc-400">Oy</p>
                   </div>
                   <div>
-                    <div className="text-xl font-semibold">{Math.floor(profile.stats.study_hours / 365)}</div>
+                    <div className="text-xl font-semibold">
+                      {Math.floor(profile.stats.study_hours / 365)}
+                    </div>
                     <p className="text-xs text-gray-600 dark:text-zinc-400">Yil</p>
                   </div>
                 </div>
@@ -598,11 +688,19 @@ export default function UserProfileManagement() {
                 <h3 className="font-semibold mb-4">Bildirishnoma Sozlamalari</h3>
                 <div className="space-y-3">
                   <label className="flex items-center space-x-3">
-                    <input type="checkbox" defaultChecked className="w-4 h-4 text-blue-600 rounded" />
+                    <input
+                      type="checkbox"
+                      defaultChecked
+                      className="w-4 h-4 text-blue-600 rounded"
+                    />
                     <span>Email bildirishnomalar</span>
                   </label>
                   <label className="flex items-center space-x-3">
-                    <input type="checkbox" defaultChecked className="w-4 h-4 text-blue-600 rounded" />
+                    <input
+                      type="checkbox"
+                      defaultChecked
+                      className="w-4 h-4 text-blue-600 rounded"
+                    />
                     <span>Push bildirishnomalar</span>
                   </label>
                   <label className="flex items-center space-x-3">
@@ -611,12 +709,16 @@ export default function UserProfileManagement() {
                   </label>
                 </div>
               </div>
-              
+
               <div>
                 <h3 className="font-semibold mb-4">Maxfiylik Sozlamalari</h3>
                 <div className="space-y-3">
                   <label className="flex items-center space-x-3">
-                    <input type="checkbox" defaultChecked className="w-4 h-4 text-blue-600 rounded" />
+                    <input
+                      type="checkbox"
+                      defaultChecked
+                      className="w-4 h-4 text-blue-600 rounded"
+                    />
                     <span>Profilni jamoatchilikka ko'rsatish</span>
                   </label>
                   <label className="flex items-center space-x-3">
@@ -645,5 +747,5 @@ export default function UserProfileManagement() {
         </Card>
       )}
     </div>
-  );
+  )
 }

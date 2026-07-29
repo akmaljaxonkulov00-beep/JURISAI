@@ -1,62 +1,74 @@
-import React, { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui';
-import { Button, Input, Textarea, Select, Badge, Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui';
-import { LoadingSpinner } from '@/components/ui';
-import { toast } from '@/components/ui/Toast';
-import { cn } from '@/lib/utils';
+import React, { useState } from 'react'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui'
+import {
+  Button,
+  Input,
+  Textarea,
+  Select,
+  Badge,
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+} from '@/components/ui'
+import { LoadingSpinner } from '@/components/ui'
+import { toast } from '@/components/ui/Toast'
+import { cn } from '@/lib/utils'
 
 interface FormField {
-  id: string;
-  name: string;
-  label: string;
-  type: 'text' | 'textarea' | 'date' | 'number' | 'select' | 'checkbox';
-  required: boolean;
-  placeholder?: string;
-  options?: Array<{ value: string; label: string }>;
+  id: string
+  name: string
+  label: string
+  type: 'text' | 'textarea' | 'date' | 'number' | 'select' | 'checkbox'
+  required: boolean
+  placeholder?: string
+  options?: Array<{ value: string; label: string }>
   validation?: {
-    minLength?: number;
-    maxLength?: number;
-    pattern?: string;
-    min?: number;
-    max?: number;
-  };
+    minLength?: number
+    maxLength?: number
+    pattern?: string
+    min?: number
+    max?: number
+  }
 }
 
 interface LegalFormTemplate {
-  id: string;
-  name: string;
-  category: string;
-  description: string;
-  fields: FormField[];
-  instructions: string[];
-  required_documents: string[];
-  processing_time: string;
-  fees: number;
+  id: string
+  name: string
+  category: string
+  description: string
+  fields: FormField[]
+  instructions: string[]
+  required_documents: string[]
+  processing_time: string
+  fees: number
 }
 
 interface FormData {
-  [key: string]: any;
+  [key: string]: any
 }
 
 const LegalForms: React.FC = () => {
-  const [selectedTemplate, setSelectedTemplate] = useState<LegalFormTemplate | null>(null);
-  const [formData, setFormData] = useState<FormData>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submittedForms, setSubmittedForms] = useState<Array<{
-    id: string;
-    template: LegalFormTemplate;
-    data: FormData;
-    submitted_at: Date;
-    status: 'pending' | 'processing' | 'approved' | 'rejected';
-  }>>([]);
-  const [activeTab, setActiveTab] = useState('templates');
+  const [selectedTemplate, setSelectedTemplate] = useState<LegalFormTemplate | null>(null)
+  const [formData, setFormData] = useState<FormData>({})
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submittedForms, setSubmittedForms] = useState<
+    Array<{
+      id: string
+      template: LegalFormTemplate
+      data: FormData
+      submitted_at: Date
+      status: 'pending' | 'processing' | 'approved' | 'rejected'
+    }>
+  >([])
+  const [activeTab, setActiveTab] = useState('templates')
 
   const formTemplates: LegalFormTemplate[] = [
     {
       id: 'complaint_form',
-      name: 'Da\'vo arizasi shakli',
+      name: "Da'vo arizasi shakli",
       category: 'Civil Litigation',
-      description: 'Sudga da\'vo berish uchun rasmiy ariza shakli',
+      description: "Sudga da'vo berish uchun rasmiy ariza shakli",
       fields: [
         {
           id: 'court_name',
@@ -64,23 +76,23 @@ const LegalForms: React.FC = () => {
           label: 'Sud nomi',
           type: 'text',
           required: true,
-          placeholder: 'Toshkent shahar sud'
+          placeholder: 'Toshkent shahar sud',
         },
         {
           id: 'plaintiff_name',
           name: 'plaintiff_name',
-          label: 'Da\'vogar F.I.O.',
+          label: "Da'vogar F.I.O.",
           type: 'text',
           required: true,
-          placeholder: 'Ism Familiya Otasini ismi'
+          placeholder: 'Ism Familiya Otasini ismi',
         },
         {
           id: 'plaintiff_address',
           name: 'plaintiff_address',
-          label: 'Da\'vogar manzili',
+          label: "Da'vogar manzili",
           type: 'textarea',
           required: true,
-          placeholder: 'To\'liq manzil'
+          placeholder: "To'liq manzil",
         },
         {
           id: 'defendant_name',
@@ -88,7 +100,7 @@ const LegalForms: React.FC = () => {
           label: 'Javobgar F.I.O.',
           type: 'text',
           required: true,
-          placeholder: 'Ism Familiya Otasini ismi'
+          placeholder: 'Ism Familiya Otasini ismi',
         },
         {
           id: 'defendant_address',
@@ -96,25 +108,25 @@ const LegalForms: React.FC = () => {
           label: 'Javobgar manzili',
           type: 'textarea',
           required: true,
-          placeholder: 'To\'liq manzil'
+          placeholder: "To'liq manzil",
         },
         {
           id: 'claim_amount',
           name: 'claim_amount',
-          label: 'Da\'vo summasi (so\'m)',
+          label: "Da'vo summasi (so'm)",
           type: 'number',
           required: true,
           placeholder: '1000000',
-          validation: { min: 0 }
+          validation: { min: 0 },
         },
         {
           id: 'claim_description',
           name: 'claim_description',
-          label: 'Da\'vo mazmuni',
+          label: "Da'vo mazmuni",
           type: 'textarea',
           required: true,
-          placeholder: 'Da\'voningizning to\'liq mazmuni',
-          validation: { minLength: 50 }
+          placeholder: "Da'voningizning to'liq mazmuni",
+          validation: { minLength: 50 },
         },
         {
           id: 'legal_basis',
@@ -123,23 +135,23 @@ const LegalForms: React.FC = () => {
           type: 'textarea',
           required: true,
           placeholder: 'Qonun hujjatlari va moddalar',
-          validation: { minLength: 30 }
-        }
+          validation: { minLength: 30 },
+        },
       ],
       instructions: [
-        'Barcha maydonlarni to\'g\'ri va to\'liq to\'ldiring',
-        'Da\'vo summasi raqam bilan yozilishi kerak',
+        "Barcha maydonlarni to'g'ri va to'liq to'ldiring",
+        "Da'vo summasi raqam bilan yozilishi kerak",
         'Qonuniy asoslari aniq keltirilishi lozim',
-        'Arizani imzolab sanasini qo\'ying'
+        "Arizani imzolab sanasini qo'ying",
       ],
       required_documents: [
         'Shaxsiy hujjat (pasport nusxasi)',
-        'Shartnoma (agar mavjud bo\'lsa)',
+        "Shartnoma (agar mavjud bo'lsa)",
         'Dalillar (hisob-fakturalar, guvohlik bayonlari)',
-        'Davlat boji (agar to\'langan bo\'lsa)'
+        "Davlat boji (agar to'langan bo'lsa)",
       ],
       processing_time: '5-7 ish kuni',
-      fees: 340000
+      fees: 340000,
     },
     {
       id: 'petition_form',
@@ -156,9 +168,9 @@ const LegalForms: React.FC = () => {
           options: [
             { value: 'ministry', label: 'Vazirlik' },
             { value: 'agency', label: 'Agentlik' },
-            { value: 'committee', label: 'Qo\'mita' },
-            { value: 'inspectorate', label: 'Inspektsiya' }
-          ]
+            { value: 'committee', label: "Qo'mita" },
+            { value: 'inspectorate', label: 'Inspektsiya' },
+          ],
         },
         {
           id: 'applicant_name',
@@ -166,7 +178,7 @@ const LegalForms: React.FC = () => {
           label: 'Ariza beruvchi F.I.O.',
           type: 'text',
           required: true,
-          placeholder: 'Ism Familiya Otasini ismi'
+          placeholder: 'Ism Familiya Otasini ismi',
         },
         {
           id: 'subject',
@@ -174,16 +186,16 @@ const LegalForms: React.FC = () => {
           label: 'Ariza mavzusi',
           type: 'text',
           required: true,
-          placeholder: 'Ariza qisqacha mazmuni'
+          placeholder: 'Ariza qisqacha mazmuni',
         },
         {
           id: 'request_details',
           name: 'request_details',
-          label: 'So\'rov tafsilotlari',
+          label: "So'rov tafsilotlari",
           type: 'textarea',
           required: true,
-          placeholder: 'So\'rovingizning to\'liq tafsilotlari',
-          validation: { minLength: 50 }
+          placeholder: "So'rovingizning to'liq tafsilotlari",
+          validation: { minLength: 50 },
         },
         {
           id: 'attachments',
@@ -191,22 +203,22 @@ const LegalForms: React.FC = () => {
           label: 'Ilovalar',
           type: 'textarea',
           required: false,
-          placeholder: 'Ilova qilingan hujjatlar ro\'yxati'
-        }
+          placeholder: "Ilova qilingan hujjatlar ro'yxati",
+        },
       ],
       instructions: [
-        'Ariza mavzusi aniq bo\'lishi kerak',
-        'So\'rov mantiqiy va tushunarli bo\'lishi lozim',
+        "Ariza mavzusi aniq bo'lishi kerak",
+        "So'rov mantiqiy va tushunarli bo'lishi lozim",
         'Kerakli hujjatlarni ilova qiling',
-        'Arizani imzolab sanasini qo\'ying'
+        "Arizani imzolab sanasini qo'ying",
       ],
       required_documents: [
         'Shaxsiy hujjat',
-        'So\'rovga oid qo\'shimcha hujjatlar',
-        'Aloqa ma\'lumotlari'
+        "So'rovga oid qo'shimcha hujjatlar",
+        "Aloqa ma'lumotlari",
       ],
       processing_time: '10-15 ish kuni',
-      fees: 0
+      fees: 0,
     },
     {
       id: 'contract_form',
@@ -224,8 +236,8 @@ const LegalForms: React.FC = () => {
             { value: 'service', label: 'Xizmat shartnomasi' },
             { value: 'sales', label: 'Sotib-sotish shartnomasi' },
             { value: 'lease', label: 'Ijaraga berish shartnomasi' },
-            { value: 'employment', label: 'Mehnat shartnomasi' }
-          ]
+            { value: 'employment', label: 'Mehnat shartnomasi' },
+          ],
         },
         {
           id: 'party_a_name',
@@ -233,7 +245,7 @@ const LegalForms: React.FC = () => {
           label: '1-tomon (tuzuvchi)',
           type: 'text',
           required: true,
-          placeholder: 'To\'liq nomi'
+          placeholder: "To'liq nomi",
         },
         {
           id: 'party_b_name',
@@ -241,16 +253,16 @@ const LegalForms: React.FC = () => {
           label: '2-tomon (qabul qiluvchi)',
           type: 'text',
           required: true,
-          placeholder: 'To\'liq nomi'
+          placeholder: "To'liq nomi",
         },
         {
           id: 'contract_amount',
           name: 'contract_amount',
-          label: 'Shartnoma summasi (so\'m)',
+          label: "Shartnoma summasi (so'm)",
           type: 'number',
           required: true,
           placeholder: '1000000',
-          validation: { min: 0 }
+          validation: { min: 0 },
         },
         {
           id: 'contract_duration',
@@ -258,7 +270,7 @@ const LegalForms: React.FC = () => {
           label: 'Shartnoma muddati',
           type: 'text',
           required: true,
-          placeholder: '1 yil, 6 oy, kundalik'
+          placeholder: '1 yil, 6 oy, kundalik',
         },
         {
           id: 'terms_conditions',
@@ -267,81 +279,85 @@ const LegalForms: React.FC = () => {
           type: 'textarea',
           required: true,
           placeholder: 'Shartnomaning asosiy shartlari',
-          validation: { minLength: 100 }
-        }
+          validation: { minLength: 100 },
+        },
       ],
       instructions: [
-        'Tomonlar to\'liq ma\'lumotlari keltirilishi kerak',
+        "Tomonlar to'liq ma'lumotlari keltirilishi kerak",
         'Shartnoma summasi aniq belgilanishi kerak',
         'Shartlar qonunga mos kelishi lozim',
-        'Ikkala tomon ham imzolashi kerak'
+        'Ikkala tomon ham imzolashi kerak',
       ],
       required_documents: [
         'Tomonlarning shaxsiy hujjatlari',
-        'Tashkilot hujjatlari (agar kerak bo\'lsa)',
-        'Garantiya hujjatlari (agar kerak bo\'lsa)'
+        "Tashkilot hujjatlari (agar kerak bo'lsa)",
+        "Garantiya hujjatlari (agar kerak bo'lsa)",
       ],
       processing_time: '1-2 ish kuni',
-      fees: 0
-    }
-  ];
+      fees: 0,
+    },
+  ]
 
   const handleTemplateSelect = (template: LegalFormTemplate) => {
-    setSelectedTemplate(template);
-    setFormData({});
-    setActiveTab('form');
-  };
+    setSelectedTemplate(template)
+    setFormData({})
+    setActiveTab('form')
+  }
 
   const handleFieldChange = (fieldId: string, value: any) => {
     setFormData(prev => ({
       ...prev,
-      [fieldId]: value
-    }));
-  };
+      [fieldId]: value,
+    }))
+  }
 
   const validateForm = (): boolean => {
-    if (!selectedTemplate) return false;
+    if (!selectedTemplate) return false
 
     for (const field of selectedTemplate.fields) {
-      const value = formData[field.id];
+      const value = formData[field.id]
 
       if (field.required && (!value || value.toString().trim() === '')) {
-        toast.error(`${field.label} maydoni to\'ldirilishi shart`);
-        return false;
+        toast.error(`${field.label} maydoni to\'ldirilishi shart`)
+        return false
       }
 
       if (value && field.validation) {
-        const stringValue = value.toString();
-        
+        const stringValue = value.toString()
+
         if (field.validation.minLength && stringValue.length < field.validation.minLength) {
-          toast.error(`${field.label} kamida ${field.validation.minLength} belgidan iborat bo\'lishi kerak`);
-          return false;
+          toast.error(
+            `${field.label} kamida ${field.validation.minLength} belgidan iborat bo\'lishi kerak`
+          )
+          return false
         }
 
         if (field.validation.maxLength && stringValue.length > field.validation.maxLength) {
-          toast.error(`${field.label} ${field.validation.maxLength} belgidan oshib ketmasligi kerak`);
-          return false;
+          toast.error(
+            `${field.label} ${field.validation.maxLength} belgidan oshib ketmasligi kerak`
+          )
+          return false
         }
 
         if (field.validation.min && parseFloat(value) < field.validation.min) {
-          toast.error(`${field.label} ${field.validation.min} dan kichik bo\'lishi mumkin emas`);
-          return false;
+          toast.error(`${field.label} ${field.validation.min} dan kichik bo\'lishi mumkin emas`)
+          return false
         }
 
         if (field.validation.max && parseFloat(value) > field.validation.max) {
-          toast.error(`${field.label} ${field.validation.max} dan katta bo\'lishi mumkin emas`);
-          return false;
+          toast.error(`${field.label} ${field.validation.max} dan katta bo\'lishi mumkin emas`)
+          return false
         }
       }
     }
 
-    return true;
-  };
+    return true
+  }
 
   const handleSubmit = async () => {
-    if (!validateForm()) return;
+    if (!validateForm()) return
 
-    setIsSubmitting(true);
+    setIsSubmitting(true)
 
     try {
       // API call to submit form
@@ -354,36 +370,37 @@ const LegalForms: React.FC = () => {
           template_id: selectedTemplate!.id,
           template_name: selectedTemplate!.name,
           form_data: formData,
-          category: selectedTemplate!.category
+          category: selectedTemplate!.category,
         }),
-      });
+      })
 
       if (!response.ok) {
-        throw new Error('Form submission failed');
+        throw new Error('Form submission failed')
       }
 
-      const result = await response.json();
+      const result = await response.json()
 
       const newSubmission = {
         id: result.id || Date.now().toString(),
         template: selectedTemplate!,
         data: { ...formData },
         submitted_at: new Date(),
-        status: result.status || 'pending' as const,
-        tracking_number: result.tracking_number
-      };
+        status: result.status || ('pending' as const),
+        tracking_number: result.tracking_number,
+      }
 
-      setSubmittedForms(prev => [newSubmission, ...prev]);
-      toast.success(`Ariza muvaffaqiyatli yuborildi! Tracking raqami: ${result.tracking_number || 'N/A'}`);
-      setActiveTab('submitted');
-      setFormData({});
-      setSelectedTemplate(null);
-
+      setSubmittedForms(prev => [newSubmission, ...prev])
+      toast.success(
+        `Ariza muvaffaqiyatli yuborildi! Tracking raqami: ${result.tracking_number || 'N/A'}`
+      )
+      setActiveTab('submitted')
+      setFormData({})
+      setSelectedTemplate(null)
     } catch (error) {
       // Fallback to mock submission if API fails
-      console.log('API submission failed, using fallback:', error);
-      
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      console.log('API submission failed, using fallback:', error)
+
+      await new Promise(resolve => setTimeout(resolve, 1500))
 
       const newSubmission = {
         id: Date.now().toString(),
@@ -391,53 +408,68 @@ const LegalForms: React.FC = () => {
         data: { ...formData },
         submitted_at: new Date(),
         status: 'pending' as const,
-        tracking_number: `TRK${Date.now()}`
-      };
+        tracking_number: `TRK${Date.now()}`,
+      }
 
-      setSubmittedForms(prev => [newSubmission, ...prev]);
-      toast.success('Ariza muvaffaqiyatli yuborildi (offline rejimda)');
-      setActiveTab('submitted');
-      setFormData({});
-      setSelectedTemplate(null);
-
+      setSubmittedForms(prev => [newSubmission, ...prev])
+      toast.success('Ariza muvaffaqiyatli yuborildi (offline rejimda)')
+      setActiveTab('submitted')
+      setFormData({})
+      setSelectedTemplate(null)
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false)
     }
-  };
+  }
 
   const getCategoryColor = (category: string) => {
     switch (category) {
-      case 'Civil Litigation': return 'bg-blue-100 text-blue-800';
-      case 'Criminal Law': return 'bg-red-100 text-red-800';
-      case 'Administrative': return 'bg-green-100 text-green-800';
-      case 'Business Law': return 'bg-purple-100 text-purple-800';
-      case 'Family Law': return 'bg-pink-100 text-pink-800';
-      default: return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200';
+      case 'Civil Litigation':
+        return 'bg-blue-100 text-blue-800'
+      case 'Criminal Law':
+        return 'bg-red-100 text-red-800'
+      case 'Administrative':
+        return 'bg-green-100 text-green-800'
+      case 'Business Law':
+        return 'bg-purple-100 text-purple-800'
+      case 'Family Law':
+        return 'bg-pink-100 text-pink-800'
+      default:
+        return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200'
     }
-  };
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'processing': return 'bg-blue-100 text-blue-800';
-      case 'approved': return 'bg-green-100 text-green-800';
-      case 'rejected': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200';
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800'
+      case 'processing':
+        return 'bg-blue-100 text-blue-800'
+      case 'approved':
+        return 'bg-green-100 text-green-800'
+      case 'rejected':
+        return 'bg-red-100 text-red-800'
+      default:
+        return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200'
     }
-  };
+  }
 
   const getStatusName = (status: string) => {
     switch (status) {
-      case 'pending': return 'Kutilmoqda';
-      case 'processing': return 'Qayta ishlanmoqda';
-      case 'approved': return 'Tasdiqlangan';
-      case 'rejected': return 'Rad etilgan';
-      default: return status;
+      case 'pending':
+        return 'Kutilmoqda'
+      case 'processing':
+        return 'Qayta ishlanmoqda'
+      case 'approved':
+        return 'Tasdiqlangan'
+      case 'rejected':
+        return 'Rad etilgan'
+      default:
+        return status
     }
-  };
+  }
 
   const renderField = (field: FormField) => {
-    const value = formData[field.id] || '';
+    const value = formData[field.id] || ''
 
     switch (field.type) {
       case 'textarea':
@@ -445,11 +477,11 @@ const LegalForms: React.FC = () => {
           <Textarea
             label={field.label}
             value={value}
-            onChange={(e) => handleFieldChange(field.id, e.target.value)}
+            onChange={e => handleFieldChange(field.id, e.target.value)}
             placeholder={field.placeholder}
             rows={field.id === 'claim_description' || field.id === 'terms_conditions' ? 6 : 4}
           />
-        );
+        )
       case 'select':
         return (
           <div className="space-y-2">
@@ -458,7 +490,7 @@ const LegalForms: React.FC = () => {
             </label>
             <select
               value={value}
-              onChange={(e) => handleFieldChange(field.id, e.target.value)}
+              onChange={e => handleFieldChange(field.id, e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">Tanlang...</option>
@@ -469,25 +501,27 @@ const LegalForms: React.FC = () => {
               ))}
             </select>
           </div>
-        );
+        )
       default:
         return (
           <Input
             label={field.label}
             type={field.type}
             value={value}
-            onChange={(e) => handleFieldChange(field.id, e.target.value)}
+            onChange={e => handleFieldChange(field.id, e.target.value)}
             placeholder={field.placeholder}
           />
-        );
+        )
     }
-  };
+  }
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       <div className="text-center space-y-2">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-zinc-100">Huquqiy shakllar</h1>
-        <p className="text-gray-600 dark:text-zinc-400">Rasmiy huquqiy shakllarni to\'ldiring va yuboring</p>
+        <p className="text-gray-600 dark:text-zinc-400">
+          Rasmiy huquqiy shakllarni to\'ldiring va yuboring
+        </p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
@@ -500,7 +534,7 @@ const LegalForms: React.FC = () => {
 
         <TabsContent value="templates" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {formTemplates.map((template) => (
+            {formTemplates.map(template => (
               <Card key={template.id} className="cursor-pointer hover:shadow-lg transition-shadow">
                 <CardHeader>
                   <div className="flex items-center justify-between">
@@ -520,13 +554,12 @@ const LegalForms: React.FC = () => {
                     {template.fees > 0 && (
                       <div className="text-sm">
                         <span className="font-medium">Davlat boji: </span>
-                        <span className="text-gray-700 dark:text-zinc-300">{template.fees.toLocaleString()} so\'m</span>
+                        <span className="text-gray-700 dark:text-zinc-300">
+                          {template.fees.toLocaleString()} so\'m
+                        </span>
                       </div>
                     )}
-                    <Button
-                      onClick={() => handleTemplateSelect(template)}
-                      className="w-full"
-                    >
+                    <Button onClick={() => handleTemplateSelect(template)} className="w-full">
                       Tanlash
                     </Button>
                   </div>
@@ -545,9 +578,9 @@ const LegalForms: React.FC = () => {
                   <Button
                     variant="outline"
                     onClick={() => {
-                      setSelectedTemplate(null);
-                      setFormData({});
-                      setActiveTab('templates');
+                      setSelectedTemplate(null)
+                      setFormData({})
+                      setActiveTab('templates')
                     }}
                   >
                     Boshqa shakl
@@ -561,7 +594,10 @@ const LegalForms: React.FC = () => {
                     <h4 className="font-medium text-blue-900 mb-2">Ko\'rsatmalar:</h4>
                     <ul className="space-y-1">
                       {selectedTemplate.instructions.map((instruction, index) => (
-                        <li key={index} className="flex items-start space-x-2 text-sm text-blue-700">
+                        <li
+                          key={index}
+                          className="flex items-start space-x-2 text-sm text-blue-700"
+                        >
                           <span className="text-blue-500 mt-1">•</span>
                           <span>{instruction}</span>
                         </li>
@@ -571,10 +607,15 @@ const LegalForms: React.FC = () => {
 
                   {/* Required documents */}
                   <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 rounded-lg p-4">
-                    <h4 className="font-medium text-yellow-900 mb-2">Talab qilinadigan hujjatlar:</h4>
+                    <h4 className="font-medium text-yellow-900 mb-2">
+                      Talab qilinadigan hujjatlar:
+                    </h4>
                     <ul className="space-y-1">
                       {selectedTemplate.required_documents.map((doc, index) => (
-                        <li key={index} className="flex items-start space-x-2 text-sm text-yellow-700">
+                        <li
+                          key={index}
+                          className="flex items-start space-x-2 text-sm text-yellow-700"
+                        >
                           <span className="text-yellow-500 mt-1">▢</span>
                           <span>{doc}</span>
                         </li>
@@ -584,10 +625,8 @@ const LegalForms: React.FC = () => {
 
                   {/* Form fields */}
                   <div className="space-y-6">
-                    {selectedTemplate.fields.map((field) => (
-                      <div key={field.id}>
-                        {renderField(field)}
-                      </div>
+                    {selectedTemplate.fields.map(field => (
+                      <div key={field.id}>{renderField(field)}</div>
                     ))}
                   </div>
 
@@ -625,7 +664,7 @@ const LegalForms: React.FC = () => {
         <TabsContent value="submitted" className="space-y-6">
           {submittedForms.length > 0 ? (
             <div className="space-y-4">
-              {submittedForms.map((submission) => (
+              {submittedForms.map(submission => (
                 <Card key={submission.id}>
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between mb-4">
@@ -641,16 +680,18 @@ const LegalForms: React.FC = () => {
                     </div>
                     <div className="space-y-2">
                       {Object.entries(submission.data).map(([key, value]) => {
-                        const field = submission.template.fields.find(f => f.id === key);
-                        if (!field) return null;
+                        const field = submission.template.fields.find(f => f.id === key)
+                        if (!field) return null
                         return (
                           <div key={key} className="flex justify-between">
-                            <span className="text-sm text-gray-600 dark:text-zinc-400">{field.label}:</span>
+                            <span className="text-sm text-gray-600 dark:text-zinc-400">
+                              {field.label}:
+                            </span>
                             <span className="text-sm font-medium">
-                              {typeof value === 'boolean' ? (value ? 'Ha' : 'Yo\'q') : String(value)}
+                              {typeof value === 'boolean' ? (value ? 'Ha' : "Yo'q") : String(value)}
                             </span>
                           </div>
-                        );
+                        )
                       })}
                     </div>
                   </CardContent>
@@ -681,11 +722,17 @@ const LegalForms: React.FC = () => {
                   <ul className="space-y-2 text-gray-700 dark:text-zinc-300">
                     <li className="flex items-start space-x-2">
                       <span className="text-blue-500 mt-1">1.</span>
-                      <span>Barcha maydonlarni to\'g\'ri va to\'liq to\'ldiring. Belgilangan maydonlar majburiy hisoblanadi.</span>
+                      <span>
+                        Barcha maydonlarni to\'g\'ri va to\'liq to\'ldiring. Belgilangan maydonlar
+                        majburiy hisoblanadi.
+                      </span>
                     </li>
                     <li className="flex items-start space-x-2">
                       <span className="text-blue-500 mt-1">2.</span>
-                      <span>Ma\'lumotlarni aniq va ishonchli keltiring. Xatoliklar oldini olish uchun tekshirib ko\'ring.</span>
+                      <span>
+                        Ma\'lumotlarni aniq va ishonchli keltiring. Xatoliklar oldini olish uchun
+                        tekshirib ko\'ring.
+                      </span>
                     </li>
                     <li className="flex items-start space-x-2">
                       <span className="text-blue-500 mt-1">3.</span>
@@ -693,7 +740,9 @@ const LegalForms: React.FC = () => {
                     </li>
                     <li className="flex items-start space-x-2">
                       <span className="text-blue-500 mt-1">4.</span>
-                      <span>Arizani imzolab, sanasini va imzo qo'yilgan shaxs F.I.O.ni qo'shing.</span>
+                      <span>
+                        Arizani imzolab, sanasini va imzo qo'yilgan shaxs F.I.O.ni qo'shing.
+                      </span>
                     </li>
                   </ul>
                 </div>
@@ -726,11 +775,15 @@ const LegalForms: React.FC = () => {
                     <ul className="space-y-2 text-gray-700 dark:text-zinc-300">
                       <li className="flex items-start space-x-2">
                         <span className="text-orange-500 mt-1">!</span>
-                        <span>Shaklni yuborishdan oldin advokat bilan maslahatlashingiz tavsiya etiladi.</span>
+                        <span>
+                          Shaklni yuborishdan oldin advokat bilan maslahatlashingiz tavsiya etiladi.
+                        </span>
                       </li>
                       <li className="flex items-start space-x-2">
                         <span className="text-orange-500 mt-1">!</span>
-                        <span>Ariza nusxasini saqlab olingiz, kelajuda kerak bo\'lishi mumkin.</span>
+                        <span>
+                          Ariza nusxasini saqlab olingiz, kelajuda kerak bo\'lishi mumkin.
+                        </span>
                       </li>
                       <li className="flex items-start space-x-2">
                         <span className="text-orange-500 mt-1">!</span>
@@ -745,7 +798,7 @@ const LegalForms: React.FC = () => {
         </TabsContent>
       </Tabs>
     </div>
-  );
-};
+  )
+}
 
-export { LegalForms };
+export { LegalForms }

@@ -14,7 +14,7 @@ export default function PrivacyPage() {
             <h1 className="text-3xl font-bold text-gray-900 dark:text-zinc-100 mb-8">
               Maxfiylik Siyosati
             </h1>
-            
+
             <div className="prose prose-lg max-w-none">
               <p className="text-gray-600 dark:text-zinc-400 mb-6">
                 Oxirgi yangilanish: {new Date().toLocaleDateString('uz-UZ')}
@@ -53,11 +53,10 @@ export default function PrivacyPage() {
                 3. Ma'lumotlarni saqlash
               </h2>
               <p className="text-gray-600 dark:text-zinc-400 mb-4">
-                Foydalanuvchi ma'lumotlari xavfsiz serverlarda saqlanadi va faqat ruxsat etilgan xodimlar tomonidan kirish mumkin.
+                Foydalanuvchi ma'lumotlari xavfsiz serverlarda saqlanadi va faqat ruxsat etilgan
+                xodimlar tomonidan kirish mumkin.
               </p>
-              <p className="text-gray-600 dark:text-zinc-400 mb-6">
-                Ma'lumotlar saqlash muddati:
-              </p>
+              <p className="text-gray-600 dark:text-zinc-400 mb-6">Ma'lumotlar saqlash muddati:</p>
               <ul className="list-disc pl-6 text-gray-600 dark:text-zinc-400 mb-6">
                 <li>Hisob ma'lumotlari - hisob faol bo'lgunga qadar</li>
                 <li>Tranzaksiya ma'lumotlari - 7 yil</li>
@@ -121,21 +120,25 @@ export default function PrivacyPage() {
                 8. Bolalar maxfiyligi
               </h2>
               <p className="text-gray-600 dark:text-zinc-400 mb-6">
-                Platforma 18 yoshdan kichik foydalanuvchilardan hech qanday ma'lumot to'plamaydi. Agar 18 yoshdan kichik foydalanuvchi ma'lumot to'plangan bo'lsa, ota-onalari biz bilan bog'lanishlari mumkin.
+                Platforma 18 yoshdan kichik foydalanuvchilardan hech qanday ma'lumot to'plamaydi.
+                Agar 18 yoshdan kichik foydalanuvchi ma'lumot to'plangan bo'lsa, ota-onalari biz
+                bilan bog'lanishlari mumkin.
               </p>
 
               <h2 className="text-2xl font-semibold text-gray-900 dark:text-zinc-100 mt-8 mb-4">
                 9. Xalqaro ma'lumotlarni uzatish
               </h2>
               <p className="text-gray-600 dark:text-zinc-400 mb-6">
-                Ma'lumotlar O'zbekiston hududidan tashqariga qonuniy asosda va zarur choralar ko'rilgan holdagina uzatiladi.
+                Ma'lumotlar O'zbekiston hududidan tashqariga qonuniy asosda va zarur choralar
+                ko'rilgan holdagina uzatiladi.
               </p>
 
               <h2 className="text-2xl font-semibold text-gray-900 dark:text-zinc-100 mt-8 mb-4">
                 10. Siyosatni o'zgartirish
               </h2>
               <p className="text-gray-600 dark:text-zinc-400 mb-6">
-                Ushbu siyosat o'zgartirilishi mumkin. O'zgarishlar platforma orqali e'lon qilinadi. Muhim o'zgarishlar foydalanuvchilarga email orqali ham xabardor qilinadi.
+                Ushbu siyosat o'zgartirilishi mumkin. O'zgarishlar platforma orqali e'lon qilinadi.
+                Muhim o'zgarishlar foydalanuvchilarga email orqali ham xabardor qilinadi.
               </p>
 
               <h2 className="text-2xl font-semibold text-gray-900 dark:text-zinc-100 mt-8 mb-4">
@@ -146,8 +149,10 @@ export default function PrivacyPage() {
               </p>
               <div className="bg-gray-50 dark:bg-zinc-800/50 p-4 rounded-lg mb-6">
                 <p className="text-gray-600 dark:text-zinc-400">
-                  <strong>Email:</strong> privacy@jurisai.uz<br />
-                  <strong>Telefon:</strong> +998 90 123 45 67<br />
+                  <strong>Email:</strong> privacy@jurisai.uz
+                  <br />
+                  <strong>Telefon:</strong> +998 90 123 45 67
+                  <br />
                   <strong>Manzil:</strong> Toshkent shahri, Yunusobod tumani
                 </p>
               </div>
@@ -156,7 +161,8 @@ export default function PrivacyPage() {
                 12. Qonunlar
               </h2>
               <p className="text-gray-600 dark:text-zinc-400 mb-6">
-                Ushbu siyosat O'zbekiston Respublikasining "Shaxsiy ma'lumotlar to'g'risida" qonuni va boshqa tegishli qonun hujjatlariga muvofiq tuzilgan.
+                Ushbu siyosat O'zbekiston Respublikasining "Shaxsiy ma'lumotlar to'g'risida" qonuni
+                va boshqa tegishli qonun hujjatlariga muvofiq tuzilgan.
               </p>
             </div>
 

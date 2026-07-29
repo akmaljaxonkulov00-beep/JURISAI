@@ -1,68 +1,89 @@
-'use client';
+'use client'
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
-import { Input } from '@/components/ui/Input';
-import { Select } from '@/components/ui/Select';
-import { Bookmark, Trash2, X, Search, ArrowLeft, FileText, Scale, Gavel, BookOpen, Landmark, Loader2, AlertCircle } from 'lucide-react';
-import { useLegalCodes, type LegalCode, type LegalArticle as HookLegalArticle } from '@/hooks/useLegalDatabase';
-import { getDisplayNameFromCodeId } from '@/lib/utils/code-mapper';
+import React, { useState, useEffect } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
+import { Badge } from '@/components/ui/Badge'
+import { Input } from '@/components/ui/Input'
+import { Select } from '@/components/ui/Select'
+import {
+  Bookmark,
+  Trash2,
+  X,
+  Search,
+  ArrowLeft,
+  FileText,
+  Scale,
+  Gavel,
+  BookOpen,
+  Landmark,
+  Loader2,
+  AlertCircle,
+} from 'lucide-react'
+import {
+  useLegalCodes,
+  type LegalCode,
+  type LegalArticle as HookLegalArticle,
+} from '@/hooks/useLegalDatabase'
+import { getDisplayNameFromCodeId } from '@/lib/utils/code-mapper'
 
 interface DisplayArticle {
-  id: string;
-  title: string;
-  content: string;
-  category: string;
-  document_type: string;
-  article_number: string;
-  chapter: string;
-  section: string;
-  keywords: string[];
-  cross_references: string[];
-  last_updated: string;
-  relevance_score: number;
-  view_count: number;
+  id: string
+  title: string
+  content: string
+  category: string
+  document_type: string
+  article_number: string
+  chapter: string
+  section: string
+  keywords: string[]
+  cross_references: string[]
+  last_updated: string
+  relevance_score: number
+  view_count: number
 }
 
 interface DisplayCategory {
-  id: string;
-  name: string;
-  description: string;
-  document_count: number;
-  document_type: string;
+  id: string
+  name: string
+  description: string
+  document_count: number
+  document_type: string
 }
 
 export default function LegalDatabase() {
-  const { codes, loading, fromSupabase, search: searchCodes, getCode, refresh } = useLegalCodes();
-  const [activeTab, setActiveTab] = useState<'search' | 'categories' | 'bookmarks'>('categories');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<{ code: LegalCode; article: HookLegalArticle }[]>([]);
-  const [selectedCode, setSelectedCode] = useState<LegalCode | null>(null);
-  const [codeSearchQuery, setCodeSearchQuery] = useState('');
-  const [selectedArticle, setSelectedArticle] = useState<DisplayArticle | null>(null);
-  const [showArticleModal, setShowArticleModal] = useState(false);
-  const [bookmarks, setBookmarks] = useState<string[]>([]);
+  const { codes, loading, fromSupabase, search: searchCodes, getCode, refresh } = useLegalCodes()
+  const [activeTab, setActiveTab] = useState<'search' | 'categories' | 'bookmarks'>('categories')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState<
+    { code: LegalCode; article: HookLegalArticle }[]
+  >([])
+  const [selectedCode, setSelectedCode] = useState<LegalCode | null>(null)
+  const [codeSearchQuery, setCodeSearchQuery] = useState('')
+  const [selectedArticle, setSelectedArticle] = useState<DisplayArticle | null>(null)
+  const [showArticleModal, setShowArticleModal] = useState(false)
+  const [bookmarks, setBookmarks] = useState<string[]>([])
 
   // Load bookmarks from localStorage
   useEffect(() => {
     try {
-      const stored = localStorage.getItem('legal_bookmarks');
-      if (stored) setBookmarks(JSON.parse(stored));
+      const stored = localStorage.getItem('legal_bookmarks')
+      if (stored) setBookmarks(JSON.parse(stored))
     } catch {}
-  }, []);
+  }, [])
 
   const saveBookmarks = (items: string[]) => {
-    setBookmarks(items);
-    try { localStorage.setItem('legal_bookmarks', JSON.stringify(items)); } catch {}
-  };
+    setBookmarks(items)
+    try {
+      localStorage.setItem('legal_bookmarks', JSON.stringify(items))
+    } catch {}
+  }
 
   const handleSearch = () => {
-    if (!searchQuery.trim()) return;
-    const results = searchCodes(searchQuery.trim());
-    setSearchResults(results);
-  };
+    if (!searchQuery.trim()) return
+    const results = searchCodes(searchQuery.trim())
+    setSearchResults(results)
+  }
 
   const handleArticleClick = (code: LegalCode, article: HookLegalArticle) => {
     setSelectedArticle({
@@ -79,17 +100,17 @@ export default function LegalDatabase() {
       last_updated: code.effectiveDate,
       relevance_score: 100,
       view_count: 0,
-    });
-    setShowArticleModal(true);
-  };
+    })
+    setShowArticleModal(true)
+  }
 
   const toggleBookmark = (articleId: string) => {
     if (bookmarks.includes(articleId)) {
-      saveBookmarks(bookmarks.filter(id => id !== articleId));
+      saveBookmarks(bookmarks.filter(id => id !== articleId))
     } else {
-      saveBookmarks([...bookmarks, articleId]);
+      saveBookmarks([...bookmarks, articleId])
     }
-  };
+  }
 
   // ── Categories from Supabase ──
   const displayCategories: DisplayCategory[] = codes.map(code => ({
@@ -98,7 +119,7 @@ export default function LegalDatabase() {
     description: code.description,
     document_count: code.totalArticles,
     document_type: 'Kodeks',
-  }));
+  }))
 
   // ── Loading state ──
   if (loading) {
@@ -109,7 +130,7 @@ export default function LegalDatabase() {
           <p className="text-gray-600 dark:text-zinc-400">Qonunlar bazasi yuklanmoqda...</p>
         </div>
       </div>
-    );
+    )
   }
 
   // ── Empty state ──
@@ -119,28 +140,33 @@ export default function LegalDatabase() {
         <div className="text-center space-y-4 max-w-md">
           <AlertCircle className="w-12 h-12 text-orange-500 mx-auto" />
           <h2 className="text-xl font-bold text-gray-900 dark:text-white">Ma'lumot topilmadi</h2>
-          <p className="text-gray-600 dark:text-zinc-400">Qonunlar bazasi hali to'liq yuklanmagan. Iltimos, Supabase SQL migratsiyani ishga tushirganingizni tekshiring.</p>
+          <p className="text-gray-600 dark:text-zinc-400">
+            Qonunlar bazasi hali to'liq yuklanmagan. Iltimos, Supabase SQL migratsiyani ishga
+            tushirganingizni tekshiring.
+          </p>
           <Button onClick={refresh} className="bg-blue-600 hover:bg-blue-700 text-white">
             <Loader2 className="w-4 h-4 mr-2" />
             Qayta yuklash
           </Button>
         </div>
       </div>
-    );
+    )
   }
 
   // ── Render Code View ──
   const renderCodeView = () => {
-    if (!selectedCode) return null;
+    if (!selectedCode) return null
 
     const filteredArticles = selectedCode.articles.filter(a => {
-      if (!codeSearchQuery) return true;
-      const q = codeSearchQuery.toLowerCase();
-      return a.title.toLowerCase().includes(q) || 
-             a.content.toLowerCase().includes(q) || 
-             a.number.includes(q) ||
-             (a.category || '').toLowerCase().includes(q);
-    });
+      if (!codeSearchQuery) return true
+      const q = codeSearchQuery.toLowerCase()
+      return (
+        a.title.toLowerCase().includes(q) ||
+        a.content.toLowerCase().includes(q) ||
+        a.number.includes(q) ||
+        (a.category || '').toLowerCase().includes(q)
+      )
+    })
 
     return (
       <div className="space-y-6">
@@ -149,7 +175,10 @@ export default function LegalDatabase() {
             <div className="flex items-center justify-between flex-wrap gap-3">
               <div className="flex items-center gap-3">
                 <button
-                  onClick={() => { setSelectedCode(null); setCodeSearchQuery(''); }}
+                  onClick={() => {
+                    setSelectedCode(null)
+                    setCodeSearchQuery('')
+                  }}
                   className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-zinc-800 transition-all"
                   title="Orqaga"
                 >
@@ -157,10 +186,15 @@ export default function LegalDatabase() {
                 </button>
                 <div>
                   <CardTitle className="text-gray-900 dark:text-white flex items-center gap-2">
-                    {selectedCode.id === 'constitution' ? <Landmark size={20} className="text-blue-500" /> : 
-                     selectedCode.id === 'criminal_code' ? <Gavel size={20} className="text-red-500" /> : 
-                     selectedCode.id === 'civil_code' ? <Scale size={20} className="text-green-500" /> : 
-                     <BookOpen size={20} className="text-blue-500" />}
+                    {selectedCode.id === 'constitution' ? (
+                      <Landmark size={20} className="text-blue-500" />
+                    ) : selectedCode.id === 'criminal_code' ? (
+                      <Gavel size={20} className="text-red-500" />
+                    ) : selectedCode.id === 'civil_code' ? (
+                      <Scale size={20} className="text-green-500" />
+                    ) : (
+                      <BookOpen size={20} className="text-blue-500" />
+                    )}
                     {getDisplayNameFromCodeId(selectedCode.id)}
                   </CardTitle>
                   <p className="text-sm text-secondary mt-1">
@@ -169,11 +203,14 @@ export default function LegalDatabase() {
                 </div>
               </div>
               <div className="relative">
-                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <Search
+                  size={14}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                />
                 <input
                   type="text"
                   value={codeSearchQuery}
-                  onChange={(e) => setCodeSearchQuery(e.target.value)}
+                  onChange={e => setCodeSearchQuery(e.target.value)}
                   placeholder="Modda raqami yoki matn bo'yicha..."
                   className="pl-8 pr-3 py-2 text-xs rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-700 dark:text-zinc-300 w-56"
                 />
@@ -203,8 +240,12 @@ export default function LegalDatabase() {
                             </Badge>
                           )}
                         </div>
-                        <h4 className="font-semibold text-sm text-gray-900 dark:text-white">{article.title}</h4>
-                        <p className="text-xs text-secondary mt-1 line-clamp-2">{article.content}</p>
+                        <h4 className="font-semibold text-sm text-gray-900 dark:text-white">
+                          {article.title}
+                        </h4>
+                        <p className="text-xs text-secondary mt-1 line-clamp-2">
+                          {article.content}
+                        </p>
                       </div>
                       <div className="flex-shrink-0 flex flex-col items-end gap-1">
                         {article.penalties && (
@@ -221,8 +262,8 @@ export default function LegalDatabase() {
           </CardContent>
         </Card>
       </div>
-    );
-  };
+    )
+  }
 
   // ── Render Categories Tab (DEFAULT) ──
   const renderCategoriesTab = () => (
@@ -243,23 +284,32 @@ export default function LegalDatabase() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {displayCategories.map((category) => (
+            {displayCategories.map(category => (
               <div
                 key={category.id}
                 className="p-4 rounded-xl bg-gray-50 dark:bg-zinc-800/50 border border-gray-100 dark:border-zinc-700 hover:border-blue-300 dark:hover:border-blue-700 transition-all cursor-pointer hover-lift"
                 onClick={() => {
-                  const matchingCode = codes.find(c => c.id === category.id);
-                  if (matchingCode) setSelectedCode(matchingCode);
+                  const matchingCode = codes.find(c => c.id === category.id)
+                  if (matchingCode) setSelectedCode(matchingCode)
                 }}
               >
                 <div className="flex items-center gap-2 mb-2">
-                  {category.id === 'constitution' ? <Landmark size={20} className="text-blue-600" /> :
-                   category.id === 'criminal_code' ? <Gavel size={20} className="text-red-600" /> :
-                   category.id === 'civil_code' ? <Scale size={20} className="text-green-600" /> :
-                   category.id === 'labor_code' ? <FileText size={20} className="text-orange-600" /> :
-                   category.id === 'family_code' ? <BookOpen size={20} className="text-purple-600" /> :
-                   <FileText size={20} className="text-gray-600" />}
-                  <h3 className="font-semibold text-gray-900 dark:text-white text-sm">{category.name}</h3>
+                  {category.id === 'constitution' ? (
+                    <Landmark size={20} className="text-blue-600" />
+                  ) : category.id === 'criminal_code' ? (
+                    <Gavel size={20} className="text-red-600" />
+                  ) : category.id === 'civil_code' ? (
+                    <Scale size={20} className="text-green-600" />
+                  ) : category.id === 'labor_code' ? (
+                    <FileText size={20} className="text-orange-600" />
+                  ) : category.id === 'family_code' ? (
+                    <BookOpen size={20} className="text-purple-600" />
+                  ) : (
+                    <FileText size={20} className="text-gray-600" />
+                  )}
+                  <h3 className="font-semibold text-gray-900 dark:text-white text-sm">
+                    {category.name}
+                  </h3>
                 </div>
                 <p className="text-xs text-secondary mb-3 line-clamp-2">{category.description}</p>
                 <div className="flex justify-between items-center">
@@ -273,7 +323,7 @@ export default function LegalDatabase() {
         </CardContent>
       </Card>
     </div>
-  );
+  )
 
   // ── Render Search Tab ──
   const renderSearchTab = () => (
@@ -287,8 +337,8 @@ export default function LegalDatabase() {
             <Input
               placeholder="Modda raqami, kalit so'z yoki matn..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+              onChange={e => setSearchQuery(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleSearch()}
               className="flex-1"
             />
             <Button onClick={handleSearch} className="bg-blue-600 hover:bg-blue-700 text-white">
@@ -316,7 +366,9 @@ export default function LegalDatabase() {
                   {article.number}-modda
                 </Badge>
               </div>
-              <h4 className="font-semibold text-sm text-gray-900 dark:text-white">{article.title}</h4>
+              <h4 className="font-semibold text-sm text-gray-900 dark:text-white">
+                {article.title}
+              </h4>
               <p className="text-xs text-secondary mt-1 line-clamp-2">{article.content}</p>
             </div>
           ))}
@@ -332,7 +384,7 @@ export default function LegalDatabase() {
         </Card>
       )}
     </div>
-  );
+  )
 
   // ── Render Bookmarks Tab ──
   const renderBookmarksTab = () => (
@@ -347,15 +399,17 @@ export default function LegalDatabase() {
           {bookmarks.length === 0 ? (
             <div className="text-center py-8">
               <p className="text-secondary">Xatcho'plar mavjud emas</p>
-              <p className="text-xs text-secondary mt-1">Kategoriyalardan kodeks tanlab, moddalarni xatcho'pga qo'shing</p>
+              <p className="text-xs text-secondary mt-1">
+                Kategoriyalardan kodeks tanlab, moddalarni xatcho'pga qo'shing
+              </p>
             </div>
           ) : (
             <div className="space-y-3">
-              {bookmarks.map((id) => {
-                const [codeId, articleNum] = id.split('-');
-                const code = codes.find(c => c.id === codeId);
-                const article = code?.articles.find(a => a.number === articleNum);
-                if (!article || !code) return null;
+              {bookmarks.map(id => {
+                const [codeId, articleNum] = id.split('-')
+                const code = codes.find(c => c.id === codeId)
+                const article = code?.articles.find(a => a.number === articleNum)
+                if (!article || !code) return null
                 return (
                   <div
                     key={id}
@@ -372,34 +426,45 @@ export default function LegalDatabase() {
                             {article.number}-modda
                           </Badge>
                         </div>
-                        <h4 className="font-semibold text-sm text-gray-900 dark:text-white">{article.title}</h4>
+                        <h4 className="font-semibold text-sm text-gray-900 dark:text-white">
+                          {article.title}
+                        </h4>
                       </div>
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={(e) => { e.stopPropagation(); toggleBookmark(id); }}
+                        onClick={e => {
+                          e.stopPropagation()
+                          toggleBookmark(id)
+                        }}
                         className="ml-2 flex-shrink-0"
                       >
                         <Trash2 size={14} className="text-red-500" />
                       </Button>
                     </div>
                   </div>
-                );
+                )
               })}
             </div>
           )}
         </CardContent>
       </Card>
     </div>
-  );
+  )
 
   // ── Article Modal ──
   const renderArticleModal = () => {
-    if (!selectedArticle || !showArticleModal) return null;
+    if (!selectedArticle || !showArticleModal) return null
 
     return (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={() => setShowArticleModal(false)}>
-        <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+      <div
+        className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
+        onClick={() => setShowArticleModal(false)}
+      >
+        <div
+          className="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+          onClick={e => e.stopPropagation()}
+        >
           <div className="p-6">
             <div className="flex justify-between items-start mb-4">
               <div>
@@ -424,7 +489,12 @@ export default function LegalDatabase() {
                   variant="outline"
                   onClick={() => toggleBookmark(selectedArticle.id)}
                 >
-                  <Bookmark size={14} className={bookmarks.includes(selectedArticle.id) ? 'fill-blue-500 text-blue-500' : ''} />
+                  <Bookmark
+                    size={14}
+                    className={
+                      bookmarks.includes(selectedArticle.id) ? 'fill-blue-500 text-blue-500' : ''
+                    }
+                  />
                 </Button>
                 <Button size="sm" variant="outline" onClick={() => setShowArticleModal(false)}>
                   <X size={14} />
@@ -435,7 +505,9 @@ export default function LegalDatabase() {
             <div className="space-y-4">
               <div>
                 <h3 className="font-semibold text-gray-900 dark:text-zinc-100 mb-2">Bo'lim:</h3>
-                <p className="text-gray-700 dark:text-zinc-300 whitespace-pre-wrap">{selectedArticle.chapter}</p>
+                <p className="text-gray-700 dark:text-zinc-300 whitespace-pre-wrap">
+                  {selectedArticle.chapter}
+                </p>
               </div>
 
               <div>
@@ -449,10 +521,14 @@ export default function LegalDatabase() {
 
               {selectedArticle.keywords.length > 0 && (
                 <div>
-                  <h3 className="font-semibold text-gray-900 dark:text-zinc-100 mb-2">Kalit so'zlar:</h3>
+                  <h3 className="font-semibold text-gray-900 dark:text-zinc-100 mb-2">
+                    Kalit so'zlar:
+                  </h3>
                   <div className="flex flex-wrap gap-2">
                     {selectedArticle.keywords.map((keyword, i) => (
-                      <Badge key={i} variant="outline" className="text-xs">{keyword}</Badge>
+                      <Badge key={i} variant="outline" className="text-xs">
+                        {keyword}
+                      </Badge>
                     ))}
                   </div>
                 </div>
@@ -460,10 +536,17 @@ export default function LegalDatabase() {
 
               {selectedArticle.cross_references.length > 0 && (
                 <div>
-                  <h3 className="font-semibold text-gray-900 dark:text-zinc-100 mb-2">Tegishli moddalar:</h3>
+                  <h3 className="font-semibold text-gray-900 dark:text-zinc-100 mb-2">
+                    Tegishli moddalar:
+                  </h3>
                   <div className="flex flex-wrap gap-2">
                     {selectedArticle.cross_references.map((ref, i) => (
-                      <Badge key={i} className="bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300">{ref}</Badge>
+                      <Badge
+                        key={i}
+                        className="bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300"
+                      >
+                        {ref}
+                      </Badge>
                     ))}
                   </div>
                 </div>
@@ -472,8 +555,8 @@ export default function LegalDatabase() {
           </div>
         </div>
       </div>
-    );
-  };
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-6">
@@ -481,7 +564,9 @@ export default function LegalDatabase() {
         <div className="mb-6 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Qonunlar Bazasi</h1>
-            <p className="text-gray-500 dark:text-zinc-400 mt-1">O'zbekiston Respublikasi qonunchilik ma'lumotlar bazasi</p>
+            <p className="text-gray-500 dark:text-zinc-400 mt-1">
+              O'zbekiston Respublikasi qonunchilik ma'lumotlar bazasi
+            </p>
           </div>
           {fromSupabase && (
             <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 text-xs">
@@ -496,7 +581,7 @@ export default function LegalDatabase() {
             { id: 'categories', label: 'Kategoriyalar' },
             { id: 'search', label: 'Qidiruv' },
             { id: 'bookmarks', label: `Xatcho'plar (${bookmarks.length})` },
-          ].map((tab) => (
+          ].map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
@@ -512,7 +597,9 @@ export default function LegalDatabase() {
         </div>
 
         {/* Tab Content */}
-        {selectedCode ? renderCodeView() : (
+        {selectedCode ? (
+          renderCodeView()
+        ) : (
           <>
             {activeTab === 'categories' && renderCategoriesTab()}
             {activeTab === 'search' && renderSearchTab()}
@@ -523,5 +610,5 @@ export default function LegalDatabase() {
         {renderArticleModal()}
       </div>
     </div>
-  );
+  )
 }

@@ -1,14 +1,14 @@
-'use client';
+'use client'
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 
 export default function SettingsRedirect() {
-  const router = useRouter();
+  const router = useRouter()
 
   useEffect(() => {
-    router.replace('/profile');
-  }, [router]);
+    router.replace('/profile')
+  }, [router])
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-zinc-900">
@@ -17,5 +17,5 @@ export default function SettingsRedirect() {
         <p className="text-gray-500 dark:text-zinc-400">Sozlamalar sahifasiga o'tkazilmoqda...</p>
       </div>
     </div>
-  );
+  )
 }

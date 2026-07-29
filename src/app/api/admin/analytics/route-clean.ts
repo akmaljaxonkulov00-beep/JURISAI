@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { supabaseServer } from '@/lib/supabase-client';
+import { NextRequest, NextResponse } from 'next/server'
+import { supabaseServer } from '@/lib/supabase-client'
 
 function getDemoAnalytics() {
   return {
@@ -10,7 +10,7 @@ function getDemoAnalytics() {
         { month: 'Yan', revenue: 800000 },
         { month: 'Fev', revenue: 950000 },
         { month: 'Mar', revenue: 750000 },
-      ]
+      ],
     },
     users: {
       total: 1247,
@@ -19,8 +19,8 @@ function getDemoAnalytics() {
       byPlan: {
         free: 856,
         pro: 342,
-        enterprise: 49
-      }
+        enterprise: 49,
+      },
     },
     usage: {
       totalRequests: 15678,
@@ -29,23 +29,23 @@ function getDemoAnalytics() {
       byFeature: {
         'ai-chat': 8923,
         'document-gen': 4567,
-        'case-analysis': 2188
-      }
+        'case-analysis': 2188,
+      },
     },
     systemHealth: {
       uptime: 99.9,
       responseTime: 234,
-      errorRate: 0.02
-    }
-  };
+      errorRate: 0.02,
+    },
+  }
 }
 
 export async function GET(request: NextRequest) {
   try {
     // Always return demo data for now until database is fully set up
-    return NextResponse.json(getDemoAnalytics());
+    return NextResponse.json(getDemoAnalytics())
   } catch (error) {
-    console.error('Analytics API unexpected error:', error);
-    return NextResponse.json(getDemoAnalytics());
+    console.error('Analytics API unexpected error:', error)
+    return NextResponse.json(getDemoAnalytics())
   }
 }

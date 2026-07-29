@@ -1,20 +1,20 @@
-'use client';
+'use client'
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
-import { Input } from '@/components/ui/Input';
-import { supabaseClient } from '@/lib/supabase';
-import { 
-  Users, 
-  MessageSquare, 
-  FileText, 
-  Database, 
-  CreditCard, 
-  Settings, 
-  BarChart, 
-  Shield, 
+import React, { useState, useEffect } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
+import { Badge } from '@/components/ui/Badge'
+import { Input } from '@/components/ui/Input'
+import { supabaseClient } from '@/lib/supabase'
+import {
+  Users,
+  MessageSquare,
+  FileText,
+  Database,
+  CreditCard,
+  Settings,
+  BarChart,
+  Shield,
   LogOut,
   Eye,
   Edit,
@@ -34,89 +34,91 @@ import {
   DollarSign,
   FilePlus,
   UserCheck,
-  UserX
-} from 'lucide-react';
+  UserX,
+} from 'lucide-react'
 
 interface AdminStats {
-  totalUsers: number;
-  activeUsers: number;
-  totalAIRequests: number;
-  totalDocuments: number;
-  totalPayments: number;
-  pendingPayments: number;
-  systemHealth: 'healthy' | 'warning' | 'critical';
-  lastSync: string;
+  totalUsers: number
+  activeUsers: number
+  totalAIRequests: number
+  totalDocuments: number
+  totalPayments: number
+  pendingPayments: number
+  systemHealth: 'healthy' | 'warning' | 'critical'
+  lastSync: string
 }
 
 interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: 'USER' | 'ADMIN';
-  subscription: 'free' | 'pro' | 'premium';
-  status: 'active' | 'inactive' | 'suspended';
-  createdAt: string;
-  lastLogin: string;
-  aiRequests: number;
-  documentsGenerated: number;
+  id: string
+  name: string
+  email: string
+  role: 'USER' | 'ADMIN'
+  subscription: 'free' | 'pro' | 'premium'
+  status: 'active' | 'inactive' | 'suspended'
+  createdAt: string
+  lastLogin: string
+  aiRequests: number
+  documentsGenerated: number
 }
 
 interface AIRequest {
-  id: string;
-  userId: string;
-  userEmail: string;
-  type: 'chat' | 'document' | 'irac';
-  content: string;
-  response: string;
-  tokens: number;
-  cost: number;
-  status: 'completed' | 'failed' | 'pending';
-  createdAt: string;
+  id: string
+  userId: string
+  userEmail: string
+  type: 'chat' | 'document' | 'irac'
+  content: string
+  response: string
+  tokens: number
+  cost: number
+  status: 'completed' | 'failed' | 'pending'
+  createdAt: string
 }
 
 interface Document {
-  id: string;
-  userId: string;
-  userEmail: string;
-  type: string;
-  title: string;
-  content: string;
-  status: 'generated' | 'failed' | 'pending';
-  createdAt: string;
+  id: string
+  userId: string
+  userEmail: string
+  type: string
+  title: string
+  content: string
+  status: 'generated' | 'failed' | 'pending'
+  createdAt: string
 }
 
 interface Payment {
-  id: string;
-  userId: string;
-  userEmail: string;
-  plan: string;
-  amount: number;
-  currency: string;
-  status: 'pending' | 'completed' | 'cancelled';
-  paymentMethod: string;
-  trackingNumber: string;
-  createdAt: string;
+  id: string
+  userId: string
+  userEmail: string
+  plan: string
+  amount: number
+  currency: string
+  status: 'pending' | 'completed' | 'cancelled'
+  paymentMethod: string
+  trackingNumber: string
+  createdAt: string
 }
 
 export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'ai' | 'documents' | 'payments' | 'database'>('overview');
-  const [stats, setStats] = useState<AdminStats | null>(null);
-  const [users, setUsers] = useState<User[]>([]);
-  const [aiRequests, setAiRequests] = useState<AIRequest[]>([]);
-  const [documents, setDocuments] = useState<Document[]>([]);
-  const [payments, setPayments] = useState<Payment[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all');
+  const [activeTab, setActiveTab] = useState<
+    'overview' | 'users' | 'ai' | 'documents' | 'payments' | 'database'
+  >('overview')
+  const [stats, setStats] = useState<AdminStats | null>(null)
+  const [users, setUsers] = useState<User[]>([])
+  const [aiRequests, setAiRequests] = useState<AIRequest[]>([])
+  const [documents, setDocuments] = useState<Document[]>([])
+  const [payments, setPayments] = useState<Payment[]>([])
+  const [loading, setLoading] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [filterStatus, setFilterStatus] = useState('all')
 
   useEffect(() => {
-    loadAdminData();
-  }, []);
+    loadAdminData()
+  }, [])
 
   const loadAdminData = async () => {
     try {
-      setLoading(true);
-      
+      setLoading(true)
+
       // Mock admin data
       const mockStats: AdminStats = {
         totalUsers: 15420,
@@ -126,8 +128,8 @@ export default function AdminDashboard() {
         totalPayments: 892,
         pendingPayments: 23,
         systemHealth: 'healthy',
-        lastSync: new Date().toISOString()
-      };
+        lastSync: new Date().toISOString(),
+      }
 
       const mockUsers: User[] = [
         {
@@ -140,7 +142,7 @@ export default function AdminDashboard() {
           createdAt: '2024-01-15',
           lastLogin: '2024-05-08',
           aiRequests: 156,
-          documentsGenerated: 89
+          documentsGenerated: 89,
         },
         {
           id: '2',
@@ -152,7 +154,7 @@ export default function AdminDashboard() {
           createdAt: '2024-02-20',
           lastLogin: '2024-05-07',
           aiRequests: 234,
-          documentsGenerated: 156
+          documentsGenerated: 156,
         },
         {
           id: '3',
@@ -164,9 +166,9 @@ export default function AdminDashboard() {
           createdAt: '2023-12-01',
           lastLogin: '2024-05-08',
           aiRequests: 89,
-          documentsGenerated: 45
-        }
-      ];
+          documentsGenerated: 45,
+        },
+      ]
 
       const mockAIRequests: AIRequest[] = [
         {
@@ -175,11 +177,11 @@ export default function AdminDashboard() {
           userEmail: 'john@example.com',
           type: 'chat',
           content: 'Shartnoma haqida savol',
-          response: 'Shartnoma tomonlarning o\'zaro kelishuvi...',
+          response: "Shartnoma tomonlarning o'zaro kelishuvi...",
           tokens: 150,
           cost: 0.002,
           status: 'completed',
-          createdAt: '2024-05-08T10:30:00Z'
+          createdAt: '2024-05-08T10:30:00Z',
         },
         {
           id: '2',
@@ -191,9 +193,9 @@ export default function AdminDashboard() {
           tokens: 300,
           cost: 0.004,
           status: 'completed',
-          createdAt: '2024-05-08T09:15:00Z'
-        }
-      ];
+          createdAt: '2024-05-08T09:15:00Z',
+        },
+      ]
 
       const mockDocuments: Document[] = [
         {
@@ -204,7 +206,7 @@ export default function AdminDashboard() {
           title: 'Ishga qabul qilish arizasi',
           content: 'Ariza matni...',
           status: 'generated',
-          createdAt: '2024-05-08T10:30:00Z'
+          createdAt: '2024-05-08T10:30:00Z',
         },
         {
           id: '2',
@@ -214,9 +216,9 @@ export default function AdminDashboard() {
           title: 'Tijorat shartnomasi',
           content: 'Shartnoma matni...',
           status: 'generated',
-          createdAt: '2024-05-08T09:15:00Z'
-        }
-      ];
+          createdAt: '2024-05-08T09:15:00Z',
+        },
+      ]
 
       const mockPayments: Payment[] = [
         {
@@ -229,7 +231,7 @@ export default function AdminDashboard() {
           status: 'completed',
           paymentMethod: 'bank-transfer',
           trackingNumber: 'TRK20240508001',
-          createdAt: '2024-05-01T10:00:00Z'
+          createdAt: '2024-05-01T10:00:00Z',
         },
         {
           id: '2',
@@ -241,104 +243,106 @@ export default function AdminDashboard() {
           status: 'pending',
           paymentMethod: 'manual',
           trackingNumber: 'TRK20240508002',
-          createdAt: '2024-05-08T09:15:00Z'
-        }
-      ];
+          createdAt: '2024-05-08T09:15:00Z',
+        },
+      ]
 
-      setStats(mockStats);
-      setUsers(mockUsers);
-      setAiRequests(mockAIRequests);
-      setDocuments(mockDocuments);
-      setPayments(mockPayments);
+      setStats(mockStats)
+      setUsers(mockUsers)
+      setAiRequests(mockAIRequests)
+      setDocuments(mockDocuments)
+      setPayments(mockPayments)
     } catch (error) {
-      console.error('Error loading admin data:', error);
+      console.error('Error loading admin data:', error)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const handleUserAction = async (userId: string, action: 'suspend' | 'activate' | 'delete') => {
     try {
-      console.log(`User ${action}: ${userId}`);
-      
+      console.log(`User ${action}: ${userId}`)
+
       // Update user status
-      const updatedUsers = users.map(user => {
-        if (user.id === userId) {
-          switch (action) {
-            case 'suspend':
-              return { ...user, status: 'suspended' as const };
-            case 'activate':
-              return { ...user, status: 'active' as const };
-            case 'delete':
-              return null; // Will be filtered out
-            default:
-              return user;
+      const updatedUsers = users
+        .map(user => {
+          if (user.id === userId) {
+            switch (action) {
+              case 'suspend':
+                return { ...user, status: 'suspended' as const }
+              case 'activate':
+                return { ...user, status: 'active' as const }
+              case 'delete':
+                return null // Will be filtered out
+              default:
+                return user
+            }
           }
-        }
-        return user;
-      }).filter(Boolean) as User[];
-      
-      setUsers(updatedUsers);
-      
+          return user
+        })
+        .filter(Boolean) as User[]
+
+      setUsers(updatedUsers)
+
       // Update stats
       if (stats) {
-        const activeCount = updatedUsers.filter(u => u.status === 'active').length;
+        const activeCount = updatedUsers.filter(u => u.status === 'active').length
         setStats({
           ...stats,
           activeUsers: activeCount,
-          totalUsers: updatedUsers.length
-        });
+          totalUsers: updatedUsers.length,
+        })
       }
-      
-      console.log(`User ${action} completed for user ${userId}`);
+
+      console.log(`User ${action} completed for user ${userId}`)
     } catch (error) {
-      console.error('Error handling user action:', error);
+      console.error('Error handling user action:', error)
     }
-  };
+  }
 
   const handlePaymentAction = async (paymentId: string, action: 'approve' | 'reject') => {
     try {
-      console.log(`Payment ${action}: ${paymentId}`);
-      
+      console.log(`Payment ${action}: ${paymentId}`)
+
       // Update payment status
       const updatedPayments = payments.map(payment => {
         if (payment.id === paymentId) {
           return {
             ...payment,
-            status: action === 'approve' ? 'completed' as const : 'cancelled' as const
-          };
+            status: action === 'approve' ? ('completed' as const) : ('cancelled' as const),
+          }
         }
-        return payment;
-      });
-      
-      setPayments(updatedPayments);
-      
+        return payment
+      })
+
+      setPayments(updatedPayments)
+
       // Update stats
       if (stats) {
-        const pendingCount = updatedPayments.filter(p => p.status === 'pending').length;
+        const pendingCount = updatedPayments.filter(p => p.status === 'pending').length
         setStats({
           ...stats,
-          pendingPayments: pendingCount
-        });
+          pendingPayments: pendingCount,
+        })
       }
-      
-      console.log(`Payment ${action} completed for payment ${paymentId}`);
+
+      console.log(`Payment ${action} completed for payment ${paymentId}`)
     } catch (error) {
-      console.error('Error handling payment action:', error);
+      console.error('Error handling payment action:', error)
     }
-  };
+  }
 
   const handleRefresh = async () => {
     try {
-      setLoading(true);
-      await loadAdminData();
-      console.log('Data refreshed successfully');
+      setLoading(true)
+      await loadAdminData()
+      console.log('Data refreshed successfully')
     } catch (error) {
-      console.error('Error refreshing data:', error);
+      console.error('Error refreshing data:', error)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const handleExport = async () => {
     try {
@@ -348,49 +352,49 @@ export default function AdminDashboard() {
         aiRequests,
         documents,
         payments,
-        exportDate: new Date().toISOString()
-      };
-      
-      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `admin-export-${new Date().toISOString().split('T')[0]}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      
-      console.log('Data exported successfully');
+        exportDate: new Date().toISOString(),
+      }
+
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `admin-export-${new Date().toISOString().split('T')[0]}.json`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+
+      console.log('Data exported successfully')
     } catch (error) {
-      console.error('Error exporting data:', error);
+      console.error('Error exporting data:', error)
     }
-  };
+  }
 
   const handleLogout = () => {
-    localStorage.removeItem('currentUser');
-    window.location.href = '/signin';
-  };
+    localStorage.removeItem('currentUser')
+    window.location.href = '/signin'
+  }
 
   const handleDatabaseSync = async () => {
     try {
-      setLoading(true);
+      setLoading(true)
       // Simulate database sync
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      console.log('Database synchronized successfully');
-      
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      console.log('Database synchronized successfully')
+
       if (stats) {
         setStats({
           ...stats,
-          lastSync: new Date().toISOString()
-        });
+          lastSync: new Date().toISOString(),
+        })
       }
     } catch (error) {
-      console.error('Error syncing database:', error);
+      console.error('Error syncing database:', error)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const handleDatabaseBackup = async () => {
     try {
@@ -400,298 +404,328 @@ export default function AdminDashboard() {
         documents,
         payments,
         backupDate: new Date().toISOString(),
-        version: '1.0'
-      };
-      
-      const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `database-backup-${new Date().toISOString().split('T')[0]}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      
-      console.log('Database backup created successfully');
+        version: '1.0',
+      }
+
+      const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `database-backup-${new Date().toISOString().split('T')[0]}.json`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+
+      console.log('Database backup created successfully')
     } catch (error) {
-      console.error('Error creating database backup:', error);
+      console.error('Error creating database backup:', error)
     }
-  };
+  }
 
   const handleViewSchema = () => {
     const schema = {
       User: {
-        id: "string",
-        name: "string",
-        email: "string",
-        role: "USER|ADMIN",
-        subscription: "free|pro|premium",
-        status: "active|inactive|suspended",
-        createdAt: "string",
-        lastLogin: "string",
-        aiRequests: "number",
-        documentsGenerated: "number"
+        id: 'string',
+        name: 'string',
+        email: 'string',
+        role: 'USER|ADMIN',
+        subscription: 'free|pro|premium',
+        status: 'active|inactive|suspended',
+        createdAt: 'string',
+        lastLogin: 'string',
+        aiRequests: 'number',
+        documentsGenerated: 'number',
       },
       AIRequest: {
-        id: "string",
-        userId: "string",
-        userEmail: "string",
-        type: "chat|document|irac",
-        content: "string",
-        response: "string",
-        tokens: "number",
-        cost: "number",
-        status: "completed|failed|pending",
-        createdAt: "string"
+        id: 'string',
+        userId: 'string',
+        userEmail: 'string',
+        type: 'chat|document|irac',
+        content: 'string',
+        response: 'string',
+        tokens: 'number',
+        cost: 'number',
+        status: 'completed|failed|pending',
+        createdAt: 'string',
       },
       Document: {
-        id: "string",
-        userId: "string",
-        userEmail: "string",
-        type: "string",
-        title: "string",
-        content: "string",
-        status: "generated|failed|pending",
-        createdAt: "string"
+        id: 'string',
+        userId: 'string',
+        userEmail: 'string',
+        type: 'string',
+        title: 'string',
+        content: 'string',
+        status: 'generated|failed|pending',
+        createdAt: 'string',
       },
       Payment: {
-        id: "string",
-        userId: "string",
-        userEmail: "string",
-        plan: "string",
-        amount: "number",
-        currency: "string",
-        status: "pending|completed|cancelled",
-        paymentMethod: "string",
-        trackingNumber: "string",
-        createdAt: "string"
-      }
-    };
-    
-    console.log('Database Schema:', schema);
-    alert('Database schema logged to console. Check developer tools for details.');
-  };
+        id: 'string',
+        userId: 'string',
+        userEmail: 'string',
+        plan: 'string',
+        amount: 'number',
+        currency: 'string',
+        status: 'pending|completed|cancelled',
+        paymentMethod: 'string',
+        trackingNumber: 'string',
+        createdAt: 'string',
+      },
+    }
+
+    console.log('Database Schema:', schema)
+    alert('Database schema logged to console. Check developer tools for details.')
+  }
 
   const handleUserView = (userId: string) => {
-    const user = users.find(u => u.id === userId);
+    const user = users.find(u => u.id === userId)
     if (user) {
-      console.log('User details:', user);
-      alert(`User Details:\n\nName: ${user.name}\nEmail: ${user.email}\nRole: ${user.role}\nSubscription: ${user.subscription}\nStatus: ${user.status}\nAI Requests: ${user.aiRequests}\nDocuments: ${user.documentsGenerated}\n\nCheck console for full details.`);
+      console.log('User details:', user)
+      alert(
+        `User Details:\n\nName: ${user.name}\nEmail: ${user.email}\nRole: ${user.role}\nSubscription: ${user.subscription}\nStatus: ${user.status}\nAI Requests: ${user.aiRequests}\nDocuments: ${user.documentsGenerated}\n\nCheck console for full details.`
+      )
     }
-  };
+  }
 
   const handleUserEdit = (userId: string) => {
-    const user = users.find(u => u.id === userId);
+    const user = users.find(u => u.id === userId)
     if (user) {
-      console.log('Edit user:', user);
-      alert(`Edit functionality for user: ${user.name}\n\nThis would open an edit form in a real application.`);
+      console.log('Edit user:', user)
+      alert(
+        `Edit functionality for user: ${user.name}\n\nThis would open an edit form in a real application.`
+      )
     }
-  };
+  }
 
   const handleUserDelete = (userId: string) => {
     try {
-      console.log(`Delete user: ${userId}`);
-      
+      console.log(`Delete user: ${userId}`)
+
       // Remove user from list
-      const updatedUsers = users.filter(user => user.id !== userId);
-      setUsers(updatedUsers);
-      
+      const updatedUsers = users.filter(user => user.id !== userId)
+      setUsers(updatedUsers)
+
       // Update stats
       if (stats) {
-        const activeCount = updatedUsers.filter(u => u.status === 'active').length;
+        const activeCount = updatedUsers.filter(u => u.status === 'active').length
         setStats({
           ...stats,
           activeUsers: activeCount,
-          totalUsers: updatedUsers.length
-        });
+          totalUsers: updatedUsers.length,
+        })
       }
-      
-      console.log(`User deleted: ${userId}`);
-      alert('User deleted successfully!');
+
+      console.log(`User deleted: ${userId}`)
+      alert('User deleted successfully!')
     } catch (error) {
-      console.error('Error deleting user:', error);
+      console.error('Error deleting user:', error)
     }
-  };
+  }
 
   const handleUserCreate = () => {
-    console.log('Create new user');
-    alert('Create user functionality - This would open a user creation form in a real application.');
-  };
+    console.log('Create new user')
+    alert('Create user functionality - This would open a user creation form in a real application.')
+  }
 
-  const handleAIRequestAction = async (requestId: string, action: 'retry' | 'cancel' | 'delete') => {
+  const handleAIRequestAction = async (
+    requestId: string,
+    action: 'retry' | 'cancel' | 'delete'
+  ) => {
     try {
-      console.log(`AI Request ${action}: ${requestId}`);
-      
+      console.log(`AI Request ${action}: ${requestId}`)
+
       // Update AI request
-      const updatedRequests = aiRequests.map(request => {
-        if (request.id === requestId) {
-          switch (action) {
-            case 'retry':
-              return { ...request, status: 'pending' as const };
-            case 'cancel':
-              return { ...request, status: 'failed' as const };
-            case 'delete':
-              return null;
-            default:
-              return request;
+      const updatedRequests = aiRequests
+        .map(request => {
+          if (request.id === requestId) {
+            switch (action) {
+              case 'retry':
+                return { ...request, status: 'pending' as const }
+              case 'cancel':
+                return { ...request, status: 'failed' as const }
+              case 'delete':
+                return null
+              default:
+                return request
+            }
           }
-        }
-        return request;
-      }).filter(Boolean) as AIRequest[];
-      
-      setAiRequests(updatedRequests);
-      console.log(`AI Request ${action} completed for request ${requestId}`);
-    } catch (error) {
-      console.error('Error handling AI request action:', error);
-    }
-  };
+          return request
+        })
+        .filter(Boolean) as AIRequest[]
 
-  const handleDocumentAction = async (documentId: string, action: 'regenerate' | 'download' | 'delete') => {
+      setAiRequests(updatedRequests)
+      console.log(`AI Request ${action} completed for request ${requestId}`)
+    } catch (error) {
+      console.error('Error handling AI request action:', error)
+    }
+  }
+
+  const handleDocumentAction = async (
+    documentId: string,
+    action: 'regenerate' | 'download' | 'delete'
+  ) => {
     try {
-      console.log(`Document ${action}: ${documentId}`);
-      
+      console.log(`Document ${action}: ${documentId}`)
+
       if (action === 'download') {
-        const doc = documents.find(d => d.id === documentId);
+        const doc = documents.find(d => d.id === documentId)
         if (doc) {
-          const blob = new Blob([doc.content], { type: 'text/plain' });
-          const url = URL.createObjectURL(blob);
-          const a = window.document.createElement('a');
-          a.href = url;
-          a.download = `${doc.title}.txt`;
-          window.document.body.appendChild(a);
-          a.click();
-          window.document.body.removeChild(a);
-          URL.revokeObjectURL(url);
-          console.log(`Document downloaded: ${doc.title}`);
+          const blob = new Blob([doc.content], { type: 'text/plain' })
+          const url = URL.createObjectURL(blob)
+          const a = window.document.createElement('a')
+          a.href = url
+          a.download = `${doc.title}.txt`
+          window.document.body.appendChild(a)
+          a.click()
+          window.document.body.removeChild(a)
+          URL.revokeObjectURL(url)
+          console.log(`Document downloaded: ${doc.title}`)
         }
       } else {
         // Update document status
-        const updatedDocuments = documents.map(doc => {
-          if (doc.id === documentId) {
-            switch (action) {
-              case 'regenerate':
-                return { ...doc, status: 'pending' as const };
-              case 'delete':
-                return null;
-              default:
-                return doc;
+        const updatedDocuments = documents
+          .map(doc => {
+            if (doc.id === documentId) {
+              switch (action) {
+                case 'regenerate':
+                  return { ...doc, status: 'pending' as const }
+                case 'delete':
+                  return null
+                default:
+                  return doc
+              }
             }
-          }
-          return doc;
-        }).filter(Boolean) as Document[];
-        
-        setDocuments(updatedDocuments);
-        console.log(`Document ${action} completed for document ${documentId}`);
+            return doc
+          })
+          .filter(Boolean) as Document[]
+
+        setDocuments(updatedDocuments)
+        console.log(`Document ${action} completed for document ${documentId}`)
       }
     } catch (error) {
-      console.error('Error handling document action:', error);
+      console.error('Error handling document action:', error)
     }
-  };
+  }
 
   const handlePaymentRefund = async (paymentId: string) => {
     try {
-      console.log(`Refund payment: ${paymentId}`);
-      
+      console.log(`Refund payment: ${paymentId}`)
+
       // Update payment status to refunded
       const updatedPayments = payments.map(payment => {
         if (payment.id === paymentId) {
-          return { ...payment, status: 'cancelled' as const };
+          return { ...payment, status: 'cancelled' as const }
         }
-        return payment;
-      });
-      
-      setPayments(updatedPayments);
-      
+        return payment
+      })
+
+      setPayments(updatedPayments)
+
       // Update stats
       if (stats) {
-        const pendingCount = updatedPayments.filter(p => p.status === 'pending').length;
+        const pendingCount = updatedPayments.filter(p => p.status === 'pending').length
         setStats({
           ...stats,
-          pendingPayments: pendingCount
-        });
+          pendingPayments: pendingCount,
+        })
       }
-      
-      console.log(`Payment refunded: ${paymentId}`);
-      alert('Payment refunded successfully!');
+
+      console.log(`Payment refunded: ${paymentId}`)
+      alert('Payment refunded successfully!')
     } catch (error) {
-      console.error('Error refunding payment:', error);
+      console.error('Error refunding payment:', error)
     }
-  };
+  }
 
   const handleDatabaseCleanup = async () => {
     try {
-      setLoading(true);
+      setLoading(true)
       // Simulate database cleanup
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      console.log('Database cleanup completed');
-      alert('Database cleanup completed successfully!');
+      await new Promise(resolve => setTimeout(resolve, 1500))
+      console.log('Database cleanup completed')
+      alert('Database cleanup completed successfully!')
     } catch (error) {
-      console.error('Error during database cleanup:', error);
+      console.error('Error during database cleanup:', error)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const handleDatabaseRestore = async () => {
     try {
-      console.log('Database restore functionality');
-      alert('Database restore functionality - This would allow restoring from backup files in a real application.');
+      console.log('Database restore functionality')
+      alert(
+        'Database restore functionality - This would allow restoring from backup files in a real application.'
+      )
     } catch (error) {
-      console.error('Error during database restore:', error);
+      console.error('Error during database restore:', error)
     }
-  };
+  }
 
   const handleSystemMaintenance = async () => {
     try {
-      setLoading(true);
+      setLoading(true)
       // Simulate system maintenance
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
+      await new Promise(resolve => setTimeout(resolve, 2000))
+
       if (stats) {
         setStats({
           ...stats,
           systemHealth: 'healthy' as const,
-          lastSync: new Date().toISOString()
-        });
+          lastSync: new Date().toISOString(),
+        })
       }
-      
-      console.log('System maintenance completed');
-      alert('System maintenance completed successfully!');
+
+      console.log('System maintenance completed')
+      alert('System maintenance completed successfully!')
     } catch (error) {
-      console.error('Error during system maintenance:', error);
+      console.error('Error during system maintenance:', error)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const getHealthColor = (health: string) => {
     switch (health) {
-      case 'healthy': return 'bg-green-100 text-green-800';
-      case 'warning': return 'bg-yellow-100 text-yellow-800';
-      case 'critical': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200';
+      case 'healthy':
+        return 'bg-green-100 text-green-800'
+      case 'warning':
+        return 'bg-yellow-100 text-yellow-800'
+      case 'critical':
+        return 'bg-red-100 text-red-800'
+      default:
+        return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200'
     }
-  };
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': case 'completed': case 'generated': return 'bg-green-100 text-green-800';
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'inactive': case 'failed': case 'cancelled': return 'bg-red-100 text-red-800';
-      case 'suspended': return 'bg-orange-100 text-orange-800';
-      default: return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200';
+      case 'active':
+      case 'completed':
+      case 'generated':
+        return 'bg-green-100 text-green-800'
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800'
+      case 'inactive':
+      case 'failed':
+      case 'cancelled':
+        return 'bg-red-100 text-red-800'
+      case 'suspended':
+        return 'bg-orange-100 text-orange-800'
+      default:
+        return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200'
     }
-  };
+  }
 
-  const filteredUsers = users.filter(user => 
-    user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredUsers = users.filter(
+    user =>
+      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase())
+  )
 
-  const filteredPayments = payments.filter(payment => 
-    filterStatus === 'all' || payment.status === filterStatus
-  );
+  const filteredPayments = payments.filter(
+    payment => filterStatus === 'all' || payment.status === filterStatus
+  )
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -724,7 +758,9 @@ export default function AdminDashboard() {
                 <div>
                   <p className="text-gray-600 dark:text-zinc-400 text-sm">Total Users</p>
                   <p className="text-2xl font-bold">{stats.totalUsers.toLocaleString()}</p>
-                  <p className="text-green-600 text-sm">Active: {stats.activeUsers.toLocaleString()}</p>
+                  <p className="text-green-600 text-sm">
+                    Active: {stats.activeUsers.toLocaleString()}
+                  </p>
                 </div>
                 <Users className="w-8 h-8 text-blue-600" />
               </div>
@@ -798,8 +834,8 @@ export default function AdminDashboard() {
           <button
             onClick={() => setActiveTab('overview')}
             className={`flex-1 flex items-center justify-center space-x-2 px-4 py-2 rounded-md transition-colors ${
-              activeTab === 'overview' 
-                ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-sm' 
+              activeTab === 'overview'
+                ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-sm'
                 : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100'
             }`}
           >
@@ -809,8 +845,8 @@ export default function AdminDashboard() {
           <button
             onClick={() => setActiveTab('users')}
             className={`flex-1 flex items-center justify-center space-x-2 px-4 py-2 rounded-md transition-colors ${
-              activeTab === 'users' 
-                ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-sm' 
+              activeTab === 'users'
+                ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-sm'
                 : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100'
             }`}
           >
@@ -820,8 +856,8 @@ export default function AdminDashboard() {
           <button
             onClick={() => setActiveTab('ai')}
             className={`flex-1 flex items-center justify-center space-x-2 px-4 py-2 rounded-md transition-colors ${
-              activeTab === 'ai' 
-                ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-sm' 
+              activeTab === 'ai'
+                ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-sm'
                 : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100'
             }`}
           >
@@ -831,8 +867,8 @@ export default function AdminDashboard() {
           <button
             onClick={() => setActiveTab('documents')}
             className={`flex-1 flex items-center justify-center space-x-2 px-4 py-2 rounded-md transition-colors ${
-              activeTab === 'documents' 
-                ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-sm' 
+              activeTab === 'documents'
+                ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-sm'
                 : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100'
             }`}
           >
@@ -842,8 +878,8 @@ export default function AdminDashboard() {
           <button
             onClick={() => setActiveTab('payments')}
             className={`flex-1 flex items-center justify-center space-x-2 px-4 py-2 rounded-md transition-colors ${
-              activeTab === 'payments' 
-                ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-sm' 
+              activeTab === 'payments'
+                ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-sm'
                 : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100'
             }`}
           >
@@ -853,8 +889,8 @@ export default function AdminDashboard() {
           <button
             onClick={() => setActiveTab('database')}
             className={`flex-1 flex items-center justify-center space-x-2 px-4 py-2 rounded-md transition-colors ${
-              activeTab === 'database' 
-                ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-sm' 
+              activeTab === 'database'
+                ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-sm'
                 : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100'
             }`}
           >
@@ -878,7 +914,7 @@ export default function AdminDashboard() {
                 <Input
                   placeholder="Search users..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={e => setSearchTerm(e.target.value)}
                   className="w-64"
                 />
                 <Button variant="outline" size="sm">
@@ -903,12 +939,14 @@ export default function AdminDashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredUsers.map((user) => (
+                  {filteredUsers.map(user => (
                     <tr key={user.id} className="border-b">
                       <td className="p-2">
                         <div>
                           <div className="font-semibold">{user.name}</div>
-                          <div className="text-sm text-gray-600 dark:text-zinc-400">{user.email}</div>
+                          <div className="text-sm text-gray-600 dark:text-zinc-400">
+                            {user.email}
+                          </div>
                         </div>
                       </td>
                       <td className="p-2">
@@ -920,9 +958,7 @@ export default function AdminDashboard() {
                         <Badge variant="outline">{user.subscription}</Badge>
                       </td>
                       <td className="p-2">
-                        <Badge className={getStatusColor(user.status)}>
-                          {user.status}
-                        </Badge>
+                        <Badge className={getStatusColor(user.status)}>{user.status}</Badge>
                       </td>
                       <td className="p-2">{user.aiRequests}</td>
                       <td className="p-2">{user.documentsGenerated}</td>
@@ -936,24 +972,24 @@ export default function AdminDashboard() {
                             <Edit className="w-4 h-4" />
                           </Button>
                           {user.status === 'active' ? (
-                            <Button 
-                              variant="ghost" 
+                            <Button
+                              variant="ghost"
                               size="sm"
                               onClick={() => handleUserAction(user.id, 'suspend')}
                             >
                               <XCircle className="w-4 h-4" />
                             </Button>
                           ) : (
-                            <Button 
-                              variant="ghost" 
+                            <Button
+                              variant="ghost"
                               size="sm"
                               onClick={() => handleUserAction(user.id, 'activate')}
                             >
                               <CheckCircle className="w-4 h-4" />
                             </Button>
                           )}
-                          <Button 
-                            variant="ghost" 
+                          <Button
+                            variant="ghost"
                             size="sm"
                             onClick={() => handleUserDelete(user.id)}
                             className="text-red-600 hover:text-red-800"
@@ -979,15 +1015,13 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {aiRequests.map((request) => (
+              {aiRequests.map(request => (
                 <div key={request.id} className="border rounded-lg p-4">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center space-x-4">
                       <Badge variant="outline">{request.type}</Badge>
                       <span className="font-semibold">{request.userEmail}</span>
-                      <Badge className={getStatusColor(request.status)}>
-                        {request.status}
-                      </Badge>
+                      <Badge className={getStatusColor(request.status)}>{request.status}</Badge>
                     </div>
                     <div className="text-sm text-gray-600 dark:text-zinc-400">
                       {new Date(request.createdAt).toLocaleString()}
@@ -1007,16 +1041,13 @@ export default function AdminDashboard() {
                   </div>
                   <div className="flex items-center space-x-2 mt-2">
                     {request.status === 'failed' && (
-                      <Button 
-                        size="sm"
-                        onClick={() => handleAIRequestAction(request.id, 'retry')}
-                      >
+                      <Button size="sm" onClick={() => handleAIRequestAction(request.id, 'retry')}>
                         <RefreshCw className="w-4 h-4 mr-1" />
                         Retry
                       </Button>
                     )}
                     {request.status === 'pending' && (
-                      <Button 
+                      <Button
                         variant="destructive"
                         size="sm"
                         onClick={() => handleAIRequestAction(request.id, 'cancel')}
@@ -1025,7 +1056,7 @@ export default function AdminDashboard() {
                         Cancel
                       </Button>
                     )}
-                    <Button 
+                    <Button
                       variant="outline"
                       size="sm"
                       onClick={() => handleAIRequestAction(request.id, 'delete')}
@@ -1050,16 +1081,16 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {documents.map((doc) => (
+              {documents.map(doc => (
                 <div key={doc.id} className="border rounded-lg p-4">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center space-x-4">
                       <Badge variant="outline">{doc.type}</Badge>
                       <span className="font-semibold">{doc.title}</span>
-                      <span className="text-sm text-gray-600 dark:text-zinc-400">{doc.userEmail}</span>
-                      <Badge className={getStatusColor(doc.status)}>
-                        {doc.status}
-                      </Badge>
+                      <span className="text-sm text-gray-600 dark:text-zinc-400">
+                        {doc.userEmail}
+                      </span>
+                      <Badge className={getStatusColor(doc.status)}>{doc.status}</Badge>
                     </div>
                     <div className="text-sm text-gray-600 dark:text-zinc-400">
                       {new Date(doc.createdAt).toLocaleString()}
@@ -1068,16 +1099,13 @@ export default function AdminDashboard() {
                   <div className="text-sm mb-2">{doc.content}</div>
                   <div className="flex items-center space-x-2">
                     {doc.status === 'failed' && (
-                      <Button 
-                        size="sm"
-                        onClick={() => handleDocumentAction(doc.id, 'regenerate')}
-                      >
+                      <Button size="sm" onClick={() => handleDocumentAction(doc.id, 'regenerate')}>
                         <RefreshCw className="w-4 h-4 mr-1" />
                         Regenerate
                       </Button>
                     )}
                     {doc.status === 'generated' && (
-                      <Button 
+                      <Button
                         variant="outline"
                         size="sm"
                         onClick={() => handleDocumentAction(doc.id, 'download')}
@@ -1086,7 +1114,7 @@ export default function AdminDashboard() {
                         Download
                       </Button>
                     )}
-                    <Button 
+                    <Button
                       variant="outline"
                       size="sm"
                       onClick={() => handleDocumentAction(doc.id, 'delete')}
@@ -1112,7 +1140,7 @@ export default function AdminDashboard() {
               <div className="flex items-center space-x-2">
                 <select
                   value={filterStatus}
-                  onChange={(e) => setFilterStatus(e.target.value)}
+                  onChange={e => setFilterStatus(e.target.value)}
                   className="px-3 py-2 border border-gray-300 dark:border-zinc-700 rounded-md"
                 >
                   <option value="all">All Status</option>
@@ -1125,16 +1153,16 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {filteredPayments.map((payment) => (
+              {filteredPayments.map(payment => (
                 <div key={payment.id} className="border rounded-lg p-4">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center space-x-4">
                       <span className="font-semibold">{payment.userEmail}</span>
                       <Badge variant="outline">{payment.plan}</Badge>
-                      <span className="font-semibold">{payment.amount.toLocaleString()} {payment.currency}</span>
-                      <Badge className={getStatusColor(payment.status)}>
-                        {payment.status}
-                      </Badge>
+                      <span className="font-semibold">
+                        {payment.amount.toLocaleString()} {payment.currency}
+                      </span>
+                      <Badge className={getStatusColor(payment.status)}>{payment.status}</Badge>
                     </div>
                     <div className="text-sm text-gray-600 dark:text-zinc-400">
                       {new Date(payment.createdAt).toLocaleString()}
@@ -1146,7 +1174,7 @@ export default function AdminDashboard() {
                       <div>Tracking: {payment.trackingNumber}</div>
                     </div>
                     {payment.status === 'completed' && (
-                      <Button 
+                      <Button
                         variant="outline"
                         size="sm"
                         onClick={() => handlePaymentRefund(payment.id)}
@@ -1158,14 +1186,14 @@ export default function AdminDashboard() {
                     )}
                     {payment.status === 'pending' && (
                       <div className="flex items-center space-x-2">
-                        <Button 
+                        <Button
                           size="sm"
                           onClick={() => handlePaymentAction(payment.id, 'approve')}
                         >
                           <CheckCircle className="w-4 h-4 mr-1" />
                           Approve
                         </Button>
-                        <Button 
+                        <Button
                           variant="destructive"
                           size="sm"
                           onClick={() => handlePaymentAction(payment.id, 'reject')}
@@ -1215,7 +1243,12 @@ export default function AdminDashboard() {
               <div>
                 <h3 className="font-semibold mb-4">Database Actions</h3>
                 <div className="space-y-2">
-                  <Button variant="outline" className="w-full" onClick={handleDatabaseSync} disabled={loading}>
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={handleDatabaseSync}
+                    disabled={loading}
+                  >
                     <RefreshCw className="w-4 h-4 mr-2" />
                     {loading ? 'Syncing...' : 'Sync Database'}
                   </Button>
@@ -1235,7 +1268,12 @@ export default function AdminDashboard() {
                     <Database className="w-4 h-4 mr-2" />
                     View Schema
                   </Button>
-                  <Button variant="outline" className="w-full" onClick={handleSystemMaintenance} disabled={loading}>
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={handleSystemMaintenance}
+                    disabled={loading}
+                  >
                     <Settings className="w-4 h-4 mr-2" />
                     {loading ? 'Maintenance...' : 'System Maintenance'}
                   </Button>
@@ -1246,5 +1284,5 @@ export default function AdminDashboard() {
         </Card>
       )}
     </div>
-  );
+  )
 }

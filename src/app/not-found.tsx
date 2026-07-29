@@ -1,8 +1,8 @@
-'use client';
+'use client'
 
-import Link from 'next/link';
-import { Button } from '@/components/ui/Button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import Link from 'next/link'
+import { Button } from '@/components/ui/Button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 
 export default function NotFound() {
   return (
@@ -24,7 +24,9 @@ export default function NotFound() {
               />
             </svg>
           </div>
-          <CardTitle className="text-2xl text-gray-900 dark:text-zinc-100">Sahifa topilmadi</CardTitle>
+          <CardTitle className="text-2xl text-gray-900 dark:text-zinc-100">
+            Sahifa topilmadi
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4 text-center">
           <p className="text-gray-600 dark:text-zinc-400">
@@ -36,20 +38,26 @@ export default function NotFound() {
             </p>
             <ul className="text-sm text-gray-500 dark:text-zinc-500 space-y-1 text-left">
               <li>URL manzilni to'g'ri yozganingizni tekshiring</li>
-              <li><Link href="/dashboard" className="text-blue-600 hover:text-blue-500">Dashboard</Link> ga qaytib ko'ring</li>
-              <li><Link href="/" className="text-blue-600 hover:text-blue-500">Bosh sahifa</Link> ga o'ting</li>
+              <li>
+                <Link href="/dashboard" className="text-blue-600 hover:text-blue-500">
+                  Dashboard
+                </Link>{' '}
+                ga qaytib ko'ring
+              </li>
+              <li>
+                <Link href="/" className="text-blue-600 hover:text-blue-500">
+                  Bosh sahifa
+                </Link>{' '}
+                ga o'ting
+              </li>
             </ul>
           </div>
           <div className="flex flex-col sm:flex-row gap-3 pt-4">
             <Button asChild className="flex-1">
-              <Link href="/dashboard">
-                Dashboard
-              </Link>
+              <Link href="/dashboard">Dashboard</Link>
             </Button>
             <Button variant="outline" asChild className="flex-1">
-              <Link href="/">
-                Bosh sahifa
-              </Link>
+              <Link href="/">Bosh sahifa</Link>
             </Button>
           </div>
           <div className="pt-4 border-t">
@@ -64,10 +72,7 @@ export default function NotFound() {
                 support@jurisai.uz
               </a>
               <span className="text-xs text-gray-400 dark:text-zinc-500">|</span>
-              <a
-                href="tel:+998901234567"
-                className="text-xs text-blue-600 hover:text-blue-500"
-              >
+              <a href="tel:+998901234567" className="text-xs text-blue-600 hover:text-blue-500">
                 +998 90 123 45 67
               </a>
             </div>
@@ -75,5 +80,5 @@ export default function NotFound() {
         </CardContent>
       </Card>
     </div>
-  );
+  )
 }

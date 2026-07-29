@@ -1,23 +1,23 @@
-import { NextResponse } from 'next/server';
-import { getSupabaseAdmin } from '@/lib/supabase-admin';
+import { NextResponse } from 'next/server'
+import { getSupabaseAdmin } from '@/lib/supabase-admin'
 
 export async function GET() {
   try {
-    let supabase;
+    let supabase
     try {
-      supabase = getSupabaseAdmin();
+      supabase = getSupabaseAdmin()
     } catch {
-      return NextResponse.json({ success: false, error: 'Supabase not configured' });
+      return NextResponse.json({ success: false, error: 'Supabase not configured' })
     }
 
     const { data, error } = await supabase
       .from('pricing_plans')
       .select('*')
-      .order('sort_order', { ascending: true });
+      .order('sort_order', { ascending: true })
 
     if (error) {
-      console.error('[Pricing Public] Error:', error);
-      return NextResponse.json({ success: false, error: error.message });
+      console.error('[Pricing Public] Error:', error)
+      return NextResponse.json({ success: false, error: error.message })
     }
 
     // Transform snake_case to camelCase
@@ -27,10 +27,10 @@ export async function GET() {
       price: p.price,
       features: p.features || [],
       caseLimit: p.case_limit || p.caseLimit || -1,
-    }));
+    }))
 
-    return NextResponse.json({ success: true, data: plans });
+    return NextResponse.json({ success: true, data: plans })
   } catch (error: any) {
-    return NextResponse.json({ success: false, error: error?.message }, { status: 500 });
+    return NextResponse.json({ success: false, error: error?.message }, { status: 500 })
   }
 }

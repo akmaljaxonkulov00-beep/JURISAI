@@ -1,18 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { NextRequest, NextResponse } from 'next/server'
+import { supabase } from '@/lib/supabase'
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = await params;
+    const { id } = await params
 
     if (!id) {
-      return NextResponse.json(
-        { error: 'Session ID talab qilinadi' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Session ID talab qilinadi' }, { status: 400 })
     }
 
     // Get simulation from database
@@ -20,10 +14,10 @@ export async function GET(
       .from('court_simulations')
       .select('*')
       .eq('id', id)
-      .single();
+      .single()
 
     if (error || !data) {
-      console.error('Court session get error:', error);
+      console.error('Court session get error:', error)
       // Fallback to mock response
       return NextResponse.json({
         simulation_id: id,
@@ -34,11 +28,11 @@ export async function GET(
         participants: {
           plaintiff: { name: 'Ali Valiyev', role: 'Plaintiff' },
           defendant: { name: 'Dilnoza Karimova', role: 'Defendant' },
-          judge: { name: 'Sudya', role: 'Judge' }
+          judge: { name: 'Sudya', role: 'Judge' },
         },
         current_speaker: 'defendant',
-        last_action: 'Argument submitted'
-      });
+        last_action: 'Argument submitted',
+      })
     }
 
     return NextResponse.json({
@@ -50,17 +44,13 @@ export async function GET(
       participants: {
         plaintiff: { name: 'Ali Valiyev', role: 'Plaintiff' },
         defendant: { name: 'Dilnoza Karimova', role: 'Defendant' },
-        judge: { name: 'Sudya', role: 'Judge' }
+        judge: { name: 'Sudya', role: 'Judge' },
       },
       current_speaker: 'plaintiff',
-      last_action: data.last_action || 'Session retrieved'
-    });
-
+      last_action: data.last_action || 'Session retrieved',
+    })
   } catch (error) {
-    console.error('Court session get error:', error);
-    return NextResponse.json(
-      { error: 'Sessiyani olishda xatolik yuz berdi' },
-      { status: 500 }
-    );
+    console.error('Court session get error:', error)
+    return NextResponse.json({ error: 'Sessiyani olishda xatolik yuz berdi' }, { status: 500 })
   }
 }

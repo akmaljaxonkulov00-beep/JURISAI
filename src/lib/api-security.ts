@@ -10,7 +10,7 @@ import { z } from 'zod'
  */
 export function sanitizeInput(input: string): string {
   if (typeof input !== 'string') return ''
-  
+
   return input
     .replace(/[<>]/g, '') // Remove < and >
     .replace(/javascript:/gi, '') // Remove javascript: protocol
@@ -69,7 +69,7 @@ export function validateTextInput(
  */
 export function isValidApiKeyFormat(key: string): boolean {
   if (!key || typeof key !== 'string') return false
-  
+
   // Check common API key patterns
   const patterns = [
     /^sk-[a-zA-Z0-9]{32,}$/, // OpenAI
@@ -95,11 +95,9 @@ export class RateLimiter {
 
   canMakeRequest(): boolean {
     const now = Date.now()
-    
+
     // Remove old requests outside the window
-    this.requests = this.requests.filter(
-      time => now - time < this.windowMs
-    )
+    this.requests = this.requests.filter(time => now - time < this.windowMs)
 
     if (this.requests.length >= this.maxRequests) {
       return false
@@ -111,9 +109,7 @@ export class RateLimiter {
 
   getRemainingRequests(): number {
     const now = Date.now()
-    this.requests = this.requests.filter(
-      time => now - time < this.windowMs
-    )
+    this.requests = this.requests.filter(time => now - time < this.windowMs)
     return Math.max(0, this.maxRequests - this.requests.length)
   }
 
@@ -161,7 +157,7 @@ export function generateSecureRandom(length = 32): string {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
   const array = new Uint8Array(length)
   crypto.getRandomValues(array)
-  
+
   return Array.from(array, byte => chars[byte % chars.length]).join('')
 }
 
@@ -228,11 +224,11 @@ export function isAllowedOrigin(origin: string): boolean {
  */
 export function maskSensitiveData(data: string): string {
   if (!data || data.length < 8) return '***'
-  
+
   const visibleStart = 4
   const visibleEnd = 4
   const masked = '*'.repeat(data.length - visibleStart - visibleEnd)
-  
+
   return data.slice(0, visibleStart) + masked + data.slice(-visibleEnd)
 }
 
@@ -246,11 +242,7 @@ export interface APIError {
   statusCode: number
 }
 
-export function createAPIError(
-  message: string,
-  statusCode = 500,
-  code?: string
-): APIError {
+export function createAPIError(message: string, statusCode = 500, code?: string): APIError {
   return {
     error: getErrorType(statusCode),
     message,

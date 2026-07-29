@@ -1,32 +1,32 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import { Button } from '@/components/ui/Button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
+import { useState } from 'react'
+import { Button } from '@/components/ui/Button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import { Badge } from '@/components/ui/Badge'
 
 interface ChatMessage {
-  id: string;
-  type: 'user' | 'assistant';
-  content: string;
-  timestamp: string;
+  id: string
+  type: 'user' | 'assistant'
+  content: string
+  timestamp: string
   sources?: Array<{
-    title: string;
-    article: string;
-    url: string;
-  }>;
+    title: string
+    article: string
+    url: string
+  }>
 }
 
 export default function LegalChat() {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [inputMessage, setInputMessage] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [messages, setMessages] = useState<ChatMessage[]>([])
+  const [inputMessage, setInputMessage] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
   const sendMessage = async () => {
     if (!inputMessage.trim()) {
-      setError('Iltimos, savolingizni kiriting');
-      return;
+      setError('Iltimos, savolingizni kiriting')
+      return
     }
 
     const userMessage: ChatMessage = {
@@ -34,12 +34,12 @@ export default function LegalChat() {
       type: 'user',
       content: inputMessage,
       timestamp: new Date().toISOString(),
-    };
+    }
 
-    setMessages(prev => [...prev, userMessage]);
-    setInputMessage('');
-    setLoading(true);
-    setError('');
+    setMessages(prev => [...prev, userMessage])
+    setInputMessage('')
+    setLoading(true)
+    setError('')
 
     try {
       const response = await fetch('/api/ai/legal-chat', {
@@ -48,35 +48,35 @@ export default function LegalChat() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ message: inputMessage }),
-      });
+      })
 
       if (response.ok) {
-        const data = await response.json();
+        const data = await response.json()
         const assistantMessage: ChatMessage = {
           id: (Date.now() + 1).toString(),
           type: 'assistant',
           content: data.answer,
           timestamp: data.timestamp,
           sources: data.sources,
-        };
-        setMessages(prev => [...prev, assistantMessage]);
+        }
+        setMessages(prev => [...prev, assistantMessage])
       } else {
-        const errorData = await response.json();
-        setError(errorData.error || 'Javob olishda xatolik yuz berdi');
+        const errorData = await response.json()
+        setError(errorData.error || 'Javob olishda xatolik yuz berdi')
       }
     } catch (error) {
-      setError('Javob olishda xatolik yuz berdi. Iltimos, qayta urining.');
+      setError('Javob olishda xatolik yuz berdi. Iltimos, qayta urining.')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
+      e.preventDefault()
+      sendMessage()
     }
-  };
+  }
 
   return (
     <div className="max-w-4xl mx-auto p-6">
@@ -97,12 +97,10 @@ export default function LegalChat() {
               </div>
             ) : (
               <div className="space-y-4">
-                {messages.map((message) => (
+                {messages.map(message => (
                   <div
                     key={message.id}
-                    className={`flex ${
-                      message.type === 'user' ? 'justify-end' : 'justify-start'
-                    }`}
+                    className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
                   >
                     <div
                       className={`max-w-lg px-4 py-2 rounded-lg ${
@@ -154,13 +152,11 @@ export default function LegalChat() {
 
           {/* Input Area */}
           <div className="space-y-4">
-            {error && (
-              <div className="text-red-600 text-sm">{error}</div>
-            )}
+            {error && <div className="text-red-600 text-sm">{error}</div>}
             <div className="flex space-x-2">
               <textarea
                 value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
+                onChange={e => setInputMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="Yuridik savolingizni kiriting..."
                 className="flex-1 px-3 py-2 border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 resize-none"
@@ -183,12 +179,12 @@ export default function LegalChat() {
             <p className="text-sm text-gray-600 dark:text-zinc-400 mb-2">Tez savollar:</p>
             <div className="flex flex-wrap gap-2">
               {[
-                "Shartnomani bekor qilish",
+                'Shartnomani bekor qilish',
                 "Ish haqi to'lanmadi",
-                "Ajralish tartibi",
-                "Meros olish",
-                "Ijaraviy munosabatlar"
-              ].map((question) => (
+                'Ajralish tartibi',
+                'Meros olish',
+                'Ijaraviy munosabatlar',
+              ].map(question => (
                 <Button
                   key={question}
                   variant="outline"
@@ -204,5 +200,5 @@ export default function LegalChat() {
         </CardContent>
       </Card>
     </div>
-  );
+  )
 }

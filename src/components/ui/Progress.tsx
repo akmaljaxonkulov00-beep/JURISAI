@@ -1,50 +1,58 @@
-import React, { HTMLAttributes, forwardRef } from 'react';
-import { cn } from '@/lib/utils';
+import React, { HTMLAttributes, forwardRef } from 'react'
+import { cn } from '@/lib/utils'
 
 interface ProgressProps extends HTMLAttributes<HTMLDivElement> {
-  value?: number;
-  max?: number;
-  size?: 'sm' | 'md' | 'lg';
-  showValue?: boolean;
-  variant?: 'default' | 'success' | 'warning' | 'error';
+  value?: number
+  max?: number
+  size?: 'sm' | 'md' | 'lg'
+  showValue?: boolean
+  variant?: 'default' | 'success' | 'warning' | 'error'
 }
 
 const Progress = forwardRef<HTMLDivElement, ProgressProps>(
-  ({ className, value = 0, max = 100, size = 'md', showValue = false, variant = 'default', ...props }, ref) => {
-    const percentage = Math.min(Math.max((value / max) * 100, 0), 100);
-    
+  (
+    {
+      className,
+      value = 0,
+      max = 100,
+      size = 'md',
+      showValue = false,
+      variant = 'default',
+      ...props
+    },
+    ref
+  ) => {
+    const percentage = Math.min(Math.max((value / max) * 100, 0), 100)
+
     const getSizeClasses = (size: string) => {
       switch (size) {
         case 'sm':
-          return 'h-1';
+          return 'h-1'
         case 'lg':
-          return 'h-4';
+          return 'h-4'
         default:
-          return 'h-2';
+          return 'h-2'
       }
-    };
-    
+    }
+
     const getVariantClasses = (variant: string) => {
       switch (variant) {
         case 'success':
-          return 'bg-green-50 dark:bg-green-900/20';
+          return 'bg-green-50 dark:bg-green-900/20'
         case 'warning':
-          return 'bg-yellow-50 dark:bg-yellow-900/20';
+          return 'bg-yellow-50 dark:bg-yellow-900/20'
         case 'error':
-          return 'bg-red-50 dark:bg-red-900/20';
+          return 'bg-red-50 dark:bg-red-900/20'
         default:
-          return 'bg-primary';
+          return 'bg-primary'
       }
-    };
+    }
 
     return (
       <div ref={ref} className={cn('space-y-2', className)} {...props}>
         <div className="relative">
           <div
-            className={cn(
-              'w-full bg-secondary rounded-full overflow-hidden',
-              getSizeClasses(size)
-            )}
+            className={cn('w-full bg-secondary rounded-full overflow-hidden', getSizeClasses(size))}
           >
             <div
               className={cn(
@@ -63,10 +71,10 @@ const Progress = forwardRef<HTMLDivElement, ProgressProps>(
           )}
         </div>
       </div>
-    );
+    )
   }
-);
+)
 
-Progress.displayName = 'Progress';
+Progress.displayName = 'Progress'
 
-export { Progress, type ProgressProps };
+export { Progress, type ProgressProps }

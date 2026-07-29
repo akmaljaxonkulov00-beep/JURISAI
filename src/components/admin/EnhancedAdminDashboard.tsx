@@ -1,24 +1,24 @@
-'use client';
+'use client'
 
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  Legend, 
-  LineChart, 
-  Line, 
-  PieChart, 
-  Pie, 
-  Cell
-} from 'recharts';
-import { 
+import { useState, useEffect } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
+import { Badge } from '@/components/ui/Badge'
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  LineChart,
+  Line,
+  PieChart,
+  Pie,
+  Cell,
+} from 'recharts'
+import {
   Users,
   DollarSign,
   Activity,
@@ -26,33 +26,33 @@ import {
   CheckCircle,
   TrendingUp,
   Database,
-  Settings
-} from 'lucide-react';
+  Settings,
+} from 'lucide-react'
 
 interface AdminStats {
-  totalUsers: number;
-  activeUsers: number;
-  totalRevenue: number;
-  totalTransactions: number;
-  todayUsers: number;
-  todayRevenue: number;
-  systemHealth: 'healthy' | 'warning' | 'error';
-  lastSync: string;
+  totalUsers: number
+  activeUsers: number
+  totalRevenue: number
+  totalTransactions: number
+  todayUsers: number
+  todayRevenue: number
+  systemHealth: 'healthy' | 'warning' | 'error'
+  lastSync: string
 }
 
 interface UserActivity {
-  date: string;
-  newUsers: number;
-  activeUsers: number;
+  date: string
+  newUsers: number
+  activeUsers: number
 }
 
 interface RevenueData {
-  date: string;
-  revenue: number;
-  transactions: number;
+  date: string
+  revenue: number
+  transactions: number
 }
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8']
 
 export default function EnhancedAdminDashboard() {
   const [stats, setStats] = useState<AdminStats>({
@@ -63,30 +63,32 @@ export default function EnhancedAdminDashboard() {
     todayUsers: 0,
     todayRevenue: 0,
     systemHealth: 'healthy',
-    lastSync: new Date().toISOString()
-  });
-  
-  const [userActivity, setUserActivity] = useState<UserActivity[]>([]);
-  const [revenueData, setRevenueData] = useState<RevenueData[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'revenue' | 'system'>('overview');
+    lastSync: new Date().toISOString(),
+  })
+
+  const [userActivity, setUserActivity] = useState<UserActivity[]>([])
+  const [revenueData, setRevenueData] = useState<RevenueData[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'revenue' | 'system'>(
+    'overview'
+  )
 
   useEffect(() => {
-    fetchAdminData();
-  }, []);
+    fetchAdminData()
+  }, [])
 
   const fetchAdminData = async () => {
-    setLoading(true);
-    setError(null);
+    setLoading(true)
+    setError(null)
 
     try {
       // Try to fetch real data from API
-      const response = await fetch('/api/admin/analytics?period=month');
-      
+      const response = await fetch('/api/admin/analytics?period=month')
+
       if (response.ok) {
-        const data = await response.json();
-        
+        const data = await response.json()
+
         // Process real data
         setStats({
           totalUsers: data.userAnalytics?.summary?.totalUsers || 0,
@@ -96,34 +98,36 @@ export default function EnhancedAdminDashboard() {
           todayUsers: data.userAnalytics?.summary?.todayUsers || 0,
           todayRevenue: data.revenueAnalytics?.summary?.todayRevenue || 0,
           systemHealth: 'healthy',
-          lastSync: new Date().toISOString()
-        });
+          lastSync: new Date().toISOString(),
+        })
 
         // Process activity data
         if (data.userAnalytics?.userGrowth) {
-          setUserActivity(data.userAnalytics.userGrowth.map((item: any) => ({
-            date: new Date(item.date).toLocaleDateString(),
-            newUsers: item.newUsers,
-            activeUsers: item.activeUsers || 0
-          })));
+          setUserActivity(
+            data.userAnalytics.userGrowth.map((item: any) => ({
+              date: new Date(item.date).toLocaleDateString(),
+              newUsers: item.newUsers,
+              activeUsers: item.activeUsers || 0,
+            }))
+          )
         }
 
         if (data.revenueAnalytics?.revenueData) {
-          setRevenueData(data.revenueAnalytics.revenueData.map((item: any) => ({
-            date: new Date(item.date).toLocaleDateString(),
-            revenue: item.revenue || 0,
-            transactions: item.transactionCount || 0
-          })));
+          setRevenueData(
+            data.revenueAnalytics.revenueData.map((item: any) => ({
+              date: new Date(item.date).toLocaleDateString(),
+              revenue: item.revenue || 0,
+              transactions: item.transactionCount || 0,
+            }))
+          )
         }
-
       } else {
-        throw new Error('Failed to fetch admin data');
+        throw new Error('Failed to fetch admin data')
       }
-
     } catch (err) {
-      console.error('Admin data fetch error:', err);
-      setError('Database connection failed. Showing demo data.');
-      
+      console.error('Admin data fetch error:', err)
+      setError('Database connection failed. Showing demo data.')
+
       // Set fallback demo data
       setStats({
         totalUsers: 1247,
@@ -133,54 +137,62 @@ export default function EnhancedAdminDashboard() {
         todayUsers: 23,
         todayRevenue: 1250000,
         systemHealth: 'warning',
-        lastSync: new Date().toISOString()
-      });
+        lastSync: new Date().toISOString(),
+      })
 
       // Demo activity data
-      const demoActivity: UserActivity[] = [];
-      const demoRevenue: RevenueData[] = [];
-      
+      const demoActivity: UserActivity[] = []
+      const demoRevenue: RevenueData[] = []
+
       for (let i = 29; i >= 0; i--) {
-        const date = new Date();
-        date.setDate(date.getDate() - i);
-        
+        const date = new Date()
+        date.setDate(date.getDate() - i)
+
         demoActivity.push({
           date: date.toLocaleDateString(),
           newUsers: Math.floor(Math.random() * 15) + 5,
-          activeUsers: Math.floor(Math.random() * 50) + 20
-        });
+          activeUsers: Math.floor(Math.random() * 50) + 20,
+        })
 
         demoRevenue.push({
           date: date.toLocaleDateString(),
           revenue: Math.floor(Math.random() * 2000000) + 500000,
-          transactions: Math.floor(Math.random() * 20) + 5
-        });
+          transactions: Math.floor(Math.random() * 20) + 5,
+        })
       }
 
-      setUserActivity(demoActivity);
-      setRevenueData(demoRevenue);
+      setUserActivity(demoActivity)
+      setRevenueData(demoRevenue)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const getHealthColor = (health: string) => {
     switch (health) {
-      case 'healthy': return 'text-green-600';
-      case 'warning': return 'text-yellow-600';
-      case 'error': return 'text-red-600';
-      default: return 'text-gray-600 dark:text-zinc-400';
+      case 'healthy':
+        return 'text-green-600'
+      case 'warning':
+        return 'text-yellow-600'
+      case 'error':
+        return 'text-red-600'
+      default:
+        return 'text-gray-600 dark:text-zinc-400'
     }
-  };
+  }
 
   const getHealthIcon = (health: string) => {
     switch (health) {
-      case 'healthy': return <CheckCircle className="w-5 h-5" />;
-      case 'warning': return <AlertCircle className="w-5 h-5" />;
-      case 'error': return <AlertCircle className="w-5 h-5" />;
-      default: return <Database className="w-5 h-5" />;
+      case 'healthy':
+        return <CheckCircle className="w-5 h-5" />
+      case 'warning':
+        return <AlertCircle className="w-5 h-5" />
+      case 'error':
+        return <AlertCircle className="w-5 h-5" />
+      default:
+        return <Database className="w-5 h-5" />
     }
-  };
+  }
 
   if (loading) {
     return (
@@ -190,7 +202,7 @@ export default function EnhancedAdminDashboard() {
           <p className="text-gray-600 dark:text-zinc-400">Admin panel yuklanmoqda...</p>
         </div>
       </div>
-    );
+    )
   }
 
   return (
@@ -203,11 +215,16 @@ export default function EnhancedAdminDashboard() {
             <p className="text-gray-600 dark:text-zinc-400">Tizim statistikasi va boshqaruv</p>
           </div>
           <div className="flex items-center gap-4">
-            <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${getHealthColor(stats.systemHealth)}`}>
+            <div
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg ${getHealthColor(stats.systemHealth)}`}
+            >
               {getHealthIcon(stats.systemHealth)}
               <span className="font-medium">
-                {stats.systemHealth === 'healthy' ? 'Healthy' : 
-                 stats.systemHealth === 'warning' ? 'Warning' : 'Error'}
+                {stats.systemHealth === 'healthy'
+                  ? 'Healthy'
+                  : stats.systemHealth === 'warning'
+                    ? 'Warning'
+                    : 'Error'}
               </span>
             </div>
             <Button onClick={fetchAdminData} variant="outline">
@@ -229,7 +246,7 @@ export default function EnhancedAdminDashboard() {
 
       {/* Tab Navigation */}
       <div className="flex gap-4 mb-6 border-b border-gray-200 dark:border-zinc-800">
-        {['overview', 'users', 'revenue', 'system'].map((tab) => (
+        {['overview', 'users', 'revenue', 'system'].map(tab => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab as any)}
@@ -239,9 +256,13 @@ export default function EnhancedAdminDashboard() {
                 : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100'
             }`}
           >
-            {tab === 'overview' ? 'Umumiy ko\'rinish' :
-             tab === 'users' ? 'Foydalanuvchilar' :
-             tab === 'revenue' ? 'Daromad' : 'Tizim'}
+            {tab === 'overview'
+              ? "Umumiy ko'rinish"
+              : tab === 'users'
+                ? 'Foydalanuvchilar'
+                : tab === 'revenue'
+                  ? 'Daromad'
+                  : 'Tizim'}
           </button>
         ))}
       </div>
@@ -254,13 +275,14 @@ export default function EnhancedAdminDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600 dark:text-zinc-400">Jami foydalanuvchilar</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-zinc-100">{stats.totalUsers.toLocaleString()}</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-zinc-100">
+                    {stats.totalUsers.toLocaleString()}
+                  </p>
                 </div>
                 <Users className="w-8 h-8 text-blue-600" />
               </div>
               <div className="mt-2 flex items-center text-sm text-green-600">
-                <TrendingUp className="w-4 h-4 mr-1" />
-                +{stats.todayUsers} bugun
+                <TrendingUp className="w-4 h-4 mr-1" />+{stats.todayUsers} bugun
               </div>
             </CardContent>
           </Card>
@@ -270,7 +292,9 @@ export default function EnhancedAdminDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600 dark:text-zinc-400">Faol foydalanuvchilar</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-zinc-100">{stats.activeUsers.toLocaleString()}</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-zinc-100">
+                    {stats.activeUsers.toLocaleString()}
+                  </p>
                 </div>
                 <Activity className="w-8 h-8 text-green-600" />
               </div>
@@ -294,8 +318,8 @@ export default function EnhancedAdminDashboard() {
                 <DollarSign className="w-8 h-8 text-yellow-600" />
               </div>
               <div className="mt-2 flex items-center text-sm text-green-600">
-                <TrendingUp className="w-4 h-4 mr-1" />
-                +{stats.todayRevenue.toLocaleString('uz-UZ')} bugun
+                <TrendingUp className="w-4 h-4 mr-1" />+{stats.todayRevenue.toLocaleString('uz-UZ')}{' '}
+                bugun
               </div>
             </CardContent>
           </Card>
@@ -305,7 +329,9 @@ export default function EnhancedAdminDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600 dark:text-zinc-400">Tranzaksiyalar</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-zinc-100">{stats.totalTransactions}</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-zinc-100">
+                    {stats.totalTransactions}
+                  </p>
                 </div>
                 <Database className="w-8 h-8 text-purple-600" />
               </div>
@@ -331,8 +357,18 @@ export default function EnhancedAdminDashboard() {
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Line type="monotone" dataKey="newUsers" stroke="#8884d8" name="Yangi foydalanuvchilar" />
-                <Line type="monotone" dataKey="activeUsers" stroke="#82ca9d" name="Faol foydalanuvchilar" />
+                <Line
+                  type="monotone"
+                  dataKey="newUsers"
+                  stroke="#8884d8"
+                  name="Yangi foydalanuvchilar"
+                />
+                <Line
+                  type="monotone"
+                  dataKey="activeUsers"
+                  stroke="#82ca9d"
+                  name="Faol foydalanuvchilar"
+                />
               </LineChart>
             </div>
           </CardContent>
@@ -372,7 +408,13 @@ export default function EnhancedAdminDashboard() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <span>Database</span>
-                  <Badge className={stats.systemHealth === 'healthy' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}>
+                  <Badge
+                    className={
+                      stats.systemHealth === 'healthy'
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-yellow-100 text-yellow-800'
+                    }
+                  >
                     {stats.systemHealth === 'healthy' ? 'Connected' : 'Limited'}
                   </Badge>
                 </div>
@@ -401,13 +443,25 @@ export default function EnhancedAdminDashboard() {
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span>NEXT_PUBLIC_SUPABASE_URL</span>
-                      <Badge className={process.env.NEXT_PUBLIC_SUPABASE_URL ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
+                      <Badge
+                        className={
+                          process.env.NEXT_PUBLIC_SUPABASE_URL
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-red-100 text-red-800'
+                        }
+                      >
                         {process.env.NEXT_PUBLIC_SUPABASE_URL ? 'Set' : 'Missing'}
                       </Badge>
                     </div>
                     <div className="flex justify-between">
                       <span>GROQ_API_KEY</span>
-                      <Badge className={process.env.GROQ_API_KEY ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
+                      <Badge
+                        className={
+                          process.env.GROQ_API_KEY
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-red-100 text-red-800'
+                        }
+                      >
                         {process.env.GROQ_API_KEY ? 'Set' : 'Missing'}
                       </Badge>
                     </div>
@@ -419,5 +473,5 @@ export default function EnhancedAdminDashboard() {
         </div>
       )}
     </div>
-  );
+  )
 }

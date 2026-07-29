@@ -27,13 +27,16 @@ const AccessibleButton = React.forwardRef<HTMLButtonElement, AccessibleButtonPro
     },
     ref
   ) => {
-    const baseStyles = 'inline-flex items-center justify-center font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed'
+    const baseStyles =
+      'inline-flex items-center justify-center font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed'
 
     const variantStyles = {
       primary: 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500',
       secondary: 'bg-gray-600 text-white hover:bg-gray-700 focus:ring-gray-500',
-      outline: 'border-2 border-blue-600 text-blue-600 hover:bg-blue-50 dark:bg-blue-900/20 focus:ring-blue-500',
-      ghost: 'text-gray-700 dark:text-zinc-300 hover:bg-gray-100 dark:bg-zinc-800/30 focus:ring-gray-500',
+      outline:
+        'border-2 border-blue-600 text-blue-600 hover:bg-blue-50 dark:bg-blue-900/20 focus:ring-blue-500',
+      ghost:
+        'text-gray-700 dark:text-zinc-300 hover:bg-gray-100 dark:bg-zinc-800/30 focus:ring-gray-500',
     }
 
     const sizeStyles = {
@@ -45,12 +48,7 @@ const AccessibleButton = React.forwardRef<HTMLButtonElement, AccessibleButtonPro
     return (
       <button
         ref={ref}
-        className={clsx(
-          baseStyles,
-          variantStyles[variant],
-          sizeStyles[size],
-          className
-        )}
+        className={clsx(baseStyles, variantStyles[variant], sizeStyles[size], className)}
         disabled={disabled || loading}
         aria-label={ariaLabel || (typeof children === 'string' ? children : undefined)}
         aria-busy={loading}

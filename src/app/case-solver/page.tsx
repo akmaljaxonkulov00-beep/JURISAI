@@ -1,42 +1,53 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import { ArrowLeft, CheckCircle, AlertCircle, Lightbulb, Send, Target, Scale, FileText, Award } from 'lucide-react';
+import { useState } from 'react'
+import {
+  ArrowLeft,
+  CheckCircle,
+  AlertCircle,
+  Lightbulb,
+  Send,
+  Target,
+  Scale,
+  FileText,
+  Award,
+} from 'lucide-react'
 
 interface CaseStep {
-  id: string;
-  title: string;
-  description: string;
-  icon: React.ReactNode;
-  question: string;
-  placeholder: string;
+  id: string
+  title: string
+  description: string
+  icon: React.ReactNode
+  question: string
+  placeholder: string
 }
 
 interface CaseData {
-  id: string;
-  title: string;
-  description: string;
-  difficulty: "Boshlang'ich" | 'O\'rta' | 'Yuqori';
-  category: string;
-  facts: string;
+  id: string
+  title: string
+  description: string
+  difficulty: "Boshlang'ich" | "O'rta" | 'Yuqori'
+  category: string
+  facts: string
 }
 
 export default function CaseSolver() {
-  const [currentStep, setCurrentStep] = useState(0);
-  const [userAnswers, setUserAnswers] = useState<{ [key: string]: string }>({});
-  const [showAdvice, setShowAdvice] = useState(false);
-  const [score, setScore] = useState<number | null>(null);
-  const [feedback, setFeedback] = useState<string>('');
-  const [errors, setErrors] = useState<string[]>([]);
+  const [currentStep, setCurrentStep] = useState(0)
+  const [userAnswers, setUserAnswers] = useState<{ [key: string]: string }>({})
+  const [showAdvice, setShowAdvice] = useState(false)
+  const [score, setScore] = useState<number | null>(null)
+  const [feedback, setFeedback] = useState<string>('')
+  const [errors, setErrors] = useState<string[]>([])
 
   const currentCase: CaseData = {
     id: 'case_001',
     title: 'Jinoyat ishi №245',
-    description: 'O\'g\'irlik holati bo\'yicha',
+    description: "O'g'irlik holati bo'yicha",
     difficulty: "O'rta",
     category: 'Jinoyat huquqi',
-    facts: '2024-yil 15-mart kuni Toshkent shahar, Yunusobod tumanida yashovchi 25 yoshli A.A. Karimov, "Mega Market" do\'koniga kirib, 10 million so\'m miqdoridagi naqd pulni olib qochib ketgan. Do\'kon xodimlari politsiyaga xabar bergan. Karimov 2 kundan keyin qo\'lga olingan. U jinoyatni tan olgan va o\'g\'rilgan pulning 7 million so\'mini qaytarib bergan.'
-  };
+    facts:
+      "2024-yil 15-mart kuni Toshkent shahar, Yunusobod tumanida yashovchi 25 yoshli A.A. Karimov, \"Mega Market\" do'koniga kirib, 10 million so'm miqdoridagi naqd pulni olib qochib ketgan. Do'kon xodimlari politsiyaga xabar bergan. Karimov 2 kundan keyin qo'lga olingan. U jinoyatni tan olgan va o'g'rilgan pulning 7 million so'mini qaytarib bergan.",
+  }
 
   const steps: CaseStep[] = [
     {
@@ -45,23 +56,23 @@ export default function CaseSolver() {
       description: 'Asosiy huquqiy nizoni aniqlang',
       icon: <Target className="w-5 h-5" />,
       question: 'Ushbu holatdagi asosiy huquqiy muammo nimadan iborat?',
-      placeholder: 'Bu yerda asosiy huquqiy nizo - bu ...'
+      placeholder: 'Bu yerda asosiy huquqiy nizo - bu ...',
     },
     {
       id: 'rule',
       title: 'Qoida (Qonunchilik moddasi)',
-      description: 'Tegishli qonun normasini ko\'rsating',
+      description: "Tegishli qonun normasini ko'rsating",
       icon: <Scale className="w-5 h-5" />,
       question: 'Ushbu muammoni hal qilish uchun qaysi qonun, kodeks yoki modda ishlatiladi?',
-      placeholder: 'O\'zbekiston Respublikasi Jinoyat kodeksining ... moddasiga ko\'ra ...'
+      placeholder: "O'zbekiston Respublikasi Jinoyat kodeksining ... moddasiga ko'ra ...",
     },
     {
       id: 'application',
       title: "Qo'llash (Vaziyat tahlili)",
-      description: 'Qonunni faktlarga bog\'lang',
+      description: "Qonunni faktlarga bog'lang",
       icon: <FileText className="w-5 h-5" />,
-      question: 'Nega aynan bu qonun berilgan vaziyatga to\'g\'ri keladi?',
-      placeholder: 'Berilgan holatda ... moddasi qo\'llaniladi, chunki ...'
+      question: "Nega aynan bu qonun berilgan vaziyatga to'g'ri keladi?",
+      placeholder: "Berilgan holatda ... moddasi qo'llaniladi, chunki ...",
     },
     {
       id: 'conclusion',
@@ -69,60 +80,61 @@ export default function CaseSolver() {
       description: 'Yakuniy hukm chiqaring',
       icon: <Award className="w-5 h-5" />,
       question: 'Tahlilingiz asosida yakuniy xulosani yozing',
-      placeholder: 'Shu sabablarga ko\'ra, A.A. Karimov ... moddasi bo\'yicha javobgarlikka tortilishi kerak...'
-    }
-  ];
+      placeholder:
+        "Shu sabablarga ko'ra, A.A. Karimov ... moddasi bo'yicha javobgarlikka tortilishi kerak...",
+    },
+  ]
 
   const adviceHints = {
     issue: [
-      'Jinoyat tarkibining to\'rt elementini tekshiring: obyekt, obyektiv tomon, subyekt, subyektiv tomon',
-      'O\'g\'irlikning mol-mulkka nisbatan qasddan sodir etilganligiga e\'tibor bering',
-      'Karimovning harakatlarining qonunga zid ekanligini ko\'rsating'
+      "Jinoyat tarkibining to'rt elementini tekshiring: obyekt, obyektiv tomon, subyekt, subyektiv tomon",
+      "O'g'irlikning mol-mulkka nisbatan qasddan sodir etilganligiga e'tibor bering",
+      "Karimovning harakatlarining qonunga zid ekanligini ko'rsating",
     ],
     rule: [
-      'Jinoyat kodeksining 169-moddasi (O\'g\'irlik) asosiy qoida',
+      "Jinoyat kodeksining 169-moddasi (O'g'irlik) asosiy qoida",
       'Jinoyat tarkibiga oid umumiy qoidalar (3-modda)',
-      'Javobgarlikka tortish shartlari (11-modda)'
+      'Javobgarlikka tortish shartlari (11-modda)',
     ],
     application: [
-      'Karimovning 25 yoshda ekanligi - voyaga yetganligini ko\'rsating',
-      '10 million so\'m miqdorini aniqlang - bu katta miqdor',
-      'Pulning qisman qaytarilishi javobgarlikka ta\'sir etmasligini izohlang'
+      "Karimovning 25 yoshda ekanligi - voyaga yetganligini ko'rsating",
+      "10 million so'm miqdorini aniqlang - bu katta miqdor",
+      "Pulning qisman qaytarilishi javobgarlikka ta'sir etmasligini izohlang",
     ],
     conclusion: [
-      'Jinoyat to\'liq tarkibga ega ekanligini ta\'kidlang',
-      'Qattiqroq jazolash omillari yo\'qligini ko\'rsating',
-      'Jinoyat kodeksining 59-moddasiga ko\'ra jazoni belgilang'
-    ]
-  };
+      "Jinoyat to'liq tarkibga ega ekanligini ta'kidlang",
+      "Qattiqroq jazolash omillari yo'qligini ko'rsating",
+      "Jinoyat kodeksining 59-moddasiga ko'ra jazoni belgilang",
+    ],
+  }
 
   const handleStepChange = (stepIndex: number) => {
     if (stepIndex >= 0 && stepIndex < steps.length) {
-      setCurrentStep(stepIndex);
-      setShowAdvice(false);
+      setCurrentStep(stepIndex)
+      setShowAdvice(false)
     }
-  };
+  }
 
   const handleAnswerChange = (stepId: string, value: string) => {
     setUserAnswers(prev => ({
       ...prev,
-      [stepId]: value
-    }));
-  };
+      [stepId]: value,
+    }))
+  }
 
   const handleGetAdvice = () => {
-    setShowAdvice(!showAdvice);
-  };
+    setShowAdvice(!showAdvice)
+  }
 
   const handleCheckAnswer = async () => {
-    const currentStepId = steps[currentStep].id;
-    const userAnswer = userAnswers[currentStepId] || '';
-    
+    const currentStepId = steps[currentStep].id
+    const userAnswer = userAnswers[currentStepId] || ''
+
     if (!userAnswer.trim()) {
-      setScore(0);
-      setErrors(['Javob bo\'sh bo\'lishi mumkin emas']);
-      setFeedback('Iltimos, javob kiriting');
-      return;
+      setScore(0)
+      setErrors(["Javob bo'sh bo'lishi mumkin emas"])
+      setFeedback('Iltimos, javob kiriting')
+      return
     }
 
     try {
@@ -135,95 +147,96 @@ export default function CaseSolver() {
         body: JSON.stringify({
           case_text: Object.values(userAnswers).join('\n\n'),
           case_type: currentCase.category.toLowerCase(),
-          difficulty_level: currentCase.difficulty.toLowerCase()
+          difficulty_level: currentCase.difficulty.toLowerCase(),
         }),
-      });
+      })
 
       if (response.ok) {
-        const result = await response.json();
-        
+        const result = await response.json()
+
         // Extract score for current step
         const stepScores = {
           issue: result.scores?.issue || 0,
           rule: result.scores?.rule || 0,
           application: result.scores?.application || 0,
-          conclusion: result.scores?.conclusion || 0
-        };
-        
-        const currentScore = stepScores[currentStepId as keyof typeof stepScores] || 0;
-        setScore(currentScore);
-        
+          conclusion: result.scores?.conclusion || 0,
+        }
+
+        const currentScore = stepScores[currentStepId as keyof typeof stepScores] || 0
+        setScore(currentScore)
+
         // Generate feedback based on score
-        let feedbackText = '';
-        const stepErrors: string[] = [];
-        
+        let feedbackText = ''
+        const stepErrors: string[] = []
+
         if (currentScore >= 80) {
-          feedbackText = 'A\'lo ishladingiz! IRAC metodikasini to\'g\'ri qo\'lladingiz.';
+          feedbackText = "A'lo ishladingiz! IRAC metodikasini to'g'ri qo'lladingiz."
         } else if (currentScore >= 60) {
-          feedbackText = 'Yaxshi, lekin yaxshilash mumkin.';
+          feedbackText = 'Yaxshi, lekin yaxshilash mumkin.'
           if (result.suggestions && result.suggestions.length > 0) {
-            stepErrors.push(...result.suggestions.slice(0, 2));
+            stepErrors.push(...result.suggestions.slice(0, 2))
           }
         } else {
-          feedbackText = 'Qayta urinib ko\'ring. IRAC bosqichlariga rioya qiling.';
+          feedbackText = "Qayta urinib ko'ring. IRAC bosqichlariga rioya qiling."
           if (result.suggestions && result.suggestions.length > 0) {
-            stepErrors.push(...result.suggestions.slice(0, 3));
+            stepErrors.push(...result.suggestions.slice(0, 3))
           }
         }
-        
-        setErrors(stepErrors);
-        setFeedback(feedbackText);
-        
+
+        setErrors(stepErrors)
+        setFeedback(feedbackText)
       } else {
         // Fallback to simple scoring if API fails
-        console.log('IRAC API failed, using fallback scoring');
-        useFallbackScoring(userAnswer, currentStepId);
+        console.log('IRAC API failed, using fallback scoring')
+        useFallbackScoring(userAnswer, currentStepId)
       }
     } catch (error) {
-      console.log('IRAC API error, using fallback:', error);
-      useFallbackScoring(userAnswer, currentStepId);
+      console.log('IRAC API error, using fallback:', error)
+      useFallbackScoring(userAnswer, currentStepId)
     }
-  };
+  }
 
   const useFallbackScoring = (userAnswer: string, currentStepId: string) => {
     // Simple scoring logic as fallback
-    let calculatedScore = 0;
-    const stepErrors: string[] = [];
-    
+    let calculatedScore = 0
+    const stepErrors: string[] = []
+
     if (userAnswer.length < 50) {
-      stepErrors.push('Javob juda qisqa. Batafsilroq yozing.');
+      stepErrors.push('Javob juda qisqa. Batafsilroq yozing.')
     } else if (userAnswer.length > 200) {
-      calculatedScore += 40;
+      calculatedScore += 40
     } else {
-      calculatedScore += 60;
+      calculatedScore += 60
     }
-    
+
     // Check for key terms
     const keyTerms = {
-      issue: ['huquqiy', 'nizo', 'og\'irlik', 'mol-mulk'],
+      issue: ['huquqiy', 'nizo', "og'irlik", 'mol-mulk'],
       rule: ['modda', 'kodeks', 'qonun', '169'],
-      application: ['chunki', 'sabab', 'holat', 'qo\'llaniladi'],
-      conclusion: ['shu sababga ko\'ra', 'xulosa', 'javobgarlik', 'jazolanadi']
-    };
-    
-    const terms = keyTerms[currentStepId as keyof typeof keyTerms] || [];
-    const foundTerms = terms.filter(term => userAnswer.toLowerCase().includes(term));
-    calculatedScore += foundTerms.length * 10;
-    
-    setScore(Math.min(calculatedScore, 100));
-    setErrors(stepErrors);
+      application: ['chunki', 'sabab', 'holat', "qo'llaniladi"],
+      conclusion: ["shu sababga ko'ra", 'xulosa', 'javobgarlik', 'jazolanadi'],
+    }
+
+    const terms = keyTerms[currentStepId as keyof typeof keyTerms] || []
+    const foundTerms = terms.filter(term => userAnswer.toLowerCase().includes(term))
+    calculatedScore += foundTerms.length * 10
+
+    setScore(Math.min(calculatedScore, 100))
+    setErrors(stepErrors)
     setFeedback(
-      calculatedScore >= 80 ? 'A\'lo ishladingiz! IRAC metodikasini to\'g\'ri qo\'lladingiz.' :
-      calculatedScore >= 60 ? 'Yaxshi, lekin yaxshilash mumkin. Qo\'shimcha dalillar keltiring.' :
-      'Qayta urinib ko\'ring. IRAC bosqichlariga rioya qiling.'
-    );
-  };
+      calculatedScore >= 80
+        ? "A'lo ishladingiz! IRAC metodikasini to'g'ri qo'lladingiz."
+        : calculatedScore >= 60
+          ? "Yaxshi, lekin yaxshilash mumkin. Qo'shimcha dalillar keltiring."
+          : "Qayta urinib ko'ring. IRAC bosqichlariga rioya qiling."
+    )
+  }
 
   const handleSaveAnalysis = async () => {
-    const allAnswers = Object.values(userAnswers);
+    const allAnswers = Object.values(userAnswers)
     if (allAnswers.length < 4) {
-      alert('Iltimos, barcha IRAC bosqichlarini to\'ldiring');
-      return;
+      alert("Iltimos, barcha IRAC bosqichlarini to'ldiring")
+      return
     }
 
     try {
@@ -240,69 +253,75 @@ export default function CaseSolver() {
             issue: userAnswers.issue || '',
             rule: userAnswers.rule || '',
             application: userAnswers.application || '',
-            conclusion: userAnswers.conclusion || ''
+            conclusion: userAnswers.conclusion || '',
           },
           total_score: calculateTotalScore(),
-          completed_at: new Date().toISOString()
+          completed_at: new Date().toISOString(),
         }),
-      });
+      })
 
       if (response.ok) {
-        const result = await response.json();
-        alert(`IRAC tahlili saqlandi! ID: ${result.id}`);
+        const result = await response.json()
+        alert(`IRAC tahlili saqlandi! ID: ${result.id}`)
       } else {
         // Fallback to local storage
-        localStorage.setItem(`irac_analysis_${Date.now()}`, JSON.stringify({
+        localStorage.setItem(
+          `irac_analysis_${Date.now()}`,
+          JSON.stringify({
+            case_title: currentCase.title,
+            irac_analysis: userAnswers,
+            total_score: calculateTotalScore(),
+            saved_at: new Date().toISOString(),
+          })
+        )
+        alert('IRAC tahlili mahalliy saqlandi (offline rejimda)')
+      }
+    } catch (error) {
+      console.log('Save analysis error:', error)
+      // Fallback to local storage
+      localStorage.setItem(
+        `irac_analysis_${Date.now()}`,
+        JSON.stringify({
           case_title: currentCase.title,
           irac_analysis: userAnswers,
           total_score: calculateTotalScore(),
-          saved_at: new Date().toISOString()
-        }));
-        alert('IRAC tahlili mahalliy saqlandi (offline rejimda)');
-      }
-    } catch (error) {
-      console.log('Save analysis error:', error);
-      // Fallback to local storage
-      localStorage.setItem(`irac_analysis_${Date.now()}`, JSON.stringify({
-        case_title: currentCase.title,
-        irac_analysis: userAnswers,
-        total_score: calculateTotalScore(),
-        saved_at: new Date().toISOString()
-      }));
-      alert('IRAC tahlili mahalliy saqlandi (offline rejimda)');
+          saved_at: new Date().toISOString(),
+        })
+      )
+      alert('IRAC tahlili mahalliy saqlandi (offline rejimda)')
     }
-  };
+  }
 
   const calculateTotalScore = () => {
     // Calculate average score from all steps
     const stepScores = Object.values(userAnswers).map(answer => {
-      if (!answer) return 0;
-      let score = 50; // Base score
-      
-      if (answer.length > 100) score += 20;
-      if (answer.length > 200) score += 10;
-      
+      if (!answer) return 0
+      let score = 50 // Base score
+
+      if (answer.length > 100) score += 20
+      if (answer.length > 200) score += 10
+
       // Check for legal terms
-      const legalTerms = ['modda', 'kodeks', 'qonun', 'huquqiy', 'nizo', 'javobgarlik'];
-      const foundTerms = legalTerms.filter(term => answer.toLowerCase().includes(term));
-      score += foundTerms.length * 5;
-      
-      return Math.min(score, 100);
-    });
-    
-    return Math.round(stepScores.reduce((sum, score) => sum + score, 0) / stepScores.length);
-  };
+      const legalTerms = ['modda', 'kodeks', 'qonun', 'huquqiy', 'nizo', 'javobgarlik']
+      const foundTerms = legalTerms.filter(term => answer.toLowerCase().includes(term))
+      score += foundTerms.length * 5
+
+      return Math.min(score, 100)
+    })
+
+    return Math.round(stepScores.reduce((sum, score) => sum + score, 0) / stepScores.length)
+  }
 
   const handleReset = () => {
-    setCurrentStep(0);
-    setUserAnswers({});
-    setShowAdvice(false);
-    setScore(null);
-    setFeedback('');
-    setErrors([]);
-  };
+    setCurrentStep(0)
+    setUserAnswers({})
+    setShowAdvice(false)
+    setScore(null)
+    setFeedback('')
+    setErrors([])
+  }
 
-  const progress = ((currentStep + 1) / steps.length) * 100;
+  const progress = ((currentStep + 1) / steps.length) * 100
 
   return (
     <div className="min-h-screen bg-[#f8faff] dark:bg-gray-950 mobile-safe-top">
@@ -315,7 +334,9 @@ export default function CaseSolver() {
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <Target className="w-5 h-5 text-orange-600" />
-                  <span className="font-semibold text-gray-800 dark:text-zinc-100">Kundalik maqsad</span>
+                  <span className="font-semibold text-gray-800 dark:text-zinc-100">
+                    Kundalik maqsad
+                  </span>
                 </div>
               </div>
               <div className="mb-2">
@@ -346,15 +367,23 @@ export default function CaseSolver() {
           <header className="bg-white dark:bg-zinc-900 px-8 py-4 border-b border-gray-100 dark:border-zinc-800">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-gray-800 dark:text-zinc-100">IRAC Huquqiy Tahlil</h1>
-                <p className="text-sm text-gray-600 dark:text-zinc-300">IRAC metodikasi bilan huquqiy tahlil</p>
+                <h1 className="text-2xl font-bold text-gray-800 dark:text-zinc-100">
+                  IRAC Huquqiy Tahlil
+                </h1>
+                <p className="text-sm text-gray-600 dark:text-zinc-300">
+                  IRAC metodikasi bilan huquqiy tahlil
+                </p>
               </div>
               <div className="flex items-center gap-4">
-                <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                  currentCase.difficulty === 'Boshlang\'ich' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' :
-                  currentCase.difficulty === 'O\'rta' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400' :
-                  'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
-                }`}>
+                <span
+                  className={`px-3 py-1 rounded-full text-sm font-medium ${
+                    currentCase.difficulty === "Boshlang'ich"
+                      ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                      : currentCase.difficulty === "O'rta"
+                        ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400'
+                        : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
+                  }`}
+                >
                   {currentCase.difficulty}
                 </span>
                 <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
@@ -367,12 +396,16 @@ export default function CaseSolver() {
           {/* Progress Bar */}
           <div className="bg-white dark:bg-zinc-900 px-8 py-4 border-b border-gray-100 dark:border-zinc-800">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-700 dark:text-zinc-200">Qadam {currentStep + 1} / {steps.length}</span>
-              <span className="text-sm font-medium text-gray-700 dark:text-zinc-200">{Math.round(progress)}%</span>
+              <span className="text-sm font-medium text-gray-700 dark:text-zinc-200">
+                Qadam {currentStep + 1} / {steps.length}
+              </span>
+              <span className="text-sm font-medium text-gray-700 dark:text-zinc-200">
+                {Math.round(progress)}%
+              </span>
             </div>
             <div className="bg-gray-200 dark:bg-zinc-700 rounded-full h-2">
-              <div 
-                className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
+              <div
+                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
                 style={{ width: `${progress}%` }}
               ></div>
             </div>
@@ -384,18 +417,20 @@ export default function CaseSolver() {
               {/* Step Navigation */}
               <div className="lg:col-span-1">
                 <div className="bg-white dark:bg-zinc-900 rounded-2xl p-4 shadow-sm">
-                  <h3 className="font-semibold text-gray-800 dark:text-zinc-100 mb-4">IRAC Bosqichlari</h3>
+                  <h3 className="font-semibold text-gray-800 dark:text-zinc-100 mb-4">
+                    IRAC Bosqichlari
+                  </h3>
                   <div className="space-y-2">
                     {steps.map((step, index) => (
                       <button
                         key={step.id}
                         onClick={() => handleStepChange(index)}
                         className={`w-full text-left p-3 rounded-lg transition-colors ${
-                          index === currentStep 
-                            ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 border border-blue-200' 
-                            : index < currentStep 
-                            ? 'bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 border border-green-200 dark:border-green-800'
-                            : 'bg-gray-50 dark:bg-zinc-800/50 text-gray-600 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-700'
+                          index === currentStep
+                            ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 border border-blue-200'
+                            : index < currentStep
+                              ? 'bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 border border-green-200 dark:border-green-800'
+                              : 'bg-gray-50 dark:bg-zinc-800/50 text-gray-600 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-700'
                         }`}
                       >
                         <div className="flex items-center gap-2 mb-1">
@@ -413,10 +448,16 @@ export default function CaseSolver() {
               <div className="lg:col-span-2">
                 {/* Case Details */}
                 <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-sm mb-6">
-                  <h2 className="text-xl font-bold text-gray-800 dark:text-zinc-100 mb-4">{currentCase.title}</h2>
+                  <h2 className="text-xl font-bold text-gray-800 dark:text-zinc-100 mb-4">
+                    {currentCase.title}
+                  </h2>
                   <div className="bg-gray-50 dark:bg-zinc-800/50 rounded-xl p-4 mb-4">
-                    <h3 className="font-semibold text-gray-700 dark:text-zinc-200 mb-2">Holat faktlari:</h3>
-                    <p className="text-gray-600 dark:text-zinc-300 leading-relaxed">{currentCase.facts}</p>
+                    <h3 className="font-semibold text-gray-700 dark:text-zinc-200 mb-2">
+                      Holat faktlari:
+                    </h3>
+                    <p className="text-gray-600 dark:text-zinc-300 leading-relaxed">
+                      {currentCase.facts}
+                    </p>
                   </div>
                 </div>
 
@@ -425,18 +466,22 @@ export default function CaseSolver() {
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
                       {steps[currentStep].icon}
-                      <h3 className="text-lg font-bold text-gray-800 dark:text-zinc-100">{steps[currentStep].title}</h3>
+                      <h3 className="text-lg font-bold text-gray-800 dark:text-zinc-100">
+                        {steps[currentStep].title}
+                      </h3>
                     </div>
                     {userAnswers[steps[currentStep].id] && (
                       <CheckCircle className="w-5 h-5 text-green-600" />
                     )}
                   </div>
-                  
-                  <p className="text-gray-600 dark:text-zinc-300 mb-4">{steps[currentStep].question}</p>
-                  
+
+                  <p className="text-gray-600 dark:text-zinc-300 mb-4">
+                    {steps[currentStep].question}
+                  </p>
+
                   <textarea
                     value={userAnswers[steps[currentStep].id] || ''}
-                    onChange={(e) => handleAnswerChange(steps[currentStep].id, e.target.value)}
+                    onChange={e => handleAnswerChange(steps[currentStep].id, e.target.value)}
                     placeholder={steps[currentStep].placeholder}
                     className="w-full h-28 sm:h-40 p-4 border border-gray-200 dark:border-zinc-700 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
                   />
@@ -445,19 +490,29 @@ export default function CaseSolver() {
                   {score !== null && (
                     <div className="mt-4 p-4 bg-gray-50 dark:bg-zinc-800/50 rounded-xl">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="font-semibold text-gray-800 dark:text-zinc-100">Ball: {score}/100</span>
-                        <span className={`text-sm font-medium ${
-                          score >= 80 ? 'text-green-600' : 
-                          score >= 60 ? 'text-yellow-600' : 'text-red-600'
-                        }`}>
-                          {score >= 80 ? 'A\'lo' : score >= 60 ? 'Yaxshi' : 'Qayta urinib ko\'ring'}
+                        <span className="font-semibold text-gray-800 dark:text-zinc-100">
+                          Ball: {score}/100
+                        </span>
+                        <span
+                          className={`text-sm font-medium ${
+                            score >= 80
+                              ? 'text-green-600'
+                              : score >= 60
+                                ? 'text-yellow-600'
+                                : 'text-red-600'
+                          }`}
+                        >
+                          {score >= 80 ? "A'lo" : score >= 60 ? 'Yaxshi' : "Qayta urinib ko'ring"}
                         </span>
                       </div>
                       <p className="text-sm text-gray-600 dark:text-zinc-300 mb-2">{feedback}</p>
                       {errors.length > 0 && (
                         <div className="space-y-1">
                           {errors.map((error, index) => (
-                            <div key={index} className="flex items-center gap-2 text-sm text-red-600">
+                            <div
+                              key={index}
+                              className="flex items-center gap-2 text-sm text-red-600"
+                            >
                               <AlertCircle className="w-4 h-4" />
                               <span>{error}</span>
                             </div>
@@ -517,22 +572,28 @@ export default function CaseSolver() {
               {/* Advice Panel */}
               <div className="lg:col-span-1">
                 <div className="bg-white dark:bg-zinc-900 rounded-2xl p-4 shadow-sm">
-                  <h3 className="font-semibold text-gray-800 dark:text-zinc-100 mb-4">Maslahatlar</h3>
-                  
+                  <h3 className="font-semibold text-gray-800 dark:text-zinc-100 mb-4">
+                    Maslahatlar
+                  </h3>
+
                   {showAdvice ? (
                     <div className="space-y-3">
                       <div className="bg-yellow-50 dark:bg-yellow-900/30 rounded-lg p-3">
-                        <h4 className="font-medium text-yellow-800 mb-2">Qanday yondashish kerak:</h4>
+                        <h4 className="font-medium text-yellow-800 mb-2">
+                          Qanday yondashish kerak:
+                        </h4>
                         <ul className="space-y-2 text-sm text-yellow-700">
-                          {adviceHints[steps[currentStep].id as keyof typeof adviceHints].map((hint, index) => (
-                            <li key={index} className="flex items-start gap-2">
-                              <span className="text-yellow-500 mt-1">•</span>
-                              <span>{hint}</span>
-                            </li>
-                          ))}
+                          {adviceHints[steps[currentStep].id as keyof typeof adviceHints].map(
+                            (hint, index) => (
+                              <li key={index} className="flex items-start gap-2">
+                                <span className="text-yellow-500 mt-1">•</span>
+                                <span>{hint}</span>
+                              </li>
+                            )
+                          )}
                         </ul>
                       </div>
-                      
+
                       <div className="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-3">
                         <h4 className="font-medium text-blue-800 mb-2">Esda tutish:</h4>
                         <ul className="space-y-1 text-sm text-blue-700">
@@ -545,25 +606,35 @@ export default function CaseSolver() {
                   ) : (
                     <div className="text-center py-8">
                       <Lightbulb className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                      <p className="text-sm text-gray-500 dark:text-zinc-400">Maslahat olish uchun "Maslahat" tugmasini bosing</p>
+                      <p className="text-sm text-gray-500 dark:text-zinc-400">
+                        Maslahat olish uchun "Maslahat" tugmasini bosing
+                      </p>
                     </div>
                   )}
                 </div>
 
                 {/* XP Reward */}
                 <div className="bg-white dark:bg-zinc-900 rounded-2xl p-4 shadow-sm mt-4">
-                  <h3 className="font-semibold text-gray-800 dark:text-zinc-100 mb-2">Mukofotlar</h3>
+                  <h3 className="font-semibold text-gray-800 dark:text-zinc-100 mb-2">
+                    Mukofotlar
+                  </h3>
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600 dark:text-zinc-300">Muvaffaqiyatli yechim</span>
+                      <span className="text-sm text-gray-600 dark:text-zinc-300">
+                        Muvaffaqiyatli yechim
+                      </span>
                       <span className="text-sm font-medium text-green-600">+50 XP</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600 dark:text-zinc-300">Birinchi urinishda</span>
+                      <span className="text-sm text-gray-600 dark:text-zinc-300">
+                        Birinchi urinishda
+                      </span>
                       <span className="text-sm font-medium text-green-600">+25 XP</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600 dark:text-zinc-300">To'liq tahlil</span>
+                      <span className="text-sm text-gray-600 dark:text-zinc-300">
+                        To'liq tahlil
+                      </span>
                       <span className="text-sm font-medium text-green-600">+15 XP</span>
                     </div>
                   </div>
@@ -574,5 +645,5 @@ export default function CaseSolver() {
         </div>
       </div>
     </div>
-  );
+  )
 }

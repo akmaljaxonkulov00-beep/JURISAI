@@ -1,21 +1,25 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
-import { trackUsage } from '@/lib/usage-tracking';
+import { NextRequest, NextResponse } from 'next/server'
+import { supabase } from '@/lib/supabase'
+import { trackUsage } from '@/lib/usage-tracking'
 
 export async function POST(request: NextRequest) {
   try {
-    const { caseId, userRole, difficultyLevel, simulationType, customParameters } = await request.json();
+    const { caseId, userRole, difficultyLevel, simulationType, customParameters } =
+      await request.json()
 
     if (!caseId || !userRole || !difficultyLevel || !simulationType) {
       return NextResponse.json(
-        { error: 'Barcha maydonlar talab qilinadi: caseId, userRole, difficultyLevel, simulationType' },
+        {
+          error:
+            'Barcha maydonlar talab qilinadi: caseId, userRole, difficultyLevel, simulationType',
+        },
         { status: 400 }
-      );
+      )
     }
 
     // Create simulation session
-    const simulationId = `sim_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
+    const simulationId = `sim_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+
     const simulationData = {
       id: simulationId,
       case_id: caseId,
@@ -28,18 +32,18 @@ export async function POST(request: NextRequest) {
       elapsed_time: 0,
       remaining_time: 1800, // 30 minutes
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
+      updated_at: new Date().toISOString(),
+    }
 
     // Save to database
     const { data, error } = await supabase
       .from('court_simulations')
       .insert([simulationData])
       .select()
-      .single();
+      .single()
 
     if (error) {
-      console.error('Court simulation start error:', error);
+      console.error('Court simulation start error:', error)
       // Fallback to mock response
       return NextResponse.json({
         simulation_id: simulationId,
@@ -50,21 +54,21 @@ export async function POST(request: NextRequest) {
         participants: {
           plaintiff: { name: 'Ali Valiyev', role: 'Plaintiff' },
           defendant: { name: 'Dilnoza Karimova', role: 'Defendant' },
-          judge: { name: 'Sudya', role: 'Judge' }
+          judge: { name: 'Sudya', role: 'Judge' },
         },
         current_speaker: 'plaintiff',
-        last_action: 'Simulation started'
-      });
+        last_action: 'Simulation started',
+      })
     }
 
     // Track usage
-    await trackUsage('court_simulation_start', { 
-      simulationId, 
-      caseId, 
-      userRole, 
+    await trackUsage('court_simulation_start', {
+      simulationId,
+      caseId,
+      userRole,
       difficultyLevel,
-      simulationType 
-    });
+      simulationType,
+    })
 
     return NextResponse.json({
       simulation_id: simulationId,
@@ -75,17 +79,16 @@ export async function POST(request: NextRequest) {
       participants: {
         plaintiff: { name: 'Ali Valiyev', role: 'Plaintiff' },
         defendant: { name: 'Dilnoza Karimova', role: 'Defendant' },
-        judge: { name: 'Sudya', role: 'Judge' }
+        judge: { name: 'Sudya', role: 'Judge' },
       },
       current_speaker: 'plaintiff',
-      last_action: 'Simulation started'
-    });
-
+      last_action: 'Simulation started',
+    })
   } catch (error) {
-    console.error('Court simulation start error:', error);
+    console.error('Court simulation start error:', error)
     return NextResponse.json(
       { error: 'Simulyatsiyani boshlashda xatolik yuz berdi' },
       { status: 500 }
-    );
+    )
   }
 }

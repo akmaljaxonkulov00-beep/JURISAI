@@ -1,114 +1,133 @@
-'use client';
+'use client'
 
-import { useState, useEffect, useCallback } from 'react';
-import { X, ChevronRight, ChevronLeft, Check, Sparkles, Compass, Zap, Bot, Award } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react'
+import {
+  X,
+  ChevronRight,
+  ChevronLeft,
+  Check,
+  Sparkles,
+  Compass,
+  Zap,
+  Bot,
+  Award,
+} from 'lucide-react'
 
-const STORAGE_KEY = 'jurisai_onboarding_completed';
+const STORAGE_KEY = 'jurisai_onboarding_completed'
 
 interface Step {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-  highlight: string;
-  tip: string;
+  icon: React.ReactNode
+  title: string
+  description: string
+  highlight: string
+  tip: string
 }
 
 const steps: Step[] = [
   {
     icon: <Sparkles className="w-8 h-8 text-blue-500" />,
     title: 'JURISAI ga xush kelibsiz!',
-    description: "Bu platforma O'zbekiston qonunchiligi asosida huquqiy bilimlaringizni rivojlantirish, real keyslarni yechish va AI yordamida professional hujjatlar tayyorlash uchun yaratilgan.",
+    description:
+      "Bu platforma O'zbekiston qonunchiligi asosida huquqiy bilimlaringizni rivojlantirish, real keyslarni yechish va AI yordamida professional hujjatlar tayyorlash uchun yaratilgan.",
     highlight: 'Statistika paneli',
-    tip: 'Yuqori qismdagi ko\'rsatkichlar sizning umumiy faoliyatingizni aks ettiradi.',
+    tip: "Yuqori qismdagi ko'rsatkichlar sizning umumiy faoliyatingizni aks ettiradi.",
   },
   {
     icon: <Compass className="w-8 h-8 text-emerald-500" />,
     title: 'Navigatsiya menyusi',
-    description: "Chap tomondagi sidebar orqali barcha bo'limlarga tezkor kirishingiz mumkin: Amaliyot (IRAC, Qarorlar Daraxti, Simulyator), Resurslar (Qonunlar bazasi, Asboblar), va Shaxsiy sozlamalar.",
+    description:
+      "Chap tomondagi sidebar orqali barcha bo'limlarga tezkor kirishingiz mumkin: Amaliyot (IRAC, Qarorlar Daraxti, Simulyator), Resurslar (Qonunlar bazasi, Asboblar), va Shaxsiy sozlamalar.",
     highlight: 'Yon panel',
-    tip: 'Bo\'limlar mantiqiy guruhlangan — kerakli funksiyani topish oson.',
+    tip: "Bo'limlar mantiqiy guruhlangan — kerakli funksiyani topish oson.",
   },
   {
     icon: <Zap className="w-8 h-8 text-orange-500" />,
     title: 'Tezkor amallar',
-    description: "IRAC Huquqiy Tahlil orqali real sud ishlarini tahlil qiling, Qonunlar bazasida barcha kodekslarni qidiring, Sud Simulyatorida virtual sud jarayonida qatnashing.",
+    description:
+      'IRAC Huquqiy Tahlil orqali real sud ishlarini tahlil qiling, Qonunlar bazasida barcha kodekslarni qidiring, Sud Simulyatorida virtual sud jarayonida qatnashing.',
     highlight: 'Tezkor amallar kartochkalari',
-    tip: 'Uchta asosiy yo\'nalish — tahlil, qidiruv, simulyatsiya.',
+    tip: "Uchta asosiy yo'nalish — tahlil, qidiruv, simulyatsiya.",
   },
   {
     icon: <Bot className="w-8 h-8 text-purple-500" />,
     title: 'AI Yordamchi',
-    description: "Har qanday sahifada pastki-o'ng burchakdagi AI Yordamchi orqali huquqiy savollaringizni bering, hujjatlar yarating va qonun moddalarini so'rang. AI O'zbekiston qonunchiligi asosida javob beradi.",
+    description:
+      "Har qanday sahifada pastki-o'ng burchakdagi AI Yordamchi orqali huquqiy savollaringizni bering, hujjatlar yarating va qonun moddalarini so'rang. AI O'zbekiston qonunchiligi asosida javob beradi.",
     highlight: 'AI Chat tugmasi',
     tip: 'Yordamchi 24/7 ishlaydi — istalgan vaqtda murojaat qiling.',
   },
   {
     icon: <Award className="w-8 h-8 text-amber-500" />,
     title: 'Yutuqlar va Premium',
-    description: "Har bir bajarilgan ish uchun XP va darajalar to'plang, yangi yutuqlarni oching. Premium tarifga o'tish orqali cheksiz AI so'rovlari, barcha kodekslar va ekspert maslahatiga ega bo'ling.",
+    description:
+      "Har bir bajarilgan ish uchun XP va darajalar to'plang, yangi yutuqlarni oching. Premium tarifga o'tish orqali cheksiz AI so'rovlari, barcha kodekslar va ekspert maslahatiga ega bo'ling.",
     highlight: 'Premium tariflar',
-    tip: 'Standart 45,000 UZS/oy yoki Pro 140,000 UZS/yil — o\'zingizga mosini tanlang.',
+    tip: "Standart 45,000 UZS/oy yoki Pro 140,000 UZS/yil — o'zingizga mosini tanlang.",
   },
-];
+]
 
 export default function OnboardingTour() {
-  const [isOpen, setIsOpen] = useState(false);
-  const [currentStep, setCurrentStep] = useState(0);
-  const [isAnimating, setIsAnimating] = useState(false);
+  const [isOpen, setIsOpen] = useState(false)
+  const [currentStep, setCurrentStep] = useState(0)
+  const [isAnimating, setIsAnimating] = useState(false)
 
   useEffect(() => {
     try {
-      const completed = localStorage.getItem(STORAGE_KEY);
-      if (completed) return;
+      const completed = localStorage.getItem(STORAGE_KEY)
+      if (completed) return
     } catch {
       // localStorage unavailable — always show tour
     }
     // Delay showing the tour so the dashboard loads first
-    const timer = setTimeout(() => setIsOpen(true), 1200);
-    return () => clearTimeout(timer);
-  }, []);
+    const timer = setTimeout(() => setIsOpen(true), 1200)
+    return () => clearTimeout(timer)
+  }, [])
 
   const handleComplete = useCallback(() => {
-    try { localStorage.setItem(STORAGE_KEY, 'true'); } catch {}
-    setIsAnimating(true);
+    try {
+      localStorage.setItem(STORAGE_KEY, 'true')
+    } catch {}
+    setIsAnimating(true)
     setTimeout(() => {
-      setIsOpen(false);
-      setIsAnimating(false);
-    }, 300);
-  }, []);
+      setIsOpen(false)
+      setIsAnimating(false)
+    }, 300)
+  }, [])
 
   const handleSkip = useCallback(() => {
-    try { localStorage.setItem(STORAGE_KEY, 'true'); } catch {}
-    setIsAnimating(true);
+    try {
+      localStorage.setItem(STORAGE_KEY, 'true')
+    } catch {}
+    setIsAnimating(true)
     setTimeout(() => {
-      setIsOpen(false);
-      setIsAnimating(false);
-    }, 300);
-  }, []);
+      setIsOpen(false)
+      setIsAnimating(false)
+    }, 300)
+  }, [])
 
   const handleNext = useCallback(() => {
     if (currentStep < steps.length - 1) {
-      setCurrentStep(prev => prev + 1);
+      setCurrentStep(prev => prev + 1)
     } else {
-      handleComplete();
+      handleComplete()
     }
-  }, [currentStep, handleComplete]);
+  }, [currentStep, handleComplete])
 
   const handlePrev = useCallback(() => {
     if (currentStep > 0) {
-      setCurrentStep(prev => prev - 1);
+      setCurrentStep(prev => prev - 1)
     }
-  }, []);
+  }, [])
 
   const goToStep = useCallback((index: number) => {
-    setCurrentStep(index);
-  }, []);
+    setCurrentStep(index)
+  }, [])
 
-  if (!isOpen) return null;
+  if (!isOpen) return null
 
-  const step = steps[currentStep];
-  const isLastStep = currentStep === steps.length - 1;
-  const isFirstStep = currentStep === 0;
+  const step = steps[currentStep]
+  const isLastStep = currentStep === steps.length - 1
+  const isFirstStep = currentStep === 0
 
   return (
     <>
@@ -123,13 +142,10 @@ export default function OnboardingTour() {
       {/* Tour Card */}
       <div
         className={`fixed z-[101] inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 w-full md:w-[520px] transition-all duration-300 ${
-          isAnimating
-            ? 'opacity-0 scale-95 translate-y-4'
-            : 'opacity-100 scale-100 translate-y-0'
+          isAnimating ? 'opacity-0 scale-95 translate-y-4' : 'opacity-100 scale-100 translate-y-0'
         }`}
       >
         <div className="relative bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-zinc-800/60 dark:border-zinc-700/60 overflow-hidden">
-
           {/* Top gradient bar */}
           <div className="h-1.5 bg-gradient-to-r from-blue-500 via-emerald-500 to-amber-500" />
 
@@ -160,9 +176,7 @@ export default function OnboardingTour() {
             </div>
 
             {/* Title */}
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-3">
-              {step.title}
-            </h2>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-3">{step.title}</h2>
 
             {/* Description */}
             <p className="text-sm text-gray-600 dark:text-zinc-300 leading-relaxed mb-4">
@@ -238,5 +252,5 @@ export default function OnboardingTour() {
         </div>
       </div>
     </>
-  );
+  )
 }

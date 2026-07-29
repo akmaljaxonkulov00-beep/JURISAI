@@ -1,15 +1,15 @@
-'use client';
+'use client'
 
-import { Trophy, Award, Target, Users } from 'lucide-react';
+import { Trophy, Award, Target, Users } from 'lucide-react'
 
 interface Achievement {
-  id: string;
-  title: string;
-  description: string;
-  icon: React.ReactNode;
-  color: string;
-  progress?: number;
-  unlocked?: boolean;
+  id: string
+  title: string
+  description: string
+  icon: React.ReactNode
+  color: string
+  progress?: number
+  unlocked?: boolean
 }
 
 export default function Achievements() {
@@ -20,7 +20,7 @@ export default function Achievements() {
       description: 'Dastlabki ish',
       icon: <Trophy className="w-6 h-6 text-white" />,
       color: 'blue',
-      unlocked: true
+      unlocked: true,
     },
     {
       id: '2',
@@ -28,15 +28,15 @@ export default function Achievements() {
       description: 'Faollik',
       icon: <Award className="w-6 h-6 text-white" />,
       color: 'green',
-      unlocked: true
+      unlocked: true,
     },
     {
       id: '3',
       title: 'Analist',
-      description: '100% to\'g\'ri',
+      description: "100% to'g'ri",
       icon: <Target className="w-6 h-6 text-white" />,
       color: 'purple',
-      unlocked: true
+      unlocked: true,
     },
     {
       id: '4',
@@ -45,9 +45,9 @@ export default function Achievements() {
       icon: <Users className="w-6 h-6 text-white" />,
       color: 'orange',
       unlocked: false,
-      progress: 75
-    }
-  ];
+      progress: 75,
+    },
+  ]
 
   const getColorClasses = (color: string) => {
     switch (color) {
@@ -55,44 +55,44 @@ export default function Achievements() {
         return {
           bg: 'from-blue-50 to-blue-100',
           iconBg: 'bg-blue-600',
-          border: 'border-blue-200'
-        };
+          border: 'border-blue-200',
+        }
       case 'green':
         return {
           bg: 'from-green-50 to-green-100',
           iconBg: 'bg-green-600',
-          border: 'border-green-200'
-        };
+          border: 'border-green-200',
+        }
       case 'purple':
         return {
           bg: 'from-purple-50 to-purple-100',
           iconBg: 'bg-purple-600',
-          border: 'border-purple-200'
-        };
+          border: 'border-purple-200',
+        }
       case 'orange':
         return {
           bg: 'from-orange-50 to-orange-100',
           iconBg: 'bg-orange-600',
-          border: 'border-orange-200'
-        };
+          border: 'border-orange-200',
+        }
       default:
         return {
           bg: 'from-gray-50 to-gray-100',
           iconBg: 'bg-gray-600',
-          border: 'border-gray-200 dark:border-zinc-800'
-        };
+          border: 'border-gray-200 dark:border-zinc-800',
+        }
     }
-  };
+  }
 
   return (
     <div className="col-span-2">
       <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-sm">
         <h2 className="text-xl font-bold text-gray-800 dark:text-zinc-200 mb-4">Yutuqlar</h2>
-        
+
         <div className="grid grid-cols-2 gap-4">
-          {achievements.map((achievement) => {
-            const colors = getColorClasses(achievement.color);
-            
+          {achievements.map(achievement => {
+            const colors = getColorClasses(achievement.color)
+
             return (
               <div
                 key={achievement.id}
@@ -131,16 +131,22 @@ export default function Achievements() {
                     </div>
                   </div>
                 )}
-                
-                <div className={`w-12 h-12 ${colors.iconBg} rounded-full flex items-center justify-center mx-auto mb-2 ${
-                  !achievement.unlocked ? 'grayscale' : ''
-                }`}>
+
+                <div
+                  className={`w-12 h-12 ${colors.iconBg} rounded-full flex items-center justify-center mx-auto mb-2 ${
+                    !achievement.unlocked ? 'grayscale' : ''
+                  }`}
+                >
                   {achievement.icon}
                 </div>
-                
-                <h4 className="font-semibold text-gray-800 dark:text-zinc-200 text-sm mb-1">{achievement.title}</h4>
-                <p className="text-xs text-gray-600 dark:text-zinc-400">{achievement.description}</p>
-                
+
+                <h4 className="font-semibold text-gray-800 dark:text-zinc-200 text-sm mb-1">
+                  {achievement.title}
+                </h4>
+                <p className="text-xs text-gray-600 dark:text-zinc-400">
+                  {achievement.description}
+                </p>
+
                 {/* Lock indicator for locked achievements */}
                 {!achievement.unlocked && (
                   <div className="mt-2">
@@ -148,15 +154,17 @@ export default function Achievements() {
                   </div>
                 )}
               </div>
-            );
+            )
           })}
         </div>
-        
+
         {/* Achievement Stats */}
         <div className="mt-6 p-4 bg-gray-50 dark:bg-zinc-800 rounded-xl">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-800 dark:text-zinc-200">Yutuqlar statistikasi</p>
+              <p className="text-sm font-medium text-gray-800 dark:text-zinc-200">
+                Yutuqlar statistikasi
+              </p>
               <p className="text-xs text-gray-600 dark:text-zinc-400">3/4 ochilgan</p>
             </div>
             <div className="text-right">
@@ -164,15 +172,15 @@ export default function Achievements() {
               <p className="text-xs text-gray-600 dark:text-zinc-400">Umumiy progress</p>
             </div>
           </div>
-          
+
           <div className="mt-3 bg-gray-200 rounded-full h-2">
-            <div 
-              className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
+            <div
+              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
               style={{ width: '75%' }}
             ></div>
           </div>
         </div>
-        
+
         {/* View All Button */}
         <div className="mt-4 text-center">
           <button className="text-blue-600 hover:text-blue-700 font-medium text-sm">
@@ -181,5 +189,5 @@ export default function Achievements() {
         </div>
       </div>
     </div>
-  );
+  )
 }

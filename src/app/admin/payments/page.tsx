@@ -1,7 +1,7 @@
-'use client';
+'use client'
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 
 /**
  * Admin payments redirect — the full payment management UI is part of
@@ -9,11 +9,11 @@ import { useRouter } from 'next/navigation';
  * This route prevents 404s for users who navigate directly to /admin/payments.
  */
 export default function AdminPaymentsRedirect() {
-  const router = useRouter();
+  const router = useRouter()
 
   useEffect(() => {
-    router.replace('/admin');
-  }, [router]);
+    router.replace('/admin')
+  }, [router])
 
   return (
     <div className="min-h-screen bg-page-custom flex items-center justify-center">
@@ -22,5 +22,5 @@ export default function AdminPaymentsRedirect() {
         <p className="text-sm text-gray-500 dark:text-zinc-400">To'lovlar bo'limiga o'tish...</p>
       </div>
     </div>
-  );
+  )
 }

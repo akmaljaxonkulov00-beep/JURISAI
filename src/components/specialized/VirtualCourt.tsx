@@ -1,97 +1,99 @@
-import React, { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui';
-import { Button, Badge, Progress, Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui';
-import { LoadingSpinner } from '@/components/ui';
-import { toast } from '@/components/ui/Toast';
-import { cn } from '@/lib/utils';
+import React, { useState } from 'react'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui'
+import { Button, Badge, Progress, Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui'
+import { LoadingSpinner } from '@/components/ui'
+import { toast } from '@/components/ui/Toast'
+import { cn } from '@/lib/utils'
 
 interface CourtSession {
-  id: string;
-  case_number: string;
-  case_type: string;
-  judge: string;
-  prosecutor?: string;
-  defense_attorney?: string;
-  plaintiff?: string;
-  defendant?: string;
+  id: string
+  case_number: string
+  case_type: string
+  judge: string
+  prosecutor?: string
+  defense_attorney?: string
+  plaintiff?: string
+  defendant?: string
   witnesses: Array<{
-    name: string;
-    role: string;
-    testimony: string;
-    credibility: number;
-  }>;
+    name: string
+    role: string
+    testimony: string
+    credibility: number
+  }>
   evidence: Array<{
-    id: string;
-    description: string;
-    type: string;
-    relevance: number;
-    authenticity: number;
-  }>;
+    id: string
+    description: string
+    type: string
+    relevance: number
+    authenticity: number
+  }>
   proceedings: Array<{
-    stage: string;
-    speaker: string;
-    content: string;
-    timestamp: Date;
-  }>;
+    stage: string
+    speaker: string
+    content: string
+    timestamp: Date
+  }>
   verdict?: {
-    decision: string;
-    reasoning: string;
-    sentence?: string;
-    confidence: number;
-  };
-  status: 'preparing' | 'in_progress' | 'deliberating' | 'concluded';
+    decision: string
+    reasoning: string
+    sentence?: string
+    confidence: number
+  }
+  status: 'preparing' | 'in_progress' | 'deliberating' | 'concluded'
 }
 
 interface VirtualCourtProps {
-  className?: string;
+  className?: string
 }
 
 const VirtualCourt: React.FC<VirtualCourtProps> = ({ className }) => {
-  const [selectedCase, setSelectedCase] = useState<string>('civil_dispute');
-  const [session, setSession] = useState<CourtSession | null>(null);
-  const [isSimulating, setIsSimulating] = useState(false);
-  const [userRole, setUserRole] = useState<'observer' | 'judge' | 'prosecutor' | 'defense'>('observer');
-  const [userInput, setUserInput] = useState('');
-  const [activeTab, setActiveTab] = useState('setup');
+  const [selectedCase, setSelectedCase] = useState<string>('civil_dispute')
+  const [session, setSession] = useState<CourtSession | null>(null)
+  const [isSimulating, setIsSimulating] = useState(false)
+  const [userRole, setUserRole] = useState<'observer' | 'judge' | 'prosecutor' | 'defense'>(
+    'observer'
+  )
+  const [userInput, setUserInput] = useState('')
+  const [activeTab, setActiveTab] = useState('setup')
 
   const caseTypes = [
     {
       id: 'civil_dispute',
       name: 'Fuqarolik nizosi',
-      description: 'Shartnoma nizosi bo\'yicha sud jarayoni',
+      description: "Shartnoma nizosi bo'yicha sud jarayoni",
       participants: ['judge', 'plaintiff', 'defendant', 'plaintiff_attorney', 'defendant_attorney'],
-      estimated_duration: '45-60 daqiqa'
+      estimated_duration: '45-60 daqiqa',
     },
     {
       id: 'criminal_case',
       name: 'Jinoyat ishi',
-      description: 'O\'g\'irlik ishi bo\'yicha sud jarayoni',
+      description: "O'g'irlik ishi bo'yicha sud jarayoni",
       participants: ['judge', 'prosecutor', 'defendant', 'defense_attorney'],
-      estimated_duration: '60-90 daqiqa'
+      estimated_duration: '60-90 daqiqa',
     },
     {
       id: 'family_law',
       name: 'Oila huquqi',
-      description: 'Nikoh buzilishi bo\'yicha sud jarayoni',
+      description: "Nikoh buzilishi bo'yicha sud jarayoni",
       participants: ['judge', 'plaintiff', 'defendant', 'plaintiff_attorney', 'defendant_attorney'],
-      estimated_duration: '30-45 daqiqa'
+      estimated_duration: '30-45 daqiqa',
     },
     {
       id: 'administrative',
-      name: 'Ma\'muriy ish',
-      description: 'Ma\'muriy huquqbuzarlik ishi',
+      name: "Ma'muriy ish",
+      description: "Ma'muriy huquqbuzarlik ishi",
       participants: ['judge', 'prosecutor', 'defendant', 'defense_attorney'],
-      estimated_duration: '30-45 daqiqa'
-    }
-  ];
+      estimated_duration: '30-45 daqiqa',
+    },
+  ]
 
   const handleStartSession = async () => {
-    setIsSimulating(true);
-    setActiveTab('courtroom');
+    setIsSimulating(true)
+    setActiveTab('courtroom')
 
     try {
       // Simulate session creation
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise(resolve => setTimeout(resolve, 2000))
 
       const mockSession: CourtSession = {
         id: `SESSION-${Date.now()}`,
@@ -100,21 +102,21 @@ const VirtualCourt: React.FC<VirtualCourtProps> = ({ className }) => {
         judge: 'Hakam Karimov A.A.',
         prosecutor: selectedCase === 'criminal_case' ? 'Prokuror Toshmatov B.B.' : undefined,
         defense_attorney: 'Himoyachi Azizova D.D.',
-        plaintiff: selectedCase !== 'criminal_case' ? 'Da\'vogar Rahimov N.N.' : undefined,
+        plaintiff: selectedCase !== 'criminal_case' ? "Da'vogar Rahimov N.N." : undefined,
         defendant: 'Javobgar Umarov K.K.',
         witnesses: [
           {
             name: 'Guvoh 1',
-            role: 'Ko\'rsatuvchi',
-            testimony: 'Men hodisani o\'z ko\'zim bilan ko\'rdim...',
-            credibility: 0.85
+            role: "Ko'rsatuvchi",
+            testimony: "Men hodisani o'z ko'zim bilan ko'rdim...",
+            credibility: 0.85,
           },
           {
             name: 'Ekspert',
             role: 'Ekspert',
-            testimony: 'Ekspert xulosasiga ko\'ra...',
-            credibility: 0.95
-          }
+            testimony: "Ekspert xulosasiga ko'ra...",
+            credibility: 0.95,
+          },
         ],
         evidence: [
           {
@@ -122,202 +124,223 @@ const VirtualCourt: React.FC<VirtualCourtProps> = ({ className }) => {
             description: 'Shartnoma',
             type: 'Hujjat',
             relevance: 0.9,
-            authenticity: 0.95
+            authenticity: 0.95,
           },
           {
             id: '2',
             description: 'Video yozuv',
             type: 'Media',
             relevance: 0.85,
-            authenticity: 0.9
-          }
+            authenticity: 0.9,
+          },
         ],
         proceedings: [
           {
             stage: 'opening',
             speaker: 'Hakam',
-            content: 'Sud majlisi ochiladi. Ish raqami: ' + `${selectedCase.toUpperCase()}-${Math.floor(Math.random() * 10000)}`,
-            timestamp: new Date()
-          }
+            content:
+              'Sud majlisi ochiladi. Ish raqami: ' +
+              `${selectedCase.toUpperCase()}-${Math.floor(Math.random() * 10000)}`,
+            timestamp: new Date(),
+          },
         ],
-        status: 'in_progress'
-      };
+        status: 'in_progress',
+      }
 
-      setSession(mockSession);
-      toast.success('Sud majlisi boshlandi');
+      setSession(mockSession)
+      toast.success('Sud majlisi boshlandi')
 
       // Start simulation
-      await simulateCourtProceedings(mockSession);
-
+      await simulateCourtProceedings(mockSession)
     } catch (error) {
-      toast.error('Sud majlisini boshlashda xatolik');
-      console.error('Session error:', error);
+      toast.error('Sud majlisini boshlashda xatolik')
+      console.error('Session error:', error)
     } finally {
-      setIsSimulating(false);
+      setIsSimulating(false)
     }
-  };
+  }
 
   const simulateCourtProceedings = async (sessionData: CourtSession) => {
     const proceedings = [
       {
         stage: 'opening',
         speaker: 'Hakam',
-        content: 'Ish bo\'yicha ishtirokchilarning to\'liqmi? Tomonlar tomonlarida advokatlar bormi?',
-        timestamp: new Date()
+        content: "Ish bo'yicha ishtirokchilarning to'liqmi? Tomonlar tomonlarida advokatlar bormi?",
+        timestamp: new Date(),
       },
       {
         stage: 'prosecution',
         speaker: 'Prokuror',
-        content: 'Hurmatli hakam, ayblanuvchi jinoyat sodir etgani to\'g\'risida dalillar keltiraman...',
-        timestamp: new Date()
+        content:
+          "Hurmatli hakam, ayblanuvchi jinoyat sodir etgani to'g'risida dalillar keltiraman...",
+        timestamp: new Date(),
       },
       {
         stage: 'defense',
         speaker: 'Himoyachi',
         content: 'Hurmatli hakam, ayblanuvchi aybsiz ekanligini isbotlayman...',
-        timestamp: new Date()
+        timestamp: new Date(),
       },
       {
         stage: 'witness_testimony',
         speaker: 'Guvoh 1',
-        content: 'Men hodisani aniq vaqtda ko\'rdim. Ayblanuvchi joyda edi...',
-        timestamp: new Date()
+        content: "Men hodisani aniq vaqtda ko'rdim. Ayblanuvchi joyda edi...",
+        timestamp: new Date(),
       },
       {
         stage: 'evidence_presentation',
         speaker: 'Prokuror',
         content: 'Xavfsizlik kamerasi yozuvini sudga taqdim etaman...',
-        timestamp: new Date()
+        timestamp: new Date(),
       },
       {
         stage: 'cross_examination',
         speaker: 'Himoyachi',
-        content: 'Guvohga savol: Siz hodisani to\'g\'ri ko\'rdingizmi?',
-        timestamp: new Date()
+        content: "Guvohga savol: Siz hodisani to'g'ri ko'rdingizmi?",
+        timestamp: new Date(),
       },
       {
         stage: 'closing_arguments',
         speaker: 'Prokuror',
         content: 'Ayblanuvchi aybdor ekanligini dalillar isbotlaydi...',
-        timestamp: new Date()
+        timestamp: new Date(),
       },
       {
         stage: 'closing_arguments',
         speaker: 'Himoyachi',
         content: 'Ayblanuvchi aybsiz, dalillar yetarli emas...',
-        timestamp: new Date()
+        timestamp: new Date(),
       },
       {
         stage: 'deliberation',
         speaker: 'Hakam',
-        content: 'Sud maslahatxonasiga o\'tilamiz...',
-        timestamp: new Date()
-      }
-    ];
+        content: "Sud maslahatxonasiga o'tilamiz...",
+        timestamp: new Date(),
+      },
+    ]
 
     for (let i = 0; i < proceedings.length; i++) {
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      const proceeding = proceedings[i];
-      
+      await new Promise(resolve => setTimeout(resolve, 3000))
+      const proceeding = proceedings[i]
+
       setSession(prev => {
-        if (!prev) return prev;
+        if (!prev) return prev
         return {
           ...prev,
           proceedings: [...prev.proceedings, proceeding],
-          status: i === proceedings.length - 1 ? 'deliberating' : 'in_progress'
-        };
-      });
+          status: i === proceedings.length - 1 ? 'deliberating' : 'in_progress',
+        }
+      })
     }
 
     // Final verdict
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
+    await new Promise(resolve => setTimeout(resolve, 2000))
+
     setSession(prev => {
-      if (!prev) return prev;
+      if (!prev) return prev
       return {
         ...prev,
         verdict: {
           decision: 'Ayblanuvchi aybdor deb topildi',
-          reasoning: 'Xavfsizlik kamerasi yozuvi va guvoh ifodalari aybni isbotlash uchun etarli asos bo\'ldi',
+          reasoning:
+            "Xavfsizlik kamerasi yozuvi va guvoh ifodalari aybni isbotlash uchun etarli asos bo'ldi",
           sentence: '2 yil ozodlikdan mahrum etish',
-          confidence: 0.85
+          confidence: 0.85,
         },
-        status: 'concluded'
-      };
-    });
+        status: 'concluded',
+      }
+    })
 
-    toast.success('Sud jarayoni yakunlandi');
-  };
+    toast.success('Sud jarayoni yakunlandi')
+  }
 
   const handleUserInput = async () => {
-    if (!userInput.trim() || !session) return;
+    if (!userInput.trim() || !session) return
 
     const userProceeding = {
       stage: 'user_input' as const,
-      speaker: userRole === 'judge' ? 'Hakam' : userRole === 'prosecutor' ? 'Prokuror' : 'Himoyachi',
+      speaker:
+        userRole === 'judge' ? 'Hakam' : userRole === 'prosecutor' ? 'Prokuror' : 'Himoyachi',
       content: userInput,
-      timestamp: new Date()
-    };
+      timestamp: new Date(),
+    }
 
     setSession(prev => {
-      if (!prev) return prev;
+      if (!prev) return prev
       return {
         ...prev,
-        proceedings: [...prev.proceedings, userProceeding]
-      };
-    });
+        proceedings: [...prev.proceedings, userProceeding],
+      }
+    })
 
-    setUserInput('');
+    setUserInput('')
 
     // Simulate AI response
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
+    await new Promise(resolve => setTimeout(resolve, 2000))
+
     const aiResponse = {
       stage: 'ai_response' as const,
-      speaker: userRole === 'judge' ? 'Prokuror' : userRole === 'prosecutor' ? 'Himoyachi' : 'Hakam',
-      content: 'Sizning argumentlaringizni qabul qildim. Batafsilroq ma\'lumot berishingiz mumkin.',
-      timestamp: new Date()
-    };
+      speaker:
+        userRole === 'judge' ? 'Prokuror' : userRole === 'prosecutor' ? 'Himoyachi' : 'Hakam',
+      content: "Sizning argumentlaringizni qabul qildim. Batafsilroq ma'lumot berishingiz mumkin.",
+      timestamp: new Date(),
+    }
 
     setSession(prev => {
-      if (!prev) return prev;
+      if (!prev) return prev
       return {
         ...prev,
-        proceedings: [...prev.proceedings, aiResponse]
-      };
-    });
-  };
+        proceedings: [...prev.proceedings, aiResponse],
+      }
+    })
+  }
 
   const getRoleName = (role: string) => {
     switch (role) {
-      case 'judge': return 'Hakam';
-      case 'prosecutor': return 'Prokuror';
-      case 'defense': return 'Himoyachi';
-      case 'plaintiff': return 'Da\'vogar';
-      case 'defendant': return 'Javobgar';
-      default: return role;
+      case 'judge':
+        return 'Hakam'
+      case 'prosecutor':
+        return 'Prokuror'
+      case 'defense':
+        return 'Himoyachi'
+      case 'plaintiff':
+        return "Da'vogar"
+      case 'defendant':
+        return 'Javobgar'
+      default:
+        return role
     }
-  };
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'preparing': return 'bg-yellow-100 text-yellow-800';
-      case 'in_progress': return 'bg-blue-100 text-blue-800';
-      case 'deliberating': return 'bg-purple-100 text-purple-800';
-      case 'concluded': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200';
+      case 'preparing':
+        return 'bg-yellow-100 text-yellow-800'
+      case 'in_progress':
+        return 'bg-blue-100 text-blue-800'
+      case 'deliberating':
+        return 'bg-purple-100 text-purple-800'
+      case 'concluded':
+        return 'bg-green-100 text-green-800'
+      default:
+        return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200'
     }
-  };
+  }
 
   const getStatusName = (status: string) => {
     switch (status) {
-      case 'preparing': return 'Tayyorlanmoqda';
-      case 'in_progress': return 'Jarayonda';
-      case 'deliberating': return 'Muzokara';
-      case 'concluded': return 'Yakunlangan';
-      default: return status;
+      case 'preparing':
+        return 'Tayyorlanmoqda'
+      case 'in_progress':
+        return 'Jarayonda'
+      case 'deliberating':
+        return 'Muzokara'
+      case 'concluded':
+        return 'Yakunlangan'
+      default:
+        return status
     }
-  };
+  }
 
   return (
     <div className={cn('max-w-6xl mx-auto space-y-6', className)}>
@@ -341,7 +364,7 @@ const VirtualCourt: React.FC<VirtualCourtProps> = ({ className }) => {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {caseTypes.map((caseType) => (
+                {caseTypes.map(caseType => (
                   <div
                     key={caseType.id}
                     className={cn(
@@ -353,12 +376,14 @@ const VirtualCourt: React.FC<VirtualCourtProps> = ({ className }) => {
                     onClick={() => setSelectedCase(caseType.id)}
                   >
                     <h3 className="font-medium mb-2">{caseType.name}</h3>
-                    <p className="text-sm text-gray-600 dark:text-zinc-400 mb-3">{caseType.description}</p>
+                    <p className="text-sm text-gray-600 dark:text-zinc-400 mb-3">
+                      {caseType.description}
+                    </p>
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-500 dark:text-zinc-500">Davomiyligi: {caseType.estimated_duration}</span>
-                      <Badge variant="outline">
-                        {caseType.participants.length} ishtirokchi
-                      </Badge>
+                      <span className="text-gray-500 dark:text-zinc-500">
+                        Davomiyligi: {caseType.estimated_duration}
+                      </span>
+                      <Badge variant="outline">{caseType.participants.length} ishtirokchi</Badge>
                     </div>
                   </div>
                 ))}
@@ -376,8 +401,8 @@ const VirtualCourt: React.FC<VirtualCourtProps> = ({ className }) => {
                   { id: 'observer', name: 'Kuzatuvchi', description: 'Jarayonni tomosha qilish' },
                   { id: 'judge', name: 'Hakam', description: 'Qaror qabul qilish' },
                   { id: 'prosecutor', name: 'Prokuror', description: 'Ayblov isbotlash' },
-                  { id: 'defense', name: 'Himoyachi', description: 'Himoya qilish' }
-                ].map((role) => (
+                  { id: 'defense', name: 'Himoyachi', description: 'Himoya qilish' },
+                ].map(role => (
                   <div
                     key={role.id}
                     className={cn(
@@ -396,12 +421,7 @@ const VirtualCourt: React.FC<VirtualCourtProps> = ({ className }) => {
             </CardContent>
           </Card>
 
-          <Button
-            onClick={handleStartSession}
-            disabled={isSimulating}
-            className="w-full"
-            size="lg"
-          >
+          <Button onClick={handleStartSession} disabled={isSimulating} className="w-full" size="lg">
             {isSimulating ? (
               <>
                 <LoadingSpinner size="sm" className="mr-2" />
@@ -422,7 +442,9 @@ const VirtualCourt: React.FC<VirtualCourtProps> = ({ className }) => {
                   <div className="flex items-center justify-between">
                     <div>
                       <h3 className="font-medium">{session.case_number}</h3>
-                      <p className="text-sm text-gray-600 dark:text-zinc-400">{session.case_type}</p>
+                      <p className="text-sm text-gray-600 dark:text-zinc-400">
+                        {session.case_type}
+                      </p>
                     </div>
                     <Badge className={getStatusColor(session.status)}>
                       {getStatusName(session.status)}
@@ -470,7 +492,9 @@ const VirtualCourt: React.FC<VirtualCourtProps> = ({ className }) => {
                                   {proceeding.timestamp.toLocaleTimeString('uz-UZ')}
                                 </span>
                               </div>
-                              <p className="text-sm text-gray-700 dark:text-zinc-300">{proceeding.content}</p>
+                              <p className="text-sm text-gray-700 dark:text-zinc-300">
+                                {proceeding.content}
+                              </p>
                             </div>
                           </div>
                         ))}
@@ -483,14 +507,12 @@ const VirtualCourt: React.FC<VirtualCourtProps> = ({ className }) => {
                         <input
                           type="text"
                           value={userInput}
-                          onChange={(e) => setUserInput(e.target.value)}
+                          onChange={e => setUserInput(e.target.value)}
                           placeholder={`${getRoleName(userRole)} sifatida gapiring...`}
                           className="flex-1 px-3 py-2 border border-gray-300 dark:border-zinc-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          onKeyPress={(e) => e.key === 'Enter' && handleUserInput()}
+                          onKeyPress={e => e.key === 'Enter' && handleUserInput()}
                         />
-                        <Button onClick={handleUserInput}>
-                          Gapirish
-                        </Button>
+                        <Button onClick={handleUserInput}>Gapirish</Button>
                       </div>
                     )}
                   </div>
@@ -519,7 +541,7 @@ const VirtualCourt: React.FC<VirtualCourtProps> = ({ className }) => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {session.evidence.map((evidence) => (
+                    {session.evidence.map(evidence => (
                       <div key={evidence.id} className="border rounded-lg p-4">
                         <div className="flex items-center justify-between mb-2">
                           <h4 className="font-medium">{evidence.description}</h4>
@@ -554,9 +576,13 @@ const VirtualCourt: React.FC<VirtualCourtProps> = ({ className }) => {
                           <h4 className="font-medium">{witness.name}</h4>
                           <Badge variant="outline">{witness.role}</Badge>
                         </div>
-                        <p className="text-sm text-gray-700 dark:text-zinc-300 mb-2">{witness.testimony}</p>
+                        <p className="text-sm text-gray-700 dark:text-zinc-300 mb-2">
+                          {witness.testimony}
+                        </p>
                         <div className="flex items-center justify-between text-sm">
-                          <span className="text-gray-500 dark:text-zinc-500">Ishonch darajasi:</span>
+                          <span className="text-gray-500 dark:text-zinc-500">
+                            Ishonch darajasi:
+                          </span>
                           <Progress value={witness.credibility * 100} className="w-32" />
                         </div>
                       </div>
@@ -602,7 +628,9 @@ const VirtualCourt: React.FC<VirtualCourtProps> = ({ className }) => {
                     <div className="text-4xl font-bold text-blue-600">
                       {Math.round(session.verdict.confidence * 100)}%
                     </div>
-                    <p className="text-sm text-gray-500 dark:text-zinc-500 mt-1">Ishonch darajasi</p>
+                    <p className="text-sm text-gray-500 dark:text-zinc-500 mt-1">
+                      Ishonch darajasi
+                    </p>
                   </div>
                   <div className="border-t pt-4">
                     <h4 className="font-medium mb-2">Qaror asoslari:</h4>
@@ -624,7 +652,7 @@ const VirtualCourt: React.FC<VirtualCourtProps> = ({ className }) => {
         </TabsContent>
       </Tabs>
     </div>
-  );
-};
+  )
+}
 
-export { VirtualCourt };
+export { VirtualCourt }

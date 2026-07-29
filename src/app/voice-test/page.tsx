@@ -1,64 +1,66 @@
-'use client';
+'use client'
 
-import { useState, useEffect } from 'react';
-import { tts, stt, isSpeechSupported, testSpeech } from '@/lib/speech';
-import { ArrowLeft } from 'lucide-react';
+import { useState, useEffect } from 'react'
+import { tts, stt, isSpeechSupported, testSpeech } from '@/lib/speech'
+import { ArrowLeft } from 'lucide-react'
 
 export default function VoiceTestPage() {
-  const [speechSupported, setSpeechSupported] = useState(false);
-  const [isSpeaking, setIsSpeaking] = useState(false);
-  const [isListening, setIsListening] = useState(false);
-  const [textToSpeak, setTextToSpeak] = useState('Assalomu alaykum! Men ovozli xabar yuborish tizimiman. Bu test matn.');
-  const [recognizedText, setRecognizedText] = useState('');
-  const [interimText, setInterimText] = useState('');
-  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
-  const [selectedVoice, setSelectedVoice] = useState('');
-  const [rate, setRate] = useState(0.9);
-  const [pitch, setPitch] = useState(1.0);
-  const [volume, setVolume] = useState(1.0);
-  const [logs, setLogs] = useState<string[]>([]);
+  const [speechSupported, setSpeechSupported] = useState(false)
+  const [isSpeaking, setIsSpeaking] = useState(false)
+  const [isListening, setIsListening] = useState(false)
+  const [textToSpeak, setTextToSpeak] = useState(
+    'Assalomu alaykum! Men ovozli xabar yuborish tizimiman. Bu test matn.'
+  )
+  const [recognizedText, setRecognizedText] = useState('')
+  const [interimText, setInterimText] = useState('')
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([])
+  const [selectedVoice, setSelectedVoice] = useState('')
+  const [rate, setRate] = useState(0.9)
+  const [pitch, setPitch] = useState(1.0)
+  const [volume, setVolume] = useState(1.0)
+  const [logs, setLogs] = useState<string[]>([])
 
   useEffect(() => {
     // Check speech support
-    const supported = isSpeechSupported();
-    setSpeechSupported(supported);
-    addLog(`Speech Support: ${supported ? '[OK] YES' : '[X] NO'}`);
+    const supported = isSpeechSupported()
+    setSpeechSupported(supported)
+    addLog(`Speech Support: ${supported ? '[OK] YES' : '[X] NO'}`)
 
     // Run speech test
-    testSpeech();
+    testSpeech()
 
     // Load voices
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       const loadVoices = () => {
-        const availableVoices = window.speechSynthesis.getVoices();
-        setVoices(availableVoices);
-        addLog(`Loaded ${availableVoices.length} voices`);
-        
-        // Select Russian voice by default
-        const russianVoice = availableVoices.find(v => v.lang.includes('ru'));
-        if (russianVoice) {
-          setSelectedVoice(russianVoice.name);
-        }
-      };
+        const availableVoices = window.speechSynthesis.getVoices()
+        setVoices(availableVoices)
+        addLog(`Loaded ${availableVoices.length} voices`)
 
-      loadVoices();
-      window.speechSynthesis.onvoiceschanged = loadVoices;
+        // Select Russian voice by default
+        const russianVoice = availableVoices.find(v => v.lang.includes('ru'))
+        if (russianVoice) {
+          setSelectedVoice(russianVoice.name)
+        }
+      }
+
+      loadVoices()
+      window.speechSynthesis.onvoiceschanged = loadVoices
     }
-  }, []);
+  }, [])
 
   const addLog = (message: string) => {
-    const timestamp = new Date().toLocaleTimeString();
-    setLogs(prev => [`[${timestamp}] ${message}`, ...prev].slice(0, 20));
-  };
+    const timestamp = new Date().toLocaleTimeString()
+    setLogs(prev => [`[${timestamp}] ${message}`, ...prev].slice(0, 20))
+  }
 
   const handleSpeak = () => {
     if (!textToSpeak.trim()) {
-      alert('Iltimos, matn kiriting');
-      return;
+      alert('Iltimos, matn kiriting')
+      return
     }
 
-    addLog('♪ Speaking: ' + textToSpeak.substring(0, 50) + '...');
-    setIsSpeaking(true);
+    addLog('♪ Speaking: ' + textToSpeak.substring(0, 50) + '...')
+    setIsSpeaking(true)
 
     tts.speak(textToSpeak, {
       lang: 'ru-RU',
@@ -66,67 +68,67 @@ export default function VoiceTestPage() {
       pitch,
       volume,
       onStart: () => {
-        addLog('[OK] Speech started');
-        setIsSpeaking(true);
+        addLog('[OK] Speech started')
+        setIsSpeaking(true)
       },
       onEnd: () => {
-        addLog('[OK] Speech ended');
-        setIsSpeaking(false);
+        addLog('[OK] Speech ended')
+        setIsSpeaking(false)
       },
-      onError: (error) => {
-        addLog('[X] Speech error: ' + error);
-        setIsSpeaking(false);
-      }
-    });
-  };
+      onError: error => {
+        addLog('[X] Speech error: ' + error)
+        setIsSpeaking(false)
+      },
+    })
+  }
 
   const handleStop = () => {
-    addLog('■ Stopping speech');
-    tts.stop();
-    setIsSpeaking(false);
-  };
+    addLog('■ Stopping speech')
+    tts.stop()
+    setIsSpeaking(false)
+  }
 
   const handleListen = () => {
-    addLog('🎤 Starting to listen...');
-    setIsListening(true);
-    setRecognizedText('');
-    setInterimText('');
+    addLog('🎤 Starting to listen...')
+    setIsListening(true)
+    setRecognizedText('')
+    setInterimText('')
 
-    let fullTranscript = '';
+    let fullTranscript = ''
 
     stt.startListening({
       continuous: true,
       onStart: () => {
-        addLog('[OK] Listening started');
-        setIsListening(true);
+        addLog('[OK] Listening started')
+        setIsListening(true)
       },
       onResult: (text, isFinal) => {
-        addLog(`NOTE ${isFinal ? 'Final' : 'Interim'}: ${text}`);
-        
+        addLog(`NOTE ${isFinal ? 'Final' : 'Interim'}: ${text}`)
+
         if (isFinal) {
-          fullTranscript += text + ' ';
-          setRecognizedText(fullTranscript);
-          setInterimText('');
+          fullTranscript += text + ' '
+          setRecognizedText(fullTranscript)
+          setInterimText('')
         } else {
-          setInterimText(text);
+          setInterimText(text)
         }
       },
-      onError: (error) => {
-        addLog('[X] Listening error: ' + error);
-        setIsListening(false);
+      onError: error => {
+        addLog('[X] Listening error: ' + error)
+        setIsListening(false)
       },
       onEnd: () => {
-        addLog('● Listening ended');
-        setIsListening(false);
-      }
-    });
-  };
+        addLog('● Listening ended')
+        setIsListening(false)
+      },
+    })
+  }
 
   const handleStopListening = () => {
-    addLog('■ Stopping listening');
-    stt.stopListening();
-    setIsListening(false);
-  };
+    addLog('■ Stopping listening')
+    stt.stopListening()
+    setIsListening(false)
+  }
 
   const testPresetPhrases = [
     'Assalomu alaykum! Qalaysiz?',
@@ -134,10 +136,10 @@ export default function VoiceTestPage() {
     'Sud majlisi boshlandi',
     'Mening mijozim aybsiz',
     'Dalillar etarli emas',
-    'E\'tiroz bildiraman',
-    'Guvoh ko\'rsatmalari ishonchsiz',
+    "E'tiroz bildiraman",
+    "Guvoh ko'rsatmalari ishonchsiz",
     'Shartnoma shartlari buzilgan',
-  ];
+  ]
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 mobile-safe-top">
@@ -145,12 +147,19 @@ export default function VoiceTestPage() {
       <header className="bg-white dark:bg-zinc-900 border-b border-gray-200 dark:border-zinc-800 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center gap-4">
-            <a href="/" className="p-2 hover:bg-gray-100 dark:bg-zinc-800/30 rounded-lg transition-colors">
+            <a
+              href="/"
+              className="p-2 hover:bg-gray-100 dark:bg-zinc-800/30 rounded-lg transition-colors"
+            >
               <ArrowLeft className="w-5 h-5" />
             </a>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-zinc-100">🎤 Voice Features Test</h1>
-              <p className="text-sm text-gray-600 dark:text-zinc-400">Ovozli funksiyalarni test qilish sahifasi</p>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-zinc-100">
+                🎤 Voice Features Test
+              </h1>
+              <p className="text-sm text-gray-600 dark:text-zinc-400">
+                Ovozli funksiyalarni test qilish sahifasi
+              </p>
             </div>
           </div>
         </div>
@@ -159,7 +168,9 @@ export default function VoiceTestPage() {
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Status Card */}
         <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-lg p-6 mb-6">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-zinc-100 mb-4">▤ System Status</h2>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-zinc-100 mb-4">
+            ▤ System Status
+          </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
               <div className="text-sm text-gray-600 dark:text-zinc-400 mb-1">Speech Support</div>
@@ -189,8 +200,10 @@ export default function VoiceTestPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Text-to-Speech Section */}
           <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-lg p-6">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-zinc-100 mb-4">♪ Text-to-Speech (TTS)</h2>
-            
+            <h2 className="text-xl font-bold text-gray-900 dark:text-zinc-100 mb-4">
+              ♪ Text-to-Speech (TTS)
+            </h2>
+
             <div className="space-y-4">
               {/* Text Input */}
               <div>
@@ -199,7 +212,7 @@ export default function VoiceTestPage() {
                 </label>
                 <textarea
                   value={textToSpeak}
-                  onChange={(e) => setTextToSpeak(e.target.value)}
+                  onChange={e => setTextToSpeak(e.target.value)}
                   className="w-full h-32 px-4 py-2 border border-gray-300 dark:border-zinc-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Bu yerga matn yozing..."
                 />
@@ -226,38 +239,44 @@ export default function VoiceTestPage() {
               {/* Controls */}
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-xs text-gray-600 dark:text-zinc-400 mb-1">Tezlik: {rate}</label>
+                  <label className="block text-xs text-gray-600 dark:text-zinc-400 mb-1">
+                    Tezlik: {rate}
+                  </label>
                   <input
                     type="range"
                     min="0.5"
                     max="2"
                     step="0.1"
                     value={rate}
-                    onChange={(e) => setRate(parseFloat(e.target.value))}
+                    onChange={e => setRate(parseFloat(e.target.value))}
                     className="w-full"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-600 dark:text-zinc-400 mb-1">Ohang: {pitch}</label>
+                  <label className="block text-xs text-gray-600 dark:text-zinc-400 mb-1">
+                    Ohang: {pitch}
+                  </label>
                   <input
                     type="range"
                     min="0.5"
                     max="2"
                     step="0.1"
                     value={pitch}
-                    onChange={(e) => setPitch(parseFloat(e.target.value))}
+                    onChange={e => setPitch(parseFloat(e.target.value))}
                     className="w-full"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-600 dark:text-zinc-400 mb-1">Ovoz: {volume}</label>
+                  <label className="block text-xs text-gray-600 dark:text-zinc-400 mb-1">
+                    Ovoz: {volume}
+                  </label>
                   <input
                     type="range"
                     min="0"
                     max="1"
                     step="0.1"
                     value={volume}
-                    onChange={(e) => setVolume(parseFloat(e.target.value))}
+                    onChange={e => setVolume(parseFloat(e.target.value))}
                     className="w-full"
                   />
                 </div>
@@ -293,8 +312,10 @@ export default function VoiceTestPage() {
 
           {/* Speech-to-Text Section */}
           <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-lg p-6">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-zinc-100 mb-4">🎤 Speech-to-Text (STT)</h2>
-            
+            <h2 className="text-xl font-bold text-gray-900 dark:text-zinc-100 mb-4">
+              🎤 Speech-to-Text (STT)
+            </h2>
+
             <div className="space-y-4">
               {/* Recognition Display */}
               <div>
@@ -303,11 +324,11 @@ export default function VoiceTestPage() {
                 </label>
                 <div className="h-32 px-4 py-2 border border-gray-300 dark:border-zinc-700 rounded-lg bg-gray-50 dark:bg-zinc-800/50 overflow-y-auto">
                   {recognizedText || interimText || (
-                    <span className="text-gray-400 dark:text-zinc-500">Bu yerda tanilgan matn ko'rinadi...</span>
+                    <span className="text-gray-400 dark:text-zinc-500">
+                      Bu yerda tanilgan matn ko'rinadi...
+                    </span>
                   )}
-                  {interimText && (
-                    <span className="text-blue-500 italic"> {interimText}</span>
-                  )}
+                  {interimText && <span className="text-blue-500 italic"> {interimText}</span>}
                 </div>
               </div>
 
@@ -364,8 +385,8 @@ export default function VoiceTestPage() {
               {/* Clear Button */}
               <button
                 onClick={() => {
-                  setRecognizedText('');
-                  setInterimText('');
+                  setRecognizedText('')
+                  setInterimText('')
                 }}
                 className="w-full py-2 border border-gray-300 dark:border-zinc-700 rounded-lg hover:bg-gray-50 dark:bg-zinc-800/50 transition-colors"
               >
@@ -391,7 +412,9 @@ export default function VoiceTestPage() {
               <div className="text-gray-500 dark:text-zinc-500">No logs yet...</div>
             ) : (
               logs.map((log, index) => (
-                <div key={index} className="mb-1">{log}</div>
+                <div key={index} className="mb-1">
+                  {log}
+                </div>
               ))
             )}
           </div>
@@ -400,7 +423,9 @@ export default function VoiceTestPage() {
         {/* Voices Info */}
         {voices.length > 0 && (
           <div className="mt-6 bg-white dark:bg-zinc-900 rounded-2xl shadow-lg p-6">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-zinc-100 mb-4">♪ Available Voices ({voices.length})</h2>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-zinc-100 mb-4">
+              ♪ Available Voices ({voices.length})
+            </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-96 overflow-y-auto">
               {voices.map((voice, index) => (
                 <div
@@ -419,5 +444,5 @@ export default function VoiceTestPage() {
         )}
       </div>
     </div>
-  );
+  )
 }

@@ -1,20 +1,20 @@
-import React from 'react';
-import { Card, CardContent, Avatar } from '@/components/ui';
-import { cn } from '@/lib/utils';
+import React from 'react'
+import { Card, CardContent, Avatar } from '@/components/ui'
+import { cn } from '@/lib/utils'
 
 interface Testimonial {
-  id: string;
-  name: string;
-  role: string;
-  organization: string;
-  avatar: string;
-  content: string;
-  rating: number;
-  achievement?: string;
+  id: string
+  name: string
+  role: string
+  organization: string
+  avatar: string
+  content: string
+  rating: number
+  achievement?: string
 }
 
 interface TestimonialsSectionProps {
-  className?: string;
+  className?: string
 }
 
 const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ className }) => {
@@ -25,9 +25,10 @@ const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ className }) 
       role: 'Huquqshunoslik talabasi',
       organization: 'Toshkent Davlat Universiteti',
       avatar: 'DA',
-      content: 'JurisAI o\'qish jarayonimni butunlay o\'zgartirdi. IRAC tahlili va virtual sud simulyatsiyalari orqali nazariy bilimlarni amaliyotga tatbiq qildim. AI yordamchisi esa murakkab masalalarda instant yordam beradi.',
+      content:
+        "JurisAI o'qish jarayonimni butunlay o'zgartirdi. IRAC tahlili va virtual sud simulyatsiyalari orqali nazariy bilimlarni amaliyotga tatbiq qildim. AI yordamchisi esa murakkab masalalarda instant yordam beradi.",
       rating: 5,
-      achievement: '95% ball bilan kursni tugatdi'
+      achievement: '95% ball bilan kursni tugatdi',
     },
     {
       id: '2',
@@ -35,19 +36,21 @@ const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ className }) 
       role: 'Yosh advokat',
       organization: 'Advokatlar palatasi',
       avatar: 'BT',
-      content: 'Kundalik ishlarimda JurisAI dan foydalanaman. Huquqiy ma\'lumotlar bazasi va hujjat generatori vaqtni juda qisqartirdi. Qaror daraxti esa murakkab ishlarda to\'g\'ri yo\'nalishni tanlashga yordam beradi.',
+      content:
+        "Kundalik ishlarimda JurisAI dan foydalanaman. Huquqiy ma'lumotlar bazasi va hujjat generatori vaqtni juda qisqartirdi. Qaror daraxti esa murakkab ishlarda to'g'ri yo'nalishni tanlashga yordam beradi.",
       rating: 5,
-      achievement: 'Ish samaradorligi 40% oshdi'
+      achievement: 'Ish samaradorligi 40% oshdi',
     },
     {
       id: '3',
       name: 'Malika Rahimova',
-      role: 'Mehnat huquqi bo\'yicha mutaxassis',
+      role: "Mehnat huquqi bo'yicha mutaxassis",
       organization: 'Adliya vazirligi',
       avatar: 'MR',
-      content: 'Davlat organi sifatida JurisAI ning qonun hujjatlari bazasi ayniqsa foydali. Yangi qonunlar va o\'zgarishlarni tez kuzatib borish mumkin. Senariy generatori esa yangi xodimlarni o\'qitishda yordam beradi.',
+      content:
+        "Davlat organi sifatida JurisAI ning qonun hujjatlari bazasi ayniqsa foydali. Yangi qonunlar va o'zgarishlarni tez kuzatib borish mumkin. Senariy generatori esa yangi xodimlarni o'qitishda yordam beradi.",
       rating: 5,
-      achievement: '500+ ishda foydalanildi'
+      achievement: '500+ ishda foydalanildi',
     },
     {
       id: '4',
@@ -55,19 +58,21 @@ const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ className }) 
       role: 'Biznes huquqi advokati',
       organization: 'Legal Partners',
       avatar: 'SQ',
-      content: 'Shartnoma shakllari va hujjat generatori mijozlarimga tez va sifatli xizmat ko\'rsatish imkonini berdi. AI tahlili esa shartnomalardagi potensial xavflarni aniqlashga yordam beradi.',
+      content:
+        "Shartnoma shakllari va hujjat generatori mijozlarimga tez va sifatli xizmat ko'rsatish imkonini berdi. AI tahlili esa shartnomalardagi potensial xavflarni aniqlashga yordam beradi.",
       rating: 5,
-      achievement: '200+ shartnoma tuzildi'
+      achievement: '200+ shartnoma tuzildi',
     },
     {
       id: '5',
       name: 'Nigora Karimova',
       role: 'Jinoyat huquqi professori',
-      organization: 'O\'zbekiston Milliy Universiteti',
+      organization: "O'zbekiston Milliy Universiteti",
       avatar: 'NK',
-      content: 'Talabalarni o\'qitishda JurisAI juda qulay. Virtual sud simulyatsiyalari talabalarni sud jarayonini tushunishga yordam beradi. IRAC tahlili esa xalqaro standartlarni o\'rgatishda asosiy vositaga aylandi.',
+      content:
+        "Talabalarni o'qitishda JurisAI juda qulay. Virtual sud simulyatsiyalari talabalarni sud jarayonini tushunishga yordam beradi. IRAC tahlili esa xalqaro standartlarni o'rgatishda asosiy vositaga aylandi.",
       rating: 5,
-      achievement: '1000+ talaba o\'qitildi'
+      achievement: "1000+ talaba o'qitildi",
     },
     {
       id: '6',
@@ -75,11 +80,12 @@ const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ className }) 
       role: 'Korporativ huquqshunos',
       organization: 'Tech Solutions LLC',
       avatar: 'JU',
-      content: 'Korporativ huquqiy masalalarda JurisAI ning AI yordamchisi juda foydali. Murakkab shartnomalarni tahlil qilish va xavflarni aniqlash vaqtini sezilarli qisqartirdi. Platform doimiy yangilanib turadi.',
+      content:
+        'Korporativ huquqiy masalalarda JurisAI ning AI yordamchisi juda foydali. Murakkab shartnomalarni tahlil qilish va xavflarni aniqlash vaqtini sezilarli qisqartirdi. Platform doimiy yangilanib turadi.',
       rating: 5,
-      achievement: '50+ korporativ ish'
-    }
-  ];
+      achievement: '50+ korporativ ish',
+    },
+  ]
 
   const renderStars = (rating: number) => {
     return (
@@ -87,10 +93,7 @@ const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ className }) 
         {[...Array(5)].map((_, index) => (
           <svg
             key={index}
-            className={cn(
-              'w-5 h-5',
-              index < rating ? 'text-yellow-400' : 'text-gray-300'
-            )}
+            className={cn('w-5 h-5', index < rating ? 'text-yellow-400' : 'text-gray-300')}
             fill="currentColor"
             viewBox="0 0 20 20"
           >
@@ -98,8 +101,8 @@ const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ className }) 
           </svg>
         ))}
       </div>
-    );
-  };
+    )
+  }
 
   return (
     <section className={cn('py-20 bg-white dark:bg-zinc-900', className)}>
@@ -110,7 +113,8 @@ const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ className }) 
             Foydalanuvchilar <span className="text-emerald-600">fikrlari</span>
           </h2>
           <p className="text-xl text-gray-600 dark:text-zinc-400 max-w-3xl mx-auto">
-            10,000+ dan ortiq professional foydalanuvchilar JurisAI ning samaradorligini tasdiqladilar
+            10,000+ dan ortiq professional foydalanuvchilar JurisAI ning samaradorligini
+            tasdiqladilar
           </p>
         </div>
 
@@ -132,13 +136,11 @@ const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ className }) 
 
         {/* Testimonials Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {testimonials.map((testimonial) => (
+          {testimonials.map(testimonial => (
             <Card key={testimonial.id} className="hover:shadow-xl transition-shadow duration-300">
               <CardContent className="p-6">
                 {/* Rating */}
-                <div className="mb-4">
-                  {renderStars(testimonial.rating)}
-                </div>
+                <div className="mb-4">{renderStars(testimonial.rating)}</div>
 
                 {/* Content */}
                 <blockquote className="text-gray-700 dark:text-zinc-300 mb-6 leading-relaxed italic">
@@ -153,9 +155,15 @@ const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ className }) 
                     className="bg-emerald-500 text-white"
                   />
                   <div className="flex-1">
-                    <div className="font-medium text-gray-900 dark:text-zinc-100">{testimonial.name}</div>
-                    <div className="text-sm text-gray-600 dark:text-zinc-400">{testimonial.role}</div>
-                    <div className="text-sm text-gray-500 dark:text-zinc-500">{testimonial.organization}</div>
+                    <div className="font-medium text-gray-900 dark:text-zinc-100">
+                      {testimonial.name}
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-zinc-400">
+                      {testimonial.role}
+                    </div>
+                    <div className="text-sm text-gray-500 dark:text-zinc-500">
+                      {testimonial.organization}
+                    </div>
                   </div>
                 </div>
 
@@ -163,10 +171,20 @@ const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ className }) 
                 {testimonial.achievement && (
                   <div className="mt-4 pt-4 border-t border-gray-100 dark:border-zinc-800">
                     <div className="flex items-center space-x-2">
-                      <svg className="w-4 h-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      <svg
+                        className="w-4 h-4 text-emerald-500"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                          clipRule="evenodd"
+                        />
                       </svg>
-                      <span className="text-sm text-emerald-600 font-medium">{testimonial.achievement}</span>
+                      <span className="text-sm text-emerald-600 font-medium">
+                        {testimonial.achievement}
+                      </span>
                     </div>
                   </div>
                 )}
@@ -182,7 +200,8 @@ const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ className }) 
               Ularning qatoriga qo\'shiling
             </h3>
             <p className="text-gray-600 dark:text-zinc-400 mb-6 max-w-2xl mx-auto">
-              Minglabar professional huquqshunoslar kabi JurisAI dan foydalanib o\'z karerasini yangi bosqichga ko\'tardilar
+              Minglabar professional huquqshunoslar kabi JurisAI dan foydalanib o\'z karerasini
+              yangi bosqichga ko\'tardilar
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button className="bg-emerald-600 text-white px-8 py-3 rounded-lg font-medium hover:bg-emerald-700 transition-colors">
@@ -196,7 +215,7 @@ const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ className }) 
         </div>
       </div>
     </section>
-  );
-};
+  )
+}
 
-export { TestimonialsSection };
+export { TestimonialsSection }

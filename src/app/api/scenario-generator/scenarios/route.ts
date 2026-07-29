@@ -1,13 +1,13 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { NextRequest, NextResponse } from 'next/server'
+import { supabase } from '@/lib/supabase'
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const scenario_type = searchParams.get('scenario_type');
-    const difficulty_level = searchParams.get('difficulty_level');
-    const limit = parseInt(searchParams.get('limit') || '20');
-    const offset = parseInt(searchParams.get('offset') || '0');
+    const { searchParams } = new URL(request.url)
+    const scenario_type = searchParams.get('scenario_type')
+    const difficulty_level = searchParams.get('difficulty_level')
+    const limit = parseInt(searchParams.get('limit') || '20')
+    const offset = parseInt(searchParams.get('offset') || '0')
 
     // Mock scenarios data
     const mockScenarios = [
@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
         scenario_type: 'civil',
         difficulty_level: 'medium',
         complexity: 'medium',
-        description: 'Katta kompaniyalar o\'rtasida shartnoma nizosi',
+        description: "Katta kompaniyalar o'rtasida shartnoma nizosi",
         participants_count: 4,
         duration_minutes: 45,
         complexity_score: 6,
@@ -28,15 +28,15 @@ export async function GET(request: NextRequest) {
         usage_count: 156,
         rating: 4.5,
         status: 'active',
-        tags: ['tijorat', 'shartnoma', 'nizo', 'kompensatsiya']
+        tags: ['tijorat', 'shartnoma', 'nizo', 'kompensatsiya'],
       },
       {
         id: 'scenario_2',
-        title: 'Ish haqi to\'lanmaganligi',
+        title: "Ish haqi to'lanmaganligi",
         scenario_type: 'labor',
         difficulty_level: 'easy',
         complexity: 'low',
-        description: 'Ish haqi vaqtni to\'lanmaganligi bois nizo',
+        description: "Ish haqi vaqtni to'lanmaganligi bois nizo",
         participants_count: 3,
         duration_minutes: 30,
         complexity_score: 3,
@@ -47,26 +47,26 @@ export async function GET(request: NextRequest) {
         usage_count: 89,
         rating: 4.2,
         status: 'active',
-        tags: ['mehnat', 'ish haqi', 'kompensatsiya', 'nizo']
+        tags: ['mehnat', 'ish haqi', 'kompensatsiya', 'nizo'],
       },
       {
         id: 'scenario_3',
-        title: 'Oilaviy mulk bo\'linishi',
+        title: "Oilaviy mulk bo'linishi",
         scenario_type: 'family',
         difficulty_level: 'hard',
         complexity: 'high',
-        description: 'Ajralish paytida umumiy mulkning bo\'linishi masalasi',
+        description: "Ajralish paytida umumiy mulkning bo'linishi masalasi",
         participants_count: 4,
         duration_minutes: 60,
         complexity_score: 9,
-        key_issues: ['Mulk bo\'linishi', 'Vosa huquqi', 'Farzandlar tarbiyasi'],
+        key_issues: ["Mulk bo'linishi", 'Vosa huquqi', 'Farzandlar tarbiyasi'],
         focus_areas: ['Oilaviy huquq', 'Mulk huquqi'],
         created_at: '2024-01-13T11:00:00Z',
         updated_at: '2024-01-15T09:15:00Z',
         usage_count: 234,
         rating: 4.7,
         status: 'active',
-        tags: ['oilaviy', 'mulk', 'vosa', 'ajralish']
+        tags: ['oilaviy', 'mulk', 'vosa', 'ajralish'],
       },
       {
         id: 'scenario_4',
@@ -74,18 +74,18 @@ export async function GET(request: NextRequest) {
         scenario_type: 'criminal',
         difficulty_level: 'medium',
         complexity: 'medium',
-        description: 'O\'g\'irlik jinoyati bo\'yicha tergov',
+        description: "O'g'irlik jinoyati bo'yicha tergov",
         participants_count: 4,
         duration_minutes: 50,
         complexity_score: 6,
-        key_issues: ['O\'g\'irlik', 'Dalillar', 'Jazo miqdori'],
+        key_issues: ["O'g'irlik", 'Dalillar', 'Jazo miqdori'],
         focus_areas: ['Jinoyat huquqi', 'Tergov'],
         created_at: '2024-01-12T14:00:00Z',
         updated_at: '2024-01-12T18:45:00Z',
         usage_count: 178,
         rating: 4.4,
         status: 'active',
-        tags: ['jinoyat', 'o\'g\'irlik', 'tergov', 'jazo']
+        tags: ['jinoyat', "o'g'irlik", 'tergov', 'jazo'],
       },
       {
         id: 'scenario_5',
@@ -93,18 +93,18 @@ export async function GET(request: NextRequest) {
         scenario_type: 'property',
         difficulty_level: 'easy',
         complexity: 'low',
-        description: 'Ijaraga olingan mulk bo\'yicha nizo',
+        description: "Ijaraga olingan mulk bo'yicha nizo",
         participants_count: 3,
         duration_minutes: 35,
         complexity_score: 4,
-        key_issues: ['Ijaraga olish', 'Ijara to\'lovi', 'Mulkni qaytarish'],
+        key_issues: ['Ijaraga olish', "Ijara to'lovi", 'Mulkni qaytarish'],
         focus_areas: ['Mulk huquqi', 'Ijaraga olish'],
         created_at: '2024-01-11T16:00:00Z',
         updated_at: '2024-01-15T10:30:00Z',
         usage_count: 123,
         rating: 4.1,
         status: 'active',
-        tags: ['mulkiy', 'ijara', 'nizo', 'uy-joy']
+        tags: ['mulkiy', 'ijara', 'nizo', 'uy-joy'],
       },
       {
         id: 'scenario_6',
@@ -112,7 +112,7 @@ export async function GET(request: NextRequest) {
         scenario_type: 'intellectual',
         difficulty_level: 'hard',
         complexity: 'high',
-        description: 'Mualliflik huquqlarini buzish bo\'yicha nizo',
+        description: "Mualliflik huquqlarini buzish bo'yicha nizo",
         participants_count: 4,
         duration_minutes: 55,
         complexity_score: 8,
@@ -123,7 +123,7 @@ export async function GET(request: NextRequest) {
         usage_count: 67,
         rating: 4.6,
         status: 'active',
-        tags: ['intellektual', 'mualliflik', 'litsenziya', 'nizo']
+        tags: ['intellektual', 'mualliflik', 'litsenziya', 'nizo'],
       },
       {
         id: 'scenario_7',
@@ -131,7 +131,7 @@ export async function GET(request: NextRequest) {
         scenario_type: 'financial',
         difficulty_level: 'medium',
         complexity: 'medium',
-        description: 'Qarz majburiyatlarini buzish bo\'yicha nizo',
+        description: "Qarz majburiyatlarini buzish bo'yicha nizo",
         participants_count: 3,
         duration_minutes: 40,
         complexity_score: 5,
@@ -142,7 +142,7 @@ export async function GET(request: NextRequest) {
         usage_count: 145,
         rating: 4.3,
         status: 'active',
-        tags: ['moliyaviy', 'qarz', 'foiz', 'majburiyat']
+        tags: ['moliyaviy', 'qarz', 'foiz', 'majburiyat'],
       },
       {
         id: 'scenario_8',
@@ -150,7 +150,7 @@ export async function GET(request: NextRequest) {
         scenario_type: 'transport',
         difficulty_level: 'easy',
         complexity: 'low',
-        description: 'Avtomobil sotib olish bo\'yicha nizo',
+        description: "Avtomobil sotib olish bo'yicha nizo",
         participants_count: 3,
         duration_minutes: 25,
         complexity_score: 3,
@@ -161,7 +161,7 @@ export async function GET(request: NextRequest) {
         usage_count: 98,
         rating: 4.0,
         status: 'active',
-        tags: ['transport', 'avtomobil', 'sotib olish', 'nizo']
+        tags: ['transport', 'avtomobil', 'sotib olish', 'nizo'],
       },
       {
         id: 'scenario_9',
@@ -169,7 +169,7 @@ export async function GET(request: NextRequest) {
         scenario_type: 'environmental',
         difficulty_level: 'hard',
         complexity: 'high',
-        description: 'Atrof-muhitga zarar yetkazish bo\'yicha nizo',
+        description: "Atrof-muhitga zarar yetkazish bo'yicha nizo",
         participants_count: 5,
         duration_minutes: 70,
         complexity_score: 9,
@@ -180,7 +180,7 @@ export async function GET(request: NextRequest) {
         usage_count: 45,
         rating: 4.8,
         status: 'active',
-        tags: ['ekologiya', 'atrof-muhit', 'zarar', 'kompensatsiya']
+        tags: ['ekologiya', 'atrof-muhit', 'zarar', 'kompensatsiya'],
       },
       {
         id: 'scenario_10',
@@ -188,7 +188,7 @@ export async function GET(request: NextRequest) {
         scenario_type: 'medical',
         difficulty_level: 'medium',
         complexity: 'medium',
-        description: 'Tibbiy xizmat sifati bo\'yicha nizo',
+        description: "Tibbiy xizmat sifati bo'yicha nizo",
         participants_count: 4,
         duration_minutes: 45,
         complexity_score: 6,
@@ -199,23 +199,25 @@ export async function GET(request: NextRequest) {
         usage_count: 112,
         rating: 4.5,
         status: 'active',
-        tags: ['tibbiyot', 'sifat', 'nizo', 'kompensatsiya']
-      }
-    ];
+        tags: ['tibbiyot', 'sifat', 'nizo', 'kompensatsiya'],
+      },
+    ]
 
     // Filter scenarios
-    let filteredScenarios = mockScenarios;
+    let filteredScenarios = mockScenarios
     if (scenario_type) {
-      filteredScenarios = mockScenarios.filter(scenario => scenario.scenario_type === scenario_type);
+      filteredScenarios = mockScenarios.filter(scenario => scenario.scenario_type === scenario_type)
     }
     if (difficulty_level) {
-      filteredScenarios = filteredScenarios.filter(scenario => scenario.difficulty_level === difficulty_level);
+      filteredScenarios = filteredScenarios.filter(
+        scenario => scenario.difficulty_level === difficulty_level
+      )
     }
 
     // Apply pagination
-    const startIndex = offset;
-    const endIndex = startIndex + limit;
-    const paginatedScenarios = filteredScenarios.slice(startIndex, endIndex);
+    const startIndex = offset
+    const endIndex = startIndex + limit
+    const paginatedScenarios = filteredScenarios.slice(startIndex, endIndex)
 
     return NextResponse.json({
       scenarios: paginatedScenarios,
@@ -223,20 +225,24 @@ export async function GET(request: NextRequest) {
         total: filteredScenarios.length,
         limit: limit,
         offset: offset,
-        has_more: endIndex < filteredScenarios.length
+        has_more: endIndex < filteredScenarios.length,
       },
       filters: {
         scenario_type: scenario_type,
-        difficulty_level: difficulty_level
+        difficulty_level: difficulty_level,
       },
       summary: {
         total_scenarios: filteredScenarios.length,
-        average_rating: Math.round(filteredScenarios.reduce((sum, s) => sum + s.rating, 0) / filteredScenarios.length * 10) / 10,
+        average_rating:
+          Math.round(
+            (filteredScenarios.reduce((sum, s) => sum + s.rating, 0) / filteredScenarios.length) *
+              10
+          ) / 10,
         total_usage: filteredScenarios.reduce((sum, s) => sum + s.usage_count, 0),
         by_difficulty: {
           easy: filteredScenarios.filter(s => s.difficulty_level === 'easy').length,
           medium: filteredScenarios.filter(s => s.difficulty_level === 'medium').length,
-          hard: filteredScenarios.filter(s => s.difficulty_level === 'hard').length
+          hard: filteredScenarios.filter(s => s.difficulty_level === 'hard').length,
         },
         by_type: {
           civil: filteredScenarios.filter(s => s.scenario_type === 'civil').length,
@@ -244,17 +250,15 @@ export async function GET(request: NextRequest) {
           family: filteredScenarios.filter(s => s.scenario_type === 'family').length,
           labor: filteredScenarios.filter(s => s.scenario_type === 'labor').length,
           property: filteredScenarios.filter(s => s.scenario_type === 'property').length,
-          other: filteredScenarios.filter(s => !['civil', 'criminal', 'family', 'labor', 'property'].includes(s.scenario_type)).length
-        }
+          other: filteredScenarios.filter(
+            s => !['civil', 'criminal', 'family', 'labor', 'property'].includes(s.scenario_type)
+          ).length,
+        },
       },
-      last_updated: new Date().toISOString()
-    });
-
+      last_updated: new Date().toISOString(),
+    })
   } catch (error) {
-    console.error('Scenarios get error:', error);
-    return NextResponse.json(
-      { error: 'Senariylarni olishda xatolik yuz berdi' },
-      { status: 500 }
-    );
+    console.error('Scenarios get error:', error)
+    return NextResponse.json({ error: 'Senariylarni olishda xatolik yuz berdi' }, { status: 500 })
   }
 }

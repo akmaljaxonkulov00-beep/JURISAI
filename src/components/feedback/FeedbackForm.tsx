@@ -1,40 +1,40 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import { useAuth } from '@/app/providers';
-import { Button } from '@/components/ui/Button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
+import { useState } from 'react'
+import { useAuth } from '@/app/providers'
+import { Button } from '@/components/ui/Button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import { Badge } from '@/components/ui/Badge'
 
 interface FeedbackData {
-  type: 'bug' | 'feature' | 'improvement' | 'other';
-  title: string;
-  description: string;
-  email: string;
-  userAgent: string;
-  url: string;
+  type: 'bug' | 'feature' | 'improvement' | 'other'
+  title: string
+  description: string
+  email: string
+  userAgent: string
+  url: string
 }
 
 export default function FeedbackForm() {
-  const { user } = useAuth();
+  const { user } = useAuth()
   const [formData, setFormData] = useState<Partial<FeedbackData>>({
     type: 'improvement',
     email: user?.email || '',
-  });
-  const [loading, setLoading] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-  const [error, setError] = useState('');
+  })
+  const [loading, setLoading] = useState(false)
+  const [submitted, setSubmitted] = useState(false)
+  const [error, setError] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+    e.preventDefault()
+
     if (!formData.title?.trim() || !formData.description?.trim()) {
-      setError('Iltimos, barcha maydonlarni to\'ldiring');
-      return;
+      setError("Iltimos, barcha maydonlarni to'ldiring")
+      return
     }
 
-    setLoading(true);
-    setError('');
+    setLoading(true)
+    setError('')
 
     try {
       const feedbackData: FeedbackData = {
@@ -44,7 +44,7 @@ export default function FeedbackForm() {
         email: formData.email || user?.email || '',
         userAgent: navigator.userAgent,
         url: window.location.href,
-      };
+      }
 
       const response = await fetch('/api/feedback', {
         method: 'POST',
@@ -52,44 +52,52 @@ export default function FeedbackForm() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(feedbackData),
-      });
+      })
 
       if (response.ok) {
-        setSubmitted(true);
+        setSubmitted(true)
         setFormData({
           type: 'improvement',
           title: '',
           description: '',
           email: user?.email || '',
-        });
+        })
       } else {
-        const errorData = await response.json();
-        setError(errorData.error || 'Xatolik yuz berdi');
+        const errorData = await response.json()
+        setError(errorData.error || 'Xatolik yuz berdi')
       }
     } catch (error) {
-      setError('Xatolik yuz berdi. Iltimos, qayta urining.');
+      setError('Xatolik yuz berdi. Iltimos, qayta urining.')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case 'bug': return 'bg-red-100 text-red-800';
-      case 'feature': return 'bg-green-100 text-green-800';
-      case 'improvement': return 'bg-blue-100 text-blue-800';
-      default: return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200';
+      case 'bug':
+        return 'bg-red-100 text-red-800'
+      case 'feature':
+        return 'bg-green-100 text-green-800'
+      case 'improvement':
+        return 'bg-blue-100 text-blue-800'
+      default:
+        return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200'
     }
-  };
+  }
 
   const getTypeLabel = (type: string) => {
     switch (type) {
-      case 'bug': return 'Xatolik';
-      case 'feature': return 'Yangi imkoniyat';
-      case 'improvement': return 'Yaxshilash';
-      default: return 'Boshqa';
+      case 'bug':
+        return 'Xatolik'
+      case 'feature':
+        return 'Yangi imkoniyat'
+      case 'improvement':
+        return 'Yaxshilash'
+      default:
+        return 'Boshqa'
     }
-  };
+  }
 
   if (submitted) {
     return (
@@ -114,18 +122,15 @@ export default function FeedbackForm() {
             </svg>
           </div>
           <p className="text-gray-600 dark:text-zinc-400">
-            Fikringiz uchun rahmat! Biz uni tez orada ko'rib chiqamiz va kerakli choralarni ko'ramiz.
+            Fikringiz uchun rahmat! Biz uni tez orada ko'rib chiqamiz va kerakli choralarni
+            ko'ramiz.
           </p>
-          <Button
-            variant="outline"
-            onClick={() => setSubmitted(false)}
-            className="w-full"
-          >
+          <Button variant="outline" onClick={() => setSubmitted(false)} className="w-full">
             Yangi fikr qoldirish
           </Button>
         </CardContent>
       </Card>
-    );
+    )
   }
 
   return (
@@ -144,7 +149,7 @@ export default function FeedbackForm() {
               Taklif turi
             </label>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {(['bug', 'feature', 'improvement', 'other'] as const).map((type) => (
+              {(['bug', 'feature', 'improvement', 'other'] as const).map(type => (
                 <button
                   key={type}
                   type="button"
@@ -155,9 +160,7 @@ export default function FeedbackForm() {
                       : 'border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:bg-zinc-800/50'
                   }`}
                 >
-                  <Badge className={`mb-1 ${getTypeColor(type)}`}>
-                    {getTypeLabel(type)}
-                  </Badge>
+                  <Badge className={`mb-1 ${getTypeColor(type)}`}>{getTypeLabel(type)}</Badge>
                 </button>
               ))}
             </div>
@@ -165,14 +168,17 @@ export default function FeedbackForm() {
 
           {/* Title */}
           <div>
-            <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">
+            <label
+              htmlFor="title"
+              className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1"
+            >
               Sarlavha
             </label>
             <input
               id="title"
               type="text"
               value={formData.title || ''}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              onChange={e => setFormData({ ...formData, title: e.target.value })}
               placeholder="Qisqa sarlavha..."
               className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               required
@@ -181,13 +187,16 @@ export default function FeedbackForm() {
 
           {/* Description */}
           <div>
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">
+            <label
+              htmlFor="description"
+              className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1"
+            >
               Tafsilotlar
             </label>
             <textarea
               id="description"
               value={formData.description || ''}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              onChange={e => setFormData({ ...formData, description: e.target.value })}
               placeholder="Taklifingiz haqida batafsil ma'lumot..."
               rows={4}
               className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
@@ -197,22 +206,23 @@ export default function FeedbackForm() {
 
           {/* Email */}
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1"
+            >
               Email (javob uchun)
             </label>
             <input
               id="email"
               type="email"
               value={formData.email || ''}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              onChange={e => setFormData({ ...formData, email: e.target.value })}
               placeholder="email@example.com"
               className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
 
-          {error && (
-            <div className="text-red-600 text-sm">{error}</div>
-          )}
+          {error && <div className="text-red-600 text-sm">{error}</div>}
 
           <Button
             type="submit"
@@ -229,5 +239,5 @@ export default function FeedbackForm() {
         </form>
       </CardContent>
     </Card>
-  );
+  )
 }
