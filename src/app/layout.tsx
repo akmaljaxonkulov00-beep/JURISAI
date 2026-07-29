@@ -6,6 +6,7 @@ import Providers from './providers'
 import ErrorBoundary from '@/components/ErrorBoundary'
 import MobileNav from '@/components/MobileNav'
 import AIChatFloatingWidget from '@/components/ai/AIChatFloatingWidget'
+import OAuthHandler from '@/components/auth/OAuthHandler'
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -40,6 +41,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col overflow-x-clip">
         <ErrorBoundary>
           <Providers>
+            <OAuthHandler />
             <MobileNav />
             {children}
           </Providers>

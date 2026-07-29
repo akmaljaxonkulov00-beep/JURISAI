@@ -257,11 +257,11 @@ export async function signInWithGoogle(): Promise<{
   error?: string
 }> {
   try {
+    // NOTE: No custom redirectTo — Supabase uses the default Site URL
+    // from the Auth settings. The universal OAuthHandler component
+    // (mounted in root layout) catches the callback on ANY page.
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
     })
     if (error) throw error
     if (data?.url) {

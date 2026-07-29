@@ -9,6 +9,13 @@ export default function HomePage() {
   const { user, isLoading, isAdmin } = useAuth()
 
   useEffect(() => {
+    // Check if OAuth code is in the URL — OAuthHandler will process it
+    // Don't redirect away while OAuth is in progress!
+    if (typeof window !== 'undefined') {
+      const hasOAuthCode = new URLSearchParams(window.location.search).has('code')
+      if (hasOAuthCode) return // OAuthHandler will handle this
+    }
+
     if (isLoading) return
 
     if (!user) {
