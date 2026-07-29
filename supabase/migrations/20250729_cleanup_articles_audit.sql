@@ -82,6 +82,13 @@ WHERE code_id NOT IN (
   'labor_code', 'family_code', 'land_code'
 );
 
+-- Also remove orphaned categories (categories with no articles or not in user's 6 codes)
+DELETE FROM categories
+WHERE code_id NOT IN (
+  'civil_code', 'criminal_code', 'admin_code',
+  'labor_code', 'family_code', 'land_code'
+);
+
 -- ── 6. Fix MK.txt (admin_code) articles that were imported as labor_code ──
 -- These are articles in labor_code that have Ma'muriy (administrative) content
 -- and DON'T exist in admin_code yet

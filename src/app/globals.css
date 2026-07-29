@@ -91,12 +91,14 @@ body {
   font-family: var(--font-google-sans), 'Segoe UI', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  overflow-x: hidden;
+  overflow-x: clip;
+  overflow-y: auto;
   transition: background-color 0.3s ease, color 0.3s ease;
+  -webkit-overflow-scrolling: touch;
 }
 
-/* Dark mode transitions for common elements */
-*, *::before, *::after {
+/* Dark mode transitions — scoped to avoid mobile jank */
+html.dark *, html.dark *::before, html.dark *::after {
   transition-property: background-color, border-color, color, box-shadow;
   transition-duration: 0.2s;
   transition-timing-function: ease;
