@@ -1,13 +1,12 @@
 /**
  * Supabase browser client — singleton
  *
- * This file is the ONLY place the Supabase client is created for the browser.
- * It uses localStorage for session persistence, which is critical for OAuth.
+ * This is the ONLY place a Supabase client is created for the browser.
+ * All client-side code must import { supabase } from this file.
  *
- * NOTE: The environment variables MUST be set in .env.local (for local dev)
- * and in Vercel dashboard (for production). They are:
- *   NEXT_PUBLIC_SUPABASE_URL  = https://blayqzykzlmrjuvhzvsk.supabase.co
- *   NEXT_PUBLIC_SUPABASE_ANON_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ...
+ * Uses Supabase's default localStorage storage adapter.
+ * NOTE: Do NOT add a custom storage adapter — it can interfere with
+ * the PKCE code verifier serialization/deserialization during OAuth.
  */
 
 import { createClient } from '@supabase/supabase-js'
@@ -30,20 +29,5 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     persistSession: true,
     autoRefreshToken: true,
     detectSessionInUrl: true,
-    storage: {
-      getItem: (key: string) => {
-        if (typeof window === 'undefined') return null
-        const val = localStorage.getItem(key)
-        return val
-      },
-      setItem: (key: string, value: string) => {
-        if (typeof window === 'undefined') return
-        localStorage.setItem(key, value)
-      },
-      removeItem: (key: string) => {
-        if (typeof window === 'undefined') return
-        localStorage.removeItem(key)
-      },
-    },
   },
 })

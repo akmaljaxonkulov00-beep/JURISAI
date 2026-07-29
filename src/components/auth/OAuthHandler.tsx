@@ -11,15 +11,12 @@ import { supabase } from '@/lib/supabase-browser'
  * for Supabase sessions, BEFORE any page-level code can redirect.
  *
  * Handles:
- *   - PKCE flow:  ?code=xxx  (query parameter)
- *   - Implicit:   #access_token=xxx  (hash fragment, handled by Supabase automatically)
+ *   - PKCE flow: ?code=xxx (query parameter)
+ *     Calls supabase.auth.exchangeCodeForSession(code) which
+ *     looks up the stored PKCE code verifier from localStorage.
  *
- * Why this approach:
- *   The old /auth/callback route handler and page were unreliable because:
- *   1. Server-side route handler couldn't read query params correctly
- *   2. The /auth/callback page wasn't recognized as a Next.js route
- *   3. Supabase might redirect to the Site URL instead of a custom path
- *
+ * Why this approach instead of a dedicated /auth/callback page:
+ *   The dedicated page was not reliably serving as a Next.js route.
  *   By handling OAuth on EVERY page, we catch the callback regardless
  *   of what URL Supabase redirects to.
  */
@@ -32,7 +29,6 @@ export default function OAuthHandler() {
     handled.current = true
 
     // Check for PKCE authorization code in query string
-    // Supabase redirects with ?code=xxx for PKCE flow
     const params = new URLSearchParams(window.location.search)
     const code = params.get('code')
 
@@ -43,25 +39,41 @@ export default function OAuthHandler() {
 
     console.log('[OAuthHandler] Found auth code in URL, exchanging for session...')
 
-    // Exchange the PKCE authorization code for a session
-    // This stores the session in localStorage via our custom storage adapter
+    // Exchange the PKCE authorization code for a session.
+    // This relies on the PKCE code verifier that was stored in
+    // localStorage by signInWithOAuth() on the sign-in page.
     supabase.auth
       .exchangeCodeForSession(code)
       .then(({ error }) => {
         if (error) {
-          console.error('[OAuthHandler] Exchange error:', error)
-          window.location.href = '/signin?error=' + encodeURIComponent(error.message)
+          console.error('[OAuthHandler] Exchange error:', error.message, error)
+          // Fallback: try getSession() in case the session was already created
+          supabase.auth.getSession().then(({ data: { session } }) => {
+            if (session?.user) {
+              console.log('[OAuthHandler] Session found via getSession fallback!')
+              window.location.href = '/dashboard'
+            } else {
+              window.location.href = '/signin?error=' + encodeURIComponent(error.message)
+            }
+          })
         } else {
           console.log('[OAuthHandler] Session created successfully!')
-          // Navigate to dashboard FIRST (full page navigation cleans up everything)
-          // Then clean the URL as a safety measure
+          // Clean URL before navigating
           window.history.replaceState({}, '', window.location.pathname)
           window.location.href = '/dashboard'
         }
       })
       .catch(err => {
         console.error('[OAuthHandler] Exchange exception:', err)
-        window.location.href = '/signin?error=' + encodeURIComponent(err?.message || 'unknown')
+        // Fallback: try getSession()
+        supabase.auth.getSession().then(({ data: { session } }) => {
+          if (session?.user) {
+            console.log('[OAuthHandler] Session found via getSession fallback!')
+            window.location.href = '/dashboard'
+          } else {
+            window.location.href = '/signin?error=' + encodeURIComponent(err?.message || 'unknown')
+          }
+        })
       })
   }, [])
 
