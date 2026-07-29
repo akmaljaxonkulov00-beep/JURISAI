@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 
 /**
  * POST /api/auth/sync-user
  *
- * Foydalanuvchi Firebase orqali ro'yxatdan o'tganda yoki login qilganda
- * Supabase registered_users jadvaliga yozish uchun chaqiriladi.
+ * Firebase Auth dan foydalanuvchi ma'lumotlarini Supabase registered_users
+ * jadvaliga sinxronlash. Bu endpoint firebase-auth.ts dagi syncUserToSupabase()
+ * funksiyasi tomonidan chaqiriladi.
  *
- * Bu API orqali admin panel foydalanuvchilarni real vaqtda ko'ra oladi.
- * Service role key bilan ishlaydi — anon key bilan ishlamaydi.
+ * Agar SUPABASE_SERVICE_ROLE_KEY mavjud bo'lmasa, anon key bilan ishlaydi.
  */
 export async function POST(request: NextRequest) {
   try {
@@ -21,98 +22,78 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://blayqzykzlmrjuvhzvsk.supabase.co';
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJsYXlxenlremxtcmp1dmh6dnNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ3MzAzNzAsImV4cCI6MjEwMDMwNjM3MH0._4WASFfKkRenHpScrQM6vS2zPTZmyDfMCNr5GmAgOkw';
 
-    if (!supabaseUrl || !serviceKey) {
-      // Supabase mavjud emas — faqat localStorage da saqlanadi
-      return NextResponse.json({
-        success: false,
-        error: 'Supabase not configured',
-        fallback: 'localStorage',
-      });
+    // Try service role key first, fallback to anon key
+    const key = serviceKey || anonKey;
+    if (!key) {
+      return NextResponse.json(
+        { success: false, error: 'Supabase key not configured' },
+        { status: 500 }
+      );
     }
 
-    // Sync to registered_users table via REST API (service_role key bilan)
-    const endpoint = `${supabaseUrl}/rest/v1/registered_users`;
-    const payload = {
-      id,
-      email,
-      name: name || email.split('@')[0] || '',
-      role: role || 'USER',
-      subscription_plan: subscription_plan || 'free',
-      last_login: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        'apikey': serviceKey,
-        'Authorization': `Bearer ${serviceKey}`,
-        'Content-Type': 'application/json',
-        'Prefer': 'resolution=merge-duplicates',
-      },
-      body: JSON.stringify(payload),
+    const supabase = createClient(supabaseUrl, key, {
+      auth: { autoRefreshToken: false, persistSession: false },
     });
 
-    if (!response.ok && response.status !== 409) {
-      // 409 = conflict (already exists, which is fine with merge-duplicates)
-      const errText = await response.text().catch(() => 'unknown error');
-      console.warn('[Sync-User] Supabase upsert warning:', response.status, errText.slice(0, 200));
-
-      // Try alternative: check if table needs PATCH instead
-      if (response.status === 404) {
-        // Table might not exist — try creating via raw SQL or skip
-        return NextResponse.json({
-          success: false,
-          error: 'registered_users table not found',
-          fallback: 'localStorage',
-        });
-      }
-
-      return NextResponse.json({
-        success: false,
-        error: `Supabase error: ${response.status}`,
-        fallback: 'localStorage',
+    // Insert or update: preserve original created_at
+    const now = new Date().toISOString();
+    
+    // First try INSERT (for new users)
+    const { error: insertError } = await supabase
+      .from('registered_users')
+      .insert({
+        id,
+        email,
+        name: name || email.split('@')[0] || '',
+        role: role || 'USER',
+        subscription_plan: subscription_plan || 'free',
+        created_at: now,
+        last_login: now,
       });
+
+    // If user already exists (duplicate key), only update metadata — keep created_at
+    if (insertError && insertError.code === '23505') {
+      const { data: updated } = await supabase
+        .from('registered_users')
+        .update({
+          email,
+          name: name || email.split('@')[0] || '',
+          role: role || 'USER',
+          subscription_plan: subscription_plan || 'free',
+          last_login: now,
+        })
+        .eq('id', id)
+        .select()
+        .single();
+      
+      return NextResponse.json({ success: true, data: updated });
     }
 
-    // Success — also update the auth.users metadata if possible
-    try {
-      // Try to update ONLY this specific user's auth.users raw_user_meta_data
-      const authEndpoint = `${supabaseUrl}/rest/v1/users?id=eq.${encodeURIComponent(id)}`;
-      await fetch(authEndpoint, {
-        method: 'PATCH',
-        headers: {
-          'apikey': serviceKey,
-          'Authorization': `Bearer ${serviceKey}`,
-          'Content-Type': 'application/json',
-          'Accept-Profile': 'auth',
-        },
-        body: JSON.stringify({
-          raw_user_meta_data: {
-            name: payload.name,
-            role: payload.role,
-            subscription_plan: payload.subscription_plan,
-            synced_at: new Date().toISOString(),
-          },
-        }),
-      });
-    } catch {
-      // auth.users update is optional — non-critical
+    if (insertError) {
+      console.warn('[sync-user] Insert error:', insertError.message);
+      return NextResponse.json({ success: false, error: insertError.message }, { status: 200 });
     }
 
-    return NextResponse.json({
-      success: true,
-      message: 'Foydalanuvchi sinxronlashtirildi',
-      userId: id,
-    });
+    // Fetch the newly created record
+    const { data } = await supabase
+      .from('registered_users')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      // If table doesn't exist or RLS blocks, silently ignore
+      console.warn('[sync-user] Upsert error:', error.message);
+      return NextResponse.json({ success: false, error: error.message }, { status: 200 });
+    }
+
+    return NextResponse.json({ success: true, data });
   } catch (error: any) {
-    console.error('[Sync-User] Error:', error);
-    return NextResponse.json(
-      { success: false, error: error?.message || 'Sync xatosi' },
-      { status: 500 }
-    );
+    console.warn('[sync-user] Error:', error?.message);
+    return NextResponse.json({ success: false, error: error?.message }, { status: 200 });
   }
 }
