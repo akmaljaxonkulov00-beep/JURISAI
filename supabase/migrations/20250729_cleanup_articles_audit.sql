@@ -106,17 +106,7 @@ WHERE a.code_id = 'labor_code'
     SELECT article_number FROM articles WHERE code_id = 'admin_code'
   );
 
--- ── 7. After fixes, update category counts ─────────────────────
-UPDATE categories
-SET document_count = sub.cnt
-FROM (
-  SELECT code_id, COUNT(*) as cnt
-  FROM articles
-  GROUP BY code_id
-) sub
-WHERE categories.code_id = sub.code_id;
-
--- ── 8. Show final state ────────────────────────────────────────
+-- ── 7. Show final state ────────────────────────────────────────
 SELECT '=== FINAL CATEGORY COUNTS ===' as info;
 SELECT c.code_id, c.name, COUNT(a.id) as article_count
 FROM categories c
