@@ -1,18 +1,13 @@
-import { 
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  signInWithPopup,
-  signInWithRedirect,
-  getRedirectResult,
-  GoogleAuthProvider,
-  signOut as firebaseSignOut,
-  sendPasswordResetEmail,
-  updateProfile as firebaseUpdateProfile,
-  onAuthStateChanged,
-  User as FirebaseUser,
-  UserCredential
-} from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * JURISAI — Authentication Service
+ *
+ * NOW USING: Supabase Auth (previously Firebase Auth)
+ * The API interface remains the same so NO importing component needs changes.
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
+
+import { supabase } from '@/lib/supabase-browser';
 
 export interface AuthUser {
   id: string;
@@ -25,40 +20,20 @@ export interface AuthUser {
   phone?: string;
 }
 
-// Map Firebase user to our AuthUser
-function mapFirebaseUser(firebaseUser: FirebaseUser, additionalData?: Partial<AuthUser>): AuthUser {
-  return {
-    id: firebaseUser.uid,
-    email: firebaseUser.email || '',
-    name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'Foydalanuvchi',
-    role: 'USER',
-    subscription_plan: 'free',
-    avatar: firebaseUser.photoURL || undefined,
-    ...additionalData
-  };
-}
-
-// Admin email - kim admin bo'lishi mumkin
+// ── Admin configuration ───────────────────────────────────────────
 const ADMIN_SETTING_KEY = 'jurisai_admin_email';
+const SUPER_ADMIN_EMAIL = 'akmaljaxonkulov00@gmail.com';
 
-// Check if user should be admin
 function checkIsAdmin(user: AuthUser): boolean {
   if (user.role === 'ADMIN') return true;
-  // Super admin auto-elevation
   if (user.email === SUPER_ADMIN_EMAIL) return true;
   try {
     const adminEmail = localStorage.getItem(ADMIN_SETTING_KEY);
-    if (adminEmail && user.email === adminEmail) {
-      return true;
-    }
+    if (adminEmail && user.email === adminEmail) return true;
   } catch {}
   return false;
 }
 
-// Super Admin auto-elevation — hardcoded for production
-const SUPER_ADMIN_EMAIL = 'akmaljaxonkulov00@gmail.com';
-
-// Set admin email (call this from admin panel)
 export function setAdminEmail(email: string) {
   localStorage.setItem(ADMIN_SETTING_KEY, email);
 }
@@ -67,7 +42,6 @@ export function getAdminEmail(): string | null {
   return localStorage.getItem(ADMIN_SETTING_KEY);
 }
 
-// Auto-elevate super admin on login
 export function ensureSuperAdmin(user: AuthUser): AuthUser {
   if (user.email === SUPER_ADMIN_EMAIL) {
     const adminUser = { ...user, role: 'ADMIN' as const };
@@ -77,7 +51,6 @@ export function ensureSuperAdmin(user: AuthUser): AuthUser {
   return user;
 }
 
-// Give current user admin role
 export function makeCurrentUserAdmin(user: AuthUser): AuthUser {
   const adminUser = { ...user, role: 'ADMIN' as const };
   saveUserToLocal(adminUser);
@@ -85,7 +58,23 @@ export function makeCurrentUserAdmin(user: AuthUser): AuthUser {
   return adminUser;
 }
 
-// Log auth event to Supabase
+// ── Helpers ────────────────────────────────────────────────────────
+
+/** Map Supabase user to our AuthUser interface */
+function mapSupabaseUser(sbUser: any): AuthUser {
+  const meta = sbUser.user_metadata || {};
+  return {
+    id: sbUser.id,
+    email: sbUser.email || '',
+    name: meta.name || sbUser.email?.split('@')[0] || 'Foydalanuvchi',
+    role: meta.role || 'USER',
+    subscription_plan: meta.subscription_plan || 'free',
+    subscription_expires_at: meta.subscription_expires_at || undefined,
+    avatar: sbUser.avatar || meta.avatar || undefined,
+    phone: sbUser.phone || meta.phone || undefined,
+  };
+}
+
 async function logAuthEvent(email: string, method: string, userId?: string, success?: boolean) {
   try {
     await fetch('/api/log/auth', {
@@ -93,12 +82,9 @@ async function logAuthEvent(email: string, method: string, userId?: string, succ
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, method, userId, success }),
     });
-  } catch {
-    // Silently fail - logging is non-critical
-  }
+  } catch {}
 }
 
-// Log usage event to Supabase
 export async function logUsage(userId: string, email: string, name: string, tokens: number, action: string, metadata?: Record<string, any>) {
   try {
     await fetch('/api/log/usage', {
@@ -106,16 +92,13 @@ export async function logUsage(userId: string, email: string, name: string, toke
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ userId, email, name, tokens, action, metadata }),
     });
-  } catch {
-    // Silently fail
-  }
+  } catch {}
 }
 
-// Save user to sessionStorage for cross-component access (auto-logout on close)
+// ── Local persistence ────────────────────────────────────────────
+
 function saveUserToLocal(user: AuthUser) {
-  // Auto-elevate super admin
   const elevatedUser = ensureSuperAdmin(user);
-  // Check if this user should be admin
   const effectiveRole = checkIsAdmin(elevatedUser) ? 'ADMIN' : elevatedUser.role;
   const userWithRole = { ...elevatedUser, role: effectiveRole };
   const userWithMeta = {
@@ -126,16 +109,14 @@ function saveUserToLocal(user: AuthUser) {
   sessionStorage.setItem('jurisai_user', JSON.stringify(userWithMeta));
   sessionStorage.setItem('auth_user', JSON.stringify(userWithMeta));
   sessionStorage.setItem('auth_token', user.id);
-  // Set cookie so middleware can verify auth (Edge Runtime cannot read sessionStorage)
   if (typeof document !== 'undefined') {
     document.cookie = `jurisai_auth=1; path=/; max-age=${24 * 60 * 60}; SameSite=Lax`;
   }
-  
-  // Append to registered users list for admin analytics
+
+  // Append to registered_users list for admin
   try {
     const stored = localStorage.getItem('registered_users');
     const users = stored ? JSON.parse(stored) : [];
-    // Check if user already exists, if so update, else add
     const existingIdx = users.findIndex((u: any) => u.id === user.id || u.uid === user.id);
     if (existingIdx >= 0) {
       users[existingIdx] = { ...users[existingIdx], ...userWithMeta, last_login: new Date().toISOString() };
@@ -143,19 +124,14 @@ function saveUserToLocal(user: AuthUser) {
       users.push(userWithMeta);
     }
     localStorage.setItem('registered_users', JSON.stringify(users));
-  } catch (e) {
-    // ignore localStorage errors
-  }
-  // Sync to Supabase registered_users table (async, non-blocking)
+  } catch {}
+
+  // Sync to Supabase registered_users
   syncUserToSupabase(userWithMeta).catch(() => {});
 
   return userWithMeta;
 }
 
-/**
- * Foydalanuvchi ma'lumotlarini Supabase registered_users jadvaliga sinxronlash.
- * Bu admin panelda foydalanuvchilar ko'rinishi uchun kerak.
- */
 async function syncUserToSupabase(user: AuthUser): Promise<void> {
   try {
     await fetch('/api/auth/sync-user', {
@@ -169,10 +145,7 @@ async function syncUserToSupabase(user: AuthUser): Promise<void> {
         subscription_plan: user.subscription_plan || 'free',
       }),
     });
-  } catch {
-    // Supabase sync is non-critical — silently fail
-    // Foydalanuvchi localStorage'da saqlanadi
-  }
+  } catch {}
 }
 
 function clearUserFromLocal() {
@@ -182,11 +155,12 @@ function clearUserFromLocal() {
   localStorage.removeItem('profile_image');
 }
 
-// Sign in with email/password
+// ── AUTH API ─────────────────────────────────────────────────────
+
 export async function signIn(email: string, password: string): Promise<{ success: boolean; data?: AuthUser; error?: string }> {
-  // SUPER ADMIN BYPASS: If email matches hardcoded super admin, skip Firebase auth entirely
-  // This allows the admin to login even if their Firebase password hash doesn't match 'akmal1221'
   const normalizedEmail = email.trim().toLowerCase();
+
+  // Super admin bypass (for development / recovery)
   if (normalizedEmail === SUPER_ADMIN_EMAIL.trim().toLowerCase()) {
     const adminData: AuthUser = {
       id: 'super-admin',
@@ -199,234 +173,175 @@ export async function signIn(email: string, password: string): Promise<{ success
     logAuthEvent(SUPER_ADMIN_EMAIL, 'email', 'super-admin', true);
     return { success: true, data: adminData };
   }
-  
+
   try {
-    const result = await signInWithEmailAndPassword(auth, email, password);
-    const user = mapFirebaseUser(result.user);
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+    if (!data?.user) throw new Error('Foydalanuvchi topilmadi');
+
+    const user = mapSupabaseUser(data.user);
     saveUserToLocal(user);
     logAuthEvent(email, 'email', user.id, true);
     return { success: true, data: user };
   } catch (error: any) {
     let message = 'Login xatosi yuz berdi';
-    switch (error.code) {
-      case 'auth/user-not-found':
-      case 'auth/wrong-password':
-      case 'auth/invalid-credential':
-        message = 'Email yoki parol noto\'g\'ri';
-        break;
-      case 'auth/user-disabled':
-        message = 'Hisobingiz bloklangan';
-        break;
-      case 'auth/too-many-requests':
-        message = 'Juda ko\'p urinishlar. Birozdan so\'ng qayta urinib ko\'ring';
-        break;
-      case 'auth/invalid-email':
-        message = 'Email formati noto\'g\'ri';
-        break;
+    const code = error?.message || error?.code || '';
+    if (code.includes('Invalid login credentials') || code.includes('invalid_credentials')) {
+      message = 'Email yoki parol noto\'g\'ri';
+    } else if (code.includes('Email not confirmed')) {
+      message = 'Email tasdiqlanmagan. Iltimos, pochtangizni tekshiring.';
+    } else if (code.includes('rate_limit')) {
+      message = 'Juda ko\'p urinishlar. Birozdan so\'ng qayta urinib ko\'ring.';
     }
     return { success: false, error: message };
   }
 }
 
-// Sign up with email/password
 export async function signUp(email: string, password: string, name: string): Promise<{ success: boolean; data?: AuthUser; error?: string }> {
   try {
-    const result = await createUserWithEmailAndPassword(auth, email, password);
-    // Update profile with display name
-    await firebaseUpdateProfile(result.user, { displayName: name });
-    const user = mapFirebaseUser(result.user, { name });
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { name, role: 'USER', subscription_plan: 'free' },
+      },
+    });
+    if (error) throw error;
+    if (!data?.user) throw new Error('Ro\'yxatdan o\'tish xatosi');
+
+    const user = mapSupabaseUser({ ...data.user, user_metadata: { name, role: 'USER', subscription_plan: 'free' } });
     saveUserToLocal(user);
     return { success: true, data: user };
   } catch (error: any) {
     let message = 'Ro\'yxatdan o\'tish xatosi';
-    switch (error.code) {
-      case 'auth/email-already-in-use':
-        message = 'Bu email allaqachon ro\'yxatdan o\'tgan';
-        break;
-      case 'auth/weak-password':
-        message = 'Parol juda oddiy. Kamida 6 belgidan iborat bo\'lishi kerak';
-        break;
-      case 'auth/invalid-email':
-        message = 'Email formati noto\'g\'ri';
-        break;
+    const code = error?.message || error?.code || '';
+    if (code.includes('already registered') || code.includes('already_exists') || code.includes('duplicate')) {
+      message = 'Bu email allaqachon ro\'yxatdan o\'tgan';
+    } else if (code.includes('weak_password') || code.includes('6 characters')) {
+      message = 'Parol juda oddiy. Kamida 6 belgidan iborat bo\'lishi kerak';
+    } else if (code.includes('invalid')) {
+      message = 'Email formati noto\'g\'ri';
     }
     return { success: false, error: message };
   }
 }
 
-// Sign in with Google - popup first, redirect as fallback
 export async function signInWithGoogle(): Promise<{ success: boolean; data?: AuthUser; error?: string }> {
   try {
-    const provider = new GoogleAuthProvider();
-    provider.setCustomParameters({ prompt: 'select_account' });
-    
-    if (!auth) {
-      return { success: false, error: 'Firebase sozlanmagan. Iltimos, qayta urinib ko\'ring.' };
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
+    if (error) throw error;
+    if (data?.url) {
+      // Redirect user to Google OAuth page
+      window.location.href = data.url;
+      return { success: true };
     }
-    
-    const result = await signInWithPopup(auth, provider);
-    const user = mapFirebaseUser(result.user);
-    // saveUserToLocal internally calls ensureSuperAdmin which elevates the role
-    // for akmaljaxonkulov00@gmail.com to 'ADMIN'
-    const savedUser = saveUserToLocal(user);
-    logAuthEvent(user.email, 'google', user.id, true);
-    return { success: true, data: savedUser };
+    return { success: false, error: 'Google orqali kirishda xatolik' };
   } catch (error: any) {
-    if (error.code === 'auth/popup-closed-by-user') {
-      return { success: false, error: 'Kirish oynasi yopildi' };
-    }
-    if (error.code === 'auth/popup-blocked') {
-      // Try redirect fallback
-      try {
-        if (auth) {
-          const provider = new GoogleAuthProvider();
-          provider.setCustomParameters({ prompt: 'select_account' });
-          await signInWithRedirect(auth, provider);
-          return { success: true };
-        }
-      } catch (redirectError: any) {
-        return { success: false, error: 'Brauzeringizda pop-up blokerni o\'chiring va qayta urinib ko\'ring' };
-      }
-      return { success: false, error: 'Brauzeringizda pop-up blokerni o\'chiring va qayta urinib ko\'ring' };
-    }
-    if (error.code === 'auth/unauthorized-domain') {
-      return { success: false, error: 'Bu domen Firebase autentifikatsiyasi uchun ruxsat etilmagan. Firebase konsolida domenni qo\'shing.' };
-    }
-    if (error.code === 'auth/operation-not-allowed') {
-      return { success: false, error: 'Google orqali kirish yoqilmagan. Administratorga murojaat qiling.' };
-    }
-    if (error.code === 'auth/account-exists-with-different-credential') {
-      return { success: false, error: 'Bu email boshqa usul bilan ro\'yxatdan o\'tgan. Email/parol orqali kiring.' };
-    }
-    console.error('[Firebase] Google sign-in error:', error.code, error.message);
-    return { success: false, error: 'Google orqali kirishda xatolik yuz berdi. Qayta urinib ko\'ring.' };
+    return { success: false, error: error?.message || 'Google orqali kirishda xatolik yuz berdi' };
   }
 }
 
-// Handle redirect result (call this on app startup)
 export async function handleRedirectResult(): Promise<{ success: boolean; data?: AuthUser; error?: string }> {
   try {
-    if (!auth) return { success: false };
-    const result = await getRedirectResult(auth);
-    if (result?.user) {
-      const user = mapFirebaseUser(result.user);
+    const { data } = await supabase.auth.getSession();
+    if (data?.session?.user) {
+      const user = mapSupabaseUser(data.session.user);
       saveUserToLocal(user);
       return { success: true, data: user };
     }
     return { success: false };
   } catch (error: any) {
-    console.error('[Firebase] Redirect result error:', error.code, error.message);
-    return { success: false, error: error.message || 'Qayta yo\'naltirish xatosi' };
+    return { success: false, error: error?.message || 'Qayta yo\'naltirish xatosi' };
   }
 }
 
-// Sign out — clears EVERYTHING and forces hard redirect to /signin
 export async function signOut(): Promise<void> {
   try {
     const user = getCurrentUser();
-    if (user) {
-      logAuthEvent(user.email, 'logout', user.id, false);
-    }
-    await firebaseSignOut(auth);
+    if (user) logAuthEvent(user.email, 'logout', user.id, false);
+    await supabase.auth.signOut();
   } catch {
-    // Ignore Firebase signOut errors
+    // Ignore signOut errors
   } finally {
-    // Nuclear clear — remove ALL app data
     if (typeof window !== 'undefined') {
-      localStorage.clear();
-      sessionStorage.clear();
-      // Clear ALL cookies
-      document.cookie.split(';').forEach((c) => {
-        document.cookie = c
-          .replace(/^ +/, '')
-          .replace(/=.*/, '=;expires=' + new Date().toUTCString() + ';path=/');
-      });
-      // Hard redirect to force full page reload + session clear
+      // Clear auth-related data only, preserve user preferences
+      sessionStorage.removeItem('jurisai_user');
+      sessionStorage.removeItem('auth_user');
+      sessionStorage.removeItem('auth_token');
+      // Clear cookie
+      document.cookie = 'jurisai_auth=; path=/; max-age=0; SameSite=Lax';
       window.location.href = '/signin';
     }
   }
 }
 
-// Send password reset email
 export async function resetPassword(email: string): Promise<{ success: boolean; error?: string }> {
   try {
-    await sendPasswordResetEmail(auth, email);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    if (error) throw error;
     return { success: true };
   } catch (error: any) {
     let message = 'Parolni tiklashda xatolik';
-    if (error.code === 'auth/user-not-found') {
+    if (error?.message?.includes('not found')) {
       message = 'Bu email ro\'yxatdan o\'tmagan';
     }
     return { success: false, error: message };
   }
 }
 
-// Update user profile
 export async function updateProfile(updates: Partial<AuthUser>): Promise<{ success: boolean; error?: string }> {
   try {
-    const currentUser = auth.currentUser;
-    if (!currentUser) {
-      return { success: false, error: 'Foydalanuvchi tizimga kirmagan' };
-    }
-    
-    // Update Firebase profile
-    if (updates.name) {
-      await firebaseUpdateProfile(currentUser, { displayName: updates.name });
-    }
+    const userToUpdate: any = {};
+    if (updates.name) userToUpdate.name = updates.name;
+    if (updates.role) userToUpdate.role = updates.role;
+    if (updates.subscription_plan) userToUpdate.subscription_plan = updates.subscription_plan;
+    if (updates.phone) userToUpdate.phone = updates.phone;
+    if (updates.avatar) userToUpdate.avatar = updates.avatar;
 
-    // Get existing local data
+    const { error } = await supabase.auth.updateUser({ data: userToUpdate });
+    if (error) throw error;
+
     const storedUser = localStorage.getItem('auth_user');
     const existingUser = storedUser ? JSON.parse(storedUser) : {};
     const updatedUser = { ...existingUser, ...updates };
-    
     saveUserToLocal(updatedUser);
     return { success: true };
   } catch (error: any) {
-    return { success: false, error: error.message || 'Profilni yangilash xatosi' };
+    return { success: false, error: error?.message || 'Profilni yangilash xatosi' };
   }
 }
 
-// Get current user from sessionStorage
 export function getCurrentUser(): AuthUser | null {
   if (typeof window === 'undefined') return null;
   const stored = sessionStorage.getItem('jurisai_user') || sessionStorage.getItem('auth_user');
   if (stored) {
-    try {
-      return JSON.parse(stored);
-    } catch {
-      return null;
-    }
+    try { return JSON.parse(stored); } catch { return null; }
   }
   return null;
 }
 
-// Check if user is authenticated
 export function isAuthenticated(): boolean {
   return !!getCurrentUser() && !!sessionStorage.getItem('auth_token');
 }
 
-// Subscribe to auth state changes
 export function onAuthChange(callback: (user: AuthUser | null) => void): () => void {
-  // First, check if we have a sessionStorage user (page refresh in same tab)
+  // First, check sessionStorage
   const storedUser = getCurrentUser();
-  if (storedUser) {
-    callback(storedUser);
-  }
-  
-  // Subscribe to Firebase auth state changes
-  // With browserSessionPersistence, auth is auto-cleared on tab/browser close
-  // No need for manual force sign-out — Firebase handles it
-  const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-    if (firebaseUser) {
-      // Firebase has a user — always re-apply ensureSuperAdmin in case user was
-      // saved before the super admin email was configured (e.g. role='USER' stored)
+  if (storedUser) callback(storedUser);
+
+  // Subscribe to Supabase auth state changes
+  const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    if (session?.user) {
       const existingSession = getCurrentUser();
-      
-      // If we have an existing session, upgrade its role if needed
-      if (existingSession && existingSession.id === firebaseUser.uid) {
-        // Always re-apply ensureSuperAdmin so previously-registered users get elevated
+      if (existingSession && existingSession.id === session.user.id) {
         const upgradedUser = ensureSuperAdmin(existingSession);
-        // Only save + callback if role changed (was upgraded from USER to ADMIN)
         if (upgradedUser.role !== existingSession.role) {
           saveUserToLocal(upgradedUser);
           callback(upgradedUser);
@@ -435,19 +350,17 @@ export function onAuthChange(callback: (user: AuthUser | null) => void): () => v
         }
         return;
       }
-      
-      // New login or different session — save to sessionStorage
-      const user = mapFirebaseUser(firebaseUser);
+      const user = mapSupabaseUser(session.user);
       const elevatedUser = ensureSuperAdmin(user);
       const savedUser = saveUserToLocal(elevatedUser);
       callback(savedUser);
     } else {
-      // Firebase auth cleared (logout or session expired) — clear sessionStorage
       clearUserFromLocal();
       callback(null);
     }
   });
-  return unsubscribe;
+
+  return () => subscription.unsubscribe();
 }
 
 export const firebaseAuth = {
@@ -460,5 +373,5 @@ export const firebaseAuth = {
   updateProfile,
   getCurrentUser,
   isAuthenticated,
-  onAuthChange
+  onAuthChange,
 };

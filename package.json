@@ -50,7 +50,6 @@
     "docx": "^9.7.1",
     "docxtemplater": "^3.68.6",
     "dotenv": "^17.4.2",
-    "firebase": "^10.14.1",
     "framer-motion": "^12.42.2",
     "langchain": "^0.1.37",
     "lucide-react": "^1.11.0",
