@@ -265,12 +265,30 @@ export async function signInWithGoogle(): Promise<{
     })
     if (error) throw error
     if (data?.url) {
+      // ── Debug: log OAuth state before redirect ──
+      console.log('[OAuth] signInWithOAuth completed, redirecting to:', data.url)
+      // Check what Supabase PKCE/state keys were stored in localStorage
+      const allKeys: string[] = []
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i)
+        if (key && (key.includes('pkce') || key.includes('oauth') || key.includes('sb-'))) {
+          allKeys.push(key)
+        }
+      }
+      console.log('[OAuth] Supabase localStorage keys before redirect:', allKeys)
+      // Log the PKCE verifier values (safely, truncated)
+      allKeys.forEach(k => {
+        const val = localStorage.getItem(k)
+        console.log(`[OAuth] ${k}:`, val ? val.substring(0, 80) + '...' : 'EMPTY')
+      })
+
       // Redirect user to Google OAuth page
       window.location.href = data.url
       return { success: true }
     }
     return { success: false, error: 'Google orqali kirishda xatolik' }
   } catch (error: any) {
+    console.error('[OAuth] signInWithGoogle error:', error)
     return { success: false, error: error?.message || 'Google orqali kirishda xatolik yuz berdi' }
   }
 }

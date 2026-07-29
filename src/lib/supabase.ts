@@ -1,24 +1,15 @@
-const mockQuery = () => ({
-  data: [],
-  error: null,
-  select: mockQuery,
-  eq: mockQuery,
-  single: mockQuery,
-  insert: mockQuery,
-  update: mockQuery,
-  delete: mockQuery,
-  order: mockQuery,
-  limit: mockQuery,
-  range: mockQuery,
-})
-export const supabase = {
-  from: () => mockQuery(),
-  auth: {
-    getUser: async () => ({ data: { user: null }, error: null }),
-    signIn: async () => ({ data: null, error: null }),
-    signUp: async () => ({ data: null, error: null }),
-    signOut: async () => ({}),
-  },
-} as any
-export const supabaseClient = supabase
-export default supabase
+/**
+ * Supabase client — singleton (re-export)
+ *
+ * ═══════════════════════════════════════════════════════════════════
+ * IMPORTANT: This file exists because 40+ API route files and
+ * components import from '@/lib/supabase' (without any suffix).
+ * Rather than updating every file, this file re-exports the
+ * singleton Supabase client from supabase-client.ts.
+ *
+ * All imports should eventually migrate to @/lib/supabase-client
+ * for clarity, but this file maintains backward compatibility.
+ * ═══════════════════════════════════════════════════════════════════
+ */
+
+export { supabase, supabaseClient, supabaseServer, supabaseClient as default } from './supabase-client'

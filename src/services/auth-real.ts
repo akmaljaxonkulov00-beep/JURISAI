@@ -1,6 +1,8 @@
 // Real Authentication Service with Supabase
 import React, { createContext, useContext, useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
+// Import from the centralized singleton client to prevent
+// Multiple GoTrueClient instances error
+import { supabase } from '@/lib/supabase-client'
 
 interface User {
   id: string
