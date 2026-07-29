@@ -1,17 +1,16 @@
 'use client'
 
 import { useEffect, Suspense } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase-browser'
 
 function OAuthCallbackContent() {
-  const router = useRouter()
   const searchParams = useSearchParams()
 
   useEffect(() => {
     const code = searchParams?.get('code')
     if (!code) {
-      router.replace('/signin?error=Tasdiqlash kodi topilmadi')
+      window.location.href = '/signin?error=Tasdiqlash%20kodi%20topilmadi'
       return
     }
 
@@ -21,20 +20,22 @@ function OAuthCallbackContent() {
       .then(({ error }) => {
         if (error) {
           console.error('OAuth exchange error:', error)
-          router.replace('/signin?error=' + encodeURIComponent(error.message))
+          window.location.href = '/signin?error=' + encodeURIComponent(error.message)
         } else {
           // ✅ Success — session is now in localStorage
           // Set the jurisai_auth cookie so middleware allows access to /dashboard
+          // Full page navigation to dashboard — this ensures a clean
+          // JavaScript context so the Supabase client reads the
+          // session from localStorage correctly
           document.cookie = 'jurisai_auth=1; path=/; max-age=86400; SameSite=Lax'
-          // Go directly to dashboard
-          router.replace('/dashboard')
+          window.location.href = '/dashboard'
         }
       })
       .catch(err => {
         console.error('OAuth exchange exception:', err)
-        router.replace('/signin?error=' + encodeURIComponent(err?.message || 'unknown'))
+        window.location.href = '/signin?error=' + encodeURIComponent(err?.message || 'unknown')
       })
-  }, [router, searchParams])
+  }, [searchParams])
 
   return (
     <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
