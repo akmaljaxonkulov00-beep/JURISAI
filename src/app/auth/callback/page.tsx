@@ -3,11 +3,12 @@
 import { useEffect } from 'react'
 import { supabase } from '@/lib/supabase-browser'
 
-export default function OAuthCallbackPage() {
+export default function AuthCallbackPage() {
   useEffect(() => {
-    // Use window.location.search directly — avoids hydration/SSR issues with useSearchParams
-    // PKCE flow: code is always in query string (?code=xxx)
-    // Hash fragments (#access_token=) are handled by Supabase client (detectSessionInUrl: true)
+    // PKCE flow: Supabase redirects to /auth/callback?code=xxx
+    // The code is always in the query string for PKCE flow.
+    // Hash fragments (#access_token=xxx / implicit flow) are handled
+    // automatically by the Supabase client (detectSessionInUrl: true).
     const params = new URLSearchParams(window.location.search)
     const code = params.get('code')
 
@@ -16,8 +17,8 @@ export default function OAuthCallbackPage() {
       return
     }
 
-    // Exchange the authorization code for a session
-    // This stores the session in localStorage (via our custom storage adapter)
+    // Exchange the PKCE authorization code for a session.
+    // This stores the session in localStorage via our custom storage adapter.
     supabase.auth
       .exchangeCodeForSession(code)
       .then(({ error }) => {
@@ -26,8 +27,8 @@ export default function OAuthCallbackPage() {
           window.location.href = '/signin?error=' + encodeURIComponent(error.message)
         } else {
           // ✅ Session is now in localStorage — do a full page navigation to /dashboard
-          // Full navigation (not router.replace) ensures a clean JS context so
-          // the Supabase client reads the stored session from localStorage correctly
+          // Full navigation ensures a clean JS context so the Supabase client
+          // reads the stored session from localStorage correctly
           window.location.href = '/dashboard'
         }
       })
