@@ -628,6 +628,14 @@ function SignInContent() {
     [mouseX, mouseY]
   )
 
+  // Check for OAuth error from URL params (e.g. /signin?error=...)
+  useEffect(() => {
+    const errParam = searchParams?.get('error')
+    if (errParam) {
+      setError(decodeURIComponent(errParam))
+    }
+  }, [searchParams])
+
   // Check for existing session on mount (redirect if already logged in)
   useEffect(() => {
     firebaseAuth
@@ -645,13 +653,19 @@ function SignInContent() {
       .catch(() => {})
   }, [router, searchParams])
 
+  // Redirect if already logged in
   useEffect(() => {
     if (!authLoading && user) {
-      router.replace(
+      const target =
         user.role === 'ADMIN' || user.email?.toLowerCase() === 'akmaljaxonkulov00@gmail.com'
           ? '/admin'
           : '/dashboard'
-      )
+      // Use window.location for full navigation to ensure clean JS context
+      if (typeof window !== 'undefined') {
+        window.location.href = target
+      } else {
+        router.replace(target)
+      }
     }
   }, [user, authLoading, router])
 

@@ -1,37 +1,49 @@
 /**
- * ═══════════════════════════════════════════════════════════════════════════
- * JURISAI — Supabase Browser Client (Singleton)
+ * Supabase browser client — singleton
  *
- * This is the SINGLE browser-side Supabase client used throughout the app.
- * It uses localStorage for session persistence, which is critical for
- * Google OAuth to work (the code exchange happens in the browser).
+ * This file is the ONLY place the Supabase client is created for the browser.
+ * It uses localStorage for session persistence, which is critical for OAuth.
  *
- * Import from this file:
- *   import { supabase } from '@/lib/supabase-browser'
- *
- * ═══════════════════════════════════════════════════════════════════════════
+ * NOTE: The environment variables MUST be set in .env.local (for local dev)
+ * and in Vercel dashboard (for production). They are:
+ *   NEXT_PUBLIC_SUPABASE_URL  = https://blayqzykzlmrjuvhzvsk.supabase.co
+ *   NEXT_PUBLIC_SUPABASE_ANON_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ...
  */
 
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
-// Validate configuration
+// In development, warn if env vars are missing
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.error(
-    '[Supabase] Missing configuration. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in .env.local'
-  )
+  if (typeof window !== 'undefined') {
+    console.warn(
+      '[Supabase] NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY is not set. ' +
+        'Auth features will not work.'
+    )
+  }
 }
 
-// Create a SINGLE browser client instance with localStorage persistence
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
     detectSessionInUrl: true,
-    storage: typeof window !== 'undefined' ? localStorage : undefined,
+    storage: {
+      getItem: (key: string) => {
+        if (typeof window === 'undefined') return null
+        const val = localStorage.getItem(key)
+        return val
+      },
+      setItem: (key: string, value: string) => {
+        if (typeof window === 'undefined') return
+        localStorage.setItem(key, value)
+      },
+      removeItem: (key: string) => {
+        if (typeof window === 'undefined') return
+        localStorage.removeItem(key)
+      },
+    },
   },
 })
-
-export default supabase

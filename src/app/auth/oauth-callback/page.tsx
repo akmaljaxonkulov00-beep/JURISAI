@@ -1,20 +1,21 @@
 'use client'
 
-import { useEffect, Suspense } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useEffect } from 'react'
 import { supabase } from '@/lib/supabase-browser'
 
-function OAuthCallbackContent() {
-  const searchParams = useSearchParams()
-
+export default function OAuthCallbackPage() {
   useEffect(() => {
-    const code = searchParams?.get('code')
+    // Use window.location.search directly — avoids hydration/SSR issues with useSearchParams
+    const params = new URLSearchParams(window.location.search)
+    const code = params.get('code')
+
     if (!code) {
       window.location.href = '/signin?error=Tasdiqlash%20kodi%20topilmadi'
       return
     }
 
-    // Exchange the code in the browser where localStorage is available
+    // Exchange the authorization code for a session
+    // This stores the session in localStorage (via our custom storage adapter)
     supabase.auth
       .exchangeCodeForSession(code)
       .then(({ error }) => {
@@ -22,12 +23,9 @@ function OAuthCallbackContent() {
           console.error('OAuth exchange error:', error)
           window.location.href = '/signin?error=' + encodeURIComponent(error.message)
         } else {
-          // ✅ Success — session is now in localStorage
-          // Set the jurisai_auth cookie so middleware allows access to /dashboard
-          // Full page navigation to dashboard — this ensures a clean
-          // JavaScript context so the Supabase client reads the
-          // session from localStorage correctly
-          document.cookie = 'jurisai_auth=1; path=/; max-age=86400; SameSite=Lax'
+          // ✅ Session is now in localStorage — do a full page navigation to /dashboard
+          // Full navigation (not router.replace) ensures a clean JS context so
+          // the Supabase client reads the stored session from localStorage correctly
           window.location.href = '/dashboard'
         }
       })
@@ -35,7 +33,7 @@ function OAuthCallbackContent() {
         console.error('OAuth exchange exception:', err)
         window.location.href = '/signin?error=' + encodeURIComponent(err?.message || 'unknown')
       })
-  }, [searchParams])
+  }, [])
 
   return (
     <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
@@ -44,19 +42,5 @@ function OAuthCallbackContent() {
         <p className="text-zinc-400 text-sm">Tizimga kirish...</p>
       </div>
     </div>
-  )
-}
-
-export default function OAuthCallbackPage() {
-  return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
-          <div className="w-10 h-10 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
-        </div>
-      }
-    >
-      <OAuthCallbackContent />
-    </Suspense>
   )
 }
