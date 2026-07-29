@@ -23,7 +23,10 @@ function OAuthCallbackContent() {
           console.error('OAuth exchange error:', error)
           router.replace('/signin?error=' + encodeURIComponent(error.message))
         } else {
-          // ✅ Success — session is now in localStorage, go directly to dashboard
+          // ✅ Success — session is now in localStorage
+          // Set the jurisai_auth cookie so middleware allows access to /dashboard
+          document.cookie = 'jurisai_auth=1; path=/; max-age=86400; SameSite=Lax'
+          // Go directly to dashboard
           router.replace('/dashboard')
         }
       })
