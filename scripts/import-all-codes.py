@@ -132,6 +132,18 @@ def parse_articles(text, code_id):
 def _finalize(cur, body, articles, seen):
     content = '\n'.join(body)
     content = re.sub(r'\n{3,}', '\n\n', content).strip()
+    # Filter out fake articles — numbers too high for this code
+    MAX_ARTICLE_NUM = {
+        'constitution':200,'criminal_code':800,'criminal_procedure_code':1000,
+        'civil_code':1500,'family_code':400,'admin_code':600,'tax_code':700,'labor_code':800
+    }
+    max_num = MAX_ARTICLE_NUM.get(cur['code_id'], 5000)
+    try:
+        art_num = int(cur['article_number'])
+        if art_num > max_num:
+            return  # Skip fake article (parsing error — cross-reference, page number, etc.)
+    except ValueError:
+        return  # Skip non-numeric article_number
     if content and cur['article_number'] not in seen:
         cur['content'] = content
         articles.append(dict(cur))
