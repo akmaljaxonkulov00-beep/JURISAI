@@ -210,23 +210,48 @@ export default function VirtualCourt() {
     r.interimResults = true
     listeningRef.current = true
     setListening(true)
-    let buf = ''
+
+    // fullTranscript — barcha final natijalarni yig'ib boradi
+    let fullTranscript = ''
+
     r.onresult = (e: any) => {
       if (silenceTimerRef.current) {
         clearTimeout(silenceTimerRef.current)
         silenceTimerRef.current = null
       }
+
+      // currentFinal — shu batchdagi barcha yangi final transkriptlar
+      let currentFinal = ''
       for (let i = e.resultIndex; i < e.results.length; i++) {
         const t = e.results[i][0].transcript
         if (e.results[i].isFinal) {
-          buf = t
-          setInput(t.charAt(0).toUpperCase() + t.slice(1))
-          silenceTimerRef.current = setTimeout(() => {}, SILENCE_TIMEOUT_MS)
+          // Final natijalarni yig'amiz (bir nechta bo'lishi mumkin)
+          currentFinal += (currentFinal ? ' ' : '') + t
         } else {
-          setInput(buf + t)
+          // Interim natijani to'liq matn bilan ko'rsatamiz
+          const display = fullTranscript + (fullTranscript && t ? ' ' : '') + t
+          setInput(display.charAt(0).toUpperCase() + display.slice(1))
         }
       }
+
+      // Agar yangi final natijalar bo'lsa, ularni to'liq transkriptga qo'shamiz
+      if (currentFinal) {
+        fullTranscript += (fullTranscript ? ' ' : '') + currentFinal
+        setInput(fullTranscript.charAt(0).toUpperCase() + fullTranscript.slice(1))
+
+        // Jimlik taymerini qayta ishga tushirish
+        silenceTimerRef.current = setTimeout(() => {
+          // 3 soniya jimlikdan keyin ovoz yozishni to'xtatamiz
+          // va to'plangan matn inputda qoladi
+          listeningRef.current = false
+          try {
+            r.stop()
+          } catch {}
+          setListening(false)
+        }, SILENCE_TIMEOUT_MS)
+      }
     }
+
     r.onend = () => {
       if (listeningRef.current) {
         try {
@@ -236,6 +261,7 @@ export default function VirtualCourt() {
         setListening(false)
       }
     }
+
     r.onerror = (e: any) => {
       if (e.error === 'no-speech') {
         if (listeningRef.current)

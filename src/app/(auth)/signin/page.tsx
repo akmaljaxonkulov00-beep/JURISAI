@@ -651,9 +651,7 @@ function SignInContent() {
         if (result.success && result.data) {
           const role = result.data.role
           router.replace(
-            role === 'ADMIN'
-              ? '/admin'
-              : searchParams?.get('redirectTo') || '/dashboard'
+            role === 'ADMIN' ? '/admin' : searchParams?.get('redirectTo') || '/dashboard'
           )
         }
       })
