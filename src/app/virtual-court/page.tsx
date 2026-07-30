@@ -12,9 +12,6 @@ import {
   AlertTriangle,
   FileText,
   MessageCircle,
-  Volume2,
-  VolumeX,
-  Square,
   Star,
   CheckCircle,
   Target,
@@ -158,8 +155,6 @@ export default function VirtualCourt() {
   const [stressLevel, setStressLevel] = useState(0)
   const [speechReady, setSpeechReady] = useState(false)
   const [listening, setListening] = useState(false)
-  const [speaking, setSpeaking] = useState(false)
-  const [autoSpeak, setAutoSpeak] = useState(true)
   const [simId, setSimId] = useState('')
   const [results, setResults] = useState<SimResult | null>(null)
   const [totalXp, setTotalXp] = useState(0)
@@ -179,9 +174,8 @@ export default function VirtualCourt() {
 
   useEffect(() => {
     if (typeof window === 'undefined') return
-    const tts = 'speechSynthesis' in window
     const stt = 'SpeechRecognition' in window || 'webkitSpeechRecognition' in window
-    setSpeechReady(tts || stt || true)
+    setSpeechReady(stt)
   }, [])
 
   useEffect(() => {
@@ -201,40 +195,7 @@ export default function VirtualCourt() {
 
   const fmt = (s: number) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`
 
-  // ── TTS ──
-  const speak = useCallback((text: string) => {
-    if (!('speechSynthesis' in window)) return
-    const clean = text
-      .replace(/[•]\s*/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim()
-      .slice(0, 400)
-    if (!clean) return
-    window.speechSynthesis.cancel()
-    const u = new SpeechSynthesisUtterance(clean)
-    u.lang = 'ru-RU'
-    u.rate = 0.88
-    u.pitch = 1
-    u.volume = 1
-    const rv = window.speechSynthesis.getVoices().find(v => v.lang.startsWith('ru'))
-    if (rv) u.voice = rv
-    u.onstart = () => setSpeaking(true)
-    u.onend = u.onerror = () => setSpeaking(false)
-    setSpeaking(true)
-    const doIt = () => window.speechSynthesis.speak(u)
-    if (window.speechSynthesis.getVoices().length > 0) doIt()
-    else {
-      window.speechSynthesis.onvoiceschanged = doIt
-      setTimeout(doIt, 400)
-    }
-  }, [])
-
-  const stopSpeak = () => {
-    window.speechSynthesis?.cancel()
-    setSpeaking(false)
-  }
-
-  // ── STT ──
+  // ── STT (Speech-to-Text) — faqat foydalanuvchi ovozi ──
   const SILENCE_TIMEOUT_MS = 3000
   const startMic = () => {
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
@@ -344,14 +305,12 @@ export default function VirtualCourt() {
         data.ai_response ||
         "Simulyatsiya boshlandi. Sizning so'zingizni eshitaman."
       addMsg(txt, 'judge', simType.id === 'court' ? 'Sudya' : 'AI', 'ruling')
-      if (autoSpeak) speak(txt)
     } catch {
       const txt =
         simType.id === 'court'
           ? "Sud majlisi ochiq deb e'lon qilinadi."
           : "Simulyatsiya boshlandi. Sizning so'zingizni eshitaman."
       addMsg(txt, 'judge', simType.id === 'court' ? 'Sudya' : 'AI', 'ruling')
-      if (autoSpeak) speak(txt)
     } finally {
       setLoading(false)
     }
@@ -389,14 +348,13 @@ export default function VirtualCourt() {
         if (reply.toLowerCase().includes('xato') || reply.toLowerCase().includes("e'tiroz")) {
           setStressLevel(s => Math.min(100, s + 15))
         }
-        if (autoSpeak) speak(reply)
       } catch {
         addMsg("Xatolik yuz berdi. Qaytadan urinib ko'ring.", 'judge', 'AI', 'ruling')
       } finally {
         setLoading(false)
       }
     },
-    [input, loading, role, simId, simType, autoSpeak, speak]
+    [input, loading, role, simId, simType]
   )
 
   // ── End ──
@@ -419,7 +377,6 @@ export default function VirtualCourt() {
       const data = await res.json()
       const verdict = data.verdict || 'Simulyatsiya yakunlandi.'
       addMsg(verdict, 'judge', simType.id === 'court' ? 'Sudya' : 'AI', 'ruling')
-      if (autoSpeak) speak(verdict)
     } catch {
       /* ignore */
     } finally {
@@ -536,27 +493,11 @@ export default function VirtualCourt() {
                     gap: 4,
                   }}
                 >
-                  <Volume2 size={14} /> Ovoz
+                  <Mic size={14} /> Mikrofon
                 </p>
-                <label
-                  style={{
-                    display: 'flex',
-                    gap: 6,
-                    alignItems: 'center',
-                    fontSize: 12,
-                    color: '#374151',
-                    cursor: 'pointer',
-                  }}
-                >
-                  <input
-                    type="checkbox"
-                    checked={autoSpeak}
-                    onChange={e => setAutoSpeak(e.target.checked)}
-                  />
-                  AI ovozini eshit
-                </label>
-                <p style={{ fontSize: 11, color: '#16A34A', marginTop: 8 }}>
-                  Mikrofon orqali gapirishingiz mumkin (Chrome/Edge).
+                <p style={{ fontSize: 11, color: '#16A34A', margin: 0 }}>
+                  Mikrofon orqali gapirishingiz mumkin (Chrome/Edge). Ovozli kiritish uchun pastdagi
+                  mikrofon belgisini bosing.
                 </p>
               </div>
             )}
@@ -815,7 +756,7 @@ export default function VirtualCourt() {
                     desc: 'Har bir session uchun',
                   },
                   {
-                    icon: <Volume2 size={16} color="#0891B2" />,
+                    icon: <Mic size={16} color="#0891B2" />,
                     title: 'Ovozli kiritish',
                     desc: 'uz-UZ tilida',
                   },
@@ -936,54 +877,6 @@ export default function VirtualCourt() {
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-            {speechReady && (
-              <>
-                <button
-                  onClick={() => setAutoSpeak(p => !p)}
-                  style={{
-                    padding: '5px 12px',
-                    background: autoSpeak ? 'rgba(34,197,94,0.2)' : 'rgba(255,255,255,0.08)',
-                    border: `1px solid ${autoSpeak ? '#22C55E' : 'rgba(255,255,255,0.15)'}`,
-                    borderRadius: 20,
-                    color: autoSpeak ? '#4ADE80' : '#94A3B8',
-                    fontSize: 12,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 4,
-                  }}
-                >
-                  {autoSpeak ? (
-                    <>
-                      <Volume2 size={12} /> Ovoz
-                    </>
-                  ) : (
-                    <>
-                      <VolumeX size={12} /> Ovozsiz
-                    </>
-                  )}
-                </button>
-                {speaking && (
-                  <button
-                    onClick={stopSpeak}
-                    style={{
-                      padding: '5px 12px',
-                      background: 'rgba(239,68,68,0.2)',
-                      border: '1px solid #EF4444',
-                      borderRadius: 20,
-                      color: '#F87171',
-                      fontSize: 12,
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 4,
-                    }}
-                  >
-                    <Square size={12} /> To'xtat
-                  </button>
-                )}
-              </>
-            )}
             {/* Stress Meter */}
             <div
               style={{
@@ -1212,26 +1105,6 @@ export default function VirtualCourt() {
                         >
                           {m.text}
                         </p>
-                        {!isUser && speechReady && (
-                          <button
-                            onClick={() => speak(m.text)}
-                            style={{
-                              marginTop: 7,
-                              padding: '2px 8px',
-                              background: 'rgba(255,255,255,0.06)',
-                              border: '1px solid rgba(255,255,255,0.1)',
-                              borderRadius: 7,
-                              color: '#94A3B8',
-                              fontSize: 11,
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 3,
-                            }}
-                          >
-                            <Volume2 size={10} /> Eshit
-                          </button>
-                        )}
                       </div>
                     </div>
                   )
