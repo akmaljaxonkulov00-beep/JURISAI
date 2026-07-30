@@ -78,9 +78,16 @@ function parseMultiRoleResponse(raw: string): { speaker: string; role: string; t
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { action, caseDetails, argument, simulationId, history } = body
+    const { action, caseDetails, argument, simulationId, history, userRole } = body
 
     const SYSTEM_BASE = `You are JurisAI — the leading expert AI Legal Assistant strictly specialized in the COMPLETE legislation of the Republic of Uzbekistan (O'zbekiston Respublikasi Qonunchiligi).
+
+DOIMIY ISHTIROKCHILAR (constant participant names — always use these):
+- Prokuror: Akbar Toshmatov
+- Advokat: Nilufar Karimova
+- Sudlanuvchi: Botir Rahimov
+- Kotiba: Zulfiya Xasanova
+- (Agar fuqarolik ishi bo'lsa: Da'vogar: Karim Jalilov, Javobgar:Shoxrux Mirzayev)
 
 YURIDIK BILIM DOIRASI:
 1. KONSTITUTSIYA: O'zbekiston Respublikasi Konstitutsiyasi (1992, 2023 yangi tahrir) — barcha moddalar
@@ -105,11 +112,11 @@ STRICT RULES:
 
     switch (action) {
       case 'start':
-        return await startSimulation(caseDetails, SYSTEM_BASE)
+        return await startSimulation(caseDetails, SYSTEM_BASE, userRole)
       case 'submit_argument':
-        return await submitArgument(simulationId, argument, SYSTEM_BASE, history)
+        return await submitArgument(simulationId, argument, SYSTEM_BASE, history, userRole)
       case 'get_verdict':
-        return await getVerdict(simulationId, SYSTEM_BASE)
+        return await getVerdict(simulationId, SYSTEM_BASE, userRole)
       default:
         return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
     }
@@ -119,30 +126,61 @@ STRICT RULES:
   }
 }
 
-async function startSimulation(caseDetails: string, systemBase: string) {
+async function startSimulation(caseDetails: string, systemBase: string, userRole?: string) {
+  const userRoleUpper = (userRole || 'SUDYA').toUpperCase()
+
+  // AI boshqaradigan rollar (foydalanuvchi roli EMAS)
+  const aiRoles = ['SUDYA', 'PROKUROR', 'ADVOKAT', 'SUDLANUVCHI', 'KOTIBA'].filter(
+    r => r !== userRoleUpper
+  )
+
+  // Birinchi bo'lib kim gapirishi kerak
+  let firstSpeaker: string
+  const roleIntro: Record<string, string> = {
+    SUDYA: 'siz (sudya)',
+    PROKUROR: 'prokuror',
+    ADVOKAT: 'advokat',
+    SUDLANUVCHI: 'sudlanuvchi',
+    KOTIBA: 'kotiba',
+  }
+
+  if (userRoleUpper === 'SUDYA') {
+    firstSpeaker = 'KOTIBA'
+  } else if (userRoleUpper === 'PROKUROR') {
+    firstSpeaker = 'SUDYA'
+  } else if (userRoleUpper === 'ADVOKAT') {
+    firstSpeaker = 'SUDYA'
+  } else if (userRoleUpper === 'SUDLANUVCHI') {
+    firstSpeaker = 'SUDYA'
+  } else {
+    firstSpeaker = 'KOTIBA'
+  }
+
   const systemPrompt = `${systemBase}
 
-MUHIM QOIDA: Sen faqat SUDYA rolida gapirayapsan. Boshqa rollar (Prokuror, Advokat, Sudlanuvchi, Kotiba) HAQIDA GAPIRMA. Ularning o'rniga foydalanuvchi gapiradi yoki keyingi bosqichda javob beradi.
+MUHIM — ROL TAQSIMOTI:
+Foydalanuvchi "${roleIntro[userRoleUpper] || userRole}" rolini tanlagan.
 
-Sen O'zbekiston Respublikasining professional sudyasisan. Berilgan holat bo'yicha sud majlisini och.
+Sen FAQAT quyidagi rollar nomidan gapirasan: ${aiRoles.join(', ')}.
+"${userRoleUpper}" roli uchun HECH QACHON matn yozma — bu foydalanuvchining roli.
 
-PROTSESSUAL QOIDALAR:
-- Fuqarolik ishlari bo'yicha: FPK (Fuqarolik protsessual kodeksi)
-- Jinoyat ishlari bo'yicha: JPK (Jinoiy protsessual kodeksi)
+Birinchi bo'lib "${firstSpeaker}" gapirsin va majlisni ochsin, taraflarni tanishtirsin, keyin foydalanuvchiga so'z bersin.
 
 QAT'IY TALABLAR:
-1. HECH QACHON [ismi] yoki boshqa placeholder ishlatma. Haqiqiy o'zbekcha ism-familiya ishlat: Akbar Toshmatov, Nilufar Karimova, Botir Rahimov va hokazo.
+1. HECH QACHON [ismi] yoki placeholder ishlatma. Haqiqiy o'zbekcha ism-familiya ishlat: Akbar Toshmatov, Nilufar Karimova, Botir Rahimov va hokazo.
 2. HAR DOIM to'liq, batafsil va realistik matn yoz. Bir-ikki jumla bilan cheklanma.
-3. FAQAT SUDYA rolida gapir. Boshqa rollar (Prokuror, Advokat, Kotiba) uchun matn yozma.
-4. Prokuror va advokat ismlarini aytib o'tishing mumkin (masalan: "Prokuror Akbar Toshmatov, advokat Nilufar Karimova"), lekin ULARNING NUTQINI AYTMA — ular keyin foydalanuvchi argumentiga javoban gapiradi.
-5. Sud majlisini och, ishni e'lon qil, keyin foydalanuvchiga so'z ber.
+3. "${userRoleUpper}" roli UCHUN MATN YOZMA — bu foydalanuvchining vazifasi.
+4. Majlisni och, ishni e'lon qil, barcha taraflarni (prokuror, advokat, sudlanuvchi) ismlari bilan tanishtir.
+5. Oxirida foydalanuvchiga (${roleIntro[userRoleUpper] || userRole}) so'z ber.
 
 FORMAT:
-[SUDYA]: (to'liq, batafsil ochilish nutqi. Ishni e'lon qil, taraflarni tanishtir, keyin foydalanuvchiga so'z ber.)`
+[${firstSpeaker}]: (to'liq, batafsil ochilish nutqi. Ishni e'lon qil, taraflarni tanishtir, kerakli rollarni navbat bilan so'zga chaqir, keyin foydalanuvchiga so'z ber.)
+
+ESLATMA: Faqat hozir gapirishi KERAK bo'lgan rollarni formatga kirit. Boshqa rollar keyingi bosqichda gapirishi mumkin.`
 
   const response = await groqChat(
     systemPrompt,
-    `Sud jarayonini oching. Foydalanuvchi roli: ${caseDetails}`,
+    `Sud jarayonini oching. Foydalanuvchi "${roleIntro[userRoleUpper] || userRole}" rolida. ${caseDetails}`,
     2048
   )
 
@@ -156,6 +194,7 @@ FORMAT:
     roles,
     ai_response: response.text,
     success: true,
+    user_role: userRoleUpper,
   })
 }
 
@@ -163,31 +202,43 @@ async function submitArgument(
   simulationId: string,
   argument: string,
   systemBase: string,
-  history?: { role: 'user' | 'assistant'; content: string }[]
+  history?: { role: 'user' | 'assistant'; content: string }[],
+  userRole?: string
 ) {
+  const userRoleUpper = (userRole || 'SUDYA').toUpperCase()
+
+  // AI boshqaradigan rollar (foydalanuvchi roli EMAS)
+  const aiRoles = ['SUDYA', 'PROKUROR', 'ADVOKAT', 'SUDLANUVCHI', 'KOTIBA'].filter(
+    r => r !== userRoleUpper
+  )
+
   const systemPrompt = `${systemBase}
 
-Endi foydalanuvchi o'z argumentini yubordi. Sen O'zbekiston Respublikasi sudyasisan va quyidagi rollardan mos keladiganlarining javobini tayyorlaysan.
+MUHIM — ROL TAQSIMOTI:
+Foydalanuvchi "${userRoleUpper}" rolida gapirdi.
+
+Sen FAQAT quyidagi rollar nomidan javob berasan: ${aiRoles.join(', ')}.
+"${userRoleUpper}" roli UCHUN MATN YOZMA — bu foydalanuvchining roli.
 
 QAT'IY TALABLAR:
-1. HECH QACHON [ismi] yoki boshqa placeholder ishlatma. Har doim haqiqiy ism-familiya ishlat.
-2. TO'LIQ va BATAFSIL javob yoz, qisqa yarimta javob yozma.
-3. Faqat foydalanuvchining argumentiga mos keladigan rollar javob bersin.
+1. HECH QACHON [ismi] yoki placeholder ishlatma. Haqiqiy ism-familiya ishlat.
+2. TO'LIQ va BATAFSIL javob yoz, qisqa javob yozma.
+3. Faqat foydalanuvchining argumentiga TEGISHLI bo'lgan rollar javob bersin.
+4. "${userRoleUpper}" roli UCHUN MATN YOZMA.
 
-ROLLAR:
-- [SUDYA]: Foydalanuvchining argumentini baholaydi va keyingi qadamni aytadi
-- [PROKUROR]: (agar jinoyat ishi bo'lsa) Foydalanuvchining argumentiga qarshi pozitsiya bildiradi
-- [ADVOKAT]: (agar jinoyat ishi bo'lsa) Foydalanuvchini qo'llab-quvvatlaydi yoki qarshi chiqadi
-- [KOTIBA]: Jarayon bayonini yuritadi
+ROLLAR VAZIFASI:
+- [SUDYA]: Foydalanuvchining argumentini baholaydi, protsessual qaror qabul qiladi, keyingi qadamni aytadi
+- [PROKUROR]: Ayblov pozitsiyasidan javob beradi, qarshi dalillar keltiradi (jinoyat ishlarida)
+- [ADVOKAT]: Himoya pozitsiyasidan javob beradi (jinoyat ishlarida)
+- [SUDLANUVCHI]: Faqat so'ralganda javob beradi, o'z pozitsiyasini bildiradi
+- [KOTIBA]: Jarayon bayonini qisqacha qayd etadi
 
 FORMAT:
-[SUDYA]: ...
-[PROKUROR]: ...
 (kerakli rollarni yoz, keraksizlarini tashlab ket)`
 
   const response = await groqChat(
     systemPrompt,
-    `Foydalanuvchi argumenti: "${argument}". Unga javob bering.`,
+    `Foydalanuvchi (${userRoleUpper}) argumenti: "${argument}". Unga javob bering.`,
     2048,
     history
   )
@@ -201,25 +252,32 @@ FORMAT:
   })
 }
 
-async function getVerdict(simulationId: string, systemBase: string) {
+async function getVerdict(simulationId: string, systemBase: string, userRole?: string) {
+  const userRoleUpper = (userRole || 'SUDYA').toUpperCase()
+
+  // Hukmda barcha rollar gapirishi mumkin (shu jumladan foydalanuvchi roli)
+  const allRoles = ['SUDYA', 'PROKUROR', 'ADVOKAT', 'SUDLANUVCHI', 'KOTIBA']
+
   const systemPrompt = `${systemBase}
 
 Sen O'zbekiston Respublikasining sudyasisan. Barcha dalillar va argumentlarni tahlil qilib, yakuniy sud qarorini (hukmni) chiqar.
 
 QAT'IY TALABLAR:
-1. HECH QACHON [ismi] yoki boshqa placeholder ishlatma. Haqiqiy ism-familiya ishlat.
+1. HECH QACHON [ismi] yoki placeholder ishlatma. Haqiqiy ism-familiya ishlat.
 2. TO'LIQ va BATAFSIL hukm matni yoz.
-3. Barcha qatnashchilarning (SUDYA, PROKUROR, ADVOKAT, KOTIBA) yakuniy pozitsiyasini ko'rsat.
+3. Barcha qatnashchilarning yakuniy pozitsiyasini ko'rsat.
+4. Hukmda "${userRoleUpper}" rolining foydalanuvchi tomonidan bajarilganligini hisobga ol va uning ishtirokini bahola.
 
 HUKM TARKIBI:
-1. Sudya: qaror, qonuniy asos, oqibatlar
-2. Prokuror: yakuniy fikri (agar jinoyat ishi bo'lsa)
-3. Advokat: yakuniy fikri (agar jinoyat ishi bo'lsa)
-4. Kotiba: hukm bayoni
+- [SUDYA]: qaror, qonuniy asos, tayinlangan jazo/chorra
+- [PROKUROR]: yakuniy pozitsiya
+- [ADVOKAT]: yakuniy pozitsiya
+- [SUDLANUVCHI]: oxirgi so'z
+- [KOTIBA]: hukm bayoni
 
 FORMAT:
 [SUDYA]: ...
-[KOTIBA]: ...
+[PROKUROR]: ...
 (kerakli rollarni yoz)`
 
   const response = await groqChat(

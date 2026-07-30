@@ -393,6 +393,86 @@ export default function VirtualCourt() {
     return `${caseItem.title}: ${caseItem.desc} Qonun: ${caseItem.law}. Simulyatsiya: ${simType.title}. Foydalanuvchi roli: ${role.title} (${role.sub}).`
   }
 
+  // ── Role-specific briefing — har bir rolga o'ziga kerakli ma'lumot ──
+  const getRoleBriefing = () => {
+    const roleUpper = role.id.toUpperCase()
+    const briefings: Record<string, string> = {      SUDYA: `SIZNING ROLINGIZ: SUDBYA
+
+Vazifangiz:
+• Sud majlisini boshqarish
+• Protsessual qoidalarga rioya etilishini nazorat qilish
+• Tomonlarning argumentlarini tinglash
+• Dalillarni baholash
+• Yakuniy qaror (hukm) chiqarish
+
+Ish haqida ma'lumot:
+• ${caseItem.title}
+• ${caseItem.desc}
+• Qonun: ${caseItem.law}
+
+Ishtirokchilar:
+• Prokuror: Akbar Toshmatov
+• Advokat: Nilufar Karimova
+• Sudlanuvchi: Botir Rahimov
+• Kotiba: Zulfiya Xasanova
+
+Eslatma: Sud majlisini oching, taraflarni tanishtiring, so'z bering va jarayonni boshqaring. Ushbu ismlarni ishlating.`,
+      PROKUROR: `SIZNING ROLINGIZ: PROKUROR
+
+Vazifangiz:
+• Ayblovni asoslash
+• Dalillarni taqdim etish
+• Sudlanuvchining aybini isbotlash
+• Jazo chorasini talab qilish
+
+Ish haqida ma'lumot:
+• ${caseItem.title}
+• ${caseItem.desc}
+• Qonun: ${caseItem.law}
+
+Sizning pozitsiyangiz:
+• Sudlanuvchi aybdor deb hisoblang
+• Mavjud dalillar sudlanuvchining aybini tasdiqlaydi
+• Jinoyat kodeksining tegishli moddasi bo'yicha jazo talab qiling
+
+Eslatma: Ayblov xulosasini taqdim eting, dalillarni keltiring va davlat ayblovini asoslang.`,
+      ADVOKAT: `SIZNING ROLINGIZ: ADVOKAT (Himoyachi)
+
+Vazifangiz:
+• Sudlanuvchining huquqlarini himoya qilish
+• Dalillarni shubha ostiga olish
+• Sudlanuvchining aybsizligini isbotlashga harakat qilish
+• Yengilroq jazo talab qilish yoki oqlash
+
+Ish haqida ma'lumot:
+• ${caseItem.title}
+• ${caseItem.desc}
+• Qonun: ${caseItem.law}
+
+Sizning pozitsiyangiz:
+• Sudlanuvchi himoyasiga muhtoj
+• Dalillarni sinchiklab tekshirish kerak
+• Protsessual qoidalarga rioya qilinishini kuzating
+
+Eslatma: Himoya nutqini tayyorlang, dalillarni tahlil qiling va sudlanuvchi manfaatlarini himoya qiling.`,
+      SUDLANUVCHI: `SIZNING ROLINGIZ: SUDLANUVCHI
+
+Huquqlaringiz:
+• Aybingizga iqror bo'lish yoki rad etish huquqi
+• O'z fikringizni bildirish huquqi
+• Oxirgi so'z huquqi
+• Himoyadan foydalanish huquqi
+
+Ish haqida ma'lumot:
+• ${caseItem.title}
+• ${caseItem.desc}
+• Qonun: ${caseItem.law}
+
+Eslatma: Siz ayblanayotgan modda bo'yicha javob berishingiz kerak. Rostini ayting, savollarga javob bering va o'z pozitsiyangizni himoya qiling. Yolg'on guvohlik berish javobgarlikka tortiladi.`,
+    }
+    return briefings[roleUpper] || `Sizning rolingiz: ${role.title}. Ish: ${caseItem.title}.`
+  }
+
   // ── Parse multi-role AI response ──
   const addMultiRoleMessages = (rolesData: { speaker: string; role: string; text: string }[]) => {
     for (const r of rolesData) {
@@ -424,11 +504,17 @@ export default function VirtualCourt() {
     setTime(simType.id === 'court' ? 600 : 300)
     setLoading(true)
     setParticipants(getParticipants())
+    // Show role briefing as first message
+    addMsg(getRoleBriefing(), 'judge', '📋 Brifing', 'ruling')
     try {
       const res = await fetch('/api/court-simulator', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'start', caseDetails: getCasePrompt() }),
+        body: JSON.stringify({
+          action: 'start',
+          caseDetails: getCasePrompt(),
+          userRole: role.id.toUpperCase(),
+        }),
       })
       const data = await res.json()
       setSimId(data.simulation_id || 'vc_' + Date.now())
@@ -484,6 +570,7 @@ export default function VirtualCourt() {
             simulationId: simId,
             argument: `${role.title} (${type}): ${txt}`,
             history: convHistory,
+            userRole: role.id.toUpperCase(),
           }),
         })
         const data = await res.json()
@@ -520,7 +607,11 @@ export default function VirtualCourt() {
       const res = await fetch('/api/court-simulator', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'get_verdict', simulationId: simId }),
+        body: JSON.stringify({
+          action: 'get_verdict',
+          simulationId: simId,
+          userRole: role.id.toUpperCase(),
+        }),
       })
       const data = await res.json()
       const roles = data.roles || []
