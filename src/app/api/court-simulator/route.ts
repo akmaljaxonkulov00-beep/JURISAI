@@ -114,29 +114,25 @@ STRICT RULES:
 async function startSimulation(caseDetails: string, systemBase: string) {
   const systemPrompt = `${systemBase}
 
-Sen O'zbekiston Respublikasining professional sudyasisan. Berilgan holat bo'yicha sud majlisini oching.
+MUHIM QOIDA: Sen faqat SUDYA rolida gapirayapsan. Boshqa rollar (Prokuror, Advokat, Sudlanuvchi, Kotiba) HAQIDA GAPIRMA. Ularning o'rniga foydalanuvchi gapiradi yoki keyingi bosqichda javob beradi.
+
+Sen O'zbekiston Respublikasining professional sudyasisan. Berilgan holat bo'yicha sud majlisini och.
 
 PROTSESSUAL QOIDALAR:
-- Fuqarolik ishlari bo'yicha: FPK (Fuqarolik protsessual kodeksi) qoidalariga amal qiling
-- Jinoyat ishlari bo'yicha: JPK (Jinoiy protsessual kodeksi) qoidalariga amal qiling
-- Iqtisodiy nizolar bo'yicha: IPK (Iqtisodiy protsessual kodeksi) qoidalariga amal qiling
-- Sud majlisida: taraflarni tanishtirish, ishni e'lon qilish, taraflarning huquq va majburiyatlarini tushuntirish
+- Fuqarolik ishlari bo'yicha: FPK (Fuqarolik protsessual kodeksi)
+- Jinoyat ishlari bo'yicha: JPK (Jinoiy protsessual kodeksi)
 
-MUHIM — BARCHA ROLLAR UCHUN JAVOB:
-Sud majlisini ochganingizdan so'ng, quyidagi rollardan mos keladiganlarining pozitsiyasini ko'rsating:
-- [SUDYA]: Sudya majlisni ochadi, qoidalarni tushuntiradi
-- [PROKUROR]: (agar jinoyat ishi bo'lsa) Ayblov xulosasini o'qiydi
-- [ADVOKAT]: (agar jinoyat ishi bo'lsa) Himoya pozitsiyasini bildiradi
-- [SUDLANUVCHI]: (agar jinoyat ishi bo'lsa) O'z pozitsiyasini bildiradi
-- [KOTIBA]: Majlis bayonini yuritadi
+QAT'IY TALABLAR:
+1. HECH QACHON [ismi] yoki boshqa placeholder ishlatma. Haqiqiy o'zbekcha ism-familiya ishlat: Akbar Toshmatov, Nilufar Karimova, Botir Rahimov va hokazo.
+2. HAR DOIM to'liq, batafsil va realistik matn yoz. Bir-ikki jumla bilan cheklanma.
+3. FAQAT SUDYA rolida gapir. Boshqa rollar (Prokuror, Advokat, Kotiba) uchun matn yozma.
+4. Prokuror va advokat ismlarini aytib o'tishing mumkin (masalan: "Prokuror Akbar Toshmatov, advokat Nilufar Karimova"), lekin ULARNING NUTQINI AYTMA — ular keyin foydalanuvchi argumentiga javoban gapiradi.
+5. Sud majlisini och, ishni e'lon qil, keyin foydalanuvchiga so'z ber.
 
 FORMAT:
-Har bir rolning javobini quyidagi formatda yoz:
-[SUDYA]: ...
-[PROKUROR]: ...
-(kerakli rollarni yoz, keraksizlarini tashlab ket)`
+[SUDYA]: (to'liq, batafsil ochilish nutqi. Ishni e'lon qil, taraflarni tanishtir, keyin foydalanuvchiga so'z ber.)`
 
-  const response = await groqChat(systemPrompt, `Sud jarayonini boshlang: ${caseDetails}`, 2048)
+  const response = await groqChat(systemPrompt, `Sud jarayonini oching. Foydalanuvchi roli: ${caseDetails}`, 2048)
 
   const simulationId = 'sim_' + Date.now()
   const roles = parseMultiRoleResponse(response.text)
@@ -154,26 +150,25 @@ Har bir rolning javobini quyidagi formatda yoz:
 async function submitArgument(simulationId: string, argument: string, systemBase: string) {
   const systemPrompt = `${systemBase}
 
-Sen O'zbekiston Respublikasining sudyasisan. Tomonlarning argumentlarini qonuniy nuqtai nazardan baholang.
+Endi foydalanuvchi o'z argumentini yubordi. Sen O'zbekiston Respublikasi sudyasisan va quyidagi rollardan mos keladiganlarining javobini tayyorlaysan.
 
-BAHOLASH MEZONLARI:
-1. Argumentning qonuniyligi — tegishli qonun moddasiga asoslanganmi?
-2. Dalillarning ishonchliligi — dalillar qonuniy tartibda olinganmi?
-3. Taraflarning huquqiy pozitsiyasi — protsessual talablarga rioya qilinganmi?
+QAT'IY TALABLAR:
+1. HECH QACHON [ismi] yoki boshqa placeholder ishlatma. Har doim haqiqiy ism-familiya ishlat.
+2. TO'LIQ va BATAFSIL javob yoz, qisqa yarimta javob yozma.
+3. Faqat foydalanuvchining argumentiga mos keladigan rollar javob bersin.
 
-MUHIM — BARCHA ROLLAR UCHUN JAVOB:
-Har bir rol o'z pozitsiyasidan javob bersin:
-- [SUDYA]: Baho va keyingi qadam
-- [PROKUROR]: (agar jinoyat ishi bo'lsa) O'z pozitsiyasi
-- [ADVOKAT]: (agar jinoyat ishi bo'lsa) Himoya pozitsiyasi
-- [KOTIBA]: Jarayon bayoni
+ROLLAR:
+- [SUDYA]: Foydalanuvchining argumentini baholaydi va keyingi qadamni aytadi
+- [PROKUROR]: (agar jinoyat ishi bo'lsa) Foydalanuvchining argumentiga qarshi pozitsiya bildiradi
+- [ADVOKAT]: (agar jinoyat ishi bo'lsa) Foydalanuvchini qo'llab-quvvatlaydi yoki qarshi chiqadi
+- [KOTIBA]: Jarayon bayonini yuritadi
 
 FORMAT:
 [SUDYA]: ...
 [PROKUROR]: ...
-(kerakli rollarni yoz)`
+(kerakli rollarni yoz, keraksizlarini tashlab ket)`
 
-  const response = await groqChat(systemPrompt, `Argument: "${argument}". Javobingizni bering.`, 2048)
+  const response = await groqChat(systemPrompt, `Foydalanuvchi argumenti: "${argument}". Unga javob bering.`, 2048)
 
   const roles = parseMultiRoleResponse(response.text)
 
@@ -187,18 +182,18 @@ FORMAT:
 async function getVerdict(simulationId: string, systemBase: string) {
   const systemPrompt = `${systemBase}
 
-Sen O'zbekiston Respublikasining sudyasisan. Barcha dalillar va argumentlarni tahlil qilib, yakuniy sud qarorini (hukmni) chiqaring.
+Sen O'zbekiston Respublikasining sudyasisan. Barcha dalillar va argumentlarni tahlil qilib, yakuniy sud qarorini (hukmni) chiqar.
+
+QAT'IY TALABLAR:
+1. HECH QACHON [ismi] yoki boshqa placeholder ishlatma. Haqiqiy ism-familiya ishlat.
+2. TO'LIQ va BATAFSIL hukm matni yoz.
+3. Barcha qatnashchilarning (SUDYA, PROKUROR, ADVOKAT, KOTIBA) yakuniy pozitsiyasini ko'rsat.
 
 HUKM TARKIBI:
-1. Qarorning qaror qismi — kim, nima haqda, qanday qaror qabul qilindi
-2. Qonuniy asos — aniq kodeks, modda, band ko'rsatilgan
-3. Qarorning oqibatlari — ijro etish tartibi, shikoyat qilish muddati va tartibi
-
-MUHIM — BARCHA ROLLAR UCHUN JAVOB:
-- [SUDYA]: Yakuniy hukmni e'lon qiladi
-- [KOTIBA]: Hukm bayoni
-- [PROKUROR]: (agar jinoyat ishi) O'z fikri
-- [ADVOKAT]: (agar jinoyat ishi) O'z fikri
+1. Sudya: qaror, qonuniy asos, oqibatlar
+2. Prokuror: yakuniy fikri (agar jinoyat ishi bo'lsa)
+3. Advokat: yakuniy fikri (agar jinoyat ishi bo'lsa)
+4. Kotiba: hukm bayoni
 
 FORMAT:
 [SUDYA]: ...
@@ -224,7 +219,8 @@ Javobni faqat JSON formatida bering:
   const evalResponse = await groqChat(evalPrompt, 'Sud simulyatsiyasini baholang.', 512)
   let evalData = { legalAccuracy: 70, argument: 70, ethics: 80 }
   try {
-    const parsed = JSON.parse(evalResponse.text)
+    const jsonStr = evalResponse.text.replace(/```json?\s*|\s*```/g, '').trim()
+    const parsed = JSON.parse(jsonStr)
     evalData = { ...evalData, ...parsed }
   } catch { /* use defaults */ }
 
