@@ -194,9 +194,9 @@ export async function signIn(
     if (!data?.user) throw new Error('Foydalanuvchi topilmadi')
 
     const user = mapSupabaseUser(data.user)
-    saveUserToLocal(user)
-    logAuthEvent(email, 'email', user.id, true)
-    return { success: true, data: user }
+    const savedUser = saveUserToLocal(user)
+    logAuthEvent(email, 'email', savedUser.id, true)
+    return { success: true, data: savedUser }
   } catch (error: any) {
     let message = 'Login xatosi yuz berdi'
     const code = error?.message || error?.code || ''
@@ -305,8 +305,8 @@ export async function handleRedirectResult(): Promise<{
     const { data } = await supabase.auth.getSession()
     if (data?.session?.user) {
       const user = mapSupabaseUser(data.session.user)
-      saveUserToLocal(user)
-      return { success: true, data: user }
+      const savedUser = saveUserToLocal(user)
+      return { success: true, data: savedUser }
     }
     return { success: false }
   } catch (error: any) {

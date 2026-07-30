@@ -644,13 +644,14 @@ function SignInContent() {
     const hasOAuthFlow = hasCode || hasError
     if (!hasOAuthFlow) return
 
+    // Use role from session user metadata instead of hardcoded email
     firebaseAuth
       .handleRedirectResult()
       .then(result => {
         if (result.success && result.data) {
-          const eNorm = result.data.email?.toLowerCase().trim()
+          const role = result.data.role
           router.replace(
-            eNorm === 'akmaljaxonkulov00@gmail.com'
+            role === 'ADMIN'
               ? '/admin'
               : searchParams?.get('redirectTo') || '/dashboard'
           )
@@ -681,8 +682,8 @@ function SignInContent() {
         if (result.success) {
           if (rememberMe) localStorage.setItem('rememberedEmail', email)
           else localStorage.removeItem('rememberedEmail')
-          const eNorm = result.data?.email?.toLowerCase().trim()
-          router.push(eNorm === 'akmaljaxonkulov00@gmail.com' ? '/admin' : '/dashboard')
+          const role = result.data?.role
+          router.push(role === 'ADMIN' ? '/admin' : '/dashboard')
         } else {
           setError(result.error || "Email yoki parol noto'g'ri")
         }
@@ -713,8 +714,8 @@ function SignInContent() {
     try {
       const result = await firebaseAuth.signInWithGoogle()
       if (result.success && result.data) {
-        const eNorm = result.data.email?.toLowerCase().trim()
-        router.push(eNorm === 'akmaljaxonkulov00@gmail.com' ? '/admin' : '/dashboard')
+        const          const role = result.data.role
+        router.push(role === 'ADMIN' ? '/admin' : '/dashboard')
       } else if (result.error) {
         setError(result.error)
       }
