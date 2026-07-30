@@ -1,6 +1,6 @@
-'use client'
+﻿'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   ArrowLeft,
   Users,
@@ -76,6 +76,124 @@ export default function Community() {
   const [commentInputs, setCommentInputs] = useState<Record<string, string>>({})
   const [replyInputs, setReplyInputs] = useState<Record<string, string>>({})
   const [showNotifications, setShowNotifications] = useState(false)
+  const [experts, setExperts] = useState<any[]>([])
+  const [groups, setGroups] = useState<any[]>([])
+  const [webinars, setWebinars] = useState<any[]>([])
+  const [expertsLoading, setExpertsLoading] = useState(false)
+  const [groupsLoading, setGroupsLoading] = useState(false)
+  const [webinarsLoading, setWebinarsLoading] = useState(false)
+  const [joinedGroups, setJoinedGroups] = useState<string[]>([])
+  const [registeredWebinars, setRegisteredWebinars] = useState<string[]>([])
+  const [showCreateGroup, setShowCreateGroup] = useState(false)
+  const [newGroupName, setNewGroupName] = useState('')
+  const [newGroupDesc, setNewGroupDesc] = useState('')
+  const [newGroupIcon, setNewGroupIcon] = useState('👥')
+
+  // Load experts from API
+  useEffect(() => {
+    if (activeTab !== 'experts') return
+    setExpertsLoading(true)
+    fetch('/api/community/experts')
+      .then(r => (r.ok ? r.json() : { data: [] }))
+      .then(d => {
+        setExperts(d.data || [])
+        setExpertsLoading(false)
+      })
+      .catch(() => setExpertsLoading(false))
+  }, [activeTab])
+
+  // Load groups from API
+  useEffect(() => {
+    if (activeTab !== 'groups') return
+    setGroupsLoading(true)
+    fetch('/api/community/groups')
+      .then(r => (r.ok ? r.json() : { data: [] }))
+      .then(d => {
+        setGroups(d.data || [])
+        setGroupsLoading(false)
+      })
+      .catch(() => setGroupsLoading(false))
+    // Load joined groups from localStorage
+    try {
+      const joined = localStorage.getItem('community_joined_groups')
+      if (joined) setJoinedGroups(JSON.parse(joined))
+    } catch {}
+  }, [activeTab])
+
+  // Load webinars from API
+  useEffect(() => {
+    if (activeTab !== 'webinars') return
+    setWebinarsLoading(true)
+    fetch('/api/community/webinars')
+      .then(r => (r.ok ? r.json() : { data: [] }))
+      .then(d => {
+        setWebinars(d.data || [])
+        setWebinarsLoading(false)
+      })
+      .catch(() => setWebinarsLoading(false))
+    try {
+      const reg = localStorage.getItem('community_registered_webinars')
+      if (reg) setRegisteredWebinars(JSON.parse(reg))
+    } catch {}
+  }, [activeTab])
+
+  // Join group
+  const joinGroup = (groupId: string) => {
+    const updated = [...joinedGroups, groupId]
+    setJoinedGroups(updated)
+    localStorage.setItem('community_joined_groups', JSON.stringify(updated))
+    // Try API
+    fetch('/api/community/groups', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: groupId,
+        member_count: groups.find(g => g.id === groupId)?.member_count + 1,
+      }),
+    }).catch(() => {})
+  }
+
+  // Leave group
+  const leaveGroup = (groupId: string) => {
+    const updated = joinedGroups.filter(id => id !== groupId)
+    setJoinedGroups(updated)
+    localStorage.setItem('community_joined_groups', JSON.stringify(updated))
+  }
+
+  // Create group
+  const createGroup = async () => {
+    if (!newGroupName.trim()) return
+    try {
+      const r = await fetch('/api/community/groups', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: newGroupName, description: newGroupDesc, icon: newGroupIcon }),
+      })
+      const d = await r.json()
+      if (d.success && d.data) {
+        setGroups(prev => [d.data, ...prev])
+        joinGroup(d.data.id)
+      }
+    } catch {}
+    setShowCreateGroup(false)
+    setNewGroupName('')
+    setNewGroupDesc('')
+  }
+
+  // Register for webinar
+  const registerWebinar = (webinarId: string) => {
+    const updated = [...registeredWebinars, webinarId]
+    setRegisteredWebinars(updated)
+    localStorage.setItem('community_registered_webinars', JSON.stringify(updated))
+    fetch('/api/community/webinars', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: webinarId,
+        participants_count: webinars.find(w => w.id === webinarId)?.participants_count + 1,
+      }),
+    }).catch(() => {})
+  }
 
   const AVAILABLE_TAGS = [
     'fuqarolik_huquqi',
@@ -961,73 +1079,65 @@ export default function Community() {
               </div>
             </header>
             <main className="p-4 sm:p-6 max-w-5xl mx-auto">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {[
-                  {
-                    name: 'Dr. Aziz Karimov',
-                    title: 'Huquqshunoslik fanlari doktori',
-                    spec: 'Fuqarolik va tijorat huquqi',
-                    rep: 2850,
-                    webinars: 12,
-                  },
-                  {
-                    name: 'Prof. Dilora Nazarova',
-                    title: 'Jinoyat huquqi professori',
-                    spec: 'Jinoyat huquqi va kriminologiya',
-                    rep: 3200,
-                    webinars: 18,
-                  },
-                  {
-                    name: 'Bahodir Toshmatov',
-                    title: "Prokuratura boshlig'i",
-                    spec: 'Jinoyat protsessi',
-                    rep: 1950,
-                    webinars: 6,
-                  },
-                  {
-                    name: 'Malika Umarova',
-                    title: 'Advokat',
-                    spec: 'Xalqaro arbitraj',
-                    rep: 1670,
-                    webinars: 8,
-                  },
-                ].map((e, i) => (
-                  <div
-                    key={i}
-                    className="bg-white dark:bg-zinc-900 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all border border-gray-100 dark:border-zinc-800"
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
-                        <UserCircle className="w-7 h-7 text-white" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5 mb-0.5">
-                          <h3 className="font-semibold text-sm text-gray-900 dark:text-white">
-                            {e.name}
-                          </h3>
-                          <Verified className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
+              {expertsLoading ? (
+                <div className="text-center py-12">
+                  <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+                  <p className="text-sm text-gray-500 dark:text-zinc-400">
+                    Ekspertlar yuklanmoqda...
+                  </p>
+                </div>
+              ) : experts.length === 0 ? (
+                <div className="text-center py-16">
+                  <Star className="w-16 h-16 text-gray-300 dark:text-zinc-700 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                    Hozircha ekspertlar yo\'q
+                  </h3>
+                  <p className="text-sm text-gray-500 dark:text-zinc-400">
+                    Admin tomonidan ekspertlar qo\'shilgandan keyin bu yerda ko\'rinadi.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {experts.map((e: any, i: number) => (
+                    <div
+                      key={e.id || i}
+                      className="bg-white dark:bg-zinc-900 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all border border-gray-100 dark:border-zinc-800"
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
+                          <UserCircle className="w-7 h-7 text-white" />
                         </div>
-                        <p className="text-xs text-gray-500 dark:text-zinc-400 mb-1">{e.title}</p>
-                        <p className="text-xs text-gray-600 dark:text-zinc-300 mb-2">
-                          <span className="font-medium">Mutaxassislik:</span> {e.spec}
-                        </p>
-                        <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-zinc-400 mb-3">
-                          <span>⭐ {e.rep} rep</span>
-                          <span>📺 {e.webinars} vebinar</span>
-                        </div>
-                        <div className="flex gap-2">
-                          <button className="flex-1 px-3 py-1.5 bg-blue-600 text-white text-xs rounded-lg hover:bg-blue-700 transition-colors">
-                            Maslahat so\'rash
-                          </button>
-                          <button className="px-3 py-1.5 bg-green-600 text-white text-xs rounded-lg hover:bg-green-700 transition-colors">
-                            Mentorlik
-                          </button>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5 mb-0.5">
+                            <h3 className="font-semibold text-sm text-gray-900 dark:text-white">
+                              {e.name}
+                            </h3>
+                            {e.is_verified && (
+                              <Verified className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
+                            )}
+                          </div>
+                          <p className="text-xs text-gray-500 dark:text-zinc-400 mb-1">{e.title}</p>
+                          <p className="text-xs text-gray-600 dark:text-zinc-300 mb-2">
+                            <span className="font-medium">Mutaxassislik:</span> {e.specialization}
+                          </p>
+                          <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-zinc-400 mb-3">
+                            <span>⭐ {e.reputation} rep</span>
+                            <span>📺 {e.webinars_count} vebinar</span>
+                          </div>
+                          <div className="flex gap-2">
+                            <button className="flex-1 px-3 py-1.5 bg-blue-600 text-white text-xs rounded-lg hover:bg-blue-700 transition-colors">
+                              Maslahat so\'rash
+                            </button>
+                            <button className="px-3 py-1.5 bg-green-600 text-white text-xs rounded-lg hover:bg-green-700 transition-colors">
+                              Mentorlik
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </main>
           </div>
         </div>
@@ -1071,70 +1181,43 @@ export default function Community() {
             </header>
             <main className="p-4 sm:p-6 max-w-5xl mx-auto">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {[
-                  {
-                    name: 'Xalqaro huquq ixlosmandlari',
-                    desc: "Xalqaro huquq va konvensiyalar bo'yicha muhokamalar",
-                    members: 234,
-                    cat: 'Xalqaro huquq',
-                    joined: true,
-                    icon: '🌍',
-                  },
-                  {
-                    name: "Bo'lajak advokatlar klubi",
-                    desc: "Yosh advokatlar uchun qo'llab-quvvatlash guruhi",
-                    members: 456,
-                    cat: 'Kasbiy rivojlanish',
-                    joined: false,
-                    icon: '💼',
-                  },
-                  {
-                    name: 'Sud ekspertizasi guruhi',
-                    desc: 'Sud ekspertizasi va sud-tibbiyot masalalari',
-                    members: 189,
-                    cat: 'Ekspertiza',
-                    joined: false,
-                    icon: '🔍',
-                  },
-                  {
-                    name: 'Mehnat huquqi mutaxassislari',
-                    desc: 'Mehnat huquqi va ishchi-huquqiy munosabatlar',
-                    members: 321,
-                    cat: 'Mehnat huquqi',
-                    joined: true,
-                    icon: '📋',
-                  },
-                ].map((g, i) => (
-                  <div
-                    key={i}
-                    className="bg-white dark:bg-zinc-900 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all border border-gray-100 dark:border-zinc-800"
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center text-lg flex-shrink-0">
-                        {g.icon}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-sm text-gray-900 dark:text-white mb-1">
-                          {g.name}
-                        </h3>
-                        <p className="text-xs text-gray-500 dark:text-zinc-400 mb-2">{g.desc}</p>
-                        <div className="flex items-center justify-between mb-3">
-                          <span className="text-xs text-gray-500 dark:text-zinc-400">
-                            👥 {g.members} a\'zo
-                          </span>
-                          <span className="px-2 py-0.5 bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-400 rounded text-[10px]">
-                            {g.cat}
-                          </span>
+                {groups.map((g: any, i: number) => {
+                  const isJoined = joinedGroups.includes(g.id)
+                  return (
+                    <div
+                      key={i}
+                      className="bg-white dark:bg-zinc-900 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all border border-gray-100 dark:border-zinc-800"
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center text-lg flex-shrink-0">
+                          {g.icon}
                         </div>
-                        <button
-                          className={`w-full px-3 py-1.5 text-xs rounded-lg transition-colors ${g.joined ? 'bg-gray-200 dark:bg-zinc-700 text-gray-700 dark:text-zinc-300' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
-                        >
-                          {g.joined ? "A'zo bo'lgan" : "Qo'shilish"}
-                        </button>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-sm text-gray-900 dark:text-white mb-1">
+                            {g.name}
+                          </h3>
+                          <p className="text-xs text-gray-500 dark:text-zinc-400 mb-2">
+                            {g.description}
+                          </p>
+                          <div className="flex items-center justify-between mb-3">
+                            <span className="text-xs text-gray-500 dark:text-zinc-400">
+                              👥 {g.member_count} a\'zo
+                            </span>
+                            <span className="px-2 py-0.5 bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-400 rounded text-[10px]">
+                              {g.category || 'Umumiy'}
+                            </span>
+                          </div>
+                          <button
+                            onClick={() => (isJoined ? leaveGroup(g.id) : joinGroup(g.id))}
+                            className={`w-full px-3 py-1.5 text-xs rounded-lg transition-colors ${isJoined ? 'bg-gray-200 dark:bg-zinc-700 text-gray-700 dark:text-zinc-300' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+                          >
+                            {isJoined ? "A'zo bo'lgan" : "Qo'shilish"}
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
               <button className="w-full mt-4 p-4 border-2 border-dashed border-gray-300 dark:border-zinc-700 rounded-xl text-sm text-gray-500 dark:text-zinc-400 hover:border-blue-400 hover:text-blue-500 transition-colors">
                 <Plus className="w-4 h-4 inline mr-1" /> Yangi guruh yaratish
@@ -1180,71 +1263,54 @@ export default function Community() {
             </header>
             <main className="p-4 sm:p-6 max-w-5xl mx-auto">
               <div className="space-y-4">
-                {[
-                  {
-                    title: 'Kiberjinoyatlar: Yangi qonunchilik va amaliyot',
-                    host: 'Prof. Dilora Nazarova',
-                    date: '2024-03-25',
-                    dur: '1.5 soat',
-                    participants: 156,
-                    cat: 'Jinoyat huquqi',
-                    live: false,
-                  },
-                  {
-                    title: "Sud amaliyotida dalillarni yig'ish usullari",
-                    host: 'Dr. Aziz Karimov',
-                    date: '2024-03-28',
-                    dur: '2 soat',
-                    participants: 89,
-                    cat: 'Sud amaliyoti',
-                    live: true,
-                  },
-                  {
-                    title: 'Tijorat nizolari: Xalqaro tajriba',
-                    host: 'Malika Umarova',
-                    date: '2024-04-01',
-                    dur: '1 soat',
-                    participants: 234,
-                    cat: 'Tijorat huquqi',
-                    live: false,
-                  },
-                ].map((w, i) => (
-                  <div
-                    key={i}
-                    className="bg-white dark:bg-zinc-900 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all border border-gray-100 dark:border-zinc-800"
-                  >
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className="font-semibold text-sm text-gray-900 dark:text-white">
-                            {w.title}
-                          </h3>
-                          {w.live && (
-                            <span className="px-1.5 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded text-[10px] font-medium animate-pulse">
-                              LIVE
+                {webinars.map((w: any, i: number) => {
+                  const isRegistered = registeredWebinars.includes(w.id)
+                  const isLive = new Date(w.date).getTime() <= Date.now() + 86400000 * 3
+                  return (
+                    <div
+                      key={i}
+                      className="bg-white dark:bg-zinc-900 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all border border-gray-100 dark:border-zinc-800"
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className="font-semibold text-sm text-gray-900 dark:text-white">
+                              {w.title}
+                            </h3>
+                            {isLive && (
+                              <span className="px-1.5 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded text-[10px] font-medium animate-pulse">
+                                LIVE
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-gray-500 dark:text-zinc-400 mb-2">
+                            O\'tkazuvchi: {w.host || '-'}
+                          </p>
+                          <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-zinc-400 mb-2">
+                            <span>📅 {w.date}</span>
+                            <span>
+                              ⏱ {w.duration_minutes ? w.duration_minutes + ' min' : '1 soat'}
                             </span>
-                          )}
+                            <span>👥 {w.participants_count}</span>
+                          </div>
+                          <span className="px-2 py-0.5 bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-400 rounded text-[10px]">
+                            {w.category || 'Umumiy'}
+                          </span>
                         </div>
-                        <p className="text-xs text-gray-500 dark:text-zinc-400 mb-2">
-                          O\'tkazuvchi: {w.host}
-                        </p>
-                        <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-zinc-400 mb-2">
-                          <span>📅 {w.date}</span>
-                          <span>⏱ {w.dur}</span>
-                          <span>👥 {w.participants}</span>
-                        </div>
-                        <span className="px-2 py-0.5 bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-400 rounded text-[10px]">
-                          {w.cat}
-                        </span>
+                        <button
+                          onClick={() => (isRegistered ? null : registerWebinar(w.id))}
+                          className={`px-4 py-2 text-xs rounded-lg whitespace-nowrap transition-colors ${isLive ? 'bg-red-600 text-white hover:bg-red-700' : isRegistered ? 'bg-gray-200 dark:bg-zinc-700 text-gray-700 dark:text-zinc-300' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+                        >
+                          {isLive
+                            ? "Qo'shilish"
+                            : isRegistered
+                              ? "Ro'yxatdan o'tilgan"
+                              : "Ro'yxatdan o'tish"}
+                        </button>
                       </div>
-                      <button
-                        className={`px-4 py-2 text-xs rounded-lg whitespace-nowrap transition-colors ${w.live ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
-                      >
-                        {w.live ? "Qo'shilish" : "Ro'yxatdan o'tish"}
-                      </button>
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             </main>
           </div>
