@@ -60,7 +60,6 @@ export function useLegalCodes() {
   const [fromSupabase, setFromSupabase] = useState(false)
   const subscriptionRef = useRef<any>(null)
 
-  // ── Core fetch function: direct Supabase queries ───────────────
   const fetchFromSupabase = useCallback(async (silent?: boolean) => {
     if (!silent) setLoading(true)
     setError(null)
@@ -82,19 +81,27 @@ export function useLegalCodes() {
         return
       }
 
-      // 2. Fetch articles for all categories
+      // 2. Fetch articles — try article_number_int first (numeric sort), fall back to article_number (text)
       const codeIds = categories.map((c: any) => c.code_id).filter(Boolean)
       const uniqueIds = [...new Set(codeIds)]
 
-      let artQuery = supabase
+      let result = await supabase
         .from('articles')
         .select('*')
         .in('code_id', uniqueIds)
-        .order('article_number', { ascending: true })
+        .order('article_number_int', { ascending: true, nullsFirst: false })
 
-      const { data: articles, error: artError } = await artQuery
+      // If article_number_int column doesn't exist, try article_number instead
+      if (result.error) {
+        result = await supabase
+          .from('articles')
+          .select('*')
+          .in('code_id', uniqueIds)
+          .order('article_number', { ascending: true })
+      }
 
-      if (artError) throw new Error(`Moddalarni yuklashda xatolik: ${artError.message}`)
+      if (result.error) throw new Error(`Moddalarni yuklashda xatolik: ${result.error.message}`)
+      const articles = result.data || []
 
       // 3. Merge categories + articles into LegalCode[] format
       const categoryMap = new Map<string, any>()
@@ -112,7 +119,7 @@ export function useLegalCodes() {
         }
       })
 
-      ;(articles || []).forEach((article: any) => {
+      articles.forEach((article: any) => {
         const codeEntry = categoryMap.get(article.code_id)
         if (codeEntry) {
           codeEntry.articles.push({
@@ -131,8 +138,8 @@ export function useLegalCodes() {
         }
       })
 
-      // Sort articles by article_number numerically (not alphabetically!)
-      // "article_number" is a string column, so Supabase sorts "1, 10, 100, 11..." instead of "1, 2, 3, 4..."
+      // NUMERIC SORT: Sort articles by article_number as integer (not string!)
+      // This is the PRIMARY sort — it works even without article_number_int column
       Array.from(categoryMap.values()).forEach((entry: any) => {
         entry.articles.sort((a: LegalArticle, b: LegalArticle) => {
           const numA = parseInt(a.number, 10) || 0
@@ -141,7 +148,6 @@ export function useLegalCodes() {
         })
       })
 
-      // Set totalArticles count
       const mapped: LegalCode[] = Array.from(categoryMap.values()).map((c: any) => ({
         ...c,
         totalArticles: c.articles.length,
@@ -150,12 +156,9 @@ export function useLegalCodes() {
       setCodes(mapped)
       setFromSupabase(true)
     } catch (err: any) {
-      console.warn(
-        '[useLegalCodes] Supabase direct fetch failed, trying API fallback:',
-        err.message
-      )
+      console.warn('[useLegalCodes] Supabase direct fetch failed, trying API fallback:', err.message)
 
-      // ── Fallback: try API route ──
+      // Fallback: try API route
       try {
         const res = await fetch('/api/legal/codes', {
           cache: 'no-cache',
@@ -217,19 +220,15 @@ export function useLegalCodes() {
     }
   }, [])
 
-  // ── Initial load ─────────────────────────────────────────────
   useEffect(() => {
     fetchFromSupabase()
   }, [fetchFromSupabase])
 
-  // ── Realtime subscription ─────────────────────────────────────
   useEffect(() => {
-    // Clean up existing subscription
     if (subscriptionRef.current) {
       browserSupabase.removeChannel(subscriptionRef.current)
     }
 
-    // Subscribe to articles changes — silent refresh (no loading flash)
     const channel = browserSupabase
       .channel('legal-articles-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'articles' }, () => {
@@ -247,7 +246,6 @@ export function useLegalCodes() {
     }
   }, [fetchFromSupabase])
 
-  // ── Client-side search ───────────────────────────────────────
   const search = useCallback(
     (query: string) => {
       if (!query.trim()) return []
