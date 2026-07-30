@@ -144,7 +144,7 @@ export default function LegalDatabase() {
             Qonunlar bazasi hali to'liq yuklanmagan. Iltimos, Supabase SQL migratsiyani ishga
             tushirganingizni tekshiring.
           </p>
-          <Button onClick={refresh} className="bg-blue-600 hover:bg-blue-700 text-white">
+          <Button onClick={() => refresh()} className="bg-blue-600 hover:bg-blue-700 text-white">
             <Loader2 className="w-4 h-4 mr-2" />
             Qayta yuklash
           </Button>

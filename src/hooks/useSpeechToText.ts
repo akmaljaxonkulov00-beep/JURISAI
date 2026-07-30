@@ -125,8 +125,7 @@ export function useSpeechToText(options: SpeechToTextOptions = {}): SpeechToText
     recognition.continuous = continuous
     recognition.interimResults = true
     recognition.lang = lang
-    // @ts-expect-error - maxAlternatives is not in all type definitions
-    recognition.maxAlternatives = 1
+    (recognition as any).maxAlternatives = 1
 
     recognition.onstart = () => {
       isListeningRef.current = true

@@ -181,7 +181,7 @@ export default function CodeDetailPage() {
             className="flex items-center gap-2 px-3 py-2 text-sm text-gray-500 dark:text-zinc-400 hover:text-gray-700 dark:hover:text-zinc-200 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl transition-all mb-4"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>{CODE_DISPLAY_NAMES[code.id] || code.name} ga qaytish</span>
+            <span>{CODE_DISPLAY_NAMES(code.id) || code.name} ga qaytish</span>
           </button>
 
           <Card className="card-default rounded-2xl">
@@ -189,8 +189,8 @@ export default function CodeDetailPage() {
               <div className="flex items-start justify-between">
                 <div>
                   <div className="flex items-center gap-2 mb-2">
-                    <Badge className={CODE_BADGE_COLORS[code.id] || ''}>
-                      {CODE_DISPLAY_NAMES[code.id] || code.name}
+                    <Badge className={CODE_BADGE_COLORS(code.id) || ''}>
+                      {CODE_DISPLAY_NAMES(code.id) || code.name}
                     </Badge>
                     <Badge variant="outline" className="text-xs">
                       {selectedArticle.category || 'Modda'}
@@ -299,7 +299,7 @@ export default function CodeDetailPage() {
               )}
 
               <div className="flex items-center gap-4 pt-2 text-xs text-gray-400 dark:text-zinc-500">
-                <span>{CODE_DISPLAY_NAMES[code.id] || code.name}</span>
+                <span>{CODE_DISPLAY_NAMES(code.id) || code.name}</span>
                 <span>•</span>
                 <span>Kuchga kirgan: {code.effectiveDate}</span>
               </div>
@@ -323,14 +323,14 @@ export default function CodeDetailPage() {
 
         {/* Code Header */}
         <div
-          className={`p-6 rounded-2xl bg-gradient-to-r ${CODE_COLORS[code.id] || 'from-blue-500 to-blue-600'} text-white mb-6`}
+          className={`p-6 rounded-2xl bg-gradient-to-r ${CODE_COLORS(code.id) || 'from-blue-500 to-blue-600'} text-white mb-6`}
         >
           <div className="flex items-center gap-4">
             <div className="p-3 bg-white/20 rounded-xl">
-              {CODE_ICONS[code.id] || <BookOpen className="w-8 h-8" />}
+              {CODE_ICONS(code.id) || <BookOpen className="w-8 h-8" />}
             </div>
             <div>
-              <h1 className="text-2xl font-bold">{CODE_DISPLAY_NAMES[code.id] || code.name}</h1>
+              <h1 className="text-2xl font-bold">{CODE_DISPLAY_NAMES(code.id) || code.name}</h1>
               <p className="text-white/80 text-sm mt-1">{code.description}</p>
               <div className="flex items-center gap-4 mt-2 text-white/70 text-xs">
                 <span>{code.totalArticles} ta modda</span>
@@ -348,7 +348,7 @@ export default function CodeDetailPage() {
             type="text"
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            placeholder={`${(CODE_DISPLAY_NAMES[code.id] || code.name).substring(0, 30)}... dan qidirish`}
+            placeholder={`${(CODE_DISPLAY_NAMES(code.id) || code.name).substring(0, 30)}... dan qidirish`}
             className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-gray-900 dark:text-white placeholder:text-gray-400 dark:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
           />
         </div>

@@ -35,7 +35,7 @@ async function searchLegalDatabase(query: string) {
   try {
     // First, search in existing data
     const existingResults = legalData.popularDocuments.filter(
-      doc =>
+      (doc: any) =>
         doc.title.toLowerCase().includes(query.toLowerCase()) ||
         doc.content.toLowerCase().includes(query.toLowerCase()) ||
         doc.category.toLowerCase().includes(query.toLowerCase())

@@ -197,7 +197,7 @@ export default function VirtualCourt() {
 
   // ── STT (Speech-to-Text) — faqat foydalanuvchi ovozi ──
   const SILENCE_TIMEOUT_MS = 3000
-  const startMic = () => {
+  const startMic = async () => {
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
     if (!SR) {
       alert('Ovozli kiritish faqat Chrome yoki Edge brauzerida ishlaydi.')
@@ -279,7 +279,42 @@ export default function VirtualCourt() {
       }
       if (msg[e.error]) alert(msg[e.error])
     }
+    // Start real audio level visualization via getUserMedia + AnalyserNode
+    let audioCtx: AudioContext | null = null
+    let analyser: AnalyserNode | null = null
+    let source: MediaStreamAudioSourceNode | null = null
+    let stream: MediaStream | null = null
+    let animFrame: number = 0
+
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)()
+      analyser = audioCtx.createAnalyser()
+      analyser.fftSize = 256
+      source = audioCtx.createMediaStreamSource(stream)
+      source.connect(analyser)
+
+      const dataArray = new Uint8Array(analyser.frequencyBinCount)
+      const updateLevel = () => {
+        if (!analyser || !listeningRef.current) return
+        analyser.getByteFrequencyData(dataArray)
+        const avg = Array.from(dataArray).reduce((a, b) => a + b, 0) / dataArray.length
+        const level = Math.min(100, Math.round(avg * 1.5))
+        setAudioLevel(level)
+        animFrame = requestAnimationFrame(updateLevel)
+      }
+      updateLevel()
+    } catch { /* Audio viz will just use CSS bars */ }
+
     r.start()
+
+    // Store cleanup
+    const cleanup = () => {
+      if (animFrame) cancelAnimationFrame(animFrame)
+      if (stream) stream.getTracks().forEach(t => t.stop())
+      if (audioCtx) audioCtx.close().catch(() => {})
+    }
+    ;(r as any).__vuCleanup = cleanup
   }
   const stopMic = () => {
     listeningRef.current = false
@@ -288,7 +323,12 @@ export default function VirtualCourt() {
       silenceTimerRef.current = null
     }
     setListening(false)
-    recognitionRef.current?.stop()
+    setAudioLevel(0)
+    const r = recognitionRef.current
+    if (r) {
+      try { if (r.__vuCleanup) r.__vuCleanup() } catch {}
+      try { r.stop() } catch {}
+    }
   }
 
   const [participants, setParticipants] = useState<
@@ -656,7 +696,7 @@ export default function VirtualCourt() {
             >
               {SIM_TYPES.map(st => {
                 const isActive = simType.id === st.id
-                const icons: Record<string, JSX.Element> = {
+                const icons: Record<string, React.ReactNode> = {
                   court: <Gavel size={20} />,
                   negotiation: <MessageCircle size={20} />,
                   investigation: <Search size={20} />,
@@ -719,7 +759,7 @@ export default function VirtualCourt() {
             >
               {simType.roles.map(r => {
                 const isActive = role.id === r.id
-                const roleIcons: Record<string, JSX.Element> = {
+                const roleIcons: Record<string, React.ReactNode> = {
                   advokat: <Scale size={20} />,
                   prokuror: <Gavel size={20} />,
                   sudya: <Users size={20} />,

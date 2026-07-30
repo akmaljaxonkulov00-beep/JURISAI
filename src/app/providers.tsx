@@ -30,7 +30,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
 
   const isAuthenticated = !!user
-  const isAdmin = user?.role === 'ADMIN' || user?.role === 'admin'
+  const isAdmin = user?.role === 'ADMIN' || (user?.role as string) === 'admin'
   const hasActiveSubscription = user?.subscription_expires_at
     ? new Date(user.subscription_expires_at) > new Date()
     : false
@@ -71,7 +71,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
         return { success: true }
       }
       return { success: false, error: result.error || "Ro'yxatdan o'tish xatosi" }
-    } catch (error) {
+    } catch {
       return { success: false, error: "Ro'yxatdan o'tish xatosi" }
     } finally {
       setIsLoading(false)

@@ -34,7 +34,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const getSubscriptionPlan = auth.getSubscriptionPlan()
 
   useEffect(() => {
-    const unsubscribe = auth.subscribe(user => {
+    const unsubscribe = auth.subscribe((user: any) => {
       setUser(user)
     })
 

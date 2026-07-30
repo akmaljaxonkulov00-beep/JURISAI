@@ -21,9 +21,9 @@ export default function DebugAuthPage() {
     try {
       const testResults = await runAllTests()
       setResults(testResults)
-    } catch (error) {
-      console.error('Test error:', error)
-      setResults({ error: error.toString() })
+    } catch (e: any) {
+      console.error('Test error:', e)
+      setResults({ error: String(e) })
     }
     setIsLoading(false)
   }
@@ -38,9 +38,9 @@ export default function DebugAuthPage() {
         directLogin: directResult,
         authHelper: helperResult,
       })
-    } catch (error) {
-      console.error('Specific test error:', error)
-      setResults({ error: String(error) })
+    } catch (e: any) {
+      console.error('Specific test error:', e)
+      setResults({ error: String(e) })
     }
     setIsLoading(false)
   }
@@ -61,9 +61,9 @@ export default function DebugAuthPage() {
         runtimeEnvironment: runtimeCheck,
         supabaseValidation: validationCheck,
       })
-    } catch (error) {
-      console.error('Environment check error:', error)
-      setResults({ error: String(error) })
+    } catch (e: any) {
+      console.error('Environment check error:', e)
+      setResults({ error: String(e) })
     }
     setIsLoading(false)
   }
@@ -75,9 +75,9 @@ export default function DebugAuthPage() {
       setResults({
         adminCreation: adminResult,
       })
-    } catch (error) {
-      console.error('Create admin error:', error)
-      setResults({ error: String(error) })
+    } catch (e: any) {
+      console.error('Create admin error:', e)
+      setResults({ error: String(e) })
     }
     setIsLoading(false)
   }
@@ -92,9 +92,9 @@ export default function DebugAuthPage() {
         adminCreation: adminResult,
         testUsersCreation: testUsersResult,
       })
-    } catch (error) {
-      console.error('Create users error:', error)
-      setResults({ error: String(error) })
+    } catch (e: any) {
+      console.error('Create users error:', e)
+      setResults({ error: String(e) })
     }
     setIsLoading(false)
   }
