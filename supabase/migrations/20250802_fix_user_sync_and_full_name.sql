@@ -1,6 +1,8 @@
 -- ═══════════════════════════════════════════════════════════════════════════
 -- MIGRATION: Fix Article Sorting + Add full_name Column + Backfill Users
 -- ═══════════════════════════════════════════════════════════════════════════
+-- NOTE: registered_users.id is UUID type (same as auth.users.id)
+-- No ::TEXT casts needed for id comparisons or inserts
 
 -- ── PHASE 0: Add full_name column to registered_users ──────────────────
 DO $$
@@ -53,7 +55,7 @@ INSERT INTO public.registered_users (
   id, email, full_name, name, role, is_active, created_at
 )
 SELECT
-  au.id::TEXT,
+  au.id,  -- UUID = UUID, no cast needed
   COALESCE(au.raw_user_meta_data->>'email', au.email, ''),
   COALESCE(
     au.raw_user_meta_data->>'full_name',
@@ -76,7 +78,7 @@ SELECT
   COALESCE(au.created_at, NOW())
 FROM auth.users au
 WHERE NOT EXISTS (
-  SELECT 1 FROM public.registered_users ru WHERE ru.id::TEXT = au.id::TEXT
+  SELECT 1 FROM public.registered_users ru WHERE ru.id = au.id  -- UUID = UUID
 );
 
 -- Update existing users (sync names, etc.)
@@ -84,17 +86,17 @@ UPDATE public.registered_users ru
 SET
   full_name = COALESCE(
     (SELECT COALESCE(au.raw_user_meta_data->>'full_name', au.raw_user_meta_data->>'name', au.raw_user_meta_data->>'display_name', ru.full_name)
-     FROM auth.users au WHERE au.id::TEXT = ru.id::TEXT),
+     FROM auth.users au WHERE au.id = ru.id),
     ru.full_name
   ),
   name = COALESCE(
     (SELECT COALESCE(au.raw_user_meta_data->>'full_name', au.raw_user_meta_data->>'name', au.raw_user_meta_data->>'display_name', ru.name)
-     FROM auth.users au WHERE au.id::TEXT = ru.id::TEXT),
+     FROM auth.users au WHERE au.id = ru.id),
     ru.name
   ),
   email = COALESCE(
     (SELECT COALESCE(au.raw_user_meta_data->>'email', au.email, ru.email)
-     FROM auth.users au WHERE au.id::TEXT = ru.id::TEXT),
+     FROM auth.users au WHERE au.id = ru.id),
     ru.email
   ),
   role = CASE
@@ -103,7 +105,7 @@ SET
   END,
   is_active = true,
   updated_at = NOW()
-WHERE EXISTS (SELECT 1 FROM auth.users au WHERE au.id::TEXT = ru.id::TEXT);
+WHERE EXISTS (SELECT 1 FROM auth.users au WHERE au.id = ru.id);
 
 -- ── PHASE 4: Ensure sync trigger exists ──────────────────────────────
 CREATE OR REPLACE FUNCTION public.sync_auth_user_to_registered()
@@ -111,7 +113,7 @@ RETURNS TRIGGER AS $$
 BEGIN
   INSERT INTO public.registered_users (id, email, full_name, name, role, is_active, created_at)
   VALUES (
-    NEW.id::TEXT,
+    NEW.id,  -- UUID = UUID, no cast needed
     COALESCE(NEW.raw_user_meta_data->>'email', NEW.email, ''),
     COALESCE(
       NEW.raw_user_meta_data->>'full_name',
