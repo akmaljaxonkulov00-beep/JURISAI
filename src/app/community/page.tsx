@@ -1219,12 +1219,97 @@ export default function Community() {
                   )
                 })}
               </div>
-              <button className="w-full mt-4 p-4 border-2 border-dashed border-gray-300 dark:border-zinc-700 rounded-xl text-sm text-gray-500 dark:text-zinc-400 hover:border-blue-400 hover:text-blue-500 transition-colors">
+              <button
+                onClick={() => setShowCreateGroup(true)}
+                className="w-full mt-4 p-4 border-2 border-dashed border-gray-300 dark:border-zinc-700 rounded-xl text-sm text-gray-500 dark:text-zinc-400 hover:border-blue-400 hover:text-blue-500 transition-colors"
+              >
                 <Plus className="w-4 h-4 inline mr-1" /> Yangi guruh yaratish
               </button>
             </main>
           </div>
         </div>
+
+        {/* Create Group Modal */}
+        {showCreateGroup && (
+          <div
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            onClick={() => { setShowCreateGroup(false); setNewGroupName(''); setNewGroupDesc('') }}
+          >
+            <div
+              className="bg-white dark:bg-zinc-900 rounded-2xl p-6 max-w-md w-full shadow-2xl"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-5">
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                  Yangi guruh yaratish
+                </h3>
+                <button
+                  onClick={() => { setShowCreateGroup(false); setNewGroupName(''); setNewGroupDesc('') }}
+                  className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-zinc-300 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 dark:text-zinc-300 mb-1.5">
+                    Guruh nomi
+                  </label>
+                  <input
+                    type="text"
+                    value={newGroupName}
+                    onChange={e => setNewGroupName(e.target.value)}
+                    placeholder="Masalan: Fuqarolik huquqi klubi"
+                    className="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 dark:text-zinc-300 mb-1.5">
+                    Tavsif
+                  </label>
+                  <textarea
+                    value={newGroupDesc}
+                    onChange={e => setNewGroupDesc(e.target.value)}
+                    placeholder="Guruh haqida qisqacha ma'lumot..."
+                    rows={3}
+                    className="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 dark:text-zinc-300 mb-1.5">
+                    Belgi (icon)
+                  </label>
+                  <div className="flex gap-2">
+                    {['👥', '📚', '⚖️', '🔬', '💼', '🌐', '🎓', '🏛️'].map(icon => (
+                      <button
+                        key={icon}
+                        onClick={() => setNewGroupIcon(icon)}
+                        className={`w-9 h-9 rounded-lg text-lg flex items-center justify-center transition-colors ${newGroupIcon === icon ? 'bg-blue-100 dark:bg-blue-900/30 ring-2 ring-blue-500' : 'bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700'}`}
+                      >
+                        {icon}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div className="flex justify-end gap-3 mt-6">
+                <button
+                  onClick={() => { setShowCreateGroup(false); setNewGroupName(''); setNewGroupDesc('') }}
+                  className="px-4 py-2 text-sm text-gray-600 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl transition-colors"
+                >
+                  Bekor qilish
+                </button>
+                <button
+                  onClick={createGroup}
+                  disabled={!newGroupName.trim()}
+                  className="px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+                >
+                  Yaratish
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     )
   }

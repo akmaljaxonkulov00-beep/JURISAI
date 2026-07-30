@@ -291,6 +291,11 @@ export default function VirtualCourt() {
     recognitionRef.current?.stop()
   }
 
+  const [participants, setParticipants] = useState<
+    { role: string; title: string; icon: string; isUser: boolean; active: boolean }[]
+  >([])
+  const [audioLevel, setAudioLevel] = useState(0)
+
   const addMsg = (text: string, role: Msg['role'], speaker: string, type: Msg['type']) => {
     setMsgs(p => [
       ...p,
@@ -305,9 +310,70 @@ export default function VirtualCourt() {
     ])
   }
 
+  // ── Get court participants based on sim type and chosen role ──
+  const getParticipants = () => {
+    const allRoles = [
+      { role: 'SUDYA', title: 'Sudya', icon: '⚖️' },
+      { role: 'KOTIBA', title: 'Kotiba', icon: '📋' },
+    ]
+    if (simType.id === 'court') {
+      return [
+        ...allRoles,
+        { role: 'PROKUROR', title: 'Prokuror', icon: '⚡' },
+        { role: 'ADVOKAT', title: 'Advokat', icon: '🛡️' },
+        { role: 'SUDLANUVCHI', title: 'Sudlanuvchi', icon: '👤' },
+      ].map(r => ({
+        ...r,
+        isUser: r.role === role.id.toUpperCase(),
+        active: false,
+      }))
+    }
+    if (simType.id === 'negotiation') {
+      return [
+        ...allRoles,
+        { role: "DA'VOGAR", title: "Da'vogar", icon: '📄' },
+        { role: 'JAVOBGAR', title: 'Javobgar', icon: '📑' },
+      ].map(r => ({
+        ...r,
+        isUser: r.role === role.id.toUpperCase(),
+        active: false,
+      }))
+    }
+    return allRoles.map(r => ({ ...r, isUser: false, active: false }))
+  }
+
   // ── Get case description for API ──
   const getCasePrompt = () => {
     return `${caseItem.title}: ${caseItem.desc} Qonun: ${caseItem.law}. Simulyatsiya: ${simType.title}. Foydalanuvchi roli: ${role.title} (${role.sub}).`
+  }
+
+  // ── Parse multi-role AI response ──
+  const addMultiRoleMessages = (rolesData: { speaker: string; role: string; text: string }[]) => {
+    for (const r of rolesData) {
+      const normalizedRole = r.role === role.id.toUpperCase() ? 'user' : 'judge'
+      const titleMap: Record<string, string> = {
+        SUDYA: 'Sudya',
+        PROKUROR: 'Prokuror',
+        ADVOKAT: 'Advokat',
+        SUDLANUVCHI: 'Sudlanuvchi',
+        KOTIBA: 'Kotiba',
+        "DA'VOGAR": "Da'vogar",
+        JAVOBGAR: 'Javobgar',
+      }
+      addMsg(
+        r.text,
+        normalizedRole as Msg['role'],
+        titleMap[r.role] || r.role,
+        'ruling'
+      )
+    }
+    // Update which role is active
+    if (rolesData.length > 0) {
+      const activeRole = rolesData[rolesData.length - 1].role
+      setParticipants(prev =>
+        prev.map(p => ({ ...p, active: p.role === activeRole }))
+      )
+    }
   }
 
   // ── Start ──
@@ -318,6 +384,7 @@ export default function VirtualCourt() {
     setStressLevel(0)
     setTime(simType.id === 'court' ? 600 : 300)
     setLoading(true)
+    setParticipants(getParticipants())
     try {
       const res = await fetch('/api/court-simulator', {
         method: 'POST',
@@ -326,17 +393,19 @@ export default function VirtualCourt() {
       })
       const data = await res.json()
       setSimId(data.simulation_id || 'vc_' + Date.now())
-      const txt =
-        data.transcript?.[0]?.content ||
-        data.ai_response ||
-        "Simulyatsiya boshlandi. Sizning so'zingizni eshitaman."
-      addMsg(txt, 'judge', simType.id === 'court' ? 'Sudya' : 'AI', 'ruling')
+      const roles = data.roles || []
+      if (roles.length > 0) {
+        addMultiRoleMessages(roles)
+      } else {
+        const txt = data.ai_response || "Simulyatsiya boshlandi. Sizning so'zingizni eshitaman."
+        addMsg(txt, 'judge', 'Sudya', 'ruling')
+      }
     } catch {
       const txt =
         simType.id === 'court'
           ? "Sud majlisi ochiq deb e'lon qilinadi."
           : "Simulyatsiya boshlandi. Sizning so'zingizni eshitaman."
-      addMsg(txt, 'judge', simType.id === 'court' ? 'Sudya' : 'AI', 'ruling')
+      addMsg(txt, 'judge', 'Sudya', 'ruling')
     } finally {
       setLoading(false)
     }
@@ -368,11 +437,23 @@ export default function VirtualCourt() {
           }),
         })
         const data = await res.json()
-        const reply = data.transcript?.content || data.ai_response || 'Qabul qilindi.'
-        addMsg(reply, 'judge', simType.id === 'court' ? 'Sudya' : 'AI', 'ruling')
-        // Check if AI response is critical -> increase stress
-        if (reply.toLowerCase().includes('xato') || reply.toLowerCase().includes("e'tiroz")) {
-          setStressLevel(s => Math.min(100, s + 15))
+        const roles = data.roles || []
+        if (roles.length > 0) {
+          addMultiRoleMessages(roles)
+          // Check if any role response is critical -> increase stress
+          const allText = roles.map((r: any) => r.text).join(' ')
+          if (
+            allText.toLowerCase().includes('xato') ||
+            allText.toLowerCase().includes("e'tiroz")
+          ) {
+            setStressLevel(s => Math.min(100, s + 15))
+          }
+        } else {
+          const reply = data.transcript?.content || data.ai_response || 'Qabul qilindi.'
+          addMsg(reply, 'judge', 'Sudya', 'ruling')
+          if (reply.toLowerCase().includes('xato') || reply.toLowerCase().includes("e'tiroz")) {
+            setStressLevel(s => Math.min(100, s + 15))
+          }
         }
       } catch {
         addMsg("Xatolik yuz berdi. Qaytadan urinib ko'ring.", 'judge', 'AI', 'ruling')
@@ -401,8 +482,13 @@ export default function VirtualCourt() {
         body: JSON.stringify({ action: 'get_verdict', simulationId: simId }),
       })
       const data = await res.json()
-      const verdict = data.verdict || 'Simulyatsiya yakunlandi.'
-      addMsg(verdict, 'judge', simType.id === 'court' ? 'Sudya' : 'AI', 'ruling')
+      const roles = data.roles || []
+      if (roles.length > 0) {
+        addMultiRoleMessages(roles)
+      } else {
+        const verdict = data.verdict || 'Simulyatsiya yakunlandi.'
+        addMsg(verdict, 'judge', 'Sudya', 'ruling')
+      }
     } catch {
       /* ignore */
     } finally {
@@ -962,49 +1048,49 @@ export default function VirtualCourt() {
           <aside
             className="hidden md:block"
             style={{
-              width: 200,
+              width: 180,
               background: 'rgba(0,0,0,0.4)',
               borderRight: '1px solid rgba(255,255,255,0.07)',
-              padding: 18,
+              padding: 14,
               flexShrink: 0,
             }}
           >
             <p
               style={{
-                fontSize: 11,
+                fontSize: 10,
                 fontWeight: 600,
                 color: '#64748B',
                 textTransform: 'uppercase',
                 letterSpacing: '0.08em',
-                margin: '0 0 12px',
+                margin: '0 0 10px',
               }}
             >
               Baholash
             </p>
             {[
-              { l: 'Sud etikasi', v: score.etiquette, c: '#22C55E' },
+              { l: 'Etika', v: score.etiquette, c: '#22C55E' },
               { l: 'Argument', v: score.argument, c: '#3B82F6' },
               { l: 'Dalillar', v: score.evidence, c: '#A855F7' },
             ].map(b => (
-              <div key={b.l} style={{ marginBottom: 12 }}>
+              <div key={b.l} style={{ marginBottom: 10 }}>
                 <div
                   style={{
                     display: 'flex',
                     justifyContent: 'space-between',
-                    fontSize: 12,
-                    marginBottom: 4,
+                    fontSize: 11,
+                    marginBottom: 3,
                   }}
                 >
                   <span style={{ color: '#CBD5E1' }}>{b.l}</span>
                   <span style={{ fontWeight: 700, color: b.c }}>{b.v}%</span>
                 </div>
-                <div style={{ height: 5, background: 'rgba(255,255,255,0.1)', borderRadius: 3 }}>
+                <div style={{ height: 4, background: 'rgba(255,255,255,0.1)', borderRadius: 2 }}>
                   <div
                     style={{
-                      height: 5,
+                      height: 4,
                       width: `${b.v}%`,
                       background: b.c,
-                      borderRadius: 3,
+                      borderRadius: 2,
                       transition: 'width 0.4s',
                     }}
                   />
@@ -1014,23 +1100,23 @@ export default function VirtualCourt() {
             {/* Stress bar */}
             <p
               style={{
-                fontSize: 11,
+                fontSize: 10,
                 fontWeight: 600,
                 color: '#64748B',
                 textTransform: 'uppercase',
                 letterSpacing: '0.08em',
-                margin: '16px 0 12px',
+                margin: '12px 0 10px',
               }}
             >
               Stress
             </p>
-            <div style={{ marginBottom: 12 }}>
+            <div style={{ marginBottom: 10 }}>
               <div
                 style={{
                   display: 'flex',
                   justifyContent: 'space-between',
-                  fontSize: 12,
-                  marginBottom: 4,
+                  fontSize: 11,
+                  marginBottom: 3,
                 }}
               >
                 <span style={{ color: '#CBD5E1' }}>Daraja</span>
@@ -1038,13 +1124,13 @@ export default function VirtualCourt() {
                   {stressLevel}%
                 </span>
               </div>
-              <div style={{ height: 5, background: 'rgba(255,255,255,0.1)', borderRadius: 3 }}>
+              <div style={{ height: 4, background: 'rgba(255,255,255,0.1)', borderRadius: 2 }}>
                 <div
                   style={{
-                    height: 5,
+                    height: 4,
                     width: `${stressLevel}%`,
                     background: stressLevel > 60 ? '#EF4444' : '#FBBF24',
-                    borderRadius: 3,
+                    borderRadius: 2,
                     transition: 'width 0.4s',
                   }}
                 />
@@ -1053,17 +1139,108 @@ export default function VirtualCourt() {
             {/* Total */}
             <div
               style={{
-                marginTop: 16,
-                padding: 14,
+                marginTop: 12,
+                padding: 12,
                 background: 'rgba(124,58,237,0.15)',
                 borderRadius: 12,
                 border: '1px solid rgba(124,58,237,0.3)',
                 textAlign: 'center',
               }}
             >
-              <p style={{ fontSize: 11, color: '#A78BFA', margin: '0 0 4px' }}>Umumiy</p>
-              <p style={{ fontSize: 28, fontWeight: 800, color: '#fff', margin: 0 }}>{total}</p>
+              <p style={{ fontSize: 10, color: '#A78BFA', margin: '0 0 2px' }}>Umumiy</p>
+              <p style={{ fontSize: 24, fontWeight: 800, color: '#fff', margin: 0 }}>{total}</p>
             </div>
+          </aside>
+
+          {/* Participants panel */}
+          <aside
+            className="hidden sm:block"
+            style={{
+              width: 130,
+              background: 'rgba(0,0,0,0.3)',
+              borderRight: '1px solid rgba(255,255,255,0.07)',
+              padding: '14px 10px',
+              flexShrink: 0,
+              overflowY: 'auto',
+            }}
+          >
+            <p
+              style={{
+                fontSize: 9,
+                fontWeight: 600,
+                color: '#64748B',
+                textTransform: 'uppercase',
+                letterSpacing: '0.08em',
+                margin: '0 0 10px',
+                textAlign: 'center',
+              }}
+            >
+              Qatnashchilar
+            </p>
+            {participants.map(p => {
+              const colors: Record<string, string> = {
+                SUDYA: '#A78BFA',
+                PROKUROR: '#F87171',
+                ADVOKAT: '#60A5FA',
+                SUDLANUVCHI: '#FBBF24',
+                KOTIBA: '#34D399',
+                "DA'VOGAR": '#818CF8',
+                JAVOBGAR: '#FB923C',
+              }
+              return (
+                <div
+                  key={p.role}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: 2,
+                    padding: '8px 4px',
+                    marginBottom: 4,
+                    borderRadius: 10,
+                    background: p.isUser
+                      ? 'rgba(37,99,235,0.25)'
+                      : p.active
+                        ? 'rgba(255,255,255,0.08)'
+                        : 'transparent',
+                    border: p.isUser
+                      ? '1px solid rgba(37,99,235,0.5)'
+                      : p.active
+                        ? '1px solid rgba(255,255,255,0.15)'
+                        : '1px solid transparent',
+                  }}
+                >
+                  <span style={{ fontSize: 18 }}>{p.icon}</span>
+                  <span
+                    style={{
+                      fontSize: 9,
+                      fontWeight: p.isUser ? 700 : 500,
+                      color: p.active
+                        ? colors[p.role] || '#CBD5E1'
+                        : p.isUser
+                          ? '#93C5FD'
+                          : '#64748B',
+                      textAlign: 'center',
+                    }}
+                  >
+                    {p.title}
+                  </span>
+                  {p.isUser && (
+                    <span
+                      style={{
+                        fontSize: 7,
+                        background: '#2563EB',
+                        color: '#fff',
+                        padding: '1px 6px',
+                        borderRadius: 8,
+                      }}
+                    >
+                      Siz
+                    </span>
+                  )}
+                </div>
+              )
+            })}
           </aside>
 
           {/* Chat area */}
@@ -1231,15 +1408,20 @@ export default function VirtualCourt() {
                       marginBottom: 10,
                     }}
                   >
-                    <div
-                      style={{
-                        width: 8,
-                        height: 8,
-                        background: '#EF4444',
-                        borderRadius: '50%',
-                        animation: 'pulse 1s infinite',
-                      }}
-                    />
+                    {/* Voice visualization bars — animated via CSS */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 2, height: 20 }}>
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <div
+                          key={i}
+                          style={{
+                            width: 3,
+                            background: '#EF4444',
+                            borderRadius: 2,
+                            animation: `voice-bar 0.6s ${i * 0.1}s infinite alternate ease-in-out`,
+                          }}
+                        />
+                      ))}
+                    </div>
                     <span style={{ fontSize: 13, color: '#FCA5A5' }}>Tinglanmoqda... gapiring</span>
                     <button
                       onClick={stopMic}
@@ -1340,6 +1522,7 @@ export default function VirtualCourt() {
         @keyframes bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
         @keyframes spin { to{transform:rotate(360deg)} }
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+        @keyframes voice-bar { 0%{height:6px} 100%{height:18px} }
       `}</style>
       </div>
     )
@@ -1538,6 +1721,39 @@ export default function VirtualCourt() {
           )}
           {/* Actions */}
           <div style={{ display: 'flex', gap: 10 }}>
+            <button
+              onClick={() => {
+                // Export transcript as .txt
+                const header = `=== VIRTUAL SUD SIMULYATSIYASI ===\nIsh: ${caseItem.title}\nRol: ${role.title}\nSana: ${new Date().toLocaleDateString('uz-UZ')}\n\n`
+                const body = msgs
+                  .map(m => `[${m.speaker.toUpperCase()}] (${new Date(m.timestamp).toLocaleTimeString('uz-UZ')}): ${m.text}`)
+                  .join('\n\n')
+                const footer = `\n\n=== XULOSA ===\nUmumiy ball: ${results?.totalScore}/100\nXP: +${results?.xpEarned}\n`
+                const blob = new Blob([header + body + footer], { type: 'text/plain;charset=utf-8' })
+                const url = URL.createObjectURL(blob)
+                const a = document.createElement('a')
+                a.href = url
+                a.download = `virtual-sud-${Date.now()}.txt`
+                a.click()
+                URL.revokeObjectURL(url)
+              }}
+              style={{
+                padding: '12px 16px',
+                background: '#059669',
+                color: '#fff',
+                border: 'none',
+                borderRadius: 11,
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: 'pointer',
+                minHeight: 48,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+              }}
+            >
+              📥 Yuklab olish
+            </button>
             <button
               onClick={() => {
                 setPage('select')

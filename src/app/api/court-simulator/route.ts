@@ -3,7 +3,11 @@ import { NextRequest, NextResponse } from 'next/server'
 const GROQ_API_KEY = process.env.GROQ_API_KEY || process.env.NEXT_PUBLIC_GROQ_API_KEY
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
 
-async function groqChat(systemPrompt: string, userMessage: string) {
+async function groqChat(
+  systemPrompt: string,
+  userMessage: string,
+  maxTokens = 2048
+): Promise<{ text: string }> {
   if (!GROQ_API_KEY) return { text: 'AI xizmati sozlanmagan' }
 
   try {
@@ -19,8 +23,8 @@ async function groqChat(systemPrompt: string, userMessage: string) {
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userMessage },
         ],
-        temperature: 0.1,
-        max_tokens: 1024,
+        temperature: 0.15,
+        max_tokens: maxTokens,
       }),
     })
     const data = await res.json()
@@ -28,6 +32,38 @@ async function groqChat(systemPrompt: string, userMessage: string) {
   } catch {
     return { text: 'Xatolik yuz berdi' }
   }
+}
+
+/**
+ * Multi-role AI: generates responses for ALL courtroom participants
+ * Returns an array of { speaker, role, text }
+ */
+function parseMultiRoleResponse(raw: string): { speaker: string; role: string; text: string }[] {
+  const roles: { speaker: string; role: string; text: string }[] = []
+  const lines = raw.split('\n')
+  const rolePattern = /^\[?(SUDYA|PROKUROR|ADVOKAT|SUDLANUVCHI|KOTIBA|DA'VOGAR|JAVOBGAR|DA'VOGAR\s+VAKILI)\]?:?\s*(.*)/i
+  let current: { speaker: string; role: string; text: string } | null = null
+
+  for (const line of lines) {
+    const match = line.match(rolePattern)
+    if (match) {
+      if (current && current.text.trim()) roles.push(current)
+      current = {
+        speaker: match[1].trim(),
+        role: match[1].trim(),
+        text: match[2] || '',
+      }
+    } else if (current) {
+      current.text += (current.text ? '\n' : '') + line
+    }
+  }
+  if (current && current.text.trim()) roles.push(current)
+
+  // Fallback: if no structured roles found, return as judge message
+  if (roles.length === 0) {
+    roles.push({ speaker: 'SUDYA', role: 'SUDYA', text: raw })
+  }
+  return roles
 }
 
 export async function POST(request: NextRequest) {
@@ -48,9 +84,13 @@ YURIDIK BILIM DOIRASI:
 
 STRICT RULES:
 1. ACCURACY FIRST: Never invent or hallucinate legal articles (moddalar) or punishments. JK 97-modda is ALWAYS 'Qasddan odam o'ldirish (og'irlashtiruvchi holatlar)'. Never confuse codes.
-2. ROLE PLAY: In court simulator, you act as Sudya (Judge), Prokuror (Prosecutor), or Advokat (Defense Attorney) adhering strictly to official Uzbek court decorum.
+2. ROLE PLAY: In court simulator, you control ALL roles: SUDYA (Judge), PROKUROR (Prosecutor), ADVOKAT (Defense Attorney), SUDLANUVCHI (Defendant), KOTIBA (Court Secretary). Each role speaks independently with their own voice and legal position.
 3. PROCEDURAL CODES: Reference the correct procedural code: FPK for civil cases, JPK for criminal cases, IPK for economic disputes.
-4. FORMATTING: Use clean Markdown with headings ## and bullet points *.
+4. FORMATTING: Each response MUST be structured with role headers like:
+   [SUDYA]: Sudyaning matni...
+   [PROKUROR]: Prokurorning matni...
+   [ADVOKAT]: Advokatning matni...
+   (omit roles not relevant to this phase)
 5. LANGUAGE: Answer strictly in formal Uzbek language (O'zbek tili).
 6. If unsure about an exact article number, say "aniq modda uchun qonunlar bazasiga qarang" — never make up fake citations.`
 
@@ -81,47 +121,30 @@ PROTSESSUAL QOIDALAR:
 - Iqtisodiy nizolar bo'yicha: IPK (Iqtisodiy protsessual kodeksi) qoidalariga amal qiling
 - Sud majlisida: taraflarni tanishtirish, ishni e'lon qilish, taraflarning huquq va majburiyatlarini tushuntirish
 
+MUHIM — BARCHA ROLLAR UCHUN JAVOB:
+Sud majlisini ochganingizdan so'ng, quyidagi rollardan mos keladiganlarining pozitsiyasini ko'rsating:
+- [SUDYA]: Sudya majlisni ochadi, qoidalarni tushuntiradi
+- [PROKUROR]: (agar jinoyat ishi bo'lsa) Ayblov xulosasini o'qiydi
+- [ADVOKAT]: (agar jinoyat ishi bo'lsa) Himoya pozitsiyasini bildiradi
+- [SUDLANUVCHI]: (agar jinoyat ishi bo'lsa) O'z pozitsiyasini bildiradi
+- [KOTIBA]: Majlis bayonini yuritadi
+
 FORMAT:
-## Holat tahlili
-(qisqa tahlil)
+Har bir rolning javobini quyidagi formatda yoz:
+[SUDYA]: ...
+[PROKUROR]: ...
+(kerakli rollarni yoz, keraksizlarini tashlab ket)`
 
-## Qo'llaniladigan qonun
-(tegishli kodeks va moddalar)
-
-## Jarayon
-(boshlang'ich qadam va keyingi bosqichlar)`
-
-  const response = await groqChat(systemPrompt, `Sud jarayonini boshlang: ${caseDetails}`)
+  const response = await groqChat(systemPrompt, `Sud jarayonini boshlang: ${caseDetails}`, 2048)
 
   const simulationId = 'sim_' + Date.now()
-  const transcript = [
-    {
-      id: Date.now().toString(),
-      speaker: 'judge',
-      content: response.text || 'Sud majlisi boshlandi.',
-      timestamp: new Date().toISOString(),
-    },
-  ]
-
-  const evidence = [
-    {
-      id: 'ev_1',
-      type: 'document',
-      title: 'Asosiy dalil',
-      description: 'Ish materiallaridan',
-      credibility_score: 85,
-      relevance_score: 90,
-      authenticity_score: 95,
-      presented_by: 'plaintiff',
-    },
-  ]
+  const roles = parseMultiRoleResponse(response.text)
 
   return NextResponse.json({
     simulation_id: simulationId,
     status: 'active',
     current_phase: 'opening',
-    transcript,
-    evidence,
+    roles,
     ai_response: response.text,
     success: true,
   })
