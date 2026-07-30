@@ -714,7 +714,7 @@ function SignInContent() {
     try {
       const result = await firebaseAuth.signInWithGoogle()
       if (result.success && result.data) {
-        const          const role = result.data.role
+        const role = result.data.role
         router.push(role === 'ADMIN' ? '/admin' : '/dashboard')
       } else if (result.error) {
         setError(result.error)
