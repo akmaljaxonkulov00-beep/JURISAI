@@ -435,16 +435,10 @@ export default function VirtualCourt() {
       const roles = data.roles || []
       if (roles.length > 0) {
         addMultiRoleMessages(roles)
-      } else {
-        const txt = data.ai_response || "Simulyatsiya boshlandi. Sizning so'zingizni eshitaman."
-        addMsg(txt, 'judge', 'Sudya', 'ruling')
       }
-    } catch {
-      const txt =
-        simType.id === 'court'
-          ? "Sud majlisi ochiq deb e'lon qilinadi."
-          : "Simulyatsiya boshlandi. Sizning so'zingizni eshitaman."
-      addMsg(txt, 'judge', 'Sudya', 'ruling')
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Tarmoq xatoligi'
+      addMsg("Xatolik yuz berdi: " + errorMsg + ". Iltimos, internet ulanishini tekshirib, qayta urinib ko'ring.", 'judge', 'AI', 'ruling')
     } finally {
       setLoading(false)
     }
@@ -479,20 +473,14 @@ export default function VirtualCourt() {
         const roles = data.roles || []
         if (roles.length > 0) {
           addMultiRoleMessages(roles)
-          // Check if any role response is critical -> increase stress
           const allText = roles.map((r: any) => r.text).join(' ')
           if (allText.toLowerCase().includes('xato') || allText.toLowerCase().includes("e'tiroz")) {
             setStressLevel(s => Math.min(100, s + 15))
           }
-        } else {
-          const reply = data.transcript?.content || data.ai_response || 'Qabul qilindi.'
-          addMsg(reply, 'judge', 'Sudya', 'ruling')
-          if (reply.toLowerCase().includes('xato') || reply.toLowerCase().includes("e'tiroz")) {
-            setStressLevel(s => Math.min(100, s + 15))
-          }
         }
-      } catch {
-        addMsg("Xatolik yuz berdi. Qaytadan urinib ko'ring.", 'judge', 'AI', 'ruling')
+      } catch (err) {
+        const errorMsg = err instanceof Error ? err.message : 'Tarmoq xatoligi'
+        addMsg("Xatolik: " + errorMsg, 'judge', 'AI', 'ruling')
       } finally {
         setLoading(false)
       }
@@ -521,12 +509,10 @@ export default function VirtualCourt() {
       const roles = data.roles || []
       if (roles.length > 0) {
         addMultiRoleMessages(roles)
-      } else {
-        const verdict = data.verdict || 'Simulyatsiya yakunlandi.'
-        addMsg(verdict, 'judge', 'Sudya', 'ruling')
       }
-    } catch {
-      /* ignore */
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Tarmoq xatoligi'
+      console.error('Verdict error:', errorMsg)
     } finally {
       setLoading(false)
     }

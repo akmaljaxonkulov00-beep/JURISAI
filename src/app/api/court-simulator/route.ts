@@ -161,26 +161,25 @@ BAHOLASH MEZONLARI:
 2. Dalillarning ishonchliligi — dalillar qonuniy tartibda olinganmi?
 3. Taraflarning huquqiy pozitsiyasi — protsessual talablarga rioya qilinganmi?
 
+MUHIM — BARCHA ROLLAR UCHUN JAVOB:
+Har bir rol o'z pozitsiyasidan javob bersin:
+- [SUDYA]: Baho va keyingi qadam
+- [PROKUROR]: (agar jinoyat ishi bo'lsa) O'z pozitsiyasi
+- [ADVOKAT]: (agar jinoyat ishi bo'lsa) Himoya pozitsiyasi
+- [KOTIBA]: Jarayon bayoni
+
 FORMAT:
-## Baholash
-(qisqa huquqiy baho)
+[SUDYA]: ...
+[PROKUROR]: ...
+(kerakli rollarni yoz)`
 
-## Tegishli qonun
-(kodeks va modda nomi)
+  const response = await groqChat(systemPrompt, `Argument: "${argument}". Javobingizni bering.`, 2048)
 
-## Keyingi qadam
-(1 qadam va asoslash)`
-
-  const response = await groqChat(systemPrompt, `Argument: "${argument}". Javobingizni bering.`)
+  const roles = parseMultiRoleResponse(response.text)
 
   return NextResponse.json({
     success: true,
-    transcript: {
-      id: Date.now().toString(),
-      speaker: 'judge',
-      content: response.text,
-      timestamp: new Date().toISOString(),
-    },
+    roles,
     ai_response: response.text,
   })
 }
@@ -195,27 +194,47 @@ HUKM TARKIBI:
 2. Qonuniy asos — aniq kodeks, modda, band ko'rsatilgan
 3. Qarorning oqibatlari — ijro etish tartibi, shikoyat qilish muddati va tartibi
 
+MUHIM — BARCHA ROLLAR UCHUN JAVOB:
+- [SUDYA]: Yakuniy hukmni e'lon qiladi
+- [KOTIBA]: Hukm bayoni
+- [PROKUROR]: (agar jinoyat ishi) O'z fikri
+- [ADVOKAT]: (agar jinoyat ishi) O'z fikri
+
 FORMAT:
-## Sud qarori (hukm)
-(aniq qaror matni)
+[SUDYA]: ...
+[KOTIBA]: ...
+(kerakli rollarni yoz)`
 
-## Qonuniy asos
-(kodeks, modda, band)
+  const response = await groqChat(systemPrompt, 'Yakuniy hukmni chiqaring va barcha rollarning pozitsiyasini korsating.', 2048)
+  const roles = parseMultiRoleResponse(response.text)
 
-## Huquqiy oqibatlar
-(ijro, shikoyat qilish tartibi va muddatlari)`
+  // AI baholash asosida real ball
+  const evalPrompt = `${systemBase}
 
-  const response = await groqChat(systemPrompt, 'Yakuniy hukmni chiqaring.')
-  const score = Math.floor(70 + Math.random() * 30)
+Foydalanuvchining sud simulyatsiyasidagi ishtirokini 0-100 ball bilan baholang.
+
+BAHOLASH MEZONLARI:
+1. Yuridik bilim (0-100)
+2. Argumentatsiya (0-100)
+3. Etika va protsessual qoidalarga rioya qilish (0-100)
+
+Javobni faqat JSON formatida bering:
+{"legalAccuracy": 75, "argument": 80, "ethics": 90}`
+
+  const evalResponse = await groqChat(evalPrompt, 'Sud simulyatsiyasini baholang.', 512)
+  let evalData = { legalAccuracy: 70, argument: 70, ethics: 80 }
+  try {
+    const parsed = JSON.parse(evalResponse.text)
+    evalData = { ...evalData, ...parsed }
+  } catch { /* use defaults */ }
+
+  const totalScore = Math.round((evalData.legalAccuracy + evalData.argument + evalData.ethics) / 3)
 
   return NextResponse.json({
-    verdict: response.text,
-    score: Math.min(score, 100),
-    outcome: score >= 80 ? 'Yutildi' : score >= 60 ? 'Qisman yutildi' : 'Yutirilmadi',
-    feedback: {
-      argument_quality: score >= 80 ? "A'lo" : 'Yaxshi',
-      legal_knowledge: score >= 75 ? 'Yuqori' : "O'rta",
-      presentation: score >= 70 ? 'Professional' : 'Qoniqarli',
-    },
+    roles,
+    verdict: roles.find(r => r.role === 'SUDYA')?.text || response.text,
+    score: totalScore,
+    outcome: totalScore >= 80 ? 'Yutildi' : totalScore >= 60 ? 'Qisman yutildi' : 'Yutirilmadi',
+    evaluation: evalData,
   })
 }
