@@ -112,7 +112,6 @@ def parse_articles(text, code_id):
             current = {
                 'code_id': code_id,
                 'article_number': art_match.group(1).strip(),
-                'article_number_int': int(art_match.group(1).strip() or '0'),
                 'title': (art_match.group(2) or '').strip(),
                 'content': '',
                 'chapter': chapter,
