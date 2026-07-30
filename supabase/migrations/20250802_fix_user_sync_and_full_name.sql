@@ -76,7 +76,7 @@ SELECT
   COALESCE(au.created_at, NOW())
 FROM auth.users au
 WHERE NOT EXISTS (
-  SELECT 1 FROM public.registered_users ru WHERE ru.id = au.id::TEXT
+  SELECT 1 FROM public.registered_users ru WHERE ru.id::TEXT = au.id::TEXT
 );
 
 -- Update existing users (sync names, etc.)
@@ -84,17 +84,17 @@ UPDATE public.registered_users ru
 SET
   full_name = COALESCE(
     (SELECT COALESCE(au.raw_user_meta_data->>'full_name', au.raw_user_meta_data->>'name', au.raw_user_meta_data->>'display_name', ru.full_name)
-     FROM auth.users au WHERE au.id::TEXT = ru.id),
+     FROM auth.users au WHERE au.id::TEXT = ru.id::TEXT),
     ru.full_name
   ),
   name = COALESCE(
     (SELECT COALESCE(au.raw_user_meta_data->>'full_name', au.raw_user_meta_data->>'name', au.raw_user_meta_data->>'display_name', ru.name)
-     FROM auth.users au WHERE au.id::TEXT = ru.id),
+     FROM auth.users au WHERE au.id::TEXT = ru.id::TEXT),
     ru.name
   ),
   email = COALESCE(
     (SELECT COALESCE(au.raw_user_meta_data->>'email', au.email, ru.email)
-     FROM auth.users au WHERE au.id::TEXT = ru.id),
+     FROM auth.users au WHERE au.id::TEXT = ru.id::TEXT),
     ru.email
   ),
   role = CASE
@@ -103,7 +103,7 @@ SET
   END,
   is_active = true,
   updated_at = NOW()
-WHERE EXISTS (SELECT 1 FROM auth.users au WHERE au.id::TEXT = ru.id);
+WHERE EXISTS (SELECT 1 FROM auth.users au WHERE au.id::TEXT = ru.id::TEXT);
 
 -- ── PHASE 4: Ensure sync trigger exists ──────────────────────────────
 CREATE OR REPLACE FUNCTION public.sync_auth_user_to_registered()
