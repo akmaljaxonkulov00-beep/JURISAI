@@ -636,8 +636,14 @@ function SignInContent() {
     }
   }, [searchParams])
 
-  // Check for existing session on mount (redirect if already logged in)
+  // Process OAuth callbacks ONLY (e.g. Google login returning ?code=xxx)
+  // NEVER auto-redirect on existing session — users must actively log in each time.
   useEffect(() => {
+    const hasCode = searchParams?.get('code')
+    const hasError = searchParams?.get('error')
+    const hasOAuthFlow = hasCode || hasError
+    if (!hasOAuthFlow) return
+
     firebaseAuth
       .handleRedirectResult()
       .then(result => {
@@ -653,21 +659,9 @@ function SignInContent() {
       .catch(() => {})
   }, [router, searchParams])
 
-  // Redirect if already logged in
-  useEffect(() => {
-    if (!authLoading && user) {
-      const target =
-        user.role === 'ADMIN' || user.email?.toLowerCase() === 'akmaljaxonkulov00@gmail.com'
-          ? '/admin'
-          : '/dashboard'
-      // Use window.location for full navigation to ensure clean JS context
-      if (typeof window !== 'undefined') {
-        window.location.href = target
-      } else {
-        router.replace(target)
-      }
-    }
-  }, [user, authLoading, router])
+  // ── Auto-redirect REMOVED per user request ──
+  // Users MUST always see the signin page and actively log in.
+  // No auto-redirect to dashboard even if session exists.
 
   useEffect(() => {
     const remembered = localStorage.getItem('rememberedEmail')
@@ -756,7 +750,8 @@ function SignInContent() {
     )
   }
 
-  if (user) return null
+  // Always show the signin form — users MUST actively log in every time.
+  // No auto-hide even if user already has a session.
 
   return (
     <div className="min-h-screen lg:grid lg:grid-cols-2" onMouseMove={handleMouseMove}>

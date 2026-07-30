@@ -131,6 +131,16 @@ export function useLegalCodes() {
         }
       })
 
+      // Sort articles by article_number numerically (not alphabetically!)
+      // "article_number" is a string column, so Supabase sorts "1, 10, 100, 11..." instead of "1, 2, 3, 4..."
+      Array.from(categoryMap.values()).forEach((entry: any) => {
+        entry.articles.sort((a: LegalArticle, b: LegalArticle) => {
+          const numA = parseInt(a.number, 10) || 0
+          const numB = parseInt(b.number, 10) || 0
+          return numA - numB
+        })
+      })
+
       // Set totalArticles count
       const mapped: LegalCode[] = Array.from(categoryMap.values()).map((c: any) => ({
         ...c,
