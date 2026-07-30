@@ -3,6 +3,38 @@ import { NextRequest, NextResponse } from 'next/server'
 const GROQ_API_KEY = process.env.GROQ_API_KEY || process.env.NEXT_PUBLIC_GROQ_API_KEY
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
 
+// Server-side conversation history store (by simulationId)
+const conversationHistory = new Map<
+  string,
+  { role: 'user' | 'assistant'; content: string }[]
+>()
+
+function getHistory(simId: string): { role: 'user' | 'assistant'; content: string }[] {
+  if (!conversationHistory.has(simId)) {
+    conversationHistory.set(simId, [])
+  }
+  return conversationHistory.get(simId)!
+}
+
+function addToHistory(simId: string, entry: { role: 'user' | 'assistant'; content: string }) {
+  const hist = getHistory(simId)
+  hist.push(entry)
+  // Keep last 30 messages to limit memory
+  if (hist.length > 30) hist.splice(0, hist.length - 30)
+}
+
+// Cleanup old sessions after 1 hour
+setInterval(() => {
+  const oneHourAgo = Date.now() - 3600000
+  for (const key of conversationHistory.keys()) {
+    // Keys include timestamp: 'sim_' + Date.now()
+    const ts = parseInt(key.replace('sim_', ''))
+    if (!isNaN(ts) && ts < oneHourAgo) {
+      conversationHistory.delete(key)
+    }
+  }
+}, 600000)
+
 async function groqChat(
   systemPrompt: string,
   userMessage: string,
@@ -78,7 +110,7 @@ function parseMultiRoleResponse(raw: string): { speaker: string; role: string; t
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { action, caseDetails, argument, simulationId, history, userRole } = body
+    const { action, caseDetails, argument, simulationId, history, userRole, userName } = body
 
     const SYSTEM_BASE = `You are JurisAI — the leading expert AI Legal Assistant strictly specialized in the COMPLETE legislation of the Republic of Uzbekistan (O'zbekiston Respublikasi Qonunchiligi).
 
@@ -112,9 +144,9 @@ STRICT RULES:
 
     switch (action) {
       case 'start':
-        return await startSimulation(caseDetails, SYSTEM_BASE, userRole)
+        return await startSimulation(caseDetails, SYSTEM_BASE, userRole, userName)
       case 'submit_argument':
-        return await submitArgument(simulationId, argument, SYSTEM_BASE, history, userRole)
+        return await submitArgument(simulationId, argument, SYSTEM_BASE, userRole, userName, history)
       case 'get_verdict':
         return await getVerdict(simulationId, SYSTEM_BASE, userRole)
       default:
@@ -126,8 +158,14 @@ STRICT RULES:
   }
 }
 
-async function startSimulation(caseDetails: string, systemBase: string, userRole?: string) {
+async function startSimulation(
+  caseDetails: string,
+  systemBase: string,
+  userRole?: string,
+  userName?: string
+) {
   const userRoleUpper = (userRole || 'SUDYA').toUpperCase()
+  const displayName = userName || 'Foydalanuvchi'
 
   // AI boshqaradigan rollar (foydalanuvchi roli EMAS)
   const aiRoles = ['SUDYA', 'PROKUROR', 'ADVOKAT', 'SUDLANUVCHI', 'KOTIBA'].filter(
@@ -137,7 +175,7 @@ async function startSimulation(caseDetails: string, systemBase: string, userRole
   // Birinchi bo'lib kim gapirishi kerak
   let firstSpeaker: string
   const roleIntro: Record<string, string> = {
-    SUDYA: 'siz (sudya)',
+    SUDYA: displayName + ' (sudya)',
     PROKUROR: 'prokuror',
     ADVOKAT: 'advokat',
     SUDLANUVCHI: 'sudlanuvchi',
@@ -159,32 +197,35 @@ async function startSimulation(caseDetails: string, systemBase: string, userRole
   const systemPrompt = `${systemBase}
 
 MUHIM — ROL TAQSIMOTI:
-Foydalanuvchi "${roleIntro[userRoleUpper] || userRole}" rolini tanlagan.
+${displayName} "${roleIntro[userRoleUpper] || userRole}" rolini tanlagan.
 
 Sen FAQAT quyidagi rollar nomidan gapirasan: ${aiRoles.join(', ')}.
-"${userRoleUpper}" roli uchun HECH QACHON matn yozma — bu foydalanuvchining roli.
+"${userRoleUpper}" roli uchun HECH QACHON matn yozma — bu ${displayName}ning roli.
 
-Birinchi bo'lib "${firstSpeaker}" gapirsin va majlisni ochsin, taraflarni tanishtirsin, keyin foydalanuvchiga so'z bersin.
+Birinchi bo'lib "${firstSpeaker}" gapirsin va majlisni ochsin, taraflarni tanishtirsin, keyin ${displayName}ga so'z bersin.
 
 QAT'IY TALABLAR:
-1. HECH QACHON [ismi] yoki placeholder ishlatma. Haqiqiy o'zbekcha ism-familiya ishlat: Akbar Toshmatov, Nilufar Karimova, Botir Rahimov va hokazo.
+1. HECH QACHON [ismi] yoki placeholder ishlatma. Haqiqiy o'zbekcha ism-familiya ishlat.
 2. HAR DOIM to'liq, batafsil va realistik matn yoz. Bir-ikki jumla bilan cheklanma.
-3. "${userRoleUpper}" roli UCHUN MATN YOZMA — bu foydalanuvchining vazifasi.
-4. Majlisni och, ishni e'lon qil, barcha taraflarni (prokuror, advokat, sudlanuvchi) ismlari bilan tanishtir.
-5. Oxirida foydalanuvchiga (${roleIntro[userRoleUpper] || userRole}) so'z ber.
+3. "${userRoleUpper}" roli UCHUN MATN YOZMA — bu ${displayName}ning vazifasi.
+4. Majlisni och, ishni e'lon qil, barcha taraflarni ismlari bilan tanishtir.
+5. Foydalanuvchini "${displayName}" deb atab, unga so'z ber.
 
 FORMAT:
-[${firstSpeaker}]: (to'liq, batafsil ochilish nutqi. Ishni e'lon qil, taraflarni tanishtir, kerakli rollarni navbat bilan so'zga chaqir, keyin foydalanuvchiga so'z ber.)
+[${firstSpeaker}]: (to'liq, batafsil ochilish nutqi. Ishni e'lon qil, taraflarni tanishtir, kerakli rollarni navbat bilan so'zga chaqir, keyin ${displayName}ga so'z ber.)
 
 ESLATMA: Faqat hozir gapirishi KERAK bo'lgan rollarni formatga kirit. Boshqa rollar keyingi bosqichda gapirishi mumkin.`
 
   const response = await groqChat(
     systemPrompt,
-    `Sud jarayonini oching. Foydalanuvchi "${roleIntro[userRoleUpper] || userRole}" rolida. ${caseDetails}`,
+    `Sud jarayonini oching. Foydalanuvchi ${displayName} "${roleIntro[userRoleUpper] || userRole}" rolida. ${caseDetails}`,
     2048
   )
 
-  const simulationId = 'sim_' + Date.now()
+  // Save initial AI response to server history
+  const simulationId = 'sim_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6)
+  addToHistory(simulationId, { role: 'assistant', content: response.text })
+
   const roles = parseMultiRoleResponse(response.text)
 
   return NextResponse.json({
@@ -202,29 +243,52 @@ async function submitArgument(
   simulationId: string,
   argument: string,
   systemBase: string,
-  history?: { role: 'user' | 'assistant'; content: string }[],
-  userRole?: string
+  userRole?: string,
+  userName?: string,
+  history?: { role: 'user' | 'assistant'; content: string }[]
 ) {
   const userRoleUpper = (userRole || 'SUDYA').toUpperCase()
 
-  // AI boshqaradigan rollar (foydalanuvchi roli EMAS)
-  const aiRoles = ['SUDYA', 'PROKUROR', 'ADVOKAT', 'SUDLANUVCHI', 'KOTIBA'].filter(
-    r => r !== userRoleUpper
-  )
+  // Use server-side history if no client history provided
+  let convHistory = history
+  if (!convHistory || convHistory.length === 0) {
+    convHistory = getHistory(simulationId)
+  } else {
+    // Sync client history to server
+    conversationHistory.set(simulationId, history!)
+  }
+
+  // Save user message to server history
+  addToHistory(simulationId, { role: 'user', content: argument })
+
+  // AI boshqaradigan rollar (foydalanuvchi roli EMAS) — includes ALL sim types
+  const allPossibleRoles = [
+    'SUDYA', 'PROKUROR', 'ADVOKAT', 'SUDLANUVCHI', 'KOTIBA',
+    "DA'VOGAR", 'JAVOBGAR'
+  ]
+  const aiRoles = allPossibleRoles.filter(r => r !== userRoleUpper)
+
+  const displayName = userName || 'Foydalanuvchi'
 
   const systemPrompt = `${systemBase}
 
 MUHIM — ROL TAQSIMOTI:
-Foydalanuvchi "${userRoleUpper}" rolida gapirdi.
+${displayName} "${userRoleUpper}" rolida gapirdi.
 
 Sen FAQAT quyidagi rollar nomidan javob berasan: ${aiRoles.join(', ')}.
-"${userRoleUpper}" roli UCHUN MATN YOZMA — bu foydalanuvchining roli.
+"${userRoleUpper}" roli UCHUN MATN YOZMA — bu ${displayName}ning roli.
+
+MUHIM — KETMA-KETLIK:
+Bir vaqtning o'zida BARCHA rollar nomidan gapirma. Har bir rol O'Z navbatida gapirsin.
+Birinch bo'lib eng mos keladigan rol javob bersin, keyin boshqa rollar.
+Agar foydalanuvchining argumentiga faqat bitta rol javob berishi kerak bo'lsa, faqat o'sha rol gapirsin.
 
 QAT'IY TALABLAR:
 1. HECH QACHON [ismi] yoki placeholder ishlatma. Haqiqiy ism-familiya ishlat.
 2. TO'LIQ va BATAFSIL javob yoz, qisqa javob yozma.
 3. Faqat foydalanuvchining argumentiga TEGISHLI bo'lgan rollar javob bersin.
-4. "${userRoleUpper}" roli UCHUN MATN YOZMA.
+4. "${userRoleUpper}" roli UCHUN MATN YOZMA — bu ${displayName}ning roli.
+5. KETMA-KET javob ber — barcha rollarni birdaniga yozib tashlama.
 
 ROLLAR VAZIFASI:
 - [SUDYA]: Foydalanuvchining argumentini baholaydi, protsessual qaror qabul qiladi, keyingi qadamni aytadi
@@ -232,16 +296,20 @@ ROLLAR VAZIFASI:
 - [ADVOKAT]: Himoya pozitsiyasidan javob beradi (jinoyat ishlarida)
 - [SUDLANUVCHI]: Faqat so'ralganda javob beradi, o'z pozitsiyasini bildiradi
 - [KOTIBA]: Jarayon bayonini qisqacha qayd etadi
+- [DA'VOGAR]: Da'vogar pozitsiyasidan javob beradi (fuqarolik ishlarida)
+- [JAVOBGAR]: Javobgar pozitsiyasidan javob beradi (fuqarolik ishlarida)
 
-FORMAT:
-(kerakli rollarni yoz, keraksizlarini tashlab ket)`
+MUHIM ENG MUHIM QOIDA: Bir vaqtda faqat 1-2 ta rol gapirsin. Hammasi birdan gapirmasin.`
 
   const response = await groqChat(
     systemPrompt,
-    `Foydalanuvchi (${userRoleUpper}) argumenti: "${argument}". Unga javob bering.`,
+    `${displayName} (${userRoleUpper}) argumenti: "${argument}". Unga javob bering. Ketma-ketlikda javob bering — bir vaqtda hamma rollarni yozmang.`,
     2048,
-    history
+    convHistory
   )
+
+  // Save AI response to server history
+  addToHistory(simulationId, { role: 'assistant', content: response.text })
 
   const roles = parseMultiRoleResponse(response.text)
 

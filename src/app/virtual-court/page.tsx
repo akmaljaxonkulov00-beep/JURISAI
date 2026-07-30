@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { supabase } from '@/lib/supabase'
 import {
   ArrowLeft,
   Gavel,
@@ -158,11 +159,32 @@ export default function VirtualCourt() {
   const [simId, setSimId] = useState('')
   const [results, setResults] = useState<SimResult | null>(null)
   const [totalXp, setTotalXp] = useState(0)
+  const [userName, setUserName] = useState('')
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const recognitionRef = useRef<any>(null)
   const listeningRef = useRef(false)
   const silenceTimerRef = useRef<any>(null)
+  const voiceModeRef = useRef(false) // Track if user was using voice
+
+  // Load user info from Supabase
+  useEffect(() => {
+    const loadUser = async () => {
+      try {
+        const { data } = await supabase.auth.getSession()
+        const user = data?.session?.user
+        if (user) {
+          const name =
+            user.user_metadata?.full_name ||
+            user.user_metadata?.name ||
+            user.email?.split('@')[0] ||
+            ''
+          if (name) setUserName(name)
+        }
+      } catch {}
+    }
+    loadUser()
+  }, [])
 
   // Load XP from localStorage
   useEffect(() => {
@@ -208,6 +230,7 @@ export default function VirtualCourt() {
     r.lang = 'uz-UZ'
     r.continuous = true
     r.interimResults = true
+    voiceModeRef.current = true
     listeningRef.current = true
     setListening(true)
 
@@ -469,29 +492,115 @@ Ish haqida ma'lumot:
 • Qonun: ${caseItem.law}
 
 Eslatma: Siz ayblanayotgan modda bo'yicha javob berishingiz kerak. Rostini ayting, savollarga javob bering va o'z pozitsiyangizni himoya qiling. Yolg'on guvohlik berish javobgarlikka tortiladi.`,
+      "DA'VOGAR": `SIZNING ROLINGIZ: DA'VOGAR
+
+Vazifangiz:
+• O'z talablaringizni asoslash
+• Dalillarni taqdim etish
+• Javobgarning javobgarligini isbotlash
+
+Ish haqida ma'lumot:
+• ${caseItem.title}
+• ${caseItem.desc}
+• Qonun: ${caseItem.law}
+
+Eslatma: Da'vo arizasini asoslang, dalillarni keltiring va talablaringizni himoya qiling.`,
+      JAVOBGAR: `SIZNING ROLINGIZ: JAVOBGAR
+
+Vazifangiz:
+• Da'voga qarshi pozitsiya bildirish
+• O'z dalillaringizni taqdim etish
+• Da'vogar talablarini rad etish yoki qisman tan olish
+
+Ish haqida ma'lumot:
+• ${caseItem.title}
+• ${caseItem.desc}
+• Qonun: ${caseItem.law}
+
+Eslatma: Da'voga javob bering, qarshi dalillar keltiring va o'z pozitsiyangizni himoya qiling.`,
+      DETECTIVE: `SIZNING ROLINGIZ: DETEXTIV
+
+Vazifangiz:
+• Jinoyatni ochish
+• Dalillarni to'plash
+• Gumonlanuvchini aniqlash
+
+Ish haqida ma'lumot:
+• ${caseItem.title}
+• ${caseItem.desc}
+• Qonun: ${caseItem.law}
+
+Eslatma: Jinoyatni oching, guvohlarni so'roq qiling va dalillarni tahlil qiling.`,
+      INVESTIGATOR: `SIZNING ROLINGIZ: TERGOVCHI
+
+Vazifangiz:
+• Tergov harakatlarini olib borish
+• Dalillarni sinchiklab tekshirish
+• Jinoyatning to'liq manzarasini tiklash
+
+Ish haqida ma'lumot:
+• ${caseItem.title}
+• ${caseItem.desc}
+• Qonun: ${caseItem.law}
+
+Eslatma: Tergovni olib boring, dalillarni tahlil qiling va jinoyatni to'liq oching.`,
+      MASLAHATCHI: `SIZNING ROLINGIZ: HUQUQIY MASLAHATCHI
+
+Vazifangiz:
+• Mijozga huquqiy maslahat berish
+• Shartnoma shartlarini tahlil qilish
+• Kelishuvga erishishga yordam berish
+
+Ish haqida ma'lumot:
+• ${caseItem.title}
+• ${caseItem.desc}
+• Qonun: ${caseItem.law}
+
+Eslatma: Mijoz bilan muzokara qiling, huquqiy maslahat bering va kelishuvga erishing.`,
+      MEDIATOR: `SIZNING ROLINGIZ: MEDIATOR
+
+Vazifangiz:
+• Tomonlar o'rtasida kelishuvga erishish
+• Muzokaralarni boshqarish
+• O'zaro manfaatli yechim topish
+
+Ish haqida ma'lumot:
+• ${caseItem.title}
+• ${caseItem.desc}
+• Qonun: ${caseItem.law}
+
+Eslatma: Tomonlarni tinglang, ularga kelishuvga erishishga yordam bering va nizoni hal qiling.`,
     }
     return briefings[roleUpper] || `Sizning rolingiz: ${role.title}. Ish: ${caseItem.title}.`
   }
 
-  // ── Parse multi-role AI response ──
-  const addMultiRoleMessages = (rolesData: { speaker: string; role: string; text: string }[]) => {
-    for (const r of rolesData) {
-      const normalizedRole = r.role === role.id.toUpperCase() ? 'user' : 'judge'
-      const titleMap: Record<string, string> = {
-        SUDYA: 'Sudya',
-        PROKUROR: 'Prokuror',
-        ADVOKAT: 'Advokat',
-        SUDLANUVCHI: 'Sudlanuvchi',
-        KOTIBA: 'Kotiba',
-        "DA'VOGAR": "Da'vogar",
-        JAVOBGAR: 'Javobgar',
-      }
-      addMsg(r.text, normalizedRole as Msg['role'], titleMap[r.role] || r.role, 'ruling')
+  // ── Show AI roles SEQUENTIALLY (one by one with delay) ──
+  const addMultiRoleMessages = async (
+    rolesData: { speaker: string; role: string; text: string }[]
+  ) => {
+    const titleMap: Record<string, string> = {
+      SUDYA: 'Sudya',
+      PROKUROR: 'Prokuror',
+      ADVOKAT: 'Advokat',
+      SUDLANUVCHI: 'Sudlanuvchi',
+      KOTIBA: 'Kotiba',
+      "DA'VOGAR": "Da'vogar",
+      JAVOBGAR: 'Javobgar',
     }
-    // Update which role is active
-    if (rolesData.length > 0) {
-      const activeRole = rolesData[rolesData.length - 1].role
-      setParticipants(prev => prev.map(p => ({ ...p, active: p.role === activeRole })))
+
+    // Show each role one at a time with a delay
+    for (let i = 0; i < rolesData.length; i++) {
+      const r = rolesData[i]
+      const normalizedRole = r.role === role.id.toUpperCase() ? 'user' : 'judge'
+      addMsg(r.text, normalizedRole as Msg['role'], titleMap[r.role] || r.role, 'ruling')
+
+      // Update active participant
+      setParticipants(prev => prev.map(p => ({ ...p, active: p.role === r.role })))
+
+      // Delay between roles (2 seconds, except for last one)
+      if (i < rolesData.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 2000))
+      }
     }
   }
 
@@ -514,13 +623,14 @@ Eslatma: Siz ayblanayotgan modda bo'yicha javob berishingiz kerak. Rostini aytin
           action: 'start',
           caseDetails: getCasePrompt(),
           userRole: role.id.toUpperCase(),
+          userName: userName || role.title,
         }),
       })
       const data = await res.json()
       setSimId(data.simulation_id || 'vc_' + Date.now())
       const roles = data.roles || []
       if (roles.length > 0) {
-        addMultiRoleMessages(roles)
+        await addMultiRoleMessages(roles)
       }
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Tarmoq xatoligi'
@@ -552,14 +662,6 @@ Eslatma: Siz ayblanayotgan modda bo'yicha javob berishingiz kerak. Rostini aytin
       // Reduce stress
       setStressLevel(s => Math.max(0, s - 5))
       setLoading(true)
-      // Build conversation history from previous messages (last 10 turns)
-      const convHistory = msgs
-        .slice(-20)
-        .filter(m => m.text.length > 0)
-        .map(m => ({
-          role: m.role === 'user' ? ('user' as const) : ('assistant' as const),
-          content: `${m.speaker}: ${m.text}`,
-        }))
 
       try {
         const res = await fetch('/api/court-simulator', {
@@ -569,14 +671,14 @@ Eslatma: Siz ayblanayotgan modda bo'yicha javob berishingiz kerak. Rostini aytin
             action: 'submit_argument',
             simulationId: simId,
             argument: `${role.title} (${type}): ${txt}`,
-            history: convHistory,
             userRole: role.id.toUpperCase(),
+            userName: userName || role.title,
           }),
         })
         const data = await res.json()
         const roles = data.roles || []
         if (roles.length > 0) {
-          addMultiRoleMessages(roles)
+          await addMultiRoleMessages(roles)
           const allText = roles.map((r: any) => r.text).join(' ')
           if (allText.toLowerCase().includes('xato') || allText.toLowerCase().includes("e'tiroz")) {
             setStressLevel(s => Math.min(100, s + 15))
@@ -587,9 +689,17 @@ Eslatma: Siz ayblanayotgan modda bo'yicha javob berishingiz kerak. Rostini aytin
         addMsg('Xatolik: ' + errorMsg, 'judge', 'AI', 'ruling')
       } finally {
         setLoading(false)
+        // Voice loop: if was using voice, restart mic after AI responds
+        if (voiceModeRef.current && !override) {
+          setTimeout(() => {
+            if (!loading && !listening) {
+              startMic()
+            }
+          }, 500)
+        }
       }
     },
-    [input, loading, role, simId, simType, msgs]
+    [input, loading, role, simId, simType, msgs, userName, listening, startMic]
   )
 
   // ── End ──
@@ -616,7 +726,7 @@ Eslatma: Siz ayblanayotgan modda bo'yicha javob berishingiz kerak. Rostini aytin
       const data = await res.json()
       const roles = data.roles || []
       if (roles.length > 0) {
-        addMultiRoleMessages(roles)
+        await addMultiRoleMessages(roles)
       }
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Tarmoq xatoligi'
