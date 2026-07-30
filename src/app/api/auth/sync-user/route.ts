@@ -77,12 +77,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Fetch the newly created record
-    const { data } = await supabase.from('registered_users').select('*').eq('id', id).single()
+    const { data, error: fetchError } = await supabase.from('registered_users').select('*').eq('id', id).single()
 
-    if (error) {
+    if (fetchError) {
       // If table doesn't exist or RLS blocks, silently ignore
-      console.warn('[sync-user] Upsert error:', error.message)
-      return NextResponse.json({ success: false, error: error.message }, { status: 200 })
+      console.warn('[sync-user] Upsert error:', fetchError.message)
+      return NextResponse.json({ success: false, error: fetchError.message }, { status: 200 })
     }
 
     return NextResponse.json({ success: true, data })
