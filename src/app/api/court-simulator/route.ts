@@ -41,7 +41,8 @@ async function groqChat(
 function parseMultiRoleResponse(raw: string): { speaker: string; role: string; text: string }[] {
   const roles: { speaker: string; role: string; text: string }[] = []
   const lines = raw.split('\n')
-  const rolePattern = /^\[?(SUDYA|PROKUROR|ADVOKAT|SUDLANUVCHI|KOTIBA|DA'VOGAR|JAVOBGAR|DA'VOGAR\s+VAKILI)\]?:?\s*(.*)/i
+  const rolePattern =
+    /^\[?(SUDYA|PROKUROR|ADVOKAT|SUDLANUVCHI|KOTIBA|DA'VOGAR|JAVOBGAR|DA'VOGAR\s+VAKILI)\]?:?\s*(.*)/i
   let current: { speaker: string; role: string; text: string } | null = null
 
   for (const line of lines) {

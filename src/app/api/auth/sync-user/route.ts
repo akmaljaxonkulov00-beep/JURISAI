@@ -77,7 +77,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Fetch the newly created record
-    const { data, error: fetchError } = await supabase.from('registered_users').select('*').eq('id', id).single()
+    const { data, error: fetchError } = await supabase
+      .from('registered_users')
+      .select('*')
+      .eq('id', id)
+      .single()
 
     if (fetchError) {
       // If table doesn't exist or RLS blocks, silently ignore

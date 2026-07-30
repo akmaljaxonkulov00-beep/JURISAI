@@ -189,7 +189,7 @@ export default function CodeDetailPage() {
               <div className="flex items-start justify-between">
                 <div>
                   <div className="flex items-center gap-2 mb-2">
-                    <Badge className={CODE_BADGE_COLORS(code.id) || ''}>
+                    <Badge className={CODE_BADGE_COLORS[code.id] || ''}>
                       {CODE_DISPLAY_NAMES(code.id) || code.name}
                     </Badge>
                     <Badge variant="outline" className="text-xs">
@@ -323,11 +323,11 @@ export default function CodeDetailPage() {
 
         {/* Code Header */}
         <div
-          className={`p-6 rounded-2xl bg-gradient-to-r ${CODE_COLORS(code.id) || 'from-blue-500 to-blue-600'} text-white mb-6`}
+          className={`p-6 rounded-2xl bg-gradient-to-r ${CODE_COLORS[code.id] || 'from-blue-500 to-blue-600'} text-white mb-6`}
         >
           <div className="flex items-center gap-4">
             <div className="p-3 bg-white/20 rounded-xl">
-              {CODE_ICONS(code.id) || <BookOpen className="w-8 h-8" />}
+              {CODE_ICONS[code.id] || <BookOpen className="w-8 h-8" />}
             </div>
             <div>
               <h1 className="text-2xl font-bold">{CODE_DISPLAY_NAMES(code.id) || code.name}</h1>

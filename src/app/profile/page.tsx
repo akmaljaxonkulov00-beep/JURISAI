@@ -686,7 +686,7 @@ function ProfileContent() {
         )}
 
         {/* Payments History */}
-        {settingsSubTab === 'payments' && (
+        {(settingsSubTab as string) === 'payments' && (
           <div className="space-y-4">
             <div className="card-default rounded-2xl p-6">
               <h2 className="text-lg font-bold text-gray-800 dark:text-white mb-4 flex items-center gap-2">

@@ -304,7 +304,9 @@ export default function VirtualCourt() {
         animFrame = requestAnimationFrame(updateLevel)
       }
       updateLevel()
-    } catch { /* Audio viz will just use CSS bars */ }
+    } catch {
+      /* Audio viz fallback — CSS bars still show */
+    }
 
     r.start()
 
@@ -326,8 +328,12 @@ export default function VirtualCourt() {
     setAudioLevel(0)
     const r = recognitionRef.current
     if (r) {
-      try { if (r.__vuCleanup) r.__vuCleanup() } catch {}
-      try { r.stop() } catch {}
+      try {
+        if (r.__vuCleanup) r.__vuCleanup()
+      } catch {}
+      try {
+        r.stop()
+      } catch {}
     }
   }
 
@@ -400,19 +406,12 @@ export default function VirtualCourt() {
         "DA'VOGAR": "Da'vogar",
         JAVOBGAR: 'Javobgar',
       }
-      addMsg(
-        r.text,
-        normalizedRole as Msg['role'],
-        titleMap[r.role] || r.role,
-        'ruling'
-      )
+      addMsg(r.text, normalizedRole as Msg['role'], titleMap[r.role] || r.role, 'ruling')
     }
     // Update which role is active
     if (rolesData.length > 0) {
       const activeRole = rolesData[rolesData.length - 1].role
-      setParticipants(prev =>
-        prev.map(p => ({ ...p, active: p.role === activeRole }))
-      )
+      setParticipants(prev => prev.map(p => ({ ...p, active: p.role === activeRole })))
     }
   }
 
@@ -482,10 +481,7 @@ export default function VirtualCourt() {
           addMultiRoleMessages(roles)
           // Check if any role response is critical -> increase stress
           const allText = roles.map((r: any) => r.text).join(' ')
-          if (
-            allText.toLowerCase().includes('xato') ||
-            allText.toLowerCase().includes("e'tiroz")
-          ) {
+          if (allText.toLowerCase().includes('xato') || allText.toLowerCase().includes("e'tiroz")) {
             setStressLevel(s => Math.min(100, s + 15))
           }
         } else {
@@ -1448,19 +1444,40 @@ export default function VirtualCourt() {
                       marginBottom: 10,
                     }}
                   >
-                    {/* Voice visualization bars — animated via CSS */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 2, height: 20 }}>
-                      {Array.from({ length: 5 }).map((_, i) => (
-                        <div
-                          key={i}
-                          style={{
-                            width: 3,
-                            background: '#EF4444',
-                            borderRadius: 2,
-                            animation: `voice-bar 0.6s ${i * 0.1}s infinite alternate ease-in-out`,
-                          }}
-                        />
-                      ))}
+                    {/* Voice visualization bars — real VU meter via audioLevel */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 2, height: 24 }}>
+                      {Array.from({ length: 7 }).map((_, i) => {
+                        // Har bir bar uchun individual balandlik — audioLevel asosida
+                        const center = (audioLevel / 100) * 20
+                        const spread = (audioLevel / 100) * 8
+                        const barH = Math.max(
+                          3,
+                          Math.min(
+                            22,
+                            center + spread * Math.sin((i * Math.PI) / 3 + Date.now() / 300)
+                          )
+                        )
+                        const opacity = Math.max(0.3, audioLevel / 100 + 0.2)
+                        return (
+                          <div
+                            key={i}
+                            style={{
+                              width: 4,
+                              height: barH,
+                              background:
+                                audioLevel > 60
+                                  ? '#EF4444'
+                                  : audioLevel > 30
+                                    ? '#FBBF24'
+                                    : '#60A5FA',
+                              borderRadius: 3,
+                              opacity,
+                              transition: 'height 0.08s ease, opacity 0.15s ease',
+                              boxShadow: `0 0 ${audioLevel > 50 ? '4px' : '1px'} ${audioLevel > 60 ? 'rgba(239,68,68,0.5)' : 'rgba(96,165,250,0.3)'}`,
+                            }}
+                          />
+                        )
+                      })}
                     </div>
                     <span style={{ fontSize: 13, color: '#FCA5A5' }}>Tinglanmoqda... gapiring</span>
                     <button
@@ -1562,7 +1579,6 @@ export default function VirtualCourt() {
         @keyframes bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
         @keyframes spin { to{transform:rotate(360deg)} }
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
-        @keyframes voice-bar { 0%{height:6px} 100%{height:18px} }
       `}</style>
       </div>
     )
@@ -1766,10 +1782,15 @@ export default function VirtualCourt() {
                 // Export transcript as .txt
                 const header = `=== VIRTUAL SUD SIMULYATSIYASI ===\nIsh: ${caseItem.title}\nRol: ${role.title}\nSana: ${new Date().toLocaleDateString('uz-UZ')}\n\n`
                 const body = msgs
-                  .map(m => `[${m.speaker.toUpperCase()}] (${new Date(m.timestamp).toLocaleTimeString('uz-UZ')}): ${m.text}`)
+                  .map(
+                    m =>
+                      `[${m.speaker.toUpperCase()}] (${new Date(m.timestamp).toLocaleTimeString('uz-UZ')}): ${m.text}`
+                  )
                   .join('\n\n')
                 const footer = `\n\n=== XULOSA ===\nUmumiy ball: ${results?.totalScore}/100\nXP: +${results?.xpEarned}\n`
-                const blob = new Blob([header + body + footer], { type: 'text/plain;charset=utf-8' })
+                const blob = new Blob([header + body + footer], {
+                  type: 'text/plain;charset=utf-8',
+                })
                 const url = URL.createObjectURL(blob)
                 const a = document.createElement('a')
                 a.href = url

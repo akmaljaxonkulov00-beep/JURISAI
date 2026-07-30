@@ -1233,7 +1233,11 @@ export default function Community() {
         {showCreateGroup && (
           <div
             className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-            onClick={() => { setShowCreateGroup(false); setNewGroupName(''); setNewGroupDesc('') }}
+            onClick={() => {
+              setShowCreateGroup(false)
+              setNewGroupName('')
+              setNewGroupDesc('')
+            }}
           >
             <div
               className="bg-white dark:bg-zinc-900 rounded-2xl p-6 max-w-md w-full shadow-2xl"
@@ -1244,7 +1248,11 @@ export default function Community() {
                   Yangi guruh yaratish
                 </h3>
                 <button
-                  onClick={() => { setShowCreateGroup(false); setNewGroupName(''); setNewGroupDesc('') }}
+                  onClick={() => {
+                    setShowCreateGroup(false)
+                    setNewGroupName('')
+                    setNewGroupDesc('')
+                  }}
                   className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-zinc-300 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
                 >
                   <X className="w-5 h-5" />
@@ -1294,7 +1302,11 @@ export default function Community() {
               </div>
               <div className="flex justify-end gap-3 mt-6">
                 <button
-                  onClick={() => { setShowCreateGroup(false); setNewGroupName(''); setNewGroupDesc('') }}
+                  onClick={() => {
+                    setShowCreateGroup(false)
+                    setNewGroupName('')
+                    setNewGroupDesc('')
+                  }}
                   className="px-4 py-2 text-sm text-gray-600 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl transition-colors"
                 >
                   Bekor qilish
