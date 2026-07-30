@@ -1,7 +1,7 @@
 // API Service - Frontend API Integration
 import { toast } from '@/components/ui/Toast'
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_SITE_URL || (typeof window !== 'undefined' ? window.location.origin : '')
 
 interface ApiResponse<T> {
   data: T

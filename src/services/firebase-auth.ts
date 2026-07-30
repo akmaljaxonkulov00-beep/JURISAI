@@ -257,14 +257,9 @@ export async function signInWithGoogle(): Promise<{
   error?: string
 }> {
   try {
-    // Use dynamic redirectTo based on current origin.
-    // This ensures the callback goes to the correct URL in every
-    // environment (localhost, Vercel, custom domain).
-    // The OAuthHandler component (in root layout) catches the
-    // callback on ANY page — including the root URL.
-    // NOTE: No custom path like /auth/callback — that page was
-    // deleted. OAuthHandler works on EVERY page via root layout.
-    const redirectTo = window.location.origin
+    // Use dynamic redirectTo to the dedicated /auth/callback page.
+    // This ensures a clean, dedicated callback handler for Supabase OAuth.
+    const redirectTo = window.location.origin + '/auth/callback'
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {

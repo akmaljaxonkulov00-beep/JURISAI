@@ -28,6 +28,15 @@ export default function OAuthHandler() {
     if (handled.current) return
     handled.current = true
 
+    // SKIP on /auth/callback — that dedicated page handles its own exchange.
+    // If OAuthHandler ALSO processes the code, it will try exchangeCodeForSession
+    // AFTER the callback page already did it, causing a 'bad_oauth_state' error
+    // because the authorization code can only be used ONCE.
+    if (typeof window !== 'undefined' && window.location.pathname === '/auth/callback') {
+      console.log('[OAuthHandler] On /auth/callback — page handles its own exchange, skipping')
+      return
+    }
+
     // ── Debug: log all localStorage keys for Supabase auth ──
     const sbKeys: string[] = []
     for (let i = 0; i < localStorage.length; i++) {
