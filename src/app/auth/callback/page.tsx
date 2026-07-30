@@ -18,13 +18,17 @@ export default function AuthCallbackPage() {
       // If Supabase already redirected here with an error from Google
       if (error) {
         console.error('[AuthCallback] OAuth error:', error, errorDescription)
-        router.replace('/signin?error=' + encodeURIComponent(errorDescription || 'OAuth login failed'))
+        router.replace(
+          '/signin?error=' + encodeURIComponent(errorDescription || 'OAuth login failed')
+        )
         return
       }
 
       if (!code) {
         // No code — maybe already have session
-        const { data: { session } } = await supabase.auth.getSession()
+        const {
+          data: { session },
+        } = await supabase.auth.getSession()
         if (session?.user) {
           router.replace('/dashboard')
           return
@@ -33,7 +37,7 @@ export default function AuthCallbackPage() {
         return
       }
 
-      setStatus('Ro\'yxatdan o\'tkazilmoqda...')
+      setStatus("Ro'yxatdan o'tkazilmoqda...")
 
       try {
         // Exchange the authorization code for a session
@@ -46,11 +50,13 @@ export default function AuthCallbackPage() {
         }
 
         // Verify the session was created
-        const { data: { session } } = await supabase.auth.getSession()
+        const {
+          data: { session },
+        } = await supabase.auth.getSession()
 
         if (session?.user) {
           console.log('[AuthCallback] Session created successfully for:', session.user.email)
-          
+
           // Save user to localStorage for the AuthProvider
           const userData = {
             id: session.user.id,

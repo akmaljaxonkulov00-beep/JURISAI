@@ -156,7 +156,10 @@ export function useLegalCodes() {
       setCodes(mapped)
       setFromSupabase(true)
     } catch (err: any) {
-      console.warn('[useLegalCodes] Supabase direct fetch failed, trying API fallback:', err.message)
+      console.warn(
+        '[useLegalCodes] Supabase direct fetch failed, trying API fallback:',
+        err.message
+      )
 
       // Fallback: try API route
       try {

@@ -211,6 +211,7 @@ export function validatePasswordStrength(password: string): {
 export function isAllowedOrigin(origin: string): boolean {
   const allowedOrigins = [
     'http://localhost:3000',
+    'https://jurisai-dm4b-ten.vercel.app',
     'https://jurisai.uz',
     'https://www.jurisai.uz',
     'https://jurisai.vercel.app',
