@@ -438,7 +438,14 @@ export default function VirtualCourt() {
       }
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Tarmoq xatoligi'
-      addMsg("Xatolik yuz berdi: " + errorMsg + ". Iltimos, internet ulanishini tekshirib, qayta urinib ko'ring.", 'judge', 'AI', 'ruling')
+      addMsg(
+        'Xatolik yuz berdi: ' +
+          errorMsg +
+          ". Iltimos, internet ulanishini tekshirib, qayta urinib ko'ring.",
+        'judge',
+        'AI',
+        'ruling'
+      )
     } finally {
       setLoading(false)
     }
@@ -459,6 +466,15 @@ export default function VirtualCourt() {
       // Reduce stress
       setStressLevel(s => Math.max(0, s - 5))
       setLoading(true)
+      // Build conversation history from previous messages (last 10 turns)
+      const convHistory = msgs
+        .slice(-20)
+        .filter(m => m.text.length > 0)
+        .map(m => ({
+          role: m.role === 'user' ? ('user' as const) : ('assistant' as const),
+          content: `${m.speaker}: ${m.text}`,
+        }))
+
       try {
         const res = await fetch('/api/court-simulator', {
           method: 'POST',
@@ -467,6 +483,7 @@ export default function VirtualCourt() {
             action: 'submit_argument',
             simulationId: simId,
             argument: `${role.title} (${type}): ${txt}`,
+            history: convHistory,
           }),
         })
         const data = await res.json()
@@ -480,12 +497,12 @@ export default function VirtualCourt() {
         }
       } catch (err) {
         const errorMsg = err instanceof Error ? err.message : 'Tarmoq xatoligi'
-        addMsg("Xatolik: " + errorMsg, 'judge', 'AI', 'ruling')
+        addMsg('Xatolik: ' + errorMsg, 'judge', 'AI', 'ruling')
       } finally {
         setLoading(false)
       }
     },
-    [input, loading, role, simId, simType]
+    [input, loading, role, simId, simType, msgs]
   )
 
   // ── End ──

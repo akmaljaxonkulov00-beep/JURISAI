@@ -6,11 +6,22 @@ const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
 async function groqChat(
   systemPrompt: string,
   userMessage: string,
-  maxTokens = 2048
+  maxTokens = 2048,
+  history?: { role: 'user' | 'assistant'; content: string }[]
 ): Promise<{ text: string }> {
   if (!GROQ_API_KEY) return { text: 'AI xizmati sozlanmagan' }
 
   try {
+    const messages: any[] = [{ role: 'system', content: systemPrompt }]
+    // Add conversation history if provided (limited to last 10 turns to save tokens)
+    if (history && history.length > 0) {
+      const recentHistory = history.slice(-10)
+      for (const msg of recentHistory) {
+        messages.push({ role: msg.role, content: msg.content })
+      }
+    }
+    messages.push({ role: 'user', content: userMessage })
+
     const res = await fetch(GROQ_API_URL, {
       method: 'POST',
       headers: {
@@ -19,10 +30,7 @@ async function groqChat(
       },
       body: JSON.stringify({
         model: 'llama-3.3-70b-versatile',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userMessage },
-        ],
+        messages,
         temperature: 0.15,
         max_tokens: maxTokens,
       }),
@@ -70,7 +78,7 @@ function parseMultiRoleResponse(raw: string): { speaker: string; role: string; t
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { action, caseDetails, argument, simulationId } = body
+    const { action, caseDetails, argument, simulationId, history } = body
 
     const SYSTEM_BASE = `You are JurisAI — the leading expert AI Legal Assistant strictly specialized in the COMPLETE legislation of the Republic of Uzbekistan (O'zbekiston Respublikasi Qonunchiligi).
 
@@ -99,7 +107,7 @@ STRICT RULES:
       case 'start':
         return await startSimulation(caseDetails, SYSTEM_BASE)
       case 'submit_argument':
-        return await submitArgument(simulationId, argument, SYSTEM_BASE)
+        return await submitArgument(simulationId, argument, SYSTEM_BASE, history)
       case 'get_verdict':
         return await getVerdict(simulationId, SYSTEM_BASE)
       default:
@@ -132,7 +140,11 @@ QAT'IY TALABLAR:
 FORMAT:
 [SUDYA]: (to'liq, batafsil ochilish nutqi. Ishni e'lon qil, taraflarni tanishtir, keyin foydalanuvchiga so'z ber.)`
 
-  const response = await groqChat(systemPrompt, `Sud jarayonini oching. Foydalanuvchi roli: ${caseDetails}`, 2048)
+  const response = await groqChat(
+    systemPrompt,
+    `Sud jarayonini oching. Foydalanuvchi roli: ${caseDetails}`,
+    2048
+  )
 
   const simulationId = 'sim_' + Date.now()
   const roles = parseMultiRoleResponse(response.text)
@@ -147,7 +159,12 @@ FORMAT:
   })
 }
 
-async function submitArgument(simulationId: string, argument: string, systemBase: string) {
+async function submitArgument(
+  simulationId: string,
+  argument: string,
+  systemBase: string,
+  history?: { role: 'user' | 'assistant'; content: string }[]
+) {
   const systemPrompt = `${systemBase}
 
 Endi foydalanuvchi o'z argumentini yubordi. Sen O'zbekiston Respublikasi sudyasisan va quyidagi rollardan mos keladiganlarining javobini tayyorlaysan.
@@ -168,7 +185,12 @@ FORMAT:
 [PROKUROR]: ...
 (kerakli rollarni yoz, keraksizlarini tashlab ket)`
 
-  const response = await groqChat(systemPrompt, `Foydalanuvchi argumenti: "${argument}". Unga javob bering.`, 2048)
+  const response = await groqChat(
+    systemPrompt,
+    `Foydalanuvchi argumenti: "${argument}". Unga javob bering.`,
+    2048,
+    history
+  )
 
   const roles = parseMultiRoleResponse(response.text)
 
@@ -200,7 +222,11 @@ FORMAT:
 [KOTIBA]: ...
 (kerakli rollarni yoz)`
 
-  const response = await groqChat(systemPrompt, 'Yakuniy hukmni chiqaring va barcha rollarning pozitsiyasini korsating.', 2048)
+  const response = await groqChat(
+    systemPrompt,
+    'Yakuniy hukmni chiqaring va barcha rollarning pozitsiyasini korsating.',
+    2048
+  )
   const roles = parseMultiRoleResponse(response.text)
 
   // AI baholash asosida real ball
@@ -222,7 +248,9 @@ Javobni faqat JSON formatida bering:
     const jsonStr = evalResponse.text.replace(/```json?\s*|\s*```/g, '').trim()
     const parsed = JSON.parse(jsonStr)
     evalData = { ...evalData, ...parsed }
-  } catch { /* use defaults */ }
+  } catch {
+    /* use defaults */
+  }
 
   const totalScore = Math.round((evalData.legalAccuracy + evalData.argument + evalData.ethics) / 3)
 
