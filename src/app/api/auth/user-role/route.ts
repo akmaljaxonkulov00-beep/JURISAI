@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { normalizeRole } from '@/lib/roles'
 
 /**
  * GET /api/auth/user-role?email=...&userId=...
@@ -35,6 +36,7 @@ export async function GET(request: NextRequest) {
       auth: { autoRefreshToken: false, persistSession: false },
     })
 
+    // 1) userId bo'yicha qidirish (registered_users.id == Supabase auth user id)
     let query = supabase
       .from('registered_users')
       .select('id, email, name, role, subscription_plan, subscription_expires_at')
@@ -52,11 +54,26 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: false, error: error.message }, { status: 500 })
     }
 
-    if (!data) {
+    // 2) userId topilmasa — email bo'yicha fallback (id bog'lanishi buzilgan holatlar)
+    let row = data
+    if (!row && userId && email) {
+      const fallback = await supabase
+        .from('registered_users')
+        .select('id, email, name, role, subscription_plan, subscription_expires_at')
+        .eq('email', (email || '').toLowerCase())
+        .maybeSingle()
+      if (!fallback.error) row = fallback.data
+    }
+
+    if (!row) {
       return NextResponse.json({ success: true, data: null })
     }
 
-    return NextResponse.json({ success: true, data })
+    // Rol ichki formatga keltiriladi: ADMIN/SUPER_ADMIN/admin/super_admin → ADMIN
+    return NextResponse.json({
+      success: true,
+      data: { ...row, role: normalizeRole(row.role) },
+    })
   } catch (error: any) {
     console.warn('[user-role] error:', error?.message)
     return NextResponse.json(

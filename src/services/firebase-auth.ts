@@ -74,19 +74,29 @@ function mapSupabaseUser(sbUser: any): AuthUser {
  *   3. Manba topilmasa — email asosidagi admin ro'yxati (ensureSuperAdmin)
  */
 async function resolveUserRole(user: AuthUser): Promise<AuthUser> {
-  try {
+  const lookup = async () => {
     const params = new URLSearchParams()
     if (user.email) params.set('email', user.email)
     if (user.id && user.id !== 'super-admin') params.set('userId', user.id)
     const res = await fetch('/api/auth/user-role?' + params.toString(), {
       cache: 'no-cache',
     })
-    const result = await res.json()
+    if (!res.ok) throw new Error('user-role API failed: ' + res.status)
+    return res.json()
+  }
+
+  try {
+    let result = await lookup()
+    // Bir martalik retry — tarmoq/API uzilishi holatida
+    if (!result || !result.success || !result.data) {
+      await new Promise(r => setTimeout(r, 600))
+      result = await lookup()
+    }
 
     if (result.success && result.data) {
       const d = result.data
       // Rol database'dan olinadi — ADMIN/SUPER_ADMIN/admin/super_admin
-      // qiymatlarining barchasi admin deb tan olinadi.
+      // qiymatlarining barchasi admin deb tan olinadi (API normalizatsiya qilgan).
       const dbRole: 'USER' | 'ADMIN' = normalizeRole(d.role)
       const resolved: AuthUser = {
         ...user,
@@ -110,9 +120,13 @@ async function resolveUserRole(user: AuthUser): Promise<AuthUser> {
       } catch {}
       return resolved
     }
-  } catch {}
-  // Fallback: email asosidagi admin ro'yxati (mavjud tizim buzilmaydi)
-  return ensureSuperAdmin(user)
+  } catch {
+    // API'ga ulanishda xato — pastdagi fallback
+  }
+
+  // Fallback: user_metadata dagi rol (avvalgi resolveUserRole DB'dan yozgan).
+  // Hardcoded email ishlatilmaydi — faqat role qiymatiga qaraladi.
+  return ensureSuperAdmin({ ...user, role: normalizeRole(user.role) })
 }
 
 /**
@@ -123,7 +137,10 @@ async function resolveUserRole(user: AuthUser): Promise<AuthUser> {
 export async function finalizeUserSession(sbUser: any): Promise<AuthUser> {
   const user = mapSupabaseUser(sbUser)
   const resolved = await resolveUserRole(user)
-  return saveUserToLocal(resolved)
+  const saved = saveUserToLocal(resolved)
+  // Google OAuth kirishini auth_logs ga yozamiz (admin kirish loglari uchun)
+  logAuthEvent(saved.email, 'google', saved.id, true).catch(() => {})
+  return saved
 }
 
 async function logAuthEvent(email: string, method: string, userId?: string, success?: boolean) {
@@ -353,8 +370,8 @@ export async function handleRedirectResult(): Promise<{
 
 export async function signOut(): Promise<void> {
   try {
-    const user = getCurrentUser()
-    if (user) logAuthEvent(user.email, 'logout', user.id, false)
+    // auth_logs jadvalidagi method cheklovi logout qiymatini qabul qilmaydi —
+    // chiqish logi yozilmaydi (kirish loglari etarli)
     await supabase.auth.signOut()
   } catch {
     // Ignore signOut errors

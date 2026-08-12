@@ -1148,14 +1148,12 @@ export default function AdminDashboard() {
                                 </span>
                                 <Badge
                                   className={
-                                    u.role === 'ADMIN' || u.role === 'admin'
+                                    isAdminRole(u.role)
                                       ? 'bg-blue-100 text-blue-800'
                                       : 'bg-gray-100 dark:bg-zinc-800/30 text-gray-600 dark:text-zinc-400'
                                   }
                                 >
-                                  {u.role === 'ADMIN' || u.role === 'admin'
-                                    ? 'Admin'
-                                    : 'Foydalanuvchi'}
+                                  {isAdminRole(u.role) ? 'Admin' : 'Foydalanuvchi'}
                                 </Badge>
                                 {u.blocked && (
                                   <Badge className="bg-red-100 text-red-800">Bloklangan</Badge>
