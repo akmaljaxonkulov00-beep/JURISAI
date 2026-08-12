@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { Input } from '@/components/ui/Input'
 import { useAuth } from '@/services/auth'
+import { isAdminRole } from '@/lib/roles'
 import { api } from '@/services/api'
 import {
   ArrowLeft,
@@ -52,7 +53,7 @@ export default function PaymentAdmin() {
   const [actionLoading, setActionLoading] = useState(false)
 
   useEffect(() => {
-    if (user?.role !== 'ADMIN') {
+    if (!isAdminRole(user?.role)) {
       window.location.href = '/dashboard'
       return
     }

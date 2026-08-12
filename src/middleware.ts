@@ -2,18 +2,34 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 /**
- * MIDDLEWARE — Minimal
+ * MIDDLEWARE — Route Protection
  *
- * Auth is handled by client-side providers.tsx + firebase-auth.ts
- * (Supabase onAuthStateChange reads from localStorage).
- * Middleware just passes through — no cookie/server-side auth check.
+ * Auth holati asosan client-side (Supabase localStorage/sessionStorage)
+ * da saqlanadi, lekin login/OAuth tugagach `jurisai_auth` cookie'si ham
+ * yoziladi (firebase-auth.ts saveUserToLocal + /auth/callback).
  *
- * This avoids redirect loops with Google OAuth where the session
- * is stored in client-side localStorage but the middleware can't
- * read it.
+ * Himoyalangan routlar (/admin, /payment-admin):
+ *   - cookie yo'q → /signin ga qayta yo'naltirish (server-side gate)
+ *   - cookie bor → o'tkaziladi; haqiqiy admin tekshiruvi admin sahifasi
+ *     ichida database roli (isAdminRole) asosida bajariladi.
+ *
+ * OAuth callback (/auth/callback) bloklanmaydi — Google qaytganida
+ * session hali yaratilayotgan bo'lishi mumkin.
  */
-
 export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl
+
+  // Admin routlar — tizimga kirmagan foydalanuvchi uchun darhol /signin
+  if (pathname.startsWith('/admin') || pathname.startsWith('/payment-admin')) {
+    const hasAuthCookie = request.cookies.get('jurisai_auth')?.value === '1'
+    if (!hasAuthCookie) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/signin'
+      url.searchParams.set('redirectTo', pathname)
+      return NextResponse.redirect(url)
+    }
+  }
+
   return NextResponse.next()
 }
 

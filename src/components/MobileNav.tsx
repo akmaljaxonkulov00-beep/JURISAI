@@ -124,7 +124,7 @@ export default function MobileNav() {
         ref={panelRef}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
-        className={`md:hidden fixed top-0 left-0 z-50 h-full w-72 max-w-[85vw] bg-white dark:bg-zinc-900 shadow-2xl transform transition-transform duration-300 ease-in-out overflow-y-auto overscroll-contain ${
+        className={`md:hidden fixed top-0 left-0 z-50 h-full w-72 max-w-[85vw] bg-white dark:bg-zinc-900 shadow-2xl transform transition-transform duration-300 ease-in-out overflow-y-auto overflow-x-hidden overscroll-contain ${
           open ? 'translate-x-0' : '-translate-x-full'
         }`}
         aria-hidden={!open}
@@ -160,16 +160,24 @@ export default function MobileNav() {
         <div className="py-3 px-3 pb-24">
           {isAuthenticated ? (
             <>
-              {/* User info */}
-              <div className="flex items-center gap-3 px-3 py-3 mb-2 bg-gray-50 dark:bg-zinc-800/60 rounded-xl">
+              {/* User info — ism/email kesilmasligi uchun flex-1 + min-w-0 */}
+              <div className="flex items-center gap-3 px-3 py-3 mb-2 bg-gray-50 dark:bg-zinc-800/60 rounded-xl overflow-hidden">
                 <div className="w-9 h-9 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
                   {user?.name?.charAt(0).toUpperCase() || 'U'}
                 </div>
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold text-gray-800 dark:text-white truncate">
+                <div className="flex-1 min-w-0">
+                  <p
+                    className="text-sm font-semibold text-gray-800 dark:text-white truncate"
+                    title={user?.name}
+                  >
                     {user?.name}
                   </p>
-                  <p className="text-xs text-gray-500 dark:text-zinc-400 truncate">{user?.email}</p>
+                  <p
+                    className="text-xs text-gray-500 dark:text-zinc-400 truncate"
+                    title={user?.email}
+                  >
+                    {user?.email}
+                  </p>
                 </div>
                 {isAdmin && (
                   <span className="ml-auto text-[10px] font-semibold px-2 py-0.5 rounded-full bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 flex-shrink-0">

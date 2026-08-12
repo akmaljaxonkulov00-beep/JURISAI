@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react'
 import { supabase } from '@/lib/supabase-browser'
+import { isAdminRole } from '@/lib/roles'
 
 /**
  * Universal OAuth callback handler.
@@ -138,8 +139,10 @@ export default function OAuthHandler() {
     import('@/services/firebase-auth')
       .then(async ({ finalizeUserSession }) => {
         try {
+          // Rol DB'dan aniqlanmaguncha redirect qilinmaydi —
+          // admin Google orqali kirsa ham /admin ga boradi.
           const savedUser = await finalizeUserSession(sbUser)
-          window.location.href = savedUser.role === 'ADMIN' ? '/admin' : '/dashboard'
+          window.location.href = isAdminRole(savedUser.role) ? '/admin' : '/dashboard'
         } catch {
           window.location.href = '/dashboard'
         }

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase-browser'
 import { finalizeUserSession } from '@/services/firebase-auth'
+import { isAdminRole } from '@/lib/roles'
 
 export default function AuthCallbackPage() {
   const router = useRouter()
@@ -60,9 +61,11 @@ export default function AuthCallbackPage() {
 
           // Rolni Supabase registered_users dan aniqlab, lokal saqlaymiz.
           // Admin Google orqali kirsa → /admin ga yo'naltiriladi.
+          // Rol aniqlanmaguncha redirect qilinmaydi (race condition yo'q):
+          // finalizeUserSession DB'dan rolni olgach, admin → /admin, user → /dashboard
           const savedUser = await finalizeUserSession(session.user)
-          document.cookie = `jurisai_auth=1; path=/; max-age=${24 * 60 * 60}; SameSite=Lax`
-          router.replace(savedUser.role === 'ADMIN' ? '/admin' : '/dashboard')
+          document.cookie = `jurisai_auth=1; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax`
+          router.replace(isAdminRole(savedUser.role) ? '/admin' : '/dashboard')
         } else {
           console.error('[AuthCallback] No session after exchange')
           router.replace('/signin?error=' + encodeURIComponent('Session creation failed'))

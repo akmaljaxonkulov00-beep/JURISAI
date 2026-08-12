@@ -4,6 +4,7 @@ import { ReactNode, createContext, useContext, useState, useEffect } from 'react
 import { ThemeProvider } from '@/context/ThemeContext'
 import { firebaseAuth } from '@/services/firebase-auth'
 import type { AuthUser } from '@/services/firebase-auth'
+import { isAdminRole } from '@/lib/roles'
 
 interface AuthContextType {
   user: AuthUser | null
@@ -30,7 +31,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
 
   const isAuthenticated = !!user
-  const isAdmin = user?.role === 'ADMIN' || (user?.role as string) === 'admin'
+  const isAdmin = isAdminRole(user?.role)
   const hasActiveSubscription = user?.subscription_expires_at
     ? new Date(user.subscription_expires_at) > new Date()
     : false

@@ -13,6 +13,7 @@ import OnboardingTour from '@/components/OnboardingTour'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { NAV_GROUPS, filterNavGroups, isNavItemActive } from '@/components/layout/navigation'
+import { isAdminRole } from '@/lib/roles'
 import {
   FileText,
   TrendingUp,
@@ -137,7 +138,7 @@ export default function Dashboard() {
   // ── Single source of truth: shared NAV_GROUPS + filter ──────────
   const navigationGroups = filterNavGroups(NAV_GROUPS, {
     isAuthenticated: !!user,
-    isAdmin: user?.role === 'ADMIN' || (user?.role as string) === 'admin',
+    isAdmin: isAdminRole(user?.role),
   })
 
   const getRarityColor = (rarity: string) => {

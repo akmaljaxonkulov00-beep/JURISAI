@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { firebaseAuth } from '@/services/firebase-auth'
+import { isAdminRole } from '@/lib/roles'
 import { useAuth } from '@/app/providers'
 import { useRealtimeStats } from '@/hooks/useRealtimeStats'
 import AnimatedCounter from '@/components/AnimatedCounter'
@@ -644,14 +645,14 @@ function SignInContent() {
     const hasOAuthFlow = hasCode || hasError
     if (!hasOAuthFlow) return
 
-    // Use role from session user metadata instead of hardcoded email
+    // Rol DB'dan aniqlangan holda yo'naltiramiz (hardcoded email yo'q)
     firebaseAuth
       .handleRedirectResult()
       .then(result => {
         if (result.success && result.data) {
           const role = result.data.role
           router.replace(
-            role === 'ADMIN' ? '/admin' : searchParams?.get('redirectTo') || '/dashboard'
+            isAdminRole(role) ? '/admin' : searchParams?.get('redirectTo') || '/dashboard'
           )
         }
       })
@@ -681,7 +682,7 @@ function SignInContent() {
           if (rememberMe) localStorage.setItem('rememberedEmail', email)
           else localStorage.removeItem('rememberedEmail')
           const role = result.data?.role
-          router.push(role === 'ADMIN' ? '/admin' : '/dashboard')
+          router.push(isAdminRole(role) ? '/admin' : '/dashboard')
         } else {
           setError(result.error || "Email yoki parol noto'g'ri")
         }
@@ -713,7 +714,7 @@ function SignInContent() {
       const result = await firebaseAuth.signInWithGoogle()
       if (result.success && result.data) {
         const role = result.data.role
-        router.push(role === 'ADMIN' ? '/admin' : '/dashboard')
+        router.push(isAdminRole(role) ? '/admin' : '/dashboard')
       } else if (result.error) {
         setError(result.error)
       }

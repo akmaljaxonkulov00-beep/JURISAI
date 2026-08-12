@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
+import { isAdminRole } from '@/lib/roles'
 
 // Telegram service import with error handling
 let telegramService: any = null
@@ -113,14 +114,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Check if user is admin
+    // Check if user is admin — rol registered_users (database) dan olinadi
     const { data: userData, error: userError } = await supabase
-      .from('profiles')
+      .from('registered_users')
       .select('role')
       .eq('id', user.id)
-      .single()
+      .maybeSingle()
 
-    if (userError || !userData || userData.role !== 'ADMIN') {
+    if (userError || !userData || !isAdminRole(userData.role)) {
       return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 })
     }
 
@@ -201,14 +202,14 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Check if user is admin
+    // Check if user is admin — rol registered_users (database) dan olinadi
     const { data: userData, error: userError } = await supabase
-      .from('profiles')
+      .from('registered_users')
       .select('role')
       .eq('id', user.id)
-      .single()
+      .maybeSingle()
 
-    if (userError || !userData || userData.role !== 'ADMIN') {
+    if (userError || !userData || !isAdminRole(userData.role)) {
       return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 })
     }
 

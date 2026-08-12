@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/app/providers'
+import { isAdminRole } from '@/lib/roles'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
@@ -73,9 +74,6 @@ function ImageLightbox({ image, onClose }: { image: string | null; onClose: () =
   )
 }
 
-// ===== SUPER ADMIN HARDCODED CREDENTIALS =====
-const SUPER_ADMIN_EMAIL = 'akmaljaxonkulov00@gmail.com'
-
 interface SiteSettings {
   announcementBanner: string
   heroTitle: string
@@ -138,7 +136,7 @@ type TabType =
 
 export default function AdminDashboard() {
   const router = useRouter()
-  const { user, isAdmin, login, setUser, logout: authLogout } = useAuth()
+  const { user, isAdmin, setUser, logout: authLogout } = useAuth()
   const [activeTab, setActiveTab] = useState<TabType>('dashboard')
   const [loading, setLoading] = useState(true)
   const [adminUser, setAdminUser] = useState<any>(null)
@@ -243,7 +241,7 @@ export default function AdminDashboard() {
           if (!user) {
             setUser(parsedUser)
           }
-          if (parsedUser.email.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase()) {
+          if (isAdminRole(parsedUser.role)) {
             setAdminUser(parsedUser)
           }
         }
@@ -269,43 +267,45 @@ export default function AdminDashboard() {
   }
 
   // ===== ADMIN AUTH =====
+  // Kirish Supabase orqali amalga oshiriladi, adminlik esa database'dagi
+  // haqiqiy roldan (registered_users) tekshiriladi — hardcoded email yo'q.
   const handleAdminLogin = async () => {
     setAdminAuthError('')
 
     const normalizedEmail = authEmail.trim().toLowerCase()
     const normalizedPass = authPassword.trim()
-    const superEmail = SUPER_ADMIN_EMAIL.trim().toLowerCase()
 
-    if (normalizedEmail === superEmail) {
-      const adminData: any = {
-        id: 'super-admin',
-        email: SUPER_ADMIN_EMAIL,
-        name: 'Super Admin',
-        role: 'ADMIN' as const,
-        subscription_plan: 'pro',
-      }
-      localStorage.setItem('auth_user', JSON.stringify(adminData))
-      sessionStorage.setItem('auth_user', JSON.stringify(adminData))
-      localStorage.setItem('jurisai_user', JSON.stringify(adminData))
-      sessionStorage.setItem('jurisai_user', JSON.stringify(adminData))
-      sessionStorage.setItem('auth_token', 'super-admin')
-      localStorage.setItem('jurisai_admin_email', SUPER_ADMIN_EMAIL)
-
-      setAdminUser(adminData)
-      setUser(adminData)
-      setAdminAuthError('')
+    if (!normalizedEmail || !normalizedPass) {
+      setAdminAuthError('Email va parolni kiriting')
       return
-    } else {
-      try {
-        const result = await login(normalizedEmail, normalizedPass)
-        if (result.success) {
+    }
+
+    try {
+      const result = await firebaseAuth.signIn(normalizedEmail, normalizedPass)
+      if (result.success && result.data) {
+        if (isAdminRole(result.data.role)) {
+          const adminData: any = {
+            ...result.data,
+            id: result.data.id || 'admin',
+            subscription_plan: result.data.subscription_plan || 'pro',
+          }
+          localStorage.setItem('auth_user', JSON.stringify(adminData))
+          sessionStorage.setItem('auth_user', JSON.stringify(adminData))
+          localStorage.setItem('jurisai_user', JSON.stringify(adminData))
+          sessionStorage.setItem('jurisai_user', JSON.stringify(adminData))
+          sessionStorage.setItem('auth_token', adminData.id)
+
+          setAdminUser(adminData)
+          setUser(adminData)
           setAdminAuthError('')
         } else {
-          setAdminAuthError(result.error || "Email yoki parol noto'g'ri")
+          setAdminAuthError("Bu akkaunt admin huquqiga ega emas")
         }
-      } catch {
-        setAdminAuthError('Tizimga kirishda xatolik yuz berdi.')
+      } else {
+        setAdminAuthError(result.error || "Email yoki parol noto'g'ri")
       }
+    } catch {
+      setAdminAuthError('Tizimga kirishda xatolik yuz berdi.')
     }
   }
 
@@ -595,9 +595,9 @@ export default function AdminDashboard() {
     URL.revokeObjectURL(url)
   }
 
-  // Auto-detect admin
-  const autoDetectedAdmin = user?.email?.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase()
-  const isSuperAdmin = adminUser?.email === SUPER_ADMIN_EMAIL || user?.email === SUPER_ADMIN_EMAIL
+  // Adminlik database'dagi roldan aniqlanadi (isAdminRole: ADMIN/SUPER_ADMIN)
+  const autoDetectedAdmin = isAdminRole(user?.role)
+  const isSuperAdmin = isAdminRole(user?.role) || isAdminRole(adminUser?.role)
   const effectiveIsAdmin = isAdmin || isSuperAdmin || !!adminUser || autoDetectedAdmin
   const effectiveUser = adminUser || user
 
@@ -644,7 +644,7 @@ export default function AdminDashboard() {
                 type="email"
                 value={authEmail}
                 onChange={e => setAuthEmail(e.target.value)}
-                placeholder={SUPER_ADMIN_EMAIL}
+                placeholder="Admin email"
                 className="w-full"
               />
             </div>

@@ -8,6 +8,7 @@
  */
 
 import { supabase } from '@/lib/supabase-browser'
+import { isAdminRole, normalizeRole } from '@/lib/roles'
 
 export interface AuthUser {
   id: string
@@ -21,34 +22,25 @@ export interface AuthUser {
 }
 
 // ── Admin configuration ───────────────────────────────────────────
-const ADMIN_SETTING_KEY = 'jurisai_admin_email'
-const SUPER_ADMIN_EMAIL = 'akmaljaxonkulov00@gmail.com'
+// Rol manbai — Supabase registered_users (database). Hardcoded email
+// orqali admin aniqlanmaydi: ADMIN/SUPER_ADMIN qiymatlari isAdminRole()
+// orqali tan olinadi.
 
 function checkIsAdmin(user: AuthUser): boolean {
-  if (user.role === 'ADMIN') return true
-  if (user.email === SUPER_ADMIN_EMAIL) return true
-  try {
-    const adminEmail = localStorage.getItem(ADMIN_SETTING_KEY)
-    if (adminEmail && user.email === adminEmail) return true
-  } catch {}
-  return false
+  return isAdminRole(user.role)
 }
 
 export function setAdminEmail(email: string) {
-  localStorage.setItem(ADMIN_SETTING_KEY, email)
+  localStorage.setItem('jurisai_admin_email', email)
 }
 
 export function getAdminEmail(): string | null {
-  return localStorage.getItem(ADMIN_SETTING_KEY)
+  return localStorage.getItem('jurisai_admin_email')
 }
 
 export function ensureSuperAdmin(user: AuthUser): AuthUser {
-  if (user.email === SUPER_ADMIN_EMAIL) {
-    const adminUser = { ...user, role: 'ADMIN' as const }
-    setAdminEmail(user.email)
-    return adminUser
-  }
-  return user
+  // Rol database'dan keladi — bu yerda faqat admin rolini ichki formatga keltiramiz.
+  return isAdminRole(user.role) ? { ...user, role: 'ADMIN' as const } : user
 }
 
 export function makeCurrentUserAdmin(user: AuthUser): AuthUser {
@@ -93,7 +85,9 @@ async function resolveUserRole(user: AuthUser): Promise<AuthUser> {
 
     if (result.success && result.data) {
       const d = result.data
-      const dbRole: 'USER' | 'ADMIN' = d.role === 'ADMIN' ? 'ADMIN' : 'USER'
+      // Rol database'dan olinadi — ADMIN/SUPER_ADMIN/admin/super_admin
+      // qiymatlarining barchasi admin deb tan olinadi.
+      const dbRole: 'USER' | 'ADMIN' = normalizeRole(d.role)
       const resolved: AuthUser = {
         ...user,
         role: dbRole,
@@ -174,7 +168,7 @@ function saveUserToLocal(user: AuthUser) {
   sessionStorage.setItem('auth_user', JSON.stringify(userWithMeta))
   sessionStorage.setItem('auth_token', user.id)
   if (typeof document !== 'undefined') {
-    document.cookie = `jurisai_auth=1; path=/; max-age=${24 * 60 * 60}; SameSite=Lax`
+    document.cookie = `jurisai_auth=1; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax`
   }
 
   // Append to registered_users list for admin
@@ -229,22 +223,8 @@ export async function signIn(
   email: string,
   password: string
 ): Promise<{ success: boolean; data?: AuthUser; error?: string }> {
-  const normalizedEmail = email.trim().toLowerCase()
-
-  // Super admin bypass (for development / recovery)
-  if (normalizedEmail === SUPER_ADMIN_EMAIL.trim().toLowerCase()) {
-    const adminData: AuthUser = {
-      id: 'super-admin',
-      email: SUPER_ADMIN_EMAIL,
-      name: 'Super Admin',
-      role: 'ADMIN',
-      subscription_plan: 'pro',
-    }
-    saveUserToLocal(adminData)
-    logAuthEvent(SUPER_ADMIN_EMAIL, 'email', 'super-admin', true)
-    return { success: true, data: adminData }
-  }
-
+  // Rol faqat Supabase database'dan (registered_users) aniqlanadi —
+  // hardcoded email bypass yo'q.
   try {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) throw error
