@@ -47,8 +47,13 @@ export async function POST(request: NextRequest) {
         .update({ status: 'approved', updated_at: new Date().toISOString() })
         .eq('id', paymentId)
 
-      // Update user balance in registered_users
+      // Update user balance + premium subscription in registered_users
       if (payment.user_id) {
+        const plan = (payment.plan || 'standart').toLowerCase()
+        const expiresAt = new Date()
+        expiresAt.setMonth(expiresAt.getMonth() + 1)
+        const expiresIso = expiresAt.toISOString()
+
         // Fetch current balance first
         const { data: userData } = await supabase
           .from('registered_users')
@@ -63,9 +68,32 @@ export async function POST(request: NextRequest) {
           .from('registered_users')
           .update({
             balance: newBalance,
+            subscription_plan: plan,
+            subscription_expires_at: expiresIso,
             updated_at: new Date().toISOString(),
           })
           .eq('id', payment.user_id)
+
+        // Auth user_metadata — premium huquq sayt bo'ylab darhol faollashadi
+        try {
+          await supabase.auth.admin.updateUserById(payment.user_id, {
+            user_metadata: {
+              subscription_plan: plan,
+              subscription_expires_at: expiresIso,
+            },
+          })
+        } catch {}
+
+        // Legacy users table (mavjud bo'lsa)
+        try {
+          await supabase
+            .from('users')
+            .update({
+              subscription_plan: plan,
+              subscription_expires_at: expiresIso,
+            })
+            .eq('id', payment.user_id)
+        } catch {}
       }
 
       return NextResponse.json({

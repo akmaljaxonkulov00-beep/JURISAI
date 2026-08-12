@@ -93,7 +93,7 @@ export default function OAuthHandler() {
           supabase.auth.getSession().then(({ data: { session } }) => {
             if (session?.user) {
               console.log('[OAuthHandler] Session found via getSession fallback!')
-              window.location.href = '/dashboard'
+              redirectAfterOAuth(session.user)
             } else {
               console.error('[OAuthHandler] No session found after exchange failure')
               window.location.href = '/signin?error=' + encodeURIComponent(error.message)
@@ -101,13 +101,17 @@ export default function OAuthHandler() {
           })
         } else {
           console.log('[OAuthHandler] Session created successfully!')
-          // Verify session was stored
+          // Verify session was stored, then resolve role and redirect
           supabase.auth.getSession().then(({ data: { session } }) => {
             console.log('[OAuthHandler] Post-exchange session exists:', !!session?.user)
+            if (session?.user) {
+              // Clean URL before navigating
+              window.history.replaceState({}, '', window.location.pathname)
+              redirectAfterOAuth(session.user)
+            } else {
+              window.location.href = '/signin'
+            }
           })
-          // Clean URL before navigating
-          window.history.replaceState({}, '', window.location.pathname)
-          window.location.href = '/dashboard'
         }
       })
       .catch(err => {
@@ -124,6 +128,26 @@ export default function OAuthHandler() {
         })
       })
   }, [])
+
+  /**
+   * OAuth sessiyasi yaratilgandan so'ng foydalanuvchi rolini aniqlab
+   * yo'naltiradi: Admin → /admin, oddiy foydalanuvchi → /dashboard.
+   * Rol Supabase registered_users dan olinadi (user_metadata emas).
+   */
+  function redirectAfterOAuth(sbUser: any) {
+    import('@/services/firebase-auth')
+      .then(async ({ finalizeUserSession }) => {
+        try {
+          const savedUser = await finalizeUserSession(sbUser)
+          window.location.href = savedUser.role === 'ADMIN' ? '/admin' : '/dashboard'
+        } catch {
+          window.location.href = '/dashboard'
+        }
+      })
+      .catch(() => {
+        window.location.href = '/dashboard'
+      })
+  }
 
   // This component renders nothing — it's purely a side-effect handler
   return null

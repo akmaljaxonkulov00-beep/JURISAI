@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase-browser'
+import { finalizeUserSession } from '@/services/firebase-auth'
 
 export default function AuthCallbackPage() {
   const router = useRouter()
@@ -57,19 +58,11 @@ export default function AuthCallbackPage() {
         if (session?.user) {
           console.log('[AuthCallback] Session created successfully for:', session.user.email)
 
-          // Save user to localStorage for the AuthProvider
-          const userData = {
-            id: session.user.id,
-            email: session.user.email || '',
-            name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'User',
-            role: session.user.user_metadata?.role || 'USER',
-          }
-          sessionStorage.setItem('jurisai_user', JSON.stringify(userData))
-          sessionStorage.setItem('auth_user', JSON.stringify(userData))
+          // Rolni Supabase registered_users dan aniqlab, lokal saqlaymiz.
+          // Admin Google orqali kirsa → /admin ga yo'naltiriladi.
+          const savedUser = await finalizeUserSession(session.user)
           document.cookie = `jurisai_auth=1; path=/; max-age=${24 * 60 * 60}; SameSite=Lax`
-
-          // Redirect to dashboard
-          router.replace('/dashboard')
+          router.replace(savedUser.role === 'ADMIN' ? '/admin' : '/dashboard')
         } else {
           console.error('[AuthCallback] No session after exchange')
           router.replace('/signin?error=' + encodeURIComponent('Session creation failed'))

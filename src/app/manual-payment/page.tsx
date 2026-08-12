@@ -26,11 +26,65 @@ function PaymentContent() {
   const [paymentStatus, setPaymentStatus] = useState<'idle' | 'pending' | 'success'>('idle')
   const [adminSettings, setAdminSettings] = useState<any>(null)
   const [showCheckout, setShowCheckout] = useState(false)
+  const [checkStatus, setCheckStatus] = useState<'pending' | 'approved' | 'rejected'>('pending')
 
   useEffect(() => {
     // Load admin settings (bank cards from admin panel) — with Supabase sync
     loadCardSettings()
   }, [])
+
+  // ── Chek holatini real vaqtda kuzatish (Kutilmoqda/Tasdiqlangan/Rad etilgan) ──
+  useEffect(() => {
+    if (paymentStatus !== 'pending') return
+    const user = JSON.parse(
+      sessionStorage.getItem('jurisai_user') || sessionStorage.getItem('auth_user') || '{}'
+    )
+    if (!user?.id) return
+
+    let cancelled = false
+    const checkStatusNow = async () => {
+      try {
+        const res = await fetch('/api/payments?userId=' + encodeURIComponent(user.id), {
+          cache: 'no-cache',
+        })
+        const result = await res.json()
+        if (!result.success || cancelled) return
+        const reqs = result.data?.payments || []
+        if (reqs.length === 0) return
+        const latest = reqs[0]
+        if (latest.status === 'approved') {
+          setCheckStatus('approved')
+          // Lokaldagi foydalanuvchi sessiyasini premium qilamiz
+          const stored =
+            sessionStorage.getItem('jurisai_user') || sessionStorage.getItem('auth_user')
+          if (stored) {
+            try {
+              const u = JSON.parse(stored)
+              const updated = {
+                ...u,
+                subscription_plan: latest.plan || u.subscription_plan || 'standart',
+                subscription_expires_at: new Date(
+                  Date.now() + 365 * 86400000
+                ).toISOString(),
+              }
+              sessionStorage.setItem('jurisai_user', JSON.stringify(updated))
+              sessionStorage.setItem('auth_user', JSON.stringify(updated))
+              localStorage.setItem('auth_user', JSON.stringify(updated))
+            } catch {}
+          }
+        } else if (latest.status === 'rejected') {
+          setCheckStatus('rejected')
+        }
+      } catch {}
+    }
+
+    checkStatusNow()
+    const timer = setInterval(checkStatusNow, 15000)
+    return () => {
+      cancelled = true
+      clearInterval(timer)
+    }
+  }, [paymentStatus])
 
   const loadCardSettings = async () => {
     // Use sync service — tries Supabase first, falls back to localStorage
@@ -244,11 +298,33 @@ function PaymentContent() {
             </CardTitle>
           </CardHeader>
           <CardContent className="text-center space-y-4">
-            <div className="p-4 bg-yellow-50 dark:bg-yellow-900/10 border border-yellow-200 dark:border-yellow-800 rounded-xl">
-              <p className="text-yellow-800 dark:text-yellow-300 text-sm">
-                To'lovingiz moderator tomonidan tekshirilmoqda. 1-24 soat ichida tasdiqlanadi.
-              </p>
-            </div>
+            {checkStatus === 'pending' && (
+              <div className="p-4 bg-yellow-50 dark:bg-yellow-900/10 border border-yellow-200 dark:border-yellow-800 rounded-xl">
+                <p className="text-yellow-800 dark:text-yellow-300 text-sm font-medium">
+                  Kutilmoqda — to'lovingiz moderator tomonidan tekshirilmoqda.
+                </p>
+                <p className="text-yellow-600 dark:text-yellow-400 text-xs mt-1">
+                  Odatda 1-24 soat ichida tasdiqlanadi. Holat avtomatik yangilanadi.
+                </p>
+              </div>
+            )}
+            {checkStatus === 'approved' && (
+              <div className="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl">
+                <p className="text-green-700 dark:text-green-300 text-sm font-medium">
+                  ✓ Tasdiqlandi — premium tarif faollashtirildi!
+                </p>
+              </div>
+            )}
+            {checkStatus === 'rejected' && (
+              <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl">
+                <p className="text-red-700 dark:text-red-300 text-sm font-medium">
+                  ✗ Rad etildi — chek tekshiruvdan o'tmadi.
+                </p>
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
+                  Yangi chek yuklash uchun qaytaring: /premium
+                </p>
+              </div>
+            )}
             <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4 text-left space-y-2">
               <div className="flex justify-between">
                 <span className="text-gray-500 dark:text-gray-400 dark:text-zinc-500">Tarif:</span>
@@ -268,8 +344,15 @@ function PaymentContent() {
                 className="w-full max-w-xs mx-auto rounded-lg shadow-sm"
               />
             )}
-            <Button onClick={() => router.push('/dashboard')} className="w-full">
-              Dashboardga qaytish
+            <Button
+              onClick={() => router.push(checkStatus === 'approved' ? '/dashboard' : '/premium')}
+              className="w-full"
+            >
+              {checkStatus === 'approved'
+                ? 'Dashboardga o\'tish'
+                : checkStatus === 'rejected'
+                  ? 'Qayta urinish'
+                  : 'Dashboardga qaytish'}
             </Button>
           </CardContent>
         </Card>

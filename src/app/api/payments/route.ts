@@ -7,6 +7,26 @@ export async function GET(request: NextRequest) {
     const userId = searchParams.get('userId')
     const status = searchParams.get('status')
 
+    // Foydalanuvchi o'z chekining holatini tekshirayotgan bo'lsa —
+    // payment_requests (manual-payment oqimi yozadigan jadval) dan o'qiymiz.
+    if (userId) {
+      const reqQuery = supabase
+        .from('payment_requests')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .eq('user_id', userId)
+
+      if (status) reqQuery.eq('status', status)
+
+      const { data: userRequests, error: reqError } = await reqQuery
+      if (reqError) throw reqError
+
+      return NextResponse.json({
+        success: true,
+        data: { payments: userRequests || [], total: userRequests?.length || 0 },
+      })
+    }
+
     let query = supabase
       .from('payments')
       .select(

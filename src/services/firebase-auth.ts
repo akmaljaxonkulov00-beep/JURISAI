@@ -75,6 +75,63 @@ function mapSupabaseUser(sbUser: any): AuthUser {
   }
 }
 
+/**
+ * Foydalanuvchi rolini ISHONCHLI manbadan aniqlaydi:
+ *   1. Supabase registered_users jadvali (role, subscription) — asosiy manba
+ *   2. Rol auth user_metadata ga yoziladi — sahifa yangilanganda ham saqlanadi
+ *   3. Manba topilmasa — email asosidagi admin ro'yxati (ensureSuperAdmin)
+ */
+async function resolveUserRole(user: AuthUser): Promise<AuthUser> {
+  try {
+    const params = new URLSearchParams()
+    if (user.email) params.set('email', user.email)
+    if (user.id && user.id !== 'super-admin') params.set('userId', user.id)
+    const res = await fetch('/api/auth/user-role?' + params.toString(), {
+      cache: 'no-cache',
+    })
+    const result = await res.json()
+
+    if (result.success && result.data) {
+      const d = result.data
+      const dbRole: 'USER' | 'ADMIN' = d.role === 'ADMIN' ? 'ADMIN' : 'USER'
+      const resolved: AuthUser = {
+        ...user,
+        role: dbRole,
+      }
+      if (d.subscription_plan) resolved.subscription_plan = d.subscription_plan
+      if (d.subscription_expires_at) resolved.subscription_expires_at = d.subscription_expires_at
+      if (d.name) resolved.name = d.name
+
+      // Rol va premium ma'lumotni auth user_metadata ga yozamiz —
+      // shunda sahifa yangilanganda ham admin roli yo'qolmaydi.
+      try {
+        await supabase.auth.updateUser({
+          data: {
+            role: resolved.role,
+            subscription_plan: resolved.subscription_plan || 'free',
+            subscription_expires_at: resolved.subscription_expires_at || null,
+            name: resolved.name,
+          },
+        })
+      } catch {}
+      return resolved
+    }
+  } catch {}
+  // Fallback: email asosidagi admin ro'yxati (mavjud tizim buzilmaydi)
+  return ensureSuperAdmin(user)
+}
+
+/**
+ * Supabase session foydalanuvchisini to'liq yakunlaydi:
+ *   map → rol aniqlash → lokal saqlash. OAuth callback va login oqimlari
+ *   buni chaqiradi. Qaytarilgan AuthUser'ning role maydoni ishonchli.
+ */
+export async function finalizeUserSession(sbUser: any): Promise<AuthUser> {
+  const user = mapSupabaseUser(sbUser)
+  const resolved = await resolveUserRole(user)
+  return saveUserToLocal(resolved)
+}
+
 async function logAuthEvent(email: string, method: string, userId?: string, success?: boolean) {
   try {
     await fetch('/api/log/auth', {
@@ -194,7 +251,8 @@ export async function signIn(
     if (!data?.user) throw new Error('Foydalanuvchi topilmadi')
 
     const user = mapSupabaseUser(data.user)
-    const savedUser = saveUserToLocal(user)
+    const resolved = await resolveUserRole(user)
+    const savedUser = saveUserToLocal(resolved)
     logAuthEvent(email, 'email', savedUser.id, true)
     return { success: true, data: savedUser }
   } catch (error: any) {
@@ -304,8 +362,7 @@ export async function handleRedirectResult(): Promise<{
   try {
     const { data } = await supabase.auth.getSession()
     if (data?.session?.user) {
-      const user = mapSupabaseUser(data.session.user)
-      const savedUser = saveUserToLocal(user)
+      const savedUser = await finalizeUserSession(data.session.user)
       return { success: true, data: savedUser }
     }
     return { success: false }
@@ -400,22 +457,24 @@ export function onAuthChange(callback: (user: AuthUser | null) => void): () => v
   const {
     data: { subscription },
   } = supabase.auth.onAuthStateChange((event, session) => {
+    // USER_UPDATED bizning resolveUserRole() dagi updateUser() dan keladi —
+    // cheksiz tsiklni oldini olish uchun e'tiborsiz qoldiramiz.
+    if (event === 'USER_UPDATED') {
+      const existing = getCurrentUser()
+      if (existing) callback(existing)
+      return
+    }
+
     if (session?.user) {
-      const existingSession = getCurrentUser()
-      if (existingSession && existingSession.id === session.user.id) {
-        const upgradedUser = ensureSuperAdmin(existingSession)
-        if (upgradedUser.role !== existingSession.role) {
-          saveUserToLocal(upgradedUser)
-          callback(upgradedUser)
-        } else {
-          callback(existingSession)
-        }
-        return
-      }
-      const user = mapSupabaseUser(session.user)
-      const elevatedUser = ensureSuperAdmin(user)
-      const savedUser = saveUserToLocal(elevatedUser)
-      callback(savedUser)
+      resolveUserRole(mapSupabaseUser(session.user))
+        .then(resolved => {
+          const savedUser = saveUserToLocal(resolved)
+          callback(savedUser)
+        })
+        .catch(() => {
+          const savedUser = saveUserToLocal(mapSupabaseUser(session.user))
+          callback(savedUser)
+        })
     } else {
       clearUserFromLocal()
       callback(null)
@@ -436,4 +495,5 @@ export const firebaseAuth = {
   getCurrentUser,
   isAuthenticated,
   onAuthChange,
+  finalizeUserSession,
 }
