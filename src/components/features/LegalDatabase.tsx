@@ -187,11 +187,9 @@ export default function LegalDatabase() {
 
     const chapters = getCodeChapters(selectedCode)
 
-    // Faol bob + qidiruv filtrini birga qo'llaymiz
-    const filteredArticles = selectedCode.articles.filter(a => {
-      if (activeChapter && (a.category || 'Umumiy qoidalar').trim() !== activeChapter) {
-        return false
-      }
+    // Qidiruv so'roviga mos keladigan modda (bob chip'laridagi count'lar
+    // qidiruv natijasiga mos ko'rinishi uchun alohida funksiya)
+    const matchesCodeSearch = (a: HookLegalArticle): boolean => {
       if (!codeSearchQuery) return true
       const q = codeSearchQuery.toLowerCase()
       return (
@@ -200,6 +198,14 @@ export default function LegalDatabase() {
         a.number.includes(q) ||
         (a.category || '').toLowerCase().includes(q)
       )
+    }
+
+    // Faol bob + qidiruv filtrini birga qo'llaymiz
+    const filteredArticles = selectedCode.articles.filter(a => {
+      if (activeChapter && (a.category || 'Umumiy qoidalar').trim() !== activeChapter) {
+        return false
+      }
+      return matchesCodeSearch(a)
     })
 
     const renderArticleListItem = (article: HookLegalArticle) => (
@@ -301,20 +307,30 @@ export default function LegalDatabase() {
                 >
                   Barcha bo'limlar
                 </button>
-                {chapters.map(ch => (
-                  <button
-                    key={ch.name}
-                    onClick={() => setActiveChapter(ch.name)}
-                    title={ch.name}
-                    className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-                      activeChapter === ch.name
-                        ? 'bg-blue-600 text-white shadow-sm'
-                        : 'bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-300 hover:bg-gray-200 dark:hover:bg-zinc-700'
-                    }`}
-                  >
-                    {ch.label} <span className="opacity-70">({ch.count})</span>
-                  </button>
-                ))}
+                {chapters.map(ch => {
+                  // Qidiruv yozilgan bo'lsa bob ichida ham qidiruvga mos count
+                  const searchCount = codeSearchQuery
+                    ? selectedCode.articles.filter(
+                        a =>
+                          (a.category || 'Umumiy qoidalar').trim() === ch.name &&
+                          matchesCodeSearch(a)
+                      ).length
+                    : ch.count
+                  return (
+                    <button
+                      key={ch.name}
+                      onClick={() => setActiveChapter(ch.name)}
+                      title={ch.name}
+                      className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                        activeChapter === ch.name
+                          ? 'bg-blue-600 text-white shadow-sm'
+                          : 'bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-300 hover:bg-gray-200 dark:hover:bg-zinc-700'
+                      }`}
+                    >
+                      {ch.label} <span className="opacity-70">({searchCount})</span>
+                    </button>
+                  )
+                })}
               </div>
             )}
 
@@ -414,7 +430,7 @@ export default function LegalDatabase() {
                   </h3>
                 </div>
                 <p className="text-xs text-secondary mb-3 line-clamp-2">{category.description}</p>
-                <div className="flex flex-wrap gap-2 items-center">
+                <div className="flex flex-wrap gap-2 items-center mb-3">
                   <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
                     {category.document_count} ta modda
                   </Badge>
@@ -431,6 +447,54 @@ export default function LegalDatabase() {
                     )
                   })()}
                 </div>
+
+                {/* Boblar bo'yicha statistika — eng yirik boblari */}
+                {(() => {
+                  const code = codes.find(c => c.id === category.id)
+                  if (!code) return null
+                  const chapterMap = new Map<string, number>()
+                  for (const a of code.articles) {
+                    const ch = (a.category || 'Umumiy qoidalar').trim()
+                    chapterMap.set(ch, (chapterMap.get(ch) || 0) + 1)
+                  }
+                  const topChapters = [...chapterMap.entries()]
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 4)
+                  const maxCount = Math.max(...chapterMap.values(), 1)
+                  if (topChapters.length === 0) return null
+                  return (
+                    <div className="space-y-1.5">
+                      {topChapters.map(([name, count]) => (
+                        <div key={name} className="flex items-center gap-2">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-2 mb-0.5">
+                              <span
+                                className="text-[10px] text-gray-600 dark:text-zinc-400 truncate"
+                                title={name}
+                              >
+                                {shortChapterLabel(name)}
+                              </span>
+                              <span className="text-[10px] text-gray-400 dark:text-zinc-500 flex-shrink-0">
+                                {count}
+                              </span>
+                            </div>
+                            <div className="h-1 rounded-full bg-gray-200 dark:bg-zinc-700 overflow-hidden">
+                              <div
+                                className="h-full rounded-full bg-gradient-to-r from-blue-400 to-indigo-500"
+                                style={{ width: `${Math.round((count / maxCount) * 100)}%` }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      {chapterMap.size > 4 && (
+                        <p className="text-[10px] text-gray-400 dark:text-zinc-500">
+                          + {chapterMap.size - 4} ta bob ko'proq
+                        </p>
+                      )}
+                    </div>
+                  )
+                })()}
               </div>
             ))}
           </div>
@@ -600,6 +664,42 @@ export default function LegalDatabase() {
       }
     }
 
+    // Matn ichidagi "265-modda" kabi havolalarni bosiladigan qilish —
+    // bosilganda shu kodeksdagi o'sha modda ochiladi (agar mavjud bo'lsa).
+    const renderContentWithLinks = (text: string): React.ReactNode[] => {
+      const articleRefRegex = /(\d{1,4})\s*[-–—]?\s*moddal?ar?/gi
+      const parts: React.ReactNode[] = []
+      let lastIndex = 0
+      let match: RegExpExecArray | null
+      let key = 0
+      while ((match = articleRefRegex.exec(text)) !== null) {
+        const num = parseInt(match[1], 10)
+        const target = selectedCode?.articles.find(a => parseInt(a.number, 10) === num)
+        if (match.index > lastIndex) {
+          parts.push(text.slice(lastIndex, match.index))
+        }
+        if (target) {
+          parts.push(
+            <button
+              key={key++}
+              onClick={() => selectedCode && handleArticleClick(selectedCode, target)}
+              className="text-blue-600 dark:text-blue-400 underline decoration-blue-300 dark:decoration-blue-700 underline-offset-2 hover:text-blue-700 dark:hover:text-blue-300 font-medium"
+              title={`${target.number}-modda. ${target.title}`}
+            >
+              {match[0]}
+            </button>
+          )
+        } else {
+          parts.push(match[0])
+        }
+        lastIndex = match.index + match[0].length
+      }
+      if (lastIndex < text.length) {
+        parts.push(text.slice(lastIndex))
+      }
+      return parts
+    }
+
     return (
       <div
         className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
@@ -696,7 +796,7 @@ export default function LegalDatabase() {
                 <h3 className="font-semibold text-gray-900 dark:text-zinc-100 mb-2">Mazmun:</h3>
                 <div className="bg-gray-50 dark:bg-zinc-800/50 rounded-lg p-4">
                   <p className="text-gray-700 dark:text-zinc-300 whitespace-pre-wrap leading-relaxed">
-                    {selectedArticle.content}
+                    {renderContentWithLinks(selectedArticle.content)}
                   </p>
                 </div>
               </div>
@@ -722,14 +822,30 @@ export default function LegalDatabase() {
                     Tegishli moddalar:
                   </h3>
                   <div className="flex flex-wrap gap-2">
-                    {selectedArticle.cross_references.map((ref, i) => (
-                      <Badge
-                        key={i}
-                        className="bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300"
-                      >
-                        {ref}
-                      </Badge>
-                    ))}
+                    {selectedArticle.cross_references.map((ref, i) => {
+                      const m = ref.match(/(\d{1,4})\s*[-–—]?\s*moddal?ar?/i)
+                      const num = m ? parseInt(m[1], 10) : NaN
+                      const target = selectedCode?.articles.find(
+                        a => parseInt(a.number, 10) === num
+                      )
+                      return target ? (
+                        <button
+                          key={i}
+                          onClick={() => selectedCode && handleArticleClick(selectedCode, target)}
+                          className="px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300 text-xs font-medium hover:bg-orange-200 dark:hover:bg-orange-800/40 transition-colors"
+                          title={`${target.number}-modda. ${target.title}`}
+                        >
+                          {ref}
+                        </button>
+                      ) : (
+                        <Badge
+                          key={i}
+                          className="bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300"
+                        >
+                          {ref}
+                        </Badge>
+                      )
+                    })}
                   </div>
                 </div>
               )}
