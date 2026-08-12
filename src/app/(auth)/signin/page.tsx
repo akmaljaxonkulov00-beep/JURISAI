@@ -635,6 +635,13 @@ function SignInContent() {
     if (errParam) {
       setError(decodeURIComponent(errParam))
     }
+    // Google akkaunti mavjud email/parol akkaunt bilan birlashtirilganda
+    const linked = searchParams?.get('linked')
+    if (linked === '1') {
+      setSuccessMsg(
+        "Akkauntlaringiz birlashtirildi! Endi Google yoki email/parol bilan kirsangiz ham bitta profil ochiladi."
+      )
+    }
   }, [searchParams])
 
   // Process OAuth callbacks ONLY (e.g. Google login returning ?code=xxx)

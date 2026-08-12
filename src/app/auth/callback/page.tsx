@@ -46,6 +46,16 @@ export default function AuthCallbackPage() {
           // admin/super_admin → /admin, qolgani → /dashboard
           const savedUser = await finalizeUserSession(sbUser)
           document.cookie = `jurisai_auth=1; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax`
+
+          // OAuth duplicate mavjud email/parol akkaunt bilan birlashtirildi —
+          // eski session user o'chirilgan, qayta kirish kerak (endi identity
+          // bog'langan: Google yoki email/parol bilan kirsangiz yagona profil)
+          if (savedUser.accountMerged) {
+            await supabase.auth.signOut().catch(() => {})
+            router.replace('/signin?linked=1')
+            return
+          }
+
           router.replace(isAdminRole(savedUser.role) ? '/admin' : '/dashboard')
         } catch (err) {
           console.error('[AuthCallback] finalizeUserSession error:', err)

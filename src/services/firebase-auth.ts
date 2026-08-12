@@ -19,6 +19,8 @@ export interface AuthUser {
   subscription_expires_at?: string
   avatar?: string
   phone?: string
+  /** OAuth duplicate birlashtirilganda true — session user o'chirilgan bo'ladi */
+  accountMerged?: boolean
 }
 
 // ── Admin configuration ───────────────────────────────────────────
@@ -106,6 +108,21 @@ async function resolveUserRole(user: AuthUser): Promise<AuthUser> {
       if (d.subscription_expires_at) resolved.subscription_expires_at = d.subscription_expires_at
       if (d.name) resolved.name = d.name
 
+      // ── Google identity linking ────────────────────────────────────────────
+      // Google OAuth orqali kirganda Supabase automatic linking ishlamagan
+      // bo'lsa (auth.identities bo'sh eski userlar), email bir xil bo'lsa ham
+      // YANGI user yaratiladi (duplicate). Buni aniqlaymiz:
+      //   API email fallback orqali rolni topgan — demak DB'dagi row bor,
+      //   lekin uning id si session user id dan FARQ qilishi mumkin.
+      if (d.id && d.id !== user.id) {
+        const merged = await linkDuplicateIdentity(user.id, user.email, d.id).catch(() => false)
+        if (merged) {
+          // Session user (duplicate) o'chirildi — rol endi canonical user'dan
+          resolved.id = d.id
+          resolved.accountMerged = true
+        }
+      }
+
       // Rol va premium ma'lumotni auth user_metadata ga yozamiz —
       // shunda sahifa yangilanganda ham admin roli yo'qolmaydi.
       try {
@@ -141,6 +158,33 @@ export async function finalizeUserSession(sbUser: any): Promise<AuthUser> {
   // Google OAuth kirishini auth_logs ga yozamiz (admin kirish loglari uchun)
   logAuthEvent(saved.email, 'google', saved.id, true).catch(() => {})
   return saved
+}
+
+/**
+ * OAuth duplicate userni mavjud (email/parol) user bilan birlashtiradi.
+ * Supabase admin API'da identity ko'chirish uchun maxsus endpoint yo'q,
+ * shuning uchun migration 20250803 dagi public.merge_duplicate_users()
+ * SQL funksiyasini RPC orqali chaqiramiz.
+ *
+ * @returns true — birlashtirildi (session user o'chirilgan)
+ */
+async function linkDuplicateIdentity(
+  sessionUserId: string,
+  email: string,
+  canonicalUserId: string
+): Promise<boolean> {
+  try {
+    const res = await fetch('/api/auth/link-identity', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, userId: sessionUserId }),
+    })
+    if (!res.ok) return false
+    const json = await res.json()
+    return !!(json.success && json.merged)
+  } catch {
+    return false
+  }
 }
 
 async function logAuthEvent(email: string, method: string, userId?: string, success?: boolean) {

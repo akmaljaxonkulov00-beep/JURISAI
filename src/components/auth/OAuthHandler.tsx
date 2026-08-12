@@ -145,6 +145,16 @@ export default function OAuthHandler() {
           const savedUser = await finalizeUserSession(sbUser)
           // Cookie'ni ham o'rnatamiz — middleware /admin himoyasi uchun
           document.cookie = `jurisai_auth=1; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax`
+
+          // OAuth duplicate mavjud email/parol akkaunt bilan birlashtirildi —
+          // qayta kirish kerak (endi identity bog'langan)
+          if (savedUser.accountMerged) {
+            supabase.auth.signOut().then(() => {
+              window.location.href = '/signin?linked=1'
+            })
+            return
+          }
+
           window.location.href = isAdminRole(savedUser.role) ? '/admin' : '/dashboard'
         } catch {
           // Rol aniqlanmagan bo'lsa ham session bor — dashboardga kira oladi
