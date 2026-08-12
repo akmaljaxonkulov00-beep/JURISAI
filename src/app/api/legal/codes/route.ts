@@ -43,64 +43,85 @@ export async function GET(request: NextRequest) {
 
         const { data: categories, error: catError } = await catQuery
         if (!catError && categories && categories.length > 0) {
-          // ── Fetch articles for requested categories ──
-          let artQuery = supabase.from('articles').select('*')
-          if (codeId) {
-            artQuery = artQuery.eq('code_id', codeId)
-          } else {
-            const codeIds = categories.map((c: any) => c.code_id)
-            artQuery = artQuery.in('code_id', codeIds)
-          }
+          // ── Fetch articles — paginated per code (REST caps at 1000 rows/request) ──
+          const codeIds = (categories as any[]).map((c: any) => c.code_id)
+          const PAGE = 1000
 
-          if (searchQuery) {
-            const q = searchQuery.trim()
-            if (/^\d+$/.test(q)) {
-              artQuery = artQuery.or(
-                `article_number.ilike.%${q}%,title.ilike.%${q}%,content.ilike.%${q}%`
-              )
-            } else {
-              artQuery = artQuery.or(`title.ilike.%${q}%,content.ilike.%${q}%`)
-            }
-          }
+          const fetchAll = async (orderColumn: 'article_number_int' | 'article_number') => {
+            const all: any[] = []
+            for (const cid of codeIds) {
+              let artQuery = supabase.from('articles').select('*').eq('code_id', cid)
 
-          const { data: articles, error: artError } = await artQuery
-            .order('article_number', { ascending: true })
-            .range(offset, offset + limit - 1)
-
-          if (!artError) {
-            // Map to response format
-            const mappedCodes = categories.map((cat: any) => {
-              const catArticles = (articles || [])
-                .filter((a: any) => a.code_id === cat.code_id)
-                .map((a: any) => ({
-                  number: a.article_number,
-                  title: a.title || '',
-                  content: a.content || '',
-                  category: a.chapter || 'Umumiy',
-                  penalties: a.penalties || undefined,
-                  references:
-                    Array.isArray(a.cross_references) && a.cross_references.length > 0
-                      ? a.cross_references
-                      : Array.isArray(a.references) && a.references.length > 0
-                        ? a.references
-                        : undefined,
-                }))
-
-              return {
-                id: cat.code_id,
-                name: cat.name,
-                shortName: cat.name,
-                description: cat.description || '',
-                totalArticles: catArticles.length,
-                effectiveDate: '01.01.2024',
-                articles: catArticles,
+              if (searchQuery) {
+                const q = searchQuery.trim()
+                if (/^\d+$/.test(q)) {
+                  artQuery = artQuery.or(
+                    `article_number.ilike.%${q}%,title.ilike.%${q}%,content.ilike.%${q}%`
+                  )
+                } else {
+                  artQuery = artQuery.or(`title.ilike.%${q}%,content.ilike.%${q}%`)
+                }
               }
-            })
 
-            if (mappedCodes.length > 0 && mappedCodes.some((c: any) => c.articles.length > 0)) {
-              codes = mappedCodes
-              fromSupabase = true
+              let from = 0
+              for (;;) {
+                const { data, error } = await artQuery
+                  .order(orderColumn, { ascending: true, nullsFirst: false })
+                  .range(from, from + PAGE - 1)
+                if (error) throw error
+                all.push(...(data || []))
+                if (!data || data.length < PAGE) break
+                from += PAGE
+              }
             }
+            return all
+          }
+
+          let articles: any[]
+          try {
+            articles = await fetchAll('article_number_int')
+          } catch {
+            articles = await fetchAll('article_number')
+          }
+
+          // Map to response format
+          const mappedCodes = categories.map((cat: any) => {
+            const catArticles = (articles || [])
+              .filter((a: any) => a.code_id === cat.code_id)
+              // Numeric safety sort (article_number_int may be null in legacy rows)
+              .sort((a: any, b: any) => {
+                const na = parseInt(a.article_number, 10) || 0
+                const nb = parseInt(b.article_number, 10) || 0
+                return na - nb
+              })
+              .map((a: any) => ({
+                number: a.article_number,
+                title: a.title || '',
+                content: a.content || '',
+                category: a.chapter || 'Umumiy',
+                penalties: a.penalties || undefined,
+                references:
+                  Array.isArray(a.cross_references) && a.cross_references.length > 0
+                    ? a.cross_references
+                    : Array.isArray(a.references) && a.references.length > 0
+                      ? a.references
+                      : undefined,
+              }))
+
+            return {
+              id: cat.code_id,
+              name: cat.name,
+              shortName: cat.name,
+              description: cat.description || '',
+              totalArticles: catArticles.length,
+              effectiveDate: '01.01.2024',
+              articles: catArticles,
+            }
+          })
+
+          if (mappedCodes.length > 0 && mappedCodes.some((c: any) => c.articles.length > 0)) {
+            codes = mappedCodes
+            fromSupabase = true
           }
         }
       }

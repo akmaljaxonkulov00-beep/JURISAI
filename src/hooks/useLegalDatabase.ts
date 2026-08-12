@@ -81,27 +81,43 @@ export function useLegalCodes() {
         return
       }
 
-      // 2. Fetch articles — try article_number_int first (numeric sort), fall back to article_number (text)
+      // 2. Fetch articles — paginated PER CODE.
+      //    Supabase REST API returns max 1000 rows per request, so a single
+      //    `.in('code_id', ...)` fetch silently truncates the full database
+      //    (only ~first 125 articles per code came through — the rest were lost).
+      //    Loop with `.range()` until every article of every code is loaded.
       const codeIds = categories.map((c: any) => c.code_id).filter(Boolean)
       const uniqueIds = [...new Set(codeIds)]
+      const PAGE = 1000
 
-      let result = await supabase
-        .from('articles')
-        .select('*')
-        .in('code_id', uniqueIds)
-        .order('article_number_int', { ascending: true, nullsFirst: false })
-
-      // If article_number_int column doesn't exist, try article_number instead
-      if (result.error) {
-        result = await supabase
-          .from('articles')
-          .select('*')
-          .in('code_id', uniqueIds)
-          .order('article_number', { ascending: true })
+      const fetchAllArticles = async (orderColumn: 'article_number_int' | 'article_number') => {
+        const all: any[] = []
+        for (const codeId of uniqueIds) {
+          let from = 0
+          for (;;) {
+            const { data, error } = await supabase
+              .from('articles')
+              .select('*')
+              .eq('code_id', codeId)
+              .order(orderColumn, { ascending: true, nullsFirst: false })
+              .range(from, from + PAGE - 1)
+            if (error) throw error
+            all.push(...(data || []))
+            if (!data || data.length < PAGE) break
+            from += PAGE
+          }
+        }
+        return all
       }
 
-      if (result.error) throw new Error(`Moddalarni yuklashda xatolik: ${result.error.message}`)
-      const articles = result.data || []
+      let articles: any[]
+      try {
+        // Numeric sort column first
+        articles = await fetchAllArticles('article_number_int')
+      } catch {
+        // If article_number_int column doesn't exist, fall back to article_number (text)
+        articles = await fetchAllArticles('article_number')
+      }
 
       // 3. Merge categories + articles into LegalCode[] format
       const categoryMap = new Map<string, any>()

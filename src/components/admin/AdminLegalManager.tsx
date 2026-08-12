@@ -126,14 +126,31 @@ export default function AdminLegalManager() {
       setCategories(cats || [])
 
       if (selectedCode) {
-        const { data: arts, error: artErr } = await supabase
-          .from('articles')
-          .select('*')
-          .eq('code_id', selectedCode)
-          .order('article_number', { ascending: true })
-          .limit(500)
-        if (artErr) throw artErr
-        setArticles(arts || [])
+        // Paginated fetch — REST max 1000 qator/so'rov, hamma modda kelishi shart
+        const PAGE = 1000
+        const allArts: Article[] = []
+        let orderCol: 'article_number_int' | 'article_number' = 'article_number_int'
+        let from = 0
+        for (;;) {
+          const { data: page, error } = await supabase
+            .from('articles')
+            .select('*')
+            .eq('code_id', selectedCode)
+            .order(orderCol, { ascending: true, nullsFirst: false })
+            .range(from, from + PAGE - 1)
+          if (error) {
+            // Eski bazalarda article_number_int ustuni yo'q — text sortga o'tamiz
+            if (orderCol === 'article_number_int') {
+              orderCol = 'article_number'
+              continue
+            }
+            throw error
+          }
+          allArts.push(...(page || []))
+          if (!page || page.length < PAGE) break
+          from += PAGE
+        }
+        setArticles(allArts)
       } else {
         setArticles([])
       }

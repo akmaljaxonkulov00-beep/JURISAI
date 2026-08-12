@@ -37,21 +37,8 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // Get article count for each category
-    const { data: articleCounts, error: countError } = await supabase
-      .from('articles')
-      .select('code_id')
-
-    if (!countError && articleCounts) {
-      const countMap: Record<string, number> = {}
-      articleCounts.forEach((a: any) => {
-        countMap[a.code_id] = (countMap[a.code_id] || 0) + 1
-      })
-
-      categories.forEach((cat: any) => {
-        cat.article_count = countMap[cat.code_id] || 0
-      })
-    }
+    // Sonlar categories.article_count ustunidan olinadi — bu ustun import
+    // vaqtida real COUNT bilan yangilangan (to'liq, kesilmagan qiymatlar).
 
     return NextResponse.json({
       success: true,

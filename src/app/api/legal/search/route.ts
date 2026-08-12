@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { ALL_LEGAL_CODES, searchLegalArticles, getLegalCodeById } from '@/data/legal-codes'
 
+/**
+ * POST /api/legal/search
+ *
+ * Qidiruv Supabase `articles` jadvalidan real ma'lumot bilan bajariladi
+ * (statik legal-codes.ts ma'lumoti ishlatilmaydi).
+ * Modda raqami, nomi va matni bo'yicha qidiradi, kodeks bo'yicha filtrlaydi.
+ */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
@@ -15,57 +21,95 @@ export async function POST(request: NextRequest) {
 
     const startTime = Date.now()
 
-    // Search in all legal codes
-    let results = searchLegalArticles(query.trim())
+    const { createClient } = await import('@supabase/supabase-js')
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseKey =
+      process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-    // Filter by category if specified
+    if (!supabaseUrl || !supabaseKey) {
+      return NextResponse.json({
+        success: false,
+        error: 'Supabase not configured',
+        documents: [],
+        total_count: 0,
+      })
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    })
+
+    const q = query.trim()
+    const sanitized = q.replace(/[%_']/g, '') // SQL special chars ni tozalash
+
+    let dbQuery = supabase
+      .from('articles')
+      .select('*, categories!inner(id, code_id, name)', { count: 'exact' })
+
+    // Kodeks bo'yicha filtr
     if (category !== 'all') {
-      const code = getLegalCodeById(category)
-      if (code) {
-        results = results.filter(article => {
-          // Check if article belongs to this code
-          return code.articles.some(a => a.number === article.number && a.title === article.title)
-        })
+      dbQuery = dbQuery.eq('categories.code_id', category)
+    }
+
+    // Modda raqami / nomi / matni bo'yicha qidiruv
+    if (/^\d+$/.test(sanitized)) {
+      dbQuery = dbQuery.or(
+        `article_number.ilike.%${sanitized}%,title.ilike.%${sanitized}%,content.ilike.%${sanitized}%`
+      )
+    } else {
+      const words = sanitized.split(/\s+/).filter(Boolean)
+      if (words.length === 1) {
+        dbQuery = dbQuery.or(`title.ilike.%${sanitized}%,content.ilike.%${sanitized}%`)
+      } else {
+        const conditions = words.map(w => `content.ilike.%${w}%`).join(',')
+        dbQuery = dbQuery.or(conditions)
       }
     }
 
-    // Format results as documents
-    const documents = results.slice(0, limit).map((article, index) => {
-      // Find which code this article belongs to
-      let codeInfo = ALL_LEGAL_CODES.find(code =>
-        code.articles.some(a => a.number === article.number && a.title === article.title)
-      )
+    const { data: articles, count, error } = await dbQuery
+      .order('article_number_int', { ascending: true, nullsFirst: false })
+      .limit(Math.min(limit, 100))
 
-      return {
-        id: `${codeInfo?.id || 'unknown'}_${article.number}`,
-        title: `${codeInfo?.shortName || ''} ${article.number}-modda: ${article.title}`,
-        type: 'code',
-        category: codeInfo?.id || 'unknown',
-        description: article.content.substring(0, 200) + '...',
-        content: article.content,
-        article_number: article.number,
-        code_name: codeInfo?.name || "Noma'lum kodeks",
-        code_short: codeInfo?.shortName || '',
-        penalties: article.penalties || '',
-        references: article.references || [],
-        publication_date: codeInfo?.effectiveDate || '',
-        effective_date: codeInfo?.effectiveDate || '',
-        status: 'active' as const,
-        keywords: [article.category || '', article.title, ...(article.references || [])],
-        related_documents: article.references || [],
-        citations: 0,
-        last_updated: new Date().toISOString(),
-      }
-    })
+    if (error) throw error
+
+    const documents = (articles || []).map((a: any) => ({
+      id: `${a.categories?.code_id || a.code_id || 'unknown'}_${a.article_number}`,
+      title: `${a.categories?.name || ''} ${a.article_number}-modda: ${a.title || ''}`,
+      type: 'code',
+      category: a.categories?.code_id || a.code_id || 'unknown',
+      description: (a.content || '').substring(0, 200) + (a.content && a.content.length > 200 ? '...' : ''),
+      content: a.content || '',
+      article_number: a.article_number,
+      code_name: a.categories?.name || "Noma'lum kodeks",
+      code_short: a.categories?.name || '',
+      penalties: a.penalties || '',
+      references:
+        Array.isArray(a.cross_references) && a.cross_references.length > 0
+          ? a.cross_references
+          : Array.isArray(a.references) && a.references.length > 0
+            ? a.references
+            : [],
+      publication_date: '',
+      effective_date: '',
+      status: 'active' as const,
+      keywords: [a.chapter || '', a.title || '', ...(a.cross_references || [])],
+      related_documents:
+        Array.isArray(a.cross_references) && a.cross_references.length > 0
+          ? a.cross_references
+          : [],
+      citations: 0,
+      last_updated: new Date().toISOString(),
+    }))
 
     const searchTime = Date.now() - startTime
 
     return NextResponse.json({
       documents,
-      total_count: results.length,
+      total_count: count || 0,
       search_time: searchTime,
-      query: query.trim(),
+      query: q,
       success: true,
+      source: 'supabase',
     })
   } catch (error: any) {
     console.error('Legal Search API Error:', error)

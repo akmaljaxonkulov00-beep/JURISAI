@@ -71,12 +71,18 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Execute with pagination
-    const {
-      data: articles,
-      count,
-      error,
-    } = await dbQuery.order('article_number', { ascending: true }).range(offset, offset + limit - 1)
+    // Numeric sort: article_number_int first, fallback to article_number (text)
+    let result = await dbQuery
+      .order('article_number_int', { ascending: true, nullsFirst: false })
+      .range(offset, offset + limit - 1)
+
+    if (result.error && result.error.message && result.error.message.includes('article_number_int')) {
+      result = await dbQuery
+        .order('article_number', { ascending: true })
+        .range(offset, offset + limit - 1)
+    }
+
+    const { data: articles, count, error } = result
 
     if (error) throw error
 
