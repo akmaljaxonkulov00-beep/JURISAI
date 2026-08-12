@@ -30,6 +30,68 @@ import {
 } from '@/hooks/useLegalDatabase'
 import { getDisplayNameFromCodeId } from '@/lib/utils/code-mapper'
 
+// ── Kodekslararo havolalar (cross-reference) ───────────────────────────────
+// Matndagi "JK 97-moddasi", "Fuqarolik kodeksining 265-moddasi" kabi havolalar
+// boshqa kodeksga tegishli bo'lsa ham o'sha kodeks ochilib modda ko'rsatiladi.
+
+// Barcha apostrof turlarini oddiy ' ga keltiramiz — patternlar shu asosda yozilgan
+const normText = (s: string) => s.toLowerCase().replace(/[’‘`'\u2019\u2018]/g, "'")
+
+const CODE_REF_PATTERNS: { re: RegExp; id: string }[] = [
+  { re: /\bmjk(?:ning|dan|ga|da|ni)?/gi, id: 'admin_code' },
+  { re: /\bjpk(?:ning|dan|ga|da|ni)?/gi, id: 'criminal_procedure_code' },
+  { re: /\bfpk(?:ning|dan|ga|da|ni)?/gi, id: 'civil_procedure_code' },
+  { re: /\bipk(?:ning|dan|ga|da|ni)?/gi, id: 'economic_procedure_code' },
+  { re: /\bkonst(?:itsiya)?(?:ning|dan|ga|da|ni)?/gi, id: 'constitution' },
+  { re: /\bjk(?:ning|dan|ga|da|ni)?/gi, id: 'criminal_code' },
+  { re: /\bfk(?:ning|dan|ga|da|ni)?/gi, id: 'civil_code' },
+  { re: /\bmk(?:ning|dan|ga|da|ni)?/gi, id: 'labor_code' },
+  { re: /\bok(?:ning|dan|ga|da|ni)?/gi, id: 'family_code' },
+  { re: /\bsk(?:ning|dan|ga|da|ni)?/gi, id: 'tax_code' },
+  { re: /\bzk(?:ning|dan|ga|da|ni)?/gi, id: 'land_code' },
+  {
+    re: /ma'muriy javobgarlik to'g'risidagi kodeksi(?:ning|da|ga|dan)?/gi,
+    id: 'admin_code',
+  },
+  { re: /jinoyat[- ]protsessual kodeksi(?:ning|da|ga|dan)?/gi, id: 'criminal_procedure_code' },
+  { re: /fuqarolik[- ]protsessual kodeksi(?:ning|da|ga|dan)?/gi, id: 'civil_procedure_code' },
+  { re: /iqtisodiy protsessual kodeksi(?:ning|da|ga|dan)?/gi, id: 'economic_procedure_code' },
+  { re: /jinoyat kodeksi(?:ning|da|ga|dan)?/gi, id: 'criminal_code' },
+  { re: /fuqarolik kodeksi(?:ning|da|ga|dan)?/gi, id: 'civil_code' },
+  { re: /mehnat kodeksi(?:ning|da|ga|dan)?/gi, id: 'labor_code' },
+  { re: /oila kodeksi(?:ning|da|ga|dan)?/gi, id: 'family_code' },
+  { re: /soliq kodeksi(?:ning|da|ga|dan)?/gi, id: 'tax_code' },
+  { re: /yer kodeksi(?:ning|da|ga|dan)?/gi, id: 'land_code' },
+  { re: /konstitutsiya(?:ning|da|ga|dan)?/gi, id: 'constitution' },
+]
+
+// "97-moddasi", "265-moddasining", "10-moddalarida" kabi barcha shakllarni tutadi
+const ARTICLE_REF_REGEX =
+  /(\d{1,4})\s*[-–—]?\s*modda(?:lari?)?(?:ning|sining|nining|da|sidagi|sida|ga|siga|dan|sidan|ni|sini|dagi|larida|lariga|laridan|larini)?/gi
+
+/** Matndagi eng yaqin (oxirgi) kodeks nomi/qisqartmasini aniqlaydi. */
+// Kodeks nomi va modda raqami BEVOSITA yonma-yon bo'lishi shart:
+// "JK 97-moddasi" ✅, "Fuqarolik kodeksining 265-moddasida" ✅,
+// "ok deb yozildi 5-modda" ❌ (orada boshqa so'zlar bor — xato aniqlanmaydi).
+const findCodeIdInText = (text: string): string | null => {
+  const normalized = normText(text)
+  const articlePart =
+    '(\\d{1,4})\\s*[-–—]?\\s*modda(?:lari?)?(?:ning|sining|nining|da|sidagi|sida|ga|siga|dan|sidan|ni|sini|dagi|larida|lariga|laridan|larini)?'
+  let bestId: string | null = null
+  let bestIdx = -1
+  for (const { re, id } of CODE_REF_PATTERNS) {
+    const local = new RegExp(re.source + '\\s*' + articlePart, 'gi')
+    let m: RegExpExecArray | null
+    while ((m = local.exec(normalized)) !== null) {
+      if (m.index > bestIdx) {
+        bestIdx = m.index
+        bestId = id
+      }
+    }
+  }
+  return bestId
+}
+
 interface DisplayArticle {
   id: string
   title: string
@@ -115,6 +177,30 @@ export default function LegalDatabase() {
     } else {
       saveBookmarks([...bookmarks, articleId])
     }
+  }
+
+  // ── Kodekslararo havola — boshqa kodeksdagi moddani ochish ─────────────
+  // refText ichida kodeks nomi/qisqartmasi bo'lsa o'sha kodeksdan, bo'lmasa
+  // hozirgi kodeksdan moddani topadi.
+  const resolveReference = (
+    refText: string,
+    num: number
+  ): { code: LegalCode; article: HookLegalArticle } | null => {
+    const codeId = findCodeIdInText(refText)
+    const code = codeId ? codes.find(c => c.id === codeId) : selectedCode
+    if (!code) return null
+    const article = code.articles.find(a => parseInt(a.number, 10) === num)
+    return article ? { code, article } : null
+  }
+
+  // Havola bosilganda: boshqa kodeks bo'lsa o'sha kodeksga o'tadi, keyin moddani ochadi
+  const openArticleInCode = (code: LegalCode, article: HookLegalArticle) => {
+    if (code.id !== selectedCode?.id) {
+      setSelectedCode(code)
+      setActiveChapter(null)
+      setCodeSearchQuery('')
+    }
+    handleArticleClick(code, article)
   }
 
   // ── Categories from Supabase ──
@@ -664,17 +750,26 @@ export default function LegalDatabase() {
       }
     }
 
-    // Matn ichidagi "265-modda" kabi havolalarni bosiladigan qilish —
-    // bosilganda shu kodeksdagi o'sha modda ochiladi (agar mavjud bo'lsa).
+    // Matn ichidagi "265-modda", "JK 97-moddasi", "Fuqarolik kodeksining 265-moddasi"
+    // kabi havolalarni bosiladigan qilish — boshqa kodeksdagi modda bo'lsa ham
+    // o'sha kodeks ochilib, modda ko'rsatiladi.
     const renderContentWithLinks = (text: string): React.ReactNode[] => {
-      const articleRefRegex = /(\d{1,4})\s*[-–—]?\s*moddal?ar?/gi
       const parts: React.ReactNode[] = []
       let lastIndex = 0
       let match: RegExpExecArray | null
       let key = 0
-      while ((match = articleRefRegex.exec(text)) !== null) {
+      const regex = new RegExp(ARTICLE_REF_REGEX.source, 'gi')
+      while ((match = regex.exec(text)) !== null) {
         const num = parseInt(match[1], 10)
-        const target = selectedCode?.articles.find(a => parseInt(a.number, 10) === num)
+        // Havoladan oldingi matn — kodeks nomi/qisqartmasi aynan shu yerda bo'ladi
+        const sentenceStart = Math.max(
+          text.lastIndexOf('.', match.index) + 1,
+          text.lastIndexOf('\n', match.index) + 1,
+          Math.max(0, match.index - 150)
+        )
+        const context = text.slice(sentenceStart, match.index + match[0].length)
+        const target = resolveReference(context, num)
+        const isCrossCodex = target && target.code.id !== selectedCode?.id
         if (match.index > lastIndex) {
           parts.push(text.slice(lastIndex, match.index))
         }
@@ -682,11 +777,12 @@ export default function LegalDatabase() {
           parts.push(
             <button
               key={key++}
-              onClick={() => selectedCode && handleArticleClick(selectedCode, target)}
+              onClick={() => openArticleInCode(target.code, target.article)}
               className="text-blue-600 dark:text-blue-400 underline decoration-blue-300 dark:decoration-blue-700 underline-offset-2 hover:text-blue-700 dark:hover:text-blue-300 font-medium"
-              title={`${target.number}-modda. ${target.title}`}
+              title={`${getDisplayNameFromCodeId(target.code.id)} — ${target.article.number}-modda. ${target.article.title}`}
             >
               {match[0]}
+              {isCrossCodex && <span className="ml-0.5 text-[10px] align-super">↗</span>}
             </button>
           )
         } else {
@@ -823,17 +919,17 @@ export default function LegalDatabase() {
                   </h3>
                   <div className="flex flex-wrap gap-2">
                     {selectedArticle.cross_references.map((ref, i) => {
-                      const m = ref.match(/(\d{1,4})\s*[-–—]?\s*moddal?ar?/i)
-                      const num = m ? parseInt(m[1], 10) : NaN
-                      const target = selectedCode?.articles.find(
-                        a => parseInt(a.number, 10) === num
+                      const m = ref.match(
+                        /(\d{1,4})\s*[-–—]?\s*modda(?:lari?)?(?:ning|sining|nining|da|sidagi|sida|ga|siga|dan|sidan|ni|sini|dagi|larida|lariga|laridan|larini)?/i
                       )
+                      const num = m ? parseInt(m[1], 10) : NaN
+                      const target = !isNaN(num) ? resolveReference(ref, num) : null
                       return target ? (
                         <button
                           key={i}
-                          onClick={() => selectedCode && handleArticleClick(selectedCode, target)}
+                          onClick={() => openArticleInCode(target.code, target.article)}
                           className="px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300 text-xs font-medium hover:bg-orange-200 dark:hover:bg-orange-800/40 transition-colors"
-                          title={`${target.number}-modda. ${target.title}`}
+                          title={`${getDisplayNameFromCodeId(target.code.id)} — ${target.article.number}-modda. ${target.article.title}`}
                         >
                           {ref}
                         </button>
