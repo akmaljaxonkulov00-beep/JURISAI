@@ -12,6 +12,9 @@ import {
   X,
   Search,
   ArrowLeft,
+  ArrowRight,
+  Copy,
+  Check,
   FileText,
   Scale,
   Gavel,
@@ -60,8 +63,10 @@ export default function LegalDatabase() {
   >([])
   const [selectedCode, setSelectedCode] = useState<LegalCode | null>(null)
   const [codeSearchQuery, setCodeSearchQuery] = useState('')
+  const [activeChapter, setActiveChapter] = useState<string | null>(null)
   const [selectedArticle, setSelectedArticle] = useState<DisplayArticle | null>(null)
   const [showArticleModal, setShowArticleModal] = useState(false)
+  const [copied, setCopied] = useState(false)
   const [bookmarks, setBookmarks] = useState<string[]>([])
 
   // Load bookmarks from localStorage
@@ -153,11 +158,42 @@ export default function LegalDatabase() {
     )
   }
 
+  // ── Bob/bo'lim navigatsiyasi ──────────────────────────────────────
+  // Moddalar son tartibida kelgani uchun boblar ham kodeks tartibida chiqadi
+  const getCodeChapters = (
+    code: LegalCode
+  ): { name: string; label: string; count: number }[] => {
+    const result: { name: string; label: string; count: number }[] = []
+    const seen = new Set<string>()
+    for (const a of code.articles) {
+      const ch = (a.category || 'Umumiy qoidalar').trim()
+      if (!seen.has(ch)) {
+        seen.add(ch)
+        result.push({ name: ch, label: shortChapterLabel(ch), count: 0 })
+      }
+      result[result.length - 1].count++
+    }
+    return result
+  }
+
+  const shortChapterLabel = (name: string): string => {
+    const trimmed = name.trim()
+    const dotIdx = trimmed.indexOf('.')
+    if (dotIdx > 0) return trimmed.slice(0, dotIdx + 1)
+    return trimmed
+  }
+
   // ── Render Code View ──
   const renderCodeView = () => {
     if (!selectedCode) return null
 
+    const chapters = getCodeChapters(selectedCode)
+
+    // Faol bob + qidiruv filtrini birga qo'llaymiz
     const filteredArticles = selectedCode.articles.filter(a => {
+      if (activeChapter && (a.category || 'Umumiy qoidalar').trim() !== activeChapter) {
+        return false
+      }
       if (!codeSearchQuery) return true
       const q = codeSearchQuery.toLowerCase()
       return (
@@ -167,6 +203,40 @@ export default function LegalDatabase() {
         (a.category || '').toLowerCase().includes(q)
       )
     })
+
+    const renderArticleListItem = (article: HookLegalArticle) => (
+      <div
+        key={article.number}
+        className="p-4 rounded-xl bg-gray-50 dark:bg-zinc-800/50 border border-gray-100 dark:border-zinc-700 hover:border-blue-300 dark:hover:border-blue-700 transition-all cursor-pointer"
+        onClick={() => handleArticleClick(selectedCode, article)}
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 rounded-md">
+                {article.number}-modda
+              </span>
+              {article.category && (
+                <Badge className="bg-gray-100 dark:bg-zinc-700 text-gray-600 dark:text-zinc-300 text-[10px]">
+                  {shortChapterLabel(article.category)}
+                </Badge>
+              )}
+            </div>
+            <h4 className="font-semibold text-sm text-gray-900 dark:text-white">
+              {article.title}
+            </h4>
+            <p className="text-xs text-secondary mt-1 line-clamp-2">{article.content}</p>
+          </div>
+          <div className="flex-shrink-0 flex flex-col items-end gap-1">
+            {article.penalties && (
+              <Badge className="bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 text-[10px]">
+                {article.penalties.substring(0, 30)}...
+              </Badge>
+            )}
+          </div>
+        </div>
+      </div>
+    )
 
     return (
       <div className="space-y-6">
@@ -178,6 +248,7 @@ export default function LegalDatabase() {
                   onClick={() => {
                     setSelectedCode(null)
                     setCodeSearchQuery('')
+                    setActiveChapter(null)
                   }}
                   className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-zinc-800 transition-all"
                   title="Orqaga"
@@ -198,7 +269,7 @@ export default function LegalDatabase() {
                     {getDisplayNameFromCodeId(selectedCode.id)}
                   </CardTitle>
                   <p className="text-sm text-secondary mt-1">
-                    {selectedCode.totalArticles} ta modda
+                    {selectedCode.totalArticles} ta modda · {chapters.length} ta bob
                   </p>
                 </div>
               </div>
@@ -218,45 +289,71 @@ export default function LegalDatabase() {
             </div>
           </CardHeader>
           <CardContent>
+            {/* Bob/bo'lim navigatsiyasi */}
+            {chapters.length > 1 && (
+              <div
+                className="flex items-center gap-2 mb-4 overflow-x-auto pb-2 -mx-1 px-1"
+                style={{ scrollbarWidth: 'thin' }}
+              >
+                <button
+                  onClick={() => setActiveChapter(null)}
+                  className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                    !activeChapter
+                      ? 'bg-blue-600 text-white shadow-sm'
+                      : 'bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-300 hover:bg-gray-200 dark:hover:bg-zinc-700'
+                  }`}
+                >
+                  Barcha bo'limlar
+                </button>
+                {chapters.map(ch => (
+                  <button
+                    key={ch.name}
+                    onClick={() => setActiveChapter(ch.name)}
+                    title={ch.name}
+                    className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                      activeChapter === ch.name
+                        ? 'bg-blue-600 text-white shadow-sm'
+                        : 'bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-300 hover:bg-gray-200 dark:hover:bg-zinc-700'
+                    }`}
+                  >
+                    {ch.label} <span className="opacity-70">({ch.count})</span>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {activeChapter && (
+              <div className="mb-4 px-3 py-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 text-sm font-medium">
+                {activeChapter} — {filteredArticles.length} ta modda
+              </div>
+            )}
+
             {filteredArticles.length === 0 ? (
               <p className="text-sm text-secondary text-center py-8">Hech qanday modda topilmadi</p>
+            ) : activeChapter ? (
+              <div className="space-y-3">{filteredArticles.map(renderArticleListItem)}</div>
             ) : (
-              <div className="space-y-3">
-                {filteredArticles.map((article, idx) => (
-                  <div
-                    key={article.number}
-                    className="p-4 rounded-xl bg-gray-50 dark:bg-zinc-800/50 border border-gray-100 dark:border-zinc-700 hover:border-blue-300 dark:hover:border-blue-700 transition-all cursor-pointer"
-                    onClick={() => handleArticleClick(selectedCode, article)}
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 rounded-md">
-                            {article.number}-modda
-                          </span>
-                          {article.category && (
-                            <Badge className="bg-gray-100 dark:bg-zinc-700 text-gray-600 dark:text-zinc-300 text-[10px]">
-                              {article.category}
-                            </Badge>
-                          )}
-                        </div>
-                        <h4 className="font-semibold text-sm text-gray-900 dark:text-white">
-                          {article.title}
-                        </h4>
-                        <p className="text-xs text-secondary mt-1 line-clamp-2">
-                          {article.content}
-                        </p>
+              // Barcha bo'limlar — moddalar bob bo'yicha guruhlangan
+              <div className="space-y-6">
+                {chapters.map(ch => {
+                  const chArticles = filteredArticles.filter(
+                    a => (a.category || 'Umumiy qoidalar').trim() === ch.name
+                  )
+                  if (chArticles.length === 0) return null
+                  return (
+                    <div key={ch.name}>
+                      <div className="flex items-center gap-2 mb-2">
+                        <h5 className="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-zinc-400">
+                          {ch.name}
+                        </h5>
+                        <span className="text-[10px] text-gray-400 dark:text-zinc-500">
+                          ({chArticles.length})
+                        </span>
                       </div>
-                      <div className="flex-shrink-0 flex flex-col items-end gap-1">
-                        {article.penalties && (
-                          <Badge className="bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 text-[10px]">
-                            {article.penalties.substring(0, 30)}...
-                          </Badge>
-                        )}
-                      </div>
+                      <div className="space-y-3">{chArticles.map(renderArticleListItem)}</div>
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             )}
           </CardContent>
@@ -290,7 +387,11 @@ export default function LegalDatabase() {
                 className="p-4 rounded-xl bg-gray-50 dark:bg-zinc-800/50 border border-gray-100 dark:border-zinc-700 hover:border-blue-300 dark:hover:border-blue-700 transition-all cursor-pointer hover-lift"
                 onClick={() => {
                   const matchingCode = codes.find(c => c.id === category.id)
-                  if (matchingCode) setSelectedCode(matchingCode)
+                  if (matchingCode) {
+                    setSelectedCode(matchingCode)
+                    setActiveChapter(null)
+                    setCodeSearchQuery('')
+                  }
                 }}
               >
                 <div className="flex items-center gap-2 mb-2">
@@ -456,6 +557,29 @@ export default function LegalDatabase() {
   const renderArticleModal = () => {
     if (!selectedArticle || !showArticleModal) return null
 
+    // Oldingi/keyingi modda — kodeks ichida o'qish uchun
+    const browseArticles = selectedCode?.articles || []
+    const currentIdx = selectedCode
+      ? browseArticles.findIndex(a => selectedArticle.id === `${selectedCode.id}-${a.number}`)
+      : -1
+    const prevArticle = currentIdx > 0 ? browseArticles[currentIdx - 1] : null
+    const nextArticle =
+      currentIdx >= 0 && currentIdx < browseArticles.length - 1
+        ? browseArticles[currentIdx + 1]
+        : null
+
+    const copyArticle = async () => {
+      try {
+        await navigator.clipboard.writeText(
+          `${selectedArticle.article_number}. ${selectedArticle.title}\n\n${selectedArticle.content}`
+        )
+        setCopied(true)
+        setTimeout(() => setCopied(false), 1500)
+      } catch {
+        /* clipboard mavjud emas */
+      }
+    }
+
     return (
       <div
         className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
@@ -483,7 +607,45 @@ export default function LegalDatabase() {
                   </Badge>
                 </div>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2 items-center">
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={!prevArticle}
+                    onClick={() =>
+                      prevArticle && selectedCode && handleArticleClick(selectedCode, prevArticle)
+                    }
+                    className="flex items-center gap-1"
+                    title="Oldingi modda"
+                  >
+                    <ArrowLeft size={14} />
+                    <span className="hidden sm:inline">Oldingi</span>
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={!nextArticle}
+                    onClick={() =>
+                      nextArticle && selectedCode && handleArticleClick(selectedCode, nextArticle)
+                    }
+                    className="flex items-center gap-1"
+                    title="Keyingi modda"
+                  >
+                    <span className="hidden sm:inline">Keyingi</span>
+                    <ArrowRight size={14} />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={copyArticle}
+                    className="flex items-center gap-1"
+                    title="Matnni nusxalash"
+                  >
+                    {copied ? <Check size={14} className="text-green-500" /> : <Copy size={14} />}
+                    <span className="hidden sm:inline">{copied ? 'Nusxalandi' : 'Nusxa'}</span>
+                  </Button>
+                </div>
                 <Button
                   size="sm"
                   variant="outline"
@@ -504,7 +666,9 @@ export default function LegalDatabase() {
 
             <div className="space-y-4">
               <div>
-                <h3 className="font-semibold text-gray-900 dark:text-zinc-100 mb-2">Bo'lim:</h3>
+                <h3 className="font-semibold text-gray-900 dark:text-zinc-100 mb-2">
+                  Bob/Bo'lim:
+                </h3>
                 <p className="text-gray-700 dark:text-zinc-300 whitespace-pre-wrap">
                   {selectedArticle.chapter}
                 </p>
@@ -551,6 +715,41 @@ export default function LegalDatabase() {
                   </div>
                 </div>
               )}
+            </div>
+
+            {/* Oldingi / Keyingi — kodeks bo'ylab o'qish */}
+            <div className="mt-6 pt-4 border-t border-gray-100 dark:border-zinc-800 flex items-center justify-between gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={!prevArticle}
+                onClick={() =>
+                  prevArticle && selectedCode && handleArticleClick(selectedCode, prevArticle)
+                }
+                className="flex items-center gap-1"
+              >
+                <ArrowLeft size={14} />
+                <span className="max-w-[160px] truncate">
+                  {prevArticle ? `${prevArticle.number}-modda` : ''}
+                </span>
+              </Button>
+              <span className="text-xs text-gray-400 dark:text-zinc-500 flex-shrink-0">
+                {selectedArticle.article_number} / {browseArticles.length}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={!nextArticle}
+                onClick={() =>
+                  nextArticle && selectedCode && handleArticleClick(selectedCode, nextArticle)
+                }
+                className="flex items-center gap-1"
+              >
+                <span className="max-w-[160px] truncate">
+                  {nextArticle ? `${nextArticle.number}-modda` : ''}
+                </span>
+                <ArrowRight size={14} />
+              </Button>
             </div>
           </div>
         </div>
