@@ -1,11 +1,11 @@
 import {
-  LayoutDashboard,
   Scale,
   Building2,
   GitBranch,
   BookOpen,
-  FileText,
   Wrench,
+  Users,
+  BarChart3,
   Crown,
   Settings,
   HelpCircle,
@@ -31,27 +31,19 @@ export interface NavGroup {
 }
 
 /**
- * ─────────────────────────────────────────────────────────────
+ * ─────────────────────────────────────────────────────────────────────
  *  YAGONA NAVIGATION MANBAI
- *  Desktop sidebar, mobil menyu va dashboard shu config'dan
- *  o'qiydi. Yangi element qo'shilsa — hamma joyda avtomatik
- *  paydo bo'ladi.
- * ─────────────────────────────────────────────────────────────
+ *
+ *  Desktop sidebar, mobil menyu va dashboard shu config'dan o'qiydi.
+ *  Yangi element qo'shilsa — hamma joyda avtomatik paydo bo'ladi.
+ *
+ *  Struktura (1-rasm — source of truth):
+ *    AMALIYOT → IRAC Huquqiy Tahlil, Qarorlar Daraxti, Virtual Sud
+ *    RESURSLAR → Qonunlar bazasi, Asboblar, Jamiyat, Statistika
+ *    SHAXSIY → Sozlamalar, Premium, Yordam, (Admin Panel — faqat admin), Chiqish
+ * ─────────────────────────────────────────────────────────────────────
  */
 export const NAV_GROUPS: NavGroup[] = [
-  {
-    title: 'Asosiy',
-    items: [
-      {
-        id: 'dashboard',
-        name: 'Bosh sahifa',
-        href: '/dashboard',
-        icon: LayoutDashboard,
-        requiresAuth: true,
-        badge: null,
-      },
-    ],
-  },
   {
     title: 'Amaliyot',
     items: [
@@ -64,18 +56,18 @@ export const NAV_GROUPS: NavGroup[] = [
         badge: null,
       },
       {
-        id: 'virtual-court',
-        name: 'Virtual Sud',
-        href: '/virtual-court',
-        icon: Building2,
-        requiresAuth: true,
-        badge: 'Yangi',
-      },
-      {
         id: 'decision-tree',
         name: 'Qarorlar Daraxti',
         href: '/decision-tree',
         icon: GitBranch,
+        requiresAuth: true,
+        badge: null,
+      },
+      {
+        id: 'virtual-court',
+        name: 'Virtual Sud',
+        href: '/virtual-court',
+        icon: Building2,
         requiresAuth: true,
         badge: null,
       },
@@ -86,17 +78,9 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       {
         id: 'legal-database',
-        name: 'Qonunlar Bazasi',
+        name: 'Qonunlar bazasi',
         href: '/legal-database',
         icon: BookOpen,
-        requiresAuth: true,
-        badge: null,
-      },
-      {
-        id: 'document-generator',
-        name: 'Hujjat Generator',
-        href: '/document-generator',
-        icon: FileText,
         requiresAuth: true,
         badge: null,
       },
@@ -106,7 +90,23 @@ export const NAV_GROUPS: NavGroup[] = [
         href: '/professional-tools',
         icon: Wrench,
         requiresAuth: true,
-        badge: 'Pro',
+        badge: null,
+      },
+      {
+        id: 'community',
+        name: 'Jamiyat',
+        href: '/community',
+        icon: Users,
+        requiresAuth: true,
+        badge: null,
+      },
+      {
+        id: 'statistics',
+        name: 'Statistika',
+        href: '/statistics',
+        icon: BarChart3,
+        requiresAuth: true,
+        badge: null,
       },
     ],
   },
@@ -114,18 +114,18 @@ export const NAV_GROUPS: NavGroup[] = [
     title: 'Shaxsiy',
     items: [
       {
-        id: 'premium',
-        name: 'Premium',
-        href: '/premium',
-        icon: Crown,
-        requiresAuth: true,
-        badge: 'Pro',
-      },
-      {
         id: 'profile',
         name: 'Sozlamalar',
         href: '/profile',
         icon: Settings,
+        requiresAuth: true,
+        badge: null,
+      },
+      {
+        id: 'premium',
+        name: 'Premium',
+        href: '/premium',
+        icon: Crown,
         requiresAuth: true,
         badge: null,
       },
@@ -164,7 +164,10 @@ export interface NavFilterState {
 }
 
 /** requiresAuth / adminOnly filtri — barcha komponentlar bir xil mantiq ishlatadi */
-export function filterNavGroups(groups: NavGroup[], state: NavFilterState): NavGroup[] {
+export function filterNavGroups(
+  groups: NavGroup[],
+  state: NavFilterState
+): NavGroup[] {
   return groups
     .map(group => ({
       ...group,
