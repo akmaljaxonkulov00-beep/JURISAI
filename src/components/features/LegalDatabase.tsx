@@ -160,9 +160,7 @@ export default function LegalDatabase() {
 
   // ── Bob/bo'lim navigatsiyasi ──────────────────────────────────────
   // Moddalar son tartibida kelgani uchun boblar ham kodeks tartibida chiqadi
-  const getCodeChapters = (
-    code: LegalCode
-  ): { name: string; label: string; count: number }[] => {
+  const getCodeChapters = (code: LegalCode): { name: string; label: string; count: number }[] => {
     const result: { name: string; label: string; count: number }[] = []
     const seen = new Set<string>()
     for (const a of code.articles) {
@@ -222,9 +220,7 @@ export default function LegalDatabase() {
                 </Badge>
               )}
             </div>
-            <h4 className="font-semibold text-sm text-gray-900 dark:text-white">
-              {article.title}
-            </h4>
+            <h4 className="font-semibold text-sm text-gray-900 dark:text-white">{article.title}</h4>
             <p className="text-xs text-secondary mt-1 line-clamp-2">{article.content}</p>
           </div>
           <div className="flex-shrink-0 flex flex-col items-end gap-1">
@@ -376,7 +372,12 @@ export default function LegalDatabase() {
             )}
           </CardTitle>
           <p className="text-sm text-secondary">
-            {codes.length} ta kodeks, {codes.reduce((s, c) => s + c.articles.length, 0)} ta modda
+            {codes.length} ta kodeks, {codes.reduce((s, c) => s + c.articles.length, 0)} ta modda,{' '}
+            {codes.reduce(
+              (s, c) => s + new Set(c.articles.map(a => (a.category || '').trim())).size,
+              0
+            )}{' '}
+            ta bob
           </p>
         </CardHeader>
         <CardContent>
@@ -413,10 +414,22 @@ export default function LegalDatabase() {
                   </h3>
                 </div>
                 <p className="text-xs text-secondary mb-3 line-clamp-2">{category.description}</p>
-                <div className="flex justify-between items-center">
+                <div className="flex flex-wrap gap-2 items-center">
                   <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
                     {category.document_count} ta modda
                   </Badge>
+                  {(() => {
+                    const code = codes.find(c => c.id === category.id)
+                    if (!code) return null
+                    const chapterCount = new Set(
+                      code.articles.map(a => (a.category || 'Umumiy qoidalar').trim())
+                    ).size
+                    return (
+                      <Badge className="bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300">
+                        {chapterCount} ta bob
+                      </Badge>
+                    )
+                  })()}
                 </div>
               </div>
             ))}
@@ -568,6 +581,13 @@ export default function LegalDatabase() {
         ? browseArticles[currentIdx + 1]
         : null
 
+    // Shu bobdagi moddalar ro'yxati — bob ichida navigatsiya uchun
+    const currentChapter = (selectedArticle.chapter || '').trim()
+    const chapterArticles =
+      selectedCode && currentChapter
+        ? browseArticles.filter(a => (a.category || 'Umumiy qoidalar').trim() === currentChapter)
+        : []
+
     const copyArticle = async () => {
       try {
         await navigator.clipboard.writeText(
@@ -586,10 +606,10 @@ export default function LegalDatabase() {
         onClick={() => setShowArticleModal(false)}
       >
         <div
-          className="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+          className="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col"
           onClick={e => e.stopPropagation()}
         >
-          <div className="p-6">
+          <div className="flex-1 overflow-y-auto p-6">
             <div className="flex justify-between items-start mb-4">
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
@@ -666,9 +686,7 @@ export default function LegalDatabase() {
 
             <div className="space-y-4">
               <div>
-                <h3 className="font-semibold text-gray-900 dark:text-zinc-100 mb-2">
-                  Bob/Bo'lim:
-                </h3>
+                <h3 className="font-semibold text-gray-900 dark:text-zinc-100 mb-2">Bob/Bo'lim:</h3>
                 <p className="text-gray-700 dark:text-zinc-300 whitespace-pre-wrap">
                   {selectedArticle.chapter}
                 </p>
@@ -752,6 +770,39 @@ export default function LegalDatabase() {
               </Button>
             </div>
           </div>
+
+          {/* Shu bobdagi moddalar ro'yxati */}
+          {chapterArticles.length > 1 && (
+            <div className="border-t border-gray-100 dark:border-zinc-800 max-h-48 overflow-y-auto">
+              <div className="px-6 py-3 flex items-center justify-between bg-gray-50 dark:bg-zinc-800/40">
+                <h4 className="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-zinc-400">
+                  {currentChapter} — {chapterArticles.length} ta modda
+                </h4>
+                <span className="text-[10px] text-gray-400 dark:text-zinc-500">
+                  Bob ichidagi ro'yxat
+                </span>
+              </div>
+              <div className="flex gap-1.5 flex-wrap px-6 py-3">
+                {chapterArticles.map(a => {
+                  const isCurrent = selectedArticle.id === `${selectedCode!.id}-${a.number}`
+                  return (
+                    <button
+                      key={a.number}
+                      onClick={() => selectedCode && handleArticleClick(selectedCode, a)}
+                      className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors ${
+                        isCurrent
+                          ? 'bg-blue-600 text-white shadow-sm'
+                          : 'bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-300 hover:bg-gray-200 dark:hover:bg-zinc-700'
+                      }`}
+                      title={`${a.number}-modda. ${a.title}`}
+                    >
+                      {a.number}-modda
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     )
