@@ -29,6 +29,7 @@ import {
   Share2,
   Download,
 } from 'lucide-react'
+import AppSidebar from '@/components/layout/AppSidebar'
 import { api } from '@/services/api'
 import { supabase } from '@/lib/supabase-browser'
 import { AnalysisSkeleton } from '@/components/ui/AnalysisSkeleton'
@@ -1168,20 +1169,20 @@ export default function DecisionTreeEngine() {
 
   return (
     <div className="min-h-screen bg-[#f8faff] dark:bg-gray-950 mobile-safe-top">
-      <div className="flex flex-col lg:flex-row">
-        {/* Sidebar */}
-        <div className="hidden lg:block w-64 bg-white dark:bg-zinc-900 border-r border-gray-100 dark:border-zinc-800 min-h-screen flex-shrink-0">
-          <div className="p-6">
+      <div className="flex flex-col md:flex-row">
+        {/* Sidebar — yagona navigatsiya (desktop) */}
+        <AppSidebar>
+          <div className="space-y-1">
             <button
               onClick={() => setShowNewCase(true)}
-              className="flex items-center gap-2 px-3 py-2 text-gray-600 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800 rounded-lg cursor-pointer mb-4 w-full transition-colors"
+              className="flex items-center gap-2 px-3 py-2 w-full text-gray-600 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800 rounded-lg cursor-pointer mb-4 transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
               <span className="text-sm">Daraxtlar ro'yxati</span>
             </button>
 
             {/* Current Case Info */}
-            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 mb-6">
+            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 mb-3">
               <div className="flex items-center gap-2 mb-2">
                 <GitBranch className="w-4 h-4 text-blue-600" />
                 <span className="font-semibold text-sm text-blue-800 dark:text-blue-300">
@@ -1202,7 +1203,7 @@ export default function DecisionTreeEngine() {
             </div>
 
             {/* Quick Stats */}
-            <div className="space-y-3 mb-6">
+            <div className="space-y-2 mb-3">
               <div className="bg-gray-50 dark:bg-zinc-800/50 rounded-lg p-3">
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-xs text-gray-600 dark:text-zinc-400">Variantlar</span>
@@ -1231,18 +1232,15 @@ export default function DecisionTreeEngine() {
               </div>
             </div>
 
-            {/* Save / Load Buttons */}
-            <div className="space-y-2">
-              <button
-                onClick={saveTree}
-                className="w-full flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition-colors"
-              >
-                <Save className="w-4 h-4" />
-                Saqlash
-              </button>
-            </div>
+            <button
+              onClick={saveTree}
+              className="w-full flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition-colors"
+            >
+              <Save className="w-4 h-4" />
+              Saqlash
+            </button>
           </div>
-        </div>
+        </AppSidebar>
 
         {/* Main Content */}
         <div className="flex-1">

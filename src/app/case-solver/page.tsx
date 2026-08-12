@@ -1,6 +1,8 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import AppSidebar from '@/components/layout/AppSidebar'
 import {
   ArrowLeft,
   CheckCircle,
@@ -38,6 +40,7 @@ export default function CaseSolver() {
   const [score, setScore] = useState<number | null>(null)
   const [feedback, setFeedback] = useState<string>('')
   const [errors, setErrors] = useState<string[]>([])
+  const router = useRouter()
 
   const currentCase: CaseData = {
     id: 'case_001',
@@ -325,41 +328,26 @@ export default function CaseSolver() {
 
   return (
     <div className="min-h-screen bg-[#f8faff] dark:bg-gray-950 mobile-safe-top">
-      <div className="flex flex-col lg:flex-row">
-        {/* Sidebar - same as main page */}
-        <div className="hidden lg:block w-64 bg-white dark:bg-zinc-900 border-r border-gray-100 dark:border-zinc-800 min-h-screen flex-shrink-0">
-          <div className="p-6">
-            {/* Daily Goal Block */}
-            <div className="bg-orange-50 dark:bg-orange-900/30 rounded-xl p-4 mb-6">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <Target className="w-5 h-5 text-orange-600" />
-                  <span className="font-semibold text-gray-800 dark:text-zinc-100">
-                    Kundalik maqsad
-                  </span>
-                </div>
-              </div>
-              <div className="mb-2">
-                <div className="bg-gray-200 dark:bg-zinc-700 rounded-full h-2">
-                  <div className="bg-orange-500 h-2 rounded-full" style={{ width: '60%' }}></div>
-                </div>
-              </div>
-              <p className="text-sm text-gray-600 dark:text-zinc-300">2 ta case qolgan</p>
+      <div className="flex flex-col md:flex-row">
+        {/* Sidebar — yagona navigatsiya (desktop) */}
+        <AppSidebar>
+          <div className="space-y-1">
+            <button
+              onClick={() => {
+                if (window.history.length > 1) router.back()
+                else router.push('/dashboard')
+              }}
+              className="flex items-center gap-3 px-3 py-2 w-full text-gray-600 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800 rounded-lg cursor-pointer transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5" />
+              <span>Orqaga</span>
+            </button>
+            <div className="flex items-center gap-3 px-3 py-2 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg">
+              <Scale className="w-5 h-5" />
+              <span className="font-medium">IRAC Huquqiy Tahlil</span>
             </div>
-
-            {/* Menu Items */}
-            <nav className="space-y-2">
-              <div className="flex items-center gap-3 px-3 py-2 text-gray-600 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800 dark:bg-zinc-800/50 rounded-lg cursor-pointer">
-                <ArrowLeft className="w-5 h-5" />
-                <span>Orqaga</span>
-              </div>
-              <div className="flex items-center gap-3 px-3 py-2 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg">
-                <Scale className="w-5 h-5" />
-                <span className="font-medium">IRAC Huquqiy Tahlil</span>
-              </div>
-            </nav>
           </div>
-        </div>
+        </AppSidebar>
 
         {/* Main Content */}
         <div className="flex-1">

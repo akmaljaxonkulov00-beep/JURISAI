@@ -10,32 +10,20 @@ import { api } from '@/services/api'
 import { firebaseAuth } from '@/services/firebase-auth'
 import AIChatFloatingWidget from '@/components/ai/AIChatFloatingWidget'
 import OnboardingTour from '@/components/OnboardingTour'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
+import { NAV_GROUPS, filterNavGroups, isNavItemActive } from '@/components/layout/navigation'
 import {
-  Home,
   FileText,
-  Users,
   TrendingUp,
   Award,
   Clock,
   Target,
   Zap,
-  Shield,
-  Brain,
   Scale,
   Database,
   Gavel,
-  BarChart3,
-  Trophy,
-  User,
-  Crown,
-  Wrench,
-  Users2,
   CheckCircle,
-  Settings,
-  HelpCircle,
-  LogOut,
 } from 'lucide-react'
 
 interface UserStats {
@@ -70,7 +58,7 @@ interface Activity {
 export default function Dashboard() {
   const { user, isLoading } = useAuth()
   const router = useRouter()
-  const [activeSection, setActiveSection] = useState('overview')
+  const pathname = usePathname()
   const [userStats, setUserStats] = useState<UserStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [profileImage, setProfileImage] = useState<string | null>(null)
@@ -146,90 +134,11 @@ export default function Dashboard() {
     }
   }
 
-  const navigationGroups = [
-    {
-      title: 'Amaliyot',
-      items: [
-        {
-          id: 'case-solver',
-          label: 'IRAC Huquqiy Tahlil',
-          icon: Scale,
-          href: '/irac',
-        },
-        {
-          id: 'decision-tree',
-          label: 'Qarorlar Daraxti',
-          icon: Brain,
-          href: '/decision-tree',
-        },
-
-        {
-          id: 'virtual-court',
-          label: 'Virtual Sud',
-          icon: Gavel,
-          href: '/virtual-court',
-        },
-      ],
-    },
-    {
-      title: 'Resurslar',
-      items: [
-        {
-          id: 'legal-database',
-          label: 'Qonunlar bazasi',
-          icon: Database,
-          href: '/legal-database-new',
-        },
-        {
-          id: 'pro-tools',
-          label: 'Asboblar',
-          icon: Wrench,
-          href: '/pro-tools',
-        },
-        {
-          id: 'community',
-          label: 'Jamiyat',
-          icon: Users2,
-          href: '/community',
-        },
-        {
-          id: 'statistics',
-          label: 'Statistika',
-          icon: BarChart3,
-          href: '/statistics',
-        },
-      ],
-    },
-    {
-      title: 'Shaxsiy',
-      items: [
-        {
-          id: 'settings',
-          label: 'Sozlamalar',
-          icon: Settings,
-          href: '/profile',
-        },
-        {
-          id: 'premium',
-          label: 'Premium',
-          icon: Crown,
-          href: '/premium',
-        },
-        {
-          id: 'help',
-          label: 'Yordam',
-          icon: HelpCircle,
-          href: '/help',
-        },
-        {
-          id: 'logout',
-          label: 'Chiqish',
-          icon: LogOut,
-          href: '/signin',
-        },
-      ],
-    },
-  ]
+  // ── Single source of truth: shared NAV_GROUPS + filter ──────────
+  const navigationGroups = filterNavGroups(NAV_GROUPS, {
+    isAuthenticated: !!user,
+    isAdmin: user?.role === 'ADMIN' || (user?.role as string) === 'admin',
+  })
 
   const getRarityColor = (rarity: string) => {
     switch (rarity) {
@@ -351,10 +260,10 @@ export default function Dashboard() {
               <div className="space-y-0.5">
                 {group.items.map(item => {
                   const Icon = item.icon
-                  const isActive = activeSection === item.id
+                  const isActive = isNavItemActive(item.href, pathname)
 
                   // Logout special handling: use button with onClick instead of Link
-                  if (item.id === 'logout') {
+                  if (item.action === 'logout') {
                     return (
                       <button
                         key={item.id}
@@ -368,25 +277,29 @@ export default function Dashboard() {
                         <Icon
                           className={`w-5 h-5 ${isActive ? '' : 'text-gray-400 dark:text-zinc-500'}`}
                         />
-                        <span className="font-medium text-sm">{item.label}</span>
+                        <span className="font-medium text-sm">{item.name}</span>
                       </button>
                     )
                   }
 
                   return (
-                    <Link key={item.id} href={item.href}>
+                    <Link key={item.id} href={item.href || '#'}>
                       <div
                         className={`nav-item flex items-center space-x-3 px-4 py-2.5 rounded-xl cursor-pointer ${
                           isActive
                             ? 'nav-item-active'
                             : 'text-gray-600 dark:text-gray-400 dark:text-zinc-500 hover:text-gray-900 dark:hover:text-white'
                         }`}
-                        onClick={() => setActiveSection(item.id)}
                       >
                         <Icon
                           className={`w-5 h-5 ${isActive ? '' : 'text-gray-400 dark:text-zinc-500 group-hover:text-gray-600 dark:text-zinc-400'}`}
                         />
-                        <span className="font-medium text-sm">{item.label}</span>
+                        <span className="font-medium text-sm">{item.name}</span>
+                        {item.badge && (
+                          <span className="ml-auto text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300">
+                            {item.badge}
+                          </span>
+                        )}
                         {isActive && (
                           <div className="ml-auto w-1.5 h-1.5 bg-white dark:bg-zinc-900 rounded-full shadow-[0_0_4px_rgba(255,255,255,0.5)]" />
                         )}

@@ -30,6 +30,7 @@ import {
   Gavel,
 } from 'lucide-react'
 import { useCommunity, CommunityPost } from '@/hooks/useCommunity'
+import AppSidebar from '@/components/layout/AppSidebar'
 
 export default function Community() {
   const {
@@ -88,6 +89,98 @@ export default function Community() {
   const [newGroupName, setNewGroupName] = useState('')
   const [newGroupDesc, setNewGroupDesc] = useState('')
   const [newGroupIcon, setNewGroupIcon] = useState('👥')
+
+  // ── Yagona sidebar vositalari (desktop) — AppSidebar ichida ────────
+  const renderSidebarTools = () => (
+    <div className="space-y-1">
+      <button
+        onClick={() => setActiveTab('feed')}
+        className="flex items-center gap-2 px-3 py-2 w-full text-sm text-gray-600 dark:text-zinc-400 hover:bg-gray-50 dark:hover:bg-zinc-800 rounded-xl transition-colors"
+      >
+        <ArrowLeft className="w-4 h-4" /> Orqaga
+      </button>
+      <button
+        onClick={() => {
+          pauseRefresh()
+          setShowNewPost(true)
+          setEditingPost(null)
+          setPostContent('')
+          setSelectedTags([])
+        }}
+        className="w-full bg-blue-600 text-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-blue-700 transition-colors mb-2 flex items-center justify-center gap-2 shadow-sm"
+      >
+        <Plus className="w-4 h-4" /> Yangi post
+      </button>
+      <nav className="space-y-1">
+        {[
+          { id: 'feed', label: 'Lenta', icon: <MessageCircle className="w-4 h-4" /> },
+          {
+            id: 'notification',
+            label: 'Bildirishnomalar',
+            icon: <Bell className="w-4 h-4" />,
+            badge: unreadCount,
+          },
+          { id: 'experts', label: 'Ekspertlar', icon: <Star className="w-4 h-4" /> },
+          { id: 'groups', label: 'Guruhlar', icon: <Users className="w-4 h-4" /> },
+          { id: 'webinars', label: 'Vebinarlar', icon: <Video className="w-4 h-4" /> },
+        ].map(item => (
+          <button
+            key={item.id}
+            onClick={() => setActiveTab(item.id)}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors ${
+              activeTab === item.id
+                ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-medium'
+                : 'text-gray-600 dark:text-zinc-400 hover:bg-gray-50 dark:hover:bg-zinc-800'
+            }`}
+          >
+            {item.icon}
+            <span>{item.label}</span>
+            {(item as any).badge > 0 && (
+              <span className="ml-auto px-1.5 py-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] text-center">
+                {(item as any).badge}
+              </span>
+            )}
+          </button>
+        ))}
+      </nav>
+    </div>
+  )
+
+  // ── Mobil tab bar — desktop sidebar yashirin bo'lganda ─────────────
+  const renderMobileTabs = () => (
+    <div className="md:hidden mb-4 flex gap-2 overflow-x-auto pb-1">
+      {[
+        { id: 'feed', label: 'Lenta', icon: <MessageCircle className="w-3.5 h-3.5" /> },
+        {
+          id: 'notification',
+          label: 'Bildirishnomalar',
+          icon: <Bell className="w-3.5 h-3.5" />,
+          badge: unreadCount,
+        },
+        { id: 'experts', label: 'Ekspertlar', icon: <Star className="w-3.5 h-3.5" /> },
+        { id: 'groups', label: 'Guruhlar', icon: <Users className="w-3.5 h-3.5" /> },
+        { id: 'webinars', label: 'Vebinarlar', icon: <Video className="w-3.5 h-3.5" /> },
+      ].map(item => (
+        <button
+          key={item.id}
+          onClick={() => setActiveTab(item.id)}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
+            activeTab === item.id
+              ? 'bg-blue-600 text-white'
+              : 'bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-400'
+          }`}
+        >
+          {item.icon}
+          {item.label}
+          {(item as any).badge > 0 && (
+            <span className="px-1 py-0.5 bg-red-500 text-white text-[9px] font-bold rounded-full">
+              {(item as any).badge}
+            </span>
+          )}
+        </button>
+      ))}
+    </div>
+  )
 
   // Load experts from API
   useEffect(() => {
@@ -557,61 +650,8 @@ export default function Community() {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 mobile-safe-top">
         <div className="flex">
-          {/* Sidebar */}
-          <div className="w-64 bg-white dark:bg-zinc-900 border-r border-gray-200 dark:border-zinc-800 min-h-screen flex-shrink-0 hidden lg:block">
-            <div className="p-5">
-              <a
-                href="/"
-                className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 dark:text-zinc-400 hover:bg-gray-50 dark:hover:bg-zinc-800 rounded-xl transition-colors mb-5"
-              >
-                <ArrowLeft className="w-4 h-4" /> Orqaga
-              </a>
-              <button
-                onClick={() => {
-                  pauseRefresh()
-                  setShowNewPost(true)
-                  setEditingPost(null)
-                  setPostContent('')
-                  setSelectedTags([])
-                }}
-                className="w-full bg-blue-600 text-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-blue-700 transition-colors mb-5 flex items-center justify-center gap-2 shadow-sm"
-              >
-                <Plus className="w-4 h-4" /> Yangi post
-              </button>
-              <nav className="space-y-1">
-                {[
-                  { id: 'feed', label: 'Lenta', icon: <MessageCircle className="w-4 h-4" /> },
-                  {
-                    id: 'notification',
-                    label: 'Bildirishnomalar',
-                    icon: <Bell className="w-4 h-4" />,
-                    badge: unreadCount,
-                  },
-                  { id: 'experts', label: 'Ekspertlar', icon: <Star className="w-4 h-4" /> },
-                  { id: 'groups', label: 'Guruhlar', icon: <Users className="w-4 h-4" /> },
-                  { id: 'webinars', label: 'Vebinarlar', icon: <Video className="w-4 h-4" /> },
-                ].map(item => (
-                  <button
-                    key={item.id}
-                    onClick={() => setActiveTab(item.id)}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors ${
-                      activeTab === item.id
-                        ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-medium'
-                        : 'text-gray-600 dark:text-zinc-400 hover:bg-gray-50 dark:hover:bg-zinc-800'
-                    }`}
-                  >
-                    {item.icon}
-                    <span>{item.label}</span>
-                    {(item as any).badge > 0 && (
-                      <span className="ml-auto px-1.5 py-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] text-center">
-                        {(item as any).badge}
-                      </span>
-                    )}
-                  </button>
-                ))}
-              </nav>
-            </div>
-          </div>
+          {/* Sidebar — yagona navigatsiya (desktop) */}
+          <AppSidebar>{renderSidebarTools()}</AppSidebar>
 
           {/* Main Content */}
           <div className="flex-1 min-h-screen">
@@ -660,6 +700,7 @@ export default function Community() {
             </header>
 
             <main className="p-4 sm:p-6 max-w-5xl mx-auto">
+              {renderMobileTabs()}
               {/* Mobile Search + Filters */}
               <div className="sm:hidden mb-4">
                 <div className="relative mb-3">
@@ -938,29 +979,8 @@ export default function Community() {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 mobile-safe-top">
         <div className="flex">
-          <div className="w-64 bg-white dark:bg-zinc-900 border-r border-gray-200 dark:border-zinc-800 min-h-screen flex-shrink-0 hidden lg:block">
-            <div className="p-5">
-              <button
-                onClick={() => setActiveTab('feed')}
-                className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 dark:text-zinc-400 hover:bg-gray-50 dark:hover:bg-zinc-800 rounded-xl transition-colors mb-5"
-              >
-                <ArrowLeft className="w-4 h-4" /> Orqaga
-              </button>
-              <nav className="space-y-1">
-                <button
-                  onClick={() => setActiveTab('notification')}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-medium"
-                >
-                  <Bell className="w-4 h-4" /> Bildirishnomalar{' '}
-                  {unreadCount > 0 && (
-                    <span className="ml-auto px-1.5 py-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full">
-                      {unreadCount}
-                    </span>
-                  )}
-                </button>
-              </nav>
-            </div>
-          </div>
+          {/* Sidebar — yagona navigatsiya (desktop) */}
+          <AppSidebar>{renderSidebarTools()}</AppSidebar>
 
           <div className="flex-1">
             <header className="bg-white dark:bg-zinc-900 px-6 py-4 border-b border-gray-200 dark:border-zinc-800">
@@ -987,6 +1007,7 @@ export default function Community() {
               </div>
             </header>
             <main className="p-4 sm:p-6 max-w-3xl mx-auto">
+              {renderMobileTabs()}
               {notifications.length === 0 ? (
                 <div className="text-center py-16">
                   <Bell className="w-16 h-16 text-gray-300 dark:text-zinc-700 mx-auto mb-4" />
@@ -1049,19 +1070,8 @@ export default function Community() {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 mobile-safe-top">
         <div className="flex">
-          <div className="w-64 bg-white dark:bg-zinc-900 border-r border-gray-200 dark:border-zinc-800 min-h-screen flex-shrink-0 hidden lg:block">
-            <div className="p-5">
-              <button
-                onClick={() => setActiveTab('feed')}
-                className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 dark:text-zinc-400 hover:bg-gray-50 dark:hover:bg-zinc-800 rounded-xl transition-colors mb-5"
-              >
-                <ArrowLeft className="w-4 h-4" /> Orqaga
-              </button>
-              <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-medium">
-                <Star className="w-4 h-4" /> Ekspertlar
-              </div>
-            </div>
-          </div>
+          {/* Sidebar — yagona navigatsiya (desktop) */}
+          <AppSidebar>{renderSidebarTools()}</AppSidebar>
           <div className="flex-1">
             <header className="bg-white dark:bg-zinc-900 px-6 py-4 border-b border-gray-200 dark:border-zinc-800">
               <div className="flex items-center justify-between">
@@ -1079,6 +1089,7 @@ export default function Community() {
               </div>
             </header>
             <main className="p-4 sm:p-6 max-w-5xl mx-auto">
+              {renderMobileTabs()}
               {expertsLoading ? (
                 <div className="text-center py-12">
                   <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
@@ -1150,19 +1161,8 @@ export default function Community() {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 mobile-safe-top">
         <div className="flex">
-          <div className="w-64 bg-white dark:bg-zinc-900 border-r border-gray-200 dark:border-zinc-800 min-h-screen flex-shrink-0 hidden lg:block">
-            <div className="p-5">
-              <button
-                onClick={() => setActiveTab('feed')}
-                className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 dark:text-zinc-400 hover:bg-gray-50 dark:hover:bg-zinc-800 rounded-xl transition-colors mb-5"
-              >
-                <ArrowLeft className="w-4 h-4" /> Orqaga
-              </button>
-              <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-medium">
-                <Users className="w-4 h-4" /> Guruhlar
-              </div>
-            </div>
-          </div>
+          {/* Sidebar — yagona navigatsiya (desktop) */}
+          <AppSidebar>{renderSidebarTools()}</AppSidebar>
           <div className="flex-1">
             <header className="bg-white dark:bg-zinc-900 px-6 py-4 border-b border-gray-200 dark:border-zinc-800">
               <div className="flex items-center justify-between">
@@ -1180,6 +1180,7 @@ export default function Community() {
               </div>
             </header>
             <main className="p-4 sm:p-6 max-w-5xl mx-auto">
+              {renderMobileTabs()}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {groups.map((g: any, i: number) => {
                   const isJoined = joinedGroups.includes(g.id)
@@ -1331,19 +1332,8 @@ export default function Community() {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 mobile-safe-top">
         <div className="flex">
-          <div className="w-64 bg-white dark:bg-zinc-900 border-r border-gray-200 dark:border-zinc-800 min-h-screen flex-shrink-0 hidden lg:block">
-            <div className="p-5">
-              <button
-                onClick={() => setActiveTab('feed')}
-                className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 dark:text-zinc-400 hover:bg-gray-50 dark:hover:bg-zinc-800 rounded-xl transition-colors mb-5"
-              >
-                <ArrowLeft className="w-4 h-4" /> Orqaga
-              </button>
-              <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-medium">
-                <Video className="w-4 h-4" /> Vebinarlar
-              </div>
-            </div>
-          </div>
+          {/* Sidebar — yagona navigatsiya (desktop) */}
+          <AppSidebar>{renderSidebarTools()}</AppSidebar>
           <div className="flex-1">
             <header className="bg-white dark:bg-zinc-900 px-6 py-4 border-b border-gray-200 dark:border-zinc-800">
               <div className="flex items-center justify-between">
@@ -1359,6 +1349,7 @@ export default function Community() {
               </div>
             </header>
             <main className="p-4 sm:p-6 max-w-5xl mx-auto">
+              {renderMobileTabs()}
               <div className="space-y-4">
                 {webinars.map((w: any, i: number) => {
                   const isRegistered = registeredWebinars.includes(w.id)

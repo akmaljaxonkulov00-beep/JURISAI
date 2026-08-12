@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import AppSidebar from '@/components/layout/AppSidebar'
 import {
   ArrowLeft,
   Calculator,
@@ -417,21 +418,21 @@ export default function ProfessionalTools() {
 
   if (selectedTool) {
     return (
-      <div className="min-h-screen bg-[#f8faff] dark:bg-zinc-950">
-        <div className="flex flex-col lg:flex-row">
-          {/* Sidebar */}
-          <div className="w-full lg:w-64 bg-white dark:bg-zinc-900 lg:border-r border-b lg:border-b-0 border-gray-100 dark:border-zinc-800 lg:min-h-screen">
-            <div className="p-4 sm:p-6">
+      <div className="min-h-screen bg-[#f8faff] dark:bg-zinc-950 mobile-safe-top">
+        <div className="flex flex-col md:flex-row">
+          {/* Sidebar — yagona navigatsiya (desktop) */}
+          <AppSidebar>
+            <div className="space-y-1">
               <button
                 onClick={() => setSelectedTool(null)}
-                className="flex items-center gap-3 px-3 py-2 text-gray-600 dark:text-zinc-400 hover:bg-gray-50 dark:bg-zinc-800/50 rounded-lg cursor-pointer mb-6"
+                className="flex items-center gap-3 px-3 py-2 w-full text-gray-600 dark:text-zinc-400 hover:bg-gray-50 dark:bg-zinc-800/50 rounded-lg cursor-pointer mb-4"
               >
                 <ArrowLeft className="w-5 h-5" />
                 <span>Orqaga</span>
               </button>
 
               {/* Tool Info */}
-              <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-4 mb-6">
+              <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-zinc-800 dark:to-zinc-900 rounded-xl p-4 mb-4">
                 <div
                   className={`w-12 h-12 bg-gradient-to-br ${getToolColor(selectedTool.color)} rounded-lg flex items-center justify-center text-white mb-3`}
                 >
@@ -481,7 +482,7 @@ export default function ProfessionalTools() {
                 )}
               </div>
             </div>
-          </div>
+          </AppSidebar>
 
           {/* Main Tool Content */}
           <div className="flex-1">
@@ -508,6 +509,36 @@ export default function ProfessionalTools() {
 
             <main className="p-4 sm:p-6 lg:p-8">
               <div className="max-w-4xl mx-auto">
+                {/* Mobile tool bar — desktop sidebar yashirin bo'lganda */}
+                <div className="md:hidden mb-4 space-y-2">
+                  <button
+                    onClick={() => setSelectedTool(null)}
+                    className="flex items-center gap-2 px-3 py-2 text-gray-600 dark:text-zinc-400 hover:bg-gray-50 dark:hover:bg-zinc-800 rounded-lg"
+                  >
+                    <ArrowLeft className="w-4 h-4" /> Orqaga
+                  </button>
+                  {selectedTool.category === 'calculator' && (
+                    <div className="flex gap-2 overflow-x-auto pb-1">
+                      {[
+                        { id: 'state-fee', label: 'Davlat boji' },
+                        { id: 'damages', label: 'Zarar hisobi' },
+                        { id: 'deadlines', label: 'Muddatlar' },
+                      ].map(type => (
+                        <button
+                          key={type.id}
+                          onClick={() => setCalculatorType(type.id as any)}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
+                            calculatorType === type.id
+                              ? 'bg-blue-600 text-white'
+                              : 'bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-400'
+                          }`}
+                        >
+                          {type.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
                 {/* Legal Calculators */}
                 {selectedTool.category === 'calculator' && (
                   <div className="space-y-6">
@@ -1016,45 +1047,27 @@ export default function ProfessionalTools() {
 
   return (
     <div className="min-h-screen bg-[#f8faff] dark:bg-zinc-950 mobile-safe-top">
-      <div className="flex flex-col lg:flex-row">
-        {/* Sidebar */}
-        <div className="w-full lg:w-64 bg-white dark:bg-zinc-900 lg:border-r border-b lg:border-b-0 border-gray-100 dark:border-zinc-800 lg:min-h-screen">
-          <div className="p-4 sm:p-6">
-            <a
-              href="/"
-              className="flex items-center gap-3 px-3 py-2 text-gray-600 dark:text-zinc-400 hover:bg-gray-50 dark:bg-zinc-800/50 rounded-lg cursor-pointer mb-6"
+      <div className="flex flex-col md:flex-row">
+        {/* Sidebar — yagona navigatsiya (desktop) */}
+        <AppSidebar>
+          <div className="space-y-1">
+            <button
+              onClick={() => {
+                if (window.history.length > 1) window.history.back()
+                else window.location.href = '/dashboard'
+              }}
+              className="flex items-center gap-3 px-3 py-2 w-full text-gray-600 dark:text-zinc-400 hover:bg-gray-50 dark:bg-zinc-800/50 rounded-lg cursor-pointer mb-4"
             >
               <ArrowLeft className="w-5 h-5" />
               <span>Orqaga</span>
-            </a>
+            </button>
 
-            {/* Daily Goal Block */}
-            <div className="bg-orange-50 rounded-xl p-4 mb-6">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <Zap className="w-5 h-5 text-orange-600" />
-                  <span className="font-semibold text-gray-800 dark:text-zinc-200">
-                    Pro Vositalar
-                  </span>
-                </div>
-              </div>
-              <div className="mb-2">
-                <div className="bg-gray-200 rounded-full h-2">
-                  <div className="bg-orange-500 h-2 rounded-full" style={{ width: '80%' }}></div>
-                </div>
-              </div>
-              <p className="text-sm text-gray-600 dark:text-zinc-400">4 ta vosita faol</p>
+            <div className="flex items-center gap-3 px-3 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 rounded-lg">
+              <Star className="w-5 h-5" />
+              <span className="font-medium">Pro Vositalar</span>
             </div>
-
-            {/* Menu Items */}
-            <nav className="space-y-2">
-              <div className="flex items-center gap-3 px-3 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 rounded-lg">
-                <Star className="w-5 h-5" />
-                <span className="font-medium">Pro Vositalar</span>
-              </div>
-            </nav>
           </div>
-        </div>
+        </AppSidebar>
 
         {/* Main Content */}
         <div className="flex-1">
