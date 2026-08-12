@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase-browser'
 import { finalizeUserSession } from '@/services/firebase-auth'
@@ -9,15 +9,20 @@ import { isAdminRole } from '@/lib/roles'
 export default function AuthCallbackPage() {
   const router = useRouter()
   const [status, setStatus] = useState('Processing...')
+  const handled = useRef(false)
 
   useEffect(() => {
+    // React StrictMode ikki marta ishga tushirmasligi uchun
+    if (handled.current) return
+    handled.current = true
+
     const handleCallback = async () => {
       const params = new URLSearchParams(window.location.search)
       const code = params.get('code')
       const error = params.get('error')
       const errorDescription = params.get('error_description')
 
-      // If Supabase already redirected here with an error from Google
+      // Supabase/Google xatosi kelgan bo'lsa
       if (error) {
         console.error('[AuthCallback] OAuth error:', error, errorDescription)
         router.replace(
@@ -26,53 +31,92 @@ export default function AuthCallbackPage() {
         return
       }
 
-      if (!code) {
-        // No code — maybe already have session
-        const {
-          data: { session },
-        } = await supabase.auth.getSession()
-        if (session?.user) {
+      /**
+       * MUHIM: supabase-js `detectSessionInUrl: true` bilan URL'dagi PKCE
+       * `?code=` ni O'ZI avtomatik exchange qiladi va URL'dan o'chiradi.
+       * Shuning uchun bu yerda `code` parametri bo'lmasa ham session
+       * allaqachon mavjud bo'lishi mumkin. Bunday holatda HAM rolni
+       * DB'dan aniqlab, role asosida redirect qilamiz — adminni hech
+       * qachon /dashboard ga yubormaymiz.
+       */
+      const completeSession = async (sbUser: any) => {
+        setStatus("Rol aniqlanmoqda...")
+        try {
+          // Rol Supabase registered_users dan aniqlanadi (user_metadata emas).
+          // admin/super_admin → /admin, qolgani → /dashboard
+          const savedUser = await finalizeUserSession(sbUser)
+          document.cookie = `jurisai_auth=1; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax`
+          router.replace(isAdminRole(savedUser.role) ? '/admin' : '/dashboard')
+        } catch (err) {
+          console.error('[AuthCallback] finalizeUserSession error:', err)
+          // Rol aniqlanmagan bo'lsa ham cookie'ni o'rnatamiz — dashboardga kiradi
+          document.cookie = `jurisai_auth=1; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax`
           router.replace('/dashboard')
-          return
         }
+      }
+
+      // 1) Avval session borligini tekshiramiz — supabase-js code'ni o'zi
+      //    exchange qilib bo'lgan bo'lishi mumkin (URL tozalangan).
+      const {
+        data: { session: existingSession },
+      } = await supabase.auth.getSession()
+
+      if (existingSession?.user) {
+        console.log('[AuthCallback] Session already exists for:', existingSession.user.email)
+        await completeSession(existingSession.user)
+        return
+      }
+
+      // 2) Code yo'q va session ham yo'q — login sahifasiga
+      if (!code) {
         router.replace('/signin')
         return
       }
 
+      // 3) Code bor — PKCE exchange qilamiz
       setStatus("Ro'yxatdan o'tkazilmoqda...")
 
       try {
-        // Exchange the authorization code for a session
         const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
 
         if (exchangeError) {
           console.error('[AuthCallback] Exchange error:', exchangeError)
+          // Code allaqachon iste'mol qilingan bo'lishi mumkin — sessionni
+          // qayta tekshiramiz (supabase-js o'zi exchange qilgan holat).
+          const {
+            data: { session: retrySession },
+          } = await supabase.auth.getSession()
+          if (retrySession?.user) {
+            await completeSession(retrySession.user)
+            return
+          }
           router.replace('/signin?error=' + encodeURIComponent(exchangeError.message))
           return
         }
 
-        // Verify the session was created
+        // Session yaratilganini tekshiramiz
         const {
           data: { session },
         } = await supabase.auth.getSession()
 
         if (session?.user) {
           console.log('[AuthCallback] Session created successfully for:', session.user.email)
-
-          // Rolni Supabase registered_users dan aniqlab, lokal saqlaymiz.
-          // Admin Google orqali kirsa → /admin ga yo'naltiriladi.
-          // Rol aniqlanmaguncha redirect qilinmaydi (race condition yo'q):
-          // finalizeUserSession DB'dan rolni olgach, admin → /admin, user → /dashboard
-          const savedUser = await finalizeUserSession(session.user)
-          document.cookie = `jurisai_auth=1; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax`
-          router.replace(isAdminRole(savedUser.role) ? '/admin' : '/dashboard')
+          await completeSession(session.user)
         } else {
           console.error('[AuthCallback] No session after exchange')
           router.replace('/signin?error=' + encodeURIComponent('Session creation failed'))
         }
       } catch (err: any) {
         console.error('[AuthCallback] Exception:', err)
-        router.replace('/signin?error=' + encodeURIComponent(err?.message || 'Unknown error'))
+        // Exception holatida ham session bo'lishi mumkin — tekshiramiz
+        const {
+          data: { session: catchSession },
+        } = await supabase.auth.getSession()
+        if (catchSession?.user) {
+          await completeSession(catchSession.user)
+        } else {
+          router.replace('/signin?error=' + encodeURIComponent(err?.message || 'Unknown error'))
+        }
       }
     }
 

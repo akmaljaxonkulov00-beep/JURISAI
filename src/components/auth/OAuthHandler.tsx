@@ -121,7 +121,8 @@ export default function OAuthHandler() {
         supabase.auth.getSession().then(({ data: { session } }) => {
           if (session?.user) {
             console.log('[OAuthHandler] Session found via getSession fallback!')
-            window.location.href = '/dashboard'
+            // Rol DB'dan aniqlanib, role asosida redirect — admin /dashboard ga tushmaydi
+            redirectAfterOAuth(session.user)
           } else {
             console.error('[OAuthHandler] No session found after exchange exception')
             window.location.href = '/signin?error=' + encodeURIComponent(err?.message || 'unknown')
@@ -142,8 +143,11 @@ export default function OAuthHandler() {
           // Rol DB'dan aniqlanmaguncha redirect qilinmaydi —
           // admin Google orqali kirsa ham /admin ga boradi.
           const savedUser = await finalizeUserSession(sbUser)
+          // Cookie'ni ham o'rnatamiz — middleware /admin himoyasi uchun
+          document.cookie = `jurisai_auth=1; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax`
           window.location.href = isAdminRole(savedUser.role) ? '/admin' : '/dashboard'
         } catch {
+          // Rol aniqlanmagan bo'lsa ham session bor — dashboardga kira oladi
           window.location.href = '/dashboard'
         }
       })
