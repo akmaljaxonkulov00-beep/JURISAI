@@ -10,6 +10,7 @@ import {
   AlertTriangle,
   CheckCircle,
   XCircle,
+  X,
   Play,
   Info,
   GitBranch,
@@ -28,12 +29,19 @@ import {
   Network,
   Share2,
   Download,
+  FileDown,
+  Clock,
+  Wallet,
+  BookOpen,
+  Lightbulb,
 } from 'lucide-react'
 import AppSidebar from '@/components/layout/AppSidebar'
 import { api } from '@/services/api'
 import { supabase } from '@/lib/supabase-browser'
 import { AnalysisSkeleton } from '@/components/ui/AnalysisSkeleton'
 import { AnalysisError, getErrorMessage } from '@/components/ui/AnalysisError'
+import { getDisplayNameFromCodeId } from '@/lib/utils/code-mapper'
+import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
 
 interface TreeNode {
   id: string
@@ -46,6 +54,11 @@ interface TreeNode {
   y?: number
   status?: 'active' | 'optimal' | 'risk' | 'neutral'
   details?: string
+  // ── Metrikalar (strategik ko'rsatkichlar) ──
+  duration?: string // kutilayotgan muddat: "3-6 oy", "15-45 kun"
+  cost?: number // moliyaviy xarajat (so'mda)
+  legalBasis?: string // huquqiy asos: "FK 333-moddasi"
+  actionItems?: string[] // tavsiya etiladigan keyingi qadamlar
 }
 
 interface SavedTree {
@@ -64,6 +77,8 @@ interface Statistics {
   outcomes: number
   optimalPaths: number
   riskPaths: number
+  totalCost: number
+  durations: string[]
 }
 
 const CASE_TEMPLATES = [
@@ -109,6 +124,8 @@ export default function DecisionTreeEngine() {
     outcomes: 0,
     optimalPaths: 0,
     riskPaths: 0,
+    totalCost: 0,
+    durations: [],
   })
   const [history, setHistory] = useState<string[]>([])
   const [showNewCase, setShowNewCase] = useState(true)
@@ -127,6 +144,16 @@ export default function DecisionTreeEngine() {
   const recSelectionGuard = useRef(false)
   const svgRef = useRef<SVGSVGElement>(null)
 
+  // ── Tugun batafsil ma'lumot modali ───────────────────────────
+  const [detailNode, setDetailNode] = useState<TreeNode | null>(null)
+  const [detailLegal, setDetailLegal] = useState<
+    { article_number: string; title: string; code_id: string }[]
+  >([])
+  const [legalLoading, setLegalLoading] = useState(false)
+  const [editProb, setEditProb] = useState('')
+  const [editDuration, setEditDuration] = useState('')
+  const [editCost, setEditCost] = useState('')
+
   // ── Default tree (shown after user creates a case) ────────────
   const [decisionTree, setDecisionTree] = useState<TreeNode>({
     id: 'root',
@@ -141,8 +168,15 @@ export default function DecisionTreeEngine() {
         type: 'decision',
         x: 200,
         y: 150,
-        probability: 50,
+        probability: 60,
         risk: 'medium',
+        duration: '3-6 oy',
+        cost: 800000,
+        legalBasis: 'FK 333-moddasi',
+        actionItems: [
+          "Da'vo arizasini tayyorlash va sudga topshirish",
+          'Dalillarni toʻplash (shartnoma, hisob-fakturalar)',
+        ],
         children: [
           {
             id: 'g_alaba',
@@ -150,8 +184,9 @@ export default function DecisionTreeEngine() {
             type: 'outcome',
             x: 100,
             y: 250,
-            probability: 50,
-            status: 'neutral',
+            probability: 75,
+            status: 'optimal',
+            duration: '3-6 oy',
           },
           {
             id: 'xarajat',
@@ -159,8 +194,10 @@ export default function DecisionTreeEngine() {
             type: 'outcome',
             x: 300,
             y: 250,
-            probability: 50,
+            probability: 25,
             status: 'risk',
+            duration: '6-12 oy',
+            cost: 1200000,
           },
         ],
       },
@@ -170,8 +207,15 @@ export default function DecisionTreeEngine() {
         type: 'decision',
         x: 600,
         y: 150,
-        probability: 50,
+        probability: 70,
         risk: 'low',
+        duration: '15-45 kun',
+        cost: 200000,
+        legalBasis: 'FK 387-moddasi',
+        actionItems: [
+          "Kontragentga rasmiy taklif xati yuborish",
+          "Mediator yoki advokat ishtirokida uchrashuv tashkil qilish",
+        ],
         children: [
           {
             id: 'kelishuv',
@@ -179,8 +223,9 @@ export default function DecisionTreeEngine() {
             type: 'outcome',
             x: 500,
             y: 250,
-            probability: 50,
+            probability: 80,
             status: 'optimal',
+            duration: '15-45 kun',
           },
           {
             id: 'maglubiyat',
@@ -188,8 +233,10 @@ export default function DecisionTreeEngine() {
             type: 'outcome',
             x: 700,
             y: 250,
-            probability: 50,
+            probability: 20,
             status: 'risk',
+            duration: '1-3 oy',
+            cost: 300000,
           },
         ],
       },
@@ -205,6 +252,44 @@ export default function DecisionTreeEngine() {
       }
     } catch {}
   }, [])
+
+  // ── Statistika har doim daraxtdan hisoblanadi ("—" qolmaydi) ──
+  useEffect(() => {
+    setStatistics(computeTreeStats(decisionTree))
+  }, [decisionTree])
+
+  // ── Tugun modal ochilganda huquqiy asos (Supabase moddalar) ──
+  useEffect(() => {
+    if (!detailNode) {
+      setDetailLegal([])
+      return
+    }
+    setEditProb(detailNode.probability != null ? String(detailNode.probability) : '50')
+    setEditDuration(detailNode.duration || '')
+    setEditCost(detailNode.cost != null ? String(detailNode.cost) : '')
+    setLegalLoading(true)
+    setDetailLegal([])
+    const q = (detailNode.label || '').replace(/'/g, '').replace(/ʻ/g, '').trim()
+    if (q.length < 3) {
+      setLegalLoading(false)
+      return
+    }
+    const timer = setTimeout(async () => {
+      try {
+        const { data } = await supabase
+          .from('articles')
+          .select('article_number, title, code_id')
+          .or(`title.ilike.%${q}%,content.ilike.%${q}%`)
+          .limit(3)
+        setDetailLegal((data || []) as any)
+      } catch {
+        setDetailLegal([])
+      } finally {
+        setLegalLoading(false)
+      }
+    }, 350)
+    return () => clearTimeout(timer)
+  }, [detailNode])
 
   // ── Track activity for statistics ─────────────────────────────
   const trackActivity = useCallback((action: string, data?: Record<string, any>) => {
@@ -241,8 +326,15 @@ export default function DecisionTreeEngine() {
           type: 'decision',
           x: 200,
           y: 150,
-          probability: 50,
+          probability: 60,
           risk: 'medium',
+          duration: '3-6 oy',
+          cost: 800000,
+          legalBasis: 'FK 333-moddasi',
+          actionItems: [
+            "Da'vo arizasini tayyorlash va sudga topshirish",
+            'Dalillarni toʻplash (shartnoma, hisob-fakturalar)',
+          ],
           children: [
             {
               id: 'g_alaba',
@@ -260,8 +352,10 @@ export default function DecisionTreeEngine() {
               type: 'outcome',
               x: 300,
               y: 250,
-              probability: 50,
+              probability: 25,
               status: 'risk',
+              duration: '6-12 oy',
+              cost: 1200000,
             },
           ],
         },
@@ -271,8 +365,15 @@ export default function DecisionTreeEngine() {
           type: 'decision',
           x: 600,
           y: 150,
-          probability: 50,
+          probability: 70,
           risk: 'low',
+          duration: '15-45 kun',
+          cost: 200000,
+          legalBasis: 'FK 387-moddasi',
+          actionItems: [
+            "Kontragentga rasmiy taklif xati yuborish",
+            "Mediator yoki advokat ishtirokida uchrashuv tashkil qilish",
+          ],
           children: [
             {
               id: 'kelishuv',
@@ -302,7 +403,7 @@ export default function DecisionTreeEngine() {
     setShowSimulation(false)
     setAiAnalysis(null)
     setError(null)
-    setStatistics({ variants: 0, confidence: 0, outcomes: 0, optimalPaths: 0, riskPaths: 0 })
+    setStatistics(computeTreeStats(newTree))
     document.title = template.label
     trackActivity('Yangi qarorlar daraxti yaratildi', { scenario: template.label })
   }
@@ -323,8 +424,15 @@ export default function DecisionTreeEngine() {
           type: 'decision',
           x: 200,
           y: 150,
-          probability: 50,
+          probability: 60,
           risk: 'medium',
+          duration: '3-6 oy',
+          cost: 800000,
+          legalBasis: 'FK 333-moddasi',
+          actionItems: [
+            "Da'vo arizasini tayyorlash va sudga topshirish",
+            'Dalillarni toʻplash (shartnoma, hisob-fakturalar)',
+          ],
           children: [
             {
               id: 'g_alaba',
@@ -341,8 +449,10 @@ export default function DecisionTreeEngine() {
               type: 'outcome',
               x: 300,
               y: 250,
-              probability: 50,
+              probability: 25,
               status: 'risk',
+              duration: '6-12 oy',
+              cost: 1200000,
             },
           ],
         },
@@ -352,8 +462,15 @@ export default function DecisionTreeEngine() {
           type: 'decision',
           x: 600,
           y: 150,
-          probability: 50,
+          probability: 70,
           risk: 'low',
+          duration: '15-45 kun',
+          cost: 200000,
+          legalBasis: 'FK 387-moddasi',
+          actionItems: [
+            "Kontragentga rasmiy taklif xati yuborish",
+            "Mediator yoki advokat ishtirokida uchrashuv tashkil qilish",
+          ],
           children: [
             {
               id: 'kelishuv',
@@ -383,7 +500,7 @@ export default function DecisionTreeEngine() {
     setShowSimulation(false)
     setAiAnalysis(null)
     setError(null)
-    setStatistics({ variants: 0, confidence: 0, outcomes: 0, optimalPaths: 0, riskPaths: 0 })
+    setStatistics(computeTreeStats(newTree))
     trackActivity('Maxsus ish yaratildi', { scenario })
   }
 
@@ -405,6 +522,12 @@ export default function DecisionTreeEngine() {
             y: (node.y || 50) + offsetY,
             probability: 50,
             risk: 'medium',
+            duration: '1-3 oy',
+            cost: 250000,
+            actionItems: [
+              'Variantning huquqiy asoslarini tekshirish (tegishli qonun moddalari)',
+              'Xarajat va muddatni baholash, byudjetni aniqlash',
+            ],
             children: [
               {
                 id: `${newNodeId}_success`,
@@ -591,13 +714,7 @@ export default function DecisionTreeEngine() {
           ? Math.floor(outcomes * 0.7)
           : Math.floor(outcomes * 0.5)
 
-      setStatistics({
-        variants: countVariants(decisionTree),
-        confidence,
-        outcomes,
-        optimalPaths: optPaths,
-        riskPaths: outcomes - optPaths,
-      })
+      setStatistics(prev => ({ ...computeTreeStats(decisionTree), confidence }))
       setAiAnalysis(
         prev =>
           prev ||
@@ -605,22 +722,15 @@ export default function DecisionTreeEngine() {
       )
     } catch {
       const fallbackConf = 55 + Math.floor(Math.random() * 30)
-      const outcomes = countOutcomes(decisionTree)
-      setStatistics({
-        variants: countVariants(decisionTree),
-        confidence: fallbackConf,
-        outcomes,
-        optimalPaths: Math.floor(outcomes * 0.6),
-        riskPaths: Math.ceil(outcomes * 0.4),
-      })
+      setStatistics(prev => ({ ...computeTreeStats(decisionTree), confidence: fallbackConf }))
       setAiAnalysis(prev => prev || '✅ Mahalliy tahlil yakunlandi')
     } finally {
       setLoading(false)
     }
   }
 
-  // ── PDF Export ────────────────────────────────────────────────
-  const exportAsPdf = async () => {
+  // ── PNG Export (vizual rasm) ──────────────────────────────────
+  const exportAsPng = async () => {
     try {
       const svgEl = svgRef.current
       if (!svgEl) return
@@ -704,6 +814,203 @@ export default function DecisionTreeEngine() {
     }
   }
 
+  // ── PDF Hisobot eksporti (pdf-lib) ────────────────────────────
+  const exportPdfReport = async () => {
+    try {
+      const doc = await PDFDocument.create()
+      const pageSize: [number, number] = [595.28, 841.89] // A4
+      const margin = 48
+      const pageWidth = pageSize[0] - margin * 2
+      let page = doc.addPage(pageSize)
+      const font = await doc.embedFont(StandardFonts.Helvetica)
+      const bold = await doc.embedFont(StandardFonts.HelveticaBold)
+      const dark = rgb(0.13, 0.15, 0.2)
+      const gray = rgb(0.45, 0.47, 0.52)
+      const blue = rgb(0.2, 0.36, 0.85)
+      const green = rgb(0.07, 0.55, 0.32)
+      const red = rgb(0.85, 0.2, 0.2)
+      let y = pageSize[1] - margin
+
+      const ensureSpace = (needed: number) => {
+        if (y - needed < margin + 30) {
+          page = doc.addPage(pageSize)
+          y = pageSize[1] - margin
+        }
+      }
+
+      const drawWrapped = (
+        text: string,
+        opts: {
+          size?: number
+          bold?: boolean
+          color?: typeof dark
+          indent?: number
+        } = {}
+      ) => {
+        const f = opts.bold ? bold : font
+        const size = opts.size || 11
+        const color = opts.color || dark
+        const indent = opts.indent || 0
+        const words = sanitizeForPdf(text).split(/\s+/).filter(Boolean)
+        const lines: string[] = []
+        let line = ''
+        for (const w of words) {
+          const test = line ? line + ' ' + w : w
+          if (f.widthOfTextAtSize(test, size) > pageWidth - indent) {
+            if (line) {
+              lines.push(line)
+              line = w
+            } else {
+              lines.push(test)
+              line = ''
+            }
+          } else {
+            line = test
+          }
+        }
+        if (line) lines.push(line)
+        ensureSpace(lines.length * size * 1.45)
+        for (const ln of lines) {
+          page.drawText(ln, { x: margin + indent, y, size, font: f, color })
+          y -= size * 1.45
+        }
+        y -= 3
+      }
+
+      // ── Sarlavha ──
+      drawWrapped('QARORLAR DARAXTI HISOBOTI', { size: 18, bold: true, color: blue })
+      drawWrapped(`Ish: ${currentTreeName || decisionTree.label}`, { size: 13, bold: true })
+      drawWrapped(
+        `Hisobot sanasi: ${new Date().toLocaleDateString('uz-UZ', { day: 'numeric', month: 'long', year: 'numeric' })}  •  JurisAI`,
+        { size: 9, color: gray }
+      )
+      y -= 8
+      page.drawLine({
+        start: { x: margin, y },
+        end: { x: pageSize[0] - margin, y },
+        thickness: 1,
+        color: rgb(0.8, 0.82, 0.87),
+      })
+      y -= 16
+
+      // ── Umumiy ko'rsatkichlar ──
+      drawWrapped('UMUMIY KO\u02BBRSATKICHLAR', { size: 12, bold: true })
+      const s = computeTreeStats(decisionTree)
+      const rows: [string, string][] = [
+        ['Variantlar (tugunlar) soni', String(s.variants)],
+        ['Yakuniy natijalar soni', String(s.outcomes)],
+        ['Ishonchlilik indeksi', `${s.confidence}%`],
+        ['Ijobiy yakunlar', String(s.optimalPaths)],
+        ['Xavfli yakunlar', String(s.riskPaths)],
+        ['Taxminiy umumiy xarajat', formatSom(s.totalCost)],
+        ['Taxminiy davomiyligi', s.durations.length ? s.durations.join(' / ') : '—'],
+      ]
+      for (const [k, v] of rows) {
+        ensureSpace(30)
+        drawWrapped(k, { size: 10.5, color: gray })
+        y += 10
+        drawWrapped(v, { size: 11.5, bold: true })
+      }
+      y -= 10
+
+      // ── Daraxt tuzilmasi ──
+      drawWrapped('QARORLAR DARAXTI TUZILMASI', { size: 12, bold: true })
+      const treeLines: string[] = []
+      const collect = (n: TreeNode, depth: number) => {
+        const meta = [
+          typeof n.probability === 'number' ? `${n.probability}%` : '',
+          n.duration || '',
+          n.cost ? formatSom(n.cost) : '',
+        ]
+          .filter(Boolean)
+          .join(' | ')
+        const typeName =
+          n.type === 'root' ? 'boshlangich' : n.type === 'decision' ? 'qaror' : 'yakun'
+        treeLines.push(
+          `${'  '.repeat(depth)}• ${n.label}${meta ? '  [' + meta + ']' : ''}  (${typeName})`
+        )
+        n.children?.forEach(c => collect(c, depth + 1))
+      }
+      collect(decisionTree, 0)
+      for (const tl of treeLines) {
+        drawWrapped(tl, { size: 10, color: dark, indent: 8 })
+      }
+      y -= 8
+
+      // ── Xavf tahlili ──
+      drawWrapped('XAVF TAHLILI', { size: 12, bold: true })
+      const riskyNodes: string[] = []
+      const walkRisky = (n: TreeNode) => {
+        if (n.type === 'outcome' && n.status === 'risk') riskyNodes.push(n.label)
+        n.children?.forEach(walkRisky)
+      }
+      walkRisky(decisionTree)
+      if (riskyNodes.length) {
+        drawWrapped(`Yuqori xavf: ${riskyNodes.join(', ')}`, { size: 10.5, color: red })
+      } else {
+        drawWrapped('Alohida yuqori xavf aniqlanmadi', { size: 10.5, color: green })
+      }
+
+      // ── AI tahlil ──
+      if (aiAnalysis) {
+        y -= 8
+        drawWrapped('AI TAHLIL NATIJASI', { size: 12, bold: true })
+        drawWrapped(aiAnalysis, { size: 10, color: dark })
+      }
+
+      // ── Tavsiyalar ──
+      y -= 8
+      drawWrapped('TAVSIYALAR', { size: 12, bold: true })
+      if (s.optimalPaths > s.riskPaths) {
+        drawWrapped(
+          "Muzokara / kelishuv yo'li eng yuqori muvaffaqiyat ehtimoliga ega — ushbu yo'lni birinchi navbatda ko'rib chiqing.",
+          { size: 10.5, color: green }
+        )
+      } else {
+        drawWrapped(
+          "Sud yo'li qonuniy himoyani to'liq ta'minlaydi — da'vo arizasini tayyorlashda advokat bilan ishlang.",
+          { size: 10.5, color: green }
+        )
+      }
+      drawWrapped(
+        "Har bir yo'l bo'yicha tegishli qonun moddalarini o'rganing va qarorni hujjatlashtiring.",
+        { size: 10.5, color: gray }
+      )
+
+      // ── Footer ──
+      y -= 16
+      page.drawLine({
+        start: { x: margin, y },
+        end: { x: pageSize[0] - margin, y },
+        thickness: 0.5,
+        color: rgb(0.85, 0.87, 0.9),
+      })
+      y -= 14
+      drawWrapped('JurisAI — Qarorlar daraxti hisoboti • Bu hujjat yuridik maslahat o\u2019rnini bosmaydi', {
+        size: 8.5,
+        color: gray,
+      })
+
+      const pdfBytes = await doc.save()
+      const blob = new Blob([pdfBytes as unknown as BlobPart], { type: 'application/pdf' })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      const baseName = sanitizeForPdf(currentTreeName || decisionTree.label || 'qarorlar-daraxti')
+        .replace(/[^a-zA-Z0-9\-_]/g, ' ')
+        .trim()
+        .replace(/\s+/g, '-')
+        .slice(0, 50)
+      link.download = `${baseName || 'qarorlar-daraxti'}-hisobot.pdf`
+      link.href = url
+      link.click()
+      setTimeout(() => URL.revokeObjectURL(url), 2000)
+      trackActivity('PDF hisobot yuklab olindi', { format: 'PDF' })
+    } catch (err) {
+      console.error('PDF export xatosi:', err)
+      alert("PDF yaratishda xatolik yuz berdi. Brauzer yangilab qayta urinib ko'ring.")
+    }
+  }
+
   const countVariants = (node: TreeNode): number => {
     let count = 1
     if (node.children) {
@@ -758,12 +1065,106 @@ export default function DecisionTreeEngine() {
     localStorage.setItem('decision_trees', JSON.stringify(updated))
   }
 
+  // ── Yordamchi funksiyalar: metrikalar va statistika ────────────
+  const formatSom = (n?: number): string => {
+    if (!n) return '—'
+    return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + " so'm"
+  }
+
+  const findNodeInTree = (node: TreeNode, id: string): TreeNode | null => {
+    if (node.id === id) return node
+    for (const child of node.children || []) {
+      const found = findNodeInTree(child, id)
+      if (found) return found
+    }
+    return null
+  }
+
+  const updateTreeNode = (nodeId: string, patch: Partial<TreeNode>) => {
+    setDecisionTree(prev => {
+      const upd = (node: TreeNode): TreeNode => {
+        if (node.id === nodeId) return { ...node, ...patch }
+        if (node.children) return { ...node, children: node.children.map(upd) }
+        return node
+      }
+      return upd(prev)
+    })
+  }
+
+  const computeTreeStats = (tree: TreeNode): Statistics => {
+    const variants = countVariants(tree)
+    const outcomes = countOutcomes(tree)
+    const probs: number[] = []
+    const durations: string[] = []
+    let totalCost = 0
+    let optimal = 0
+    let risky = 0
+    const walk = (n: TreeNode) => {
+      if (typeof n.probability === 'number') probs.push(n.probability)
+      if (n.duration) durations.push(n.duration)
+      if (n.cost) totalCost += n.cost
+      if (n.type === 'outcome') {
+        if (n.status === 'optimal' || (typeof n.probability === 'number' && n.probability >= 60)) {
+          optimal++
+        } else if (n.status === 'risk' || (typeof n.probability === 'number' && n.probability <= 40)) {
+          risky++
+        }
+      }
+      n.children?.forEach(walk)
+    }
+    walk(tree)
+    const avgProb = probs.length ? probs.reduce((s, p) => s + p, 0) / probs.length : 55
+    const outcomeRatio = outcomes > 0 ? (optimal / outcomes) * 100 : 50
+    const confidence = Math.round(avgProb * 0.6 + outcomeRatio * 0.4)
+    return {
+      variants,
+      outcomes,
+      confidence: Math.min(95, Math.max(35, confidence)),
+      optimalPaths: optimal,
+      riskPaths: risky,
+      totalCost,
+      durations: [...new Set(durations)],
+    }
+  }
+
+  // PDF matnini ASCII-ga moslashtirish (pdf-lib standard fontlar uchun)
+  const sanitizeForPdf = (s: string): string =>
+    s
+      .replace(/ʻ/g, "'")
+      .replace(/[’‘`]/g, "'")
+      .replace(/—|–/g, '-')
+      .replace(/[^\x20-\x7E]/g, ch => (ch === "'" ? "'" : '?'))
+
+  // Tugun turi bo'yicha avtomatik keyingi qadamlar
+  const autoActionItems = (node: TreeNode): string[] => {
+    if (node.type === 'outcome') {
+      return [
+        node.status === 'optimal'
+          ? 'Ushbu yoʻlni tanlash tavsiya etiladi — muvaffaqiyat ehtimoli yuqori'
+          : node.status === 'risk'
+            ? 'Ushbu yoʻldan qochish yoki xavfni kamaytirish choralarini koʻrish kerak'
+            : 'Natijani hujjatlashtirish va keyingi qaror uchun asos qilib olish',
+        'Qaror qabul qilishdan oldin advokat bilan maslahatlashish',
+      ]
+    }
+    if (node.type === 'decision') {
+      return [
+        'Variantning huquqiy asoslarini tekshirish (tegishli qonun moddalari)',
+        'Xarajat va muddatni baholash, byudjetni aniqlash',
+        "Qarorni hujjatlashtirish va tomonlar bilan kelishish",
+      ]
+    }
+    return ['Ish holatini toʻliq tahlil qilish', 'Yuridik maslahat olish']
+  }
+
   // ── Node click handler ─────────────────────────────────────────
   const handleNodeClick = (nodeId: string, e?: React.MouseEvent) => {
     if (e) {
       const target = e.target as SVGElement
       if (target.tagName === 'circle') {
         setSelectedNode(nodeId)
+        const node = findNodeInTree(decisionTree, nodeId)
+        if (node) setDetailNode(node)
         if (history.length === 0 || history[history.length - 1] !== nodeId) {
           setHistory(prev => [...prev, nodeId])
         }
@@ -781,14 +1182,6 @@ export default function DecisionTreeEngine() {
 
   const handleSimulation = () => {
     setShowSimulation(true)
-    const outcomes = countOutcomes(decisionTree)
-    setStatistics({
-      variants: countVariants(decisionTree),
-      confidence: 55 + Math.floor(Math.random() * 30),
-      outcomes,
-      optimalPaths: Math.floor(outcomes * 0.6),
-      riskPaths: Math.ceil(outcomes * 0.4),
-    })
     runAnalysis()
   }
 
@@ -799,7 +1192,7 @@ export default function DecisionTreeEngine() {
     setHistory([])
     setAiAnalysis(null)
     setError(null)
-    setStatistics({ variants: 0, confidence: 0, outcomes: 0, optimalPaths: 0, riskPaths: 0 })
+    setStatistics(computeTreeStats(decisionTree))
   }
 
   const getNodeColor = (node: TreeNode) => {
@@ -1029,17 +1422,44 @@ export default function DecisionTreeEngine() {
           </foreignObject>
         )}
 
-        {/* Probability label */}
-        {node.probability && (
+        {/* Metrikalar: ehtimollik %, muddat, xarajat — har doim ko'rinadi */}
+        {typeof node.probability === 'number' && (
           <text
             x={node.x}
             y={node.y! - (node.type === 'root' ? 35 : node.type === 'decision' ? 30 : 25)}
             textAnchor="middle"
-            className="text-xs font-bold fill-gray-600 dark:fill-zinc-400"
+            className="text-xs font-bold"
+            fill={
+              node.probability >= 60
+                ? '#10b981'
+                : node.probability <= 40
+                  ? '#ef4444'
+                  : '#d97706'
+            }
           >
-            {showSimulation ? `${node.probability}%` : ''}
+            {node.probability}%
           </text>
         )}
+        {node.duration && (
+          <text
+            x={node.x}
+            y={node.y! - (node.type === 'root' ? 47 : node.type === 'decision' ? 42 : 37)}
+            textAnchor="middle"
+            className="text-[9px] fill-gray-500 dark:fill-zinc-400"
+          >
+            {node.duration}
+          </text>
+        )}
+        {node.cost ? (
+          <text
+            x={node.x}
+            y={node.y! - (node.type === 'root' ? 59 : node.type === 'decision' ? 54 : 49)}
+            textAnchor="middle"
+            className="text-[9px] fill-gray-400 dark:fill-zinc-500"
+          >
+            {formatSom(node.cost)}
+          </text>
+        ) : null}
 
         {/* Type icon for decisions */}
         {node.type === 'decision' && (
@@ -1050,6 +1470,260 @@ export default function DecisionTreeEngine() {
 
         {node.children?.map(child => renderNode(child))}
       </g>
+    )
+  }
+
+  // ── Tugun batafsil ma'lumot modali ────────────────────────────
+  const renderDetailModal = () => {
+    if (!detailNode) return null
+    const node = detailNode
+    const statusLabel =
+      node.status === 'optimal'
+        ? 'Ijobiy'
+        : node.status === 'risk'
+          ? 'Xavfli'
+          : node.type === 'outcome'
+            ? 'Neytral'
+            : node.risk === 'low'
+              ? 'Past xavf'
+              : node.risk === 'high'
+                ? 'Yuqori xavf'
+                : "O'rtacha xavf"
+
+    const causeEffect =
+      node.details ||
+      (node.type === 'decision'
+        ? node.risk === 'low'
+          ? 'Bu yoʻl nisbatan xavfsiz — xarajat va muddat past, biroq natija kafolatlanmagan.'
+          : node.risk === 'high'
+            ? 'Bu yoʻl yuqori xavf bilan bogʻliq — moliyaviy va vaqt xarajatlari ortishi mumkin.'
+            : "Bu yoʻl o'rtacha xavfga ega — natija dalillar va jarayonning kechishiga bog'liq."
+        : node.status === 'optimal'
+          ? 'Ijobiy natija — bu yoʻlni tanlash maqsadga muvofiq.'
+          : node.status === 'risk'
+            ? 'Salbiy natija — bu yoʻl xarajat ortishi yoki talab qondirilmasligi bilan yakunlanishi mumkin.'
+            : 'Natija hozircha noaniq — qoʻshimcha tahlil talab etiladi.')
+
+    const actions = node.actionItems?.length ? node.actionItems : autoActionItems(node)
+
+    const saveMetrics = () => {
+      if (!detailNode) return
+      const patch: Partial<TreeNode> = {}
+      const p = parseInt(editProb, 10)
+      if (!isNaN(p)) patch.probability = Math.min(100, Math.max(0, p))
+      if (editDuration.trim()) patch.duration = editDuration.trim()
+      const c = parseInt(editCost.replace(/[^\d]/g, ''), 10)
+      if (!isNaN(c)) patch.cost = c
+      updateTreeNode(detailNode.id, patch)
+      setDetailNode(null)
+      setSelectedNode(null)
+    }
+
+    return (
+      <div
+        className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
+        onClick={() => setDetailNode(null)}
+      >
+        <div
+          className="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto"
+          onClick={e => e.stopPropagation()}
+        >
+          {/* Header */}
+          <div className="p-5 border-b border-gray-100 dark:border-zinc-800">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1 flex-wrap">
+                  <span
+                    className={`text-[10px] px-2 py-0.5 rounded-md font-semibold uppercase ${
+                      node.type === 'root'
+                        ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300'
+                        : node.type === 'decision'
+                          ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300'
+                          : 'bg-gray-100 text-gray-600 dark:bg-zinc-700 dark:text-zinc-300'
+                    }`}
+                  >
+                    {node.type === 'root'
+                      ? 'Boshlangʻich'
+                      : node.type === 'decision'
+                        ? 'Qaror'
+                        : 'Yakun'}
+                  </span>
+                  <span
+                    className={`text-[10px] px-2 py-0.5 rounded-md font-semibold ${
+                      node.status === 'optimal'
+                        ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'
+                        : node.status === 'risk'
+                          ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
+                          : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300'
+                    }`}
+                  >
+                    {statusLabel}
+                  </span>
+                </div>
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white">{node.label}</h2>
+              </div>
+              <button
+                onClick={() => setDetailNode(null)}
+                className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-zinc-200 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
+              >
+                <X size={18} />
+              </button>
+            </div>
+          </div>
+
+          <div className="p-5 space-y-4">
+            {/* Ko'rsatkichlar — tahrirlanadigan */}
+            <div>
+              <h3 className="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-zinc-400 mb-2">
+                Ko'rsatkichlar
+              </h3>
+              <div className="grid grid-cols-3 gap-2">
+                <label className="block">
+                  <span className="text-[10px] text-gray-500 dark:text-zinc-400">
+                    Ehtimollik %
+                  </span>
+                  <input
+                    type="number"
+                    min={0}
+                    max={100}
+                    value={editProb}
+                    onChange={e => setEditProb(e.target.value)}
+                    className="mt-1 w-full px-2 py-1.5 text-xs border border-gray-200 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-gray-800 dark:text-zinc-200"
+                  />
+                </label>
+                <label className="block">
+                  <span className="text-[10px] text-gray-500 dark:text-zinc-400">Muddat</span>
+                  <input
+                    type="text"
+                    value={editDuration}
+                    onChange={e => setEditDuration(e.target.value)}
+                    placeholder="3-6 oy"
+                    className="mt-1 w-full px-2 py-1.5 text-xs border border-gray-200 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-gray-800 dark:text-zinc-200"
+                  />
+                </label>
+                <label className="block">
+                  <span className="text-[10px] text-gray-500 dark:text-zinc-400">Xarajat (so'm)</span>
+                  <input
+                    type="text"
+                    value={editCost}
+                    onChange={e => setEditCost(e.target.value)}
+                    placeholder="800000"
+                    className="mt-1 w-full px-2 py-1.5 text-xs border border-gray-200 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-gray-800 dark:text-zinc-200"
+                  />
+                </label>
+              </div>
+              <button
+                onClick={saveMetrics}
+                className="mt-2 w-full py-2 bg-blue-600 text-white rounded-lg text-xs font-medium hover:bg-blue-700 transition-colors"
+              >
+                <Save className="w-3.5 h-3.5 inline mr-1 -mt-0.5" />
+                Ko'rsatkichlarni saqlash
+              </button>
+            </div>
+
+            {/* Huquqiy asos */}
+            <div>
+              <h3 className="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-zinc-400 mb-2 flex items-center gap-1">
+                <BookOpen className="w-3.5 h-3.5" /> Huquqiy asos
+              </h3>
+              {node.legalBasis ? (
+                <p className="text-sm text-gray-700 dark:text-zinc-300">{node.legalBasis}</p>
+              ) : (
+                <p className="text-xs text-gray-500 dark:text-zinc-400 italic">
+                  Tegishli qonun moddasi belgilanmagan
+                </p>
+              )}
+              {legalLoading ? (
+                <div className="mt-2 flex items-center gap-1.5 text-xs text-gray-500 dark:text-zinc-400">
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                  Qonun moddalari qidirilmoqda...
+                </div>
+              ) : detailLegal.length > 0 ? (
+                <div className="mt-2 space-y-1.5">
+                  {detailLegal.map((a, i) => (
+                    <div
+                      key={i}
+                      className="px-2.5 py-1.5 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-xs text-blue-700 dark:text-blue-300"
+                    >
+                      <span className="font-semibold">
+                        {getDisplayNameFromCodeId(a.code_id)} • {a.article_number}-modda
+                      </span>{' '}
+                      — {a.title}
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+
+            {/* Sabab va oqibat */}
+            <div>
+              <h3 className="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-zinc-400 mb-2">
+                Sabab va oqibat
+              </h3>
+              <p className="text-sm text-gray-700 dark:text-zinc-300">{causeEffect}</p>
+            </div>
+
+            {/* Keyingi qadamlar */}
+            <div>
+              <h3 className="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-zinc-400 mb-2 flex items-center gap-1">
+                <Lightbulb className="w-3.5 h-3.5" /> Tavsiya etiladigan qadamlar
+              </h3>
+              <ul className="space-y-1.5">
+                {actions.map((a, i) => (
+                  <li
+                    key={i}
+                    className="flex items-start gap-2 text-sm text-gray-700 dark:text-zinc-300"
+                  >
+                    <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
+                    {a}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          {/* Amallar */}
+          <div className="px-5 py-4 border-t border-gray-100 dark:border-zinc-800 flex flex-wrap gap-2">
+            <button
+              onClick={() => {
+                startEditNode(node.id, node.label)
+                setDetailNode(null)
+              }}
+              className="flex items-center gap-1.5 px-3 py-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 rounded-lg text-xs font-medium hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors"
+            >
+              <Edit3 className="w-3.5 h-3.5" /> Nomni tahrirlash
+            </button>
+            {node.type !== 'outcome' && (
+              <button
+                onClick={() => {
+                  addChildNode(node.id)
+                  setDetailNode(null)
+                }}
+                className="flex items-center gap-1.5 px-3 py-2 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 rounded-lg text-xs font-medium hover:bg-green-100 dark:hover:bg-green-900/40 transition-colors"
+              >
+                <Plus className="w-3.5 h-3.5" /> Yangi tugun
+              </button>
+            )}
+            {node.id !== 'root' && (
+              <button
+                onClick={() => {
+                  removeNode(node.id)
+                  setDetailNode(null)
+                }}
+                className="flex items-center gap-1.5 px-3 py-2 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded-lg text-xs font-medium hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"
+              >
+                <Trash2 className="w-3.5 h-3.5" /> O'chirish
+              </button>
+            )}
+            <button
+              onClick={() => setDetailNode(null)}
+              className="ml-auto px-3 py-2 bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-300 rounded-lg text-xs font-medium hover:bg-gray-200 dark:hover:bg-zinc-700 transition-colors"
+            >
+              Yopish
+            </button>
+          </div>
+        </div>
+      </div>
     )
   }
 
@@ -1266,11 +1940,19 @@ export default function DecisionTreeEngine() {
               </div>
               <div className="flex items-center gap-2">
                 <button
-                  onClick={exportAsPdf}
+                  onClick={exportAsPng}
                   className="p-2 text-gray-600 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
-                  title="Eksport (PNG)"
+                  title="PNG rasm yuklab olish"
                 >
                   <Download className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={exportPdfReport}
+                  className="flex items-center gap-1.5 px-3 py-2 text-sm text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 rounded-lg transition-colors font-medium"
+                  title="PDF hisobot yuklab olish"
+                >
+                  <FileDown className="w-4 h-4" />
+                  PDF
                 </button>
                 <button
                   onClick={handleSimulation}
@@ -1371,8 +2053,8 @@ export default function DecisionTreeEngine() {
                   {/* Selected node info */}
                   {selectedNode && (
                     <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border-t border-blue-100 dark:border-blue-800">
-                      <div className="flex items-start justify-between">
-                        <div>
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1 min-w-0">
                           <h3 className="font-semibold text-blue-800 dark:text-blue-300 text-sm">
                             Tanlangan nuqta
                           </h3>
@@ -1380,12 +2062,29 @@ export default function DecisionTreeEngine() {
                             {getNodeDescription(selectedNode)}
                           </p>
                         </div>
-                        <button
-                          onClick={() => startEditNode(selectedNode, '')}
-                          className="p-1.5 bg-blue-600 text-white rounded-lg text-xs hover:bg-blue-700 transition-colors"
-                        >
-                          <Edit3 className="w-3.5 h-3.5" />
-                        </button>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <button
+                            onClick={() => {
+                              const n = findNodeInTree(decisionTree, selectedNode)
+                              if (n) setDetailNode(n)
+                            }}
+                            className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs hover:bg-blue-700 transition-colors"
+                          >
+                            Batafsil
+                          </button>
+                          <button
+                            onClick={() =>
+                              startEditNode(
+                                selectedNode,
+                                findNodeInTree(decisionTree, selectedNode)?.label || ''
+                              )
+                            }
+                            className="p-1.5 bg-white dark:bg-zinc-700 text-gray-600 dark:text-zinc-200 rounded-lg text-xs hover:bg-gray-100 dark:hover:bg-zinc-600 transition-colors"
+                            title="Nomni tahrirlash"
+                          >
+                            <Edit3 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </div>
                     </div>
                   )}
@@ -1495,6 +2194,30 @@ export default function DecisionTreeEngine() {
                         </span>
                       </div>
                     </div>
+                    <div className="bg-gray-50 dark:bg-zinc-800/50 rounded-lg p-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-gray-500 dark:text-zinc-400 flex items-center gap-1">
+                          <Wallet className="w-3.5 h-3.5" />
+                          Taxminiy umumiy xarajat
+                        </span>
+                        <span className="text-sm font-bold text-gray-800 dark:text-zinc-100">
+                          {statistics.totalCost ? formatSom(statistics.totalCost) : '—'}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="bg-gray-50 dark:bg-zinc-800/50 rounded-lg p-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-gray-500 dark:text-zinc-400 flex items-center gap-1">
+                          <Clock className="w-3.5 h-3.5" />
+                          Taxminiy davomiyligi
+                        </span>
+                        <span className="text-sm font-bold text-gray-800 dark:text-zinc-100">
+                          {statistics.durations.length
+                            ? statistics.durations.join(' / ')
+                            : '—'}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -1564,6 +2287,9 @@ export default function DecisionTreeEngine() {
               </div>
             </div>
           </main>
+
+          {/* Tugun batafsil ma'lumot modali */}
+          {renderDetailModal()}
         </div>
       </div>
     </div>
