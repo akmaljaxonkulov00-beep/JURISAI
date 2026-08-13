@@ -232,5 +232,5 @@ SELECT 'auth.users' AS tbl, COUNT(*) AS cnt FROM auth.users;
 -- Duplicate email'lar bo'lsa ko'rsatadi (bo'sh bo'lishi kerak)
 SELECT email, COUNT(*) AS cnt
 FROM auth.users
-GROUP BY LOWER(email)
+GROUP BY email
 HAVING COUNT(*) > 1;

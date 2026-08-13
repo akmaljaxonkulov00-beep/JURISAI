@@ -262,5 +262,5 @@ ORDER BY provider;
 -- Duplicate email'lar bo'lsa ko'rsatadi (birlashtirilgandan keyin bo'sh bo'lishi kerak)
 SELECT email, COUNT(*) AS cnt
 FROM public.registered_users
-GROUP BY LOWER(email)
+GROUP BY email
 HAVING COUNT(*) > 1;
