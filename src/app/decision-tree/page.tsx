@@ -69,6 +69,8 @@ interface SavedTree {
   tree: TreeNode
   createdAt: string
   updatedAt: string
+  /** Supabase'dagi UUID — mavjud bo'lsa yangilash, aks holda yangi yozish */
+  dbId?: string
 }
 
 interface Statistics {
@@ -135,6 +137,7 @@ export default function DecisionTreeEngine() {
   const [editingNode, setEditingNode] = useState<string | null>(null)
   const [editLabel, setEditLabel] = useState('')
   const [loading, setLoading] = useState(false)
+  const [aiGenerating, setAiGenerating] = useState(false) // AI daraxt yaratish holati
   const [aiAnalysis, setAiAnalysis] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [recommendations, setRecommendations] = useState<
@@ -243,14 +246,52 @@ export default function DecisionTreeEngine() {
     ],
   })
 
-  // ── Load saved trees from localStorage ────────────────────────
+  // ── Load saved trees from localStorage + Supabase ─────────────
   useEffect(() => {
+    let local: SavedTree[] = []
     try {
       const stored = localStorage.getItem('decision_trees')
-      if (stored) {
-        setSavedTrees(JSON.parse(stored))
-      }
+      if (stored) local = JSON.parse(stored) as SavedTree[]
     } catch {}
+
+    // Supabase'dan foydalanuvchi daraxtlarini yuklash va birlashtirish
+    // (boshqa qurilmada saqlangan daraxtlar ham ko'rinadi)
+    ;(async () => {
+      let supabaseTrees: SavedTree[] = []
+      try {
+        const { data, error } = await supabase
+          .from('decision_trees')
+          .select('*')
+          .order('updated_at', { ascending: false })
+        if (!error && data && Array.isArray(data)) {
+          supabaseTrees = data.map((t: any) => ({
+            id: t.id,
+            dbId: t.id,
+            name: t.name,
+            caseType: t.case_type || 'huquqiy',
+            scenario: t.scenario || '',
+            tree: t.tree as TreeNode,
+            createdAt: t.created_at,
+            updatedAt: t.updated_at,
+          }))
+        }
+      } catch {
+        /* jadval mavjud emas yoki ruxsat yo'q — localStorage'da qoladi */
+      }
+
+      // Birlashtirish: Supabase versiyasi ustun (eng so'nggi updatedAt)
+      const merged = [...supabaseTrees]
+      for (const l of local) {
+        const dup = merged.find(m => (m.dbId && m.dbId === l.dbId) || m.name === l.name)
+        if (!dup) {
+          merged.push(l)
+        } else if (new Date(l.updatedAt) > new Date(dup.updatedAt)) {
+          Object.assign(dup, { ...l, dbId: dup.dbId })
+        }
+      }
+      merged.sort((a, b) => +new Date(b.updatedAt) - +new Date(a.updatedAt))
+      setSavedTrees(merged.slice(0, 20))
+    })()
   }, [])
 
   // ── Statistika har doim daraxtdan hisoblanadi ("—" qolmaydi) ──
@@ -408,9 +449,91 @@ export default function DecisionTreeEngine() {
     trackActivity('Yangi qarorlar daraxti yaratildi', { scenario: template.label })
   }
 
-  // ── Create custom case ────────────────────────────────────────
-  const createCustomCase = (scenario: string) => {
-    if (!scenario.trim()) return
+  // ── AI'dan kelgan daraxtni TreeNode formatiga o'tkazish ───────
+  const buildTreeFromAi = (ai: any): TreeNode => {
+    let counter = 0
+    const convert = (n: any, isRoot: boolean): TreeNode => {
+      const prob = typeof n.probability === 'number' ? n.probability : undefined
+      const node: TreeNode = {
+        id: `ai_${counter++}`,
+        label: n.label || 'Qaror',
+        type: isRoot ? 'root' : n.type === 'outcome' ? 'outcome' : 'decision',
+        probability: prob,
+        risk:
+          prob == null
+            ? 'medium'
+            : prob >= 60
+              ? 'low'
+              : prob <= 40
+                ? 'high'
+                : 'medium',
+        duration: n.duration || undefined,
+        cost: typeof n.cost === 'number' && n.cost > 0 ? n.cost : undefined,
+        legalBasis: n.legalBasis || undefined,
+        actionItems:
+          Array.isArray(n.actionItems) && n.actionItems.length
+            ? n.actionItems.slice(0, 3)
+            : undefined,
+        details: n.details || undefined,
+      }
+      if (!isRoot && n.type === 'outcome') {
+        node.status =
+          prob != null && prob >= 60
+            ? 'optimal'
+            : prob != null && prob <= 40
+              ? 'risk'
+              : 'neutral'
+      }
+      if (Array.isArray(n.children) && n.children.length) {
+        node.children = n.children.map((c: any) => convert(c, false))
+      }
+      return node
+    }
+    return convert(ai, true)
+  }
+
+  // ── Create custom case (AI bilan yaratish + fallback) ─────────
+  const createCustomCase = async (scenario: string) => {
+    if (!scenario.trim() || aiGenerating) return
+    const applyTree = (newTree: TreeNode, fromAi: boolean) => {
+      recalcPositions(newTree)
+      setDecisionTree(newTree)
+      setCurrentTreeName(scenario.slice(0, 30))
+      setShowNewCase(false)
+      setShowSimulation(false)
+      setAiAnalysis(null)
+      setError(null)
+      setStatistics(computeTreeStats(newTree))
+      document.title = scenario.slice(0, 30)
+      trackActivity(fromAi ? 'AI qarorlar daraxti yaratildi' : 'Maxsus ish yaratildi', {
+        scenario,
+      })
+    }
+
+    // 1) AI'dan real qonunchilikka asoslangan daraxt yaratishga urinamiz
+    setAiGenerating(true)
+    let aiTree: TreeNode | null = null
+    try {
+      const res = await fetch('/api/decision-tree/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scenario: scenario.trim(), case_type: 'huquqiy' }),
+      })
+      const json = await res.json().catch(() => null)
+      if (json?.success && json.tree && json.tree.label) {
+        aiTree = buildTreeFromAi(json.tree)
+      }
+    } catch {
+      /* AI xatosi — fallback shablonga o'tamiz */
+    }
+    setAiGenerating(false)
+
+    if (aiTree) {
+      applyTree(aiTree, true)
+      return
+    }
+
+    // 2) Fallback: standart shablon daraxti
     const newTree: TreeNode = {
       id: 'root',
       label: scenario.slice(0, 40),
@@ -494,14 +617,7 @@ export default function DecisionTreeEngine() {
         },
       ],
     }
-    setDecisionTree(newTree)
-    setCurrentTreeName(scenario.slice(0, 30))
-    setShowNewCase(false)
-    setShowSimulation(false)
-    setAiAnalysis(null)
-    setError(null)
-    setStatistics(computeTreeStats(newTree))
-    trackActivity('Maxsus ish yaratildi', { scenario })
+    applyTree(newTree, false)
   }
 
   // ── Add a new child node ──────────────────────────────────────
@@ -977,6 +1093,50 @@ export default function DecisionTreeEngine() {
         { size: 10.5, color: gray }
       )
 
+      // ── Yuridik asoslar va tavsiyalar (moddalar) ──
+      const legalBases: string[] = []
+      const actionItems: string[] = []
+      const collectLegal = (n: TreeNode) => {
+        if (n.legalBasis && !legalBases.includes(n.legalBasis)) legalBases.push(n.legalBasis)
+        n.actionItems?.forEach(a => {
+          if (!actionItems.includes(a)) actionItems.push(a)
+        })
+        n.children?.forEach(collectLegal)
+      }
+      collectLegal(decisionTree)
+      if (legalBases.length > 0 || actionItems.length > 0 || recommendations.length > 0) {
+        y -= 8
+        drawWrapped('YURIDIK ASOSLAR VA TAVSIYALAR', { size: 12, bold: true })
+        if (legalBases.length > 0) {
+          drawWrapped('Qonun moddalari:', { size: 10.5, bold: true, color: blue })
+          legalBases.slice(0, 8).forEach(b => drawWrapped(`• ${b}`, { size: 10, color: dark, indent: 8 }))
+        }
+        if (recommendations.length > 0) {
+          drawWrapped("Tegishli moddalar (ma'lumotlar bazasidan):", {
+            size: 10.5,
+            bold: true,
+            color: blue,
+          })
+          recommendations.slice(0, 6).forEach(r =>
+            drawWrapped(`• ${r.number}${r.title ? ' - ' + r.title : ''}`, {
+              size: 10,
+              color: dark,
+              indent: 8,
+            })
+          )
+        }
+        if (actionItems.length > 0) {
+          drawWrapped('Tavsiya etiladigan keyingi qadamlar:', {
+            size: 10.5,
+            bold: true,
+            color: blue,
+          })
+          actionItems.slice(0, 10).forEach(a =>
+            drawWrapped(`• ${a}`, { size: 10, color: dark, indent: 8 })
+          )
+        }
+      }
+
       // ── Footer ──
       y -= 16
       page.drawLine({
@@ -1031,21 +1191,54 @@ export default function DecisionTreeEngine() {
     return count
   }
 
-  // ── Save current tree ─────────────────────────────────────────
-  const saveTree = () => {
+  // ── Save current tree (localStorage + Supabase) ───────────────
+  const saveTree = async () => {
     const name = currentTreeName || decisionTree.label || 'Nomsiz daraxt'
+    const now = new Date().toISOString()
+    const existing = savedTrees.find(s => s.name === name)
     const saved: SavedTree = {
-      id: Date.now().toString(),
+      id: existing?.id || Date.now().toString(),
+      dbId: existing?.dbId,
       name,
       caseType: 'huquqiy',
       scenario: decisionTree.label,
       tree: decisionTree,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      createdAt: existing?.createdAt || now,
+      updatedAt: now,
     }
     const updated = [saved, ...savedTrees.filter(s => s.name !== name)].slice(0, 20)
     setSavedTrees(updated)
     localStorage.setItem('decision_trees', JSON.stringify(updated))
+
+    // Supabase'ga sinxronlash (session mavjud bo'lsa) — boshqa qurilmada davom ettirish uchun
+    try {
+      const { data: udata } = await supabase.auth.getUser()
+      if (!udata?.user) return
+      const payload = {
+        name: saved.name,
+        case_type: saved.caseType,
+        scenario: saved.scenario,
+        tree: saved.tree,
+        updated_at: now,
+      }
+      if (saved.dbId) {
+        await supabase.from('decision_trees').update(payload).eq('id', saved.dbId)
+      } else {
+        const { data: inserted } = await supabase
+          .from('decision_trees')
+          .insert({ ...payload, user_id: udata.user.id, created_at: saved.createdAt })
+          .select('id')
+          .single()
+        if (inserted?.id) {
+          saved.dbId = inserted.id
+          const updated2 = [saved, ...updated.filter(s => s.name !== name)]
+          setSavedTrees(updated2)
+          localStorage.setItem('decision_trees', JSON.stringify(updated2))
+        }
+      }
+    } catch {
+      /* oflayn — localStorage'da qoladi, keyingi saqlashda sinxronlanadi */
+    }
   }
 
   // ── Load a saved tree ─────────────────────────────────────────
@@ -1056,13 +1249,22 @@ export default function DecisionTreeEngine() {
     setShowSavedTrees(false)
     setShowSimulation(false)
     setAiAnalysis(null)
+    setError(null)
   }
 
-  // ── Delete a saved tree ───────────────────────────────────────
-  const deleteSavedTree = (id: string) => {
+  // ── Delete a saved tree (localStorage + Supabase) ─────────────
+  const deleteSavedTree = async (id: string) => {
+    const target = savedTrees.find(s => s.id === id)
     const updated = savedTrees.filter(s => s.id !== id)
     setSavedTrees(updated)
     localStorage.setItem('decision_trees', JSON.stringify(updated))
+    if (target?.dbId) {
+      try {
+        await supabase.from('decision_trees').delete().eq('id', target.dbId)
+      } catch {
+        /* o'chirish xatosi — localStorage'da o'chirilgan */
+      }
+    }
   }
 
   // ── Yordamchi funksiyalar: metrikalar va statistika ────────────
@@ -1754,7 +1956,7 @@ export default function DecisionTreeEngine() {
             <h2 className="text-lg font-bold text-gray-800 dark:text-zinc-100 mb-4">
               Yangi ish yaratish
             </h2>
-            <CustomCaseForm onSubmit={createCustomCase} />
+            <CustomCaseForm onSubmit={createCustomCase} generating={aiGenerating} />
           </div>
 
           {/* Templates */}
@@ -2297,12 +2499,18 @@ export default function DecisionTreeEngine() {
 }
 
 // ── Custom Case Form Component ──────────────────────────────────────
-function CustomCaseForm({ onSubmit }: { onSubmit: (scenario: string) => void }) {
+function CustomCaseForm({
+  onSubmit,
+  generating,
+}: {
+  onSubmit: (scenario: string) => void
+  generating?: boolean
+}) {
   const [scenario, setScenario] = useState('')
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    onSubmit(scenario)
+    if (!generating) onSubmit(scenario)
   }
 
   return (
@@ -2312,17 +2520,27 @@ function CustomCaseForm({ onSubmit }: { onSubmit: (scenario: string) => void }) 
           type="text"
           value={scenario}
           onChange={e => setScenario(e.target.value)}
+          disabled={generating}
           placeholder="Ishingizni qisqacha tavsiflang (masalan: Kontragent shartnomani buzdi)"
-          className="w-full px-4 py-3 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl text-gray-800 dark:text-zinc-200 placeholder:text-gray-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm"
+          className="w-full px-4 py-3 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl text-gray-800 dark:text-zinc-200 placeholder:text-gray-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm disabled:opacity-60"
         />
       </div>
       <button
         type="submit"
-        disabled={!scenario.trim()}
+        disabled={!scenario.trim() || generating}
         className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
       >
-        <Play className="w-4 h-4" />
-        Boshlash
+        {generating ? (
+          <>
+            <Loader2 className="w-4 h-4 animate-spin" />
+            AI yaratmoqda...
+          </>
+        ) : (
+          <>
+            <Sparkles className="w-4 h-4" />
+            AI bilan yaratish
+          </>
+        )}
       </button>
     </form>
   )
