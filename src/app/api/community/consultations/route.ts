@@ -82,33 +82,92 @@ export async function POST(request: NextRequest) {
 }
 
 // PUT — statusni yangilash (admin: pending → answered/closed)
+// Qo'shimcha: admin javobi, ekspertga ulash, holat tarixi
+// Body: { id, status?, adminReply?, assignedExpertId?, actor? }
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json()
-    const { id, status } = body
+    const { id } = body
 
-    if (!id || !status) {
+    if (!id) {
       return NextResponse.json(
-        { success: false, error: 'id va status kiritilishi shart' },
+        { success: false, error: 'id kiritilishi shart' },
         { status: 400 }
       )
     }
 
     const supabase = await getSupabase()
-    if (supabase) {
-      const { data, error } = await supabase
-        .from('community_consultations')
-        .update({ status })
-        .eq('id', id)
-        .select()
-        .single()
+    if (!supabase) {
+      return NextResponse.json({ success: false, error: 'Supabase sozlanmagan' }, { status: 500 })
+    }
 
-      if (!error && data) {
-        return NextResponse.json({ success: true, data })
+    // Joriy yozuvni o'qib, holat tarixini yangilaymiz
+    // (status_history ustuni migratsiyagacha mavjud bo'lmasa ham ishlaydi)
+    let currentStatus = 'pending'
+    let history: any[] = []
+    let hasExtended = true
+    try {
+      const { data: cur, error: curErr } = await supabase
+        .from('community_consultations')
+        .select('status, status_history')
+        .eq('id', id)
+        .single()
+      if (curErr) {
+        hasExtended = false
+        // Eski sxema — faqat statusni o'qib ko'ramiz
+        const { data: cur2 } = await supabase
+          .from('community_consultations')
+          .select('status')
+          .eq('id', id)
+          .single()
+        if (cur2?.status) currentStatus = cur2.status
+      } else {
+        if (cur?.status) currentStatus = cur.status
+        if (Array.isArray(cur?.status_history)) history = cur.status_history
+      }
+    } catch {
+      hasExtended = false
+    }
+
+    const updatePayload: Record<string, any> = {}
+
+    if (body.status) {
+      updatePayload.status = body.status
+    }
+
+    // Kengaytirilgan maydonlar — faqat ustunlar mavjud bo'lsa
+    if (hasExtended) {
+      if (typeof body.adminReply === 'string' && body.adminReply.trim()) {
+        updatePayload.admin_reply = body.adminReply.trim()
+        updatePayload.reply_at = new Date().toISOString()
+      }
+      if (typeof body.assignedExpertId === 'string') {
+        updatePayload.assigned_expert_id = body.assignedExpertId
+      }
+      // Holat tarixi — { status, at, by } obyektlar ro'yxati
+      if (body.status || body.adminReply) {
+        history = [
+          ...history,
+          {
+            status: body.status || currentStatus,
+            at: new Date().toISOString(),
+            by: body.actor || 'admin',
+          },
+        ]
+        updatePayload.status_history = history.slice(-50)
       }
     }
 
-    return NextResponse.json({ success: false, error: 'Yangilashda xatolik' }, { status: 500 })
+    const { data, error } = await supabase
+      .from('community_consultations')
+      .update(updatePayload)
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) throw error
+
+    return NextResponse.json({ success: true, data })
   } catch (err: any) {
     return NextResponse.json(
       { success: false, error: err?.message || 'Yangilashda xatolik' },

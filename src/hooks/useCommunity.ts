@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
+import { supabase } from '@/lib/supabase-client'
 
 // ── Types ──────────────────────────────────────────────────────────────
 
@@ -154,24 +155,73 @@ export function useCommunity() {
     }
   }, [])
 
+  // ── API'dan yuklash (Supabase — barcha qurilmalar uchun yagona manba) ──
+  const loadFromApi = useCallback(async () => {
+    try {
+      const res = await fetch('/api/community/posts', { cache: 'no-cache' })
+      const data = await res.json()
+      if (data?.success && Array.isArray(data.data)) {
+        if (data.data.length > 0) {
+          setPosts(data.data)
+          try {
+            localStorage.setItem(LS_POSTS, JSON.stringify(data.data))
+          } catch {}
+        }
+      }
+    } catch {
+      /* offline — localStorage'da qoladi */
+    }
+  }, [])
+
+  // ── Post'ni Supabase'ga sinxronlash (like/izoh/ko'rish va h.k.) ──
+  const syncPost = useCallback(async (post: CommunityPost) => {
+    try {
+      await fetch('/api/community/posts', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: post.id,
+          content: post.content,
+          tags: post.tags,
+          category: post.category,
+          likes: post.likes,
+          dislikes: post.dislikes,
+          likedBy: post.likedBy,
+          dislikedBy: post.dislikedBy,
+          comments: post.comments,
+          views: post.views,
+          isPinned: post.isPinned,
+        }),
+      })
+    } catch {}
+  }, [])
+
   useEffect(() => {
     loadFromStorage()
-    // Try loading from API (Supabase-ready)
-    fetch('/api/community/posts')
-      .then(res => (res.ok ? res.json() : null))
-      .then(data => {
-        if (data?.success && Array.isArray(data.data) && data.data.length > 0) {
-          setPosts(data.data)
-          localStorage.setItem(LS_POSTS, JSON.stringify(data.data))
+    loadFromApi()
+
+    // Supabase Realtime — yangi post boshqa qurilmada yozilganda darhol ko'rinadi
+    const channel = supabase
+      .channel(`community-feed-${Date.now()}`)
+      .on(
+        'postgres_changes' as any,
+        { event: '*', schema: 'public', table: 'community_posts' },
+        () => {
+          loadFromApi()
         }
-      })
-      .catch(() => {})
+      )
+      .subscribe()
+
     try {
       const stored = localStorage.getItem(LS_NOTIFICATIONS)
       if (stored) setNotifications(JSON.parse(stored))
     } catch {}
     setLoading(false)
-  }, [loadFromStorage])
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [loadFromStorage, loadFromApi])
 
   // Re-sync current user on mount
   useEffect(() => {
@@ -229,14 +279,10 @@ export function useCommunity() {
       })
       setPosts(updated)
       savePosts(updated)
-      // Try API (Supabase-ready)
-      fetch('/api/community/posts', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: postId, content, tags, category }),
-      }).catch(() => {})
+      const target = updated.find(p => p.id === postId)
+      if (target) syncPost(target)
     },
-    [posts, savePosts]
+    [posts, savePosts, syncPost]
   )
 
   const deletePost = useCallback(
@@ -286,8 +332,10 @@ export function useCommunity() {
       })
       setPosts(updated)
       savePosts(updated)
+      const target = updated.find(p => p.id === postId)
+      if (target) syncPost(target)
     },
-    [posts, savePosts]
+    [posts, savePosts, syncPost]
   )
 
   const toggleDislike = useCallback(
@@ -323,8 +371,10 @@ export function useCommunity() {
       })
       setPosts(updated)
       savePosts(updated)
+      const target = updated.find(p => p.id === postId)
+      if (target) syncPost(target)
     },
-    [posts, savePosts]
+    [posts, savePosts, syncPost]
   )
 
   // ── Comments ──────────────────────────────────────────────────────
@@ -362,14 +412,16 @@ export function useCommunity() {
       setPosts(updated)
       savePosts(updated)
       addNotification('comment', `${user.name} postingizga izoh qoldirdi`, user.name, postId)
-      // Try API (Supabase-ready)
+      // API'ga yuborish: izoh jadvali + post.comments JSONB
       fetch('/api/community/comments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ postId, content, parentId, author: user }),
       }).catch(() => {})
+      const target = updated.find(p => p.id === postId)
+      if (target) syncPost(target)
     },
-    [posts, savePosts]
+    [posts, savePosts, syncPost]
   )
 
   const deleteComment = useCallback(
@@ -384,12 +436,13 @@ export function useCommunity() {
       })
       setPosts(updated)
       savePosts(updated)
-      // Try API (Supabase-ready)
       fetch(`/api/community/comments?id=${commentId}&postId=${postId}`, { method: 'DELETE' }).catch(
         () => {}
       )
+      const target = updated.find(p => p.id === postId)
+      if (target) syncPost(target)
     },
-    [posts, savePosts]
+    [posts, savePosts, syncPost]
   )
 
   // ── Views ─────────────────────────────────────────────────────────
@@ -399,8 +452,10 @@ export function useCommunity() {
       const updated = posts.map(p => (p.id === postId ? { ...p, views: p.views + 1 } : p))
       setPosts(updated)
       savePosts(updated)
+      const target = updated.find(p => p.id === postId)
+      if (target) syncPost(target)
     },
-    [posts, savePosts]
+    [posts, savePosts, syncPost]
   )
 
   // ── Notifications ─────────────────────────────────────────────────
@@ -503,9 +558,10 @@ export function useCommunity() {
   const refresh = useCallback(() => {
     if (!paused) {
       loadFromStorage()
+      loadFromApi()
       setCurrentUser(getCurrentUser())
     }
-  }, [loadFromStorage, paused])
+  }, [loadFromStorage, loadFromApi, paused])
 
   // Auto-refresh every 30 seconds (paused when user is typing/submitting)
   useEffect(() => {

@@ -72,6 +72,10 @@ type Consultation = {
   type: 'consultation' | 'mentorship'
   message: string
   status: string
+  admin_reply?: string
+  reply_at?: string
+  assigned_expert_id?: string
+  status_history?: any[]
   created_at: string
 }
 
@@ -84,6 +88,10 @@ export default function AdminCommunityManager() {
   const [consultations, setConsultations] = useState<Consultation[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // ── Consultation reply / assignment ──
+  const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({})
+  const [assignedExpert, setAssignedExpert] = useState<Record<string, string>>({})
 
   // ── Add group form ──
   const [showAddGroup, setShowAddGroup] = useState(false)
@@ -279,12 +287,29 @@ export default function AdminCommunityManager() {
   }
 
   // ── Consultation status update ───────────────────────────────────
-  const updateConsultation = async (id: string, status: string) => {
+  const updateConsultation = async (
+    id: string,
+    status: string,
+    adminReply?: string,
+    expertId?: string
+  ) => {
     try {
       await fetch('/api/community/consultations', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, status }),
+        body: JSON.stringify({
+          id,
+          status,
+          adminReply: adminReply || undefined,
+          assignedExpertId: expertId || undefined,
+          actor: 'admin',
+        }),
+      })
+      // Tozalash
+      setReplyDrafts(prev => {
+        const next = { ...prev }
+        delete next[id]
+        return next
       })
       await loadConsultations()
     } catch {}
@@ -627,10 +652,14 @@ export default function AdminCommunityManager() {
                       className={`text-[10px] px-1.5 py-0.5 rounded ${
                         c.status === 'pending'
                           ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300'
-                          : 'bg-gray-200 dark:bg-zinc-700 text-gray-600 dark:text-zinc-300'
+                          : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
                       }`}
                     >
-                      {c.status === 'pending' ? 'Kutilmoqda' : c.status}
+                      {c.status === 'pending'
+                        ? 'Kutilmoqda'
+                        : c.status === 'answered'
+                          ? 'Javob berilgan'
+                          : 'Yopilgan'}
                     </span>
                   </div>
                   <p className="text-xs text-gray-500 dark:text-zinc-400 mt-0.5">
@@ -643,23 +672,89 @@ export default function AdminCommunityManager() {
                   <p className="text-[10px] text-gray-400 dark:text-zinc-500 mt-1">
                     {new Date(c.created_at).toLocaleString('uz-UZ')}
                   </p>
+
+                  {/* Admin javobi */}
+                  {c.admin_reply && (
+                    <div className="mt-2 p-2 bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-900/40 rounded-lg">
+                      <p className="text-[10px] font-medium text-green-700 dark:text-green-300 mb-1">
+                        Admin javobi
+                      </p>
+                      <p className="text-sm text-gray-700 dark:text-zinc-300 whitespace-pre-wrap">
+                        {c.admin_reply}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Holat tarixi */}
+                  {Array.isArray(c.status_history) && c.status_history.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {c.status_history.map((h: any, hi: number) => (
+                        <span
+                          key={hi}
+                          className="text-[9px] px-1.5 py-0.5 bg-gray-100 dark:bg-zinc-800 text-gray-500 dark:text-zinc-400 rounded"
+                        >
+                          {h.status} •{' '}
+                          {new Date(h.at).toLocaleDateString('uz-UZ', {
+                            day: 'numeric',
+                            month: 'short',
+                          })}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 {c.status === 'pending' && (
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      onClick={() => updateConsultation(c.id, 'answered')}
-                      className="p-1.5 rounded-lg text-xs bg-green-100 text-green-700 hover:bg-green-200"
-                      title="Javob berildi"
-                    >
-                      <Check size={14} />
-                    </button>
-                    <button
-                      onClick={() => updateConsultation(c.id, 'closed')}
-                      className="p-1.5 rounded-lg text-xs bg-gray-200 text-gray-600 hover:bg-gray-300"
-                      title="Yopish"
-                    >
-                      <X size={14} />
-                    </button>
+                  <div className="flex flex-col items-end gap-2 min-w-[200px]">
+                    {/* Ekspertga ulash */}
+                    {experts.length > 0 && (
+                      <select
+                        value={assignedExpert[c.id] || ''}
+                        onChange={e =>
+                          setAssignedExpert(prev => ({ ...prev, [c.id]: e.target.value }))
+                        }
+                        className="w-full px-2 py-1.5 text-xs rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-700 dark:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="">Ekspert tanlang...</option>
+                        {experts.map(e => (
+                          <option key={e.id} value={e.id}>
+                            {e.name}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                    <textarea
+                      value={replyDrafts[c.id] || ''}
+                      onChange={e =>
+                        setReplyDrafts(prev => ({ ...prev, [c.id]: e.target.value }))
+                      }
+                      placeholder="Javob matni..."
+                      rows={2}
+                      className="w-full px-2 py-1.5 text-xs rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-700 dark:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                    />
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        onClick={() =>
+                          updateConsultation(
+                            c.id,
+                            'answered',
+                            replyDrafts[c.id],
+                            assignedExpert[c.id]
+                          )
+                        }
+                        disabled={!replyDrafts[c.id]?.trim()}
+                        className="px-2.5 py-1.5 rounded-lg text-xs bg-green-100 text-green-700 hover:bg-green-200 disabled:opacity-50 flex items-center gap-1"
+                        title="Javob berish"
+                      >
+                        <Check size={13} /> Javob berish
+                      </button>
+                      <button
+                        onClick={() => updateConsultation(c.id, 'closed')}
+                        className="p-1.5 rounded-lg text-xs bg-gray-200 text-gray-600 hover:bg-gray-300"
+                        title="Yopish"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>

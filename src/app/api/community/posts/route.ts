@@ -153,17 +153,27 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Post ID is required' }, { status: 400 })
     }
 
+    // Interaksiya yangilanishlari (like/dislike/izoh/ko'rish) — to'liq post yuboriladi
+    const updatePayload: Record<string, any> = {
+      updated_at: new Date().toISOString(),
+    }
+    if (typeof body.content === 'string') updatePayload.content = body.content
+    if (Array.isArray(body.tags)) updatePayload.tags = body.tags
+    if (typeof body.category === 'string') updatePayload.category = body.category
+    if (typeof body.likes === 'number') updatePayload.likes = body.likes
+    if (typeof body.dislikes === 'number') updatePayload.dislikes = body.dislikes
+    if (Array.isArray(body.likedBy)) updatePayload.liked_by = body.likedBy
+    if (Array.isArray(body.dislikedBy)) updatePayload.disliked_by = body.dislikedBy
+    if (Array.isArray(body.comments)) updatePayload.comments = body.comments
+    if (typeof body.views === 'number') updatePayload.views = body.views
+    if (typeof body.isPinned === 'boolean') updatePayload.is_pinned = body.isPinned
+
     try {
       const supabase = await getSupabase()
       if (supabase) {
         const { error } = await supabase
           .from('community_posts')
-          .update({
-            content: body.content,
-            tags: body.tags,
-            category: body.category,
-            updated_at: new Date().toISOString(),
-          })
+          .update(updatePayload)
           .eq('id', body.id)
         if (!error) {
           return NextResponse.json({ success: true, data: { id: body.id }, source: 'supabase' })

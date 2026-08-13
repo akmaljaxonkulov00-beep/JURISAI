@@ -1,6 +1,7 @@
 ﻿'use client'
 
 import { useState, useEffect } from 'react'
+import { supabase } from '@/lib/supabase-client'
 import {
   ArrowLeft,
   Users,
@@ -318,6 +319,39 @@ export default function Community() {
       setGroupPostsLoading(false)
     }
   }
+
+  // ── Guruh postlari realtime — boshqa a'zolarning yangi xabarlari darhol ko'rinadi ──
+  useEffect(() => {
+    if (!openGroup) return
+    const channel = supabase
+      .channel(`group-posts-${openGroup.id}-${Date.now()}`)
+      .on(
+        'postgres_changes' as any,
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'community_group_posts',
+          filter: `group_id=eq.${openGroup.id}`,
+        },
+        (payload: any) => {
+          const np = payload?.new
+          if (np?.id) {
+            setGroupPosts(prev =>
+              prev.some(p => p.id === np.id) ? prev : [np, ...prev]
+            )
+            setGroups(prev =>
+              prev.map(g =>
+                g.id === openGroup.id ? { ...g, post_count: (g.post_count || 0) + 1 } : g
+              )
+            )
+          }
+        }
+      )
+      .subscribe()
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [openGroup])
 
   // ── Guruh ichiga post yozish ──────────────────────────────────
   const sendGroupPost = async () => {
