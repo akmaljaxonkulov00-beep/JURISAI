@@ -21,8 +21,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true, note: 'Supabase not configured' })
     }
 
-    // CRITICAL: Use client-provided ID so admin can look up payment by same ID
-    const paymentId = id || 'pay_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8)
+    // CRITICAL: payment_requests.id — UUID tipida. Frontend matn ID yuboradi
+    // ('pay_...'), shuning uchun UUID server tomonda generatsiya qilinadi,
+    // aks holda insert fail bo'lib chek adminga yetib bormaydi.
+    let paymentId = id
+    try {
+      // UUID formatida bo'lmasa yoki yo'q bo'lsa yangi UUID generatsiya qilamiz
+      if (
+        !paymentId ||
+        !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(paymentId)
+      ) {
+        paymentId = crypto.randomUUID()
+      }
+    } catch {
+      paymentId = crypto.randomUUID()
+    }
 
     const { error } = await supabase.from('payment_requests').insert({
       id: paymentId,

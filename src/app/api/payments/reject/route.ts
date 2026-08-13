@@ -43,6 +43,19 @@ export async function POST(request: NextRequest) {
         .update({ status: 'rejected', updated_at: new Date().toISOString() })
         .eq('id', paymentId)
 
+      // Foydalanuvchiga bildirishnoma yuborish (to'lov holati haqida)
+      try {
+        await supabase.from('user_notifications').insert({
+          user_id: prData.user_id,
+          type: 'error',
+          category: 'payment',
+          title: "To'lov rad etildi ❌",
+          message: `To'lov tekshiruvdan o'tmadi${notes ? `: ${notes}` : ''}. Iltimos, yangi chek yuklang.`,
+          action_url: '/premium',
+          action_text: 'Qayta urinish',
+        })
+      } catch {}
+
       return NextResponse.json({
         success: true,
         message: "To'lov rad etildi",

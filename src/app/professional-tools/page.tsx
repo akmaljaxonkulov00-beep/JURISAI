@@ -95,6 +95,7 @@ export default function ProfessionalTools() {
   // Case law analytics states
   const [searchQuery, setSearchQuery] = useState('')
   const [caseLawResults, setCaseLawResults] = useState<CaseLawResult | null>(null)
+  const [caseLawError, setCaseLawError] = useState<string | null>(null)
 
   const tools: Tool[] = [
     {
@@ -321,6 +322,7 @@ export default function ProfessionalTools() {
   const searchCaseLaw = async () => {
     if (!searchQuery.trim()) return
     setCaseLawResults(null)
+    setCaseLawError(null)
 
     try {
       const response = await fetch('/api/ai/legal-chat', {
@@ -335,12 +337,16 @@ export default function ProfessionalTools() {
       if (response.ok) {
         const result = await response.json()
         const aiResponse = result.response || ''
+        if (!aiResponse) {
+          setCaseLawError('AI javob topilmadi. Iltimos, qayta urinib ko\u02BBring.')
+          return
+        }
 
         setCaseLawResults({
           precedents: [
             {
-              title: `${searchQuery} bo\'yicha sud amaliyoti`,
-              court: "O'zbekiston Respublikasi sudlari",
+              title: `${searchQuery} bo\u02BByicha AI tahlili`,
+              court: "O'zbekiston qonunchiligi asosida AI tahlili",
               date: new Date().toISOString().split('T')[0],
               outcome: 'AI tahlil asosida',
               relevance: 85,
@@ -353,39 +359,16 @@ export default function ProfessionalTools() {
           },
         })
       } else {
-        useCaseLawFallback()
+        setCaseLawError(
+          'Sud amaliyoti ma\u02BBlumotlarini yuklab bo\u02BBlmadi. Iltimos, keyinroq qayta urinib ko\u02BBring.'
+        )
       }
     } catch (error) {
-      console.log('Case law search API error, using fallback:', error)
-      useCaseLawFallback()
+      console.log('Case law search API error:', error)
+      setCaseLawError(
+        'Sud amaliyoti ma\u02BBlumotlarini yuklab bo\u02BBlmadi. Iltimos, keyinroq qayta urinib ko\u02BBring.'
+      )
     }
-  }
-
-  const useCaseLawFallback = () => {
-    const mockResults: CaseLawResult = {
-      precedents: [
-        {
-          title: "Tijorat shartnomasini buzish to'g'risida",
-          court: 'Toshkent shahar sudining iqtisodiy sudi',
-          date: '2024-02-15',
-          outcome: "Da'vogar foydasiga",
-          relevance: 92,
-        },
-        {
-          title: "Qarz majburiyatlari bo'yicha nizo",
-          court: 'Samarqand viloyati sudi',
-          date: '2024-01-20',
-          outcome: 'Javobgar foydasiga',
-          relevance: 78,
-        },
-      ],
-      statistics: {
-        winRate: 67,
-        averageDuration: '45 kun',
-        commonIssues: ["To'lov kechikishi", 'Shartnoma shartlarining noaniqligi'],
-      },
-    }
-    setCaseLawResults(mockResults)
   }
 
   const getToolColor = (color: string) => {
@@ -549,7 +532,7 @@ export default function ProfessionalTools() {
                         {calculatorType === 'deadlines' && 'Muddatlar kalkulyatori'}
                       </h2>
 
-                      <div className="grid grid-cols-2 gap-4 mb-6">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                         {calculatorType === 'state-fee' && (
                           <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
@@ -959,6 +942,12 @@ export default function ProfessionalTools() {
                           Qidirish
                         </button>
                       </div>
+
+                      {caseLawError && (
+                        <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                          <p className="text-sm text-red-600 dark:text-red-400">{caseLawError}</p>
+                        </div>
+                      )}
 
                       {caseLawResults && (
                         <div className="space-y-6">

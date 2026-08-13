@@ -47,6 +47,19 @@ export async function POST(request: NextRequest) {
         .update({ status: 'approved', updated_at: new Date().toISOString() })
         .eq('id', paymentId)
 
+      // Foydalanuvchiga bildirishnoma yuborish (to'lov holati haqida)
+      try {
+        await supabase.from('user_notifications').insert({
+          user_id: payment.user_id,
+          type: 'success',
+          category: 'payment',
+          title: "To'lov tasdiqlandi ✅",
+          message: `"${payment.plan}" tarifi faollashtirildi. ${Number(payment.amount || 0).toLocaleString()} so'm to'lov muvaffaqiyatli tasdiqlandi.`,
+          action_url: '/dashboard',
+          action_text: 'Dashboardga o\u02BBtish',
+        })
+      } catch {}
+
       // Update user balance + premium subscription in registered_users
       if (payment.user_id) {
         const plan = (payment.plan || 'standart').toLowerCase()

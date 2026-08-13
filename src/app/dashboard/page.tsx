@@ -9,6 +9,7 @@ import { useAuth } from '@/app/providers'
 import { api } from '@/services/api'
 import { firebaseAuth } from '@/services/firebase-auth'
 import AIChatFloatingWidget from '@/components/ai/AIChatFloatingWidget'
+import NotificationBell from '@/components/features/NotificationBell'
 import OnboardingTour from '@/components/OnboardingTour'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
@@ -188,7 +189,10 @@ export default function Dashboard() {
   const renderSidebar = () => (
     <div className="w-80 glass-strong rounded-2xl shadow-2xl overflow-hidden">
       {/* User Profile Section */}{' '}
-      <div className="p-6 border-b border-gray-100 dark:border-zinc-800/50 dark:border-gray-700/50">
+      <div className="p-6 border-b border-gray-100 dark:border-zinc-800/50 dark:border-gray-700/50 relative">
+        <div className="absolute top-4 right-4 z-10">
+          <NotificationBell />
+        </div>
         <div className="flex items-center space-x-4">
           <a href="/profile" className="flex items-center space-x-4 group cursor-pointer">
             <div className="relative group">
