@@ -9,6 +9,8 @@ import { useState, useEffect, useCallback } from 'react'
 import {
   Star,
   Video,
+  Users,
+  MessageSquare,
   Plus,
   Trash2,
   X,
@@ -17,6 +19,7 @@ import {
   UserX,
   Calendar,
   Clock,
+  Check,
 } from 'lucide-react'
 
 type Expert = {
@@ -48,13 +51,48 @@ type Webinar = {
   created_at: string
 }
 
+type Group = {
+  id: string
+  name: string
+  description: string
+  icon: string
+  category: string
+  member_count: number
+  post_count: number
+  created_at: string
+}
+
+type Consultation = {
+  id: string
+  expert_id: string
+  expert_name: string
+  user_id: string
+  user_name: string
+  user_email: string
+  type: 'consultation' | 'mentorship'
+  message: string
+  status: string
+  created_at: string
+}
+
 export default function AdminCommunityManager() {
-  const [tab, setTab] = useState<'experts' | 'webinars'>('experts')
+  const [tab, setTab] = useState<'experts' | 'webinars' | 'groups' | 'consultations'>('experts')
 
   const [experts, setExperts] = useState<Expert[]>([])
   const [webinars, setWebinars] = useState<Webinar[]>([])
+  const [groups, setGroups] = useState<Group[]>([])
+  const [consultations, setConsultations] = useState<Consultation[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // ── Add group form ──
+  const [showAddGroup, setShowAddGroup] = useState(false)
+  const [groupForm, setGroupForm] = useState({
+    name: '',
+    description: '',
+    icon: '👥',
+    category: 'Umumiy',
+  })
 
   // ── Add expert form ──
   const [showAddExpert, setShowAddExpert] = useState(false)
@@ -98,12 +136,37 @@ export default function AdminCommunityManager() {
     }
   }, [])
 
+  const loadGroups = useCallback(async () => {
+    try {
+      const r = await fetch('/api/community/groups')
+      const d = await r.json()
+      setGroups(d.data || [])
+    } catch {
+      setGroups([])
+    }
+  }, [])
+
+  const loadConsultations = useCallback(async () => {
+    try {
+      const r = await fetch('/api/community/consultations')
+      const d = await r.json()
+      setConsultations(d.data || [])
+    } catch {
+      setConsultations([])
+    }
+  }, [])
+
   const load = useCallback(async () => {
     setLoading(true)
     setError(null)
-    await Promise.all([loadExperts(), loadWebinars()])
+    await Promise.all([
+      loadExperts(),
+      loadWebinars(),
+      loadGroups(),
+      loadConsultations(),
+    ])
     setLoading(false)
-  }, [loadExperts, loadWebinars])
+  }, [loadExperts, loadWebinars, loadGroups, loadConsultations])
 
   useEffect(() => {
     load()
@@ -190,6 +253,43 @@ export default function AdminCommunityManager() {
     } catch {}
   }
 
+  // ── Group CRUD ──────────────────────────────────────────────────
+  const addGroup = async () => {
+    if (!groupForm.name.trim()) return
+    try {
+      await fetch('/api/community/groups', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(groupForm),
+      })
+      setShowAddGroup(false)
+      setGroupForm({ name: '', description: '', icon: '👥', category: 'Umumiy' })
+      await loadGroups()
+    } catch {
+      setError("Guruh qo'shilmadi")
+    }
+  }
+
+  const deleteGroup = async (id: string) => {
+    if (!confirm("Guruhni o'chirishni tasdiqlaysizmi?")) return
+    try {
+      await fetch(`/api/community/groups?id=${id}`, { method: 'DELETE' })
+      await loadGroups()
+    } catch {}
+  }
+
+  // ── Consultation status update ───────────────────────────────────
+  const updateConsultation = async (id: string, status: string) => {
+    try {
+      await fetch('/api/community/consultations', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, status }),
+      })
+      await loadConsultations()
+    } catch {}
+  }
+
   const inputCls =
     'w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500'
 
@@ -197,21 +297,32 @@ export default function AdminCommunityManager() {
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <h3 className="text-lg font-bold text-gray-800 dark:text-white flex items-center gap-2">
-          {tab === 'experts' ? (
+          {tab === 'experts' && (
             <>
               <Star className="w-5 h-5 text-blue-500" /> Ekspertlar boshqaruvi
             </>
-          ) : (
+          )}
+          {tab === 'webinars' && (
             <>
               <Video className="w-5 h-5 text-blue-500" /> Vebinarlar boshqaruvi
             </>
           )}
+          {tab === 'groups' && (
+            <>
+              <Users className="w-5 h-5 text-blue-500" /> Guruhlar boshqaruvi
+            </>
+          )}
+          {tab === 'consultations' && (
+            <>
+              <MessageSquare className="w-5 h-5 text-blue-500" /> Maslahat so'rovlari
+            </>
+          )}
         </h3>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <div className="flex bg-gray-100 dark:bg-zinc-800 rounded-xl p-1">
             <button
               onClick={() => setTab('experts')}
-              className={`px-4 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
                 tab === 'experts'
                   ? 'bg-white dark:bg-zinc-700 text-blue-600 dark:text-blue-300 shadow-sm'
                   : 'text-gray-500 dark:text-zinc-400'
@@ -221,13 +332,33 @@ export default function AdminCommunityManager() {
             </button>
             <button
               onClick={() => setTab('webinars')}
-              className={`px-4 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
                 tab === 'webinars'
                   ? 'bg-white dark:bg-zinc-700 text-blue-600 dark:text-blue-300 shadow-sm'
                   : 'text-gray-500 dark:text-zinc-400'
               }`}
             >
               Vebinarlar ({webinars.length})
+            </button>
+            <button
+              onClick={() => setTab('groups')}
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                tab === 'groups'
+                  ? 'bg-white dark:bg-zinc-700 text-blue-600 dark:text-blue-300 shadow-sm'
+                  : 'text-gray-500 dark:text-zinc-400'
+              }`}
+            >
+              Guruhlar ({groups.length})
+            </button>
+            <button
+              onClick={() => setTab('consultations')}
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                tab === 'consultations'
+                  ? 'bg-white dark:bg-zinc-700 text-blue-600 dark:text-blue-300 shadow-sm'
+                  : 'text-gray-500 dark:text-zinc-400'
+              }`}
+            >
+              So'rovlar ({consultations.length})
             </button>
           </div>
           <button
@@ -237,14 +368,25 @@ export default function AdminCommunityManager() {
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           </button>
-          <button
-            onClick={() =>
-              tab === 'experts' ? setShowAddExpert(true) : setShowAddWebinar(true)
-            }
-            className="flex items-center gap-1.5 px-3 py-2 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            <Plus className="w-3.5 h-3.5" /> {tab === 'experts' ? 'Ekspert qo‘shish' : 'Vebinar qo‘shish'}
-          </button>
+          {tab !== 'consultations' && (
+            <button
+              onClick={() =>
+                tab === 'experts'
+                  ? setShowAddExpert(true)
+                  : tab === 'webinars'
+                    ? setShowAddWebinar(true)
+                    : setShowAddGroup(true)
+              }
+              className="flex items-center gap-1.5 px-3 py-2 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <Plus className="w-3.5 h-3.5" />{' '}
+              {tab === 'experts'
+                ? 'Ekspert qo‘shish'
+                : tab === 'webinars'
+                  ? 'Vebinar qo‘shish'
+                  : 'Guruh qo‘shish'}
+            </button>
+          )}
         </div>
       </div>
 
@@ -358,7 +500,9 @@ export default function AdminCommunityManager() {
                   <span className="flex items-center gap-1">
                     <Clock size={10} /> {w.duration_minutes} min
                   </span>
-                  <span>👥 {w.participants_count}/{w.max_participants}</span>
+                  <span>
+                    👥 {w.participants_count}/{w.max_participants}
+                  </span>
                 </div>
               </div>
               <div className="flex items-center gap-1.5">
@@ -382,6 +526,125 @@ export default function AdminCommunityManager() {
         </div>
       )}
 
+      {/* ── GROUPS LIST ── */}
+      {tab === 'groups' && (
+        <div className="space-y-2">
+          {groups.length === 0 && !loading && (
+            <p className="text-sm text-gray-500 dark:text-zinc-400 text-center py-8">
+              Hozircha guruhlar yo‘q
+            </p>
+          )}
+          {groups.map(g => (
+            <div
+              key={g.id}
+              className="p-3 rounded-xl border bg-gray-50 dark:bg-zinc-800/50 border-gray-100 dark:border-zinc-700 flex items-center justify-between flex-wrap gap-2"
+            >
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center text-lg flex-shrink-0">
+                  {g.icon}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-medium text-sm text-gray-800 dark:text-white">
+                      {g.name}
+                    </span>
+                    <span className="text-[10px] px-1.5 py-0.5 bg-gray-200 dark:bg-zinc-700 text-gray-600 dark:text-zinc-300 rounded">
+                      {g.category || 'Umumiy'}
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500 dark:text-zinc-400 mt-0.5 truncate">
+                    {g.description || '—'}
+                  </p>
+                  <p className="text-[10px] text-gray-400 dark:text-zinc-500 mt-0.5">
+                    👥 {g.member_count || 0} a'zo • 💬 {g.post_count || 0} post
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => deleteGroup(g.id)}
+                className="p-1.5 rounded-lg text-xs bg-red-100 text-red-700 hover:bg-red-200"
+                title="O‘chirish"
+              >
+                <Trash2 size={14} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ── CONSULTATIONS LIST ── */}
+      {tab === 'consultations' && (
+        <div className="space-y-2">
+          {consultations.length === 0 && !loading && (
+            <p className="text-sm text-gray-500 dark:text-zinc-400 text-center py-8">
+              Hozircha maslahat so'rovlari yo‘q
+            </p>
+          )}
+          {consultations.map(c => (
+            <div
+              key={c.id}
+              className="p-3 rounded-xl border bg-gray-50 dark:bg-zinc-800/50 border-gray-100 dark:border-zinc-700"
+            >
+              <div className="flex items-start justify-between flex-wrap gap-2">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-medium text-sm text-gray-800 dark:text-white">
+                      {c.user_name || c.user_email || 'Foydalanuvchi'}
+                    </span>
+                    <span
+                      className={`text-[10px] px-1.5 py-0.5 rounded ${
+                        c.type === 'mentorship'
+                          ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+                          : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+                      }`}
+                    >
+                      {c.type === 'mentorship' ? 'Mentorlik' : 'Maslahat'}
+                    </span>
+                    <span
+                      className={`text-[10px] px-1.5 py-0.5 rounded ${
+                        c.status === 'pending'
+                          ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300'
+                          : 'bg-gray-200 dark:bg-zinc-700 text-gray-600 dark:text-zinc-300'
+                      }`}
+                    >
+                      {c.status === 'pending' ? 'Kutilmoqda' : c.status}
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500 dark:text-zinc-400 mt-0.5">
+                    Ekspert: {c.expert_name || '-'}
+                    {c.user_email ? ` • ${c.user_email}` : ''}
+                  </p>
+                  <p className="text-sm text-gray-700 dark:text-zinc-300 mt-1.5 bg-white dark:bg-zinc-900 rounded-lg p-2 border border-gray-100 dark:border-zinc-700">
+                    {c.message}
+                  </p>
+                  <p className="text-[10px] text-gray-400 dark:text-zinc-500 mt-1">
+                    {new Date(c.created_at).toLocaleString('uz-UZ')}
+                  </p>
+                </div>
+                {c.status === 'pending' && (
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => updateConsultation(c.id, 'answered')}
+                      className="p-1.5 rounded-lg text-xs bg-green-100 text-green-700 hover:bg-green-200"
+                      title="Javob berildi"
+                    >
+                      <Check size={14} />
+                    </button>
+                    <button
+                      onClick={() => updateConsultation(c.id, 'closed')}
+                      className="p-1.5 rounded-lg text-xs bg-gray-200 text-gray-600 hover:bg-gray-300"
+                      title="Yopish"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* ── ADD EXPERT MODAL ── */}
       {showAddExpert && (
         <div
@@ -393,9 +656,7 @@ export default function AdminCommunityManager() {
             onClick={e => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-5">
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white">
-                Ekspert qo‘shish
-              </h3>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white">Ekspert qo‘shish</h3>
               <button
                 onClick={() => setShowAddExpert(false)}
                 className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-zinc-300 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800"
@@ -449,6 +710,87 @@ export default function AdminCommunityManager() {
         </div>
       )}
 
+      {/* ── ADD GROUP MODAL ── */}
+      {showAddGroup && (
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          onClick={() => setShowAddGroup(false)}
+        >
+          <div
+            className="bg-white dark:bg-zinc-900 rounded-2xl p-6 max-w-md w-full shadow-2xl"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white">Guruh qo‘shish</h3>
+              <button
+                onClick={() => setShowAddGroup(false)}
+                className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-zinc-300 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="space-y-3">
+              <input
+                value={groupForm.name}
+                onChange={e => setGroupForm(f => ({ ...f, name: e.target.value }))}
+                placeholder="Guruh nomi *"
+                className={inputCls}
+              />
+              <textarea
+                value={groupForm.description}
+                onChange={e => setGroupForm(f => ({ ...f, description: e.target.value }))}
+                placeholder="Tavsif"
+                rows={2}
+                className={`${inputCls} resize-none`}
+              />
+              <div className="grid grid-cols-2 gap-3">
+                <input
+                  value={groupForm.category}
+                  onChange={e => setGroupForm(f => ({ ...f, category: e.target.value }))}
+                  placeholder="Kategoriya (masalan: Jinoyat huquqi)"
+                  className={inputCls}
+                />
+                <div>
+                  <label className="block text-xs text-gray-500 dark:text-zinc-400 mb-1">
+                    Belgi (icon)
+                  </label>
+                  <div className="flex gap-1.5">
+                    {['👥', '📚', '⚖️', '🔬', '💼', '🌐'].map(icon => (
+                      <button
+                        key={icon}
+                        onClick={() => setGroupForm(f => ({ ...f, icon }))}
+                        className={`w-9 h-9 rounded-lg text-lg flex items-center justify-center transition-colors ${
+                          groupForm.icon === icon
+                            ? 'bg-blue-100 dark:bg-blue-900/30 ring-2 ring-blue-500'
+                            : 'bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700'
+                        }`}
+                      >
+                        {icon}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                onClick={() => setShowAddGroup(false)}
+                className="px-4 py-2 text-sm text-gray-600 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl"
+              >
+                Bekor qilish
+              </button>
+              <button
+                onClick={addGroup}
+                disabled={!groupForm.name.trim()}
+                className="px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Qo‘shish
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── ADD WEBINAR MODAL ── */}
       {showAddWebinar && (
         <div
@@ -460,9 +802,7 @@ export default function AdminCommunityManager() {
             onClick={e => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-5">
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white">
-                Vebinar qo‘shish
-              </h3>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white">Vebinar qo‘shish</h3>
               <button
                 onClick={() => setShowAddWebinar(false)}
                 className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-zinc-300 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800"

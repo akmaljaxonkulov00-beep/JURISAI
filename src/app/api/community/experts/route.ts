@@ -1,11 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+
+async function getSupabase() {
+  const { createClient } = await import('@supabase/supabase-js')
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!supabaseUrl || !supabaseKey) return null
+  return createClient(supabaseUrl, supabaseKey)
+}
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const id = searchParams.get('id')
     const specialization = searchParams.get('specialization')
+
+    const supabase = await getSupabase()
+    if (!supabase) {
+      return NextResponse.json({ success: true, data: [] })
+    }
 
     let query = supabase.from('community_experts').select('*')
 
@@ -43,6 +55,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const supabase = await getSupabase()
+    if (!supabase) {
+      return NextResponse.json(
+        { success: false, error: 'Supabase sozlanmagan' },
+        { status: 500 }
+      )
+    }
+
     const { data, error } = await supabase
       .from('community_experts')
       .insert({
@@ -51,6 +71,9 @@ export async function POST(request: NextRequest) {
         specialization: specialization || '',
         bio: bio || '',
         is_verified: true,
+        is_active: true,
+        reputation: 0,
+        webinars_count: 0,
       })
       .select()
       .single()
@@ -75,6 +98,14 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json(
         { success: false, error: 'Ekspert ID si kiritilishi shart' },
         { status: 400 }
+      )
+    }
+
+    const supabase = await getSupabase()
+    if (!supabase) {
+      return NextResponse.json(
+        { success: false, error: 'Supabase sozlanmagan' },
+        { status: 500 }
       )
     }
 
@@ -105,6 +136,14 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json(
         { success: false, error: 'Ekspert ID si kiritilishi shart' },
         { status: 400 }
+      )
+    }
+
+    const supabase = await getSupabase()
+    if (!supabase) {
+      return NextResponse.json(
+        { success: false, error: 'Supabase sozlanmagan' },
+        { status: 500 }
       )
     }
 

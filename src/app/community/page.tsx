@@ -239,27 +239,40 @@ export default function Community() {
     } catch {}
   }, [activeTab])
 
-  // Join group
-  const joinGroup = (groupId: string) => {
+  // Join group — member_count ni DB'da ham oshiradi
+  const joinGroup = async (groupId: string) => {
+    if (joinedGroups.includes(groupId)) return
     const updated = [...joinedGroups, groupId]
     setJoinedGroups(updated)
     localStorage.setItem('community_joined_groups', JSON.stringify(updated))
-    // Try API
-    fetch('/api/community/groups', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        id: groupId,
-        member_count: groups.find(g => g.id === groupId)?.member_count + 1,
-      }),
-    }).catch(() => {})
+    setGroups(prev =>
+      prev.map(g => (g.id === groupId ? { ...g, member_count: (g.member_count || 0) + 1 } : g))
+    )
+    try {
+      await fetch('/api/community/groups', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: groupId, delta: 1 }),
+      })
+    } catch {}
   }
 
-  // Leave group
-  const leaveGroup = (groupId: string) => {
+  // Leave group — member_count ni DB'da ham kamaytiradi
+  const leaveGroup = async (groupId: string) => {
+    if (!joinedGroups.includes(groupId)) return
     const updated = joinedGroups.filter(id => id !== groupId)
     setJoinedGroups(updated)
     localStorage.setItem('community_joined_groups', JSON.stringify(updated))
+    setGroups(prev =>
+      prev.map(g => (g.id === groupId ? { ...g, member_count: Math.max(0, (g.member_count || 0) - 1) } : g))
+    )
+    try {
+      await fetch('/api/community/groups', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: groupId, delta: -1 }),
+      })
+    } catch {}
   }
 
   // Create group
@@ -323,19 +336,27 @@ export default function Community() {
     }
   }
 
-  // Register for webinar
-  const registerWebinar = (webinarId: string) => {
+  // Register for webinar — participants_count ni DB'da ham oshiradi
+  const registerWebinar = async (webinarId: string) => {
+    if (registeredWebinars.includes(webinarId)) return
+    const target = webinars.find(w => w.id === webinarId)
+    if (target && target.max_participants && (target.participants_count || 0) >= target.max_participants)
+      return
     const updated = [...registeredWebinars, webinarId]
     setRegisteredWebinars(updated)
     localStorage.setItem('community_registered_webinars', JSON.stringify(updated))
-    fetch('/api/community/webinars', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        id: webinarId,
-        participants_count: webinars.find(w => w.id === webinarId)?.participants_count + 1,
-      }),
-    }).catch(() => {})
+    setWebinars(prev =>
+      prev.map(w =>
+        w.id === webinarId ? { ...w, participants_count: (w.participants_count || 0) + 1 } : w
+      )
+    )
+    try {
+      await fetch('/api/community/webinars', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: webinarId, delta: 1 }),
+      })
+    } catch {}
   }
 
   const AVAILABLE_TAGS = [
@@ -1149,12 +1170,18 @@ export default function Community() {
                 </div>
               ) : experts.length === 0 ? (
                 <div className="text-center py-16">
-                  <Star className="w-16 h-16 text-gray-300 dark:text-zinc-700 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                    Hozircha ekspertlar yo\'q
+                  <div className="w-20 h-20 bg-blue-50 dark:bg-blue-900/20 rounded-3xl flex items-center justify-center mx-auto mb-5">
+                    <Star className="w-10 h-10 text-blue-500" />
+                  </div>
+                  <span className="inline-block px-3 py-1 bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300 rounded-full text-xs font-medium mb-4">
+                    Tez orada
+                  </span>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                    Ekspertlar bo\'limi tez orada qo\'shiladi
                   </h3>
-                  <p className="text-sm text-gray-500 dark:text-zinc-400">
-                    Admin tomonidan ekspertlar qo\'shilgandan keyin bu yerda ko\'rinadi.
+                  <p className="text-sm text-gray-500 dark:text-zinc-400 max-w-md mx-auto">
+                    Hozirda ushbu bo\'lim tayyorlanmoqda. Professional huquqshunoslar va
+                    mentorlar qo\'shilishi bilan bu yerda ko\'rinadi.
                   </p>
                 </div>
               ) : (
@@ -1225,7 +1252,7 @@ export default function Community() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="font-bold text-gray-900 dark:text-white">
-                    {consultType === 'mentorship' ? 'Mentorlik so\'rovi' : "Maslahat so'rovi"}
+                    {consultType === 'mentorship' ? "Mentorlik so'rovi" : "Maslahat so'rovi"}
                   </h3>
                   <p className="text-xs text-gray-500 dark:text-zinc-400">
                     {consultExpert.name} • {consultExpert.title}
@@ -1327,51 +1354,80 @@ export default function Community() {
             </header>
             <main className="p-4 sm:p-6 max-w-5xl mx-auto">
               {renderMobileTabs()}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {groups.map((g: any, i: number) => {
-                  const isJoined = joinedGroups.includes(g.id)
-                  return (
-                    <div
-                      key={i}
-                      className="bg-white dark:bg-zinc-900 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all border border-gray-100 dark:border-zinc-800"
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center text-lg flex-shrink-0">
-                          {g.icon}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-sm text-gray-900 dark:text-white mb-1">
-                            {g.name}
-                          </h3>
-                          <p className="text-xs text-gray-500 dark:text-zinc-400 mb-2">
-                            {g.description}
-                          </p>
-                          <div className="flex items-center justify-between mb-3">
-                            <span className="text-xs text-gray-500 dark:text-zinc-400">
-                              👥 {g.member_count} a\'zo
-                            </span>
-                            <span className="px-2 py-0.5 bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-400 rounded text-[10px]">
-                              {g.category || 'Umumiy'}
-                            </span>
+              {groupsLoading ? (
+                <div className="text-center py-12">
+                  <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+                  <p className="text-sm text-gray-500 dark:text-zinc-400">
+                    Guruhlar yuklanmoqda...
+                  </p>
+                </div>
+              ) : groups.length === 0 ? (
+                <div className="text-center py-16">
+                  <div className="w-20 h-20 bg-blue-50 dark:bg-blue-900/20 rounded-3xl flex items-center justify-center mx-auto mb-5">
+                    <Users className="w-10 h-10 text-blue-500" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                    Hozircha guruhlar yo\'q
+                  </h3>
+                  <p className="text-sm text-gray-500 dark:text-zinc-400 max-w-md mx-auto mb-6">
+                    Birinchi guruhni siz yarating yoki admin qo\'shgan guruhlarni kuting.
+                  </p>
+                  <button
+                    onClick={() => setShowCreateGroup(true)}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors shadow-sm"
+                  >
+                    <Plus className="w-4 h-4" /> Yangi guruh yaratish
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {groups.map((g: any, i: number) => {
+                      const isJoined = joinedGroups.includes(g.id)
+                      return (
+                        <div
+                          key={i}
+                          className="bg-white dark:bg-zinc-900 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all border border-gray-100 dark:border-zinc-800"
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center text-lg flex-shrink-0">
+                              {g.icon}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-semibold text-sm text-gray-900 dark:text-white mb-1">
+                                {g.name}
+                              </h3>
+                              <p className="text-xs text-gray-500 dark:text-zinc-400 mb-2">
+                                {g.description}
+                              </p>
+                              <div className="flex items-center justify-between mb-3">
+                                <span className="text-xs text-gray-500 dark:text-zinc-400">
+                                  👥 {g.member_count || 0} a\'zo
+                                </span>
+                                <span className="px-2 py-0.5 bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-400 rounded text-[10px]">
+                                  {g.category || 'Umumiy'}
+                                </span>
+                              </div>
+                              <button
+                                onClick={() => (isJoined ? leaveGroup(g.id) : joinGroup(g.id))}
+                                className={`w-full px-3 py-1.5 text-xs rounded-lg transition-colors ${isJoined ? 'bg-gray-200 dark:bg-zinc-700 text-gray-700 dark:text-zinc-300' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+                              >
+                                {isJoined ? "A'zo bo'lgan" : "Qo'shilish"}
+                              </button>
+                            </div>
                           </div>
-                          <button
-                            onClick={() => (isJoined ? leaveGroup(g.id) : joinGroup(g.id))}
-                            className={`w-full px-3 py-1.5 text-xs rounded-lg transition-colors ${isJoined ? 'bg-gray-200 dark:bg-zinc-700 text-gray-700 dark:text-zinc-300' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
-                          >
-                            {isJoined ? "A'zo bo'lgan" : "Qo'shilish"}
-                          </button>
                         </div>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-              <button
-                onClick={() => setShowCreateGroup(true)}
-                className="w-full mt-4 p-4 border-2 border-dashed border-gray-300 dark:border-zinc-700 rounded-xl text-sm text-gray-500 dark:text-zinc-400 hover:border-blue-400 hover:text-blue-500 transition-colors"
-              >
-                <Plus className="w-4 h-4 inline mr-1" /> Yangi guruh yaratish
-              </button>
+                      )
+                    })}
+                  </div>
+                  <button
+                    onClick={() => setShowCreateGroup(true)}
+                    className="w-full mt-4 p-4 border-2 border-dashed border-gray-300 dark:border-zinc-700 rounded-xl text-sm text-gray-500 dark:text-zinc-400 hover:border-blue-400 hover:text-blue-500 transition-colors"
+                  >
+                    <Plus className="w-4 h-4 inline mr-1" /> Yangi guruh yaratish
+                  </button>
+                </>
+              )}
             </main>
           </div>
         </div>
@@ -1496,56 +1552,110 @@ export default function Community() {
             </header>
             <main className="p-4 sm:p-6 max-w-5xl mx-auto">
               {renderMobileTabs()}
-              <div className="space-y-4">
-                {webinars.map((w: any, i: number) => {
-                  const isRegistered = registeredWebinars.includes(w.id)
-                  const isLive = new Date(w.date).getTime() <= Date.now() + 86400000 * 3
-                  return (
-                    <div
-                      key={i}
-                      className="bg-white dark:bg-zinc-900 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all border border-gray-100 dark:border-zinc-800"
-                    >
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h3 className="font-semibold text-sm text-gray-900 dark:text-white">
-                              {w.title}
-                            </h3>
-                            {isLive && (
-                              <span className="px-1.5 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded text-[10px] font-medium animate-pulse">
-                                LIVE
-                              </span>
+              {webinarsLoading ? (
+                <div className="text-center py-12">
+                  <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+                  <p className="text-sm text-gray-500 dark:text-zinc-400">
+                    Vebinarlar yuklanmoqda...
+                  </p>
+                </div>
+              ) : webinars.length === 0 ? (
+                <div className="text-center py-16">
+                  <div className="w-20 h-20 bg-blue-50 dark:bg-blue-900/20 rounded-3xl flex items-center justify-center mx-auto mb-5">
+                    <Video className="w-10 h-10 text-blue-500" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                    Hozircha vebinarlar yo\'q
+                  </h3>
+                  <p className="text-sm text-gray-500 dark:text-zinc-400 max-w-md mx-auto">
+                    Vebinarlar admin tomonidan rejalashtirilganda bu yerda ko\'rinadi.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {webinars.map((w: any, i: number) => {
+                    const isRegistered = registeredWebinars.includes(w.id)
+                    const webinarStart = new Date(w.date).getTime()
+                    const webinarEnd = webinarStart + (w.duration_minutes || 60) * 60000
+                    const now = Date.now()
+                    const isLive = now >= webinarStart - 30 * 60000 && now <= webinarEnd
+                    const isPast = now > webinarEnd
+                    const isFull =
+                      !!w.max_participants && (w.participants_count || 0) >= w.max_participants
+                    return (
+                      <div
+                        key={i}
+                        className="bg-white dark:bg-zinc-900 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all border border-gray-100 dark:border-zinc-800"
+                      >
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h3 className="font-semibold text-sm text-gray-900 dark:text-white">
+                                {w.title}
+                              </h3>
+                              {isLive && (
+                                <span className="px-1.5 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded text-[10px] font-medium animate-pulse">
+                                  LIVE
+                                </span>
+                              )}
+                              {isPast && (
+                                <span className="px-1.5 py-0.5 bg-gray-100 dark:bg-zinc-800 text-gray-500 dark:text-zinc-400 rounded text-[10px] font-medium">
+                                  Yakunlangan
+                                </span>
+                              )}
+                            </div>
+                            {w.description && (
+                              <p className="text-xs text-gray-500 dark:text-zinc-400 mb-2">
+                                {w.description}
+                              </p>
                             )}
-                          </div>
-                          <p className="text-xs text-gray-500 dark:text-zinc-400 mb-2">
-                            O\'tkazuvchi: {w.host || '-'}
-                          </p>
-                          <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-zinc-400 mb-2">
-                            <span>📅 {w.date}</span>
-                            <span>
-                              ⏱ {w.duration_minutes ? w.duration_minutes + ' min' : '1 soat'}
+                            <p className="text-xs text-gray-500 dark:text-zinc-400 mb-2">
+                              O\'tkazuvchi: {w.host || '-'}
+                              {w.host_title ? ` (${w.host_title})` : ''}
+                            </p>
+                            <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-zinc-400 mb-2">
+                              <span>📅 {w.date?.slice(0, 16).replace('T', ' ')}</span>
+                              <span>
+                                ⏱ {w.duration_minutes ? w.duration_minutes + ' min' : '1 soat'}
+                              </span>
+                              <span>
+                                👥 {w.participants_count || 0}
+                                {w.max_participants ? `/${w.max_participants}` : ''}
+                              </span>
+                            </div>
+                            <span className="px-2 py-0.5 bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-400 rounded text-[10px]">
+                              {w.category || 'Umumiy'}
                             </span>
-                            <span>👥 {w.participants_count}</span>
                           </div>
-                          <span className="px-2 py-0.5 bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-400 rounded text-[10px]">
-                            {w.category || 'Umumiy'}
-                          </span>
+                          <button
+                            disabled={isPast || isFull}
+                            onClick={() => (isRegistered ? null : registerWebinar(w.id))}
+                            className={`px-4 py-2 text-xs rounded-lg whitespace-nowrap transition-colors ${
+                              isLive
+                                ? 'bg-red-600 text-white hover:bg-red-700'
+                                : isPast
+                                  ? 'bg-gray-100 dark:bg-zinc-800 text-gray-400 dark:text-zinc-500 cursor-not-allowed'
+                                  : isRegistered
+                                    ? 'bg-gray-200 dark:bg-zinc-700 text-gray-700 dark:text-zinc-300'
+                                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                            }`}
+                          >
+                            {isLive
+                              ? "Qo'shilish"
+                              : isPast
+                                ? 'Yakunlangan'
+                                : isRegistered
+                                  ? "Ro'yxatdan o'tilgan"
+                                  : isFull
+                                    ? "To'ldi"
+                                    : "Ro'yxatdan o'tish"}
+                          </button>
                         </div>
-                        <button
-                          onClick={() => (isRegistered ? null : registerWebinar(w.id))}
-                          className={`px-4 py-2 text-xs rounded-lg whitespace-nowrap transition-colors ${isLive ? 'bg-red-600 text-white hover:bg-red-700' : isRegistered ? 'bg-gray-200 dark:bg-zinc-700 text-gray-700 dark:text-zinc-300' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
-                        >
-                          {isLive
-                            ? "Qo'shilish"
-                            : isRegistered
-                              ? "Ro'yxatdan o'tilgan"
-                              : "Ro'yxatdan o'tish"}
-                        </button>
                       </div>
-                    </div>
-                  )
-                })}
-              </div>
+                    )
+                  })}
+                </div>
+              )}
             </main>
           </div>
         </div>
