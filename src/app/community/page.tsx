@@ -92,6 +92,13 @@ export default function Community() {
   const [newGroupDesc, setNewGroupDesc] = useState('')
   const [newGroupIcon, setNewGroupIcon] = useState('👥')
 
+  // ── Guruh ichidagi muhokama ───────────────────────────────────
+  const [openGroup, setOpenGroup] = useState<any>(null)
+  const [groupPosts, setGroupPosts] = useState<any[]>([])
+  const [groupPostsLoading, setGroupPostsLoading] = useState(false)
+  const [newGroupPost, setNewGroupPost] = useState('')
+  const [sendingGroupPost, setSendingGroupPost] = useState(false)
+
   // ── Maslahat / Mentorlik so'rovi ──────────────────────────────
   const [consultExpert, setConsultExpert] = useState<any>(null)
   const [consultType, setConsultType] = useState<'consultation' | 'mentorship'>('consultation')
@@ -295,6 +302,59 @@ export default function Community() {
     setNewGroupDesc('')
   }
 
+  // ── Guruh muhokamasini ochish (postlar yuklash) ──────────────
+  const openGroupDiscussion = async (g: any) => {
+    setOpenGroup(g)
+    setGroupPosts([])
+    setGroupPostsLoading(true)
+    setNewGroupPost('')
+    try {
+      const r = await fetch(`/api/community/groups/posts?groupId=${g.id}`, { cache: 'no-cache' })
+      const d = await r.json()
+      setGroupPosts(d.data || [])
+    } catch {
+      setGroupPosts([])
+    } finally {
+      setGroupPostsLoading(false)
+    }
+  }
+
+  // ── Guruh ichiga post yozish ──────────────────────────────────
+  const sendGroupPost = async () => {
+    if (!openGroup || !newGroupPost.trim() || sendingGroupPost) return
+    setSendingGroupPost(true)
+    const content = newGroupPost.trim()
+    setNewGroupPost('')
+    const user = currentUser
+    let userId = user?.id || ''
+    let userName = user?.name || 'Foydalanuvchi'
+    try {
+      const stored = sessionStorage.getItem('jurisai_user') || localStorage.getItem('auth_user')
+      if (stored) {
+        const u = JSON.parse(stored)
+        if (u?.id) userId = u.id
+        if (u?.name || u?.user_name) userName = u.name || u.user_name
+      }
+    } catch {}
+    try {
+      const r = await fetch('/api/community/groups/posts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ groupId: openGroup.id, userId, userName, content }),
+      })
+      const d = await r.json()
+      if (d.success && d.data) {
+        setGroupPosts(prev => [d.data, ...prev])
+        setGroups(prev =>
+          prev.map(g =>
+            g.id === openGroup.id ? { ...g, post_count: (g.post_count || 0) + 1 } : g
+          )
+        )
+      }
+    } catch {}
+    setSendingGroupPost(false)
+  }
+
   // ── Maslahat / Mentorlik so'rovini ochish ─────────────────────
   const openConsultation = (expert: any, type: 'consultation' | 'mentorship') => {
     setConsultExpert(expert)
@@ -357,6 +417,30 @@ export default function Community() {
         body: JSON.stringify({ id: webinarId, delta: 1 }),
       })
     } catch {}
+  }
+
+  // ── Vebinar sanasini o'zbekcha formatlash ─────────────────────
+  const UZ_MONTHS = [
+    'yanvar',
+    'fevral',
+    'mart',
+    'aprel',
+    'may',
+    'iyun',
+    'iyul',
+    'avgust',
+    'sentabr',
+    'oktabr',
+    'noyabr',
+    'dekabr',
+  ]
+  const formatWebinarDate = (dateStr: string): string => {
+    if (!dateStr) return ''
+    const d = new Date(dateStr)
+    if (isNaN(d.getTime())) return dateStr
+    const hh = String(d.getHours()).padStart(2, '0')
+    const mm = String(d.getMinutes()).padStart(2, '0')
+    return `${d.getDate()}-${UZ_MONTHS[d.getMonth()]}, ${hh}:${mm}`
   }
 
   const AVAILABLE_TAGS = [
@@ -1408,12 +1492,23 @@ export default function Community() {
                                   {g.category || 'Umumiy'}
                                 </span>
                               </div>
-                              <button
-                                onClick={() => (isJoined ? leaveGroup(g.id) : joinGroup(g.id))}
-                                className={`w-full px-3 py-1.5 text-xs rounded-lg transition-colors ${isJoined ? 'bg-gray-200 dark:bg-zinc-700 text-gray-700 dark:text-zinc-300' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
-                              >
-                                {isJoined ? "A'zo bo'lgan" : "Qo'shilish"}
-                              </button>
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() => (isJoined ? leaveGroup(g.id) : joinGroup(g.id))}
+                                  className={`flex-1 px-3 py-1.5 text-xs rounded-lg transition-colors ${isJoined ? 'bg-gray-200 dark:bg-zinc-700 text-gray-700 dark:text-zinc-300' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+                                >
+                                  {isJoined ? "A'zo bo'lgan" : "Qo'shilish"}
+                                </button>
+                                {isJoined && (
+                                  <button
+                                    onClick={() => openGroupDiscussion(g)}
+                                    className="px-3 py-1.5 text-xs rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
+                                    title="Guruh muhokamasi"
+                                  >
+                                    💬 Muhokama
+                                  </button>
+                                )}
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -1525,6 +1620,104 @@ export default function Community() {
             </div>
           </div>
         )}
+
+        {/* Guruh muhokamasi modali */}
+        {openGroup && (
+          <div
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            onClick={() => setOpenGroup(null)}
+          >
+            <div
+              className="bg-white dark:bg-zinc-900 rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-zinc-800">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="text-xl flex-shrink-0">{openGroup.icon}</span>
+                  <div className="min-w-0">
+                    <h3 className="font-bold text-gray-900 dark:text-white truncate">
+                      {openGroup.name}
+                    </h3>
+                    <p className="text-xs text-gray-500 dark:text-zinc-400">
+                      👥 {openGroup.member_count || 0} a\'zo • 💬 {openGroup.post_count || 0} post
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setOpenGroup(null)}
+                  className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-zinc-300 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="h-72 overflow-y-auto p-4 space-y-3 bg-gray-50/50 dark:bg-zinc-950/30">
+                {groupPostsLoading ? (
+                  <div className="text-center py-10">
+                    <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+                    <p className="text-xs text-gray-500 dark:text-zinc-400">Yuklanmoqda...</p>
+                  </div>
+                ) : groupPosts.length === 0 ? (
+                  <div className="text-center py-10">
+                    <MessageCircle className="w-10 h-10 text-gray-300 dark:text-zinc-700 mx-auto mb-3" />
+                    <p className="text-sm text-gray-500 dark:text-zinc-400">
+                      Hozircha muhokama yo\'q. Birinchi xabarni siz yozing!
+                    </p>
+                  </div>
+                ) : (
+                  groupPosts.map((p: any, idx: number) => (
+                    <div
+                      key={p.id || idx}
+                      className="bg-white dark:bg-zinc-900 rounded-xl p-3 shadow-sm border border-gray-100 dark:border-zinc-800"
+                    >
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="font-medium text-sm text-gray-800 dark:text-white flex items-center gap-1.5">
+                          <UserCircle className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                          <span className="truncate">{p.user_name || 'Foydalanuvchi'}</span>
+                        </span>
+                        <span className="text-[10px] text-gray-400 flex-shrink-0">
+                          {new Date(p.created_at).toLocaleDateString('uz-UZ', {
+                            day: 'numeric',
+                            month: 'short',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-700 dark:text-zinc-300 whitespace-pre-wrap break-words">
+                        {p.content}
+                      </p>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              <div className="p-4 border-t border-gray-100 dark:border-zinc-800 flex gap-2">
+                <input
+                  type="text"
+                  value={newGroupPost}
+                  onChange={e => setNewGroupPost(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault()
+                      sendGroupPost()
+                    }
+                  }}
+                  placeholder="Guruhga xabar yozing..."
+                  className="flex-1 px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <button
+                  onClick={sendGroupPost}
+                  disabled={!newGroupPost.trim() || sendingGroupPost}
+                  className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1.5"
+                >
+                  <Send className="w-4 h-4" />
+                  {sendingGroupPost ? '...' : 'Yuborish'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     )
   }
@@ -1614,7 +1807,7 @@ export default function Community() {
                               {w.host_title ? ` (${w.host_title})` : ''}
                             </p>
                             <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-zinc-400 mb-2">
-                              <span>📅 {w.date?.slice(0, 16).replace('T', ' ')}</span>
+                              <span>📅 {formatWebinarDate(w.date)}</span>
                               <span>
                                 ⏱ {w.duration_minutes ? w.duration_minutes + ' min' : '1 soat'}
                               </span>

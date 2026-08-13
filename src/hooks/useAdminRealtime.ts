@@ -32,13 +32,16 @@ interface AdminRealtimeState {
   allUsers: any[]
   loginActivities: LoginActivity[]
   tokenUsages: TokenUsage[]
+  consultations: any[] // Maslahat/mentorlik so'rovlari
   newPaymentsCount: number // Yangi kelgan to'lovlar soni
   newUsersCount: number // Yangi foydalanuvchilar soni
+  newConsultationsCount: number // Yangi maslahat so'rovlari soni
   loading: boolean
   lastSynced: Date | null
   refreshAll: () => Promise<void>
   refreshPayments: () => Promise<void>
   refreshUsers: () => Promise<void>
+  refreshConsultations: () => Promise<void>
 }
 
 // ── Admin real-time hook ──
@@ -49,11 +52,14 @@ export function useAdminRealtime(): AdminRealtimeState {
   const [tokenUsages, setTokenUsages] = useState<TokenUsage[]>([])
   const [newPaymentsCount, setNewPaymentsCount] = useState(0)
   const [newUsersCount, setNewUsersCount] = useState(0)
+  const [newConsultationsCount, setNewConsultationsCount] = useState(0)
+  const [consultations, setConsultations] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [lastSynced, setLastSynced] = useState<Date | null>(null)
   const mountedRef = useRef(true)
   const pollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const prevPaymentIdsRef = useRef(new Set<string>())
+  const prevConsultationIdsRef = useRef(new Set<string>())
 
   // ── Load ALL data from Supabase ──
   const fetchAllData = useCallback(async (showLoading = true) => {
@@ -169,6 +175,36 @@ export function useAdminRealtime(): AdminRealtimeState {
         )
       }
 
+      // ── Maslahat/mentorlik so'rovlari ──
+      try {
+        const consRes = await fetch('/api/community/consultations', { cache: 'no-cache' })
+        const consJson = await consRes.json()
+        if (consJson.success && Array.isArray(consJson.data)) {
+          const mapped: any[] = consJson.data.map((c: any) => ({
+            id: c.id,
+            expert_id: c.expert_id,
+            expert_name: c.expert_name,
+            user_id: c.user_id,
+            user_name: c.user_name,
+            user_email: c.user_email,
+            type: c.type,
+            message: c.message,
+            status: c.status || 'pending',
+            created_at: c.created_at,
+          }))
+          // Yangi (pending) so'rovlar soni
+          const prevIds = prevConsultationIdsRef.current
+          const currentIds = new Set(mapped.map(c => c.id))
+          const newIds = [...currentIds].filter(id => !prevIds.has(id))
+          const trulyNew = mapped.filter(c => newIds.includes(c.id) && c.status === 'pending')
+          if (trulyNew.length > 0) {
+            setNewConsultationsCount(prev => prev + trulyNew.length)
+          }
+          prevConsultationIdsRef.current = currentIds
+          setConsultations(mapped)
+        }
+      } catch {}
+
       setLastSynced(new Date())
     } catch (err) {
       // Fallback: load from localStorage cache
@@ -269,10 +305,16 @@ export function useAdminRealtime(): AdminRealtimeState {
     setNewUsersCount(0)
   }, [fetchAllData])
 
+  const refreshConsultations = useCallback(async () => {
+    setNewConsultationsCount(0)
+    await fetchAllData(false)
+  }, [fetchAllData])
+
   const refreshAll = useCallback(async () => {
     await fetchAllData(true)
     setNewPaymentsCount(0)
     setNewUsersCount(0)
+    setNewConsultationsCount(0)
   }, [fetchAllData])
 
   // ── Initial load + periodic polling ──
@@ -308,12 +350,15 @@ export function useAdminRealtime(): AdminRealtimeState {
     allUsers,
     loginActivities,
     tokenUsages,
+    consultations,
     newPaymentsCount,
     newUsersCount,
+    newConsultationsCount,
     loading,
     lastSynced,
     refreshAll,
     refreshPayments,
     refreshUsers,
+    refreshConsultations,
   }
 }

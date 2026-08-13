@@ -302,7 +302,7 @@ export default function AdminDashboard() {
           setUser(adminData)
           setAdminAuthError('')
         } else {
-          setAdminAuthError("Bu akkaunt admin huquqiga ega emas")
+          setAdminAuthError('Bu akkaunt admin huquqiga ega emas')
         }
       } else {
         setAdminAuthError(result.error || "Email yoki parol noto'g'ri")
@@ -622,7 +622,13 @@ export default function AdminDashboard() {
     },
     { id: 'pricing', label: 'Narxlar', icon: DollarSign },
     { id: 'legal', label: 'Qonunlar', icon: BookOpen },
-    { id: 'community', label: 'Jamiyat', icon: Users },
+    {
+      id: 'community',
+      label: 'Jamiyat',
+      icon: Users,
+      badge:
+        realtime.newConsultationsCount > 0 ? realtime.newConsultationsCount : undefined,
+    },
     { id: 'templates', label: 'Namunalar', icon: FileText },
     { id: 'settings', label: 'Sozlamalar', icon: Settings },
   ]
@@ -707,6 +713,7 @@ export default function AdminDashboard() {
                         setActiveTab(tab.id)
                         if (tab.id === 'payments') realtime.refreshPayments()
                         if (tab.id === 'users') realtime.refreshUsers()
+                        if (tab.id === 'community') realtime.refreshConsultations()
                       }}
                       className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all flex items-center gap-1 relative ${
                         activeTab === tab.id
@@ -743,7 +750,12 @@ export default function AdminDashboard() {
               return (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
+                  onClick={() => {
+                    setActiveTab(tab.id)
+                    if (tab.id === 'payments') realtime.refreshPayments()
+                    if (tab.id === 'users') realtime.refreshUsers()
+                    if (tab.id === 'community') realtime.refreshConsultations()
+                  }}
                   className={`px-2 py-1 text-xs font-medium rounded-lg transition-all flex items-center gap-1 relative ${
                     activeTab === tab.id
                       ? 'bg-blue-600 text-white shadow-sm'

@@ -290,6 +290,29 @@ export default function AdminCommunityManager() {
     } catch {}
   }
 
+  const UZ_MONTHS = [
+    'yanvar',
+    'fevral',
+    'mart',
+    'aprel',
+    'may',
+    'iyun',
+    'iyul',
+    'avgust',
+    'sentabr',
+    'oktabr',
+    'noyabr',
+    'dekabr',
+  ]
+  const formatDate = (dateStr: string): string => {
+    if (!dateStr) return ''
+    const d = new Date(dateStr)
+    if (isNaN(d.getTime())) return dateStr
+    const hh = String(d.getHours()).padStart(2, '0')
+    const mm = String(d.getMinutes()).padStart(2, '0')
+    return `${d.getDate()}-${UZ_MONTHS[d.getMonth()]}, ${hh}:${mm}`
+  }
+
   const inputCls =
     'w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500'
 
@@ -495,7 +518,7 @@ export default function AdminCommunityManager() {
                 </p>
                 <div className="flex items-center gap-3 text-[10px] text-gray-400 dark:text-zinc-500 mt-0.5">
                   <span className="flex items-center gap-1">
-                    <Calendar size={10} /> {w.date}
+                    <Calendar size={10} /> {formatDate(w.date)}
                   </span>
                   <span className="flex items-center gap-1">
                     <Clock size={10} /> {w.duration_minutes} min
