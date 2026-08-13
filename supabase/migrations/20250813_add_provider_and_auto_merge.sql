@@ -144,30 +144,32 @@ BEGIN
     RETURN NEW;
   END IF;
 
-  -- Mavjud profilga yangi ma'lumotlarni birlashtirish
+  -- Mavjud profilga yangi ma'lumotlarni birlashtirish.
+  -- Eslatma: PostgreSQL'da UPDATE ... FROM o'z jadvalini takrorlash
+  -- taqiqlangan ("table name specified more than once") — shuning uchun
+  -- SET ichida eski qiymatlar to'g'ridan-to'g'ri ustun nomi bilan olinadi.
   UPDATE public.registered_users
   SET
-    name = COALESCE(NULLIF(ru.name, ''), NEW.name),
-    full_name = COALESCE(NULLIF(ru.full_name, ''), NEW.full_name),
+    name = COALESCE(NULLIF(name, ''), NEW.name),
+    full_name = COALESCE(NULLIF(full_name, ''), NEW.full_name),
     role = CASE
       WHEN LOWER(COALESCE(NEW.role, 'user')) IN ('admin', 'super_admin') THEN 'ADMIN'
-      WHEN LOWER(COALESCE(ru.role, 'user')) IN ('admin', 'super_admin') THEN 'ADMIN'
-      ELSE COALESCE(NULLIF(ru.role, ''), 'USER')
+      WHEN LOWER(COALESCE(role, 'user')) IN ('admin', 'super_admin') THEN 'ADMIN'
+      ELSE COALESCE(NULLIF(role, ''), 'USER')
     END,
-    avatar = COALESCE(NULLIF(ru.avatar, ''), NEW.avatar),
+    avatar = COALESCE(NULLIF(avatar, ''), NEW.avatar),
     subscription_plan = CASE
       WHEN COALESCE(NEW.subscription_plan, 'free') <> 'free' THEN NEW.subscription_plan
-      ELSE ru.subscription_plan
+      ELSE subscription_plan
     END,
-    subscription_expires_at = COALESCE(ru.subscription_expires_at, NEW.subscription_expires_at),
+    subscription_expires_at = COALESCE(subscription_expires_at, NEW.subscription_expires_at),
     last_login = GREATEST(
-      COALESCE(ru.last_login, '1970-01-01'::TIMESTAMPTZ),
+      COALESCE(last_login, '1970-01-01'::TIMESTAMPTZ),
       COALESCE(NEW.last_login, '1970-01-01'::TIMESTAMPTZ)
     ),
-    provider = COALESCE(NULLIF(ru.provider, ''), NEW.provider),
+    provider = COALESCE(NULLIF(provider, ''), NEW.provider),
     updated_at = NOW()
-  FROM public.registered_users ru
-  WHERE ru.id = v_existing;
+  WHERE id = v_existing;
 
   -- Duplicate insertni bekor qilish
   RETURN NULL;
@@ -196,7 +198,9 @@ DECLARE
   v_email TEXT;
   v_existing_user UUID;
 BEGIN
-  v_email := COALESCE(NEW.email, NEW.identity_data->>'email');
+  -- Email faqat identity_data ichida o'qiladi (auth.identities.email
+  -- ustuni har xil Supabase versiyalarida mavjud emas)
+  v_email := NEW.identity_data->>'email';
 
   -- Faqat OAuth identity'lar uchun (email identity'larda email bo'lmaydi),
   -- rekursiya himoyasi bilan
@@ -207,7 +211,7 @@ BEGIN
   -- Shu email bilan boshqa user'da identity mavjudmi?
   SELECT i.user_id INTO v_existing_user
   FROM auth.identities i
-  WHERE COALESCE(i.email, i.identity_data->>'email') = v_email
+  WHERE i.identity_data->>'email' = v_email
     AND i.user_id <> NEW.user_id
   ORDER BY i.created_at ASC, i.user_id ASC
   LIMIT 1;
@@ -223,7 +227,7 @@ BEGIN
 
   -- Mavjud user'ning providers ro'yxatini yangilash
   UPDATE auth.users
-  SET app_metadata = app_metadata || jsonb_build_object(
+  SET app_metadata = COALESCE(app_metadata, '{}'::jsonb) || jsonb_build_object(
     'providers', (
       SELECT COALESCE(jsonb_agg(DISTINCT provider), '[]'::jsonb)
       FROM auth.identities WHERE user_id = v_existing_user
