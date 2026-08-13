@@ -11,8 +11,10 @@
 
 -- ── 1. Demo ma'lumotlarni o'chirish ──────────────────────────────────────
 -- Ekspertlar va vebinarlar — 2026-07-30 da bitta seed'da yaratilgan (demo)
+-- Eslatma: community_consultations.expert_id TEXT, community_experts.id UUID —
+-- shuning uchun id::TEXT cast qilinadi (aks holda 42883 xatosi chiqadi)
 DELETE FROM public.community_consultations
-WHERE expert_id IN (SELECT id FROM public.community_experts);
+WHERE expert_id IN (SELECT id::TEXT FROM public.community_experts);
 
 DELETE FROM public.community_experts
 WHERE created_at::date = '2026-07-30'::date;
