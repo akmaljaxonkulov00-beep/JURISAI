@@ -34,6 +34,7 @@ import {
   Download,
   FileText,
   BookOpen,
+  Mail,
 } from 'lucide-react'
 import { firebaseAuth } from '@/services/firebase-auth'
 import MonitoringDashboard from '@/components/admin/MonitoringDashboard'
@@ -1155,6 +1156,23 @@ export default function AdminDashboard() {
                                 >
                                   {isAdminRole(u.role) ? 'Admin' : 'Foydalanuvchi'}
                                 </Badge>
+                                {(u.provider === 'google' ||
+                                  (u.email && u.provider !== 'email')) && (
+                                  <Badge className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 flex items-center gap-1">
+                                    {u.provider === 'google' ? (
+                                      <>
+                                        <Globe size={10} /> Google
+                                      </>
+                                    ) : (
+                                      <>{u.provider}</>
+                                    )}
+                                  </Badge>
+                                )}
+                                {u.provider === 'email' && (
+                                  <Badge className="bg-gray-50 dark:bg-zinc-800/30 text-gray-500 dark:text-zinc-400 flex items-center gap-1">
+                                    <Mail size={10} /> Email
+                                  </Badge>
+                                )}
                                 {u.blocked && (
                                   <Badge className="bg-red-100 text-red-800">Bloklangan</Badge>
                                 )}

@@ -115,6 +115,7 @@ export function useAdminRealtime(): AdminRealtimeState {
           blocked: u.blocked || false,
           balance: u.balance || 0,
           created_at: u.created_at || '',
+          provider: u.provider || u.app_metadata?.provider || 'email',
         }))
         setAllUsers(mappedUsers)
         try {

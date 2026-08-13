@@ -23,6 +23,7 @@ export async function GET(request: NextRequest) {
       phone: u.phone || '',
       role: u.role || 'USER',
       status: u.blocked ? 'SUSPENDED' : u.status || 'ACTIVE',
+      provider: u.provider || u.app_metadata?.provider || 'email',
       createdAt: u.created_at || u.createdAt || '',
       updatedAt: u.updated_at || u.updatedAt || '',
       subscription: u.subscription_plan

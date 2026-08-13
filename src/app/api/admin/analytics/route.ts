@@ -142,6 +142,7 @@ export async function GET(request: NextRequest) {
                     created_at: u.created_at || '',
                     last_login: u.last_sign_in_at || u.created_at || '',
                     status: u.banned_until ? 'blocked' : 'active',
+                    provider: u.app_metadata?.provider || 'email',
                   }))
                   result.totalUsers = authUsers.length
                   result.userSource = 'auth.users'

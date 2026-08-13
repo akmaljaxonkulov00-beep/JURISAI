@@ -13,7 +13,7 @@ import { createClient } from '@supabase/supabase-js'
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { id, email, name, role, subscription_plan } = body
+    const { id, email, name, role, subscription_plan, provider } = body
 
     if (!id || !email) {
       return NextResponse.json({ success: false, error: 'id va email majburiy' }, { status: 400 })
@@ -49,6 +49,7 @@ export async function POST(request: NextRequest) {
       name: name || email.split('@')[0] || '',
       role: role || 'USER',
       subscription_plan: subscription_plan || 'free',
+      provider: provider || 'email',
       created_at: now,
       last_login: now,
     })
@@ -62,6 +63,7 @@ export async function POST(request: NextRequest) {
           name: name || email.split('@')[0] || '',
           role: role || 'USER',
           subscription_plan: subscription_plan || 'free',
+          provider: provider || 'email',
           last_login: now,
         })
         .eq('id', id)

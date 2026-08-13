@@ -19,6 +19,8 @@ export interface AuthUser {
   subscription_expires_at?: string
   avatar?: string
   phone?: string
+  /** Kirish usuli: email | google | ... */
+  provider?: string
   /** OAuth duplicate birlashtirilganda true — session user o'chirilgan bo'ladi */
   accountMerged?: boolean
 }
@@ -57,6 +59,12 @@ export function makeCurrentUserAdmin(user: AuthUser): AuthUser {
 /** Map Supabase user to our AuthUser interface */
 function mapSupabaseUser(sbUser: any): AuthUser {
   const meta = sbUser.user_metadata || {}
+  // Provider: auth.user.app_metadata.provider — Supabase tomonidan yoziladi
+  // (email | google | github | ...). Eski yozuvlarda bo'lmasa 'email'.
+  const appMeta = sbUser.app_metadata || {}
+  const providers = Array.isArray(appMeta.providers) ? appMeta.providers : []
+  const provider =
+    (typeof appMeta.provider === 'string' && appMeta.provider) || providers[0] || 'email'
   return {
     id: sbUser.id,
     email: sbUser.email || '',
@@ -66,6 +74,7 @@ function mapSupabaseUser(sbUser: any): AuthUser {
     subscription_expires_at: meta.subscription_expires_at || undefined,
     avatar: sbUser.avatar || meta.avatar || undefined,
     phone: sbUser.phone || meta.phone || undefined,
+    provider,
   }
 }
 
@@ -266,6 +275,7 @@ async function syncUserToSupabase(user: AuthUser): Promise<void> {
         name: user.name,
         role: user.role,
         subscription_plan: user.subscription_plan || 'free',
+        provider: user.provider || 'email',
       }),
     })
   } catch {}
