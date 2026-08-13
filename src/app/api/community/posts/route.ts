@@ -24,23 +24,64 @@ interface CommunityPost {
   updatedAt: string
 }
 
-// Supabase-ready: swap localStorage calls with supabase queries when DB is ready
+// ── Supabase snake_case <-> frontend camelCase mapping ──────────────
+const toSnake = (p: CommunityPost) => ({
+  id: p.id,
+  author: p.author,
+  content: p.content,
+  category: p.category,
+  tags: p.tags,
+  likes: p.likes,
+  dislikes: p.dislikes,
+  liked_by: p.likedBy,
+  disliked_by: p.dislikedBy,
+  comments: p.comments,
+  views: p.views,
+  is_pinned: p.isPinned,
+  created_at: p.createdAt,
+  updated_at: p.updatedAt,
+})
+
+const toCamel = (r: any): CommunityPost => ({
+  id: r.id,
+  author: r.author || {},
+  content: r.content || '',
+  category: r.category || 'discussion',
+  tags: Array.isArray(r.tags) ? r.tags : [],
+  likes: r.likes || 0,
+  dislikes: r.dislikes || 0,
+  likedBy: Array.isArray(r.liked_by) ? r.liked_by : [],
+  dislikedBy: Array.isArray(r.disliked_by) ? r.disliked_by : [],
+  comments: Array.isArray(r.comments) ? r.comments : [],
+  views: r.views || 0,
+  isPinned: !!r.is_pinned,
+  createdAt: r.created_at,
+  updatedAt: r.updated_at,
+})
+
+async function getSupabase() {
+  const { createClient } = await import('@supabase/supabase-js')
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!supabaseUrl || !supabaseKey) return null
+  return createClient(supabaseUrl, supabaseKey)
+}
+
 export async function GET() {
   try {
-    const { createClient } = await import('@supabase/supabase-js')
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const supabaseKey =
-      process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-    if (supabaseUrl && supabaseKey) {
-      const supabase = createClient(supabaseUrl, supabaseKey)
+    const supabase = await getSupabase()
+    if (supabase) {
       const { data, error } = await supabase
         .from('community_posts')
         .select('*')
         .order('created_at', { ascending: false })
-
+        .limit(100)
       if (!error && data) {
-        return NextResponse.json({ success: true, data, source: 'supabase' })
+        return NextResponse.json({
+          success: true,
+          data: data.map(toCamel),
+          source: 'supabase',
+        })
       }
     }
   } catch (e) {
@@ -72,7 +113,7 @@ export async function POST(request: NextRequest) {
     }
 
     const newPost: CommunityPost = {
-      id: 'post_' + Date.now(),
+      id: body.id || 'post_' + Date.now(),
       author: user,
       content: body.content,
       category: body.category,
@@ -90,13 +131,9 @@ export async function POST(request: NextRequest) {
 
     // Try Supabase first
     try {
-      const { createClient } = await import('@supabase/supabase-js')
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-      const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-
-      if (supabaseUrl && supabaseKey) {
-        const supabase = createClient(supabaseUrl, supabaseKey)
-        const { error } = await supabase.from('community_posts').insert([newPost])
+      const supabase = await getSupabase()
+      if (supabase) {
+        const { error } = await supabase.from('community_posts').insert([toSnake(newPost)])
         if (!error) {
           return NextResponse.json({ success: true, data: newPost, source: 'supabase' })
         }
@@ -117,12 +154,8 @@ export async function PUT(request: NextRequest) {
     }
 
     try {
-      const { createClient } = await import('@supabase/supabase-js')
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-      const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-
-      if (supabaseUrl && supabaseKey) {
-        const supabase = createClient(supabaseUrl, supabaseKey)
+      const supabase = await getSupabase()
+      if (supabase) {
         const { error } = await supabase
           .from('community_posts')
           .update({
@@ -153,12 +186,8 @@ export async function DELETE(request: NextRequest) {
     }
 
     try {
-      const { createClient } = await import('@supabase/supabase-js')
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-      const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-
-      if (supabaseUrl && supabaseKey) {
-        const supabase = createClient(supabaseUrl, supabaseKey)
+      const supabase = await getSupabase()
+      if (supabase) {
         const { error } = await supabase.from('community_posts').delete().eq('id', id)
         if (!error) {
           return NextResponse.json({ success: true, source: 'supabase' })

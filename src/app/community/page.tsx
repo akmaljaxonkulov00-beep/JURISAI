@@ -28,6 +28,8 @@ import {
   ChevronRight,
   Hash,
   Gavel,
+  CheckCircle,
+  Loader2,
 } from 'lucide-react'
 import { useCommunity, CommunityPost } from '@/hooks/useCommunity'
 import AppSidebar from '@/components/layout/AppSidebar'
@@ -89,6 +91,13 @@ export default function Community() {
   const [newGroupName, setNewGroupName] = useState('')
   const [newGroupDesc, setNewGroupDesc] = useState('')
   const [newGroupIcon, setNewGroupIcon] = useState('👥')
+
+  // ── Maslahat / Mentorlik so'rovi ──────────────────────────────
+  const [consultExpert, setConsultExpert] = useState<any>(null)
+  const [consultType, setConsultType] = useState<'consultation' | 'mentorship'>('consultation')
+  const [consultMessage, setConsultMessage] = useState('')
+  const [consultSending, setConsultSending] = useState(false)
+  const [consultSent, setConsultSent] = useState(false)
 
   // ── Yagona sidebar vositalari (desktop) — AppSidebar ichida ────────
   const renderSidebarTools = () => (
@@ -271,6 +280,47 @@ export default function Community() {
     setShowCreateGroup(false)
     setNewGroupName('')
     setNewGroupDesc('')
+  }
+
+  // ── Maslahat / Mentorlik so'rovini ochish ─────────────────────
+  const openConsultation = (expert: any, type: 'consultation' | 'mentorship') => {
+    setConsultExpert(expert)
+    setConsultType(type)
+    setConsultMessage('')
+    setConsultSent(false)
+  }
+
+  // ── Maslahat / Mentorlik so'rovini yuborish ───────────────────
+  const sendConsultation = async () => {
+    if (!consultExpert || !consultMessage.trim() || consultSending) return
+    setConsultSending(true)
+    try {
+      const user = currentUser
+      // Email'ni sessionStorage'dan olish (CommunityUser'da email yo'q)
+      let userEmail = ''
+      try {
+        const stored = sessionStorage.getItem('jurisai_user') || localStorage.getItem('auth_user')
+        if (stored) userEmail = JSON.parse(stored).email || ''
+      } catch {}
+      await fetch('/api/community/consultations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          expertId: consultExpert.id,
+          expertName: consultExpert.name,
+          userId: user?.id,
+          userName: user?.name,
+          userEmail,
+          type: consultType,
+          message: consultMessage.trim(),
+        }),
+      })
+      setConsultSent(true)
+    } catch {
+      setConsultSent(true)
+    } finally {
+      setConsultSending(false)
+    }
   }
 
   // Register for webinar
@@ -1136,10 +1186,16 @@ export default function Community() {
                             <span>📺 {e.webinars_count} vebinar</span>
                           </div>
                           <div className="flex gap-2">
-                            <button className="flex-1 px-3 py-1.5 bg-blue-600 text-white text-xs rounded-lg hover:bg-blue-700 transition-colors">
-                              Maslahat so\'rash
+                            <button
+                              onClick={() => openConsultation(e, 'consultation')}
+                              className="flex-1 px-3 py-1.5 bg-blue-600 text-white text-xs rounded-lg hover:bg-blue-700 transition-colors"
+                            >
+                              Maslahat so'rash
                             </button>
-                            <button className="px-3 py-1.5 bg-green-600 text-white text-xs rounded-lg hover:bg-green-700 transition-colors">
+                            <button
+                              onClick={() => openConsultation(e, 'mentorship')}
+                              className="px-3 py-1.5 bg-green-600 text-white text-xs rounded-lg hover:bg-green-700 transition-colors"
+                            >
                               Mentorlik
                             </button>
                           </div>
@@ -1152,6 +1208,96 @@ export default function Community() {
             </main>
           </div>
         </div>
+
+        {/* Maslahat / Mentorlik so'rovi modali */}
+        {consultExpert && (
+          <div
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            onClick={() => setConsultExpert(null)}
+          >
+            <div
+              className="bg-white dark:bg-zinc-900 rounded-2xl p-6 max-w-md w-full shadow-2xl"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="flex items-start gap-3 mb-5">
+                <div className="w-11 h-11 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
+                  <UserCircle className="w-6 h-6 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-bold text-gray-900 dark:text-white">
+                    {consultType === 'mentorship' ? 'Mentorlik so\'rovi' : "Maslahat so'rovi"}
+                  </h3>
+                  <p className="text-xs text-gray-500 dark:text-zinc-400">
+                    {consultExpert.name} • {consultExpert.title}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setConsultExpert(null)}
+                  className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-zinc-300 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {consultSent ? (
+                <div className="text-center py-8">
+                  <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-3" />
+                  <h4 className="font-semibold text-gray-900 dark:text-white mb-1">
+                    So'rov yuborildi!
+                  </h4>
+                  <p className="text-xs text-gray-500 dark:text-zinc-400 mb-4">
+                    {consultExpert.name} sizning so'rovingizni ko'rib chiqadi.
+                  </p>
+                  <button
+                    onClick={() => setConsultExpert(null)}
+                    className="px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors"
+                  >
+                    Yopish
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <textarea
+                    value={consultMessage}
+                    onChange={e => setConsultMessage(e.target.value)}
+                    placeholder={
+                      consultType === 'mentorship'
+                        ? "Mentorlik bo'yicha savolingizni yozing..."
+                        : "Maslahat olmoqchi bo'lgan masalangizni yozing..."
+                    }
+                    rows={4}
+                    className="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                  />
+                  <div className="flex justify-end gap-3 mt-4">
+                    <button
+                      onClick={() => setConsultExpert(null)}
+                      className="px-4 py-2 text-sm text-gray-600 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl transition-colors"
+                    >
+                      Bekor qilish
+                    </button>
+                    <button
+                      onClick={sendConsultation}
+                      disabled={!consultMessage.trim() || consultSending}
+                      className="px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm flex items-center gap-2"
+                    >
+                      {consultSending ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          Yuborilmoqda...
+                        </>
+                      ) : (
+                        <>
+                          <Send className="w-4 h-4" />
+                          Yuborish
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     )
   }

@@ -39,6 +39,7 @@ import {
 import { firebaseAuth } from '@/services/firebase-auth'
 import MonitoringDashboard from '@/components/admin/MonitoringDashboard'
 import AdminTemplateManager from '@/components/admin/AdminTemplateManager'
+import AdminCommunityManager from '@/components/admin/AdminCommunityManager'
 import AdminLegalManager from '@/components/admin/AdminLegalManager'
 import { useAdminRealtime } from '@/hooks/useAdminRealtime'
 import {
@@ -132,6 +133,7 @@ type TabType =
   | 'payments'
   | 'pricing'
   | 'legal'
+  | 'community'
   | 'templates'
   | 'settings'
 
@@ -620,6 +622,7 @@ export default function AdminDashboard() {
     },
     { id: 'pricing', label: 'Narxlar', icon: DollarSign },
     { id: 'legal', label: 'Qonunlar', icon: BookOpen },
+    { id: 'community', label: 'Jamiyat', icon: Users },
     { id: 'templates', label: 'Namunalar', icon: FileText },
     { id: 'settings', label: 'Sozlamalar', icon: Settings },
   ]
@@ -1517,6 +1520,15 @@ export default function AdminDashboard() {
           <Card className="card-default rounded-2xl">
             <CardContent className="p-5">
               <AdminLegalManager />
+            </CardContent>
+          </Card>
+        )}
+
+        {/* ===== COMMUNITY (Jamiyat) ===== */}
+        {activeTab === 'community' && (
+          <Card className="card-default rounded-2xl">
+            <CardContent className="p-5">
+              <AdminCommunityManager />
             </CardContent>
           </Card>
         )}
