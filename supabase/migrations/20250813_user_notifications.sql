@@ -22,6 +22,19 @@ CREATE TABLE IF NOT EXISTS public.user_notifications (
 CREATE INDEX IF NOT EXISTS idx_user_notifications_user
   ON public.user_notifications(user_id, created_at DESC);
 
+-- Realtime: bildirishnomalar va to'lov holati real vaqtda yangilanadi
+DO $$
+BEGIN
+  ALTER PUBLICATION supabase_realtime ADD TABLE public.user_notifications;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$
+BEGIN
+  ALTER PUBLICATION supabase_realtime ADD TABLE public.payment_requests;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
 -- RLS: foydalanuvchi faqat o'z bildirishnomalarini ko'radi
 ALTER TABLE public.user_notifications ENABLE ROW LEVEL SECURITY;
 

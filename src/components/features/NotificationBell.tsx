@@ -9,6 +9,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Bell, Check, CheckCheck, X, Trash2 } from 'lucide-react'
+import { supabase } from '@/lib/supabase-client'
 
 interface AppNotification {
   id: string
@@ -60,9 +61,59 @@ export default function NotificationBell() {
 
   useEffect(() => {
     loadNotifications()
+
+    // ── Supabase Realtime — darhol yangilanish ──
+    // 1) user_notifications jadvali (INSERT/UPDATE/DELETE)
+    // 2) payment_requests (status o'zgarishi) — tasdiqlash/rad etish oniy aks etadi
+    const userId = getUserId()
+    const channels: ReturnType<typeof supabase.channel>[] = []
+
+    const subscribe = () => {
+      if (!userId) return
+      const ts = Date.now()
+      const ch1 = supabase
+        .channel(`notif-user-${userId}-${ts}`)
+        .on(
+          'postgres_changes' as any,
+          {
+            event: '*',
+            schema: 'public',
+            table: 'user_notifications',
+            filter: `user_id=eq.${userId}`,
+          },
+          () => loadNotifications()
+        )
+        .subscribe()
+      channels.push(ch1)
+
+      const ch2 = supabase
+        .channel(`notif-pay-${userId}-${ts}`)
+        .on(
+          'postgres_changes' as any,
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'payment_requests',
+            filter: `user_id=eq.${userId}`,
+          },
+          () => loadNotifications()
+        )
+        .subscribe()
+      channels.push(ch2)
+    }
+
+    subscribe()
+
+    // ── Fallback poll (30s) — Realtime uzilgan yoki jadval hali mavjud bo'lmasa ──
     const timer = setInterval(loadNotifications, 30000)
-    return () => clearInterval(timer)
-  }, [loadNotifications])
+
+    return () => {
+      clearInterval(timer)
+      if (channels.length) {
+        for (const ch of channels) supabase.removeChannel(ch)
+      }
+    }
+  }, [loadNotifications, getUserId])
 
   // Tashqariga bosilganda yopish
   useEffect(() => {

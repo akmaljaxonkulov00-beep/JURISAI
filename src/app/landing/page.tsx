@@ -13,7 +13,6 @@ import {
   TrendingUp,
   CheckCircle,
   ArrowRight,
-  Star,
   Award,
   Briefcase,
   BookOpen,
@@ -27,7 +26,6 @@ import {
   Mail,
   Search,
   PlayCircle,
-  User,
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -74,29 +72,6 @@ export default function LandingPage() {
     'Daromadni kuzatish',
     'Professional tasvir',
     '24/7 kirish imkoniyati',
-  ]
-
-  const testimonials = [
-    {
-      name: 'Ali Karimov',
-      role: 'Advokat',
-      content:
-        "JURISAI mening amaliyatimni butunlay o'zgartirdi. Endi mijozlarim bilan ishlash ancha osonlashdi.",
-      rating: 5,
-    },
-    {
-      name: 'Dilora Toshmatova',
-      role: 'Yuridik maslahatchi',
-      content: 'AI hujjatlar tahlili juda foydali. Vaqtimni tejaydi va xatoliklarni kamaytiradi.',
-      rating: 5,
-    },
-    {
-      name: 'Botir Sobirov',
-      role: 'Advokat',
-      content:
-        "Mijozlar so'rovlarini boshqarish endi juda oson. Platforma juda qulay va professional.",
-      rating: 5,
-    },
   ]
 
   return (
@@ -279,32 +254,17 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <Card key={index}>
-                <CardContent className="p-6">
-                  <div className="flex mb-4">
-                    {[...Array(testimonial.rating)].map((_, i) => (
-                      <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
-                    ))}
-                  </div>
-                  <p className="text-gray-700 dark:text-zinc-300 mb-4">"{testimonial.content}"</p>
-                  <div className="flex items-center">
-                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
-                      <User className="w-5 h-5 text-blue-600" />
-                    </div>
-                    <div>
-                      <div className="font-semibold text-gray-900 dark:text-zinc-100">
-                        {testimonial.name}
-                      </div>
-                      <div className="text-sm text-gray-600 dark:text-zinc-400">
-                        {testimonial.role}
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+          <div className="max-w-xl mx-auto text-center">
+            <div className="w-16 h-16 bg-blue-50 dark:bg-blue-900/20 rounded-full flex items-center justify-center mx-auto mb-5">
+              <MessageSquare className="w-7 h-7 text-blue-500" />
+            </div>
+            <p className="text-gray-600 dark:text-zinc-400 mb-3">
+              Haqiqiy foydalanuvchilar fikrlari tez orada qo\'shiladi.
+            </p>
+            <p className="text-sm text-gray-500 dark:text-zinc-500">
+              Jamiyat bo\'limidagi muhokamalar asosida real fikr-mulohazalar shu yerda
+              ko\'rsatiladi.
+            </p>
           </div>
         </div>
       </section>
