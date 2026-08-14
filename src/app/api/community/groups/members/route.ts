@@ -83,7 +83,18 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Supabase sozlanmagan' }, { status: 500 })
     }
 
-    // 1) A'zolikni o'chirish
+    // 1) Chiqarilayotgan a'zoning ismini olamiz (bildirishnoma uchun)
+    let removedName = ''
+    let removedEmail = ''
+    const { data: removedUser } = await supabase
+      .from('registered_users')
+      .select('full_name, email')
+      .eq('id', userId)
+      .maybeSingle()
+    removedName = removedUser?.full_name || removedUser?.email || ''
+    removedEmail = removedUser?.email || ''
+
+    // 2) A'zolikni o'chirish
     const { error: delErr } = await supabase
       .from('community_group_members')
       .delete()
@@ -91,7 +102,24 @@ export async function DELETE(request: NextRequest) {
       .eq('user_id', userId)
     if (delErr) throw delErr
 
-    // 2) member_count ni kamaytirish
+    // 2.5) Chiqarilgan a'zoga bildirishnoma
+    try {
+      const { data: group } = await supabase
+        .from('community_groups')
+        .select('name')
+        .eq('id', groupId)
+        .single()
+      await supabase.from('community_group_notifications').insert({
+        group_id: groupId,
+        user_id: userId,
+        type: 'removed',
+        title: 'Guruhdan chiqarildingiz',
+        message: `Siz "${group?.name || 'guruh'}" guruhidan chiqarildingiz`,
+        actor_name: removedName || '',
+      })
+    } catch {}
+
+    // 3) member_count ni kamaytirish
     const { data: group } = await supabase
       .from('community_groups')
       .select('member_count')
@@ -107,6 +135,74 @@ export async function DELETE(request: NextRequest) {
   } catch (err: any) {
     return NextResponse.json(
       { success: false, error: err.message || "A'zoni chiqarishda xatolik" },
+      { status: 500 }
+    )
+  }
+}
+
+// PATCH /api/community/groups/members
+// Body: { groupId, userId, role, actorId, actorName }
+// Guruh yaratuvchisi a'zoni moderator qiladi / moderatorlikdan oladi.
+export async function PATCH(request: NextRequest) {
+  try {
+    const body = await request.json()
+    const { groupId, userId, role, actorId, actorName } = body
+
+    if (!groupId || !userId || !['member', 'moderator'].includes(role)) {
+      return NextResponse.json(
+        { success: false, error: 'groupId, userId va role (member/moderator) kiritilishi shart' },
+        { status: 400 }
+      )
+    }
+
+    const supabase = await getSupabase()
+    if (!supabase) {
+      return NextResponse.json({ success: false, error: 'Supabase sozlanmagan' }, { status: 500 })
+    }
+
+    // Faqat guruh yaratuvchisi rol o'zgartira oladi
+    const { data: group } = await supabase
+      .from('community_groups')
+      .select('created_by, name')
+      .eq('id', groupId)
+      .single()
+    if (!group || group.created_by?.toString() !== (actorId || '')) {
+      return NextResponse.json(
+        { success: false, error: "Faqat guruh yaratuvchisi moderator tayinlashi mumkin" },
+        { status: 403 }
+      )
+    }
+
+    const { data, error } = await supabase
+      .from('community_group_members')
+      .update({ role })
+      .eq('group_id', groupId)
+      .eq('user_id', userId)
+      .select()
+      .single()
+
+    if (error) throw error
+
+    // A'zoga bildirishnoma
+    try {
+      const isModerator = role === 'moderator'
+      await supabase.from('community_group_notifications').insert({
+        group_id: groupId,
+        user_id: userId,
+        type: isModerator ? 'moderator' : 'demoted',
+        title: isModerator ? 'Siz moderator etib tayinlandingiz 🛡️' : 'Moderatorlik olindi',
+        message: isModerator
+          ? `"${group.name}" guruhida endi moderator siz — xabarlarni boshqarishingiz mumkin`
+          : `"${group.name}" guruhida moderatorlik huquqi olindi`,
+        actor_id: actorId || '',
+        actor_name: actorName || '',
+      })
+    } catch {}
+
+    return NextResponse.json({ success: true, data })
+  } catch (err: any) {
+    return NextResponse.json(
+      { success: false, error: err.message || 'Rolni yangilashda xatolik' },
       { status: 500 }
     )
   }

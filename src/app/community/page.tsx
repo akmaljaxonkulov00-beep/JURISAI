@@ -35,10 +35,193 @@ import {
   Copy,
   KeyRound,
   RefreshCw,
+  ShieldCheck,
+  Heart,
+  Reply,
 } from 'lucide-react'
 import { useCommunity, CommunityPost } from '@/hooks/useCommunity'
 import AppSidebar from '@/components/layout/AppSidebar'
 import { getUserIdentityPayload } from '@/lib/client-user'
+
+// ── Guruh posti kartasi (reaksiya + javoblar + o'chirish) ─────────────
+function GroupPostCard({
+  post,
+  replies,
+  myUserId,
+  canDelete,
+  replyInput,
+  replyOpen,
+  onReplyInput,
+  onToggleReply,
+  onSendReply,
+  onReact,
+  onDelete,
+}: {
+  post: any
+  replies: any[]
+  myUserId: string
+  canDelete: boolean
+  replyInput: string
+  replyOpen: boolean
+  onReplyInput: (v: string) => void
+  onToggleReply: () => void
+  onSendReply: () => void
+  onReact: (emoji: string) => void
+  onDelete: () => void
+}) {
+  const reactions: Record<string, string[]> = post.reactions || {}
+  const EMOJIS = ['👍', '❤️']
+  const fmt = (s: string) => {
+    const d = new Date(s)
+    if (isNaN(d.getTime())) return ''
+    const now = Date.now()
+    const diff = now - d.getTime()
+    const mins = Math.floor(diff / 60000)
+    if (mins < 1) return 'Hozir'
+    if (mins < 60) return mins + ' min'
+    if (mins < 1440) return Math.floor(mins / 60) + ' soat'
+    return d.toLocaleDateString('uz-UZ', { day: 'numeric', month: 'short' })
+  }
+  return (
+    <div className="bg-white dark:bg-zinc-900 rounded-xl p-3 shadow-sm border border-gray-100 dark:border-zinc-800">
+      <div className="flex items-center justify-between mb-1.5 gap-2">
+        <span className="font-medium text-sm text-gray-800 dark:text-white flex items-center gap-1.5 min-w-0">
+          <UserCircle className="w-4 h-4 text-blue-500 flex-shrink-0" />
+          <span className="truncate">{post.user_name || 'Foydalanuvchi'}</span>
+          {post.user_id && post.user_id === myUserId && (
+            <span className="px-1 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded text-[9px] flex-shrink-0">
+              Siz
+            </span>
+          )}
+        </span>
+        <div className="flex items-center gap-1 flex-shrink-0">
+          <span className="text-[10px] text-gray-400">{fmt(post.created_at)}</span>
+          {canDelete && (
+            <button
+              onClick={onDelete}
+              className="p-1 rounded-md text-gray-300 dark:text-zinc-600 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+              title="Xabarni o'chirish"
+            >
+              <Trash2 size={12} />
+            </button>
+          )}
+        </div>
+      </div>
+      <p className="text-sm text-gray-700 dark:text-zinc-300 whitespace-pre-wrap break-words">
+        {post.content}
+      </p>
+
+      {/* Reaksiyalar + javoblar */}
+      <div className="flex items-center gap-1 mt-2 flex-wrap">
+        {EMOJIS.map(emoji => {
+          const list = Array.isArray(reactions[emoji]) ? reactions[emoji] : []
+          const active = myUserId && list.includes(myUserId)
+          return (
+            <button
+              key={emoji}
+              onClick={() => onReact(emoji)}
+              className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs transition-colors ${
+                active
+                  ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+                  : 'bg-gray-100 dark:bg-zinc-800 text-gray-500 dark:text-zinc-400 hover:bg-gray-200 dark:hover:bg-zinc-700'
+              }`}
+            >
+              <span>{emoji}</span>
+              {list.length > 0 && <span>{list.length}</span>}
+            </button>
+          )
+        })}
+        <button
+          onClick={onToggleReply}
+          className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs transition-colors ${
+            replyOpen
+              ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+              : 'bg-gray-100 dark:bg-zinc-800 text-gray-500 dark:text-zinc-400 hover:bg-gray-200 dark:hover:bg-zinc-700'
+          }`}
+        >
+          <Reply size={12} />
+          {replies.length > 0 && <span>{replies.length}</span>}
+        </button>
+      </div>
+
+      {/* Javoblar ro'yxati */}
+      {replies.length > 0 && (
+        <div className="mt-2 space-y-1.5 pl-3 border-l-2 border-gray-100 dark:border-zinc-800">
+          {replies.map(rp => {
+            const rreactions: Record<string, string[]> = rp.reactions || {}
+            return (
+              <div
+                key={rp.id}
+                className="bg-gray-50 dark:bg-zinc-800/50 rounded-lg px-2.5 py-2"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs font-medium text-gray-700 dark:text-zinc-300 flex items-center gap-1.5 min-w-0">
+                    <UserCircle className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                    <span className="truncate">{rp.user_name || 'Foydalanuvchi'}</span>
+                  </span>
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    <span className="text-[9px] text-gray-400">{fmt(rp.created_at)}</span>
+                    {(canDelete || (rp.user_id && rp.user_id === myUserId)) && (
+                      <button
+                        onClick={onDelete}
+                        className="p-0.5 rounded text-gray-300 dark:text-zinc-600 hover:text-red-500 transition-colors"
+                        title="Javobni o'chirish"
+                      >
+                        <Trash2 size={10} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <p className="text-xs text-gray-600 dark:text-zinc-400 mt-1 whitespace-pre-wrap break-words">
+                  {rp.content}
+                </p>
+                {Object.keys(rreactions).length > 0 && (
+                  <div className="flex items-center gap-1 mt-1 flex-wrap">
+                    {Object.entries(rreactions).map(([em, users]) => (
+                      <span
+                        key={em}
+                        className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-gray-100 dark:bg-zinc-800 rounded-full text-[10px] text-gray-500 dark:text-zinc-400"
+                      >
+                        {em} {(users as string[]).length}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {/* Javob yozish maydoni */}
+      {replyOpen && (
+        <div className="flex gap-2 mt-2">
+          <input
+            type="text"
+            value={replyInput}
+            onChange={e => onReplyInput(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === 'Enter') {
+                e.preventDefault()
+                onSendReply()
+              }
+            }}
+            placeholder="Javob yozing..."
+            autoFocus
+            className="flex-1 px-2.5 py-1.5 text-xs rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <button
+            onClick={onSendReply}
+            disabled={!replyInput.trim()}
+            className="px-3 py-1.5 text-xs bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+          >
+            <Send size={12} />
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
 
 export default function Community() {
   const {
@@ -112,6 +295,14 @@ export default function Community() {
   const [isRoomCreator, setIsRoomCreator] = useState(false)
   const [myRequestSent, setMyRequestSent] = useState(false)
   const [roomBusy, setRoomBusy] = useState(false)
+  // Moderatorlik (guruh yaratuvchisi tayinlaydi)
+  const [isRoomModerator, setIsRoomModerator] = useState(false)
+  // Reaksiya + javoblar
+  const [groupReplyInputs, setGroupReplyInputs] = useState<Record<string, string>>({})
+  const [groupReplyingTo, setGroupReplyingTo] = useState<string | null>(null)
+  // Guruh bildirishnomalari (qo'ng'iroq)
+  const [groupNotifs, setGroupNotifs] = useState<any[]>([])
+  const [showGroupNotifs, setShowGroupNotifs] = useState(false)
 
   // ── Guruh ichidagi muhokama ───────────────────────────────────
   const [openGroup, setOpenGroup] = useState<any>(null)
@@ -293,7 +484,9 @@ export default function Community() {
     setJoinedGroups(updated)
     localStorage.setItem('community_joined_groups', JSON.stringify(updated))
     setGroups(prev =>
-      prev.map(g => (g.id === groupId ? { ...g, member_count: Math.max(0, (g.member_count || 0) - 1) } : g))
+      prev.map(g =>
+        g.id === groupId ? { ...g, member_count: Math.max(0, (g.member_count || 0) - 1) } : g
+      )
     )
     try {
       await fetch('/api/community/groups', {
@@ -342,7 +535,7 @@ export default function Community() {
   const joinByCode = async () => {
     const code = joinCode.trim()
     if (!code) {
-      setJoinCodeError("Taklif kodini kiriting")
+      setJoinCodeError('Taklif kodini kiriting')
       return
     }
     setJoinCodeLoading(true)
@@ -366,7 +559,7 @@ export default function Community() {
         setShowJoinByCode(false)
         setJoinCode('')
       } else {
-        setJoinCodeError(d.error || 'Kod topilmadi. Kodni tekshirib qayta urinib ko\'ring.')
+        setJoinCodeError(d.error || "Kod topilmadi. Kodni tekshirib qayta urinib ko'ring.")
       }
     } catch {
       setJoinCodeError("Xatolik yuz berdi. Qayta urinib ko'ring.")
@@ -386,6 +579,7 @@ export default function Community() {
     setGroupRequests([])
     const identity = getUserIdentityPayload()
     setIsRoomCreator(!!identity.userId && g.created_by === identity.userId)
+    setIsRoomModerator(false)
     setMyRequestSent(false)
 
     // Postlarni yuklash
@@ -427,13 +621,22 @@ export default function Community() {
         cache: 'no-cache',
       })
       const d = await r.json()
-      setGroupMembers(d.data || [])
+      const list = d.data || []
+      setGroupMembers(list)
+      const identity = getUserIdentityPayload()
+      if (identity.userId) {
+        const me = list.find((m: any) => m.user_id === identity.userId)
+        setIsRoomModerator(!!me && ['moderator', 'admin'].includes(me.role))
+      }
     } catch {
       setGroupMembers([])
     } finally {
       setMembersLoading(false)
     }
   }
+
+  // Moderatlar ham so'rovlarni boshqaradi, xabarlarni o'chiradi
+  const canModerate = isRoomCreator || isRoomModerator
 
   // ── Qo'shilish so'rovini yuborish (maxfiy guruh) ──
   const sendJoinRequest = async () => {
@@ -474,9 +677,7 @@ export default function Community() {
       })
       const d = await r.json()
       if (d.success) {
-        setGroupRequests(prev =>
-          prev.map(x => (x.id === reqId ? { ...x, status } : x))
-        )
+        setGroupRequests(prev => prev.map(x => (x.id === reqId ? { ...x, status } : x)))
         if (status === 'approved' && openGroup) {
           // A'zo sonini + ro'yxatni yangilash
           setOpenGroup((g: any) => ({
@@ -529,7 +730,7 @@ export default function Community() {
     setRoomBusy(false)
   }
 
-  // ── Guruh postlari realtime — boshqa a'zolarning yangi xabarlari darhol ko'rinadi ──
+  // ── Guruh postlari realtime — yangi xabarlar, reaksiyalar, o'chirishlar darhol aks etadi ──
   useEffect(() => {
     if (!openGroup) return
     const channel = supabase
@@ -545,13 +746,47 @@ export default function Community() {
         (payload: any) => {
           const np = payload?.new
           if (np?.id) {
-            setGroupPosts(prev =>
-              prev.some(p => p.id === np.id) ? prev : [np, ...prev]
-            )
-            setGroups(prev =>
-              prev.map(g =>
-                g.id === openGroup.id ? { ...g, post_count: (g.post_count || 0) + 1 } : g
+            setGroupPosts(prev => (prev.some(p => p.id === np.id) ? prev : [np, ...prev]))
+            if (!np.parent_id) {
+              setGroups(prev =>
+                prev.map(g =>
+                  g.id === openGroup.id ? { ...g, post_count: (g.post_count || 0) + 1 } : g
+                )
               )
+            }
+          }
+        }
+      )
+      .on(
+        'postgres_changes' as any,
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'community_group_posts',
+          filter: `group_id=eq.${openGroup.id}`,
+        },
+        (payload: any) => {
+          const np = payload?.new
+          if (np?.id) {
+            setGroupPosts(prev =>
+              prev.map(p => (p.id === np.id ? { ...p, ...np } : p))
+            )
+          }
+        }
+      )
+      .on(
+        'postgres_changes' as any,
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'community_group_posts',
+          filter: `group_id=eq.${openGroup.id}`,
+        },
+        (payload: any) => {
+          const old = payload?.old
+          if (old?.id) {
+            setGroupPosts(prev =>
+              prev.filter(p => p.id !== old.id && p.parent_id !== old.id)
             )
           }
         }
@@ -561,6 +796,35 @@ export default function Community() {
       supabase.removeChannel(channel)
     }
   }, [openGroup])
+
+  // ── Guruh bildirishnomalari realtime — yangi so'rov / moderator / natija darhol ──
+  useEffect(() => {
+    const identity = getUserIdentityPayload()
+    if (!identity.userId) return
+    loadGroupNotifications(identity.userId)
+    const channel = supabase
+      .channel(`group-notifs-${identity.userId}-${Date.now()}`)
+      .on(
+        'postgres_changes' as any,
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'community_group_notifications',
+          filter: `user_id=eq.${identity.userId}`,
+        },
+        (payload: any) => {
+          const np = payload?.new
+          if (np?.id) {
+            setGroupNotifs(prev => (prev.some(n => n.id === np.id) ? prev : [np, ...prev]))
+          }
+        }
+      )
+      .subscribe()
+    return () => {
+      supabase.removeChannel(channel)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // ── Guruh ichiga post yozish ──────────────────────────────────
   const sendGroupPost = async () => {
@@ -589,13 +853,161 @@ export default function Community() {
       if (d.success && d.data) {
         setGroupPosts(prev => [d.data, ...prev])
         setGroups(prev =>
-          prev.map(g =>
-            g.id === openGroup.id ? { ...g, post_count: (g.post_count || 0) + 1 } : g
-          )
+          prev.map(g => (g.id === openGroup.id ? { ...g, post_count: (g.post_count || 0) + 1 } : g))
         )
       }
     } catch {}
     setSendingGroupPost(false)
+  }
+
+  // ── Guruh postiga reaksiya (👍 ❤️) — toggle ──────────────────
+  const toggleGroupReaction = async (postId: string, emoji: string) => {
+    const identity = getUserIdentityPayload()
+    if (!identity.userId) return
+    // Optimistik yangilash
+    setGroupPosts(prev =>
+      prev.map(p => {
+        if (p.id !== postId) return p
+        const reactions: Record<string, string[]> = { ...(p.reactions || {}) }
+        const list = Array.isArray(reactions[emoji]) ? [...reactions[emoji]] : []
+        const idx = list.indexOf(identity.userId!)
+        if (idx >= 0) list.splice(idx, 1)
+        else list.push(identity.userId!)
+        if (list.length === 0) delete reactions[emoji]
+        else reactions[emoji] = list
+        return { ...p, reactions }
+      })
+    )
+    try {
+      await fetch('/api/community/groups/posts/reaction', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ postId, userId: identity.userId, emoji }),
+      })
+    } catch {}
+  }
+
+  // ── Guruh postiga javob yozish ───────────────────────────────
+  const sendGroupReply = async (postId: string) => {
+    if (!openGroup) return
+    const text = (groupReplyInputs[postId] || '').trim()
+    if (!text) return
+    const user = currentUser
+    let userId = user?.id || ''
+    let userName = user?.name || 'Foydalanuvchi'
+    try {
+      const stored = sessionStorage.getItem('jurisai_user') || localStorage.getItem('auth_user')
+      if (stored) {
+        const u = JSON.parse(stored)
+        if (u?.id) userId = u.id
+        if (u?.name || u?.user_name) userName = u.name || u.user_name
+      }
+    } catch {}
+    try {
+      const r = await fetch('/api/community/groups/posts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          groupId: openGroup.id,
+          userId,
+          userName,
+          content: text,
+          parentId: postId,
+        }),
+      })
+      const d = await r.json()
+      if (d.success && d.data) {
+        setGroupPosts(prev => [d.data, ...prev])
+      }
+      setGroupReplyInputs(prev => ({ ...prev, [postId]: '' }))
+      setGroupReplyingTo(null)
+    } catch {
+      setGroupReplyInputs(prev => ({ ...prev, [postId]: '' }))
+      setGroupReplyingTo(null)
+    }
+  }
+
+  // ── Guruh xabarini o'chirish (muallif / yaratuvchi / moderator) ──
+  const deleteGroupPost = async (postId: string) => {
+    if (!confirm("Bu xabarni o'chirishni tasdiqlaysizmi?")) return
+    const identity = getUserIdentityPayload()
+    try {
+      const r = await fetch(
+        `/api/community/groups/posts?postId=${postId}&actorId=${identity.userId || ''}`,
+        { method: 'DELETE' }
+      )
+      const d = await r.json()
+      if (d.success) {
+        // Javoblar bilan birga o'chadi
+        setGroupPosts(prev => prev.filter(p => p.id !== postId && p.parent_id !== postId))
+      } else if (d.error) {
+        alert(d.error)
+      }
+    } catch {}
+  }
+
+  // ── Moderator tayinlash / olib tashlash (faqat yaratuvchi) ────
+  const setGroupModerator = async (userId: string, role: 'member' | 'moderator') => {
+    if (!openGroup || !isRoomCreator) return
+    setRoomBusy(true)
+    const identity = getUserIdentityPayload()
+    try {
+      const r = await fetch('/api/community/groups/members', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          groupId: openGroup.id,
+          userId,
+          role,
+          actorId: identity.userId || '',
+          actorName: identity.email || '',
+        }),
+      })
+      const d = await r.json()
+      if (d.success) {
+        setGroupMembers(prev => prev.map(m => (m.user_id === userId ? { ...m, role } : m)))
+      } else if (d.error) {
+        alert(d.error)
+      }
+    } catch {}
+    setRoomBusy(false)
+  }
+
+  // ── Guruh bildirishnomalari ──────────────────────────────────
+  const loadGroupNotifications = async (userId: string) => {
+    try {
+      const r = await fetch(`/api/community/groups/notifications?userId=${userId}`, {
+        cache: 'no-cache',
+      })
+      const d = await r.json()
+      setGroupNotifs(d.data || [])
+    } catch {
+      setGroupNotifs([])
+    }
+  }
+
+  const markGroupNotifRead = async (id: string) => {
+    setGroupNotifs(prev => prev.map(n => (n.id === id ? { ...n, read: true } : n)))
+    try {
+      await fetch('/api/community/groups/notifications', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      })
+    } catch {}
+  }
+
+  const clearGroupNotifs = async () => {
+    const identity = getUserIdentityPayload()
+    if (!identity.userId) return
+    setGroupNotifs(prev => prev.map(n => ({ ...n, read: true })))
+    try {
+      await fetch('/api/community/groups/notifications', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ all: true, userId: identity.userId }),
+      })
+    } catch {}
   }
 
   // ── Maslahat / Mentorlik so'rovini ochish ─────────────────────
@@ -643,7 +1055,11 @@ export default function Community() {
   const registerWebinar = async (webinarId: string) => {
     if (registeredWebinars.includes(webinarId)) return
     const target = webinars.find(w => w.id === webinarId)
-    if (target && target.max_participants && (target.participants_count || 0) >= target.max_participants)
+    if (
+      target &&
+      target.max_participants &&
+      (target.participants_count || 0) >= target.max_participants
+    )
       return
     const updated = [...registeredWebinars, webinarId]
     setRegisteredWebinars(updated)
@@ -1507,8 +1923,8 @@ export default function Community() {
                     Ekspertlar bo\'limi tez orada qo\'shiladi
                   </h3>
                   <p className="text-sm text-gray-500 dark:text-zinc-400 max-w-md mx-auto">
-                    Hozirda ushbu bo\'lim tayyorlanmoqda. Professional huquqshunoslar va
-                    mentorlar qo\'shilishi bilan bu yerda ko\'rinadi.
+                    Hozirda ushbu bo\'lim tayyorlanmoqda. Professional huquqshunoslar va mentorlar
+                    qo\'shilishi bilan bu yerda ko\'rinadi.
                   </p>
                 </div>
               ) : (
@@ -1658,6 +2074,22 @@ export default function Community() {
 
   // ── Groups Tab ──────────────────────────────────────────────────────
   if (activeTab === 'groups') {
+    // Postlarni daraxtga ajratamiz (asosiy xabarlar + ularning javoblari)
+    const topGroupPosts = groupPosts.filter(p => !p.parent_id)
+    const groupRepliesByParent: Record<string, any[]> = {}
+    for (const p of groupPosts) {
+      if (p.parent_id) {
+        if (!groupRepliesByParent[p.parent_id]) groupRepliesByParent[p.parent_id] = []
+        groupRepliesByParent[p.parent_id].push(p)
+      }
+    }
+    for (const key of Object.keys(groupRepliesByParent)) {
+      groupRepliesByParent[key].sort(
+        (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      )
+    }
+    const roomIdentity = getUserIdentityPayload()
+    const myRoomUserId = roomIdentity.userId || ''
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 mobile-safe-top">
         <div className="flex">
@@ -1676,6 +2108,104 @@ export default function Community() {
                   <h1 className="text-xl font-bold text-gray-900 dark:text-white">
                     Guruhlar va Klublar
                   </h1>
+                </div>
+                {/* Guruh bildirishnomalari qo'ng'irog'i */}
+                <div className="relative">
+                  <button
+                    onClick={() => setShowGroupNotifs(v => !v)}
+                    className="relative p-2 text-gray-500 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl transition-colors"
+                    title="Guruh bildirishnomalari"
+                  >
+                    <Bell className="w-5 h-5" />
+                    {groupNotifs.filter(n => !n.read).length > 0 && (
+                      <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 bg-red-500 text-white rounded-full text-[10px] font-semibold flex items-center justify-center">
+                        {groupNotifs.filter(n => !n.read).length}
+                      </span>
+                    )}
+                  </button>
+                  {showGroupNotifs && (
+                    <>
+                      <div
+                        className="fixed inset-0 z-40"
+                        onClick={() => setShowGroupNotifs(false)}
+                      />
+                      <div className="absolute right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] bg-white dark:bg-zinc-900 rounded-2xl shadow-xl border border-gray-100 dark:border-zinc-800 z-50 overflow-hidden">
+                        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-zinc-800">
+                          <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                            Guruh bildirishnomalari
+                          </p>
+                          {groupNotifs.some(n => !n.read) && (
+                            <button
+                              onClick={clearGroupNotifs}
+                              className="text-[11px] text-blue-600 hover:underline"
+                            >
+                              Hammasini o'qildi deb belgilash
+                            </button>
+                          )}
+                        </div>
+                        <div className="max-h-80 overflow-y-auto">
+                          {groupNotifs.length === 0 ? (
+                            <div className="text-center py-10 px-4">
+                              <Bell className="w-8 h-8 text-gray-300 dark:text-zinc-700 mx-auto mb-2" />
+                              <p className="text-xs text-gray-500 dark:text-zinc-400">
+                                Bildirishnomalar yo'q
+                              </p>
+                            </div>
+                          ) : (
+                            groupNotifs.map(n => (
+                              <div
+                                key={n.id}
+                                onClick={() => markGroupNotifRead(n.id)}
+                                className={`p-3 border-b border-gray-50 dark:border-zinc-800/60 cursor-pointer transition-colors ${n.read ? 'bg-transparent' : 'bg-blue-50/60 dark:bg-blue-900/10'}`}
+                              >
+                                <div className="flex items-start gap-2.5">
+                                  <div
+                                    className={`p-1.5 rounded-lg flex-shrink-0 ${
+                                      n.type === 'join_request'
+                                        ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400'
+                                        : n.type === 'approved'
+                                          ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400'
+                                          : n.type === 'rejected'
+                                            ? 'bg-red-100 dark:bg-red-900/30 text-red-500'
+                                            : n.type === 'moderator'
+                                              ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400'
+                                              : 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+                                    }`}
+                                  >
+                                    {n.type === 'join_request' ? (
+                                      <KeyRound className="w-3.5 h-3.5" />
+                                    ) : n.type === 'approved' ? (
+                                      <CheckCircle className="w-3.5 h-3.5" />
+                                    ) : n.type === 'rejected' ? (
+                                      <X className="w-3.5 h-3.5" />
+                                    ) : n.type === 'moderator' ? (
+                                      <ShieldCheck className="w-3.5 h-3.5" />
+                                    ) : (
+                                      <Bell className="w-3.5 h-3.5" />
+                                    )}
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-xs font-medium text-gray-800 dark:text-zinc-200">
+                                      {n.title}
+                                    </p>
+                                    <p className="text-[11px] text-gray-500 dark:text-zinc-400 mt-0.5 break-words">
+                                      {n.message}
+                                    </p>
+                                    <p className="text-[10px] text-gray-400 dark:text-zinc-500 mt-1">
+                                      {timeAgo(n.created_at)}
+                                    </p>
+                                  </div>
+                                  {!n.read && (
+                                    <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-1.5" />
+                                  )}
+                                </div>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             </header>
@@ -1768,7 +2298,11 @@ export default function Community() {
                                   }}
                                   className={`flex-1 px-3 py-1.5 text-xs rounded-lg transition-colors ${isJoined ? 'bg-gray-200 dark:bg-zinc-700 text-gray-700 dark:text-zinc-300' : g.is_private ? 'bg-amber-500 text-white hover:bg-amber-600' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
                                 >
-                                  {isJoined ? "A'zo bo'lgan" : g.is_private ? '🔑 Kod bilan qo\'shilish' : "Qo'shilish"}
+                                  {isJoined
+                                    ? "A'zo bo'lgan"
+                                    : g.is_private
+                                      ? "🔑 Kod bilan qo'shilish"
+                                      : "Qo'shilish"}
                                 </button>
                                 {isJoined && (
                                   <button
@@ -1894,7 +2428,9 @@ export default function Community() {
                       onClick={() => setNewGroupPrivacy('public')}
                       className={`p-3 rounded-xl border-2 text-left transition-all ${newGroupPrivacy === 'public' ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-gray-200 dark:border-zinc-700 hover:border-gray-300 dark:hover:border-zinc-600'}`}
                     >
-                      <div className="text-sm font-medium text-gray-800 dark:text-zinc-200">🌍 Ommaviy</div>
+                      <div className="text-sm font-medium text-gray-800 dark:text-zinc-200">
+                        🌍 Ommaviy
+                      </div>
                       <div className="text-[10px] text-gray-500 dark:text-zinc-400 mt-0.5 leading-tight">
                         Hamma ko'radi va qo'shila oladi
                       </div>
@@ -1904,7 +2440,9 @@ export default function Community() {
                       onClick={() => setNewGroupPrivacy('private')}
                       className={`p-3 rounded-xl border-2 text-left transition-all ${newGroupPrivacy === 'private' ? 'border-amber-500 bg-amber-50 dark:bg-amber-900/20' : 'border-gray-200 dark:border-zinc-700 hover:border-gray-300 dark:hover:border-zinc-600'}`}
                     >
-                      <div className="text-sm font-medium text-gray-800 dark:text-zinc-200">🔒 Maxfiy</div>
+                      <div className="text-sm font-medium text-gray-800 dark:text-zinc-200">
+                        🔒 Maxfiy
+                      </div>
                       <div className="text-[10px] text-gray-500 dark:text-zinc-400 mt-0.5 leading-tight">
                         Faqat taklif kodi bilan qo'shilish
                       </div>
@@ -2019,9 +2557,7 @@ export default function Community() {
                 maxLength={8}
                 className="w-full px-3 py-3 text-center font-mono text-lg tracking-widest uppercase rounded-xl border border-amber-300 dark:border-amber-700 bg-amber-50/50 dark:bg-amber-900/10 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-amber-500"
               />
-              {joinCodeError && (
-                <p className="text-red-500 text-xs mt-2">{joinCodeError}</p>
-              )}
+              {joinCodeError && <p className="text-red-500 text-xs mt-2">{joinCodeError}</p>}
               <div className="flex justify-end gap-3 mt-5">
                 <button
                   onClick={() => setShowJoinByCode(false)}
@@ -2130,7 +2666,7 @@ export default function Community() {
                 >
                   👥 A'zolar ({groupMembers.length})
                 </button>
-                {isRoomCreator && openGroup.is_private && (
+                {canModerate && openGroup.is_private && (
                   <button
                     onClick={() => setRoomTab('requests')}
                     className={`px-3 py-1.5 text-xs font-medium rounded-t-lg transition-colors flex items-center gap-1 ${roomTab === 'requests' ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-b-2 border-blue-500' : 'text-gray-500 dark:text-zinc-400 hover:text-gray-700 dark:hover:text-zinc-200'}`}
@@ -2163,29 +2699,28 @@ export default function Community() {
                         </p>
                       </div>
                     ) : (
-                      groupPosts.map((p: any, idx: number) => (
-                        <div
-                          key={p.id || idx}
-                          className="bg-white dark:bg-zinc-900 rounded-xl p-3 shadow-sm border border-gray-100 dark:border-zinc-800"
-                        >
-                          <div className="flex items-center justify-between mb-1.5">
-                            <span className="font-medium text-sm text-gray-800 dark:text-white flex items-center gap-1.5">
-                              <UserCircle className="w-4 h-4 text-blue-500 flex-shrink-0" />
-                              <span className="truncate">{p.user_name || 'Foydalanuvchi'}</span>
-                            </span>
-                            <span className="text-[10px] text-gray-400 flex-shrink-0">
-                              {new Date(p.created_at).toLocaleDateString('uz-UZ', {
-                                day: 'numeric',
-                                month: 'short',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                              })}
-                            </span>
-                          </div>
-                          <p className="text-sm text-gray-700 dark:text-zinc-300 whitespace-pre-wrap break-words">
-                            {p.content}
-                          </p>
-                        </div>
+                      topGroupPosts.map((p: any) => (
+                        <GroupPostCard
+                          key={p.id}
+                          post={p}
+                          replies={groupRepliesByParent[p.id] || []}
+                          myUserId={myRoomUserId}
+                          canDelete={
+                            !!myRoomUserId &&
+                            (canModerate || (p.user_id && p.user_id === myRoomUserId))
+                          }
+                          replyInput={groupReplyInputs[p.id] || ''}
+                          replyOpen={groupReplyingTo === p.id}
+                          onReplyInput={v =>
+                            setGroupReplyInputs(prev => ({ ...prev, [p.id]: v }))
+                          }
+                          onToggleReply={() =>
+                            setGroupReplyingTo(prev => (prev === p.id ? null : p.id))
+                          }
+                          onSendReply={() => sendGroupReply(p.id)}
+                          onReact={emoji => toggleGroupReaction(p.id, emoji)}
+                          onDelete={() => deleteGroupPost(p.id)}
+                        />
                       ))
                     )}
                   </div>
@@ -2197,42 +2732,104 @@ export default function Community() {
                     {membersLoading ? (
                       <div className="text-center py-10">
                         <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-                        <p className="text-xs text-gray-500 dark:text-zinc-400">A'zolar yuklanmoqda...</p>
+                        <p className="text-xs text-gray-500 dark:text-zinc-400">
+                          A'zolar yuklanmoqda...
+                        </p>
                       </div>
                     ) : groupMembers.length === 0 ? (
                       <div className="text-center py-10 text-sm text-gray-500 dark:text-zinc-400">
                         Hozircha a'zolar yo\'q
                       </div>
                     ) : (
-                      groupMembers.map(m => (
-                        <div
-                          key={m.user_id}
-                          className="flex items-center justify-between p-3 bg-gray-50 dark:bg-zinc-800/50 rounded-xl gap-2"
-                        >
-                          <div className="flex items-center gap-2 min-w-0">
-                            <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center text-sm font-medium text-blue-700 dark:text-blue-300 flex-shrink-0">
-                              {(m.name || m.email || 'U')[0].toUpperCase()}
+                      groupMembers.map(m => {
+                        const isCreator =
+                          openGroup.created_by?.toString() === m.user_id
+                        const isModerator = ['moderator', 'admin'].includes(m.role)
+                        const isMe = myRoomUserId && m.user_id === myRoomUserId
+                        return (
+                          <div
+                            key={m.user_id}
+                            className="flex items-center justify-between p-3 bg-gray-50 dark:bg-zinc-800/50 rounded-xl gap-2"
+                          >
+                            <div className="flex items-center gap-2 min-w-0">
+                              <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center text-sm font-medium text-blue-700 dark:text-blue-300 flex-shrink-0">
+                                {(m.name || m.email || 'U')[0].toUpperCase()}
+                              </div>
+                              <div className="min-w-0">
+                                <div className="flex items-center gap-1.5 min-w-0">
+                                  <p className="text-sm font-medium text-gray-800 dark:text-white truncate">
+                                    {m.name || m.email || 'Foydalanuvchi'}
+                                  </p>
+                                  {isCreator && (
+                                    <span className="px-1.5 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded text-[9px] flex items-center gap-0.5 flex-shrink-0">
+                                      <Star size={9} /> Yaratuvchi
+                                    </span>
+                                  )}
+                                  {isModerator && !isCreator && (
+                                    <span className="px-1.5 py-0.5 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 rounded text-[9px] flex items-center gap-0.5 flex-shrink-0">
+                                      <ShieldCheck size={9} /> Moderator
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-[10px] text-gray-400 truncate">
+                                  {m.email || "Guruh a'zosi"}
+                                </p>
+                              </div>
                             </div>
-                            <div className="min-w-0">
-                              <p className="text-sm font-medium text-gray-800 dark:text-white truncate">
-                                {m.name || m.email || 'Foydalanuvchi'}
-                              </p>
-                              <p className="text-[10px] text-gray-400 truncate">
-                                {m.email || 'Guruh a\'zosi'}
-                              </p>
+                            <div className="flex items-center gap-1.5 flex-shrink-0">
+                              {isRoomCreator && !isCreator && (
+                                <>
+                                  <button
+                                    onClick={() =>
+                                      setGroupModerator(
+                                        m.user_id,
+                                        isModerator ? 'member' : 'moderator'
+                                      )
+                                    }
+                                    disabled={roomBusy}
+                                    className={`p-1.5 rounded-lg text-xs flex-shrink-0 transition-colors ${
+                                      isModerator
+                                        ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 hover:bg-purple-200 dark:hover:bg-purple-900/50'
+                                        : 'bg-gray-100 dark:bg-zinc-800 text-gray-500 dark:text-zinc-400 hover:bg-gray-200 dark:hover:bg-zinc-700'
+                                    }`}
+                                    title={
+                                      isModerator
+                                        ? 'Moderatorlikdan olish'
+                                        : 'Moderator qilish'
+                                    }
+                                  >
+                                    <ShieldCheck size={14} />
+                                  </button>
+                                  <button
+                                    onClick={() => removeGroupMember(m.user_id)}
+                                    className="p-1.5 rounded-lg text-xs bg-red-100 text-red-700 hover:bg-red-200 flex-shrink-0"
+                                    title="Guruhdan chiqarish"
+                                  >
+                                    <Trash2 size={14} />
+                                  </button>
+                                </>
+                              )}
+                              {!isRoomCreator && canModerate && !isCreator && (
+                                <button
+                                  onClick={() => removeGroupMember(m.user_id)}
+                                  className="p-1.5 rounded-lg text-xs bg-red-100 text-red-700 hover:bg-red-200 flex-shrink-0"
+                                  title="Guruhdan chiqarish"
+                                >
+                                  <Trash2 size={14} />
+                                </button>
+                              )}
+                              {isMe && !isCreator && (
+                                <button
+                                  onClick={() => leaveGroup(openGroup.id)}
+                                  className="px-2.5 py-1 text-[11px] rounded-lg bg-gray-200 dark:bg-zinc-700 text-gray-600 dark:text-zinc-300 hover:bg-gray-300 dark:hover:bg-zinc-600 transition-colors"
+                                >
+                                  Chiqish
+                                </button>
+                              )}
                             </div>
                           </div>
-                          {isRoomCreator && (
-                            <button
-                              onClick={() => removeGroupMember(m.user_id)}
-                              className="p-1.5 rounded-lg text-xs bg-red-100 text-red-700 hover:bg-red-200 flex-shrink-0"
-                              title="Guruhdan chiqarish"
-                            >
-                              <Trash2 size={14} />
-                            </button>
-                          )}
-                        </div>
-                      ))
+                        )
+                      })
                     )}
 
                     {/* Taklif kodi — yaratuvchi uchun */}
@@ -2278,7 +2875,7 @@ export default function Community() {
                   </div>
                 )}
 
-                {/* So'rovlar — yaratuvchi uchun */}
+                {/* So'rovlar — yaratuvchi/moderator uchun */}
                 {roomTab === 'requests' && (
                   <div className="p-4 space-y-3">
                     {groupRequests.filter((r: any) => r.status === 'pending').length === 0 ? (

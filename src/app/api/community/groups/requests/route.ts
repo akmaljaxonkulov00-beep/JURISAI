@@ -77,6 +77,26 @@ export async function POST(request: NextRequest) {
 
     if (error) throw error
 
+    // Guruh yaratuvchisiga bildirishnoma — yangi qo'shilish so'rovi
+    try {
+      const { data: group } = await supabase
+        .from('community_groups')
+        .select('created_by, name')
+        .eq('id', groupId)
+        .single()
+      if (group?.created_by) {
+        await supabase.from('community_group_notifications').insert({
+          group_id: groupId,
+          user_id: group.created_by.toString(),
+          type: 'join_request',
+          title: "Yangi qo'shilish so'rovi",
+          message: `${userName || userEmail || 'Foydalanuvchi'} "${group.name}" guruhiga qo'shilish so'rovini yubordi`,
+          actor_id: userId,
+          actor_name: userName || userEmail || '',
+        })
+      }
+    } catch {}
+
     return NextResponse.json({
       success: true,
       data,
@@ -115,7 +135,7 @@ export async function PATCH(request: NextRequest) {
       .select('*')
       .eq('id', id)
       .single()
-    if (reqErr || !req) throw reqErr || new Error('So\'rov topilmadi')
+    if (reqErr || !req) throw reqErr || new Error("So'rov topilmadi")
 
     if (req.status === 'approved' && status === 'approved') {
       return NextResponse.json({ success: true, data: req, message: 'Allaqachon tasdiqlangan' })
@@ -123,17 +143,15 @@ export async function PATCH(request: NextRequest) {
 
     // 2) Tasdiqlansa — a'zo qilib qo'shamiz
     if (status === 'approved') {
-      await supabase
-        .from('community_group_members')
-        .upsert(
-          {
-            group_id: req.group_id,
-            user_id: req.user_id,
-            role: 'member',
-            joined_at: new Date().toISOString(),
-          },
-          { onConflict: 'group_id,user_id', ignoreDuplicates: true }
-        )
+      await supabase.from('community_group_members').upsert(
+        {
+          group_id: req.group_id,
+          user_id: req.user_id,
+          role: 'member',
+          joined_at: new Date().toISOString(),
+        },
+        { onConflict: 'group_id,user_id', ignoreDuplicates: true }
+      )
       const { data: group } = await supabase
         .from('community_groups')
         .select('member_count')
@@ -158,10 +176,32 @@ export async function PATCH(request: NextRequest) {
 
     if (error) throw error
 
+    // So'rovchiga bildirishnoma — tasdiqlandi / rad etildi
+    try {
+      const { data: group } = await supabase
+        .from('community_groups')
+        .select('name')
+        .eq('id', req.group_id)
+        .single()
+      const approved = status === 'approved'
+      await supabase.from('community_group_notifications').insert({
+        group_id: req.group_id,
+        user_id: req.user_id,
+        type: approved ? 'approved' : 'rejected',
+        title: approved ? 'Qo\'shilish so\'rovingiz tasdiqlandi ✅' : 'Qo\'shilish so\'rovingiz rad etildi',
+        message: approved
+          ? `Siz "${group?.name || 'guruh'}" guruhiga qabul qilindingiz — endi muhokamada qatnashishingiz mumkin`
+          : `"${group?.name || 'guruh'}" guruhiga qo\'shilish so\'rovingiz rad etildi`,
+      })
+    } catch {}
+
     return NextResponse.json({
       success: true,
       data,
-      message: status === 'approved' ? "So'rov tasdiqlandi — foydalanuvchi a'zo bo'ldi" : 'So\'rov rad etildi',
+      message:
+        status === 'approved'
+          ? "So'rov tasdiqlandi — foydalanuvchi a'zo bo'ldi"
+          : "So'rov rad etildi",
     })
   } catch (err: any) {
     return NextResponse.json(
