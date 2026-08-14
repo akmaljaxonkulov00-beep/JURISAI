@@ -20,6 +20,9 @@ import {
   Calendar,
   Clock,
   Check,
+  Pin,
+  PinOff,
+  Newspaper,
 } from 'lucide-react'
 
 type Expert = {
@@ -79,13 +82,35 @@ type Consultation = {
   created_at: string
 }
 
+type FeedPost = {
+  id: string
+  author?: {
+    id?: string
+    name?: string
+    avatar?: string
+    role?: string
+  }
+  content?: string
+  category?: string
+  tags?: string[]
+  likes?: number
+  dislikes?: number
+  comments?: any[]
+  views?: number
+  is_pinned?: boolean
+  created_at?: string
+}
+
 export default function AdminCommunityManager() {
-  const [tab, setTab] = useState<'experts' | 'webinars' | 'groups' | 'consultations'>('experts')
+  const [tab, setTab] = useState<
+    'experts' | 'webinars' | 'groups' | 'consultations' | 'feed'
+  >('experts')
 
   const [experts, setExperts] = useState<Expert[]>([])
   const [webinars, setWebinars] = useState<Webinar[]>([])
   const [groups, setGroups] = useState<Group[]>([])
   const [consultations, setConsultations] = useState<Consultation[]>([])
+  const [feedPosts, setFeedPosts] = useState<FeedPost[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -164,6 +189,16 @@ export default function AdminCommunityManager() {
     }
   }, [])
 
+  const loadFeed = useCallback(async () => {
+    try {
+      const r = await fetch('/api/community/posts', { cache: 'no-store' })
+      const d = await r.json()
+      setFeedPosts(d.data || [])
+    } catch {
+      setFeedPosts([])
+    }
+  }, [])
+
   const load = useCallback(async () => {
     setLoading(true)
     setError(null)
@@ -172,9 +207,10 @@ export default function AdminCommunityManager() {
       loadWebinars(),
       loadGroups(),
       loadConsultations(),
+      loadFeed(),
     ])
     setLoading(false)
-  }, [loadExperts, loadWebinars, loadGroups, loadConsultations])
+  }, [loadExperts, loadWebinars, loadGroups, loadConsultations, loadFeed])
 
   useEffect(() => {
     load()
@@ -286,6 +322,31 @@ export default function AdminCommunityManager() {
     } catch {}
   }
 
+  // ── Feed moderation ───────────────────────────────────────────────
+  const deletePost = async (id: string) => {
+    if (!confirm("Postni o'chirishni tasdiqlaysizmi? Bu amalni ortga qaytarib bo'lmaydi."))
+      return
+    try {
+      await fetch(`/api/community/posts?id=${encodeURIComponent(id)}`, { method: 'DELETE' })
+      await loadFeed()
+    } catch {
+      setError("Post o'chirilmadi")
+    }
+  }
+
+  const togglePinPost = async (post: FeedPost) => {
+    try {
+      await fetch('/api/community/posts', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: post.id, isPinned: !post.is_pinned }),
+      })
+      await loadFeed()
+    } catch {
+      setError('Pin holati yangilanmadi')
+    }
+  }
+
   // ── Consultation status update ───────────────────────────────────
   const updateConsultation = async (
     id: string,
@@ -365,6 +426,11 @@ export default function AdminCommunityManager() {
               <MessageSquare className="w-5 h-5 text-blue-500" /> Maslahat so'rovlari
             </>
           )}
+          {tab === 'feed' && (
+            <>
+              <Newspaper className="w-5 h-5 text-blue-500" /> Lenta moderatsiyasi
+            </>
+          )}
         </h3>
         <div className="flex items-center gap-2 flex-wrap">
           <div className="flex bg-gray-100 dark:bg-zinc-800 rounded-xl p-1">
@@ -408,6 +474,16 @@ export default function AdminCommunityManager() {
             >
               So'rovlar ({consultations.length})
             </button>
+            <button
+              onClick={() => setTab('feed')}
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                tab === 'feed'
+                  ? 'bg-white dark:bg-zinc-700 text-blue-600 dark:text-blue-300 shadow-sm'
+                  : 'text-gray-500 dark:text-zinc-400'
+              }`}
+            >
+              Lenta ({feedPosts.length})
+            </button>
           </div>
           <button
             onClick={load}
@@ -416,7 +492,7 @@ export default function AdminCommunityManager() {
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           </button>
-          {tab !== 'consultations' && (
+          {tab !== 'consultations' && tab !== 'feed' && (
             <button
               onClick={() =>
                 tab === 'experts'
@@ -757,6 +833,77 @@ export default function AdminCommunityManager() {
                     </div>
                   </div>
                 )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ── FEED LIST (moderatsiya) ── */}
+      {tab === 'feed' && (
+        <div className="space-y-2">
+          {feedPosts.length === 0 && !loading && (
+            <p className="text-sm text-gray-500 dark:text-zinc-400 text-center py-8">
+              Hozircha postlar yo‘q
+            </p>
+          )}
+          {feedPosts.map(p => (
+            <div
+              key={p.id}
+              className={`p-3 rounded-xl border bg-gray-50 dark:bg-zinc-800/50 ${
+                p.is_pinned
+                  ? 'border-blue-200 dark:border-blue-800 bg-blue-50/40 dark:bg-blue-900/10'
+                  : 'border-gray-100 dark:border-zinc-700'
+              }`}
+            >
+              <div className="flex items-start justify-between flex-wrap gap-2">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-medium text-sm text-gray-800 dark:text-white">
+                      {p.author?.name || 'Mehmon'}
+                    </span>
+                    <span className="text-[10px] px-1.5 py-0.5 bg-gray-200 dark:bg-zinc-700 text-gray-600 dark:text-zinc-300 rounded">
+                      {p.category || 'discussion'}
+                    </span>
+                    {p.is_pinned && (
+                      <span className="text-[10px] px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded flex items-center gap-1">
+                        <Pin size={9} /> Pinlangan
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-sm text-gray-700 dark:text-zinc-300 mt-1.5 bg-white dark:bg-zinc-900 rounded-lg p-2 border border-gray-100 dark:border-zinc-700 line-clamp-3 whitespace-pre-wrap">
+                    {p.content}
+                  </p>
+                  <div className="flex items-center gap-3 text-[10px] text-gray-400 dark:text-zinc-500 mt-1.5">
+                    <span>👍 {p.likes || 0}</span>
+                    <span>👎 {p.dislikes || 0}</span>
+                    <span>💬 {(p.comments?.length || 0)}</span>
+                    <span>👁 {p.views || 0}</span>
+                    {p.created_at && (
+                      <span>{new Date(p.created_at).toLocaleDateString('uz-UZ')}</span>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={() => togglePinPost(p)}
+                    className={`p-1.5 rounded-lg text-xs ${
+                      p.is_pinned
+                        ? 'bg-blue-100 text-blue-700'
+                        : 'bg-gray-100 text-gray-600 dark:bg-zinc-800 dark:text-zinc-300'
+                    }`}
+                    title={p.is_pinned ? 'Pinni olib tashlash' : 'Pinlash'}
+                  >
+                    {p.is_pinned ? <PinOff size={14} /> : <Pin size={14} />}
+                  </button>
+                  <button
+                    onClick={() => deletePost(p.id)}
+                    className="p-1.5 rounded-lg text-xs bg-red-100 text-red-700 hover:bg-red-200"
+                    title="O‘chirish"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
               </div>
             </div>
           ))}

@@ -106,10 +106,11 @@ export async function PUT(request: NextRequest) {
     let currentStatus = 'pending'
     let history: any[] = []
     let hasExtended = true
+    let consultationUser: Record<string, any> = {} // notification uchun
     try {
       const { data: cur, error: curErr } = await supabase
         .from('community_consultations')
-        .select('status, status_history')
+        .select('status, status_history, user_id, user_name, user_email, expert_name, message')
         .eq('id', id)
         .single()
       if (curErr) {
@@ -117,13 +118,15 @@ export async function PUT(request: NextRequest) {
         // Eski sxema — faqat statusni o'qib ko'ramiz
         const { data: cur2 } = await supabase
           .from('community_consultations')
-          .select('status')
+          .select('status, user_id, user_name, user_email, expert_name, message')
           .eq('id', id)
           .single()
         if (cur2?.status) currentStatus = cur2.status
+        if (cur2) consultationUser = cur2
       } else {
         if (cur?.status) currentStatus = cur.status
         if (Array.isArray(cur?.status_history)) history = cur.status_history
+        consultationUser = cur || {}
       }
     } catch {
       hasExtended = false
@@ -166,6 +169,29 @@ export async function PUT(request: NextRequest) {
       .single()
 
     if (error) throw error
+
+    // ── Bildirishnoma: admin javob yozganda foydalanuvchiga xabar ──
+    if (typeof body.adminReply === 'string' && body.adminReply.trim()) {
+      const userId = consultationUser?.user_id || ''
+      if (userId) {
+        const expertName = consultationUser?.expert_name || 'Ekspert'
+        const replyPreview = body.adminReply.trim().slice(0, 180)
+        const userName = consultationUser?.user_name || consultationUser?.user_email || 'Foydalanuvchi'
+        try {
+          await supabase.from('user_notifications').insert({
+            user_id: userId,
+            type: 'success',
+            category: 'community',
+            title: 'Ekspert javobi keldi ✅',
+            message: `${expertName} sizning maslahat so'rovingizga javob berdi:\n\n"${replyPreview}"${body.adminReply.trim().length > 180 ? '…' : ''}`,
+            action_url: '/community',
+            action_text: "Javobni ko'rish",
+          })
+        } catch {
+          // bildirishnoma yozilmasa so'rovning o'zi ishlayveradi
+        }
+      }
+    }
 
     return NextResponse.json({ success: true, data })
   } catch (err: any) {
