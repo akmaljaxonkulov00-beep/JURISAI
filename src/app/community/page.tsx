@@ -36,7 +36,6 @@ import {
   KeyRound,
   RefreshCw,
   ShieldCheck,
-  Heart,
   Reply,
 } from 'lucide-react'
 import { useCommunity, CommunityPost } from '@/hooks/useCommunity'
@@ -56,6 +55,7 @@ function GroupPostCard({
   onSendReply,
   onReact,
   onDelete,
+  onDeleteReply,
 }: {
   post: any
   replies: any[]
@@ -68,6 +68,7 @@ function GroupPostCard({
   onSendReply: () => void
   onReact: (emoji: string) => void
   onDelete: () => void
+  onDeleteReply: (replyId: string) => void
 }) {
   const reactions: Record<string, string[]> = post.reactions || {}
   const EMOJIS = ['👍', '❤️']
@@ -163,7 +164,7 @@ function GroupPostCard({
                     <span className="text-[9px] text-gray-400">{fmt(rp.created_at)}</span>
                     {(canDelete || (rp.user_id && rp.user_id === myUserId)) && (
                       <button
-                        onClick={onDelete}
+                        onClick={() => onDeleteReply(rp.id)}
                         className="p-0.5 rounded text-gray-300 dark:text-zinc-600 hover:text-red-500 transition-colors"
                         title="Javobni o'chirish"
                       >
@@ -2720,6 +2721,7 @@ export default function Community() {
                           onSendReply={() => sendGroupReply(p.id)}
                           onReact={emoji => toggleGroupReaction(p.id, emoji)}
                           onDelete={() => deleteGroupPost(p.id)}
+                          onDeleteReply={rid => deleteGroupPost(rid)}
                         />
                       ))
                     )}
