@@ -64,6 +64,7 @@ type Group = {
   post_count: number
   is_private?: boolean
   invite_code?: string | null
+  created_by?: string | null
   created_at: string
 }
 
@@ -104,9 +105,9 @@ type FeedPost = {
 }
 
 export default function AdminCommunityManager() {
-  const [tab, setTab] = useState<
-    'experts' | 'webinars' | 'groups' | 'consultations' | 'feed'
-  >('experts')
+  const [tab, setTab] = useState<'experts' | 'webinars' | 'groups' | 'consultations' | 'feed'>(
+    'experts'
+  )
 
   const [experts, setExperts] = useState<Expert[]>([])
   const [webinars, setWebinars] = useState<Webinar[]>([])
@@ -119,6 +120,11 @@ export default function AdminCommunityManager() {
   // ── Consultation reply / assignment ──
   const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({})
   const [assignedExpert, setAssignedExpert] = useState<Record<string, string>>({})
+
+  // ── Group detail (a'zolar boshqaruvi) ──
+  const [expandedGroup, setExpandedGroup] = useState<string | null>(null)
+  const [groupMembers, setGroupMembers] = useState<any[]>([])
+  const [groupMembersLoading, setGroupMembersLoading] = useState(false)
 
   // ── Add group form ──
   const [showAddGroup, setShowAddGroup] = useState(false)
@@ -318,17 +324,72 @@ export default function AdminCommunityManager() {
   }
 
   const deleteGroup = async (id: string) => {
-    if (!confirm("Guruhni o'chirishni tasdiqlaysizmi?")) return
+    if (!confirm("Guruhni o'chirishni tasdiqlaysizmi? Bu guruhdagi barcha a'zolar, xabarlar va so'rovlar ham o'chadi."))
+      return
     try {
       await fetch(`/api/community/groups?id=${id}`, { method: 'DELETE' })
+      setExpandedGroup(null)
       await loadGroups()
+    } catch {}
+  }
+
+  // ── Guruh a'zolarini yuklash (admin) ──
+  const toggleGroupDetail = async (g: Group) => {
+    if (expandedGroup === g.id) {
+      setExpandedGroup(null)
+      setGroupMembers([])
+      return
+    }
+    setExpandedGroup(g.id)
+    setGroupMembersLoading(true)
+    setGroupMembers([])
+    try {
+      const r = await fetch(`/api/community/groups/members?groupId=${g.id}&memberId=&admin=1`, {
+        cache: 'no-cache',
+      })
+      const d = await r.json()
+      setGroupMembers(d.success ? d.data || [] : [])
+    } catch {
+      setGroupMembers([])
+    } finally {
+      setGroupMembersLoading(false)
+    }
+  }
+
+  // ── A'zoni chiqarish (admin) ──
+  const removeGroupMember = async (groupId: string, userId: string) => {
+    if (!confirm("A'zoni guruhdan chiqarishni tasdiqlaysizmi?")) return
+    try {
+      const r = await fetch(
+        `/api/community/groups/members?groupId=${groupId}&userId=${userId}&actorId=admin`,
+        { method: 'DELETE' }
+      )
+      if (r.ok) {
+        setGroupMembers(prev => prev.filter(m => m.user_id !== userId))
+        await loadGroups()
+      }
+    } catch {}
+  }
+
+  // ── Moderator tayinlash / olib tashlash (admin) ──
+  const setGroupModerator = async (groupId: string, userId: string, role: 'member' | 'moderator') => {
+    try {
+      const r = await fetch('/api/community/groups/members', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ groupId, userId, role, actorId: 'admin', actorName: 'Admin' }),
+      })
+      if (r.ok) {
+        setGroupMembers(prev =>
+          prev.map(m => (m.user_id === userId ? { ...m, role } : m))
+        )
+      }
     } catch {}
   }
 
   // ── Feed moderation ───────────────────────────────────────────────
   const deletePost = async (id: string) => {
-    if (!confirm("Postni o'chirishni tasdiqlaysizmi? Bu amalni ortga qaytarib bo'lmaydi."))
-      return
+    if (!confirm("Postni o'chirishni tasdiqlaysizmi? Bu amalni ortga qaytarib bo'lmaydi.")) return
     try {
       await fetch(`/api/community/posts?id=${encodeURIComponent(id)}`, { method: 'DELETE' })
       await loadFeed()
@@ -662,46 +723,133 @@ export default function AdminCommunityManager() {
             </p>
           )}
           {groups.map(g => (
-            <div
-              key={g.id}
-              className="p-3 rounded-xl border bg-gray-50 dark:bg-zinc-800/50 border-gray-100 dark:border-zinc-700 flex items-center justify-between flex-wrap gap-2"
-            >
-              <div className="flex items-center gap-3 flex-1 min-w-0">
-                <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center text-lg flex-shrink-0">
-                  {g.icon}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-medium text-sm text-gray-800 dark:text-white">
-                      {g.name}
-                    </span>
-                    {g.is_private && (
-                      <span className="text-[10px] px-1.5 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded">
-                        🔒 Maxfiy
-                      </span>
-                    )}
-                    <span className="text-[10px] px-1.5 py-0.5 bg-gray-200 dark:bg-zinc-700 text-gray-600 dark:text-zinc-300 rounded">
-                      {g.category || 'Umumiy'}
-                    </span>
+            <div key={g.id}>
+              <div className="p-3 rounded-xl border bg-gray-50 dark:bg-zinc-800/50 border-gray-100 dark:border-zinc-700 flex items-center justify-between flex-wrap gap-2">
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center text-lg flex-shrink-0">
+                    {g.icon}
                   </div>
-                  <p className="text-xs text-gray-500 dark:text-zinc-400 mt-0.5 truncate">
-                    {g.description || '—'}
-                  </p>
-                  <p className="text-[10px] text-gray-400 dark:text-zinc-500 mt-0.5">
-                    👥 {g.member_count || 0} a'zo • 💬 {g.post_count || 0} post
-                    {g.is_private && g.invite_code && (
-                      <span className="ml-1 font-mono text-amber-500">• 🔑 {g.invite_code}</span>
-                    )}
-                  </p>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-medium text-sm text-gray-800 dark:text-white">
+                        {g.name}
+                      </span>
+                      {g.is_private && (
+                        <span className="text-[10px] px-1.5 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded">
+                          🔒 Maxfiy
+                        </span>
+                      )}
+                      <span className="text-[10px] px-1.5 py-0.5 bg-gray-200 dark:bg-zinc-700 text-gray-600 dark:text-zinc-300 rounded">
+                        {g.category || 'Umumiy'}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-zinc-400 mt-0.5 truncate">
+                      {g.description || '—'}
+                    </p>
+                    <p className="text-[10px] text-gray-400 dark:text-zinc-500 mt-0.5">
+                      👥 {g.member_count || 0} a'zo • 💬 {g.post_count || 0} post
+                      {g.is_private && g.invite_code && (
+                        <span className="ml-1 font-mono text-amber-500">• 🔑 {g.invite_code}</span>
+                      )}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={() => toggleGroupDetail(g)}
+                    className={`px-2.5 py-1.5 rounded-lg text-xs flex items-center gap-1 ${
+                      expandedGroup === g.id
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                    }`}
+                    title="A'zolarni boshqarish"
+                  >
+                    <Users size={13} /> A'zolar
+                  </button>
+                  <button
+                    onClick={() => deleteGroup(g.id)}
+                    className="p-1.5 rounded-lg text-xs bg-red-100 text-red-700 hover:bg-red-200"
+                    title="Guruhni o'chirish"
+                  >
+                    <Trash2 size={14} />
+                  </button>
                 </div>
               </div>
-              <button
-                onClick={() => deleteGroup(g.id)}
-                className="p-1.5 rounded-lg text-xs bg-red-100 text-red-700 hover:bg-red-200"
-                title="O‘chirish"
-              >
-                <Trash2 size={14} />
-              </button>
+
+              {/* Guruh a'zolari boshqaruvi */}
+              {expandedGroup === g.id && (
+                <div className="mt-2 p-3 rounded-xl border border-blue-100 dark:border-blue-800/50 bg-blue-50/30 dark:bg-blue-900/10">
+                  <p className="text-xs font-semibold text-gray-800 dark:text-white mb-2 flex items-center gap-1.5">
+                    <Users size={13} className="text-blue-500" /> A'zolar ({groupMembers.length})
+                  </p>
+                  {groupMembersLoading ? (
+                    <p className="text-xs text-gray-500 dark:text-zinc-400 py-3 text-center">
+                      Yuklanmoqda...
+                    </p>
+                  ) : groupMembers.length === 0 ? (
+                    <p className="text-xs text-gray-500 dark:text-zinc-400 py-3 text-center">
+                      Hozircha a'zolar yo'q
+                    </p>
+                  ) : (
+                    <div className="space-y-1.5">
+                      {groupMembers.map(m => {
+                        const isModerator = ['moderator', 'admin'].includes(m.role)
+                        const isCreator = g.created_by?.toString() === m.user_id
+                        return (
+                          <div
+                            key={m.user_id}
+                            className="flex items-center justify-between gap-2 p-2 bg-white dark:bg-zinc-900 rounded-lg border border-gray-100 dark:border-zinc-700"
+                          >
+                            <div className="flex items-center gap-2 min-w-0">
+                              <div className="w-7 h-7 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center text-xs font-medium text-blue-700 dark:text-blue-300 flex-shrink-0">
+                                {(m.name || 'U')[0].toUpperCase()}
+                              </div>
+                              <div className="min-w-0">
+                                <p className="text-xs font-medium text-gray-800 dark:text-white truncate">
+                                  {m.name || 'Foydalanuvchi'}
+                                </p>
+                                <p className="text-[10px] text-gray-400">
+                                  {isCreator ? '⭐ Yaratuvchi' : isModerator ? '🛡️ Moderator' : 'A\'zo'}
+                                </p>
+                              </div>
+                            </div>
+                            {!isCreator && (
+                              <div className="flex items-center gap-1 flex-shrink-0">
+                                <button
+                                  onClick={() =>
+                                    setGroupModerator(
+                                      g.id,
+                                      m.user_id,
+                                      isModerator ? 'member' : 'moderator'
+                                    )
+                                  }
+                                  className={`p-1.5 rounded-lg text-xs ${
+                                    isModerator
+                                      ? 'bg-purple-100 text-purple-700 hover:bg-purple-200'
+                                      : 'bg-gray-100 text-gray-600 dark:bg-zinc-800 dark:text-zinc-300 hover:bg-gray-200'
+                                  }`}
+                                  title={
+                                    isModerator ? 'Moderatorlikdan olish' : 'Moderator qilish'
+                                  }
+                                >
+                                  <UserCheck size={13} />
+                                </button>
+                                <button
+                                  onClick={() => removeGroupMember(g.id, m.user_id)}
+                                  className="p-1.5 rounded-lg text-xs bg-red-100 text-red-700 hover:bg-red-200"
+                                  title="A'zoni chiqarish"
+                                >
+                                  <UserX size={13} />
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -811,9 +959,7 @@ export default function AdminCommunityManager() {
                     )}
                     <textarea
                       value={replyDrafts[c.id] || ''}
-                      onChange={e =>
-                        setReplyDrafts(prev => ({ ...prev, [c.id]: e.target.value }))
-                      }
+                      onChange={e => setReplyDrafts(prev => ({ ...prev, [c.id]: e.target.value }))}
                       placeholder="Javob matni..."
                       rows={2}
                       className="w-full px-2 py-1.5 text-xs rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-700 dark:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
@@ -888,7 +1034,7 @@ export default function AdminCommunityManager() {
                   <div className="flex items-center gap-3 text-[10px] text-gray-400 dark:text-zinc-500 mt-1.5">
                     <span>👍 {p.likes || 0}</span>
                     <span>👎 {p.dislikes || 0}</span>
-                    <span>💬 {(p.comments?.length || 0)}</span>
+                    <span>💬 {p.comments?.length || 0}</span>
                     <span>👁 {p.views || 0}</span>
                     {p.created_at && (
                       <span>{new Date(p.created_at).toLocaleDateString('uz-UZ')}</span>
@@ -1061,8 +1207,12 @@ export default function AdminCommunityManager() {
                         : 'border-gray-200 dark:border-zinc-700 hover:border-gray-300 dark:hover:border-zinc-600'
                     }`}
                   >
-                    <div className="text-sm font-medium text-gray-800 dark:text-zinc-200">🌍 Ommaviy</div>
-                    <div className="text-[10px] text-gray-500 dark:text-zinc-400 mt-0.5">Hamma ko'radi</div>
+                    <div className="text-sm font-medium text-gray-800 dark:text-zinc-200">
+                      🌍 Ommaviy
+                    </div>
+                    <div className="text-[10px] text-gray-500 dark:text-zinc-400 mt-0.5">
+                      Hamma ko'radi
+                    </div>
                   </button>
                   <button
                     type="button"
@@ -1073,8 +1223,12 @@ export default function AdminCommunityManager() {
                         : 'border-gray-200 dark:border-zinc-700 hover:border-gray-300 dark:hover:border-zinc-600'
                     }`}
                   >
-                    <div className="text-sm font-medium text-gray-800 dark:text-zinc-200">🔒 Maxfiy</div>
-                    <div className="text-[10px] text-gray-500 dark:text-zinc-400 mt-0.5">Taklif kodi bilan</div>
+                    <div className="text-sm font-medium text-gray-800 dark:text-zinc-200">
+                      🔒 Maxfiy
+                    </div>
+                    <div className="text-[10px] text-gray-500 dark:text-zinc-400 mt-0.5">
+                      Taklif kodi bilan
+                    </div>
                   </button>
                 </div>
               </div>

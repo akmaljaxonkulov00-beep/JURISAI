@@ -201,6 +201,19 @@ export async function DELETE(request: NextRequest) {
       .eq('id', postId)
     if (delErr) throw delErr
 
+    // Moderator/yaratuvchi boshqa a'zoning xabarini o'chirsa — jurnalga yozamiz
+    if (!isAuthor) {
+      try {
+        await supabase.from('community_moderator_actions').insert({
+          group_id: post.group_id,
+          moderator_id: actorId || '',
+          moderator_name: '',
+          action: 'post_deleted',
+          target_name: post.user_name || '',
+        })
+      } catch {}
+    }
+
     // Asosiy xabar o'chirilsa post_count ni kamaytiramiz
     if (!post.parent_id) {
       try {

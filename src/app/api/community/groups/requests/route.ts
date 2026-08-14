@@ -213,6 +213,17 @@ export async function PATCH(request: NextRequest) {
 
     if (error) throw error
 
+    // Moderatsiya jurnali — so'rov boshqarildi
+    try {
+      await supabase.from('community_moderator_actions').insert({
+        group_id: req.group_id,
+        moderator_id: actorId || '',
+        moderator_name: '',
+        action: status === 'approved' ? 'request_approved' : 'request_rejected',
+        target_name: req.user_name || req.user_email || '',
+      })
+    } catch {}
+
     // So'rovchiga bildirishnoma — tasdiqlandi / rad etildi
     try {
       const { data: group } = await supabase

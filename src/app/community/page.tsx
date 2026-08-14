@@ -304,6 +304,9 @@ export default function Community() {
   // Guruh bildirishnomalari (qo'ng'iroq)
   const [groupNotifs, setGroupNotifs] = useState<any[]>([])
   const [showGroupNotifs, setShowGroupNotifs] = useState(false)
+  // Moderatsiya jurnali
+  const [groupActions, setGroupActions] = useState<any[]>([])
+  const [actionsLoading, setActionsLoading] = useState(false)
 
   // ── Guruh ichidagi muhokama ───────────────────────────────────
   const [openGroup, setOpenGroup] = useState<any>(null)
@@ -578,6 +581,7 @@ export default function Community() {
     setRoomTab('chat')
     setGroupMembers([])
     setGroupRequests([])
+    setGroupActions([])
     const identity = getUserIdentityPayload()
     setIsRoomCreator(!!identity.userId && g.created_by === identity.userId)
     setIsRoomModerator(false)
@@ -599,6 +603,21 @@ export default function Community() {
 
     // A'zolarni yuklash
     loadGroupMembers(g.id)
+
+    // Moderatsiya jurnali (yaratuvchi/moderator uchun)
+    setActionsLoading(true)
+    try {
+      const r = await fetch(
+        `/api/community/groups/actions?groupId=${g.id}&moderatorId=${identity.userId || ''}`,
+        { cache: 'no-cache' }
+      )
+      const d = await r.json()
+      setGroupActions(d.success ? d.data || [] : [])
+    } catch {
+      setGroupActions([])
+    } finally {
+      setActionsLoading(false)
+    }
 
     // So'rovlar (yaratuvchi/moderator uchun) + mening so'rov holatim
     if (g.is_private) {
@@ -704,8 +723,9 @@ export default function Community() {
     if (!confirm("Bu a'zoni guruhdan chiqarishni tasdiqlaysizmi?")) return
     setRoomBusy(true)
     try {
+      const identity = getUserIdentityPayload()
       const r = await fetch(
-        `/api/community/groups/members?groupId=${openGroup.id}&userId=${userId}`,
+        `/api/community/groups/members?groupId=${openGroup.id}&userId=${userId}&actorId=${identity.userId || ''}`,
         { method: 'DELETE' }
       )
       if (r.ok) {
@@ -1001,6 +1021,13 @@ export default function Community() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id }),
       })
+    } catch {}
+  }
+
+  const deleteGroupNotif = async (id: string) => {
+    setGroupNotifs(prev => prev.filter(n => n.id !== id))
+    try {
+      await fetch(`/api/community/groups/notifications?id=${id}`, { method: 'DELETE' })
     } catch {}
   }
 
@@ -1829,54 +1856,165 @@ export default function Community() {
             </header>
             <main className="p-4 sm:p-6 max-w-3xl mx-auto">
               {renderMobileTabs()}
-              {notifications.length === 0 ? (
+              {groupNotifs.length === 0 && notifications.length === 0 ? (
                 <div className="text-center py-16">
                   <Bell className="w-16 h-16 text-gray-300 dark:text-zinc-700 mx-auto mb-4" />
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                     Bildirishnomalar yo'q
                   </h3>
                   <p className="text-sm text-gray-500 dark:text-zinc-400">
-                    Kimdir postingizga like bossa yoki izoh qoldirsa, bu yerda ko'rinadi.
+                    Guruh so'rovlari, tasdiqlashlar va jamiyat bildirishnomalari shu yerda
+                    ko'rinadi.
                   </p>
                 </div>
               ) : (
-                <div className="space-y-2">
-                  {notifications.map(notif => (
-                    <div
-                      key={notif.id}
-                      onClick={() => markNotificationRead(notif.id)}
-                      className={`p-4 rounded-xl cursor-pointer transition-colors ${
-                        notif.read
-                          ? 'bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800'
-                          : 'bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800'
-                      }`}
-                    >
-                      <div className="flex items-start gap-3">
-                        <div
-                          className={`p-2 rounded-lg ${notif.type === 'like' ? 'bg-red-100 dark:bg-red-900/30 text-red-500' : notif.type === 'comment' ? 'bg-green-100 dark:bg-green-900/30 text-green-500' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-500'}`}
-                        >
-                          {notif.type === 'like' ? (
-                            <ThumbsUp className="w-4 h-4" />
-                          ) : notif.type === 'comment' ? (
-                            <MessageCircle className="w-4 h-4" />
-                          ) : (
-                            <Bell className="w-4 h-4" />
+                <div className="space-y-8">
+                  {/* Guruh bildirishnomalari */}
+                  {groupNotifs.length > 0 && (
+                    <div>
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-sm font-semibold text-gray-700 dark:text-zinc-300 flex items-center gap-2">
+                          <Users className="w-4 h-4 text-blue-500" /> Guruh bildirishnomalari
+                          {groupNotifs.filter(n => !n.read).length > 0 && (
+                            <span className="px-1.5 py-0.5 bg-red-500 text-white rounded-full text-[10px] leading-none">
+                              {groupNotifs.filter(n => !n.read).length}
+                            </span>
                           )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm text-gray-800 dark:text-zinc-200">
-                            {notif.message}
-                          </p>
-                          <p className="text-xs text-gray-400 dark:text-zinc-500 mt-1">
-                            {timeAgo(notif.createdAt)}
-                          </p>
-                        </div>
-                        {!notif.read && (
-                          <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-2" />
+                        </h3>
+                        {groupNotifs.some(n => !n.read) && (
+                          <button
+                            onClick={clearGroupNotifs}
+                            className="text-xs text-blue-600 hover:underline"
+                          >
+                            Hammasini o'qildi deb belgilash
+                          </button>
                         )}
                       </div>
+                      <div className="space-y-2">
+                        {groupNotifs.map(n => (
+                          <div
+                            key={n.id}
+                            onClick={() => markGroupNotifRead(n.id)}
+                            className={`p-4 rounded-xl cursor-pointer transition-colors ${
+                              n.read
+                                ? 'bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800'
+                                : 'bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800'
+                            }`}
+                          >
+                            <div className="flex items-start gap-3">
+                              <div
+                                className={`p-2 rounded-lg flex-shrink-0 ${
+                                  n.type === 'join_request'
+                                    ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400'
+                                    : n.type === 'approved'
+                                      ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400'
+                                      : n.type === 'rejected'
+                                        ? 'bg-red-100 dark:bg-red-900/30 text-red-500'
+                                        : n.type === 'moderator'
+                                          ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400'
+                                          : n.type === 'removed'
+                                            ? 'bg-red-100 dark:bg-red-900/30 text-red-500'
+                                            : 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+                                }`}
+                              >
+                                {n.type === 'join_request' ? (
+                                  <KeyRound className="w-4 h-4" />
+                                ) : n.type === 'approved' ? (
+                                  <CheckCircle className="w-4 h-4" />
+                                ) : n.type === 'rejected' || n.type === 'removed' ? (
+                                  <X className="w-4 h-4" />
+                                ) : n.type === 'moderator' ? (
+                                  <ShieldCheck className="w-4 h-4" />
+                                ) : (
+                                  <Bell className="w-4 h-4" />
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-gray-800 dark:text-zinc-200">
+                                  {n.title}
+                                </p>
+                                <p className="text-xs text-gray-500 dark:text-zinc-400 mt-0.5 break-words">
+                                  {n.message}
+                                </p>
+                                <p className="text-[11px] text-gray-400 dark:text-zinc-500 mt-1">
+                                  {timeAgo(n.created_at)}
+                                </p>
+                              </div>
+                              {!n.read && (
+                                <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-2" />
+                              )}
+                              <button
+                                onClick={e => {
+                                  e.stopPropagation()
+                                  deleteGroupNotif(n.id)
+                                }}
+                                className="p-1 text-gray-300 dark:text-zinc-600 hover:text-red-500 transition-colors flex-shrink-0"
+                                title="O'chirish"
+                              >
+                                <Trash2 size={13} />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  ))}
+                  )}
+
+                  {/* Jamiyat bildirishnomalari */}
+                  {notifications.length > 0 && (
+                    <div>
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-sm font-semibold text-gray-700 dark:text-zinc-300 flex items-center gap-2">
+                          <MessageCircle className="w-4 h-4 text-green-500" /> Jamiyat
+                          bildirishnomalari
+                        </h3>
+                        <button
+                          onClick={clearNotifications}
+                          className="text-xs text-red-500 hover:underline"
+                        >
+                          Tozalash
+                        </button>
+                      </div>
+                      <div className="space-y-2">
+                        {notifications.map(notif => (
+                          <div
+                            key={notif.id}
+                            onClick={() => markNotificationRead(notif.id)}
+                            className={`p-4 rounded-xl cursor-pointer transition-colors ${
+                              notif.read
+                                ? 'bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800'
+                                : 'bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800'
+                            }`}
+                          >
+                            <div className="flex items-start gap-3">
+                              <div
+                                className={`p-2 rounded-lg ${notif.type === 'like' ? 'bg-red-100 dark:bg-red-900/30 text-red-500' : notif.type === 'comment' ? 'bg-green-100 dark:bg-green-900/30 text-green-500' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-500'}`}
+                              >
+                                {notif.type === 'like' ? (
+                                  <ThumbsUp className="w-4 h-4" />
+                                ) : notif.type === 'comment' ? (
+                                  <MessageCircle className="w-4 h-4" />
+                                ) : (
+                                  <Bell className="w-4 h-4" />
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm text-gray-800 dark:text-zinc-200">
+                                  {notif.message}
+                                </p>
+                                <p className="text-xs text-gray-400 dark:text-zinc-500 mt-1">
+                                  {timeAgo(notif.createdAt)}
+                                </p>
+                              </div>
+                              {!notif.read && (
+                                <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-2" />
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </main>
@@ -2098,6 +2236,61 @@ export default function Community() {
     const roomIdentity = getUserIdentityPayload()
     const myRoomUserId = roomIdentity.userId || ''
     const isGroupMember = !!openGroup && joinedGroups.includes(openGroup.id)
+
+    const ACTION_LABELS: Record<string, { icon: string; label: string; cls: string }> = {
+      post_deleted: { icon: '🗑️', label: 'Xabar o\'chirildi', cls: 'text-red-600 dark:text-red-400' },
+      member_removed: { icon: '🚫', label: 'A\'zo chiqarildi', cls: 'text-red-600 dark:text-red-400' },
+      request_approved: { icon: '✅', label: 'So\'rov tasdiqlandi', cls: 'text-green-600 dark:text-green-400' },
+      request_rejected: { icon: '❌', label: 'So\'rov rad etildi', cls: 'text-red-500' },
+      moderator_set: { icon: '🛡️', label: 'Moderator o\'zgartirildi', cls: 'text-purple-600 dark:text-purple-400' },
+    }
+    const fmtActionTime = (s: string) => {
+      const d = new Date(s)
+      if (isNaN(d.getTime())) return ''
+      const diff = Date.now() - d.getTime()
+      const mins = Math.floor(diff / 60000)
+      if (mins < 1) return 'Hozir'
+      if (mins < 60) return mins + ' min'
+      if (mins < 1440) return Math.floor(mins / 60) + ' soat'
+      return d.toLocaleDateString('uz-UZ', { day: 'numeric', month: 'short' })
+    }
+    const renderModActions = () => (
+      <div className="space-y-1.5">
+        {actionsLoading ? (
+          <p className="text-[11px] text-gray-400 dark:text-zinc-500">Yuklanmoqda...</p>
+        ) : groupActions.length === 0 ? (
+          <p className="text-[11px] text-gray-400 dark:text-zinc-500">
+            Hozircha moderatsiya harakatlari yo'q
+          </p>
+        ) : (
+          groupActions.slice(0, 15).map((a: any) => {
+            const meta = ACTION_LABELS[a.action] || {
+              icon: '🔧',
+              label: a.action,
+              cls: 'text-gray-600 dark:text-zinc-400',
+            }
+            return (
+              <div
+                key={a.id}
+                className="flex items-start gap-2 p-2 bg-gray-50 dark:bg-zinc-800/50 rounded-lg"
+              >
+                <span className="text-sm flex-shrink-0">{meta.icon}</span>
+                <div className="min-w-0 flex-1">
+                  <p className={`text-[11px] font-medium ${meta.cls}`}>{meta.label}</p>
+                  <p className="text-[10px] text-gray-500 dark:text-zinc-400 truncate">
+                    {a.moderator_name || 'Moderator'}
+                    {a.target_name ? ` → ${a.target_name}` : ''}
+                  </p>
+                  <p className="text-[9px] text-gray-400 dark:text-zinc-500">
+                    {fmtActionTime(a.created_at)}
+                  </p>
+                </div>
+              </div>
+            )
+          })
+        )}
+      </div>
+    )
 
     // A'zo qatori (mobil tab + desktop panel uchun umumiy)
     const renderMemberRow = (m: any) => {
@@ -2873,6 +3066,16 @@ export default function Community() {
                       groupMembers.map(m => renderMemberRow(m))
                     )}
 
+                    {/* Moderatsiya jurnali — mobil (moderator/yaratuvchi) */}
+                    {canModerate && (
+                      <div className="p-4 bg-purple-50 dark:bg-purple-900/10 rounded-xl border border-purple-200 dark:border-purple-800">
+                        <p className="text-xs font-medium text-purple-800 dark:text-purple-300 mb-2 flex items-center gap-1">
+                          🛡️ Moderatsiya jurnali
+                        </p>
+                        {renderModActions()}
+                      </div>
+                    )}
+
                     {/* Taklif kodi — yaratuvchi uchun */}
                     {isRoomCreator && openGroup.is_private && (
                       <div className="p-4 bg-amber-50 dark:bg-amber-900/10 rounded-xl border border-amber-200 dark:border-amber-800">
@@ -3061,6 +3264,14 @@ export default function Community() {
                         ))}
                     </div>
                   )}
+                </div>
+              )}
+              {canModerate && (
+                <div className="border-t border-gray-200 dark:border-zinc-800 p-3 max-h-52 overflow-y-auto">
+                  <p className="text-[11px] font-semibold text-gray-900 dark:text-white mb-1.5 flex items-center gap-1">
+                    🛡️ Moderatsiya jurnali
+                  </p>
+                  {renderModActions()}
                 </div>
               )}
               {isRoomCreator && openGroup.is_private && (
