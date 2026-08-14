@@ -42,6 +42,7 @@ import AdminTemplateManager from '@/components/admin/AdminTemplateManager'
 import AdminCommunityManager from '@/components/admin/AdminCommunityManager'
 import AdminLegalManager from '@/components/admin/AdminLegalManager'
 import AdminUsageLimitsManager from '@/components/admin/AdminUsageLimitsManager'
+import AdminCostMonitor from '@/components/admin/AdminCostMonitor'
 import { useAdminRealtime } from '@/hooks/useAdminRealtime'
 import {
   saveSiteSettings,
@@ -130,6 +131,7 @@ type TabType =
   | 'dashboard'
   | 'reports'
   | 'monitoring'
+  | 'cost'
   | 'users'
   | 'payments'
   | 'pricing'
@@ -628,6 +630,7 @@ export default function AdminDashboard() {
   const tabs: { id: TabType; label: string; icon: any; badge?: number }[] = [
     { id: 'dashboard', label: 'Boshqaruv', icon: Shield },
     { id: 'monitoring', label: 'Monitoring', icon: Activity },
+    { id: 'cost', label: 'Xarajat', icon: TrendingUp },
     { id: 'reports', label: 'Hisobotlar', icon: BarChart3 },
     {
       id: 'users',
@@ -1127,6 +1130,9 @@ export default function AdminDashboard() {
 
         {/* ===== MONITORING ===== */}
         {activeTab === 'monitoring' && <MonitoringDashboard />}
+
+        {/* ===== XARAJAT MONITORINGI ===== */}
+        {activeTab === 'cost' && <AdminCostMonitor />}
 
         {/* ===== USAGE LIMITS ===== */}
         {activeTab === 'usage_limits' && <AdminUsageLimitsManager />}

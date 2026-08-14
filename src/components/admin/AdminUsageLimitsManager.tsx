@@ -8,6 +8,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { Gauge, Save, RefreshCw, Trash2, Plus, X, Infinity as InfinityIcon } from 'lucide-react'
+import { FAIR_USE_LIMITS } from '@/lib/usage-limits'
 
 const FEATURES: { key: string; label: string }[] = [
   { key: 'ai_chat', label: "AI chat (huquqiy so'rov)" },
@@ -43,6 +44,7 @@ const inputCls =
 export default function AdminUsageLimitsManager() {
   const [plans, setPlans] = useState<PlanLimits[]>([])
   const [overrides, setOverrides] = useState<UserOverride[]>([])
+  const [fairUse, setFairUse] = useState<Record<string, number>>({ ...FAIR_USE_LIMITS })
   const [loading, setLoading] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -66,6 +68,9 @@ export default function AdminUsageLimitsManager() {
       if (result.success && result.data) {
         setPlans(result.data.plans || [])
         setOverrides(result.data.overrides || [])
+        if (result.data.fair_use && typeof result.data.fair_use === 'object') {
+          setFairUse({ ...FAIR_USE_LIMITS, ...result.data.fair_use })
+        }
       } else {
         setError(result.error || 'Yuklashda xatolik')
       }
@@ -95,6 +100,7 @@ export default function AdminUsageLimitsManager() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           plans: plans.map(p => ({ id: p.id, limits: p.limits })),
+          fair_use: fairUse,
         }),
       })
       const result = await res.json()
@@ -239,6 +245,46 @@ export default function AdminUsageLimitsManager() {
             </tbody>
           </table>
         </div>
+      </div>
+
+      {/* ── PRO FAIR-USE CHEGARALARI ── */}
+      <div className="card-default rounded-2xl overflow-hidden">
+        <div className="px-4 py-3 border-b border-gray-100 dark:border-zinc-800">
+          <h4 className="text-sm font-semibold text-gray-800 dark:text-white">
+            Pro — adolatli ishlatish (fair use) chegaralari{' '}
+            <span className="text-gray-400 font-normal">
+              (Pro UI'da "cheksiz" ko'rinadi, lekin suiste'moldan himoya uchun oylik chek)
+            </span>
+          </h4>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 p-4">
+          {FEATURES.map(f => (
+            <div
+              key={f.key}
+              className="flex items-center justify-between gap-2 p-2.5 bg-gray-50 dark:bg-zinc-800/50 rounded-xl"
+            >
+              <span className="text-xs font-medium text-gray-700 dark:text-zinc-300 min-w-0 truncate">
+                {f.label}
+              </span>
+              <input
+                type="number"
+                min={0}
+                value={fairUse[f.key] ?? 0}
+                onChange={e =>
+                  setFairUse(prev => ({ ...prev, [f.key]: Math.max(0, parseInt(e.target.value) || 0) }))
+                }
+                className="w-20 text-center text-xs rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-700 dark:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-blue-500 px-1 py-1"
+                title={`${f.label} — oylik yuqori chek`}
+              />
+            </div>
+          ))}
+        </div>
+        <p className="px-4 pb-3 text-[11px] text-gray-400 dark:text-zinc-500">
+          0 = funksiya Pro'da to'liq o'chiriladi. O'zgarishlar "Limitlarni saqlash" tugmasi bilan
+          bazaga yoziladi. Migratsiya{' '}
+          <code className="text-blue-500">20250815_group_join_policy_fair_use.sql</code> run
+          qilingunga qadar kod ichidagi default qiymatlar ishlaydi.
+        </p>
       </div>
 
       {/* ── PER-USER OVERRIDE RO'YXATI ── */}

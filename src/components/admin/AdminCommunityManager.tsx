@@ -134,6 +134,7 @@ export default function AdminCommunityManager() {
     icon: '👥',
     category: 'Umumiy',
     is_private: false,
+    join_approval: false,
   })
 
   // ── Add expert form ──
@@ -316,7 +317,14 @@ export default function AdminCommunityManager() {
         body: JSON.stringify(groupForm),
       })
       setShowAddGroup(false)
-      setGroupForm({ name: '', description: '', icon: '👥', category: 'Umumiy', is_private: false })
+      setGroupForm({
+        name: '',
+        description: '',
+        icon: '👥',
+        category: 'Umumiy',
+        is_private: false,
+        join_approval: false,
+      })
       await loadGroups()
     } catch {
       setError("Guruh qo'shilmadi")
@@ -1208,7 +1216,9 @@ export default function AdminCommunityManager() {
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
-                    onClick={() => setGroupForm(f => ({ ...f, is_private: false }))}
+                    onClick={() =>
+                      setGroupForm(f => ({ ...f, is_private: false, join_approval: false }))
+                    }
                     className={`p-2.5 rounded-xl border-2 text-left transition-all ${
                       !groupForm.is_private
                         ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
@@ -1224,7 +1234,27 @@ export default function AdminCommunityManager() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => setGroupForm(f => ({ ...f, is_private: true }))}
+                    onClick={() =>
+                      setGroupForm(f => ({ ...f, is_private: false, join_approval: true }))
+                    }
+                    className={`p-2.5 rounded-xl border-2 text-left transition-all ${
+                      !groupForm.is_private && groupForm.join_approval
+                        ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
+                        : 'border-gray-200 dark:border-zinc-700 hover:border-gray-300 dark:hover:border-zinc-600'
+                    }`}
+                  >
+                    <div className="text-sm font-medium text-gray-800 dark:text-zinc-200">
+                      🛡️ Ommaviy (tasdiq)
+                    </div>
+                    <div className="text-[10px] text-gray-500 dark:text-zinc-400 mt-0.5">
+                      Ko'rinadi, tasdiq bilan qo'shiladi
+                    </div>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setGroupForm(f => ({ ...f, is_private: true, join_approval: false }))
+                    }
                     className={`p-2.5 rounded-xl border-2 text-left transition-all ${
                       groupForm.is_private
                         ? 'border-amber-500 bg-amber-50 dark:bg-amber-900/20'

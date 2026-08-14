@@ -1,6 +1,6 @@
 ﻿'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase-client'
 import {
   ArrowLeft,
@@ -278,7 +278,13 @@ export default function Community() {
   const [newGroupName, setNewGroupName] = useState('')
   const [newGroupDesc, setNewGroupDesc] = useState('')
   const [newGroupIcon, setNewGroupIcon] = useState('👥')
-  const [newGroupPrivacy, setNewGroupPrivacy] = useState<'public' | 'private'>('public')
+  const [newGroupPrivacy, setNewGroupPrivacy] = useState<'public' | 'approval' | 'private'>(
+    'public'
+  )
+  // Guruhlar qidiruvi + filtrlari
+  const [groupSearch, setGroupSearch] = useState('')
+  const [groupCategoryFilter, setGroupCategoryFilter] = useState('all')
+  const [groupPrivacyFilter, setGroupPrivacyFilter] = useState('all')
   const [showJoinByCode, setShowJoinByCode] = useState(false)
   const [joinCode, setJoinCode] = useState('')
   const [joinCodeLoading, setJoinCodeLoading] = useState(false)
@@ -291,6 +297,7 @@ export default function Community() {
   const [groupEditName, setGroupEditName] = useState('')
   const [groupEditDesc, setGroupEditDesc] = useState('')
   const [groupSettingsSaving, setGroupSettingsSaving] = useState(false)
+  const [transferTarget, setTransferTarget] = useState('')
   const [groupMembers, setGroupMembers] = useState<any[]>([])
   const [groupRequests, setGroupRequests] = useState<any[]>([])
   const [membersLoading, setMembersLoading] = useState(false)
@@ -428,12 +435,17 @@ export default function Community() {
       .catch(() => setExpertsLoading(false))
   }, [activeTab])
 
-  // Load groups from API
-  useEffect(() => {
+  // Load groups from API (qidiruv + filtrlar bilan)
+  const loadGroups = useCallback(async () => {
     if (activeTab !== 'groups') return
     setGroupsLoading(true)
     const identity = getUserIdentityPayload()
-    fetch(`/api/community/groups${identity.userId ? `?memberId=${identity.userId}` : ''}`)
+    const params = new URLSearchParams()
+    if (identity.userId) params.set('memberId', identity.userId)
+    if (groupSearch.trim()) params.set('search', groupSearch.trim())
+    if (groupCategoryFilter !== 'all') params.set('category', groupCategoryFilter)
+    if (groupPrivacyFilter !== 'all') params.set('privacy', groupPrivacyFilter)
+    fetch(`/api/community/groups?${params.toString()}`)
       .then(r => (r.ok ? r.json() : { data: [] }))
       .then(d => {
         setGroups(d.data || [])
@@ -445,7 +457,11 @@ export default function Community() {
       const joined = localStorage.getItem('community_joined_groups')
       if (joined) setJoinedGroups(JSON.parse(joined))
     } catch {}
-  }, [activeTab])
+  }, [activeTab, groupSearch, groupCategoryFilter, groupPrivacyFilter])
+
+  useEffect(() => {
+    loadGroups()
+  }, [loadGroups])
 
   // Load webinars from API
   useEffect(() => {
@@ -514,6 +530,7 @@ export default function Community() {
           description: newGroupDesc,
           icon: newGroupIcon,
           is_private: newGroupPrivacy === 'private',
+          join_approval: newGroupPrivacy === 'approval',
           ...getUserIdentityPayload(),
         }),
       })
@@ -818,6 +835,43 @@ export default function Community() {
       }
     } catch {
       alert("Maxfiylikni o'zgartirishda xatolik yuz berdi")
+    } finally {
+      setGroupSettingsSaving(false)
+    }
+  }
+
+  // Yaratuvchi huquqini boshqa a'zoga o'tkazish
+  const transferGroupOwnership = async () => {
+    if (!openGroup || !transferTarget) return
+    if (
+      !confirm(
+        `Guruh yaratuvchiligini boshqa a'zoga o'tkazishni tasdiqlaysizmi? Siz moderator bo'lib qolasiz, tanlangan a'zo esa yangi yaratuvchi bo'ladi.`
+      )
+    )
+      return
+    setGroupSettingsSaving(true)
+    try {
+      const r = await fetch('/api/community/groups', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: openGroup.id,
+          transfer_to: transferTarget,
+          ...getUserIdentityPayload(),
+        }),
+      })
+      const d = await r.json()
+      if (d.success && d.data) {
+        setOpenGroup({ ...openGroup, ...d.data })
+        setIsRoomCreator(false)
+        setIsRoomModerator(true)
+        setTransferTarget('')
+        alert("Yaratuvchilik muvaffaqiyatli o'tkazildi. Endi siz moderator sifatida qolasiz.")
+      } else {
+        alert(d.error || "O'tkazishda xatolik")
+      }
+    } catch {
+      alert("O'tkazishda xatolik yuz berdi")
     } finally {
       setGroupSettingsSaving(false)
     }
@@ -2598,6 +2652,42 @@ export default function Community() {
             </header>
             <main className="p-4 sm:p-6 max-w-5xl mx-auto">
               {renderMobileTabs()}
+
+              {/* Guruhlar qidiruvi + filtrlari */}
+              <div className="flex flex-col sm:flex-row gap-2 mb-4">
+                <div className="relative flex-1">
+                  <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={groupSearch}
+                    onChange={e => setGroupSearch(e.target.value)}
+                    placeholder="Guruh nomi yoki tavsifi bo'yicha qidirish..."
+                    className="w-full pl-9 pr-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <select
+                  value={groupCategoryFilter}
+                  onChange={e => setGroupCategoryFilter(e.target.value)}
+                  className="px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="all">Barcha kategoriyalar</option>
+                  {Array.from(new Set(groups.map((g: any) => g.category).filter(Boolean))).map(c => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  value={groupPrivacyFilter}
+                  onChange={e => setGroupPrivacyFilter(e.target.value)}
+                  className="px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="all">Barcha guruhlar</option>
+                  <option value="public">🌍 Ommaviy</option>
+                  <option value="approval">🛡️ Tasdiq bilan</option>
+                </select>
+              </div>
+
               {groupsLoading ? (
                 <div className="text-center py-12">
                   <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
@@ -2665,6 +2755,11 @@ export default function Community() {
                                   {g.is_private && (
                                     <span className="px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded text-[10px] flex items-center gap-0.5">
                                       <Lock className="w-2.5 h-2.5" /> Maxfiy
+                                    </span>
+                                  )}
+                                  {!g.is_private && g.join_approval && (
+                                    <span className="px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded text-[10px] flex items-center gap-0.5">
+                                      <ShieldCheck className="w-2.5 h-2.5" /> Tasdiq bilan
                                     </span>
                                   )}
                                   <span className="px-2 py-0.5 bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-400 rounded text-[10px]">
@@ -2824,6 +2919,18 @@ export default function Community() {
                     </button>
                     <button
                       type="button"
+                      onClick={() => setNewGroupPrivacy('approval')}
+                      className={`p-3 rounded-xl border-2 text-left transition-all ${newGroupPrivacy === 'approval' ? 'border-green-500 bg-green-50 dark:bg-green-900/20' : 'border-gray-200 dark:border-zinc-700 hover:border-gray-300 dark:hover:border-zinc-600'}`}
+                    >
+                      <div className="text-sm font-medium text-gray-800 dark:text-zinc-200">
+                        🛡️ Ommaviy (tasdiq)
+                      </div>
+                      <div className="text-[10px] text-gray-500 dark:text-zinc-400 mt-0.5 leading-tight">
+                        Ko'rinadi, qo'shilish tasdiq bilan
+                      </div>
+                    </button>
+                    <button
+                      type="button"
                       onClick={() => setNewGroupPrivacy('private')}
                       className={`p-3 rounded-xl border-2 text-left transition-all ${newGroupPrivacy === 'private' ? 'border-amber-500 bg-amber-50 dark:bg-amber-900/20' : 'border-gray-200 dark:border-zinc-700 hover:border-gray-300 dark:hover:border-zinc-600'}`}
                     >
@@ -2831,7 +2938,7 @@ export default function Community() {
                         🔒 Maxfiy
                       </div>
                       <div className="text-[10px] text-gray-500 dark:text-zinc-400 mt-0.5 leading-tight">
-                        Faqat taklif kodi bilan qo'shilish
+                        Faqat taklif kodi bilan
                       </div>
                     </button>
                   </div>
@@ -3013,7 +3120,7 @@ export default function Community() {
                   >
                     Chiqish
                   </button>
-                ) : openGroup.is_private ? (
+                ) : openGroup.is_private || openGroup.join_approval ? (
                   <button
                     onClick={sendJoinRequest}
                     disabled={myRequestSent || roomBusy}
@@ -3055,7 +3162,7 @@ export default function Community() {
                       Bu guruh faqat a'zolar uchun. Qo'shilib muhokamada qatnashing, xabarlarni
                       ko'ring va boshqa a'zolar bilan tanishing.
                     </p>
-                    {openGroup.is_private ? (
+                    {openGroup.is_private || openGroup.join_approval ? (
                       myRequestSent ? (
                         <p className="text-sm text-amber-600 dark:text-amber-400 font-medium">
                           ✓ So'rov yuborildi — guruh yaratuvchisi tasdiqlashini kuting
@@ -3342,6 +3449,35 @@ export default function Community() {
                             </div>
                           </div>
 
+                          {groupMembers.length > 1 && (
+                            <div className="border-t border-gray-200 dark:border-zinc-800 pt-4">
+                              <p className="text-xs font-medium text-gray-700 dark:text-zinc-300 mb-2">
+                                👑 Yaratuvchilikni o'tkazish
+                              </p>
+                              <select
+                                value={transferTarget}
+                                onChange={e => setTransferTarget(e.target.value)}
+                                className="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2"
+                              >
+                                <option value="">A'zoni tanlang...</option>
+                                {groupMembers
+                                  .filter(m => m.user_id !== myRoomUserId)
+                                  .map(m => (
+                                    <option key={m.user_id} value={m.user_id}>
+                                      {m.name || 'Foydalanuvchi'}
+                                    </option>
+                                  ))}
+                              </select>
+                              <button
+                                onClick={transferGroupOwnership}
+                                disabled={!transferTarget || groupSettingsSaving}
+                                className="w-full px-4 py-2.5 bg-purple-600 text-white text-sm font-medium rounded-xl hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                              >
+                                👑 O'tkazish
+                              </button>
+                            </div>
+                          )}
+
                           <div className="border-t border-gray-200 dark:border-zinc-800 pt-4">
                             <p className="text-xs font-medium text-red-600 dark:text-red-400 mb-2">
                               Xavfli hudud
@@ -3535,6 +3671,31 @@ export default function Community() {
                     >
                       {openGroup.is_private ? '🌍 Ommaviy qilish' : '🔒 Maxfiy qilish'}
                     </button>
+                    {groupMembers.length > 1 && (
+                      <>
+                        <select
+                          value={transferTarget}
+                          onChange={e => setTransferTarget(e.target.value)}
+                          className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        >
+                          <option value="">👑 Yaratuvchilikni o'tkazish...</option>
+                          {groupMembers
+                            .filter(m => m.user_id !== myRoomUserId)
+                            .map(m => (
+                              <option key={m.user_id} value={m.user_id}>
+                                {m.name || 'Foydalanuvchi'}
+                              </option>
+                            ))}
+                        </select>
+                        <button
+                          onClick={transferGroupOwnership}
+                          disabled={!transferTarget || groupSettingsSaving}
+                          className="w-full px-3 py-1.5 text-xs bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                          👑 Yaratuvchilikni o'tkazish
+                        </button>
+                      </>
+                    )}
                     <button
                       onClick={deleteRoomGroup}
                       disabled={groupSettingsSaving}

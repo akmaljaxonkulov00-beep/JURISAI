@@ -2,14 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
 
 // ── GET /api/admin/usage-limits ──────────────────────────────────────────
-// Barcha tarif limitlari + per-user override'lar ro'yxati
+// Barcha tarif limitlari + per-user override'lar + Pro fair-use chegaralari
 export async function GET() {
   try {
     const supabase = getSupabaseAdmin()
 
-    const [plansRes, overridesRes] = await Promise.all([
+    const [plansRes, overridesRes, fairUseRes] = await Promise.all([
       supabase.from('pricing_plans').select('id, name, price, limits').order('sort_order'),
       supabase.from('user_usage_limits').select('*').order('created_at', { ascending: false }),
+      supabase.from('site_settings').select('fair_use_limits').eq('id', 'global').maybeSingle(),
     ])
 
     const plans = (plansRes.data || []).map((p: any) => ({
@@ -19,17 +20,30 @@ export async function GET() {
       limits: p.limits || {},
     }))
 
-    return NextResponse.json({ success: true, data: { plans, overrides: overridesRes.data || [] } })
+    // fair_use_limits ustuni hali bazada bo'lmasa — bo'sh obyekt (frontend default ishlatadi)
+    let fairUse: Record<string, number> = {}
+    if (!fairUseRes.error && fairUseRes.data && fairUseRes.data.fair_use_limits) {
+      fairUse = fairUseRes.data.fair_use_limits
+    }
+
+    return NextResponse.json({
+      success: true,
+      data: { plans, overrides: overridesRes.data || [], fair_use: fairUse },
+    })
   } catch (error: any) {
-    return NextResponse.json({ success: false, error: error?.message || 'Xatolik' }, { status: 500 })
+    return NextResponse.json(
+      { success: false, error: error?.message || 'Xatolik' },
+      { status: 500 }
+    )
   }
 }
 
 // ── PUT /api/admin/usage-limits ──────────────────────────────────────────
-// Body: { plans: [{ id, limits }] } — tarif limitlarini yangilash
+// Body: { plans: [{ id, limits }], fair_use?: { feature: limit } } —
+// tarif limitlarini va Pro fair-use chegaralarini yangilash
 export async function PUT(request: NextRequest) {
   try {
-    const { plans } = await request.json()
+    const { plans, fair_use } = await request.json()
     if (!Array.isArray(plans)) {
       return NextResponse.json({ success: false, error: 'plans array required' }, { status: 400 })
     }
@@ -45,9 +59,21 @@ export async function PUT(request: NextRequest) {
       if (error) throw error
     }
 
+    // Pro fair-use chegaralarini saqlash (ustun hali mavjud bo'lmasa — postgrest xatosi, yumshoq o'tamiz)
+    if (fair_use && typeof fair_use === 'object') {
+      const { error: fairErr } = await supabase
+        .from('site_settings')
+        .update({ fair_use_limits: fair_use, updated_at: new Date().toISOString() })
+        .eq('id', 'global')
+      if (fairErr && !/column/i.test(fairErr.message)) throw fairErr
+    }
+
     return NextResponse.json({ success: true })
   } catch (error: any) {
-    return NextResponse.json({ success: false, error: error?.message || 'Xatolik' }, { status: 500 })
+    return NextResponse.json(
+      { success: false, error: error?.message || 'Xatolik' },
+      { status: 500 }
+    )
   }
 }
 
@@ -85,7 +111,10 @@ export async function POST(request: NextRequest) {
     if (error) throw error
     return NextResponse.json({ success: true, data })
   } catch (error: any) {
-    return NextResponse.json({ success: false, error: error?.message || 'Xatolik' }, { status: 500 })
+    return NextResponse.json(
+      { success: false, error: error?.message || 'Xatolik' },
+      { status: 500 }
+    )
   }
 }
 
@@ -103,6 +132,9 @@ export async function DELETE(request: NextRequest) {
     if (error) throw error
     return NextResponse.json({ success: true })
   } catch (error: any) {
-    return NextResponse.json({ success: false, error: error?.message || 'Xatolik' }, { status: 500 })
+    return NextResponse.json(
+      { success: false, error: error?.message || 'Xatolik' },
+      { status: 500 }
+    )
   }
 }

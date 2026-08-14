@@ -105,9 +105,31 @@ async function countMonthlyUsage(userId, email, feature) {
   }
 }
 
+async function getFairUseLimit(feature) {
+  try {
+    const { data } = await sb.from('site_settings').select('fair_use_limits').eq('id', 'global').maybeSingle()
+    if (data && data.fair_use_limits && typeof data.fair_use_limits === 'object') {
+      const val = data.fair_use_limits[feature]
+      if (typeof val === 'number' && val > 0) return val
+    }
+  } catch {}
+  const DEF = { ai_chat: 2000, irac: 500, scenario: 200, speech_stt: 500, virtual_court: 100 }
+  return DEF[feature] || null
+}
+
 async function checkAndIncrement({ userId, email, feature }) {
   const plan = await getUserPlan(userId, email)
-  const { limit, source } = await getEffectiveLimit(userId, plan, feature)
+  const eff = await getEffectiveLimit(userId, plan, feature)
+  let limit = eff.limit
+  let source = eff.source
+  // Pro cheksiz → fair use qo'llash
+  if (limit === -1 && source === 'plan' && plan === 'pro') {
+    const fair = await getFairUseLimit(feature)
+    if (fair != null) {
+      limit = fair
+      source = 'fair_use'
+    }
+  }
   const used = await countMonthlyUsage(userId, email, feature)
   const remaining = limit === -1 ? -1 : Math.max(0, limit - used)
   if (limit !== -1 && used >= limit) {
@@ -177,16 +199,48 @@ ok(scenarioResults[3].allowed === false && scenarioResults[3].limit === 3, 'free
 await sb.from('registered_users').upsert({ id: TEST_USER, email: TEST_EMAIL, subscription_plan: 'standart', subscription_expires_at: null })
 let st = await checkAndIncrement({ userId: TEST_USER, email: TEST_EMAIL, feature: 'scenario' })
 ok(st.allowed && st.limit === 20, 'standart scenario → limit 20, allowed')
-// pro scenario = -1
+// pro scenario = -1 (marketing cheksiz) → fair-use qo'llanadi (default 200)
 await sb.from('registered_users').upsert({ id: TEST_USER, email: TEST_EMAIL, subscription_plan: 'pro', subscription_expires_at: null })
 let pr = await checkAndIncrement({ userId: TEST_USER, email: TEST_EMAIL, feature: 'scenario' })
-ok(pr.allowed && pr.limit === -1, 'pro scenario → cheksiz (limit:-1)')
+ok(pr.allowed && pr.limit > 0 && pr.source === 'fair_use', `pro scenario → fair-use qo'llanadi (limit:${pr.limit}, source:${pr.source})`)
 
 // ── Test 4: weakness kaliti olib tashlangan ───────────────────────────────
 console.log('\n🧹 Test 4: weakness funksiyasi olib tashlangan')
 const { data: plans } = await sb.from('pricing_plans').select('id, limits')
 for (const p of plans || []) {
   ok(!p.limits || !('weakness' in p.limits), `${p.id} limits da weakness yo'q`)
+}
+
+// ── Test 5.5: Pro fair-use (adolatli ishlatish) ────────────────────────────
+console.log('\n🛡️ Test 5.5: Pro fair-use chegarasi')
+// Kolonna mavjudmi?
+const colCheck = await sb.from('site_settings').select('fair_use_limits').eq('id', 'global').maybeSingle()
+const colExists = !colCheck.error
+const FAIR_BAK = colCheck.data
+if (colExists) {
+  // Migratsiya run qilingan — haqiqiy bloklashni tekshiramiz (3 ta)
+  await sb.from('site_settings').update({ fair_use_limits: { ...(FAIR_BAK?.fair_use_limits || {}), scenario: 3 } }).eq('id', 'global')
+  await sb.from('user_usage_limits').delete().eq('user_id', TEST_USER)
+  await sb.from('usage_logs').delete().eq('user_id', TEST_USER)
+  let fairResults = []
+  for (let i = 0; i < 4; i++) fairResults.push(await checkAndIncrement({ userId: TEST_USER, email: TEST_EMAIL, feature: 'scenario' }))
+  ok(fairResults.slice(0, 3).every(x => x.allowed), 'Pro scenario fair-use=3 → dastlabki 3 tasi allowed')
+  ok(fairResults[3].allowed === false && fairResults[3].source === 'fair_use', 'Pro scenario → 4-chisi fair_use blok')
+  if (FAIR_BAK?.fair_use_limits) {
+    await sb.from('site_settings').update({ fair_use_limits: FAIR_BAK.fair_use_limits }).eq('id', 'global')
+  } else {
+    await sb.from('site_settings').update({ fair_use_limits: {} }).eq('id', 'global')
+  }
+  console.log('  (migratsiya run qilingan — site_settings.fair_use_limits ishladi)')
+} else {
+  // Migratsiya hali run qilinmagan — kod default fair-use qo'llanganini tekshiramiz
+  await sb.from('registered_users').upsert({ id: TEST_USER, email: TEST_EMAIL, subscription_plan: 'pro', subscription_expires_at: null })
+  await sb.from('user_usage_limits').delete().eq('user_id', TEST_USER)
+  await sb.from('usage_logs').delete().eq('user_id', TEST_USER)
+  let fr = await checkAndIncrement({ userId: TEST_USER, email: TEST_EMAIL, feature: 'scenario' })
+  ok(fr.allowed && fr.limit === 200 && fr.source === 'fair_use', `Pro scenario → default fair-use qo'llanadi (limit:${fr.limit}, source:${fr.source})`)
+  ok(fr.limit === 200, 'Default fair-use scenario = 200 (bloklash mantiqi override testida isbotlangan)')
+  console.log('  (migratsiya hali run qilinmagan — kod default fair-use ishladi)')
 }
 
 // ── Test 5: 429 oqimi — limit tugagach allowed:false (frontend 429 ko'rsatadi) ──

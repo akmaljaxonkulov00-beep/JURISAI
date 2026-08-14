@@ -85,6 +85,41 @@ export const DEFAULT_LIMITS: Record<string, Record<string, number>> = {
   },
 }
 
+// ── Pro tarif uchun ADOLATLI ISHLATISH (fair use) chegaralari ─────────────
+// UI'da Pro "cheksiz" ko'rinadi, lekin suiste'moldan himoya qilish uchun
+// oylik yuqori chegara qo'llaniladi. site_settings.fair_use_limits JSONB dan
+// o'qiladi, kolonna yo'q bo'lsa shu default ishlaydi.
+export const FAIR_USE_LIMITS: Record<string, number> = {
+  ai_chat: 2000,
+  irac: 500,
+  document_generate: 300,
+  document_analysis: 300,
+  virtual_court: 100,
+  decision_tree: 300,
+  speech_stt: 500,
+  scenario: 200,
+}
+
+/** site_settings.fair_use_limits dan chegarani o'qiydi (kolonna yo'q bo'lsa default) */
+async function getFairUseLimit(feature: string): Promise<number | null> {
+  try {
+    const supabase = await getSupabaseAdminLazy()
+    if (supabase) {
+      const { data, error } = await supabase
+        .from('site_settings')
+        .select('fair_use_limits')
+        .eq('id', 'global')
+        .maybeSingle()
+      if (!error && data && data.fair_use_limits && typeof data.fair_use_limits === 'object') {
+        const val = (data.fair_use_limits as Record<string, any>)[feature]
+        if (typeof val === 'number' && val > 0) return val
+      }
+    }
+  } catch {}
+  const def = FAIR_USE_LIMITS[feature]
+  return typeof def === 'number' && def > 0 ? def : null
+}
+
 export interface UsageResult {
   allowed: boolean
   feature: string
@@ -92,7 +127,7 @@ export interface UsageResult {
   limit: number // -1 = cheksiz
   remaining: number // -1 = cheksiz
   plan: string
-  source: 'override' | 'plan' | 'default'
+  source: 'override' | 'plan' | 'default' | 'fair_use'
   reason?: string
 }
 
@@ -244,7 +279,19 @@ export async function checkAndIncrement(opts: CheckOptions): Promise<UsageResult
 
   // Foydalanuvchi aniqlanmasa — bloklamaymiz, lekin yozib qo'yamiz (api)
   const plan = await getUserPlan(userId, email)
-  const { limit, source } = await getEffectiveLimit(userId, plan, feature)
+  const eff = await getEffectiveLimit(userId, plan, feature)
+  let limit: number = eff.limit
+  let source: UsageResult['source'] = eff.source
+
+  // Pro "cheksiz" (limit=-1) — adolatli ishlatish chegarasini qo'llaymiz
+  if (limit === -1 && source === 'plan' && plan === 'pro') {
+    const fair = await getFairUseLimit(feature)
+    if (fair != null) {
+      limit = fair
+      source = 'fair_use'
+    }
+  }
+
   const used = await countMonthlyUsage(userId, email, feature)
 
   const remaining = limit === -1 ? -1 : Math.max(0, limit - used)
@@ -301,6 +348,9 @@ export async function checkAndIncrement(opts: CheckOptions): Promise<UsageResult
 export function usageMessage(r: UsageResult): string {
   const label = FEATURES[r.feature] || r.feature
   if (r.limit === -1) return `${label} — cheksiz`
+  if (r.source === 'fair_use') {
+    return `${label} uchun adolatli ishlatish chegarasi tugadi (${r.used}/${r.limit} oy). Chegara keyingi oyning 1-sanasida qayta tiklanadi.`
+  }
   const planName = r.plan === 'pro' ? 'Pro' : r.plan === 'standart' ? 'Standart' : 'Bepul'
   return `${planName} tarifida ${label} limiti tugadi (${r.used}/${r.limit} oy). Limitni oshirish uchun Premium'ga o'ting.`
 }

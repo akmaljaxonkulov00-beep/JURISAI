@@ -14,13 +14,15 @@ export async function GET(request: NextRequest) {
     const id = searchParams.get('id')
     const category = searchParams.get('category')
     const memberId = searchParams.get('memberId') || ''
+    const search = (searchParams.get('search') || '').trim()
+    const privacy = searchParams.get('privacy') || 'all'
 
     const supabase = await getSupabase()
     if (!supabase) {
       return NextResponse.json({ success: true, data: [] })
     }
 
-    // 1) Ommaviy guruhlar — hamma ko'radi
+    // 1) Ommaviy guruhlar — hamma ko'radi (is_private=false; join_approval ham shu yerda)
     let query = supabase.from('community_groups').select('*').eq('is_private', false)
 
     if (id) {
@@ -29,6 +31,9 @@ export async function GET(request: NextRequest) {
     if (category && category !== 'all') {
       query = query.eq('category', category)
     }
+    if (search) {
+      query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%`)
+    }
 
     const { data: publicGroups, error: pubErr } = await query
       .order('member_count', { ascending: false })
@@ -36,6 +41,13 @@ export async function GET(request: NextRequest) {
     if (pubErr) throw pubErr
 
     let groups = [...(publicGroups || [])]
+
+    // 1b) Maxfiylik filtri: public (tasdiqsiz), approval (tasdiq bilan), private (a'zo orqali)
+    if (privacy === 'public') {
+      query = query.eq('join_approval', false)
+    } else if (privacy === 'approval') {
+      query = query.eq('join_approval', true)
+    }
 
     // 2) Maxfiy guruhlar — faqat a'zo bo'lganlar ko'radi
     if (memberId) {
@@ -83,7 +95,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { name, description, icon, category, is_private, userId } = body
+    const { name, description, icon, category, is_private, join_approval, userId } = body
 
     if (!name) {
       return NextResponse.json(
@@ -97,20 +109,34 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Supabase sozlanmagan' }, { status: 500 })
     }
 
+    // join_approval ustuni hali migratsiya run qilinmagan bo'lsa — xatoni yumshoq o'tkazamiz
+    let insertPayload: Record<string, any> = {
+      name,
+      description: description || '',
+      icon: icon || '👥',
+      category: category || 'Umumiy',
+      is_private: !!is_private,
+      created_by: userId || null,
+      member_count: 0,
+      post_count: 0,
+    }
+    if (typeof join_approval === 'boolean') {
+      insertPayload.join_approval = join_approval
+    }
+
     const { data, error } = await supabase
       .from('community_groups')
-      .insert({
-        name,
-        description: description || '',
-        icon: icon || '👥',
-        category: category || 'Umumiy',
-        is_private: !!is_private,
-        created_by: userId || null,
-        member_count: 0,
-        post_count: 0,
-      })
+      .insert(insertPayload)
       .select()
       .single()
+
+    // Kolonna yo'q (migratsiya run qilinmagan) — join_approvalsiz qayta urinamiz
+    if (error && /column|join_approval/i.test(error.message) && 'join_approval' in insertPayload) {
+      delete insertPayload.join_approval
+      const retry = await supabase.from('community_groups').insert(insertPayload).select().single()
+      if (retry.error) throw retry.error
+      return NextResponse.json({ success: true, data: retry.data })
+    }
 
     if (error) throw error
 
@@ -141,7 +167,8 @@ export async function PUT(request: NextRequest) {
     }
 
     // ── Ruxsat tekshiruvi: faqat guruh yaratuvchisi (yoki admin panel) ──
-    if (admin !== true && admin !== '1') {
+    let isAdminActor = admin === true || admin === '1'
+    if (!isAdminActor) {
       if (!userId) {
         return NextResponse.json(
           { success: false, error: "Guruhni faqat yaratuvchisi o'zgartira oladi" },
@@ -174,6 +201,34 @@ export async function PUT(request: NextRequest) {
     if (updates.regenerate_code === true) {
       delete updatePayload.regenerate_code
       updatePayload.invite_code = null
+    }
+
+    // ── Yaratuvchi huquqini o'tkazish (transfer_to) ──
+    if (updates.transfer_to) {
+      if (isAdminActor) {
+        delete updatePayload.transfer_to
+      } else {
+        const newOwnerId = String(updates.transfer_to)
+        // Eski yaratuvchi → moderator, yangi → creator
+        const { data: ownerMembership } = await supabase
+          .from('community_group_members')
+          .select('id')
+          .eq('group_id', id)
+          .eq('user_id', userId)
+          .maybeSingle()
+        if (ownerMembership) {
+          await supabase
+            .from('community_group_members')
+            .update({ role: 'moderator', updated_at: new Date().toISOString() })
+            .eq('id', ownerMembership.id)
+        }
+        await supabase.from('community_group_members').upsert(
+          { group_id: id, user_id: newOwnerId, role: 'creator', joined_at: new Date().toISOString() },
+          { onConflict: 'group_id,user_id' }
+        )
+        updatePayload.created_by = newOwnerId
+        delete updatePayload.transfer_to
+      }
     }
 
     const { data, error } = await supabase
