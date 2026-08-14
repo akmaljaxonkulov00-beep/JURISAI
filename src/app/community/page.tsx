@@ -31,9 +31,13 @@ import {
   Gavel,
   CheckCircle,
   Loader2,
+  Lock,
+  Copy,
+  KeyRound,
 } from 'lucide-react'
 import { useCommunity, CommunityPost } from '@/hooks/useCommunity'
 import AppSidebar from '@/components/layout/AppSidebar'
+import { getUserIdentityPayload } from '@/lib/client-user'
 
 export default function Community() {
   const {
@@ -92,6 +96,13 @@ export default function Community() {
   const [newGroupName, setNewGroupName] = useState('')
   const [newGroupDesc, setNewGroupDesc] = useState('')
   const [newGroupIcon, setNewGroupIcon] = useState('👥')
+  const [newGroupPrivacy, setNewGroupPrivacy] = useState<'public' | 'private'>('public')
+  const [showJoinByCode, setShowJoinByCode] = useState(false)
+  const [joinCode, setJoinCode] = useState('')
+  const [joinCodeLoading, setJoinCodeLoading] = useState(false)
+  const [joinCodeError, setJoinCodeError] = useState('')
+  const [createdGroup, setCreatedGroup] = useState<any>(null)
+  const [copiedCode, setCopiedCode] = useState(false)
 
   // ── Guruh ichidagi muhokama ───────────────────────────────────
   const [openGroup, setOpenGroup] = useState<any>(null)
@@ -216,7 +227,8 @@ export default function Community() {
   useEffect(() => {
     if (activeTab !== 'groups') return
     setGroupsLoading(true)
-    fetch('/api/community/groups')
+    const identity = getUserIdentityPayload()
+    fetch(`/api/community/groups${identity.userId ? `?memberId=${identity.userId}` : ''}`)
       .then(r => (r.ok ? r.json() : { data: [] }))
       .then(d => {
         setGroups(d.data || [])
@@ -260,7 +272,7 @@ export default function Community() {
       await fetch('/api/community/groups', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: groupId, delta: 1 }),
+        body: JSON.stringify({ id: groupId, delta: 1, userId: getUserIdentityPayload().userId }),
       })
     } catch {}
   }
@@ -278,7 +290,7 @@ export default function Community() {
       await fetch('/api/community/groups', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: groupId, delta: -1 }),
+        body: JSON.stringify({ id: groupId, delta: -1, userId: getUserIdentityPayload().userId }),
       })
     } catch {}
   }
@@ -290,17 +302,68 @@ export default function Community() {
       const r = await fetch('/api/community/groups', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: newGroupName, description: newGroupDesc, icon: newGroupIcon }),
+        body: JSON.stringify({
+          name: newGroupName,
+          description: newGroupDesc,
+          icon: newGroupIcon,
+          is_private: newGroupPrivacy === 'private',
+        }),
       })
       const d = await r.json()
       if (d.success && d.data) {
         setGroups(prev => [d.data, ...prev])
         joinGroup(d.data.id)
+        if (d.data.is_private) {
+          setCreatedGroup(d.data)
+          setShowCreateGroup(false)
+          setNewGroupName('')
+          setNewGroupDesc('')
+          setNewGroupPrivacy('public')
+          return
+        }
       }
     } catch {}
     setShowCreateGroup(false)
     setNewGroupName('')
     setNewGroupDesc('')
+    setNewGroupPrivacy('public')
+  }
+
+  // ── Maxfiy guruhga taklif kodi orqali qo'shilish ───────────────
+  const joinByCode = async () => {
+    const code = joinCode.trim()
+    if (!code) {
+      setJoinCodeError("Taklif kodini kiriting")
+      return
+    }
+    setJoinCodeLoading(true)
+    setJoinCodeError('')
+    try {
+      const identity = getUserIdentityPayload()
+      const r = await fetch('/api/community/groups/join', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, userId: identity.userId, userName: identity.email }),
+      })
+      const d = await r.json()
+      if (d.success && d.data) {
+        setGroups(prev => {
+          const exists = prev.some(g => g.id === d.data.id)
+          return exists ? prev : [d.data, ...prev]
+        })
+        const updated = [...joinedGroups, d.data.id]
+        setJoinedGroups(updated)
+        localStorage.setItem('community_joined_groups', JSON.stringify(updated))
+        setShowJoinByCode(false)
+        setJoinCode('')
+      } else {
+        setJoinCodeError(d.error || 'Kod topilmadi. Kodni tekshirib qayta urinib ko\'ring.')
+      }
+    } catch {
+      setJoinCodeError("Xatolik yuz berdi. Qayta urinib ko'ring.")
+    } finally {
+      setJoinCodeLoading(false)
+    }
   }
 
   // ── Guruh muhokamasini ochish (postlar yuklash) ──────────────
@@ -1490,12 +1553,24 @@ export default function Community() {
                   <p className="text-sm text-gray-500 dark:text-zinc-400 max-w-md mx-auto mb-6">
                     Birinchi guruhni siz yarating yoki admin qo\'shgan guruhlarni kuting.
                   </p>
-                  <button
-                    onClick={() => setShowCreateGroup(true)}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors shadow-sm"
-                  >
-                    <Plus className="w-4 h-4" /> Yangi guruh yaratish
-                  </button>
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                    <button
+                      onClick={() => setShowCreateGroup(true)}
+                      className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors shadow-sm"
+                    >
+                      <Plus className="w-4 h-4" /> Yangi guruh yaratish
+                    </button>
+                    <button
+                      onClick={() => {
+                        setJoinCode('')
+                        setJoinCodeError('')
+                        setShowJoinByCode(true)
+                      }}
+                      className="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-500 text-white text-sm font-medium rounded-xl hover:bg-amber-600 transition-colors shadow-sm"
+                    >
+                      <KeyRound className="w-4 h-4" /> Kod bilan qo'shilish
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <>
@@ -1522,16 +1597,29 @@ export default function Community() {
                                 <span className="text-xs text-gray-500 dark:text-zinc-400">
                                   👥 {g.member_count || 0} a\'zo
                                 </span>
-                                <span className="px-2 py-0.5 bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-400 rounded text-[10px]">
-                                  {g.category || 'Umumiy'}
-                                </span>
+                                <div className="flex items-center gap-1.5">
+                                  {g.is_private && (
+                                    <span className="px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded text-[10px] flex items-center gap-0.5">
+                                      <Lock className="w-2.5 h-2.5" /> Maxfiy
+                                    </span>
+                                  )}
+                                  <span className="px-2 py-0.5 bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-400 rounded text-[10px]">
+                                    {g.category || 'Umumiy'}
+                                  </span>
+                                </div>
                               </div>
                               <div className="flex gap-2">
                                 <button
-                                  onClick={() => (isJoined ? leaveGroup(g.id) : joinGroup(g.id))}
-                                  className={`flex-1 px-3 py-1.5 text-xs rounded-lg transition-colors ${isJoined ? 'bg-gray-200 dark:bg-zinc-700 text-gray-700 dark:text-zinc-300' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+                                  onClick={() =>
+                                    isJoined
+                                      ? leaveGroup(g.id)
+                                      : g.is_private
+                                        ? (setJoinCode(''), setJoinCodeError(''), setShowJoinByCode(true))
+                                        : joinGroup(g.id)
+                                  }
+                                  className={`flex-1 px-3 py-1.5 text-xs rounded-lg transition-colors ${isJoined ? 'bg-gray-200 dark:bg-zinc-700 text-gray-700 dark:text-zinc-300' : g.is_private ? 'bg-amber-500 text-white hover:bg-amber-600' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
                                 >
-                                  {isJoined ? "A'zo bo'lgan" : "Qo'shilish"}
+                                  {isJoined ? "A'zo bo'lgan" : g.is_private ? '🔑 Kod bilan qo\'shilish' : "Qo'shilish"}
                                 </button>
                                 {isJoined && (
                                   <button
@@ -1549,12 +1637,24 @@ export default function Community() {
                       )
                     })}
                   </div>
-                  <button
-                    onClick={() => setShowCreateGroup(true)}
-                    className="w-full mt-4 p-4 border-2 border-dashed border-gray-300 dark:border-zinc-700 rounded-xl text-sm text-gray-500 dark:text-zinc-400 hover:border-blue-400 hover:text-blue-500 transition-colors"
-                  >
-                    <Plus className="w-4 h-4 inline mr-1" /> Yangi guruh yaratish
-                  </button>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+                    <button
+                      onClick={() => setShowCreateGroup(true)}
+                      className="w-full p-4 border-2 border-dashed border-gray-300 dark:border-zinc-700 rounded-xl text-sm text-gray-500 dark:text-zinc-400 hover:border-blue-400 hover:text-blue-500 transition-colors"
+                    >
+                      <Plus className="w-4 h-4 inline mr-1" /> Yangi guruh yaratish
+                    </button>
+                    <button
+                      onClick={() => {
+                        setJoinCode('')
+                        setJoinCodeError('')
+                        setShowJoinByCode(true)
+                      }}
+                      className="w-full p-4 border-2 border-dashed border-amber-300 dark:border-amber-800 rounded-xl text-sm text-amber-600 dark:text-amber-400 hover:border-amber-400 hover:text-amber-500 transition-colors"
+                    >
+                      <KeyRound className="w-4 h-4 inline mr-1" /> Kod bilan qo'shilish
+                    </button>
+                  </div>
                 </>
               )}
             </main>
@@ -1584,6 +1684,7 @@ export default function Community() {
                     setShowCreateGroup(false)
                     setNewGroupName('')
                     setNewGroupDesc('')
+                    setNewGroupPrivacy('public')
                   }}
                   className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-zinc-300 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
                 >
@@ -1631,6 +1732,33 @@ export default function Community() {
                     ))}
                   </div>
                 </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 dark:text-zinc-300 mb-1.5">
+                    Maxfiylik
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setNewGroupPrivacy('public')}
+                      className={`p-3 rounded-xl border-2 text-left transition-all ${newGroupPrivacy === 'public' ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-gray-200 dark:border-zinc-700 hover:border-gray-300 dark:hover:border-zinc-600'}`}
+                    >
+                      <div className="text-sm font-medium text-gray-800 dark:text-zinc-200">🌍 Ommaviy</div>
+                      <div className="text-[10px] text-gray-500 dark:text-zinc-400 mt-0.5 leading-tight">
+                        Hamma ko'radi va qo'shila oladi
+                      </div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setNewGroupPrivacy('private')}
+                      className={`p-3 rounded-xl border-2 text-left transition-all ${newGroupPrivacy === 'private' ? 'border-amber-500 bg-amber-50 dark:bg-amber-900/20' : 'border-gray-200 dark:border-zinc-700 hover:border-gray-300 dark:hover:border-zinc-600'}`}
+                    >
+                      <div className="text-sm font-medium text-gray-800 dark:text-zinc-200">🔒 Maxfiy</div>
+                      <div className="text-[10px] text-gray-500 dark:text-zinc-400 mt-0.5 leading-tight">
+                        Faqat taklif kodi bilan qo'shilish
+                      </div>
+                    </button>
+                  </div>
+                </div>
               </div>
               <div className="flex justify-end gap-3 mt-6">
                 <button
@@ -1638,6 +1766,7 @@ export default function Community() {
                     setShowCreateGroup(false)
                     setNewGroupName('')
                     setNewGroupDesc('')
+                    setNewGroupPrivacy('public')
                   }}
                   className="px-4 py-2 text-sm text-gray-600 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl transition-colors"
                 >
@@ -1649,6 +1778,117 @@ export default function Community() {
                   className="px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
                 >
                   Yaratish
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Maxfiy guruh yaratildi — taklif kodi */}
+        {createdGroup && (
+          <div
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            onClick={() => setCreatedGroup(null)}
+          >
+            <div
+              className="bg-white dark:bg-zinc-900 rounded-2xl p-6 max-w-sm w-full shadow-2xl text-center"
+              onClick={e => e.stopPropagation()}
+            >
+              <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-3" />
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">
+                Maxfiy guruh yaratildi!
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-zinc-400 mb-4">
+                "{createdGroup.name}" guruhining taklif kodi:
+              </p>
+              <div className="flex items-center justify-center gap-2 mb-4">
+                <div className="font-mono text-2xl font-bold tracking-widest text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border-2 border-dashed border-amber-300 dark:border-amber-700 px-6 py-3 rounded-xl">
+                  {createdGroup.invite_code}
+                </div>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(createdGroup.invite_code || '')
+                    setCopiedCode(true)
+                    setTimeout(() => setCopiedCode(false), 2000)
+                  }}
+                  className="p-2.5 rounded-xl bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 hover:bg-amber-200 dark:hover:bg-amber-900/50 transition-colors"
+                  title="Nusxa olish"
+                >
+                  {copiedCode ? (
+                    <CheckCircle className="w-5 h-5 text-green-500" />
+                  ) : (
+                    <Copy className="w-5 h-5" />
+                  )}
+                </button>
+              </div>
+              <p className="text-xs text-gray-400 dark:text-zinc-500 mb-5 leading-relaxed">
+                Bu kodni guruhga taklif qilmoqchi bo'lgan do'stlaringizga yuboring. Faqat shu kod
+                orqali guruhga qo'shilish mumkin.
+              </p>
+              <button
+                onClick={() => setCreatedGroup(null)}
+                className="w-full px-5 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors"
+              >
+                Tushunarli
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Kod bilan qo'shilish modali */}
+        {showJoinByCode && (
+          <div
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            onClick={() => setShowJoinByCode(false)}
+          >
+            <div
+              className="bg-white dark:bg-zinc-900 rounded-2xl p-6 max-w-sm w-full shadow-2xl"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-1">
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                  <KeyRound className="w-5 h-5 text-amber-500" /> Maxfiy guruhga qo'shilish
+                </h3>
+                <button
+                  onClick={() => setShowJoinByCode(false)}
+                  className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-zinc-300 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <p className="text-sm text-gray-500 dark:text-zinc-400 mb-4">
+                Maxfiy guruhga qo'shilish uchun guruh yaratuvchisi bergan taklif kodini kiriting.
+              </p>
+              <input
+                type="text"
+                value={joinCode}
+                onChange={e => setJoinCode(e.target.value.toUpperCase())}
+                placeholder="ABCD1234"
+                maxLength={8}
+                className="w-full px-3 py-3 text-center font-mono text-lg tracking-widest uppercase rounded-xl border border-amber-300 dark:border-amber-700 bg-amber-50/50 dark:bg-amber-900/10 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-amber-500"
+              />
+              {joinCodeError && (
+                <p className="text-red-500 text-xs mt-2">{joinCodeError}</p>
+              )}
+              <div className="flex justify-end gap-3 mt-5">
+                <button
+                  onClick={() => setShowJoinByCode(false)}
+                  className="px-4 py-2 text-sm text-gray-600 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl transition-colors"
+                >
+                  Bekor qilish
+                </button>
+                <button
+                  onClick={joinByCode}
+                  disabled={joinCodeLoading || !joinCode.trim()}
+                  className="px-5 py-2 bg-amber-500 text-white text-sm font-medium rounded-xl hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+                >
+                  {joinCodeLoading ? (
+                    <span className="flex items-center gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin" /> Tekshirilmoqda...
+                    </span>
+                  ) : (
+                    "Qo'shilish"
+                  )}
                 </button>
               </div>
             </div>

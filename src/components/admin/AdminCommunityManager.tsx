@@ -62,6 +62,8 @@ type Group = {
   category: string
   member_count: number
   post_count: number
+  is_private?: boolean
+  invite_code?: string | null
   created_at: string
 }
 
@@ -125,6 +127,7 @@ export default function AdminCommunityManager() {
     description: '',
     icon: '👥',
     category: 'Umumiy',
+    is_private: false,
   })
 
   // ── Add expert form ──
@@ -307,7 +310,7 @@ export default function AdminCommunityManager() {
         body: JSON.stringify(groupForm),
       })
       setShowAddGroup(false)
-      setGroupForm({ name: '', description: '', icon: '👥', category: 'Umumiy' })
+      setGroupForm({ name: '', description: '', icon: '👥', category: 'Umumiy', is_private: false })
       await loadGroups()
     } catch {
       setError("Guruh qo'shilmadi")
@@ -672,6 +675,11 @@ export default function AdminCommunityManager() {
                     <span className="font-medium text-sm text-gray-800 dark:text-white">
                       {g.name}
                     </span>
+                    {g.is_private && (
+                      <span className="text-[10px] px-1.5 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded">
+                        🔒 Maxfiy
+                      </span>
+                    )}
                     <span className="text-[10px] px-1.5 py-0.5 bg-gray-200 dark:bg-zinc-700 text-gray-600 dark:text-zinc-300 rounded">
                       {g.category || 'Umumiy'}
                     </span>
@@ -681,6 +689,9 @@ export default function AdminCommunityManager() {
                   </p>
                   <p className="text-[10px] text-gray-400 dark:text-zinc-500 mt-0.5">
                     👥 {g.member_count || 0} a'zo • 💬 {g.post_count || 0} post
+                    {g.is_private && g.invite_code && (
+                      <span className="ml-1 font-mono text-amber-500">• 🔑 {g.invite_code}</span>
+                    )}
                   </p>
                 </div>
               </div>
@@ -1034,6 +1045,37 @@ export default function AdminCommunityManager() {
                       </button>
                     ))}
                   </div>
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 dark:text-zinc-400 mb-1">
+                  Maxfiylik
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setGroupForm(f => ({ ...f, is_private: false }))}
+                    className={`p-2.5 rounded-xl border-2 text-left transition-all ${
+                      !groupForm.is_private
+                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                        : 'border-gray-200 dark:border-zinc-700 hover:border-gray-300 dark:hover:border-zinc-600'
+                    }`}
+                  >
+                    <div className="text-sm font-medium text-gray-800 dark:text-zinc-200">🌍 Ommaviy</div>
+                    <div className="text-[10px] text-gray-500 dark:text-zinc-400 mt-0.5">Hamma ko'radi</div>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setGroupForm(f => ({ ...f, is_private: true }))}
+                    className={`p-2.5 rounded-xl border-2 text-left transition-all ${
+                      groupForm.is_private
+                        ? 'border-amber-500 bg-amber-50 dark:bg-amber-900/20'
+                        : 'border-gray-200 dark:border-zinc-700 hover:border-gray-300 dark:hover:border-zinc-600'
+                    }`}
+                  >
+                    <div className="text-sm font-medium text-gray-800 dark:text-zinc-200">🔒 Maxfiy</div>
+                    <div className="text-[10px] text-gray-500 dark:text-zinc-400 mt-0.5">Taklif kodi bilan</div>
+                  </button>
                 </div>
               </div>
             </div>

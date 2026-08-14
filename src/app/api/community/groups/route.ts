@@ -13,13 +13,15 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const id = searchParams.get('id')
     const category = searchParams.get('category')
+    const memberId = searchParams.get('memberId') || ''
 
     const supabase = await getSupabase()
     if (!supabase) {
       return NextResponse.json({ success: true, data: [] })
     }
 
-    let query = supabase.from('community_groups').select('*')
+    // 1) Ommaviy guruhlar — hamma ko'radi
+    let query = supabase.from('community_groups').select('*').eq('is_private', false)
 
     if (id) {
       query = query.eq('id', id)
@@ -28,13 +30,46 @@ export async function GET(request: NextRequest) {
       query = query.eq('category', category)
     }
 
-    query = query.order('member_count', { ascending: false }).limit(50)
+    const { data: publicGroups, error: pubErr } = await query.order('member_count', { ascending: false }).limit(50)
+    if (pubErr) throw pubErr
 
-    const { data, error } = await query
+    let groups = [...(publicGroups || [])]
 
-    if (error) throw error
+    // 2) Maxfiy guruhlar — faqat a'zo bo'lganlar ko'radi
+    if (memberId) {
+      try {
+        const { data: memberships } = await supabase
+          .from('community_group_members')
+          .select('group_id')
+          .eq('user_id', memberId)
 
-    return NextResponse.json({ success: true, data: data || [] })
+        const ids = (memberships || []).map((m: any) => m.group_id).filter(Boolean)
+        if (ids.length > 0) {
+          const { data: privateGroups } = await supabase
+            .from('community_groups')
+            .select('*')
+            .in('id', ids)
+            .eq('is_private', true)
+            .order('member_count', { ascending: false })
+            .limit(50)
+          groups = [...groups, ...(privateGroups || [])]
+        }
+      } catch {
+        /* a'zolik so'rovi xatosi — faqat ommaviy guruhlar qaytadi */
+      }
+    }
+
+    // 3) Birlashtirilgan ro'yxat (duplikat yo'q)
+    const seen = new Set<string>()
+    groups = groups
+      .filter(g => {
+        if (seen.has(g.id)) return false
+        seen.add(g.id)
+        return true
+      })
+      .sort((a, b) => (b.member_count || 0) - (a.member_count || 0))
+
+    return NextResponse.json({ success: true, data: groups })
   } catch (err: any) {
     return NextResponse.json(
       { success: false, error: err.message || 'Guruhlarni yuklashda xatolik' },
@@ -46,7 +81,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { name, description, icon, category } = body
+    const { name, description, icon, category, is_private } = body
 
     if (!name) {
       return NextResponse.json(
@@ -70,6 +105,7 @@ export async function POST(request: NextRequest) {
         description: description || '',
         icon: icon || '👥',
         category: category || 'Umumiy',
+        is_private: !!is_private,
         member_count: 0,
         post_count: 0,
       })
@@ -112,6 +148,10 @@ export async function PUT(request: NextRequest) {
     if (typeof updates.member_count !== 'undefined') {
       delete updatePayload.member_count
     }
+    // invite_code ni to'g'ridan-to'g'ri yozishga yo'l qo'yma (faqat trigger/admin generatsiya qiladi)
+    if (typeof updatePayload.invite_code !== 'undefined') {
+      delete updatePayload.invite_code
+    }
 
     const { data, error } = await supabase
       .from('community_groups')
@@ -137,7 +177,7 @@ export async function PUT(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   try {
     const body = await request.json()
-    const { id, delta } = body
+    const { id, delta, userId } = body
 
     if (!id || typeof delta !== 'number') {
       return NextResponse.json(
@@ -154,6 +194,21 @@ export async function PATCH(request: NextRequest) {
       )
     }
 
+    // 1) A'zolikni DB'da saqlash (userId berilgan bo'lsa)
+    if (userId) {
+      if (delta > 0) {
+        await supabase
+          .from('community_group_members')
+          .upsert(
+            { group_id: id, user_id: userId, role: 'member', joined_at: new Date().toISOString() },
+            { onConflict: 'group_id,user_id', ignoreDuplicates: true }
+          )
+      } else {
+        await supabase.from('community_group_members').delete().eq('group_id', id).eq('user_id', userId)
+      }
+    }
+
+    // 2) member_count ni nisbiy yangilash
     const { data: current, error: curErr } = await supabase
       .from('community_groups')
       .select('member_count')
