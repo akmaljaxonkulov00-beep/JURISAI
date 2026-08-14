@@ -11,7 +11,6 @@ import {
   HelpCircle,
   Shield,
   LogOut,
-  ShieldAlert,
   Clapperboard,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
@@ -70,14 +69,6 @@ export const NAV_GROUPS: NavGroup[] = [
         name: 'Virtual Sud',
         href: '/virtual-court',
         icon: Building2,
-        requiresAuth: true,
-        badge: null,
-      },
-      {
-        id: 'weakness-detector',
-        name: 'Argument Tahlili',
-        href: '/weakness-detector',
-        icon: ShieldAlert,
         requiresAuth: true,
         badge: null,
       },

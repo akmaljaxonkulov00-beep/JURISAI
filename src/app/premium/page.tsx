@@ -29,7 +29,6 @@ const FEATURE_MATRIX: { key: string; label: string }[] = [
   { key: 'decision_tree', label: 'Qarorlar daraxti (AI)' },
   { key: 'speech_stt', label: 'Ovozli yozuv (STT)' },
   { key: 'scenario', label: 'Senariy generator' },
-  { key: 'weakness', label: 'Argument tahlili' },
 ]
 
 // Default limitlar (pricing_plans.limits bo'lmasa ishlatiladi)
@@ -43,7 +42,6 @@ const DEFAULT_MATRIX_LIMITS: Record<string, Record<string, number>> = {
     decision_tree: 2,
     speech_stt: 5,
     scenario: 3,
-    weakness: 3,
   },
   standart: {
     ai_chat: 200,
@@ -54,7 +52,6 @@ const DEFAULT_MATRIX_LIMITS: Record<string, Record<string, number>> = {
     decision_tree: 20,
     speech_stt: 100,
     scenario: 20,
-    weakness: 20,
   },
   pro: {
     ai_chat: -1,
@@ -65,7 +62,6 @@ const DEFAULT_MATRIX_LIMITS: Record<string, Record<string, number>> = {
     decision_tree: -1,
     speech_stt: -1,
     scenario: -1,
-    weakness: -1,
   },
 }
 
@@ -83,6 +79,7 @@ export default function Premium() {
         '3 ta IRAC tahlili / oy',
         '3 ta hujjat generator / oy',
         '5 ta ovozli yozuv (STT) / oy',
+        '3 ta senariy generator / oy',
         'Asboblar, jamiyat, statistika — cheksiz',
       ],
       caseLimit: 5,
@@ -99,7 +96,7 @@ export default function Premium() {
         '20 ta qarorlar daraxti / oy',
         '100 ta ovozli yozuv (STT) / oy',
         '5 ta virtual sud sessiyasi / oy',
-        '20 ta senariy va argument tahlili / oy',
+        '20 ta senariy generator / oy',
       ],
       caseLimit: 50,
     },

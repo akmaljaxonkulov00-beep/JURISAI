@@ -24,7 +24,9 @@ interface PricingSectionProps {
 
 const PricingSection: React.FC<PricingSectionProps> = ({ className }) => {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly')
-  const [dbPlans, setDbPlans] = useState<Record<string, { price: number | null; features: string[] }>>({})
+  const [dbPlans, setDbPlans] = useState<
+    Record<string, { price: number | null; features: string[] }>
+  >({})
 
   // Narx va imkoniyatlar bazadan o'qiladi (admin o'zgartirsa realtime yangilanadi)
   const loadDbPricing = async () => {
@@ -67,6 +69,7 @@ const PricingSection: React.FC<PricingSectionProps> = ({ className }) => {
         '3 ta IRAC tahlili / oy',
         '3 ta hujjat generator / oy',
         '5 ta ovozli yozuv (STT) / oy',
+        '3 ta senariy generator / oy',
         'Asboblar, jamiyat, statistika — cheksiz',
       ],
       cta: 'Bepul boshlash',
@@ -96,7 +99,7 @@ const PricingSection: React.FC<PricingSectionProps> = ({ className }) => {
         '20 ta qarorlar daraxti / oy',
         '100 ta ovozli yozuv (STT) / oy',
         '5 ta virtual sud sessiyasi / oy',
-        '20 ta senariy va argument tahlili / oy',
+        '20 ta senariy generator / oy',
       ],
       popular: true,
       cta: 'Tanlash',

@@ -68,14 +68,61 @@ export default function ScenarioGenerator() {
   const [currentScenario, setCurrentScenario] = useState<Scenario | null>(null)
   const [isGenerating, setIsGenerating] = useState(false)
   const [scenarios, setScenarios] = useState<Scenario[]>([])
-  const [templates] = useState<any[]>([])
+  const [templates, setTemplates] = useState<any[]>([])
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (user) {
       loadScenarios()
     }
+    loadTemplates()
   }, [user])
+
+  const typeLabel = (t: string): string => {
+    switch (t) {
+      case 'civil':
+        return "Fuqarolik huquqi (shartnoma, mulk, to'lov nizolari)"
+      case 'criminal':
+        return "Jinoyat huquqi (o'g'irlik, firibgarlik, jinoyat ishi)"
+      case 'family':
+        return 'Oila huquqi (ajralish, aliment, vorislik)'
+      case 'labor':
+        return "Mehnat huquqi (ishdan bo'shatish, ish haqi, mehnat shartnomasi)"
+      case 'administrative':
+        return "Ma'muriy javobgarlik (jarimalar, litsenziyalar)"
+      default:
+        return 'Huquqiy masala'
+    }
+  }
+
+  const loadTemplates = async () => {
+    try {
+      const res = await fetch('/api/scenario-generator/templates')
+      const data = await res.json()
+      if (data && Array.isArray(data.templates)) {
+        const mapped = data.templates.map((t: any) => ({
+          id: t.id || 'template_' + Math.random().toString(36).slice(2, 8),
+          title: t.name || 'Senariy shabloni',
+          description: t.description || '',
+          scenario_type: t.scenario_type || 'civil',
+          difficulty_level:
+            t.difficulty_level === 'easy'
+              ? 'beginner'
+              : t.difficulty_level === 'medium'
+                ? 'intermediate'
+                : t.difficulty_level === 'hard'
+                  ? 'advanced'
+                  : t.difficulty_level || 'intermediate',
+          complexity: t.complexity || 'standard',
+          estimated_duration: t.duration_minutes || 45,
+          participants_count: t.participants_count || 3,
+        }))
+        setTemplates(mapped)
+      }
+    } catch (err) {
+      console.error('Templates loading error:', err)
+    }
+  }
 
   const loadScenarios = () => {
     try {
@@ -98,63 +145,134 @@ export default function ScenarioGenerator() {
     text: string,
     scenarioType: string,
     difficultyLevel: string,
-    complexity: string
+    complexity: string,
+    durationMinutes: number
   ): Scenario => {
-    // Simple parsing - extract title and description
-    const lines = text.split('\n').filter(line => line.trim())
+    // AI qaytargan struktur javobni bo'limlarga ajratish:
+    // **SENARIY NOMI:** / **KONTEKST:** / **TOMONLAR:** / **ASOSIY MUAMMO:**
+    // **QO'SHIMCHA FAKTLAR:** / **QONUNIY ASOS:** / **MAQSADLAR:**
+    const sections: Record<string, string> = {}
+    let currentKey = ''
+    text.split('\n').forEach(line => {
+      const match = line.trim().match(/^\*\*(.+?)\*\*:?\s*$/)
+      if (match) {
+        currentKey = match[1].trim().toUpperCase()
+        sections[currentKey] = ''
+      } else if (currentKey) {
+        sections[currentKey] += (sections[currentKey] ? '\n' : '') + line
+      }
+    })
 
-    // Try to find title
-    let title = `${scenarioType.charAt(0).toUpperCase() + scenarioType.slice(1)} Senariyo`
-    let description = text.substring(0, 200) + '...'
+    const getSection = (name: string): string =>
+      Object.entries(sections)
+        .find(([key]) => key.includes(name))?.[1]
+        ?.trim() || ''
 
-    // Parse participants
-    const participants = [
-      {
-        id: 'p1',
-        name: 'Tomon A',
-        role: "Da'vogar",
-        description: 'Birinchi tomon',
-        objectives: ['Maqsad 1', 'Maqsad 2'],
-        background: 'Tomon A tarixi',
-        personality_traits: ['Professional', 'Tajribali'],
-      },
-      {
-        id: 'p2',
-        name: 'Tomon B',
-        role: 'Javobgar',
-        description: 'Ikkinchi tomon',
-        objectives: ['Maqsad 1', 'Maqsad 2'],
-        background: 'Tomon B tarixi',
-        personality_traits: ['Ehtiyotkor', 'Mulohazali'],
-      },
-    ]
+    const listItems = (section: string): string[] =>
+      section
+        .split('\n')
+        .map(l => l.replace(/^[-•*\d.)]\s*/, '').trim())
+        .filter(Boolean)
+
+    // ── TOMONLAR: "- Prokuror: Akbar Toshmatov — ayblovni taqdim etadi" ──
+    // yoki "- **Xurshid**: Biznesmen, mahsulot yetkazib beruvchi"
+    const participants = listItems(getSection('TOMONLAR')).map((item, i) => {
+      let role = ''
+      let name = ''
+      let desc = ''
+      const boldMatch = item.match(/^\*\*(.+?)\*\*\s*:\s*(.*)$/)
+      if (boldMatch) {
+        name = boldMatch[1].trim()
+        desc = boldMatch[2].trim()
+      } else {
+        const colonIdx = item.indexOf(':')
+        if (colonIdx > 0) {
+          role = item.slice(0, colonIdx).trim()
+          const rest = item.slice(colonIdx + 1).trim()
+          const [n, ...d] = rest.split(/[—–-]/)
+          name = (n || '').trim()
+          desc = d.join(' — ').trim() || rest
+        } else {
+          const [n, ...d] = item.split(/[—–-]/)
+          name = (n || '').trim()
+          desc = d.join(' — ').trim()
+        }
+      }
+      return {
+        id: 'p' + (i + 1),
+        name: name || `Tomon ${i + 1}`,
+        role: role || 'Ishtirokchi',
+        description: desc,
+        objectives: desc ? [desc] : [`${name || 'Ishtirokchi'} maqsadi`],
+        background: '',
+        personality_traits: [],
+      }
+    })
+
+    const facts = listItems(getSection("QO'SHIMCHA FAKTLAR"))
+    const refs = listItems(getSection('QONUNIY ASOS'))
+    const objectives = listItems(getSection('MAQSADLAR'))
+    const title = getSection('SENARIY NOMI') || `${typeLabel(scenarioType)} bo'yicha senariy`
+    const kontekst = getSection('KONTEKST')
+    const muammo = getSection('ASOSIY MUAMMO')
 
     return {
       id: 'scenario_' + Date.now(),
       scenario_type: scenarioType,
       title,
-      description,
+      description: (kontekst || text).slice(0, 300),
       difficulty_level: difficultyLevel,
       complexity,
-      participants,
+      participants:
+        participants.length > 0
+          ? participants
+          : [
+              {
+                id: 'p1',
+                name: 'Tomon A',
+                role: "Da'vogar",
+                description: 'Ishtirokchi',
+                objectives: ["O'z manfaatini himoya qilish"],
+                background: '',
+                personality_traits: [],
+              },
+              {
+                id: 'p2',
+                name: 'Tomon B',
+                role: 'Javobgar',
+                description: 'Ishtirokchi',
+                objectives: ["O'z manfaatini himoya qilish"],
+                background: '',
+                personality_traits: [],
+              },
+            ],
       case_data: {
-        subject: 'Asosiy mavzu',
-        background: text.substring(0, 300),
-        key_issue: 'Asosiy muammo',
-        additional_facts: ['Fakt 1', 'Fakt 2'],
-        complications: ['Murakkablik 1'],
+        subject: title,
+        background: kontekst || text,
+        key_issue: muammo || 'Asosiy huquqiy masala',
+        additional_facts: facts,
+        complications: facts.slice(0, 2),
       },
-      objectives: [
-        {
-          id: 'obj1',
-          description: 'Birinchi maqsad',
-          priority: 'high',
-          success_criteria: ['Mezon 1', 'Mezon 2'],
-          legal_references: [],
-        },
-      ],
-      legal_references: ["O'zbekiston Respublikasi qonunlari"],
-      estimated_duration: 45,
+      objectives:
+        objectives.length > 0
+          ? objectives.map((desc, i) => ({
+              id: 'obj' + (i + 1),
+              description: desc,
+              priority: i === 0 ? 'high' : 'medium',
+              success_criteria: [desc + ' — amalga oshganini baholash'],
+              legal_references: refs,
+            }))
+          : [
+              {
+                id: 'obj1',
+                description: muammo || 'Asosiy masalani hal qilish',
+                priority: 'high',
+                success_criteria: ['Qonuniy yechim topilgan'],
+                legal_references: refs,
+              },
+            ],
+      legal_references: refs.length > 0 ? refs : ["O'zbekiston Respublikasi qonunlari"],
+      estimated_duration: durationMinutes,
       ai_generated: true,
       status: 'completed',
       created_at: new Date().toISOString(),
@@ -166,7 +284,7 @@ export default function ScenarioGenerator() {
     setError(null)
 
     try {
-      const topic = `${scenarioType} huquq bo'yicha`
+      const topic = `${typeLabel(scenarioType)} mavzusida real hayotga mos huquqiy senariy`
       const res = await fetch('/api/scenario-generator/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -187,7 +305,8 @@ export default function ScenarioGenerator() {
         data.text || '',
         scenarioType,
         difficultyLevel,
-        complexity
+        complexity,
+        duration
       )
 
       setCurrentScenario(scenario)

@@ -49,7 +49,6 @@ export const FEATURES: Record<string, string> = {
   decision_tree: 'Qarorlar daraxti (AI)',
   speech_stt: 'Ovozli yozuv (STT)',
   scenario: 'Senariy generator',
-  weakness: 'Argument tahlili',
 }
 
 // ── Default limitlar (baza sozlanmagan/bo'sh bo'lsa) ──────────────────────
@@ -63,7 +62,6 @@ export const DEFAULT_LIMITS: Record<string, Record<string, number>> = {
     decision_tree: 2,
     speech_stt: 5,
     scenario: 3,
-    weakness: 3,
   },
   standart: {
     ai_chat: 200,
@@ -74,7 +72,6 @@ export const DEFAULT_LIMITS: Record<string, Record<string, number>> = {
     decision_tree: 20,
     speech_stt: 100,
     scenario: 20,
-    weakness: 20,
   },
   pro: {
     ai_chat: -1,
@@ -85,7 +82,6 @@ export const DEFAULT_LIMITS: Record<string, Record<string, number>> = {
     decision_tree: -1,
     speech_stt: -1,
     scenario: -1,
-    weakness: -1,
   },
 }
 

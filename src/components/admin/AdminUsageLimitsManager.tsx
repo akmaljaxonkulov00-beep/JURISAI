@@ -7,18 +7,10 @@
 // ═══════════════════════════════════════════════════════════════════════════
 
 import { useState, useEffect, useCallback } from 'react'
-import {
-  Gauge,
-  Save,
-  RefreshCw,
-  Trash2,
-  Plus,
-  X,
-  Infinity as InfinityIcon,
-} from 'lucide-react'
+import { Gauge, Save, RefreshCw, Trash2, Plus, X, Infinity as InfinityIcon } from 'lucide-react'
 
 const FEATURES: { key: string; label: string }[] = [
-  { key: 'ai_chat', label: 'AI chat (huquqiy so\'rov)' },
+  { key: 'ai_chat', label: "AI chat (huquqiy so'rov)" },
   { key: 'irac', label: 'IRAC tahlil' },
   { key: 'document_generate', label: 'Hujjat generator' },
   { key: 'document_analysis', label: 'Hujjat tahlili' },
@@ -26,7 +18,6 @@ const FEATURES: { key: string; label: string }[] = [
   { key: 'decision_tree', label: 'Qarorlar daraxti (AI)' },
   { key: 'speech_stt', label: 'Ovozli yozuv (STT)' },
   { key: 'scenario', label: 'Senariy generator' },
-  { key: 'weakness', label: 'Argument tahlili' },
 ]
 
 interface PlanLimits {
@@ -91,9 +82,7 @@ export default function AdminUsageLimitsManager() {
 
   const setPlanLimit = (planId: string, feature: string, value: number) => {
     setPlans(prev =>
-      prev.map(p =>
-        p.id === planId ? { ...p, limits: { ...p.limits, [feature]: value } } : p
-      )
+      prev.map(p => (p.id === planId ? { ...p, limits: { ...p.limits, [feature]: value } } : p))
     )
   }
 
@@ -122,7 +111,7 @@ export default function AdminUsageLimitsManager() {
 
   const addOverride = async () => {
     if (!overrideForm.userId.trim()) {
-      setError("Foydalanuvchi ID kiritilishi shart")
+      setError('Foydalanuvchi ID kiritilishi shart')
       return
     }
     setError(null)
@@ -180,7 +169,9 @@ export default function AdminUsageLimitsManager() {
             onClick={savePlans}
             className="flex items-center gap-1.5 px-3 py-2 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition-colors"
           >
-            {saved ? '✅ Saqlandi' : (
+            {saved ? (
+              '✅ Saqlandi'
+            ) : (
               <>
                 <Save className="w-3.5 h-3.5" /> Limitlarni saqlash
               </>
@@ -205,7 +196,8 @@ export default function AdminUsageLimitsManager() {
       <div className="card-default rounded-2xl overflow-hidden">
         <div className="px-4 py-3 border-b border-gray-100 dark:border-zinc-800">
           <h4 className="text-sm font-semibold text-gray-800 dark:text-white">
-            Tarif limitlari (oylik) — <span className="text-gray-400 font-normal">-1 = Cheksiz</span>
+            Tarif limitlari (oylik) —{' '}
+            <span className="text-gray-400 font-normal">-1 = Cheksiz</span>
           </h4>
         </div>
         <div className="overflow-x-auto">
@@ -227,10 +219,7 @@ export default function AdminUsageLimitsManager() {
             </thead>
             <tbody>
               {FEATURES.map(f => (
-                <tr
-                  key={f.key}
-                  className="border-b border-gray-50 dark:border-zinc-800/60"
-                >
+                <tr key={f.key} className="border-b border-gray-50 dark:border-zinc-800/60">
                   <td className="px-4 py-2 font-medium text-gray-700 dark:text-zinc-300">
                     {f.label}
                   </td>
@@ -262,11 +251,15 @@ export default function AdminUsageLimitsManager() {
         <div className="divide-y divide-gray-50 dark:divide-zinc-800/60">
           {overrides.length === 0 && (
             <p className="px-4 py-6 text-sm text-gray-500 dark:text-zinc-400 text-center">
-              Hozircha shaxsiy limitlar yo'q. Barcha foydalanuvchilar tarif limitlaridan foydalanadi.
+              Hozircha shaxsiy limitlar yo'q. Barcha foydalanuvchilar tarif limitlaridan
+              foydalanadi.
             </p>
           )}
           {overrides.map(o => (
-            <div key={o.id} className="px-4 py-2.5 flex items-center justify-between flex-wrap gap-2">
+            <div
+              key={o.id}
+              className="px-4 py-2.5 flex items-center justify-between flex-wrap gap-2"
+            >
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-sm font-medium text-gray-800 dark:text-white truncate">

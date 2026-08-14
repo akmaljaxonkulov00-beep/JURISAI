@@ -22,8 +22,7 @@ UPDATE public.pricing_plans SET limits = '{
   "virtual_court": 2,
   "decision_tree": 2,
   "speech_stt": 5,
-  "scenario": 3,
-  "weakness": 3
+  "scenario": 3
 }'::jsonb WHERE id = 'free' AND (limits = '{}'::jsonb OR limits IS NULL);
 
 UPDATE public.pricing_plans SET limits = '{
@@ -34,8 +33,7 @@ UPDATE public.pricing_plans SET limits = '{
   "virtual_court": 5,
   "decision_tree": 20,
   "speech_stt": 100,
-  "scenario": 20,
-  "weakness": 20
+  "scenario": 20
 }'::jsonb WHERE id = 'standart' AND (limits = '{}'::jsonb OR limits IS NULL);
 
 UPDATE public.pricing_plans SET limits = '{
@@ -46,8 +44,7 @@ UPDATE public.pricing_plans SET limits = '{
   "virtual_court": -1,
   "decision_tree": -1,
   "speech_stt": -1,
-  "scenario": -1,
-  "weakness": -1
+  "scenario": -1
 }'::jsonb WHERE id = 'pro' AND (limits = '{}'::jsonb OR limits IS NULL);
 
 -- ── 3. user_usage_limits — per-user override ─────────────────────────────

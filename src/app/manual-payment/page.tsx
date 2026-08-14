@@ -126,7 +126,7 @@ function PaymentContent() {
         '20 ta qarorlar daraxti / oy',
         '100 ta ovozli yozuv (STT) / oy',
         '5 ta virtual sud sessiyasi / oy',
-        '20 ta senariy va argument tahlili / oy',
+        '20 ta senariy generator / oy',
       ],
     },
     {
