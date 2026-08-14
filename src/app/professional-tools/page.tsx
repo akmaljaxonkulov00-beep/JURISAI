@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import AppSidebar from '@/components/layout/AppSidebar'
 import { getUserIdentityPayload } from '@/lib/client-user'
+import DocumentTemplates from '@/components/features/DocumentTemplates'
 import {
   ArrowLeft,
   Calculator,
@@ -10,7 +11,6 @@ import {
   Shield,
   TrendingUp,
   Search,
-  Download,
   Upload,
   AlertTriangle,
   CheckCircle,
@@ -39,18 +39,6 @@ interface CalculatorResult {
   damages: number
   interest: number
   total: number
-}
-
-interface DocumentTemplate {
-  id: string
-  name: string
-  description: string
-  fields: {
-    name: string
-    type: 'text' | 'number' | 'date' | 'select'
-    required: boolean
-    options?: string[]
-  }[]
 }
 
 interface RiskAssessment {
@@ -85,9 +73,6 @@ export default function ProfessionalTools() {
   const [calculatorResult, setCalculatorResult] = useState<CalculatorResult | null>(null)
 
   // Document builder states
-  const [selectedTemplate, setSelectedTemplate] = useState<DocumentTemplate | null>(null)
-  const [documentData, setDocumentData] = useState<Record<string, any>>({})
-  const [generatedDocument, setGeneratedDocument] = useState<string>('')
 
   // Risk assessment states
   const [uploadedContract, setUploadedContract] = useState<File | null>(null)
@@ -137,33 +122,6 @@ export default function ProfessionalTools() {
     },
   ]
 
-  const documentTemplates: DocumentTemplate[] = [
-    {
-      id: 'contract',
-      name: 'Tijorat shartnomasi',
-      description: 'Tijorat faoliyati uchun shartnoma',
-      fields: [
-        { name: 'party1', type: 'text', required: true },
-        { name: 'party2', type: 'text', required: true },
-        { name: 'amount', type: 'number', required: true },
-        { name: 'currency', type: 'select', required: true, options: ['UZS', 'USD', 'EUR'] },
-        { name: 'startDate', type: 'date', required: true },
-        { name: 'endDate', type: 'date', required: false },
-      ],
-    },
-    {
-      id: 'loan-agreement',
-      name: 'Qarz shartnomasi',
-      description: 'Pul qarzi uchun shartnoma',
-      fields: [
-        { name: 'lender', type: 'text', required: true },
-        { name: 'borrower', type: 'text', required: true },
-        { name: 'amount', type: 'number', required: true },
-        { name: 'interestRate', type: 'number', required: true },
-        { name: 'repaymentDate', type: 'date', required: true },
-      ],
-    },
-  ]
 
   const calculateStateFee = (caseType: string, amount: number) => {
     let fee = 0
@@ -233,20 +191,6 @@ export default function ProfessionalTools() {
 
   const handleCalculate = () => {
     calculateLegalFees()
-  }
-
-  const generateDocument = () => {
-    if (!selectedTemplate) return
-
-    let docContent = `${selectedTemplate.name.toUpperCase()}\n\n`
-
-    selectedTemplate.fields.forEach(field => {
-      const value = documentData[field.name] || '[____________]'
-      docContent += `${field.name}: ${value}\n`
-    })
-
-    docContent += '\nShartnoma matni avtomatik generatsiya qilindi...'
-    setGeneratedDocument(docContent)
   }
 
   const analyzeContract = async () => {
@@ -677,113 +621,8 @@ export default function ProfessionalTools() {
                   </div>
                 )}
 
-                {/* Document Builder */}
-                {selectedTool.category === 'document' && (
-                  <div className="space-y-6">
-                    <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-sm">
-                      <h2 className="text-lg font-bold text-gray-800 dark:text-zinc-200 mb-4">
-                        Hujjat tanlang
-                      </h2>
-
-                      <div className="grid grid-cols-2 gap-4 mb-6">
-                        {documentTemplates.map(template => (
-                          <button
-                            key={template.id}
-                            onClick={() => setSelectedTemplate(template)}
-                            className={`p-4 border-2 rounded-lg transition-all ${
-                              selectedTemplate?.id === template.id
-                                ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                                : 'border-gray-200 dark:border-zinc-800 hover:border-gray-300 dark:border-zinc-700'
-                            }`}
-                          >
-                            <h3 className="font-medium text-gray-800 dark:text-zinc-200">
-                              {template.name}
-                            </h3>
-                            <p className="text-sm text-gray-600 dark:text-zinc-400 mt-1">
-                              {template.description}
-                            </p>
-                          </button>
-                        ))}
-                      </div>
-
-                      {selectedTemplate && (
-                        <div className="space-y-4">
-                          <h3 className="font-bold text-gray-800 dark:text-zinc-200">
-                            Ma\'lumotlarni kiriting
-                          </h3>
-
-                          <div className="grid grid-cols-2 gap-4">
-                            {selectedTemplate.fields.map(field => (
-                              <div key={field.name}>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
-                                  {field.name} {field.required && '*'}
-                                </label>
-                                {field.type === 'select' ? (
-                                  <select
-                                    value={documentData[field.name] || ''}
-                                    onChange={e =>
-                                      setDocumentData({
-                                        ...documentData,
-                                        [field.name]: e.target.value,
-                                      })
-                                    }
-                                    className="w-full px-4 py-2 border border-gray-200 dark:border-zinc-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                  >
-                                    <option value="">Tanlang</option>
-                                    {field.options?.map(option => (
-                                      <option key={option} value={option}>
-                                        {option}
-                                      </option>
-                                    ))}
-                                  </select>
-                                ) : (
-                                  <input
-                                    type={field.type}
-                                    value={documentData[field.name] || ''}
-                                    onChange={e =>
-                                      setDocumentData({
-                                        ...documentData,
-                                        [field.name]: e.target.value,
-                                      })
-                                    }
-                                    className="w-full px-4 py-2 border border-gray-200 dark:border-zinc-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    placeholder={field.name}
-                                  />
-                                )}
-                              </div>
-                            ))}
-                          </div>
-
-                          <button
-                            onClick={generateDocument}
-                            className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
-                          >
-                            Hujjatni yaratish
-                          </button>
-                        </div>
-                      )}
-
-                      {generatedDocument && (
-                        <div className="mt-6">
-                          <div className="flex items-center justify-between mb-4">
-                            <h3 className="font-bold text-gray-800 dark:text-zinc-200">
-                              Generatsiya qilingan hujjat
-                            </h3>
-                            <button className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
-                              <Download className="w-4 h-4" />
-                              Yuklab olish
-                            </button>
-                          </div>
-                          <div className="p-4 bg-gray-50 dark:bg-zinc-800/50 rounded-lg">
-                            <pre className="whitespace-pre-wrap text-sm text-gray-700 dark:text-zinc-300">
-                              {generatedDocument}
-                            </pre>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
+                {/* Document Templates — to\'liq shablonlar kutubxonasi */}
+                {selectedTool.category === 'document' && <DocumentTemplates />}
 
                 {/* Risk Assessment */}
                 {selectedTool.category === 'risk' && (
