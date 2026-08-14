@@ -8,7 +8,7 @@ import { Select } from '@/components/ui/Select'
 import { Badge } from '@/components/ui/Badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs'
 import { useAuth } from '@/services/auth'
-import { aiClient } from '@/lib/ai-client'
+import { getUserIdentityPayload } from '@/lib/client-user'
 
 interface Scenario {
   id: string
@@ -167,10 +167,24 @@ export default function ScenarioGenerator() {
 
     try {
       const topic = `${scenarioType} huquq bo'yicha`
-      const response = await aiClient.generateScenario(topic, difficultyLevel)
+      const res = await fetch('/api/scenario-generator/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          topic,
+          difficulty: difficultyLevel,
+          focus_areas: focusAreas,
+          ...getUserIdentityPayload(),
+        }),
+      })
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.message || data.error || 'Senariyo yaratishda xatolik yuz berdi')
+      }
 
       const scenario = parseScenarioResponse(
-        response.text,
+        data.text || '',
         scenarioType,
         difficultyLevel,
         complexity

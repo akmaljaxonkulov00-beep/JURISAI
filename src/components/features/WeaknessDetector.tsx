@@ -8,7 +8,7 @@ import { Select } from '@/components/ui/Select'
 import { Badge } from '@/components/ui/Badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs'
 import { useAuth } from '@/services/auth'
-import { aiClient } from '@/lib/ai-client'
+import { getUserIdentityPayload } from '@/lib/client-user'
 
 interface WeaknessPoint {
   id: string
@@ -194,8 +194,23 @@ export default function WeaknessDetector() {
     setError(null)
 
     try {
-      const response = await aiClient.detectWeaknesses(argumentText)
-      const detection = parseWeaknessResponse(response.text, argumentText, argumentType)
+      const res = await fetch('/api/weakness-detector/detect', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text: argumentText,
+          argument_type: argumentType,
+          analysis_depth: analysisDepth,
+          ...getUserIdentityPayload(),
+        }),
+      })
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.message || data.error || 'Zaifliklarni aniqlashda xatolik yuz berdi')
+      }
+
+      const detection = parseWeaknessResponse(data.text || '', argumentText, argumentType)
 
       setCurrentDetection(detection)
       saveDetection(detection)
@@ -215,11 +230,21 @@ export default function WeaknessDetector() {
     setError(null)
 
     try {
-      const response = await aiClient.detectWeaknesses(
-        `${currentDetection.argument_text}\n\nQuyidagi masalalarni hisobga olib, argumentni yaxshilang:\n${currentDetection.weakness_points.map(w => `- ${w.description}`).join('\n')}`
-      )
+      const res = await fetch('/api/weakness-detector/detect', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text: `${currentDetection.argument_text}\n\nQuyidagi masalalarni hisobga olib, argumentni yaxshilang:\n${currentDetection.weakness_points.map(w => `- ${w.description}`).join('\n')}`,
+          ...getUserIdentityPayload(),
+        }),
+      })
+      const data = await res.json()
 
-      setImprovedArgument(response.text)
+      if (!res.ok) {
+        throw new Error(data.message || data.error || 'Argument yaxshilashda xatolik yuz berdi')
+      }
+
+      setImprovedArgument(data.text || '')
     } catch (err) {
       console.error('Argument improvement error:', err)
       setError(err instanceof Error ? err.message : 'Argument yaxshilashda xatolik yuz berdi')

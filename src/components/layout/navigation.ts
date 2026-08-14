@@ -11,6 +11,8 @@ import {
   HelpCircle,
   Shield,
   LogOut,
+  ShieldAlert,
+  Clapperboard,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
@@ -68,6 +70,22 @@ export const NAV_GROUPS: NavGroup[] = [
         name: 'Virtual Sud',
         href: '/virtual-court',
         icon: Building2,
+        requiresAuth: true,
+        badge: null,
+      },
+      {
+        id: 'weakness-detector',
+        name: 'Argument Tahlili',
+        href: '/weakness-detector',
+        icon: ShieldAlert,
+        requiresAuth: true,
+        badge: null,
+      },
+      {
+        id: 'scenario-generator',
+        name: 'Senariy Generator',
+        href: '/scenario-generator',
+        icon: Clapperboard,
         requiresAuth: true,
         badge: null,
       },
@@ -164,10 +182,7 @@ export interface NavFilterState {
 }
 
 /** requiresAuth / adminOnly filtri — barcha komponentlar bir xil mantiq ishlatadi */
-export function filterNavGroups(
-  groups: NavGroup[],
-  state: NavFilterState
-): NavGroup[] {
+export function filterNavGroups(groups: NavGroup[], state: NavFilterState): NavGroup[] {
   return groups
     .map(group => ({
       ...group,
