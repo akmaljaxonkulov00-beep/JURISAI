@@ -124,7 +124,8 @@ export function useSpeechToText(options: SpeechToTextOptions = {}): SpeechToText
     const recognition = new SpeechRecognition()
     recognition.continuous = continuous
     recognition.interimResults = true
-    recognition.lang = lang(recognition as any).maxAlternatives = 1
+    recognition.lang = lang
+    recognition.maxAlternatives = 1
 
     recognition.onstart = () => {
       isListeningRef.current = true

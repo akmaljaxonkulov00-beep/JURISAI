@@ -8,11 +8,30 @@ async function getSupabase() {
   return createClient(supabaseUrl, supabaseKey)
 }
 
-// GET /api/community/groups/posts?groupId=...
+// Foydalanuvchi guruh a'zosimi yoki yaratuvchimi?
+async function canAccessGroup(supabase: any, groupId: string, userId: string): Promise<boolean> {
+  if (!userId) return false
+  const { data: group } = await supabase
+    .from('community_groups')
+    .select('created_by')
+    .eq('id', groupId)
+    .single()
+  if (group && group.created_by?.toString() === userId) return true
+  const { data: member } = await supabase
+    .from('community_group_members')
+    .select('id')
+    .eq('group_id', groupId)
+    .eq('user_id', userId)
+    .maybeSingle()
+  return !!member
+}
+
+// GET /api/community/groups/posts?groupId=...&memberId=...
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const groupId = searchParams.get('groupId')
+    const memberId = searchParams.get('memberId') || ''
 
     if (!groupId) {
       return NextResponse.json(
@@ -24,6 +43,15 @@ export async function GET(request: NextRequest) {
     const supabase = await getSupabase()
     if (!supabase) {
       return NextResponse.json({ success: true, data: [] })
+    }
+
+    // Faqat guruh a'zolari muhokamani ko'ra oladi
+    const allowed = await canAccessGroup(supabase, groupId, memberId)
+    if (!allowed) {
+      return NextResponse.json(
+        { success: false, error: "Bu guruh faqat a'zolar uchun" },
+        { status: 403 }
+      )
     }
 
     const { data, error } = await supabase
@@ -60,6 +88,15 @@ export async function POST(request: NextRequest) {
     const supabase = await getSupabase()
     if (!supabase) {
       return NextResponse.json({ success: false, error: 'Supabase sozlanmagan' }, { status: 500 })
+    }
+
+    // Faqat guruh a'zolari yozishi mumkin
+    const allowed = await canAccessGroup(supabase, groupId, userId || '')
+    if (!allowed) {
+      return NextResponse.json(
+        { success: false, error: "Faqat guruh a'zolari xabar yozishi mumkin" },
+        { status: 403 }
+      )
     }
 
     const { data, error } = await supabase

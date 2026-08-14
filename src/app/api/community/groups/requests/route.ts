@@ -8,11 +8,30 @@ async function getSupabase() {
   return createClient(supabaseUrl, supabaseKey)
 }
 
-// GET /api/community/groups/requests?groupId=... — guruhga yuborilgan so'rovlar
+// Foydalanuvchi guruh yaratuvchisi yoki moderatormi?
+async function canModerateGroup(supabase: any, groupId: string, userId: string): Promise<boolean> {
+  if (!userId) return false
+  const { data: group } = await supabase
+    .from('community_groups')
+    .select('created_by')
+    .eq('id', groupId)
+    .single()
+  if (group && group.created_by?.toString() === userId) return true
+  const { data: member } = await supabase
+    .from('community_group_members')
+    .select('role')
+    .eq('group_id', groupId)
+    .eq('user_id', userId)
+    .maybeSingle()
+  return !!member && ['moderator', 'admin'].includes(member.role)
+}
+
+// GET /api/community/groups/requests?groupId=...&moderatorId=... — guruhga yuborilgan so'rovlar
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const groupId = searchParams.get('groupId')
+    const moderatorId = searchParams.get('moderatorId') || ''
 
     if (!groupId) {
       return NextResponse.json(
@@ -23,6 +42,15 @@ export async function GET(request: NextRequest) {
 
     const supabase = await getSupabase()
     if (!supabase) return NextResponse.json({ success: true, data: [] })
+
+    // So'rovlarni faqat yaratuvchi/moderator ko'ra oladi
+    const allowed = await canModerateGroup(supabase, groupId, moderatorId)
+    if (!allowed) {
+      return NextResponse.json(
+        { success: false, error: "So'rovlarni faqat guruh yaratuvchisi/moderatori ko'ra oladi" },
+        { status: 403 }
+      )
+    }
 
     const { data, error } = await supabase
       .from('community_group_join_requests')
@@ -110,12 +138,12 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// PATCH — tasdiqlash / rad etish (guruh yaratuvchisi yoki admin)
-// Body: { id: requestId, status: 'approved' | 'rejected' }
+// PATCH — tasdiqlash / rad etish (guruh yaratuvchisi yoki moderator)
+// Body: { id: requestId, status: 'approved' | 'rejected', actorId? }
 export async function PATCH(request: NextRequest) {
   try {
     const body = await request.json()
-    const { id, status } = body
+    const { id, status, actorId } = body
 
     if (!id || !['approved', 'rejected'].includes(status)) {
       return NextResponse.json(
@@ -136,6 +164,15 @@ export async function PATCH(request: NextRequest) {
       .eq('id', id)
       .single()
     if (reqErr || !req) throw reqErr || new Error("So'rov topilmadi")
+
+    // 1.5) Ruxsat: faqat yaratuvchi/moderator
+    const allowed = await canModerateGroup(supabase, req.group_id, actorId || '')
+    if (!allowed) {
+      return NextResponse.json(
+        { success: false, error: "So'rovni faqat guruh yaratuvchisi/moderatori boshqarishi mumkin" },
+        { status: 403 }
+      )
+    }
 
     if (req.status === 'approved' && status === 'approved') {
       return NextResponse.json({ success: true, data: req, message: 'Allaqachon tasdiqlangan' })

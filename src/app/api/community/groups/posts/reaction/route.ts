@@ -30,10 +30,30 @@ export async function POST(request: NextRequest) {
 
     const { data: post, error: postErr } = await supabase
       .from('community_group_posts')
-      .select('reactions')
+      .select('reactions, group_id')
       .eq('id', postId)
       .single()
     if (postErr || !post) throw postErr || new Error('Post topilmadi')
+
+    // Faqat guruh a'zolari reaksiya bera oladi
+    const { data: group } = await supabase
+      .from('community_groups')
+      .select('created_by')
+      .eq('id', post.group_id)
+      .single()
+    const isCreator = group?.created_by?.toString() === userId
+    const { data: member } = await supabase
+      .from('community_group_members')
+      .select('id')
+      .eq('group_id', post.group_id)
+      .eq('user_id', userId)
+      .maybeSingle()
+    if (!isCreator && !member) {
+      return NextResponse.json(
+        { success: false, error: "Faqat guruh a'zolari reaksiya bera oladi" },
+        { status: 403 }
+      )
+    }
 
     const reactions: Record<string, string[]> =
       (post.reactions as Record<string, string[]> | null) || {}

@@ -8,11 +8,30 @@ async function getSupabase() {
   return createClient(supabaseUrl, supabaseKey)
 }
 
-// GET /api/community/groups/members?groupId=... — guruh a'zolari ro'yxati
+// Foydalanuvchi guruh a'zosimi yoki yaratuvchimi?
+async function canAccessGroup(supabase: any, groupId: string, userId: string): Promise<boolean> {
+  if (!userId) return false
+  const { data: group } = await supabase
+    .from('community_groups')
+    .select('created_by')
+    .eq('id', groupId)
+    .single()
+  if (group && group.created_by?.toString() === userId) return true
+  const { data: member } = await supabase
+    .from('community_group_members')
+    .select('id')
+    .eq('group_id', groupId)
+    .eq('user_id', userId)
+    .maybeSingle()
+  return !!member
+}
+
+// GET /api/community/groups/members?groupId=...&memberId=... — guruh a'zolari ro'yxati
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const groupId = searchParams.get('groupId')
+    const memberId = searchParams.get('memberId') || ''
 
     if (!groupId) {
       return NextResponse.json(
@@ -24,6 +43,15 @@ export async function GET(request: NextRequest) {
     const supabase = await getSupabase()
     if (!supabase) {
       return NextResponse.json({ success: true, data: [] })
+    }
+
+    // A'zolar ro'yxati faqat guruh a'zolariga ko'rinadi
+    const allowed = await canAccessGroup(supabase, groupId, memberId)
+    if (!allowed) {
+      return NextResponse.json(
+        { success: false, error: "A'zolar ro'yxati faqat guruh a'zolariga ko'rinadi" },
+        { status: 403 }
+      )
     }
 
     const { data: members, error } = await supabase
@@ -47,12 +75,12 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // Email shaxsiy ma'lumot — ko'rsatilmaydi, faqat ism/familya qaytadi
     const result = (members || []).map((m: any) => ({
       user_id: m.user_id,
       role: m.role || 'member',
       joined_at: m.joined_at,
       name: names[m.user_id]?.name || '',
-      email: names[m.user_id]?.email || '',
     }))
 
     return NextResponse.json({ success: true, data: result })

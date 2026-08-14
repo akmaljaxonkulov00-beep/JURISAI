@@ -1,6 +1,9 @@
-import React, { useState } from 'react'
+'use client'
+
+import React, { useState, useEffect } from 'react'
 import { Card, CardContent, Button, Badge } from '@/components/ui'
 import { cn } from '@/lib/utils'
+import { usePricingRealtime } from '@/hooks/usePricingRealtime'
 
 interface PricingPlan {
   id: string
@@ -21,8 +24,37 @@ interface PricingSectionProps {
 
 const PricingSection: React.FC<PricingSectionProps> = ({ className }) => {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly')
+  const [dbPlans, setDbPlans] = useState<Record<string, { price: number | null; features: string[] }>>({})
 
-  const plans: PricingPlan[] = [
+  // Narx va imkoniyatlar bazadan o'qiladi (admin o'zgartirsa realtime yangilanadi)
+  const loadDbPricing = async () => {
+    try {
+      const res = await fetch('/api/settings/pricing', { cache: 'no-cache' })
+      const result = await res.json()
+      if (result.success && Array.isArray(result.data)) {
+        const map: Record<string, { price: number | null; features: string[] }> = {}
+        for (const p of result.data) {
+          if (p.id) {
+            map[p.id] = {
+              price: typeof p.price === 'number' ? p.price : 0,
+              features: Array.isArray(p.features) && p.features.length > 0 ? p.features : [],
+            }
+          }
+        }
+        setDbPlans(map)
+      }
+    } catch {
+      /* offline — hardcoded qoladi */
+    }
+  }
+
+  useEffect(() => {
+    loadDbPricing()
+  }, [])
+
+  usePricingRealtime(loadDbPricing)
+
+  const BASE_PLANS: PricingPlan[] = [
     {
       id: 'free',
       name: 'Bepul',
@@ -108,6 +140,18 @@ const PricingSection: React.FC<PricingSectionProps> = ({ className }) => {
       ),
     },
   ]
+
+  // Baza ma'lumoti bor bo'lsa — narx va imkoniyatlar bazadan keladi,
+  // aks holda hardcoded (dizayn/ikonlar har ikkala holatda ham saqlanadi)
+  const plans: PricingPlan[] = BASE_PLANS.map(base => {
+    const db = dbPlans[base.id]
+    if (!db) return base
+    return {
+      ...base,
+      price: db.price ?? base.price,
+      features: db.features.length > 0 ? db.features : base.features,
+    }
+  })
 
   const getYearlyDiscount = (monthlyPrice: number) => {
     const yearlyPrice = monthlyPrice * 12

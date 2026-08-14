@@ -31,9 +31,7 @@ export function getIdentityFromRequest(
   try {
     const token = request.cookies?.get('sb-access-token')?.value
     if (token) {
-      const payload = JSON.parse(
-        Buffer.from(token.split('.')[1], 'base64url').toString('utf-8')
-      )
+      const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64url').toString('utf-8'))
       if (payload.sub) return { userId: payload.sub, email: payload.email || undefined }
     }
   } catch {}
@@ -43,7 +41,7 @@ export function getIdentityFromRequest(
 
 // ── Feature kalitlari va o'zbekcha nomlari ─────────────────────────────────
 export const FEATURES: Record<string, string> = {
-  ai_chat: 'AI chat (huquqiy so\'rov)',
+  ai_chat: "AI chat (huquqiy so'rov)",
   irac: 'IRAC tahlil',
   document_generate: 'Hujjat generator',
   document_analysis: 'Hujjat tahlili',
@@ -131,7 +129,9 @@ export async function getUserPlan(userId?: string, email?: string): Promise<stri
     if (!supabase) return 'free'
 
     // Avval registered_users dan (subscription_plan ustuni)
-    let query = supabase.from('registered_users').select('subscription_plan, subscription_expires_at')
+    let query = supabase
+      .from('registered_users')
+      .select('subscription_plan, subscription_expires_at')
     if (userId) query = query.eq('id', userId)
     else query = query.eq('email', email)
     const { data, error } = await query.maybeSingle()
@@ -270,7 +270,7 @@ export async function checkAndIncrement(opts: CheckOptions): Promise<UsageResult
   try {
     const supabase = await getSupabaseAdminLazy()
     if (supabase) {
-      await supabase.from('usage_logs').insert({
+      const logRow = {
         user_id: userId || email || 'anonymous',
         email: email || 'anonymous@jurisai.uz',
         name: '',
@@ -278,11 +278,25 @@ export async function checkAndIncrement(opts: CheckOptions): Promise<UsageResult
         action: feature,
         metadata: { ...metadata, plan, limit, limit_source: source },
         created_at: new Date().toISOString(),
-      })
+      }
+      const { error: insErr } = await supabase.from('usage_logs').insert(logRow)
+      if (insErr) {
+        // Eski baza: metadata ustuni bo'lmasa — metadatasiz qayta urinamiz
+        const { metadata: _drop, ...baseRow } = logRow
+        await supabase.from('usage_logs').insert(baseRow)
+      }
     }
   } catch {}
 
-  return { allowed: true, feature, used: used + 1, limit, remaining: remaining === -1 ? -1 : remaining - 1, plan, source }
+  return {
+    allowed: true,
+    feature,
+    used: used + 1,
+    limit,
+    remaining: remaining === -1 ? -1 : remaining - 1,
+    plan,
+    source,
+  }
 }
 
 /**
@@ -291,8 +305,7 @@ export async function checkAndIncrement(opts: CheckOptions): Promise<UsageResult
 export function usageMessage(r: UsageResult): string {
   const label = FEATURES[r.feature] || r.feature
   if (r.limit === -1) return `${label} — cheksiz`
-  const planName =
-    r.plan === 'pro' ? 'Pro' : r.plan === 'standart' ? 'Standart' : 'Bepul'
+  const planName = r.plan === 'pro' ? 'Pro' : r.plan === 'standart' ? 'Standart' : 'Bepul'
   return `${planName} tarifida ${label} limiti tugadi (${r.used}/${r.limit} oy). Limitni oshirish uchun Premium'ga o'ting.`
 }
 

@@ -154,7 +154,7 @@ export default function Statistics() {
         const apiStats = await api.getUserStats()
         if (apiStats?.data) {
           setApiConnected(true)
-          const apiData = apiStats.data
+          const apiData = apiStats.data as any
           setStats(prev => ({
             ...prev,
             xp: apiData.xp ?? prev.xp,

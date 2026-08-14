@@ -103,7 +103,7 @@ export default function UserProfileModal({
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch(`/api/admin/users/details?userId=${encodeURIComponent(userId)}`)
+      const res = await fetch(`/api/admin/users/details?userId=${encodeURIComponent(userId || '')}`)
       if (!res.ok) throw new Error("Ma'lumotlarni yuklashda xatolik")
       const data = await res.json()
       setDetails(data)

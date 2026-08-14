@@ -17,10 +17,11 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { getPricingPlans, type PricingPlan } from '@/lib/settings-sync'
+import { usePricingRealtime } from '@/hooks/usePricingRealtime'
 
 // Har bir funksiya bo'yicha tarif limitlari (Premium matritsasi uchun)
 const FEATURE_MATRIX: { key: string; label: string }[] = [
-  { key: 'ai_chat', label: 'AI chat (huquqiy so\'rov)' },
+  { key: 'ai_chat', label: "AI chat (huquqiy so'rov)" },
   { key: 'irac', label: 'IRAC tahlil' },
   { key: 'document_generate', label: 'Hujjat generator' },
   { key: 'document_analysis', label: 'Hujjat tahlili' },
@@ -33,9 +34,39 @@ const FEATURE_MATRIX: { key: string; label: string }[] = [
 
 // Default limitlar (pricing_plans.limits bo'lmasa ishlatiladi)
 const DEFAULT_MATRIX_LIMITS: Record<string, Record<string, number>> = {
-  free: { ai_chat: 10, irac: 3, document_generate: 3, document_analysis: 2, virtual_court: 2, decision_tree: 2, speech_stt: 5, scenario: 3, weakness: 3 },
-  standart: { ai_chat: 200, irac: -1, document_generate: 50, document_analysis: 20, virtual_court: 5, decision_tree: 20, speech_stt: 100, scenario: 20, weakness: 20 },
-  pro: { ai_chat: -1, irac: -1, document_generate: -1, document_analysis: -1, virtual_court: -1, decision_tree: -1, speech_stt: -1, scenario: -1, weakness: -1 },
+  free: {
+    ai_chat: 10,
+    irac: 3,
+    document_generate: 3,
+    document_analysis: 2,
+    virtual_court: 2,
+    decision_tree: 2,
+    speech_stt: 5,
+    scenario: 3,
+    weakness: 3,
+  },
+  standart: {
+    ai_chat: 200,
+    irac: -1,
+    document_generate: 50,
+    document_analysis: 20,
+    virtual_court: 5,
+    decision_tree: 20,
+    speech_stt: 100,
+    scenario: 20,
+    weakness: 20,
+  },
+  pro: {
+    ai_chat: -1,
+    irac: -1,
+    document_generate: -1,
+    document_analysis: -1,
+    virtual_court: -1,
+    decision_tree: -1,
+    speech_stt: -1,
+    scenario: -1,
+    weakness: -1,
+  },
 }
 
 const fmtLimit = (n: number) => (n === -1 ? 'Cheksiz' : `${n} ta/oy`)
@@ -88,9 +119,8 @@ export default function Premium() {
     },
   ])
   const [loading, setLoading] = useState(true)
-  const [matrixLimits, setMatrixLimits] = useState<Record<string, Record<string, number>>>(
-    DEFAULT_MATRIX_LIMITS
-  )
+  const [matrixLimits, setMatrixLimits] =
+    useState<Record<string, Record<string, number>>>(DEFAULT_MATRIX_LIMITS)
 
   useEffect(() => {
     loadPricingPlans()
@@ -125,6 +155,9 @@ export default function Premium() {
       }
     } catch {}
   }
+
+  // Admin narx/limit o'zgartirsa — realtime yangilanadi
+  usePricingRealtime(loadPricingPlans)
 
   const benefits = [
     {
@@ -274,7 +307,7 @@ export default function Premium() {
                       >
                         {plan.name}
                         <span className="block text-[10px] font-normal text-gray-400 dark:text-zinc-500 mt-0.5">
-                          {plan.price === 0 ? '0 so\'m' : `${plan.price.toLocaleString()} so\'m/oy`}
+                          {plan.price === 0 ? "0 so'm" : `${plan.price.toLocaleString()} so\'m/oy`}
                         </span>
                       </th>
                     ))}
@@ -286,41 +319,57 @@ export default function Premium() {
                     <td className="px-4 sm:px-6 py-3 font-medium text-gray-700 dark:text-zinc-300">
                       Qonunlar bazasi (8 kodeks, 4000+ modda)
                     </td>
-                    <td className="px-3 py-3 text-center text-green-600 dark:text-green-400">✅ To\'liq</td>
+                    <td className="px-3 py-3 text-center text-green-600 dark:text-green-400">
+                      ✅ To\'liq
+                    </td>
                     <td className="px-3 py-3 text-center text-green-600 dark:text-green-400 bg-blue-50/60 dark:bg-blue-900/10">
                       ✅ To\'liq
                     </td>
-                    <td className="px-3 py-3 text-center text-green-600 dark:text-green-400">✅ To\'liq</td>
+                    <td className="px-3 py-3 text-center text-green-600 dark:text-green-400">
+                      ✅ To\'liq
+                    </td>
                   </tr>
                   <tr className="border-b border-gray-50 dark:border-zinc-800">
                     <td className="px-4 sm:px-6 py-3 font-medium text-gray-700 dark:text-zinc-300">
                       Qidiruv (kodekslar bo\'yicha)
                     </td>
-                    <td className="px-3 py-3 text-center text-green-600 dark:text-green-400">100/kun</td>
+                    <td className="px-3 py-3 text-center text-green-600 dark:text-green-400">
+                      100/kun
+                    </td>
                     <td className="px-3 py-3 text-center text-green-600 dark:text-green-400 bg-blue-50/60 dark:bg-blue-900/10">
                       Cheksiz
                     </td>
-                    <td className="px-3 py-3 text-center text-green-600 dark:text-green-400">Cheksiz</td>
+                    <td className="px-3 py-3 text-center text-green-600 dark:text-green-400">
+                      Cheksiz
+                    </td>
                   </tr>
                   <tr className="border-b border-gray-50 dark:border-zinc-800">
                     <td className="px-4 sm:px-6 py-3 font-medium text-gray-700 dark:text-zinc-300">
                       Asboblar (kalkulyatorlar, jazo hisoblash)
                     </td>
-                    <td className="px-3 py-3 text-center text-green-600 dark:text-green-400">✅ To\'liq</td>
+                    <td className="px-3 py-3 text-center text-green-600 dark:text-green-400">
+                      ✅ To\'liq
+                    </td>
                     <td className="px-3 py-3 text-center text-green-600 dark:text-green-400 bg-blue-50/60 dark:bg-blue-900/10">
                       ✅ To\'liq
                     </td>
-                    <td className="px-3 py-3 text-center text-green-600 dark:text-green-400">✅ To\'liq</td>
+                    <td className="px-3 py-3 text-center text-green-600 dark:text-green-400">
+                      ✅ To\'liq
+                    </td>
                   </tr>
                   <tr className="border-b border-gray-50 dark:border-zinc-800">
                     <td className="px-4 sm:px-6 py-3 font-medium text-gray-700 dark:text-zinc-300">
                       Jamiyat (guruhlar, lenta, ekspertlar)
                     </td>
-                    <td className="px-3 py-3 text-center text-green-600 dark:text-green-400">✅ To\'liq</td>
+                    <td className="px-3 py-3 text-center text-green-600 dark:text-green-400">
+                      ✅ To\'liq
+                    </td>
                     <td className="px-3 py-3 text-center text-green-600 dark:text-green-400 bg-blue-50/60 dark:bg-blue-900/10">
                       ✅ To\'liq
                     </td>
-                    <td className="px-3 py-3 text-center text-green-600 dark:text-green-400">✅ To\'liq</td>
+                    <td className="px-3 py-3 text-center text-green-600 dark:text-green-400">
+                      ✅ To\'liq
+                    </td>
                   </tr>
 
                   {/* AI funksiyalar — limitlar */}
@@ -364,7 +413,9 @@ export default function Premium() {
                     <td className="px-4 sm:px-6 py-3 font-medium text-gray-700 dark:text-zinc-300">
                       PDF eksport (hujjatlar)
                     </td>
-                    <td className="px-3 py-3 text-center text-red-500 dark:text-red-400 text-xs">❌ Faqat preview</td>
+                    <td className="px-3 py-3 text-center text-red-500 dark:text-red-400 text-xs">
+                      ❌ Faqat preview
+                    </td>
                     <td className="px-3 py-3 text-center text-green-600 dark:text-green-400 bg-blue-50/60 dark:bg-blue-900/10">
                       ✅
                     </td>
@@ -374,7 +425,9 @@ export default function Premium() {
                     <td className="px-4 sm:px-6 py-3 font-medium text-gray-700 dark:text-zinc-300">
                       Shaxsiy maslahatchi / ekspert
                     </td>
-                    <td className="px-3 py-3 text-center text-red-500 dark:text-red-400 text-xs">❌</td>
+                    <td className="px-3 py-3 text-center text-red-500 dark:text-red-400 text-xs">
+                      ❌
+                    </td>
                     <td className="px-3 py-3 text-center text-red-500 dark:text-red-400 text-xs bg-blue-50/60 dark:bg-blue-900/10">
                       ❌
                     </td>
@@ -385,7 +438,6 @@ export default function Premium() {
             </div>
           </div>
         </div>
-
         {/* Benefits Section */}
         <div className="mb-16">
           <h2 className="text-3xl font-bold text-center text-gray-800 dark:text-white mb-12">
