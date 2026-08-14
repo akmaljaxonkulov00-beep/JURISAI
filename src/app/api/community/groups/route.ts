@@ -30,7 +30,9 @@ export async function GET(request: NextRequest) {
       query = query.eq('category', category)
     }
 
-    const { data: publicGroups, error: pubErr } = await query.order('member_count', { ascending: false }).limit(50)
+    const { data: publicGroups, error: pubErr } = await query
+      .order('member_count', { ascending: false })
+      .limit(50)
     if (pubErr) throw pubErr
 
     let groups = [...(publicGroups || [])]
@@ -81,7 +83,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { name, description, icon, category, is_private } = body
+    const { name, description, icon, category, is_private, userId } = body
 
     if (!name) {
       return NextResponse.json(
@@ -92,10 +94,7 @@ export async function POST(request: NextRequest) {
 
     const supabase = await getSupabase()
     if (!supabase) {
-      return NextResponse.json(
-        { success: false, error: 'Supabase sozlanmagan' },
-        { status: 500 }
-      )
+      return NextResponse.json({ success: false, error: 'Supabase sozlanmagan' }, { status: 500 })
     }
 
     const { data, error } = await supabase
@@ -106,6 +105,7 @@ export async function POST(request: NextRequest) {
         icon: icon || '👥',
         category: category || 'Umumiy',
         is_private: !!is_private,
+        created_by: userId || null,
         member_count: 0,
         post_count: 0,
       })
@@ -126,7 +126,7 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json()
-    const { id, ...updates } = body
+    const { id, userId, admin, ...updates } = body
 
     if (!id) {
       return NextResponse.json(
@@ -137,10 +137,28 @@ export async function PUT(request: NextRequest) {
 
     const supabase = await getSupabase()
     if (!supabase) {
-      return NextResponse.json(
-        { success: false, error: 'Supabase sozlanmagan' },
-        { status: 500 }
-      )
+      return NextResponse.json({ success: false, error: 'Supabase sozlanmagan' }, { status: 500 })
+    }
+
+    // ── Ruxsat tekshiruvi: faqat guruh yaratuvchisi (yoki admin panel) ──
+    if (admin !== true && admin !== '1') {
+      if (!userId) {
+        return NextResponse.json(
+          { success: false, error: "Guruhni faqat yaratuvchisi o'zgartira oladi" },
+          { status: 403 }
+        )
+      }
+      const { data: existing } = await supabase
+        .from('community_groups')
+        .select('created_by')
+        .eq('id', id)
+        .single()
+      if (!existing || existing.created_by?.toString() !== userId) {
+        return NextResponse.json(
+          { success: false, error: "Guruhni faqat yaratuvchisi o'zgartira oladi" },
+          { status: 403 }
+        )
+      }
     }
 
     // member_count — mutlaq qiymat o'rniga nisbiy o'zgartirish (increment/decrement)
@@ -193,10 +211,7 @@ export async function PATCH(request: NextRequest) {
 
     const supabase = await getSupabase()
     if (!supabase) {
-      return NextResponse.json(
-        { success: false, error: 'Supabase sozlanmagan' },
-        { status: 500 }
-      )
+      return NextResponse.json({ success: false, error: 'Supabase sozlanmagan' }, { status: 500 })
     }
 
     // 1) A'zolikni DB'da saqlash (userId berilgan bo'lsa)
@@ -209,7 +224,11 @@ export async function PATCH(request: NextRequest) {
             { onConflict: 'group_id,user_id', ignoreDuplicates: true }
           )
       } else {
-        await supabase.from('community_group_members').delete().eq('group_id', id).eq('user_id', userId)
+        await supabase
+          .from('community_group_members')
+          .delete()
+          .eq('group_id', id)
+          .eq('user_id', userId)
       }
     }
 
@@ -246,6 +265,8 @@ export async function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const id = searchParams.get('id')
+    const userId = searchParams.get('userId') || ''
+    const admin = searchParams.get('admin') === '1'
 
     if (!id) {
       return NextResponse.json(
@@ -256,10 +277,28 @@ export async function DELETE(request: NextRequest) {
 
     const supabase = await getSupabase()
     if (!supabase) {
-      return NextResponse.json(
-        { success: false, error: 'Supabase sozlanmagan' },
-        { status: 500 }
-      )
+      return NextResponse.json({ success: false, error: 'Supabase sozlanmagan' }, { status: 500 })
+    }
+
+    // ── Ruxsat tekshiruvi: faqat guruh yaratuvchisi (yoki admin panel) ──
+    if (!admin) {
+      if (!userId) {
+        return NextResponse.json(
+          { success: false, error: "Guruhni faqat yaratuvchisi o'chira oladi" },
+          { status: 403 }
+        )
+      }
+      const { data: existing } = await supabase
+        .from('community_groups')
+        .select('created_by')
+        .eq('id', id)
+        .single()
+      if (!existing || existing.created_by?.toString() !== userId) {
+        return NextResponse.json(
+          { success: false, error: "Guruhni faqat yaratuvchisi o'chira oladi" },
+          { status: 403 }
+        )
+      }
     }
 
     const { error } = await supabase.from('community_groups').delete().eq('id', id)

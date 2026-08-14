@@ -324,10 +324,14 @@ export default function AdminCommunityManager() {
   }
 
   const deleteGroup = async (id: string) => {
-    if (!confirm("Guruhni o'chirishni tasdiqlaysizmi? Bu guruhdagi barcha a'zolar, xabarlar va so'rovlar ham o'chadi."))
+    if (
+      !confirm(
+        "Guruhni o'chirishni tasdiqlaysizmi? Bu guruhdagi barcha a'zolar, xabarlar va so'rovlar ham o'chadi."
+      )
+    )
       return
     try {
-      await fetch(`/api/community/groups?id=${id}`, { method: 'DELETE' })
+      await fetch(`/api/community/groups?id=${id}&admin=1`, { method: 'DELETE' })
       setExpandedGroup(null)
       await loadGroups()
     } catch {}
@@ -372,7 +376,11 @@ export default function AdminCommunityManager() {
   }
 
   // ── Moderator tayinlash / olib tashlash (admin) ──
-  const setGroupModerator = async (groupId: string, userId: string, role: 'member' | 'moderator') => {
+  const setGroupModerator = async (
+    groupId: string,
+    userId: string,
+    role: 'member' | 'moderator'
+  ) => {
     try {
       const r = await fetch('/api/community/groups/members', {
         method: 'PATCH',
@@ -380,9 +388,7 @@ export default function AdminCommunityManager() {
         body: JSON.stringify({ groupId, userId, role, actorId: 'admin', actorName: 'Admin' }),
       })
       if (r.ok) {
-        setGroupMembers(prev =>
-          prev.map(m => (m.user_id === userId ? { ...m, role } : m))
-        )
+        setGroupMembers(prev => prev.map(m => (m.user_id === userId ? { ...m, role } : m)))
       }
     } catch {}
   }
@@ -809,7 +815,11 @@ export default function AdminCommunityManager() {
                                   {m.name || 'Foydalanuvchi'}
                                 </p>
                                 <p className="text-[10px] text-gray-400">
-                                  {isCreator ? '⭐ Yaratuvchi' : isModerator ? '🛡️ Moderator' : 'A\'zo'}
+                                  {isCreator
+                                    ? '⭐ Yaratuvchi'
+                                    : isModerator
+                                      ? '🛡️ Moderator'
+                                      : "A'zo"}
                                 </p>
                               </div>
                             </div>
@@ -828,9 +838,7 @@ export default function AdminCommunityManager() {
                                       ? 'bg-purple-100 text-purple-700 hover:bg-purple-200'
                                       : 'bg-gray-100 text-gray-600 dark:bg-zinc-800 dark:text-zinc-300 hover:bg-gray-200'
                                   }`}
-                                  title={
-                                    isModerator ? 'Moderatorlikdan olish' : 'Moderator qilish'
-                                  }
+                                  title={isModerator ? 'Moderatorlikdan olish' : 'Moderator qilish'}
                                 >
                                   <UserCheck size={13} />
                                 </button>
