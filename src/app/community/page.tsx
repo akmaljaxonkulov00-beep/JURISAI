@@ -34,6 +34,7 @@ import {
   Lock,
   Copy,
   KeyRound,
+  RefreshCw,
 } from 'lucide-react'
 import { useCommunity, CommunityPost } from '@/hooks/useCommunity'
 import AppSidebar from '@/components/layout/AppSidebar'
@@ -103,6 +104,14 @@ export default function Community() {
   const [joinCodeError, setJoinCodeError] = useState('')
   const [createdGroup, setCreatedGroup] = useState<any>(null)
   const [copiedCode, setCopiedCode] = useState(false)
+  // ── Guruh xonasi (Telegram'dek) ──
+  const [roomTab, setRoomTab] = useState<'chat' | 'members' | 'requests'>('chat')
+  const [groupMembers, setGroupMembers] = useState<any[]>([])
+  const [groupRequests, setGroupRequests] = useState<any[]>([])
+  const [membersLoading, setMembersLoading] = useState(false)
+  const [isRoomCreator, setIsRoomCreator] = useState(false)
+  const [myRequestSent, setMyRequestSent] = useState(false)
+  const [roomBusy, setRoomBusy] = useState(false)
 
   // ── Guruh ichidagi muhokama ───────────────────────────────────
   const [openGroup, setOpenGroup] = useState<any>(null)
@@ -366,12 +375,20 @@ export default function Community() {
     }
   }
 
-  // ── Guruh muhokamasini ochish (postlar yuklash) ──────────────
-  const openGroupDiscussion = async (g: any) => {
+  // ── Guruh xonasini ochish (chat + a'zolar + so'rovlar) ──────
+  const openGroupRoom = async (g: any) => {
     setOpenGroup(g)
     setGroupPosts([])
     setGroupPostsLoading(true)
     setNewGroupPost('')
+    setRoomTab('chat')
+    setGroupMembers([])
+    setGroupRequests([])
+    const identity = getUserIdentityPayload()
+    setIsRoomCreator(!!identity.userId && g.created_by === identity.userId)
+    setMyRequestSent(false)
+
+    // Postlarni yuklash
     try {
       const r = await fetch(`/api/community/groups/posts?groupId=${g.id}`, { cache: 'no-cache' })
       const d = await r.json()
@@ -381,6 +398,135 @@ export default function Community() {
     } finally {
       setGroupPostsLoading(false)
     }
+
+    // A'zolarni yuklash
+    loadGroupMembers(g.id)
+
+    // So'rovlar (yaratuvchi uchun) + mening so'rov holatim
+    if (g.is_private) {
+      try {
+        const r = await fetch(`/api/community/groups/requests?groupId=${g.id}`, {
+          cache: 'no-cache',
+        })
+        const d = await r.json()
+        const reqs = d.data || []
+        setGroupRequests(reqs)
+        if (identity.userId) {
+          const mine = reqs.find((x: any) => x.user_id === identity.userId)
+          if (mine) setMyRequestSent(mine.status === 'pending')
+        }
+      } catch {}
+    }
+  }
+
+  // ── A'zolar ro'yxatini yuklash ──
+  const loadGroupMembers = async (groupId: string) => {
+    setMembersLoading(true)
+    try {
+      const r = await fetch(`/api/community/groups/members?groupId=${groupId}`, {
+        cache: 'no-cache',
+      })
+      const d = await r.json()
+      setGroupMembers(d.data || [])
+    } catch {
+      setGroupMembers([])
+    } finally {
+      setMembersLoading(false)
+    }
+  }
+
+  // ── Qo'shilish so'rovini yuborish (maxfiy guruh) ──
+  const sendJoinRequest = async () => {
+    if (!openGroup) return
+    const identity = getUserIdentityPayload()
+    if (!identity.userId) {
+      setJoinCodeError('Kirish kerak')
+      return
+    }
+    setRoomBusy(true)
+    try {
+      const r = await fetch('/api/community/groups/requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          groupId: openGroup.id,
+          userId: identity.userId,
+          userName: identity.email || '',
+          userEmail: identity.email || '',
+        }),
+      })
+      const d = await r.json()
+      if (d.success) {
+        setMyRequestSent(true)
+      }
+    } catch {}
+    setRoomBusy(false)
+  }
+
+  // ── So'rovni tasdiqlash / rad etish (yaratuvchi) ──
+  const decideRequest = async (reqId: string, status: 'approved' | 'rejected') => {
+    setRoomBusy(true)
+    try {
+      const r = await fetch('/api/community/groups/requests', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: reqId, status }),
+      })
+      const d = await r.json()
+      if (d.success) {
+        setGroupRequests(prev =>
+          prev.map(x => (x.id === reqId ? { ...x, status } : x))
+        )
+        if (status === 'approved' && openGroup) {
+          // A'zo sonini + ro'yxatni yangilash
+          setOpenGroup((g: any) => ({
+            ...g,
+            member_count: (g?.member_count || 0) + 1,
+          }))
+          loadGroupMembers(openGroup.id)
+        }
+      }
+    } catch {}
+    setRoomBusy(false)
+  }
+
+  // ── A'zoni guruhdan chiqarish (yaratuvchi) ──
+  const removeGroupMember = async (userId: string) => {
+    if (!openGroup) return
+    if (!confirm("Bu a'zoni guruhdan chiqarishni tasdiqlaysizmi?")) return
+    setRoomBusy(true)
+    try {
+      const r = await fetch(
+        `/api/community/groups/members?groupId=${openGroup.id}&userId=${userId}`,
+        { method: 'DELETE' }
+      )
+      if (r.ok) {
+        setGroupMembers(prev => prev.filter(m => m.user_id !== userId))
+        setOpenGroup((g: any) => ({
+          ...g,
+          member_count: Math.max(0, (g?.member_count || 0) - 1),
+        }))
+      }
+    } catch {}
+    setRoomBusy(false)
+  }
+
+  // ── Taklif kodini qayta yaratish (yaratuvchi) ──
+  const regenerateGroupCode = async () => {
+    if (!openGroup) return
+    setRoomBusy(true)
+    try {
+      const r = await fetch('/api/community/groups', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: openGroup.id, regenerate_code: true }),
+      })
+      const d = await r.json()
+      if (d.success && d.data) {
+        setOpenGroup({ ...openGroup, invite_code: d.data.invite_code })
+      }
+    } catch {}
+    setRoomBusy(false)
   }
 
   // ── Guruh postlari realtime — boshqa a'zolarning yangi xabarlari darhol ko'rinadi ──
@@ -1580,7 +1726,8 @@ export default function Community() {
                       return (
                         <div
                           key={i}
-                          className="bg-white dark:bg-zinc-900 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all border border-gray-100 dark:border-zinc-800"
+                          onClick={() => openGroupRoom(g)}
+                          className="bg-white dark:bg-zinc-900 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all border border-gray-100 dark:border-zinc-800 cursor-pointer hover:border-blue-200 dark:hover:border-blue-800"
                         >
                           <div className="flex items-start gap-3">
                             <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center text-lg flex-shrink-0">
@@ -1610,24 +1757,29 @@ export default function Community() {
                               </div>
                               <div className="flex gap-2">
                                 <button
-                                  onClick={() =>
-                                    isJoined
-                                      ? leaveGroup(g.id)
-                                      : g.is_private
-                                        ? (setJoinCode(''), setJoinCodeError(''), setShowJoinByCode(true))
-                                        : joinGroup(g.id)
-                                  }
+                                  onClick={e => {
+                                    e.stopPropagation()
+                                    if (isJoined) leaveGroup(g.id)
+                                    else if (g.is_private) {
+                                      setJoinCode('')
+                                      setJoinCodeError('')
+                                      setShowJoinByCode(true)
+                                    } else joinGroup(g.id)
+                                  }}
                                   className={`flex-1 px-3 py-1.5 text-xs rounded-lg transition-colors ${isJoined ? 'bg-gray-200 dark:bg-zinc-700 text-gray-700 dark:text-zinc-300' : g.is_private ? 'bg-amber-500 text-white hover:bg-amber-600' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
                                 >
                                   {isJoined ? "A'zo bo'lgan" : g.is_private ? '🔑 Kod bilan qo\'shilish' : "Qo'shilish"}
                                 </button>
                                 {isJoined && (
                                   <button
-                                    onClick={() => openGroupDiscussion(g)}
+                                    onClick={e => {
+                                      e.stopPropagation()
+                                      openGroupRoom(g)
+                                    }}
                                     className="px-3 py-1.5 text-xs rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
-                                    title="Guruh muhokamasi"
+                                    title="Guruh xonasini ochish"
                                   >
-                                    💬 Muhokama
+                                    💬 Xona
                                   </button>
                                 )}
                               </div>
@@ -1895,100 +2047,310 @@ export default function Community() {
           </div>
         )}
 
-        {/* Guruh muhokamasi modali */}
+        {/* Guruh xonasi modali (Telegram'dek) */}
         {openGroup && (
           <div
             className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
             onClick={() => setOpenGroup(null)}
           >
             <div
-              className="bg-white dark:bg-zinc-900 rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden"
+              className="bg-white dark:bg-zinc-900 rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]"
               onClick={e => e.stopPropagation()}
             >
-              <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-zinc-800">
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="text-xl flex-shrink-0">{openGroup.icon}</span>
+              {/* Guruh sarlavhasi */}
+              <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-zinc-800 gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-11 h-11 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center text-xl flex-shrink-0">
+                    {openGroup.icon}
+                  </div>
                   <div className="min-w-0">
-                    <h3 className="font-bold text-gray-900 dark:text-white truncate">
-                      {openGroup.name}
-                    </h3>
-                    <p className="text-xs text-gray-500 dark:text-zinc-400">
-                      👥 {openGroup.member_count || 0} a\'zo • 💬 {openGroup.post_count || 0} post
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-bold text-gray-900 dark:text-white truncate">
+                        {openGroup.name}
+                      </h3>
+                      {openGroup.is_private && (
+                        <span className="px-1.5 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded text-[10px] flex items-center gap-0.5 flex-shrink-0">
+                          <Lock className="w-2.5 h-2.5" /> Maxfiy
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-zinc-400 truncate">
+                      {openGroup.description}
+                    </p>
+                    <p className="text-[11px] text-gray-400 dark:text-zinc-500 mt-0.5">
+                      👥 {openGroup.member_count || 0} a\'zo • 💬 {openGroup.post_count || 0} post •{' '}
+                      {openGroup.category || 'Umumiy'}
                     </p>
                   </div>
                 </div>
-                <button
-                  onClick={() => setOpenGroup(null)}
-                  className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-zinc-300 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </button>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  {joinedGroups.includes(openGroup.id) ? (
+                    <button
+                      onClick={() => leaveGroup(openGroup.id)}
+                      className="px-3 py-1.5 text-xs rounded-lg bg-gray-200 dark:bg-zinc-700 text-gray-700 dark:text-zinc-300 hover:bg-gray-300 dark:hover:bg-zinc-600 transition-colors"
+                    >
+                      Chiqish
+                    </button>
+                  ) : openGroup.is_private ? (
+                    <button
+                      onClick={sendJoinRequest}
+                      disabled={myRequestSent || roomBusy}
+                      className="px-3 py-1.5 text-xs rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+                    >
+                      {myRequestSent ? "So'rov yuborildi ✓" : "📩 So'rov yuborish"}
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => joinGroup(openGroup.id)}
+                      className="px-3 py-1.5 text-xs rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                    >
+                      Qo'shilish
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setOpenGroup(null)}
+                    className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-zinc-300 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
               </div>
 
-              <div className="h-72 overflow-y-auto p-4 space-y-3 bg-gray-50/50 dark:bg-zinc-950/30">
-                {groupPostsLoading ? (
-                  <div className="text-center py-10">
-                    <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-                    <p className="text-xs text-gray-500 dark:text-zinc-400">Yuklanmoqda...</p>
-                  </div>
-                ) : groupPosts.length === 0 ? (
-                  <div className="text-center py-10">
-                    <MessageCircle className="w-10 h-10 text-gray-300 dark:text-zinc-700 mx-auto mb-3" />
-                    <p className="text-sm text-gray-500 dark:text-zinc-400">
-                      Hozircha muhokama yo\'q. Birinchi xabarni siz yozing!
-                    </p>
-                  </div>
-                ) : (
-                  groupPosts.map((p: any, idx: number) => (
-                    <div
-                      key={p.id || idx}
-                      className="bg-white dark:bg-zinc-900 rounded-xl p-3 shadow-sm border border-gray-100 dark:border-zinc-800"
-                    >
-                      <div className="flex items-center justify-between mb-1.5">
-                        <span className="font-medium text-sm text-gray-800 dark:text-white flex items-center gap-1.5">
-                          <UserCircle className="w-4 h-4 text-blue-500 flex-shrink-0" />
-                          <span className="truncate">{p.user_name || 'Foydalanuvchi'}</span>
-                        </span>
-                        <span className="text-[10px] text-gray-400 flex-shrink-0">
-                          {new Date(p.created_at).toLocaleDateString('uz-UZ', {
-                            day: 'numeric',
-                            month: 'short',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-700 dark:text-zinc-300 whitespace-pre-wrap break-words">
-                        {p.content}
-                      </p>
-                    </div>
-                  ))
+              {/* Tablar */}
+              <div className="flex gap-1 px-4 pt-3 border-b border-gray-100 dark:border-zinc-800">
+                <button
+                  onClick={() => setRoomTab('chat')}
+                  className={`px-3 py-1.5 text-xs font-medium rounded-t-lg transition-colors ${roomTab === 'chat' ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-b-2 border-blue-500' : 'text-gray-500 dark:text-zinc-400 hover:text-gray-700 dark:hover:text-zinc-200'}`}
+                >
+                  💬 Muhokama
+                </button>
+                <button
+                  onClick={() => setRoomTab('members')}
+                  className={`px-3 py-1.5 text-xs font-medium rounded-t-lg transition-colors ${roomTab === 'members' ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-b-2 border-blue-500' : 'text-gray-500 dark:text-zinc-400 hover:text-gray-700 dark:hover:text-zinc-200'}`}
+                >
+                  👥 A'zolar ({groupMembers.length})
+                </button>
+                {isRoomCreator && openGroup.is_private && (
+                  <button
+                    onClick={() => setRoomTab('requests')}
+                    className={`px-3 py-1.5 text-xs font-medium rounded-t-lg transition-colors flex items-center gap-1 ${roomTab === 'requests' ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-b-2 border-blue-500' : 'text-gray-500 dark:text-zinc-400 hover:text-gray-700 dark:hover:text-zinc-200'}`}
+                  >
+                    🔔 So'rovlar
+                    {groupRequests.filter((r: any) => r.status === 'pending').length > 0 && (
+                      <span className="px-1.5 py-0.5 bg-red-500 text-white rounded-full text-[9px] leading-none">
+                        {groupRequests.filter((r: any) => r.status === 'pending').length}
+                      </span>
+                    )}
+                  </button>
                 )}
               </div>
 
-              <div className="p-4 border-t border-gray-100 dark:border-zinc-800 flex gap-2">
-                <input
-                  type="text"
-                  value={newGroupPost}
-                  onChange={e => setNewGroupPost(e.target.value)}
-                  onKeyDown={e => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault()
-                      sendGroupPost()
-                    }
-                  }}
-                  placeholder="Guruhga xabar yozing..."
-                  className="flex-1 px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <button
-                  onClick={sendGroupPost}
-                  disabled={!newGroupPost.trim() || sendingGroupPost}
-                  className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1.5"
-                >
-                  <Send className="w-4 h-4" />
-                  {sendingGroupPost ? '...' : 'Yuborish'}
-                </button>
+              {/* Mazmun */}
+              <div className="flex-1 overflow-y-auto min-h-[200px]">
+                {/* Chat */}
+                {roomTab === 'chat' && (
+                  <div className="p-4 space-y-3 bg-gray-50/50 dark:bg-zinc-950/30">
+                    {groupPostsLoading ? (
+                      <div className="text-center py-10">
+                        <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+                        <p className="text-xs text-gray-500 dark:text-zinc-400">Yuklanmoqda...</p>
+                      </div>
+                    ) : groupPosts.length === 0 ? (
+                      <div className="text-center py-10">
+                        <MessageCircle className="w-10 h-10 text-gray-300 dark:text-zinc-700 mx-auto mb-3" />
+                        <p className="text-sm text-gray-500 dark:text-zinc-400">
+                          Hozircha muhokama yo\'q. Birinchi xabarni siz yozing!
+                        </p>
+                      </div>
+                    ) : (
+                      groupPosts.map((p: any, idx: number) => (
+                        <div
+                          key={p.id || idx}
+                          className="bg-white dark:bg-zinc-900 rounded-xl p-3 shadow-sm border border-gray-100 dark:border-zinc-800"
+                        >
+                          <div className="flex items-center justify-between mb-1.5">
+                            <span className="font-medium text-sm text-gray-800 dark:text-white flex items-center gap-1.5">
+                              <UserCircle className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                              <span className="truncate">{p.user_name || 'Foydalanuvchi'}</span>
+                            </span>
+                            <span className="text-[10px] text-gray-400 flex-shrink-0">
+                              {new Date(p.created_at).toLocaleDateString('uz-UZ', {
+                                day: 'numeric',
+                                month: 'short',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              })}
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-700 dark:text-zinc-300 whitespace-pre-wrap break-words">
+                            {p.content}
+                          </p>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                )}
+
+                {/* A'zolar */}
+                {roomTab === 'members' && (
+                  <div className="p-4 space-y-3">
+                    {membersLoading ? (
+                      <div className="text-center py-10">
+                        <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+                        <p className="text-xs text-gray-500 dark:text-zinc-400">A'zolar yuklanmoqda...</p>
+                      </div>
+                    ) : groupMembers.length === 0 ? (
+                      <div className="text-center py-10 text-sm text-gray-500 dark:text-zinc-400">
+                        Hozircha a'zolar yo\'q
+                      </div>
+                    ) : (
+                      groupMembers.map(m => (
+                        <div
+                          key={m.user_id}
+                          className="flex items-center justify-between p-3 bg-gray-50 dark:bg-zinc-800/50 rounded-xl gap-2"
+                        >
+                          <div className="flex items-center gap-2 min-w-0">
+                            <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center text-sm font-medium text-blue-700 dark:text-blue-300 flex-shrink-0">
+                              {(m.name || m.email || 'U')[0].toUpperCase()}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-sm font-medium text-gray-800 dark:text-white truncate">
+                                {m.name || m.email || 'Foydalanuvchi'}
+                              </p>
+                              <p className="text-[10px] text-gray-400 truncate">
+                                {m.email || 'Guruh a\'zosi'}
+                              </p>
+                            </div>
+                          </div>
+                          {isRoomCreator && (
+                            <button
+                              onClick={() => removeGroupMember(m.user_id)}
+                              className="p-1.5 rounded-lg text-xs bg-red-100 text-red-700 hover:bg-red-200 flex-shrink-0"
+                              title="Guruhdan chiqarish"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          )}
+                        </div>
+                      ))
+                    )}
+
+                    {/* Taklif kodi — yaratuvchi uchun */}
+                    {isRoomCreator && openGroup.is_private && (
+                      <div className="p-4 bg-amber-50 dark:bg-amber-900/10 rounded-xl border border-amber-200 dark:border-amber-800">
+                        <p className="text-xs font-medium text-amber-800 dark:text-amber-300 mb-2">
+                          🔑 Taklif kodi
+                        </p>
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-lg font-bold tracking-widest text-amber-700 dark:text-amber-400">
+                            {openGroup.invite_code || '—'}
+                          </span>
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(openGroup.invite_code || '')
+                              setCopiedCode(true)
+                              setTimeout(() => setCopiedCode(false), 2000)
+                            }}
+                            className="p-1.5 rounded-lg bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 hover:bg-amber-200 dark:hover:bg-amber-900/50 transition-colors"
+                            title="Nusxa olish"
+                          >
+                            {copiedCode ? (
+                              <CheckCircle className="w-4 h-4 text-green-500" />
+                            ) : (
+                              <Copy className="w-4 h-4" />
+                            )}
+                          </button>
+                          <button
+                            onClick={regenerateGroupCode}
+                            disabled={roomBusy}
+                            className="ml-auto px-3 py-1.5 text-xs bg-amber-500 text-white rounded-lg hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1"
+                            title="Yangi taklif kodi yaratish (eski kod bekor bo'ladi)"
+                          >
+                            <RefreshCw className="w-3.5 h-3.5" /> Qayta yaratish
+                          </button>
+                        </div>
+                        <p className="text-[10px] text-amber-600 dark:text-amber-400 mt-1.5">
+                          Bu kodni guruhga taklif qilmoqchi bo'lganlarga yuboring. Kodni qayta
+                          yaratsangiz eski kod bekor bo'ladi.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* So'rovlar — yaratuvchi uchun */}
+                {roomTab === 'requests' && (
+                  <div className="p-4 space-y-3">
+                    {groupRequests.filter((r: any) => r.status === 'pending').length === 0 ? (
+                      <div className="text-center py-10">
+                        <Bell className="w-10 h-10 text-gray-300 dark:text-zinc-700 mx-auto mb-3" />
+                        <p className="text-sm text-gray-500 dark:text-zinc-400">
+                          Yangi qo'shilish so'rovlari yo'q
+                        </p>
+                      </div>
+                    ) : (
+                      groupRequests
+                        .filter((r: any) => r.status === 'pending')
+                        .map((req: any) => (
+                          <div
+                            key={req.id}
+                            className="flex items-center justify-between p-3 bg-gray-50 dark:bg-zinc-800/50 rounded-xl gap-2"
+                          >
+                            <div className="min-w-0">
+                              <p className="text-sm font-medium text-gray-800 dark:text-white truncate">
+                                {req.user_name || req.user_email || 'Foydalanuvchi'}
+                              </p>
+                              <p className="text-[10px] text-gray-400 truncate">{req.user_email}</p>
+                            </div>
+                            <div className="flex gap-2 flex-shrink-0">
+                              <button
+                                onClick={() => decideRequest(req.id, 'approved')}
+                                disabled={roomBusy}
+                                className="px-3 py-1.5 text-xs bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
+                              >
+                                Tasdiqlash
+                              </button>
+                              <button
+                                onClick={() => decideRequest(req.id, 'rejected')}
+                                disabled={roomBusy}
+                                className="px-3 py-1.5 text-xs bg-red-100 text-red-700 rounded-lg hover:bg-red-200 disabled:opacity-50 transition-colors"
+                              >
+                                Rad etish
+                              </button>
+                            </div>
+                          </div>
+                        ))
+                    )}
+                  </div>
+                )}
               </div>
+
+              {/* Xabar yozish — faqat chat tab'ida */}
+              {roomTab === 'chat' && (
+                <div className="p-4 border-t border-gray-100 dark:border-zinc-800 flex gap-2">
+                  <input
+                    type="text"
+                    value={newGroupPost}
+                    onChange={e => setNewGroupPost(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault()
+                        sendGroupPost()
+                      }
+                    }}
+                    placeholder="Guruhga xabar yozing..."
+                    className="flex-1 px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <button
+                    onClick={sendGroupPost}
+                    disabled={!newGroupPost.trim() || sendingGroupPost}
+                    className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1.5"
+                  >
+                    <Send className="w-4 h-4" />
+                    {sendingGroupPost ? '...' : 'Yuborish'}
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         )}

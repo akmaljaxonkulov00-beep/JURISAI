@@ -152,6 +152,11 @@ export async function PUT(request: NextRequest) {
     if (typeof updatePayload.invite_code !== 'undefined') {
       delete updatePayload.invite_code
     }
+    // Kodni qayta yaratish: invite_code = NULL qilinsa, DB trigger avtomatik yangi kod generatsiya qiladi
+    if (updates.regenerate_code === true) {
+      delete updatePayload.regenerate_code
+      updatePayload.invite_code = null
+    }
 
     const { data, error } = await supabase
       .from('community_groups')

@@ -330,11 +330,13 @@ export default function WeaknessDetector() {
   )
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
+    <div className="p-4 sm:p-6">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-blue-900 mb-2">Weakness Detector</h1>
-          <p className="text-blue-700">
+        <div className="mb-6">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1">
+            Argument Tahlili
+          </h1>
+          <p className="text-sm text-gray-500 dark:text-zinc-400">
             O'zbekiston qonunchiligiga moslashgan argumentlardagi zaifliklarni aniqlash
           </p>
         </div>
