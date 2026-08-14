@@ -63,9 +63,7 @@ function PaymentContent() {
               const updated = {
                 ...u,
                 subscription_plan: latest.plan || u.subscription_plan || 'standart',
-                subscription_expires_at: new Date(
-                  Date.now() + 365 * 86400000
-                ).toISOString(),
+                subscription_expires_at: new Date(Date.now() + 365 * 86400000).toISOString(),
               }
               sessionStorage.setItem('jurisai_user', JSON.stringify(updated))
               sessionStorage.setItem('auth_user', JSON.stringify(updated))
@@ -121,10 +119,14 @@ function PaymentContent() {
       name: 'Standart',
       price: 45000,
       features: [
+        "200 ta AI chat so'rovi / oy",
         'Cheksiz IRAC tahlili',
-        "To'liq qonunlar bazasi",
-        'AI yordami 24/7',
-        '50 hujjat generatsiyasi',
+        '50 ta hujjat generator / oy',
+        '20 ta hujjat tahlili / oy',
+        '20 ta qarorlar daraxti / oy',
+        '100 ta ovozli yozuv (STT) / oy',
+        '5 ta virtual sud sessiyasi / oy',
+        '20 ta senariy va argument tahlili / oy',
       ],
     },
     {
@@ -132,8 +134,10 @@ function PaymentContent() {
       name: 'Pro',
       price: 140000,
       features: [
-        "Cheksiz AI so'rovlari",
-        'Cheksiz hujjat generatsiyasi',
+        "Cheksiz AI chat so'rovlari",
+        'Cheksiz IRAC, hujjat, daraxt, senariy',
+        'Cheksiz ovozli yozuv (STT)',
+        'Cheksiz virtual sud sessiyalari',
         'Shaxsiy maslahatchi',
         'Ekspert konsultatsiyasi',
       ],
@@ -349,7 +353,7 @@ function PaymentContent() {
               className="w-full"
             >
               {checkStatus === 'approved'
-                ? 'Dashboardga o\'tish'
+                ? "Dashboardga o'tish"
                 : checkStatus === 'rejected'
                   ? 'Qayta urinish'
                   : 'Dashboardga qaytish'}

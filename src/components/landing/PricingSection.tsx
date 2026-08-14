@@ -25,19 +25,19 @@ const PricingSection: React.FC<PricingSectionProps> = ({ className }) => {
   const plans: PricingPlan[] = [
     {
       id: 'free',
-      name: "Boshlang'ich",
+      name: 'Bepul',
       price: 0,
       period: 'oyiga',
-      description: "Boshlang'ich huquqshunoslar uchun bepul variant",
+      description: 'Boshlash uchun bepul reja',
       features: [
-        '5 ta IRAC tahlili',
-        'Asosiy AI yordamchisi',
-        "Huquqiy ma'lumotlar bazasi (cheklangan)",
-        'Virtual sud (1 ta sessiya)',
-        'Hujjat generatori (2 ta shakl)',
-        'Email yordami',
+        "To'liq qonunlar bazasi — cheksiz",
+        "10 ta AI chat so'rovi / oy",
+        '3 ta IRAC tahlili / oy',
+        '3 ta hujjat generator / oy',
+        '5 ta ovozli yozuv (STT) / oy',
+        'Asboblar, jamiyat, statistika — cheksiz',
       ],
-      cta: 'Bepul boshlang',
+      cta: 'Bepul boshlash',
       ctaVariant: 'outline',
       icon: (
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -51,25 +51,23 @@ const PricingSection: React.FC<PricingSectionProps> = ({ className }) => {
       ),
     },
     {
-      id: 'student',
-      name: 'Talaba',
-      price: billingCycle === 'monthly' ? 49000 : 490000,
+      id: 'standart',
+      name: 'Standart',
+      price: billingCycle === 'monthly' ? 45000 : 432000,
       period: billingCycle === 'monthly' ? 'oyiga' : 'yiliga',
-      description: "Talabalar uchun to'liq funktsional variant",
+      description: 'Faol foydalanuvchilar uchun keng imkoniyatlar',
       features: [
+        "200 ta AI chat so'rovi / oy",
         'Cheksiz IRAC tahlili',
-        "To'liq AI yordamchisi",
-        "To'liq huquqiy ma'lumotlar bazasi",
-        'Virtual sud (cheksiz sessiya)',
-        'Hujjat generatori (barcha shakllar)',
-        'Qaror daraxti',
-        'Weakness detector',
-        'Senariy generatori',
-        'Priority email yordami',
-        'Mobile ilova',
+        '50 ta hujjat generator / oy',
+        '20 ta hujjat tahlili / oy',
+        '20 ta qarorlar daraxti / oy',
+        '100 ta ovozli yozuv (STT) / oy',
+        '5 ta virtual sud sessiyasi / oy',
+        '20 ta senariy va argument tahlili / oy',
       ],
       popular: true,
-      cta: 'Tanlang',
+      cta: 'Tanlash',
       ctaVariant: 'default',
       icon: (
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -83,24 +81,20 @@ const PricingSection: React.FC<PricingSectionProps> = ({ className }) => {
       ),
     },
     {
-      id: 'professional',
-      name: 'Professional',
-      price: billingCycle === 'monthly' ? 149000 : 1490000,
+      id: 'pro',
+      name: 'Pro',
+      price: billingCycle === 'monthly' ? 140000 : 1344000,
       period: billingCycle === 'monthly' ? 'oyiga' : 'yiliga',
       description: 'Professional huquqshunoslar va advokatlar uchun',
       features: [
-        'Barcha Talaba funksiyalari',
-        'Advanced AI tahlili',
-        'Custom shablonlar',
-        'Team collaboration (5 ta foydalanuvchi)',
-        'API access',
-        'Custom integrations',
-        'Priority support (24/7)',
-        'Advanced analytics',
-        'White label option',
-        'Custom training sessions',
+        "Cheksiz AI chat so'rovlari",
+        'Cheksiz IRAC, hujjat, daraxt, senariy',
+        'Cheksiz ovozli yozuv (STT)',
+        'Cheksiz virtual sud sessiyalari',
+        'Shaxsiy maslahatchi',
+        'Ekspert konsultatsiyasi',
       ],
-      cta: 'Tanlang',
+      cta: 'Tanlash',
       ctaVariant: 'outline',
       icon: (
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -109,37 +103,6 @@ const PricingSection: React.FC<PricingSectionProps> = ({ className }) => {
             strokeLinejoin="round"
             strokeWidth={2}
             d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-          />
-        </svg>
-      ),
-    },
-    {
-      id: 'enterprise',
-      name: 'Enterprise',
-      price: null,
-      period: 'custom',
-      description: 'Katta korporatsiyalar va davlat organlari uchun',
-      features: [
-        'Barcha Professional funksiyalari',
-        'Cheksiz foydalanuvchilar',
-        'Dedicated server',
-        'On-premise deployment',
-        'Custom development',
-        'SLA guarantee',
-        'Dedicated support team',
-        'Compliance tools',
-        'Advanced security',
-        'Custom training programs',
-      ],
-      cta: 'Aloqaga chiqing',
-      ctaVariant: 'outline',
-      icon: (
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
           />
         </svg>
       ),
@@ -206,7 +169,7 @@ const PricingSection: React.FC<PricingSectionProps> = ({ className }) => {
         </div>
 
         {/* Pricing Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {plans.map(plan => (
             <Card
               key={plan.id}

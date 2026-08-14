@@ -50,7 +50,7 @@ export default function Help() {
     {
       question: 'Platformadan bepul foydalana olamanmi?',
       answer:
-        "Ha! Bepul reja bilan 5 ta IRAC tahlili, 10 ta AI so'rovi va qonunlar bazasidan foydalanishingiz mumkin. Pro rejaga o'tish orqali cheksiz imkoniyatlarga ega bo'lasiz.",
+        "Ha! Bepul reja bilan to'liq qonunlar bazasi, 10 ta AI chat so'rovi, 3 ta IRAC tahlili, 3 ta hujjat generator va 5 ta ovozli yozuvdan foydalanishingiz mumkin. Standart (45 000 so'm/oy) va Pro (140 000 so'm/oy) rejalariga o'tish orqali cheksiz imkoniyatlarga ega bo'lasiz.",
       category: 'getting-started',
     },
     {

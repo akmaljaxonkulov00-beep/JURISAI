@@ -683,9 +683,9 @@ CREATE POLICY user_notifications_delete ON public.user_notifications FOR DELETE 
 -- 9. DEFAULT MA'LUMOTLAR (seed) — demo ma'lumotlar YO'Q
 -- ═══════════════════════════════════════════════════════════════════════════
 INSERT INTO public.pricing_plans (id, name, price, features, case_limit, sort_order) VALUES
-  ('free', 'Bepul', 0, '["5 ta IRAC tahlili", "Asosiy qonunlar bazasi", "10 ta AI so''rovi"]', 5, 1),
-  ('standart', 'Standart', 45000, '["Cheksiz IRAC tahlili", "To''liq qonunlar bazasi", "AI yordami 24/7", "50 hujjat"]', 50, 2),
-  ('pro', 'Pro', 140000, '["Cheksiz AI so''rovlari", "Cheksiz hujjat", "Shaxsiy maslahatchi", "Ekspert konsultatsiyasi"]', -1, 3)
+  ('free', 'Bepul', 0, '["To''liq qonunlar bazasi — cheksiz", "10 ta AI chat so''rovi / oy", "3 ta IRAC tahlili / oy", "3 ta hujjat generator / oy", "5 ta ovozli yozuv (STT) / oy", "Asboblar, jamiyat, statistika — cheksiz"]', 5, 1),
+  ('standart', 'Standart', 45000, '["200 ta AI chat so''rovi / oy", "Cheksiz IRAC tahlili", "50 ta hujjat generator / oy", "20 ta hujjat tahlili / oy", "20 ta qarorlar daraxti / oy", "100 ta ovozli yozuv (STT) / oy", "5 ta virtual sud sessiyasi / oy", "20 ta senariy va argument tahlili / oy"]', 50, 2),
+  ('pro', 'Pro', 140000, '["Cheksiz AI chat so''rovlari", "Cheksiz IRAC, hujjat, daraxt, senariy", "Cheksiz ovozli yozuv (STT)", "Cheksiz virtual sud sessiyalari", "Shaxsiy maslahatchi", "Ekspert konsultatsiyasi"]', -1, 3)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO public.site_settings (id, announcement_banner, hero_title, hero_subtitle, contact_email, payment_card_number, payment_details) VALUES
