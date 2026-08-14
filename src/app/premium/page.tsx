@@ -18,6 +18,28 @@ import {
 import Link from 'next/link'
 import { getPricingPlans, type PricingPlan } from '@/lib/settings-sync'
 
+// Har bir funksiya bo'yicha tarif limitlari (Premium matritsasi uchun)
+const FEATURE_MATRIX: { key: string; label: string }[] = [
+  { key: 'ai_chat', label: 'AI chat (huquqiy so\'rov)' },
+  { key: 'irac', label: 'IRAC tahlil' },
+  { key: 'document_generate', label: 'Hujjat generator' },
+  { key: 'document_analysis', label: 'Hujjat tahlili' },
+  { key: 'virtual_court', label: 'Virtual sud' },
+  { key: 'decision_tree', label: 'Qarorlar daraxti (AI)' },
+  { key: 'speech_stt', label: 'Ovozli yozuv (STT)' },
+  { key: 'scenario', label: 'Senariy generator' },
+  { key: 'weakness', label: 'Argument tahlili' },
+]
+
+// Default limitlar (pricing_plans.limits bo'lmasa ishlatiladi)
+const DEFAULT_MATRIX_LIMITS: Record<string, Record<string, number>> = {
+  free: { ai_chat: 10, irac: 3, document_generate: 3, document_analysis: 2, virtual_court: 2, decision_tree: 2, speech_stt: 5, scenario: 3, weakness: 3 },
+  standart: { ai_chat: 200, irac: -1, document_generate: 50, document_analysis: 20, virtual_court: 5, decision_tree: 20, speech_stt: 100, scenario: 20, weakness: 20 },
+  pro: { ai_chat: -1, irac: -1, document_generate: -1, document_analysis: -1, virtual_court: -1, decision_tree: -1, speech_stt: -1, scenario: -1, weakness: -1 },
+}
+
+const fmtLimit = (n: number) => (n === -1 ? 'Cheksiz' : `${n} ta/oy`)
+
 export default function Premium() {
   const [plans, setPlans] = useState<PricingPlan[]>([
     {
@@ -48,6 +70,9 @@ export default function Premium() {
     },
   ])
   const [loading, setLoading] = useState(true)
+  const [matrixLimits, setMatrixLimits] = useState<Record<string, Record<string, number>>>(
+    DEFAULT_MATRIX_LIMITS
+  )
 
   useEffect(() => {
     loadPricingPlans()
@@ -64,6 +89,23 @@ export default function Premium() {
     } finally {
       setLoading(false)
     }
+
+    // Tarif limitlarini (pricing_plans.limits) yuklash
+    try {
+      const res = await fetch('/api/settings/pricing', { cache: 'no-cache' })
+      const result = await res.json()
+      if (result.success && Array.isArray(result.data)) {
+        const limits: Record<string, Record<string, number>> = {}
+        for (const p of result.data) {
+          if (p.id && p.limits && typeof p.limits === 'object') {
+            limits[p.id] = { ...(DEFAULT_MATRIX_LIMITS[p.id] || {}), ...p.limits }
+          } else if (p.id) {
+            limits[p.id] = DEFAULT_MATRIX_LIMITS[p.id] || {}
+          }
+        }
+        if (Object.keys(limits).length > 0) setMatrixLimits(limits)
+      }
+    } catch {}
   }
 
   const benefits = [
@@ -186,6 +228,146 @@ export default function Premium() {
             )
           })}
         </div>
+        {/* ── TO'LIQ FUNKSIYA MATRITSASI ── */}
+        <div className="mb-16">
+          <h2 className="text-3xl font-bold text-center text-gray-800 dark:text-white mb-4">
+            Tariflarni solishtiring
+          </h2>
+          <p className="text-center text-gray-500 dark:text-zinc-400 mb-8">
+            Har bir tarifda qaysi funksiyalar ochiq va qanday limitlar bor — barchasi aniq
+          </p>
+
+          <div className="card-default rounded-2xl overflow-hidden shadow-lg">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-gray-50 dark:bg-zinc-800/60 border-b border-gray-100 dark:border-zinc-700">
+                    <th className="text-left px-4 sm:px-6 py-4 text-xs font-semibold text-gray-500 dark:text-zinc-400 uppercase tracking-wider min-w-[200px]">
+                      Funksiya
+                    </th>
+                    {plans.map((plan, i) => (
+                      <th
+                        key={plan.id}
+                        className={`px-3 sm:px-5 py-4 text-center text-sm font-bold ${
+                          i === 1
+                            ? 'text-blue-600 dark:text-blue-300 bg-blue-50/60 dark:bg-blue-900/10'
+                            : 'text-gray-800 dark:text-white'
+                        }`}
+                      >
+                        {plan.name}
+                        <span className="block text-[10px] font-normal text-gray-400 dark:text-zinc-500 mt-0.5">
+                          {plan.price === 0 ? '0 so\'m' : `${plan.price.toLocaleString()} so\'m/oy`}
+                        </span>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {/* Asosiy (cheksiz) funksiyalar */}
+                  <tr className="border-b border-gray-50 dark:border-zinc-800">
+                    <td className="px-4 sm:px-6 py-3 font-medium text-gray-700 dark:text-zinc-300">
+                      Qonunlar bazasi (8 kodeks, 4000+ modda)
+                    </td>
+                    <td className="px-3 py-3 text-center text-green-600 dark:text-green-400">✅ To\'liq</td>
+                    <td className="px-3 py-3 text-center text-green-600 dark:text-green-400 bg-blue-50/60 dark:bg-blue-900/10">
+                      ✅ To\'liq
+                    </td>
+                    <td className="px-3 py-3 text-center text-green-600 dark:text-green-400">✅ To\'liq</td>
+                  </tr>
+                  <tr className="border-b border-gray-50 dark:border-zinc-800">
+                    <td className="px-4 sm:px-6 py-3 font-medium text-gray-700 dark:text-zinc-300">
+                      Qidiruv (kodekslar bo\'yicha)
+                    </td>
+                    <td className="px-3 py-3 text-center text-green-600 dark:text-green-400">100/kun</td>
+                    <td className="px-3 py-3 text-center text-green-600 dark:text-green-400 bg-blue-50/60 dark:bg-blue-900/10">
+                      Cheksiz
+                    </td>
+                    <td className="px-3 py-3 text-center text-green-600 dark:text-green-400">Cheksiz</td>
+                  </tr>
+                  <tr className="border-b border-gray-50 dark:border-zinc-800">
+                    <td className="px-4 sm:px-6 py-3 font-medium text-gray-700 dark:text-zinc-300">
+                      Asboblar (kalkulyatorlar, jazo hisoblash)
+                    </td>
+                    <td className="px-3 py-3 text-center text-green-600 dark:text-green-400">✅ To\'liq</td>
+                    <td className="px-3 py-3 text-center text-green-600 dark:text-green-400 bg-blue-50/60 dark:bg-blue-900/10">
+                      ✅ To\'liq
+                    </td>
+                    <td className="px-3 py-3 text-center text-green-600 dark:text-green-400">✅ To\'liq</td>
+                  </tr>
+                  <tr className="border-b border-gray-50 dark:border-zinc-800">
+                    <td className="px-4 sm:px-6 py-3 font-medium text-gray-700 dark:text-zinc-300">
+                      Jamiyat (guruhlar, lenta, ekspertlar)
+                    </td>
+                    <td className="px-3 py-3 text-center text-green-600 dark:text-green-400">✅ To\'liq</td>
+                    <td className="px-3 py-3 text-center text-green-600 dark:text-green-400 bg-blue-50/60 dark:bg-blue-900/10">
+                      ✅ To\'liq
+                    </td>
+                    <td className="px-3 py-3 text-center text-green-600 dark:text-green-400">✅ To\'liq</td>
+                  </tr>
+
+                  {/* AI funksiyalar — limitlar */}
+                  {FEATURE_MATRIX.map(f => (
+                    <tr
+                      key={f.key}
+                      className="border-b border-gray-50 dark:border-zinc-800 hover:bg-gray-50/50 dark:hover:bg-zinc-800/30 transition-colors"
+                    >
+                      <td className="px-4 sm:px-6 py-3 font-medium text-gray-700 dark:text-zinc-300">
+                        {f.label}
+                      </td>
+                      {plans.map((plan, i) => (
+                        <td
+                          key={plan.id}
+                          className={`px-3 py-3 text-center ${
+                            i === 1 ? 'bg-blue-50/60 dark:bg-blue-900/10' : ''
+                          }`}
+                        >
+                          {(matrixLimits[plan.id]?.[f.key] ?? 0) === -1 ? (
+                            <span className="inline-flex items-center gap-1 text-green-600 dark:text-green-400 font-medium">
+                              <Check className="w-3.5 h-3.5" /> Cheksiz
+                            </span>
+                          ) : (
+                            <span
+                              className={`text-xs font-medium px-2.5 py-1 rounded-full ${
+                                (matrixLimits[plan.id]?.[f.key] ?? 0) > 0
+                                  ? 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400'
+                                  : 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400'
+                              }`}
+                            >
+                              {fmtLimit(matrixLimits[plan.id]?.[f.key] ?? 0)}
+                            </span>
+                          )}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+
+                  {/* Premium xususiyatlari */}
+                  <tr className="border-b border-gray-50 dark:border-zinc-800">
+                    <td className="px-4 sm:px-6 py-3 font-medium text-gray-700 dark:text-zinc-300">
+                      PDF eksport (hujjatlar)
+                    </td>
+                    <td className="px-3 py-3 text-center text-red-500 dark:text-red-400 text-xs">❌ Faqat preview</td>
+                    <td className="px-3 py-3 text-center text-green-600 dark:text-green-400 bg-blue-50/60 dark:bg-blue-900/10">
+                      ✅
+                    </td>
+                    <td className="px-3 py-3 text-center text-green-600 dark:text-green-400">✅</td>
+                  </tr>
+                  <tr>
+                    <td className="px-4 sm:px-6 py-3 font-medium text-gray-700 dark:text-zinc-300">
+                      Shaxsiy maslahatchi / ekspert
+                    </td>
+                    <td className="px-3 py-3 text-center text-red-500 dark:text-red-400 text-xs">❌</td>
+                    <td className="px-3 py-3 text-center text-red-500 dark:text-red-400 text-xs bg-blue-50/60 dark:bg-blue-900/10">
+                      ❌
+                    </td>
+                    <td className="px-3 py-3 text-center text-green-600 dark:text-green-400">✅</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
         {/* Benefits Section */}
         <div className="mb-16">
           <h2 className="text-3xl font-bold text-center text-gray-800 dark:text-white mb-12">

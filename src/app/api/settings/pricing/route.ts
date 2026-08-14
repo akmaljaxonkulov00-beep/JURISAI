@@ -27,6 +27,7 @@ export async function GET() {
       price: p.price,
       features: p.features || [],
       caseLimit: p.case_limit || p.caseLimit || -1,
+      limits: p.limits || {}, // tarif limitlari (har bir funksiya bo'yicha)
     }))
 
     return NextResponse.json({ success: true, data: plans })

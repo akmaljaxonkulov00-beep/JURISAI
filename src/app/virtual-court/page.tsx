@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
+import { getUserIdentityPayload } from '@/lib/client-user'
 import {
   ArrowLeft,
   Gavel,
@@ -419,7 +420,8 @@ export default function VirtualCourt() {
   // ── Role-specific briefing — har bir rolga o'ziga kerakli ma'lumot ──
   const getRoleBriefing = () => {
     const roleUpper = role.id.toUpperCase()
-    const briefings: Record<string, string> = {      SUDYA: `SIZNING ROLINGIZ: SUDBYA
+    const briefings: Record<string, string> = {
+      SUDYA: `SIZNING ROLINGIZ: SUDBYA
 
 Vazifangiz:
 • Sud majlisini boshqarish
@@ -624,6 +626,7 @@ Eslatma: Tomonlarni tinglang, ularga kelishuvga erishishga yordam bering va nizo
           caseDetails: getCasePrompt(),
           userRole: role.id.toUpperCase(),
           userName: userName || role.title,
+          ...getUserIdentityPayload(),
         }),
       })
       const data = await res.json()
@@ -673,6 +676,7 @@ Eslatma: Tomonlarni tinglang, ularga kelishuvga erishishga yordam bering va nizo
             argument: `${role.title} (${type}): ${txt}`,
             userRole: role.id.toUpperCase(),
             userName: userName || role.title,
+            ...getUserIdentityPayload(),
           }),
         })
         const data = await res.json()
@@ -721,6 +725,7 @@ Eslatma: Tomonlarni tinglang, ularga kelishuvga erishishga yordam bering va nizo
           action: 'get_verdict',
           simulationId: simId,
           userRole: role.id.toUpperCase(),
+          ...getUserIdentityPayload(),
         }),
       })
       const data = await res.json()

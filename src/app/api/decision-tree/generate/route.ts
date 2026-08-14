@@ -1,4 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
+import {
+  checkAndIncrement,
+  getIdentityFromRequest,
+  usageMessage,
+} from '@/lib/usage-limits'
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY || process.env.NEXT_PUBLIC_GROQ_API_KEY
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
@@ -29,16 +34,24 @@ export async function POST(request: NextRequest) {
     const caseType: string = body.case_type || 'huquqiy'
 
     if (!scenario || typeof scenario !== 'string' || scenario.trim().length < 5) {
-      return NextResponse.json(
-        { success: false, error: 'Ish tavsifi juda qisqa' },
-        { status: 400 }
-      )
+      return NextResponse.json({ success: false, error: 'Ish tavsifi juda qisqa' }, { status: 400 })
     }
 
     if (!GROQ_API_KEY) {
+      return NextResponse.json({ success: false, error: 'AI xizmati sozlanmagan' }, { status: 500 })
+    }
+
+    // ── AI limit tekshiruvi ──
+    const identity = getIdentityFromRequest(request, body)
+    const usage = await checkAndIncrement({
+      ...identity,
+      feature: 'decision_tree',
+      metadata: { case_type: caseType },
+    })
+    if (!usage.allowed) {
       return NextResponse.json(
-        { success: false, error: 'AI xizmati sozlanmagan' },
-        { status: 500 }
+        { success: false, error: 'limit_reached', message: usageMessage(usage), usage },
+        { status: 429 }
       )
     }
 
@@ -129,21 +142,27 @@ QAT'IY QOIDALAR:
     // JSON ni matndan ajratib olish (ba'zi modellar ```json blok qaytaradi)
     const jsonMatch = raw.match(/\{[\s\S]*\}/)
     if (!jsonMatch) {
-      return NextResponse.json({ success: false, error: 'AI noto‘g‘ri format qaytardi' }, { status: 502 })
+      return NextResponse.json(
+        { success: false, error: 'AI noto‘g‘ri format qaytardi' },
+        { status: 502 }
+      )
     }
 
     let tree: AiNode
     try {
       tree = JSON.parse(jsonMatch[0])
     } catch {
-      return NextResponse.json({ success: false, error: 'AI JSON parse qilinmadi' }, { status: 502 })
+      return NextResponse.json(
+        { success: false, error: 'AI JSON parse qilinmadi' },
+        { status: 502 }
+      )
     }
 
     // Validatsiya va normalizatsiya
     const normalizeNode = (node: AiNode): AiNode | null => {
       if (!node || typeof node.label !== 'string' || !node.label.trim()) return null
       const children = Array.isArray(node.children)
-        ? node.children.map(normalizeNode).filter(Boolean) as AiNode[]
+        ? (node.children.map(normalizeNode).filter(Boolean) as AiNode[])
         : []
       return {
         label: node.label.trim().slice(0, 120),
@@ -156,7 +175,10 @@ QAT'IY QOIDALAR:
         cost: typeof node.cost === 'number' && node.cost > 0 ? Math.round(node.cost) : undefined,
         legalBasis: typeof node.legalBasis === 'string' ? node.legalBasis.slice(0, 100) : undefined,
         actionItems: Array.isArray(node.actionItems)
-          ? node.actionItems.filter(a => typeof a === 'string' && a.trim()).map(a => a.trim().slice(0, 200)).slice(0, 3)
+          ? node.actionItems
+              .filter(a => typeof a === 'string' && a.trim())
+              .map(a => a.trim().slice(0, 200))
+              .slice(0, 3)
           : undefined,
         details: typeof node.details === 'string' ? node.details.slice(0, 300) : undefined,
         children: children.length > 0 ? children : undefined,
@@ -165,7 +187,10 @@ QAT'IY QOIDALAR:
 
     const normalized = normalizeNode(tree)
     if (!normalized) {
-      return NextResponse.json({ success: false, error: 'AI bo‘sh daraxt qaytardi' }, { status: 502 })
+      return NextResponse.json(
+        { success: false, error: 'AI bo‘sh daraxt qaytardi' },
+        { status: 502 }
+      )
     }
 
     return NextResponse.json({ success: true, tree: normalized })

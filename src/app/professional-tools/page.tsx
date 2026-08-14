@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import AppSidebar from '@/components/layout/AppSidebar'
+import { getUserIdentityPayload } from '@/lib/client-user'
 import {
   ArrowLeft,
   Calculator,
@@ -257,7 +258,7 @@ export default function ProfessionalTools() {
       const response = await fetch('/api/ai/document-analysis', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ documentText: text, documentType: 'contract' }),
+        body: JSON.stringify({ documentText: text, documentType: 'contract', ...getUserIdentityPayload() }),
       })
 
       if (response.ok) {
@@ -331,6 +332,7 @@ export default function ProfessionalTools() {
         body: JSON.stringify({
           message: `Sud amaliyoti bo\'yicha qidiruv: "${searchQuery}". O\'zbekiston sudlarining ushbu masala bo\'yicha qarorlari, statistikasi va umumiy tendensiyalari haqida ma'lumot bering.`,
           context: [],
+          ...getUserIdentityPayload(),
         }),
       })
 

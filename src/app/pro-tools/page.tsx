@@ -4,6 +4,7 @@ import { useState, useRef, useCallback } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
+import { getUserIdentityPayload } from '@/lib/client-user'
 import {
   Wrench,
   Calculator,
@@ -324,6 +325,7 @@ export default function ProTools() {
         body: JSON.stringify({
           documentText: text,
           documentType: f.name.split('.').pop() || 'unknown',
+          ...getUserIdentityPayload(),
         }),
       })
       if (response.ok) {

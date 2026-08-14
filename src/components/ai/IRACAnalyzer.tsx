@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
+import { getUserIdentityPayload } from '@/lib/client-user'
 
 interface IRACAnalysis {
   issue: string
@@ -39,7 +40,7 @@ export default function IRACAnalyzer() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ caseText }),
+        body: JSON.stringify({ caseText, ...getUserIdentityPayload() }),
       })
 
       if (response.ok) {

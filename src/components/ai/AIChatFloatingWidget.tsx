@@ -15,6 +15,7 @@ import {
   Minimize2,
 } from 'lucide-react'
 import { useSpeechToText } from '@/hooks/useSpeechToText'
+import { getUserIdentityPayload } from '@/lib/client-user'
 
 interface ChatMessage {
   id: string
@@ -400,7 +401,7 @@ export default function AIChatFloatingWidget() {
       const res = await fetch('/api/ai/legal-chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userText }),
+        body: JSON.stringify({ message: userText, ...getUserIdentityPayload() }),
       })
 
       const data = await res.json()

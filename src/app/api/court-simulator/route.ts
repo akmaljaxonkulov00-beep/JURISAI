@@ -1,13 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
+import {
+  checkAndIncrement,
+  getIdentityFromRequest,
+  usageMessage,
+} from '@/lib/usage-limits'
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY || process.env.NEXT_PUBLIC_GROQ_API_KEY
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
 
 // Server-side conversation history store (by simulationId)
-const conversationHistory = new Map<
-  string,
-  { role: 'user' | 'assistant'; content: string }[]
->()
+const conversationHistory = new Map<string, { role: 'user' | 'assistant'; content: string }[]>()
 
 function getHistory(simId: string): { role: 'user' | 'assistant'; content: string }[] {
   if (!conversationHistory.has(simId)) {
@@ -112,6 +114,22 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { action, caseDetails, argument, simulationId, history, userRole, userName } = body
 
+    // ── AI limit tekshiruvi (virtual sud — faqat sessiya boshlanganda) ──
+    if (action === 'start') {
+      const identity = getIdentityFromRequest(request, body)
+      const usage = await checkAndIncrement({
+        ...identity,
+        feature: 'virtual_court',
+        metadata: { case_title: typeof caseDetails === 'string' ? caseDetails.slice(0, 100) : '' },
+      })
+      if (!usage.allowed) {
+        return NextResponse.json(
+          { error: 'limit_reached', message: usageMessage(usage), usage },
+          { status: 429 }
+        )
+      }
+    }
+
     const SYSTEM_BASE = `You are JurisAI — the leading expert AI Legal Assistant strictly specialized in the COMPLETE legislation of the Republic of Uzbekistan (O'zbekiston Respublikasi Qonunchiligi).
 
 DOIMIY ISHTIROKCHILAR (constant participant names — always use these):
@@ -146,7 +164,14 @@ STRICT RULES:
       case 'start':
         return await startSimulation(caseDetails, SYSTEM_BASE, userRole, userName)
       case 'submit_argument':
-        return await submitArgument(simulationId, argument, SYSTEM_BASE, userRole, userName, history)
+        return await submitArgument(
+          simulationId,
+          argument,
+          SYSTEM_BASE,
+          userRole,
+          userName,
+          history
+        )
       case 'get_verdict':
         return await getVerdict(simulationId, SYSTEM_BASE, userRole)
       default:
@@ -263,8 +288,13 @@ async function submitArgument(
 
   // AI boshqaradigan rollar (foydalanuvchi roli EMAS) — includes ALL sim types
   const allPossibleRoles = [
-    'SUDYA', 'PROKUROR', 'ADVOKAT', 'SUDLANUVCHI', 'KOTIBA',
-    "DA'VOGAR", 'JAVOBGAR'
+    'SUDYA',
+    'PROKUROR',
+    'ADVOKAT',
+    'SUDLANUVCHI',
+    'KOTIBA',
+    "DA'VOGAR",
+    'JAVOBGAR',
   ]
   const aiRoles = allPossibleRoles.filter(r => r !== userRoleUpper)
 

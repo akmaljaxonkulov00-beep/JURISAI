@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
+import {
+  checkAndIncrement,
+  getIdentityFromRequest,
+  usageMessage,
+} from '@/lib/usage-limits'
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY || process.env.NEXT_PUBLIC_GROQ_API_KEY
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
 
 export async function POST(request: NextRequest) {
   try {
-    const { message } = await request.json()
+    const body = await request.json()
+    const { message } = body
 
     if (!message || typeof message !== 'string') {
       return NextResponse.json({ error: 'Message is required' }, { status: 400 })
@@ -14,6 +20,20 @@ export async function POST(request: NextRequest) {
     if (!GROQ_API_KEY) {
       console.error('GROQ_API_KEY not found')
       return NextResponse.json({ error: 'AI service not configured' }, { status: 500 })
+    }
+
+    // ── AI limit tekshiruvi ──
+    const identity = getIdentityFromRequest(request, body)
+    const usage = await checkAndIncrement({
+      ...identity,
+      feature: 'ai_chat',
+      metadata: { message_length: message.length },
+    })
+    if (!usage.allowed) {
+      return NextResponse.json(
+        { error: 'limit_reached', message: usageMessage(usage), usage },
+        { status: 429 }
+      )
     }
 
     const response = await fetch(GROQ_API_URL, {

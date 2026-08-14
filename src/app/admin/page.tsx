@@ -41,6 +41,7 @@ import MonitoringDashboard from '@/components/admin/MonitoringDashboard'
 import AdminTemplateManager from '@/components/admin/AdminTemplateManager'
 import AdminCommunityManager from '@/components/admin/AdminCommunityManager'
 import AdminLegalManager from '@/components/admin/AdminLegalManager'
+import AdminUsageLimitsManager from '@/components/admin/AdminUsageLimitsManager'
 import { useAdminRealtime } from '@/hooks/useAdminRealtime'
 import {
   saveSiteSettings,
@@ -132,6 +133,7 @@ type TabType =
   | 'users'
   | 'payments'
   | 'pricing'
+  | 'usage_limits'
   | 'legal'
   | 'community'
   | 'templates'
@@ -621,6 +623,7 @@ export default function AdminDashboard() {
       badge: realtime.newPaymentsCount > 0 ? realtime.newPaymentsCount : undefined,
     },
     { id: 'pricing', label: 'Narxlar', icon: DollarSign },
+    { id: 'usage_limits', label: 'Limitlar', icon: Activity },
     { id: 'legal', label: 'Qonunlar', icon: BookOpen },
     {
       id: 'community',
@@ -1106,6 +1109,9 @@ export default function AdminDashboard() {
 
         {/* ===== MONITORING ===== */}
         {activeTab === 'monitoring' && <MonitoringDashboard />}
+
+        {/* ===== USAGE LIMITS ===== */}
+        {activeTab === 'usage_limits' && <AdminUsageLimitsManager />}
 
         {/* ===== USERS ===== */}
         {activeTab === 'users' && (

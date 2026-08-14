@@ -1,12 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
+import {
+  checkAndIncrement,
+  getIdentityFromRequest,
+  usageMessage,
+} from '@/lib/usage-limits'
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY || process.env.NEXT_PUBLIC_GROQ_API_KEY
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
 
 export async function POST(request: NextRequest) {
   try {
-    const { caseText } = await request.json()
+    const body = await request.json()
+    const { caseText } = body
 
     if (!caseText || caseText.trim().length < 50) {
       return NextResponse.json(
@@ -17,6 +23,20 @@ export async function POST(request: NextRequest) {
 
     if (!GROQ_API_KEY) {
       return NextResponse.json({ error: 'AI xizmati sozlanmagan' }, { status: 500 })
+    }
+
+    // ── AI limit tekshiruvi ──
+    const identity = getIdentityFromRequest(request, body)
+    const usage = await checkAndIncrement({
+      ...identity,
+      feature: 'irac',
+      metadata: { text_length: caseText.length },
+    })
+    if (!usage.allowed) {
+      return NextResponse.json(
+        { error: 'limit_reached', message: usageMessage(usage), usage },
+        { status: 429 }
+      )
     }
 
     const systemPrompt = `You are JurisAI IRAC — an expert legal analysis system specialized in the legislation of the Republic of Uzbekistan (O'zbekiston Respublikasi Qonunchiligi).

@@ -10,6 +10,7 @@ import {
   LegalArticle,
   CODE_DISPLAY_NAMES,
 } from '@/hooks/useLegalDatabase'
+import { getUserIdentityPayload } from '@/lib/client-user'
 import {
   Search,
   BookOpen,
@@ -141,6 +142,7 @@ export default function QonunlarPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: `Quyidagi moddani sodda va tushunarli tilda, huquqiy atamalarni odday qilib izohlab bering: ${article.number}-modda. ${article.title}. Modda matni: ${article.content.substring(0, 1200)}`,
+          ...getUserIdentityPayload(),
         }),
       })
 

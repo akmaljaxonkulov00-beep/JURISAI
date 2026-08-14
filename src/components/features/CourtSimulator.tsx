@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
 import { api } from '@/services/api'
 import { tts, stt, isSpeechSupported } from '@/lib/speech'
+import { getUserIdentityPayload } from '@/lib/client-user'
 
 interface CaseScenario {
   id: string
@@ -170,6 +171,7 @@ export default function CourtSimulator() {
         body: JSON.stringify({
           action: 'start',
           caseDetails: `${selectedCase.title}: ${selectedCase.description}. Mening rolim: ${userRole}. Qiyinlik: ${difficultyLevel}. Tur: ${simulationType}.`,
+          ...getUserIdentityPayload(),
         }),
       })
 
@@ -238,6 +240,7 @@ export default function CourtSimulator() {
           action: 'submit_argument',
           simulationId: simulationStatus.simulation_id,
           argument: `${argumentType}: ${argumentContent}`,
+          ...getUserIdentityPayload(),
         }),
       })
 
@@ -415,6 +418,7 @@ export default function CourtSimulator() {
         body: JSON.stringify({
           action: 'get_verdict',
           simulationId: simulationStatus.simulation_id,
+          ...getUserIdentityPayload(),
         }),
       })
 

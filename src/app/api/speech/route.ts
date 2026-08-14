@@ -1,4 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
+import {
+  checkAndIncrement,
+  getIdentityFromRequest,
+  usageMessage,
+} from '@/lib/usage-limits'
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY || process.env.NEXT_PUBLIC_GROQ_API_KEY
 
@@ -7,6 +12,22 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     const { action, text, audioData } = body
+
+    // ── AI limit tekshiruvi (STT — Groq Whisper narxlanadigan xizmat) ──
+    if (action === 'speech-to-text' && audioData) {
+      const identity = getIdentityFromRequest(request, body)
+      const usage = await checkAndIncrement({
+        ...identity,
+        feature: 'speech_stt',
+        metadata: { action: 'speech-to-text' },
+      })
+      if (!usage.allowed) {
+        return NextResponse.json(
+          { error: 'limit_reached', message: usageMessage(usage), usage },
+          { status: 429 }
+        )
+      }
+    }
 
     switch (action) {
       case 'text-to-speech':

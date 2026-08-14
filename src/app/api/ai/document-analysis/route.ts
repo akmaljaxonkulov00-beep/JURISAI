@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
+import {
+  checkAndIncrement,
+  getIdentityFromRequest,
+  usageMessage,
+} from '@/lib/usage-limits'
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY || process.env.NEXT_PUBLIC_GROQ_API_KEY
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
@@ -20,12 +25,27 @@ const SYSTEM_PROMPT =
 
 export async function POST(req: NextRequest) {
   try {
-    const { documentText, documentType, userId } = await req.json()
+    const body = await req.json()
+    const { documentText, documentType, userId } = body
 
     if (!documentText || documentText.trim().length < 50) {
       return NextResponse.json(
         { error: "Hujjat matni kamida 50 ta belgidan iborat bo'lishi kerak" },
         { status: 400 }
+      )
+    }
+
+    // ── AI limit tekshiruvi ──
+    const identity = getIdentityFromRequest(req, body)
+    const usage = await checkAndIncrement({
+      ...identity,
+      feature: 'document_analysis',
+      metadata: { document_type: documentType || 'general', text_length: documentText.length },
+    })
+    if (!usage.allowed) {
+      return NextResponse.json(
+        { error: 'limit_reached', message: usageMessage(usage), usage },
+        { status: 429 }
       )
     }
 

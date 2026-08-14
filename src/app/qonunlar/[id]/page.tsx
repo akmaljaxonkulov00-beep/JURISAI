@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { useLegalCodes, LegalArticle, CODE_DISPLAY_NAMES } from '@/hooks/useLegalDatabase'
+import { getUserIdentityPayload } from '@/lib/client-user'
 import {
   Search,
   BookOpen,
@@ -133,6 +134,7 @@ export default function CodeDetailPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: `Quyidagi moddani sodda va tushunarli tilda izohlab bering: ${article.number}-modda. ${article.title}. Modda matni: ${article.content.substring(0, 1200)}`,
+          ...getUserIdentityPayload(),
         }),
       })
 

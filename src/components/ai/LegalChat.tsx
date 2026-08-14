@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
+import { getUserIdentityPayload } from '@/lib/client-user'
 
 interface ChatMessage {
   id: string
@@ -47,7 +48,7 @@ export default function LegalChat() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ message: inputMessage }),
+        body: JSON.stringify({ message: inputMessage, ...getUserIdentityPayload() }),
       })
 
       if (response.ok) {

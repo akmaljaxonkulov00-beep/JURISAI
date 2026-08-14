@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
+import {
+  checkAndIncrement,
+  getIdentityFromRequest,
+  usageMessage,
+} from '@/lib/usage-limits'
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY || process.env.NEXT_PUBLIC_GROQ_API_KEY
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
@@ -15,6 +20,20 @@ export async function POST(request: NextRequest) {
 
     if (!GROQ_API_KEY) {
       return NextResponse.json({ error: 'AI xizmati sozlanmagan' }, { status: 500 })
+    }
+
+    // ── AI limit tekshiruvi ──
+    const identity = getIdentityFromRequest(request, body)
+    const usage = await checkAndIncrement({
+      ...identity,
+      feature: 'ai_chat',
+      metadata: { message_length: message.length, source: 'legal_chat' },
+    })
+    if (!usage.allowed) {
+      return NextResponse.json(
+        { error: 'limit_reached', message: usageMessage(usage), usage },
+        { status: 429 }
+      )
     }
 
     // Build context from conversation history

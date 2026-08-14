@@ -37,6 +37,7 @@ import {
 } from 'lucide-react'
 import AppSidebar from '@/components/layout/AppSidebar'
 import { api } from '@/services/api'
+import { getUserIdentityPayload } from '@/lib/client-user'
 import { supabase } from '@/lib/supabase-browser'
 import { AnalysisSkeleton } from '@/components/ui/AnalysisSkeleton'
 import { AnalysisError, getErrorMessage } from '@/components/ui/AnalysisError'
@@ -216,8 +217,8 @@ export default function DecisionTreeEngine() {
         cost: 200000,
         legalBasis: 'FK 387-moddasi',
         actionItems: [
-          "Kontragentga rasmiy taklif xati yuborish",
-          "Mediator yoki advokat ishtirokida uchrashuv tashkil qilish",
+          'Kontragentga rasmiy taklif xati yuborish',
+          'Mediator yoki advokat ishtirokida uchrashuv tashkil qilish',
         ],
         children: [
           {
@@ -412,8 +413,8 @@ export default function DecisionTreeEngine() {
           cost: 200000,
           legalBasis: 'FK 387-moddasi',
           actionItems: [
-            "Kontragentga rasmiy taklif xati yuborish",
-            "Mediator yoki advokat ishtirokida uchrashuv tashkil qilish",
+            'Kontragentga rasmiy taklif xati yuborish',
+            'Mediator yoki advokat ishtirokida uchrashuv tashkil qilish',
           ],
           children: [
             {
@@ -459,14 +460,7 @@ export default function DecisionTreeEngine() {
         label: n.label || 'Qaror',
         type: isRoot ? 'root' : n.type === 'outcome' ? 'outcome' : 'decision',
         probability: prob,
-        risk:
-          prob == null
-            ? 'medium'
-            : prob >= 60
-              ? 'low'
-              : prob <= 40
-                ? 'high'
-                : 'medium',
+        risk: prob == null ? 'medium' : prob >= 60 ? 'low' : prob <= 40 ? 'high' : 'medium',
         duration: n.duration || undefined,
         cost: typeof n.cost === 'number' && n.cost > 0 ? n.cost : undefined,
         legalBasis: n.legalBasis || undefined,
@@ -478,11 +472,7 @@ export default function DecisionTreeEngine() {
       }
       if (!isRoot && n.type === 'outcome') {
         node.status =
-          prob != null && prob >= 60
-            ? 'optimal'
-            : prob != null && prob <= 40
-              ? 'risk'
-              : 'neutral'
+          prob != null && prob >= 60 ? 'optimal' : prob != null && prob <= 40 ? 'risk' : 'neutral'
       }
       if (Array.isArray(n.children) && n.children.length) {
         node.children = n.children.map((c: any) => convert(c, false))
@@ -517,7 +507,7 @@ export default function DecisionTreeEngine() {
       const res = await fetch('/api/decision-tree/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ scenario: scenario.trim(), case_type: 'huquqiy' }),
+        body: JSON.stringify({ scenario: scenario.trim(), case_type: 'huquqiy', ...getUserIdentityPayload() }),
       })
       const json = await res.json().catch(() => null)
       if (json?.success && json.tree && json.tree.label) {
@@ -591,8 +581,8 @@ export default function DecisionTreeEngine() {
           cost: 200000,
           legalBasis: 'FK 387-moddasi',
           actionItems: [
-            "Kontragentga rasmiy taklif xati yuborish",
-            "Mediator yoki advokat ishtirokida uchrashuv tashkil qilish",
+            'Kontragentga rasmiy taklif xati yuborish',
+            'Mediator yoki advokat ishtirokida uchrashuv tashkil qilish',
           ],
           children: [
             {
@@ -1109,7 +1099,9 @@ export default function DecisionTreeEngine() {
         drawWrapped('YURIDIK ASOSLAR VA TAVSIYALAR', { size: 12, bold: true })
         if (legalBases.length > 0) {
           drawWrapped('Qonun moddalari:', { size: 10.5, bold: true, color: blue })
-          legalBases.slice(0, 8).forEach(b => drawWrapped(`• ${b}`, { size: 10, color: dark, indent: 8 }))
+          legalBases
+            .slice(0, 8)
+            .forEach(b => drawWrapped(`• ${b}`, { size: 10, color: dark, indent: 8 }))
         }
         if (recommendations.length > 0) {
           drawWrapped("Tegishli moddalar (ma'lumotlar bazasidan):", {
@@ -1131,9 +1123,9 @@ export default function DecisionTreeEngine() {
             bold: true,
             color: blue,
           })
-          actionItems.slice(0, 10).forEach(a =>
-            drawWrapped(`• ${a}`, { size: 10, color: dark, indent: 8 })
-          )
+          actionItems
+            .slice(0, 10)
+            .forEach(a => drawWrapped(`• ${a}`, { size: 10, color: dark, indent: 8 }))
         }
       }
 
@@ -1146,10 +1138,13 @@ export default function DecisionTreeEngine() {
         color: rgb(0.85, 0.87, 0.9),
       })
       y -= 14
-      drawWrapped('JurisAI — Qarorlar daraxti hisoboti • Bu hujjat yuridik maslahat o\u2019rnini bosmaydi', {
-        size: 8.5,
-        color: gray,
-      })
+      drawWrapped(
+        'JurisAI — Qarorlar daraxti hisoboti • Bu hujjat yuridik maslahat o\u2019rnini bosmaydi',
+        {
+          size: 8.5,
+          color: gray,
+        }
+      )
 
       const pdfBytes = await doc.save()
       const blob = new Blob([pdfBytes as unknown as BlobPart], { type: 'application/pdf' })
@@ -1308,7 +1303,10 @@ export default function DecisionTreeEngine() {
       if (n.type === 'outcome') {
         if (n.status === 'optimal' || (typeof n.probability === 'number' && n.probability >= 60)) {
           optimal++
-        } else if (n.status === 'risk' || (typeof n.probability === 'number' && n.probability <= 40)) {
+        } else if (
+          n.status === 'risk' ||
+          (typeof n.probability === 'number' && n.probability <= 40)
+        ) {
           risky++
         }
       }
@@ -1353,7 +1351,7 @@ export default function DecisionTreeEngine() {
       return [
         'Variantning huquqiy asoslarini tekshirish (tegishli qonun moddalari)',
         'Xarajat va muddatni baholash, byudjetni aniqlash',
-        "Qarorni hujjatlashtirish va tomonlar bilan kelishish",
+        'Qarorni hujjatlashtirish va tomonlar bilan kelishish',
       ]
     }
     return ['Ish holatini toʻliq tahlil qilish', 'Yuridik maslahat olish']
@@ -1632,11 +1630,7 @@ export default function DecisionTreeEngine() {
             textAnchor="middle"
             className="text-xs font-bold"
             fill={
-              node.probability >= 60
-                ? '#10b981'
-                : node.probability <= 40
-                  ? '#ef4444'
-                  : '#d97706'
+              node.probability >= 60 ? '#10b981' : node.probability <= 40 ? '#ef4444' : '#d97706'
             }
           >
             {node.probability}%
@@ -1781,9 +1775,7 @@ export default function DecisionTreeEngine() {
               </h3>
               <div className="grid grid-cols-3 gap-2">
                 <label className="block">
-                  <span className="text-[10px] text-gray-500 dark:text-zinc-400">
-                    Ehtimollik %
-                  </span>
+                  <span className="text-[10px] text-gray-500 dark:text-zinc-400">Ehtimollik %</span>
                   <input
                     type="number"
                     min={0}
@@ -1804,7 +1796,9 @@ export default function DecisionTreeEngine() {
                   />
                 </label>
                 <label className="block">
-                  <span className="text-[10px] text-gray-500 dark:text-zinc-400">Xarajat (so'm)</span>
+                  <span className="text-[10px] text-gray-500 dark:text-zinc-400">
+                    Xarajat (so'm)
+                  </span>
                   <input
                     type="text"
                     value={editCost}
@@ -2414,9 +2408,7 @@ export default function DecisionTreeEngine() {
                           Taxminiy davomiyligi
                         </span>
                         <span className="text-sm font-bold text-gray-800 dark:text-zinc-100">
-                          {statistics.durations.length
-                            ? statistics.durations.join(' / ')
-                            : '—'}
+                          {statistics.durations.length ? statistics.durations.join(' / ') : '—'}
                         </span>
                       </div>
                     </div>
