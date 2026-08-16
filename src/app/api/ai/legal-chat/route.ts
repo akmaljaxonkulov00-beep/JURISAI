@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
-import {
-  checkAndIncrement,
-  getIdentityFromRequest,
-  usageMessage,
-} from '@/lib/usage-limits'
+import { checkAndIncrement, getIdentityFromRequest, usageMessage } from '@/lib/usage-limits'
+import { retrieveLegalArticles, buildLegalContext } from '@/lib/legal-rag'
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY || process.env.NEXT_PUBLIC_GROQ_API_KEY
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
@@ -50,9 +47,19 @@ export async function POST(request: NextRequest) {
           .join('\n')
     }
 
+    // ── RAG: savolga mos moddalarni qonunchilik bazasidan qidirish ──
+    const relevantArticles = await retrieveLegalArticles(message, 6)
+    const legalContext = buildLegalContext(relevantArticles)
+
     const systemPrompt = `Sen O'zbekiston Respublikasi qonunchiligi bo'yicha professional AI yuridik yordamchisan.
 
-Har bir javobni foydalanuvchi oson tushunadigan, tartibli va professional uslubda yoz. Javoblar 200-300 so'zdan kam bo'lmasin. Faqat adabiy o'zbek tilida yoz. Hech qachon yolg'on modda raqami to'qima. FAQAT O'zbekiston Respublikasining amaldagi qonunlariga asoslanib javob ber. Agar ma'lumot topilmasa, buni aniq ayt, lekin o'zi ma'lumot to'qima.
+Har bir javobni foydalanuvchi oson tushunadigan, tartibli va professional uslubda yoz. Javoblar 200-300 so'zdan kam bo'lmasin. Faqat adabiy o'zbek tilida yoz.
+
+ENG MUHIM QOIDA — FAQAT BAZA MA'LUMOTLARIGA ASOSLAN:
+- Javobingda keltiriladigan HAR BIR modda va norma AYNAN quyidagi "BAZA MA'LUMOTLARI" blokida berilgan bo'lishi SHART.
+- Baza blokidagi moddalardan tashqari hech qachon modda raqami, jazo muddati, kodeks nomi to'qima.
+- Modda keltirganda kodeks nomini to'liq yoz (masalan: "O'zbekiston Respublikasi Jinoyat Kodeksining 97-moddasi").
+- Agar baza ma'lumotlarida savolga mos modda bo'lmasa: "Bazada bu savol bo'yicha aniq modda topilmadi" deb yoz va modda raqami keltirmasdan umumiy tushuntirish ber.
 
 JAVOB FORMATI (quyidagi bo'limlarga qat'iy rioya qil):
 
@@ -63,9 +70,7 @@ JAVOB FORMATI (quyidagi bo'limlarga qat'iy rioya qil):
 Qonun nimani tartibga solishi, qanday holatlarda qo'llanilishi, amaliy ahamiyati haqida yoz. Bu bo'limda faqat fakt va qonuniy tahlil bo'lsin.
 
 📚 Tegishli moddalar
-Moddalarni • bilan sanab chiq. Har bir moddani 1-2 gap bilan izohla. Misol:
-• 97-modda — Qasddan odam o'ldirish uchun javobgarlik belgilangan
-• 98-modda — Jabrlanuvchining o'limiga sabab bo'lgan og'ir tan jarohati
+Faqat baza ma'lumotlaridagi moddalarni • bilan sanab chiq. Har bir moddani 1-2 gap bilan izohla.
 
 💡 Oddiy misol
 Hayotiy misol yoz. Foydalanuvchi oson tushunishi uchun. Masalan: "Fuqaro boshqa shaxsning telefonini qasddan olib qo'ysa..."
@@ -73,15 +78,14 @@ Hayotiy misol yoz. Foydalanuvchi oson tushunishi uchun. Masalan: "Fuqaro boshqa 
 ✅ Xulosa
 2-3 gaplik yakuniy xulosa. Asosiy fikrni takrorla va amaliy tavsiya ber.
 
-MUHIM QOIDALAR:
+BOSHQA QOIDALAR:
 - Hech qachon **, ##, * kabi markdown belgilarini ishlatma. Oddiy matn yoz.
 - Bo'lim sarlavhalarini aynan 📘, ⚖️, 📚, 💡, ✅ bilan boshla.
-- Hech qachon yolg'on modda to'qima. Bilmasang, "aniq modda raqami uchun O'zbekiston Respublikasining tegishli kodeksiga murojaat qiling" deb yoz.
-- Kodeks nomlarini to'liq yoz: "O'zbekiston Respublikasi Jinoyat Kodeksi" emas "JK".
+- Kodeks nomlarini to'liq yoz: "O'zbekiston Respublikasi Jinoyat Kodeksi" — qisqartma ("JK") ishlatma.
 - Har bir bo'lim orasida bo'sh qator qoldir.
 - Javob tabiiy, inson yozgandek ravon bo'lsin. Robot uslubida yozma.
 - Javob uzunligi: odatda 200-300 so'z. Foydalanuvchi "batafsil" desa 400-600 so'z. "Qisqacha" desa 100-180 so'z.
-${contextText}`
+${legalContext}${contextText}`
 
     // Call Groq with strict parameters
     const response = await fetch(GROQ_API_URL, {

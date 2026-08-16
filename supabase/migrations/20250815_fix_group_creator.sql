@@ -14,6 +14,12 @@
 -- Idempotent: qayta run qilinsa ham xavfsiz.
 -- ═══════════════════════════════════════════════════════════════════════════
 
+-- 0) 'creator' roli ruxsat etilgan qiymatlarga qo'shiladi (idempotent).
+--    Eski cheklov faqat ('member','moderator','admin') ruxsat berardi —
+--    'creator' qiymati unga qo'shilib, 23514 xatosi bartaraf etiladi.
+ALTER TABLE public.community_group_members DROP CONSTRAINT IF EXISTS community_group_members_role_check;
+ALTER TABLE public.community_group_members ADD CONSTRAINT community_group_members_role_check CHECK (role IN ('member', 'moderator', 'admin', 'creator'));
+
 -- 1) Birinchi a'zo bo'yicha created_by ni to'ldirish
 UPDATE public.community_groups g
 SET created_by = m.user_id

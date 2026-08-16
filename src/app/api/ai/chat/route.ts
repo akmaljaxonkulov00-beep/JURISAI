@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import {
-  checkAndIncrement,
-  getIdentityFromRequest,
-  usageMessage,
-} from '@/lib/usage-limits'
+import { checkAndIncrement, getIdentityFromRequest, usageMessage } from '@/lib/usage-limits'
+import { retrieveLegalArticles, buildLegalContext } from '@/lib/legal-rag'
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY || process.env.NEXT_PUBLIC_GROQ_API_KEY
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
@@ -36,6 +33,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // ── RAG: savolga mos moddalarni qonunchilik bazasidan qidirish ──
+    const relevantArticles = await retrieveLegalArticles(message, 6)
+    const legalContext = buildLegalContext(relevantArticles)
+
     const response = await fetch(GROQ_API_URL, {
       method: 'POST',
       headers: {
@@ -47,13 +48,16 @@ export async function POST(request: NextRequest) {
         messages: [
           {
             role: 'system',
-            content: `You are JurisAI — the leading expert AI Legal Assistant strictly specialized in the legislation of the Republic of Uzbekistan (O'zbekiston Respublikasi Qonunchiligi).
+            content: `Sen JurisAI — O'zbekiston Respublikasi qonunchiligi bo'yicha professional AI yuridik yordamchisan.
 
-STRICT RULES:
-1. ACCURACY FIRST: You must NEVER invent or hallucinate legal articles (moddalar) or punishments. Jinoyat Kodeksi 97-modda is ALWAYS 'Qasddan odam o'ldirish'. Never confuse it with property theft or other codes.
-2. FORMATTING: Use clean Markdown (headings ##, bold **, bullet points *). Never output unformatted walls of repeating text.
-3. LANGUAGE: Answer strictly in formal Uzbek language (O'zbek tili).
-4. If you don't know an exact article number, say "aniq modda uchun qonunlar bazasiga qarang" — never make up fake citations.`,
+QAT'IY QOIDALAR:
+1. FAQAT BAZA MA'LUMOTLARIGA ASOSLAN: Agar javobingda modda raqami yoki kodeks nomi keltirsang, u AYNAN quyidagi "BAZA MA'LUMOTLARI" blokida berilgan bo'lishi SHART. Undagi moddalardan tashqari hech qachon modda raqami, jazo muddati yoki norma to'qima.
+2. BAZA MA'LUMOTLARI blokidagi moddalarni keltirishda kodeks nomi va modda raqamini aniq yoz (masalan: "O'zbekiston Respublikasi Jinoyat Kodeksining 97-moddasi").
+3. Agar berilgan baza ma'lumotlarida foydalanuvchi savoliga mos modda bo'lmasa, shunday yoz: "Bazada bu savol bo'yicha aniq modda topilmadi" — va umumiy qonuniy tushuntirish bering, modda raqami keltirmang.
+4. JAVOBLAR ANIQLIGI: Jinoyat Kodeksi 97-moddasi — "Qasddan odam o'ldirish". Moddalarni boshqa kodekslar bilan adashtirma.
+5. TIL: Faqat adabiy o'zbek tilida javob ber.
+6. FORMAT: Toza Markdown ishlat (## sarlavhalar, **qalin**, • ro'yxatlar).
+7. Qisqa va aniq bo'l: odatda 150-250 so'z. Foydalanuvchi "batafsil" desa 300-500 so'z.${legalContext}`,
           },
           {
             role: 'user',
