@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { aiClient } from '@/lib/ai-client'
+import { groundPrompt } from '@/lib/legal-rag'
 
 export async function POST(request: NextRequest) {
   try {
@@ -56,7 +57,16 @@ Xavf: [xavf darajasi]
 TUGUN 2: ...
 `
 
-    const response = await aiClient.chatMessage(prompt, 'Qaror daraxti generatori')
+    // ── RAG: vaziyatga mos moddalarni qonunchilik bazasidan qidirish ──
+    const baseSystem =
+      "Sen O'zbekiston Respublikasi qonunchiligi bo'yicha professional qaror daraxti generatorisan. " +
+      'Har bir tugunda Ehtimollik (%), Vaqt va Xarajat ko\'rsatkichlarini ber.'
+    const { prompt: systemPrompt } = await groundPrompt(
+      `${scenario_title} ${scenario_description}`,
+      baseSystem
+    )
+
+    const response = await aiClient.chatMessage(prompt, systemPrompt)
 
     // Parse AI response
     const lines = response.text.split('\n')

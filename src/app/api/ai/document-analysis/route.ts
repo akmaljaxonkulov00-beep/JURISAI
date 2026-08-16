@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
-import {
-  checkAndIncrement,
-  getIdentityFromRequest,
-  usageMessage,
-} from '@/lib/usage-limits'
+import { checkAndIncrement, getIdentityFromRequest, usageMessage } from '@/lib/usage-limits'
+import { groundPrompt } from '@/lib/legal-rag'
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY || process.env.NEXT_PUBLIC_GROQ_API_KEY
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
@@ -22,6 +19,8 @@ const SYSTEM_PROMPT =
   '- Tavsiyalar va takliflar\n' +
   '- Tegishli qonun moddalari\n\n' +
   "MUHIM: Agar aniq modda raqamini bilmasangiz, taxmin qilmang. Hech qachon yolg'on ma'lumot bermang."
+
+const BASE_SYSTEM_PROMPT = SYSTEM_PROMPT
 
 export async function POST(req: NextRequest) {
   try {
@@ -63,6 +62,12 @@ export async function POST(req: NextRequest) {
       })
     } catch {}
 
+    // ── RAG: hujjat matniga mos moddalarni qonunchilik bazasidan qidirish ──
+    const { prompt: systemPrompt } = await groundPrompt(
+      documentText.slice(0, 3000),
+      BASE_SYSTEM_PROMPT
+    )
+
     // Call Groq for document analysis
     let analysisText = 'Hujjat tahlili muvaffaqiyatli.\n\nHujjat qonunchilikka mos keladi.'
     try {
@@ -75,7 +80,7 @@ export async function POST(req: NextRequest) {
         body: JSON.stringify({
           model: 'llama-3.3-70b-versatile',
           messages: [
-            { role: 'system', content: SYSTEM_PROMPT },
+            { role: 'system', content: systemPrompt },
             { role: 'user', content: documentText },
           ],
           temperature: 0.1,

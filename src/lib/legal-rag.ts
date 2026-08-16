@@ -82,6 +82,36 @@ function keywordPatterns(word: string): string[] {
   return [...patterns]
 }
 
+/** O'zbekcha so'z qo'shimchalari — fe'l va otlarni o'zakka keltirish uchun */
+const SUFFIXES = [
+  'ganlar', 'dilar', 'gani', 'gan', 'moqda', 'moqchi', 'moq', 'ishlar', 'ish',
+  'ib', 'di', 'lar', 'larni', 'ni', 'ning', 'dan', 'da', 'ga', 'lik', 'ligi',
+  'lash', 'ladi', 'lagan', 'la',
+]
+
+function commonPrefixLen(a: string, b: string): number {
+  let i = 0
+  while (i < a.length && i < b.length && a[i] === b[i]) i++
+  return i
+}
+
+/** So'zni o'zakka keltiradi (kamida 2 daraja qo'shimcha olib tashlaydi). */
+function rootWord(word: string): string {
+  let w = word
+  for (let i = 0; i < 2; i++) {
+    let stripped = false
+    for (const s of SUFFIXES) {
+      if (w.length - s.length >= 3 && w.endsWith(s)) {
+        w = w.slice(0, -s.length)
+        stripped = true
+        break
+      }
+    }
+    if (!stripped) break
+  }
+  return w
+}
+
 /** Levenshtein masofa — 'taqili' ~ 'ta‘til' kabi yozuv xatolariga chidamli moslik */
 function levenshtein(a: string, b: string): number {
   if (a === b) return 0
@@ -126,11 +156,10 @@ function longestCommonSubstring(a: string, b: string): number {
 }
 
 /**
- * So'z va kalit so'z o'rtasida ishonchli o'xshashlik bormi?
+ * So'z va kalit so'z o'rtasida ishonchli o'xshashlik bormi? (kanonik shaklda —
+ * apostroflar saqlanadi: 'o'g'ir' (o'g'irlik) va 'og'ir' (og'ir shikast) farqlanadi)
  *  - 1 ta xato: ishonchli moslik
- *  - 2 ta xato: umumiy prefiks (2+ belgi) yoki kamida 4 belgidan iborat umumiy qator talab
- * Baza matnidagi tizimli xatolar (masalan 'O‘g‘rilik' ~ to'g'ri 'o'g'irlik') ham
- * topiladi, ammo tasodifiy o'xshashliklar ('odillik' ~ 'ogirlik') filtrlanadi.
+ *  - 2 ta xato: umumiy 2-belgili prefiks talab
  */
 function fuzzyMatch(word: string, keyword: string): boolean {
   const maxDist = keyword.length >= 6 ? 2 : 1
@@ -138,20 +167,25 @@ function fuzzyMatch(word: string, keyword: string): boolean {
   const d = levenshtein(word, keyword)
   if (d > maxDist) return false
   if (d <= 1) return true
-  // 2 xatolik holatida: umumiy prefiks yoki katta umumiy qator bo'lishi kerak
-  if (word.startsWith(keyword.slice(0, 2)) || keyword.startsWith(word.slice(0, 2))) return true
-  return longestCommonSubstring(word, keyword) >= 4
+  // 2 xatolik holatida: 3-belgili umumiy prefiks bo'lishi kerak
+  // (2-belgili prefiks 'o'' bilan boshlanadigan so'zlarni adashtiradi:
+  //  'o'ldir' ~ 'o'g'ir', 'og'ir' ~ 'o'g'ir' kabi)
+  if (word.startsWith(keyword.slice(0, 3)) || keyword.startsWith(word.slice(0, 3))) return true
+  return false
 }
 
 /** Sarlavha/full row bo'yicha reyting balli. Uzun (aniq) so'z ko'proq og'irlik oladi; eng uzun kalit so'z mos tushsa qo'shimcha bonus. */
 function scoreRow(
   row: any,
-  keywordWords: string[],
-  numMatch: RegExpMatchArray | null
+  keywords: string[],
+  numMatch: RegExpMatchArray | null,
+  selected?: string[]
 ): { score: number; matched: number; maxWordLen: number } {
-  const title = (row.title || '').toLowerCase().replace(APOSTROPHES, '')
-  const content = (row.content || '').toLowerCase().replace(APOSTROPHES, '')
-  const titleWords = new Set<string>(title.split(/\s+/).filter(Boolean) as string[])
+  const lowerTitle = (row.title || '').toLowerCase()
+  const strippedTitle = lowerTitle.replace(APOSTROPHES, '')
+  const canonTitle = lowerTitle.replace(APOSTROPHES, "'")
+  const strippedContent = (row.content || '').toLowerCase().replace(APOSTROPHES, '')
+  const titleWords = new Set<string>(canonTitle.split(/\s+/).filter(Boolean) as string[])
   let score = 0
   let matched = 0
   let maxWordLen = 0
@@ -160,7 +194,7 @@ function scoreRow(
     numMatch &&
     String(row.article_number || '').replace(/^0+/, '') === numMatch[1].replace(/^0+/, '')
   ) {
-    score += 100 + Math.min((title || '').length / 40, 5)
+    score += 100 + Math.min((lowerTitle || '').length / 40, 5)
     // Faqat raqam bilan so'ralganda eng ko'p havola qilinadigan kodekslar ustunroq
     const codePriority: Record<string, number> = {
       criminal_code: 4,
@@ -171,30 +205,92 @@ function scoreRow(
   } else if (numMatch && String(row.article_number || '').startsWith(numMatch[1])) {
     score += 30
   }
-  const longest = Math.max(0, ...keywordWords.map(w => w.length))
+  const longest = Math.max(0, ...keywords.map(w => w.length))
+  const rootCache = new Map<string, string>()
+  const rootOf = (word: string) => {
+    if (!rootCache.has(word)) rootCache.set(word, rootWord(word))
+    return rootCache.get(word)!
+  }
+  const selectedSet = selected ? new Set(selected) : null
   let longestMatched = false
   let longestHitTitle = false
-  for (const w of keywordWords) {
+  for (const w of keywords) {
     if (!w) continue
-    const weight = 2 + Math.min(w.length, 6)
+    const stripped = w.replace(APOSTROPHES, '')
+    const canon = w.replace(APOSTROPHES, "'")
+    // Kam uchraydigan (aniq) so'zlar yuqoriroq og'irlik oladi
+    let weight = 2 + Math.min(w.length, 6)
+    if (selectedSet && selectedSet.has(w)) weight *= 1.6
+    else if (selectedSet) weight *= 0.4
     let hit = false
     let hitTitle = false
-    if (title.includes(w)) {
+    if (strippedTitle.includes(stripped)) {
       score += weight * 3
       hit = true
       hitTitle = true
-    } else if (content.includes(w)) {
+    } else if (strippedContent.includes(stripped)) {
       score += weight
       hit = true
     }
     if (!hit) {
-      // Xatoga chidamli moslik: sarlavhadagi so'z bilan yaqin bo'lsa
+      // Kanonik (apostrof saqlangan) xatoga chidamli moslik
       for (const tw of titleWords) {
-        if (fuzzyMatch(tw, w)) {
+        if (fuzzyMatch(tw, canon)) {
           score += weight * 2
           hit = true
           hitTitle = true
           break
+        }
+      }
+    }
+    if (!hit) {
+      // O'zak (stem) mosligi: 'o'g'irladi' ~ sarlavhadagi 'o'g'irlik' kabi.
+      // 'og'ir' (og'ir shikast) ~ 'o'g'ir' (o'g'irlik) bir-biriga juda yaqin —
+      // yolg'on moslikni oldini olish uchun o'zaklar kamida 2 belgidan iborat
+      // umumiy prefiksga ega bo'lishi shart.
+      const kwRoot = rootOf(canon)
+      if (kwRoot.length >= 4) {
+        for (const tw of titleWords) {
+          const twRoot = rootOf(tw)
+          if (twRoot === kwRoot) {
+            score += weight * 3
+            hit = true
+            hitTitle = true
+            break
+          }
+          if (
+            fuzzyMatch(twRoot, kwRoot) &&
+            commonPrefixLen(twRoot, kwRoot) >= 2
+          ) {
+            score += weight * 2
+            hit = true
+            hitTitle = true
+            break
+          }
+        }
+      }
+    }
+    if (!hit) {
+      // Apostrofsiz (stripped) o'zak mosligi — 'taqili' ~ 'ta'tili' kabi
+      // imlo xatolari uchun. BIR XIL bo'lgan stripped o'zaklar (d=0) qabul
+      // qilinmaydi — aks holda 'og'ir' (og'ir shikast) yana o'g'irlik bilan
+      // adashib qoladi.
+      const kwStrippedRoot = rootOf(stripped)
+      if (kwStrippedRoot.length >= 4) {
+        for (const tw of titleWords) {
+          const twStrippedRoot = rootOf(tw.replace(APOSTROPHES, ''))
+          const d = levenshtein(twStrippedRoot, kwStrippedRoot)
+          const maxDist = kwStrippedRoot.length >= 6 ? 2 : 1
+          if (
+            d >= 1 &&
+            d <= maxDist &&
+            commonPrefixLen(twStrippedRoot, kwStrippedRoot) >= 2
+          ) {
+            score += weight * 2
+            hit = true
+            hitTitle = true
+            break
+          }
         }
       }
     }
@@ -244,7 +340,9 @@ export async function retrieveLegalArticles(
     }
 
     const numMatch = message.match(/(\d{1,4})\s*[-–—]?\s*modda/i)
-    const keywordWords = extractKeywords(message).map(w => w.replace(APOSTROPHES, ''))
+    // Kalit so'zlar apostroflari SAQLANGAN holda (kanonik o'zak solishtirish uchun)
+    const rawKeywords = extractKeywords(message)
+    const keywordWords = rawKeywords.map(w => w.replace(APOSTROPHES, ''))
 
     const candidateIds = new Set<string>()
     const add = (rows: any[]) => {
@@ -266,7 +364,14 @@ export async function retrieveLegalArticles(
 
     // 2) ILIKE kalit so'z qidiruvi (title+content) — apostrofsiz oddiy so'zlar uchun
     if (keywordWords.length > 0) {
-      const patterns = keywordWords.flatMap(w => keywordPatterns(w)).slice(0, 6)
+      const patterns = keywordWords
+        .flatMap(w => {
+          const base = keywordPatterns(w)
+          const root = rootWord(w)
+          if (root.length >= 4 && root !== w) base.push(root)
+          return base
+        })
+        .slice(0, 8)
       for (const p of patterns) {
         try {
           const { data } = await supabase
@@ -286,6 +391,7 @@ export async function retrieveLegalArticles(
     //    Baza kollatsiyasi apostroflarni e'tiborsiz qoldirgani uchun ILIKE
     //    'o\'g\'irlik' kabi so'zlarni topolmaydi — shuning uchun bu bosqich
     //    har doim bajariladi.
+    let selectedKeywords: string[] | undefined
     const fuzzyIds: string[] = []
     if (keywordWords.length > 0) {
       const titles: any[] = []
@@ -299,8 +405,38 @@ export async function retrieveLegalArticles(
         titles.push(...data)
         if (data.length < PAGE) break
       }
+
+      // Eng aniq (kam uchraydigan) kalit so'zlarni tanlash — keng so'zlar
+      // (masalan 'fuqaro', 'jinoyat', 'jazo') aniqlikni buzmasligi uchun.
+      const df = new Map<string, number>()
+      for (const w of rawKeywords) {
+        const root = rootWord(w.replace(APOSTROPHES, "'"))
+        let c = 0
+        for (const row of titles) {
+          const t = (row.title || '').toLowerCase().replace(APOSTROPHES, "'")
+          if (t.includes(w.replace(APOSTROPHES, "'"))) {
+            c++
+            continue
+          }
+          for (const tw of t.split(/\s+/)) {
+            const tr = rootWord(tw)
+            if (tr === root || tr.includes(root) || root.includes(tr)) {
+              c++
+              break
+            }
+          }
+        }
+        df.set(w, c)
+      }
+      const sorted = [...rawKeywords].sort((a, b) => (df.get(a) || 0) - (df.get(b) || 0))
+      // Faqat biron sarlavhada uchraydigan (df > 0) eng aniq so'zlar tanlanadi —
+      // hech qaysi sarlavhada bo'lmagan so'zlar (masalan 'supermarketda') shovqin
+      // keltiradi va tanlanmaydi.
+      const withHits = sorted.filter(w => (df.get(w) || 0) > 0)
+      selectedKeywords = withHits.slice(0, 3)
+
       const scored = titles
-        .map((row: any) => ({ row, s: scoreRow(row, keywordWords, null).score }))
+        .map((row: any) => ({ row, s: scoreRow(row, rawKeywords, null, selectedKeywords).score }))
         .filter(x => x.s > 0)
         .sort((a, b) => b.s - a.s)
         .slice(0, 40)
@@ -331,7 +467,10 @@ export async function retrieveLegalArticles(
 
     // To'liq matn bilan reyting
     const ranked = (full as any[])
-      .map((row: any) => ({ row, ...scoreRow(row, keywordWords, numMatch) }))
+      .map((row: any) => ({
+        row,
+        ...scoreRow(row, rawKeywords, numMatch, selectedKeywords),
+      }))
       .filter(r => r.score > 0 || full.length <= limit)
       .sort(
         (a, b) =>
@@ -391,4 +530,38 @@ export function buildLegalContext(articles: RAGArticle[], maxCharsPerArticle = 1
     blocks.join('\n\n---\n\n') +
     '\n════════════════════════════════════════'
   )
+}
+
+/**
+ * Har qanday AI endpoint uchun "bazadan ma'lumot olish" (RAG) yordamchisi:
+ * savolga mos moddalar qidirilib, ularning to'liq matni basePrompt ga kontekst
+ * sifatida qo'shiladi. AI faqat shu manbalardan iqtibos keltirishi va modda
+ * to'qimasligi qat'iy talab qilinadi.
+ */
+export async function groundPrompt(
+  question: string,
+  basePrompt: string,
+  limit = 5
+): Promise<{ prompt: string; articles: RAGArticle[] }> {
+  let articles: RAGArticle[] = []
+  try {
+    articles = await retrieveLegalArticles(question, limit)
+  } catch {
+    articles = []
+  }
+
+  if (articles.length === 0) {
+    const noDataRule =
+      '\n\nQAT\'IY QOIDA: Hech qachon modda raqami, kodeks nomi yoki jazo muddatini to\'qima. ' +
+      'Aniq moddani bilmasang, "aniq modda uchun qonunlar bazasiga qarang" deb yoz va modda raqami keltirma.'
+    return { prompt: basePrompt + noDataRule, articles }
+  }
+
+  const context = buildLegalContext(articles, 1200)
+  const rule =
+    '\n\nQAT\'IY QOIDA: Javobingda keltiriladigan HAR BIR modda raqami va kodeks nomi ' +
+    'faqat yuqoridagi BAZA MA\'LUMOTLARI blokidan olinishi SHART. Boshqa modda raqami, jazo ' +
+    'muddati yoki norma to\'qima. Berilgan moddalar savolga mos kelmasa, "Bazada bu savol ' +
+    'bo\'yicha aniq modda topilmadi" deb yoz va modda raqami keltirma.'
+  return { prompt: basePrompt + context + rule, articles }
 }

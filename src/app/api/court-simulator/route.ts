@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import {
-  checkAndIncrement,
-  getIdentityFromRequest,
-  usageMessage,
-} from '@/lib/usage-limits'
+import { checkAndIncrement, getIdentityFromRequest, usageMessage } from '@/lib/usage-limits'
+import { groundPrompt } from '@/lib/legal-rag'
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY || process.env.NEXT_PUBLIC_GROQ_API_KEY
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
@@ -160,20 +157,32 @@ STRICT RULES:
 5. LANGUAGE: Answer strictly in formal Uzbek language (O'zbek tili).
 6. If unsure about an exact article number, say "aniq modda uchun qonunlar bazasiga qarang" — never make up fake citations.`
 
+    // ── RAG: ishga mos moddalarni qonunchilik bazasidan qidirib, sud jarayoni
+    //    uchun haqiqiy qonuniy asos (modda matnlari) bilan ta'minlash ──
+    let systemBase = SYSTEM_BASE
+    try {
+      if (typeof caseDetails === 'string' && caseDetails.trim()) {
+        const grounded = await groundPrompt(caseDetails, SYSTEM_BASE, 6)
+        systemBase = grounded.prompt
+      }
+    } catch {
+      // Bazadan ma'lumot olinmasa ham asosiy prompt bilan davom etiladi
+    }
+
     switch (action) {
       case 'start':
-        return await startSimulation(caseDetails, SYSTEM_BASE, userRole, userName)
+        return await startSimulation(caseDetails, systemBase, userRole, userName)
       case 'submit_argument':
         return await submitArgument(
           simulationId,
           argument,
-          SYSTEM_BASE,
+          systemBase,
           userRole,
           userName,
           history
         )
       case 'get_verdict':
-        return await getVerdict(simulationId, SYSTEM_BASE, userRole)
+        return await getVerdict(simulationId, systemBase, userRole)
       default:
         return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
     }

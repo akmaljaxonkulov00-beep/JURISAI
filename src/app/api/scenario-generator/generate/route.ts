@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import {
-  checkAndIncrement,
-  getIdentityFromRequest,
-  usageMessage,
-} from '@/lib/usage-limits'
+import { checkAndIncrement, getIdentityFromRequest, usageMessage } from '@/lib/usage-limits'
+import { groundPrompt } from '@/lib/legal-rag'
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY || process.env.NEXT_PUBLIC_GROQ_API_KEY
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
@@ -19,10 +16,7 @@ export async function POST(request: NextRequest) {
     const focusAreas: string[] = Array.isArray(body.focus_areas) ? body.focus_areas : []
 
     if (!topic) {
-      return NextResponse.json(
-        { error: 'Senariy mavzusi kiritilishi shart' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Senariy mavzusi kiritilishi shart' }, { status: 400 })
     }
 
     if (!GROQ_API_KEY) {
@@ -43,7 +37,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const systemPrompt = `Sen O'zbekiston Respublikasi qonunchiligi va sud amaliyotiga ixtisoslashgan huquqiy senariy yaratuvchisisiz (legal scenario writer for legal education).
+    const BASE_SYSTEM_PROMPT = `Sen O'zbekiston Respublikasi qonunchiligi va sud amaliyotiga ixtisoslashgan huquqiy senariy yaratuvchisisiz (legal scenario writer for legal education).
 
 QAT'IY QOIDALAR:
 1. Senariy O'zbekiston qonunchiligiga (kodekslar, qonunlar, sud amaliyoti) mos bo'lsin.
@@ -73,6 +67,12 @@ QAT'IY QOIDALAR:
 
 3. Hech qachon yolg'on modda raqami to'qima.
 4. O'zbek tilida, ta'limiy va batafsil yoz.`
+
+    // ── RAG: mavzuga mos moddalarni qonunchilik bazasidan qidirish ──
+    const { prompt: systemPrompt } = await groundPrompt(
+      `${topic} ${focusAreas.join(' ')}`,
+      BASE_SYSTEM_PROMPT
+    )
 
     const userPrompt = `${topic} mavzusida "${difficulty}" qiyinlik darajasidagi huquqiy senariy yarat.${
       focusAreas.length > 0 ? ` Diqqat markazlari: ${focusAreas.join(', ')}.` : ''

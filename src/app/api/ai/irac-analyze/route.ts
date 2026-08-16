@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
-import {
-  checkAndIncrement,
-  getIdentityFromRequest,
-  usageMessage,
-} from '@/lib/usage-limits'
+import { checkAndIncrement, getIdentityFromRequest, usageMessage } from '@/lib/usage-limits'
+import { groundPrompt } from '@/lib/legal-rag'
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY || process.env.NEXT_PUBLIC_GROQ_API_KEY
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
@@ -39,7 +36,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const systemPrompt = `You are JurisAI IRAC — an expert legal analysis system specialized in the legislation of the Republic of Uzbekistan (O'zbekiston Respublikasi Qonunchiligi).
+    const BASE_SYSTEM_PROMPT = `You are JurisAI IRAC — an expert legal analysis system specialized in the legislation of the Republic of Uzbekistan (O'zbekiston Respublikasi Qonunchiligi).
 
 STRICT RULES:
 1. ACCURACY FIRST: You must NEVER invent or hallucinate legal articles (moddalar) or punishments.
@@ -58,9 +55,10 @@ Analyze the following legal case using IRAC methodology:
 (Vaziyatni tahlil qiling va qonunni qo'llang)
 
 ## Xulosa (Conclusion)
-(Yakuniy pozitsiyani bildiring va amaliy tavsiyalar bering)
+(Yakuniy pozitsiyani bildiring va amaliy tavsiyalar bering)`
 
-MUHIM: Agar aniq modda raqamini bilmasangiz, "aniq modda uchun qonunlar bazasiga qarang" deb yozing. Hech qachon yolg'on modda raqami to'qimang.`
+    // ── RAG: ish matniga mos moddalarni qonunchilik bazasidan qidirish ──
+    const { prompt: systemPrompt } = await groundPrompt(caseText, BASE_SYSTEM_PROMPT)
 
     const response = await fetch(GROQ_API_URL, {
       method: 'POST',
