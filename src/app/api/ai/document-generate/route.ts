@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
-import {
-  checkAndIncrement,
-  getIdentityFromRequest,
-  usageMessage,
-} from '@/lib/usage-limits'
+import { checkAndIncrement, getIdentityFromRequest, usageMessage } from '@/lib/usage-limits'
+import { groundPrompt, validateCitations, appendCitationNote } from '@/lib/legal-rag'
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY || process.env.NEXT_PUBLIC_GROQ_API_KEY
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
@@ -28,7 +25,7 @@ const SYSTEM_PROMPT =
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { templateId, documentData, outputFormat, language, customFields } = body
+    const { templateId, templateName, documentData, outputFormat, language, customFields } = body
 
     if (!templateId || !documentData) {
       return NextResponse.json(
@@ -54,6 +51,11 @@ export async function POST(request: NextRequest) {
     // Log usage to Supabase
     let documentContent = 'Hujjat: ' + templateId + '\n\nMalumotlar qabul qilindi.'
     try {
+      // RAG: hujjat turi va ma'lumotlariga mos REAL qonun moddalari bazadan olinadi
+      // va AI faqat shu moddalarga asoslanib hujjat yozadi (to'qima modda yo'q).
+      const question = `${templateName || templateId}: ${String(documentData).slice(0, 600)}`
+      const { prompt } = await groundPrompt(question, SYSTEM_PROMPT, 4)
+
       // Call Groq for document generation
       const response = await fetch(GROQ_API_URL, {
         method: 'POST',
@@ -64,12 +66,12 @@ export async function POST(request: NextRequest) {
         body: JSON.stringify({
           model: 'llama-3.3-70b-versatile',
           messages: [
-            { role: 'system', content: SYSTEM_PROMPT },
+            { role: 'system', content: prompt },
             {
               role: 'user',
               content:
                 'Template: ' +
-                templateId +
+                (templateName || templateId) +
                 '\nData: ' +
                 JSON.stringify(documentData) +
                 '\nFormat: ' +
@@ -83,6 +85,17 @@ export async function POST(request: NextRequest) {
       if (response.ok) {
         const data = await response.json()
         documentContent = data.choices[0]?.message?.content || documentContent
+      }
+
+      // AI javobidagi modda iqtiboslari bazaga mosligini tekshiramiz —
+      // to'qima/noto'g'ri modda raqamlari qolmasligi uchun.
+      try {
+        const citeResult = await validateCitations(documentContent)
+        if (citeResult.invalid.length > 0) {
+          documentContent = appendCitationNote(documentContent, citeResult)
+        }
+      } catch {
+        // Validatsiya xatosi hujjatni buzmasin
       }
     } catch {}
 

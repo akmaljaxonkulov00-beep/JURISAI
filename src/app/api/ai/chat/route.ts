@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { checkAndIncrement, getIdentityFromRequest, usageMessage } from '@/lib/usage-limits'
-import { retrieveLegalArticles, buildLegalContext } from '@/lib/legal-rag'
+import {
+  retrieveLegalArticles,
+  buildLegalContext,
+  validateCitations,
+  appendCitationNote,
+} from '@/lib/legal-rag'
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY || process.env.NEXT_PUBLIC_GROQ_API_KEY
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
@@ -82,7 +87,18 @@ QAT'IY QOIDALAR:
     }
 
     const data = await response.json()
-    const aiResponse = data.choices[0]?.message?.content || 'Javob olinmadi'
+    let aiResponse = data.choices[0]?.message?.content || 'Javob olinmadi'
+
+    // AI javobidagi modda iqtiboslari bazaga mosligini tekshiramiz —
+    // to'qima modda raqamlari javobda qolmasligi uchun.
+    try {
+      const citeResult = await validateCitations(aiResponse)
+      if (citeResult.invalid.length > 0) {
+        aiResponse = appendCitationNote(aiResponse, citeResult)
+      }
+    } catch {
+      // Validatsiya xatosi javobni buzmasin
+    }
 
     return NextResponse.json({
       response: aiResponse,

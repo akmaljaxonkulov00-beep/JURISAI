@@ -565,3 +565,158 @@ export async function groundPrompt(
     'bo\'yicha aniq modda topilmadi" deb yoz va modda raqami keltirma.'
   return { prompt: basePrompt + context + rule, articles }
 }
+
+// ═══════════════════════════════════════════════════════════════════════
+// AI IQTIBOS VALIDATSIYASI — AI javobidagi modda havolalari bazaga mosligi
+// tekshiriladi. To'qima yoki noto'g'ri modda raqami javobda qolmasligi uchun
+// har bir "Kodeks N-modda" havolasi `articles` jadvalidan tekshiriladi.
+// ═══════════════════════════════════════════════════════════════════════
+
+export interface CitationRef {
+  /** Kodeks qisqartmasi yoki to'liq nomi (masalan 'JK', 'Konstitutsiya'); nomi yo'q bo'lsa null */
+  code: string | null
+  article: number
+  raw: string
+}
+
+export interface CitationValidation {
+  valid: Array<{ code: string; codeName: string; article: number; title: string }>
+  invalid: CitationRef[]
+}
+
+// Barcha kalitlar KICHIK harfda — regex katta-kichik harfni e'tiborsiz
+// qoldiradi, lekin olingan prefiks asl holatda bo'ladi.
+const CODE_PREFIX_ALIASES: Record<string, string> = {
+  jk: 'criminal_code',
+  jpk: 'criminal_procedure_code',
+  fk: 'civil_code',
+  gpk: 'civil_procedure_code',
+  fpk: 'civil_procedure_code',
+  mk: 'labor_code',
+  sk: 'tax_code',
+  ok: 'family_code',
+  mjtk: 'admin_code',
+  konstitutsiya: 'constitution',
+  'jinoyat kodeksi': 'criminal_code',
+  'jinoyat-protsessual kodeksi': 'criminal_procedure_code',
+  'jinoyat protsessual kodeksi': 'criminal_procedure_code',
+  'fuqarolik kodeksi': 'civil_code',
+  'fuqarolik protsessual kodeksi': 'civil_procedure_code',
+  'mehnat kodeksi': 'labor_code',
+  'soliq kodeksi': 'tax_code',
+  'oila kodeksi': 'family_code',
+  "ma'muriy javobgarlik to'g'risidagi kodeksi": 'admin_code',
+  "ma'muriy javobgarlik to'g'risidagi kodeks": 'admin_code',
+}
+
+const CODE_PREFIX_PATTERN =
+  'Ma\'muriy javobgarlik to\'g\'risidagi kodeksi|Ma\'muriy javobgarlik to\'g\'risidagi kodeks|' +
+  'Jinoyat-protsessual kodeksi|Jinoyat protsessual kodeksi|Fuqarolik protsessual kodeksi|' +
+  'Fuqarolik kodeksi|Mehnat kodeksi|Soliq kodeksi|Oila kodeksi|Jinoyat kodeksi|Konstitutsiya|' +
+  'JPK|GPK|FPK|MJtK|JK|FK|MK|SK|OK'
+
+const CITATION_RE = new RegExp(
+  '(' + CODE_PREFIX_PATTERN + ')?\\s*(?:ning)?\\s*(\\d{1,4})\\s*[-–—]?\\s*modda',
+  'gi'
+)
+
+/**
+ * Matndagi barcha "Kodeks N-modda" ko'rinishidagi havolalarni ajratib oladi.
+ * Kodeks nomi bo'lmasa code=null (faqat raqam + modda).
+ */
+export function extractCitations(text: string): CitationRef[] {
+  const refs: CitationRef[] = []
+  const seen = new Set<string>()
+  let match: RegExpExecArray | null
+  while ((match = CITATION_RE.exec(text)) !== null) {
+    const code = match[1] || null
+    const article = parseInt(match[2], 10)
+    if (Number.isNaN(article)) continue
+    const raw = match[0]
+    const key = `${code || '*'}|${article}`
+    if (seen.has(key)) continue
+    seen.add(key)
+    refs.push({ code, article, raw })
+  }
+  return refs
+}
+
+/**
+ * AI javobidagi modda havolalarini bazaga qarshi tekshiradi:
+ *  - kodeks nomi keltirilgan bo'lsa — aynan shu kodeksda shu raqamli modda bormi
+ *  - kodeks nomi keltirilmagan bo'lsa — bu raqamli modda bazada umuman bormi
+ */
+export async function validateCitations(text: string): Promise<CitationValidation> {
+  const supabase = makeSupabase()
+  const valid: CitationValidation['valid'] = []
+  const invalid: CitationRef[] = []
+
+  const refs = extractCitations(text)
+  if (refs.length === 0) return { valid, invalid }
+  if (!supabase) return { valid, invalid }
+
+  for (const ref of refs) {
+    try {
+      const codeId = ref.code
+        ? CODE_PREFIX_ALIASES[ref.code.toLowerCase()] || null
+        : null
+      let query = supabase
+        .from('articles')
+        .select('code_id, article_number, title')
+        .eq('article_number', String(ref.article))
+      if (codeId) query = query.eq('code_id', codeId)
+      query = query.limit(2)
+
+      const { data } = await query
+      const rows = (data || []) as any[]
+      if (rows.length === 0) {
+        invalid.push(ref)
+        continue
+      }
+      // Kodeks nomi keltirilgan bo'lsa — mos tushgan qatorni olamiz
+      const hit =
+        codeId
+          ? rows.find((r: any) => r.code_id === codeId)
+          : rows[0]
+      if (!hit) {
+        invalid.push(ref)
+        continue
+      }
+      const codeName = CATEGORY_DISPLAY[hit.code_id as string] || hit.code_id || ''
+      valid.push({
+        code: hit.code_id || '',
+        codeName: String(codeName),
+        article: ref.article,
+        title: hit.title || '',
+      })
+    } catch {
+      // Tekshiruv xatosi javobni buzmasin — o'tkazib yuboramiz
+    }
+  }
+
+  return { valid, invalid }
+}
+
+/**
+ * Noto'g'ri (bazada yo'q) modda havolalari topilgan bo'lsa, javob oxiriga
+ * eslatma qo'shiladi — AI to'qigan raqamlar jim o'tib ketmaydi.
+ */
+export function appendCitationNote(
+  text: string,
+  validation: CitationValidation
+): string {
+  if (!validation.invalid || validation.invalid.length === 0) return text
+  const list = [
+    ...new Set(
+      validation.invalid.map(i => `${i.code ? i.code + ' ' : ''}${i.article}-modda`)
+    ),
+  ]
+  const note =
+    '\n\n⚠️ Eslatma: quyidagi modda havolalari qonunlar bazasida mavjud emas ' +
+    '(raqam noto\'g\'ri bo\'lishi mumkin): ' +
+    list.join(', ') +
+    '.'
+  // Eslatma bir necha marta qo'shilib ketmasligi uchun tekshiramiz
+  if (text.includes('modda havolalari qonunlar bazasida mavjud emas')) return text
+  return text + note
+}

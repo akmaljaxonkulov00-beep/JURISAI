@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
-import { aiClient } from '@/lib/ai-client'
 import { FileText, ArrowLeft, Download, Edit3, Plus, Clock } from 'lucide-react'
 
 import documentTemplatesData from '@/data/document-templates.json'
@@ -110,12 +109,36 @@ export default function DocumentGenerator() {
         .map(field => `${field.name}: ${formData[field.id] || 'belgilanmagan'}`)
         .join('\n')
 
-      const response = await aiClient.generateDocument(selectedTemplate.name, details)
+      // Hujjat server API orqali yaratiladi (Groq chaqiruvi client'da emas,
+      // serverda — API key xavfsiz va limitlar tekshiriladi)
+      const response = await fetch('/api/ai/document-generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          templateId: selectedTemplate.id,
+          templateName: selectedTemplate.name,
+          documentData: details,
+          outputFormat: 'text',
+        }),
+      })
+
+      if (!response.ok) {
+        const err = await response.json().catch(() => null)
+        throw new Error(
+          err?.message || err?.error || 'Hujjat yaratishda xatolik yuz berdi'
+        )
+      }
+
+      const data = await response.json()
+      const content = data.document || ''
+      if (!content) {
+        throw new Error('Hujjat bo\'sh qaytdi, qayta urinib ko\'ring')
+      }
 
       const newDocument: GeneratedDocument = {
         id: Date.now().toString(),
         title: `${selectedTemplate.name} - ${new Date().toLocaleDateString()}`,
-        content: response.text,
+        content,
         template_id: selectedTemplate.id,
         created_at: new Date().toISOString(),
         status: 'completed',

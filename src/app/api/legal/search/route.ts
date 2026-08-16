@@ -41,43 +41,78 @@ export async function POST(request: NextRequest) {
 
     const q = query.trim()
     const sanitized = q.replace(/[%_']/g, '') // SQL special chars ni tozalash
+    // Apostrof variantlarini olib tashlash — tsvector ustuni ham xuddi shunday
+    // yaratilgan (O'g'irlik ~ Ogirlik bitta token bo'lib qoladi)
+    const strippedQ = sanitized.replace(/['‘’ʻ`]/g, '')
 
-    let dbQuery = supabase
-      .from('articles')
-      .select('*, categories!inner(id, code_id, name)', { count: 'exact' })
+    let articles: any[] | null = null
+    let count: number | null = null
 
-    // Kodeks bo'yicha filtr
-    if (category !== 'all') {
-      dbQuery = dbQuery.eq('categories.code_id', category)
-    }
+    // ── 1) Tezkor indekslangan to'liq matn qidiruvi (search_vector + GIN) ──
+    //    Ustun/indeks hali yaratilmagan bo'lsa xato qaytadi → ILIKE ga tushamiz.
+    try {
+      let tsQuery = supabase
+        .from('articles')
+        .select('*, categories!inner(id, code_id, name)', { count: 'exact' })
+        .textSearch('search_vector', strippedQ || q, { config: 'simple', type: 'plain' })
 
-    // Modda raqami / nomi / matni bo'yicha qidiruv
-    if (/^\d+$/.test(sanitized)) {
-      dbQuery = dbQuery.or(
-        `article_number.ilike.%${sanitized}%,title.ilike.%${sanitized}%,content.ilike.%${sanitized}%`
-      )
-    } else {
-      const words = sanitized.split(/\s+/).filter(Boolean)
-      if (words.length === 1) {
-        dbQuery = dbQuery.or(`title.ilike.%${sanitized}%,content.ilike.%${sanitized}%`)
-      } else {
-        const conditions = words.map(w => `content.ilike.%${w}%`).join(',')
-        dbQuery = dbQuery.or(conditions)
+      if (category !== 'all') {
+        tsQuery = tsQuery.eq('categories.code_id', category)
       }
+
+      const res = await tsQuery
+        .order('article_number_int', { ascending: true, nullsFirst: false })
+        .limit(Math.min(limit, 100))
+
+      if (res.error) throw res.error
+      articles = res.data
+      count = res.count
+    } catch {
+      // search_vector ustuni mavjud emas yoki boshqa xato — ILIKE fallback
+      articles = null
+      count = null
     }
 
-    const { data: articles, count, error } = await dbQuery
-      .order('article_number_int', { ascending: true, nullsFirst: false })
-      .limit(Math.min(limit, 100))
+    // ── 2) ILIKE fallback (ustun/indeks yo'q bo'lsa yoki tsvector natija bermasa) ──
+    if (!articles || articles.length === 0) {
+      let dbQuery = supabase
+        .from('articles')
+        .select('*, categories!inner(id, code_id, name)', { count: 'exact' })
 
-    if (error) throw error
+      if (category !== 'all') {
+        dbQuery = dbQuery.eq('categories.code_id', category)
+      }
+
+      // Modda raqami / nomi / matni bo'yicha qidiruv
+      if (/^\d+$/.test(sanitized)) {
+        dbQuery = dbQuery.or(
+          `article_number.ilike.%${sanitized}%,title.ilike.%${sanitized}%,content.ilike.%${sanitized}%`
+        )
+      } else {
+        const words = sanitized.split(/\s+/).filter(Boolean)
+        if (words.length === 1) {
+          dbQuery = dbQuery.or(`title.ilike.%${sanitized}%,content.ilike.%${sanitized}%`)
+        } else {
+          const conditions = words.map(w => `content.ilike.%${w}%`).join(',')
+          dbQuery = dbQuery.or(conditions)
+        }
+      }
+
+      const res = await dbQuery
+        .order('article_number_int', { ascending: true, nullsFirst: false })
+        .limit(Math.min(limit, 100))
+      if (res.error) throw res.error
+      articles = res.data
+      count = res.count
+    }
 
     const documents = (articles || []).map((a: any) => ({
       id: `${a.categories?.code_id || a.code_id || 'unknown'}_${a.article_number}`,
       title: `${a.categories?.name || ''} ${a.article_number}-modda: ${a.title || ''}`,
       type: 'code',
       category: a.categories?.code_id || a.code_id || 'unknown',
-      description: (a.content || '').substring(0, 200) + (a.content && a.content.length > 200 ? '...' : ''),
+      description:
+        (a.content || '').substring(0, 200) + (a.content && a.content.length > 200 ? '...' : ''),
       content: a.content || '',
       article_number: a.article_number,
       code_name: a.categories?.name || "Noma'lum kodeks",

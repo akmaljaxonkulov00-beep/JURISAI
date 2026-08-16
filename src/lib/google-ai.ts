@@ -5,14 +5,6 @@
 const API_KEY = process.env.GROQ_API_KEY || '' // Set GROQ_API_KEY in environment variables
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
 
-console.log('Groq API Key check:', {
-  hasKey: !!API_KEY,
-  keyLength: API_KEY.length,
-  apiKey: API_KEY.substring(0, 10) + '...',
-  envValue: process.env.GROQ_API_KEY ? 'SET' : 'NOT SET',
-  source: process.env.GROQ_API_KEY ? 'ENV' : 'FALLBACK',
-})
-
 export interface AIResponse {
   text: string
   success: boolean

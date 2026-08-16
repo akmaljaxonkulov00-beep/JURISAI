@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
 import { checkAndIncrement, getIdentityFromRequest, usageMessage } from '@/lib/usage-limits'
-import { retrieveLegalArticles, buildLegalContext } from '@/lib/legal-rag'
+import {
+  retrieveLegalArticles,
+  buildLegalContext,
+  validateCitations,
+  appendCitationNote,
+} from '@/lib/legal-rag'
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY || process.env.NEXT_PUBLIC_GROQ_API_KEY
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
@@ -122,6 +127,17 @@ ${legalContext}${contextText}`
     // Clean up: trim if extremely long (over 3000 chars)
     if (responseText.length > 3000) {
       responseText = responseText.slice(0, 3000).trim() + '...'
+    }
+
+    // AI javobidagi modda iqtiboslari bazaga mosligini tekshiramiz —
+    // to'qima modda raqamlari javobda qolmasligi uchun.
+    try {
+      const citeResult = await validateCitations(responseText)
+      if (citeResult.invalid.length > 0) {
+        responseText = appendCitationNote(responseText, citeResult)
+      }
+    } catch {
+      // Validatsiya xatosi javobni buzmasin
     }
 
     // Determine category based on keywords
