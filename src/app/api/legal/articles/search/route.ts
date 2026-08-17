@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getErrorMessage } from '@/lib/errors'
 
 /**
  * Full-text search API for legal articles.
@@ -76,7 +77,11 @@ export async function GET(request: NextRequest) {
       .order('article_number_int', { ascending: true, nullsFirst: false })
       .range(offset, offset + limit - 1)
 
-    if (result.error && result.error.message && result.error.message.includes('article_number_int')) {
+    if (
+      result.error &&
+      result.error.message &&
+      result.error.message.includes('article_number_int')
+    ) {
       result = await dbQuery
         .order('article_number', { ascending: true })
         .range(offset, offset + limit - 1)
@@ -89,18 +94,33 @@ export async function GET(request: NextRequest) {
     const searchTime = Date.now() - startTime
 
     // Map to clean response format
-    const mapped = (articles || []).map((a: any) => ({
-      id: a.id,
-      code_id: a.code_id,
-      code_name: a.categories?.name || '',
-      article_number: a.article_number,
-      title: a.title,
-      content: query.trim() ? highlightText(a.content, query.trim()) : a.content.substring(0, 500),
-      chapter: a.chapter,
-      section: a.section,
-      penalties: a.penalties,
-      cross_references: a.cross_references || [],
-    }))
+    const mapped = (articles || []).map(
+      (a: {
+        id?: string
+        code_id?: string
+        article_number?: string
+        title?: string
+        content?: string
+        chapter?: string
+        section?: string
+        penalties?: string
+        cross_references?: string[]
+        categories?: { name?: string }
+      }) => ({
+        id: a.id,
+        code_id: a.code_id,
+        code_name: a.categories?.name || '',
+        article_number: a.article_number,
+        title: a.title,
+        content: query.trim()
+          ? highlightText(a.content || '', query.trim())
+          : (a.content || '').substring(0, 500),
+        chapter: a.chapter,
+        section: a.section,
+        penalties: a.penalties,
+        cross_references: a.cross_references || [],
+      })
+    )
 
     return NextResponse.json({
       success: true,
@@ -112,11 +132,11 @@ export async function GET(request: NextRequest) {
       limit,
       offset,
     })
-  } catch (error: any) {
+  } catch (error) {
     console.error('Legal articles search API error:', error)
     return NextResponse.json({
       success: false,
-      error: error?.message || 'Qidirishda xatolik yuz berdi',
+      error: getErrorMessage(error) || 'Qidirishda xatolik yuz berdi',
       articles: [],
       total: 0,
     })

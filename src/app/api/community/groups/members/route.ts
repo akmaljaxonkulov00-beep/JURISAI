@@ -1,37 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import {
+  canModerateGroup,
+  getServiceClient,
+  requireAdmin,
+  requireUser,
+} from '@/lib/community-server'
 
-async function getSupabase() {
-  const { createClient } = await import('@supabase/supabase-js')
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-  if (!supabaseUrl || !supabaseKey) return null
-  return createClient(supabaseUrl, supabaseKey)
-}
+// Guruh a'zolari. Identity faqat session'dan — memberId/actorId ishonilmaydi.
+// Admin panel `admin=1` flag'i o'rniga server-side requireAdmin ishlaydi.
 
-// Foydalanuvchi guruh a'zosimi yoki yaratuvchimi?
-async function canAccessGroup(supabase: any, groupId: string, userId: string): Promise<boolean> {
-  if (!userId) return false
-  const { data: group } = await supabase
-    .from('community_groups')
-    .select('created_by')
-    .eq('id', groupId)
-    .single()
-  if (group && group.created_by?.toString() === userId) return true
-  const { data: member } = await supabase
-    .from('community_group_members')
-    .select('id')
-    .eq('group_id', groupId)
-    .eq('user_id', userId)
-    .maybeSingle()
-  return !!member
-}
-
-// GET /api/community/groups/members?groupId=...&memberId=... — guruh a'zolari ro'yxati
+// GET /api/community/groups/members?groupId=... — guruh a'zolari ro'yxati
 export async function GET(request: NextRequest) {
   try {
+    const auth = await requireUser(request)
+    if (!auth.ok) return auth.response
+
     const { searchParams } = new URL(request.url)
     const groupId = searchParams.get('groupId')
-    const memberId = searchParams.get('memberId') || ''
+    const adminMode = searchParams.get('admin') === '1'
 
     if (!groupId) {
       return NextResponse.json(
@@ -40,14 +27,18 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const supabase = await getSupabase()
+    const supabase = await getServiceClient()
     if (!supabase) {
       return NextResponse.json({ success: true, data: [] })
     }
 
-    // A'zolar ro'yxati faqat guruh a'zolariga ko'rinadi (admin=1 admin panel uchun bypass)
-    if (searchParams.get('admin') !== '1') {
-      const allowed = await canAccessGroup(supabase, groupId, memberId)
+    // Admin panel: haqiqiy admin session talab qilinadi
+    if (adminMode) {
+      const adm = await requireAdmin(request)
+      if (!adm.ok) return adm.response
+    } else {
+      // A'zolar ro'yxati faqat guruh a'zolariga ko'rinadi
+      const allowed = await canAccessGroup(supabase, groupId, auth.user.id)
       if (!allowed) {
         return NextResponse.json(
           { success: false, error: "A'zolar ro'yxati faqat guruh a'zolariga ko'rinadi" },
@@ -64,43 +55,52 @@ export async function GET(request: NextRequest) {
 
     if (error) throw error
 
-    // A'zolarning ism/email ma'lumotlarini registered_users dan olamiz
-    const userIds = (members || []).map((m: any) => m.user_id).filter(Boolean)
-    const names: Record<string, { name?: string; email?: string }> = {}
+    // A'zolarning ism ma'lumotlarini registered_users dan olamiz (email ko'rsatilmaydi)
+    const userIds = (members || []).map((m: { user_id?: string }) => m.user_id).filter(Boolean)
+    const names: Record<string, { name?: string }> = {}
     if (userIds.length > 0) {
       const { data: users } = await supabase
         .from('registered_users')
-        .select('id, full_name, email, avatar')
+        .select('id, full_name')
         .in('id', userIds)
       for (const u of users || []) {
-        names[u.id] = { name: u.full_name || '', email: u.email || '' }
+        names[u.id] = { name: u.full_name || '' }
       }
     }
 
-    // Email shaxsiy ma'lumot — ko'rsatilmaydi, faqat ism/familya qaytadi
-    const result = (members || []).map((m: any) => ({
-      user_id: m.user_id,
-      role: m.role || 'member',
-      joined_at: m.joined_at,
-      name: names[m.user_id]?.name || '',
-    }))
+    const result = (members || []).map(
+      (m: { user_id?: string; role?: string; joined_at?: string }) => ({
+        user_id: m.user_id,
+        role: m.role || 'member',
+        joined_at: m.joined_at,
+        name: names[m.user_id || '']?.name || '',
+      })
+    )
 
     return NextResponse.json({ success: true, data: result })
-  } catch (err: any) {
+  } catch (err: unknown) {
     return NextResponse.json(
-      { success: false, error: err.message || "A'zolar ro'yxatini yuklashda xatolik" },
+      {
+        success: false,
+        error: err instanceof Error ? err.message : "A'zolar ro'yxatini yuklashda xatolik",
+      },
       { status: 500 }
     )
   }
 }
 
-// DELETE /api/community/groups/members?groupId=...&userId=...&actorId=... — a'zoni chiqarish
+// DELETE /api/community/groups/members?groupId=...&userId=... — a'zoni chiqarish
+// Ruxsat: o'zini tark etish (leave) | yaratuvchi/moderator boshqasini chiqaradi | admin
 export async function DELETE(request: NextRequest) {
   try {
+    const auth = await requireUser(request)
+    if (!auth.ok) return auth.response
+
     const { searchParams } = new URL(request.url)
     const groupId = searchParams.get('groupId')
     const userId = searchParams.get('userId')
-    const actorId = searchParams.get('actorId') || ''
+    const actorId = auth.user.id
+    const adminMode = searchParams.get('actorId') === 'admin'
 
     if (!groupId || !userId) {
       return NextResponse.json(
@@ -109,21 +109,46 @@ export async function DELETE(request: NextRequest) {
       )
     }
 
-    const supabase = await getSupabase()
+    const supabase = await getServiceClient()
     if (!supabase) {
       return NextResponse.json({ success: false, error: 'Supabase sozlanmagan' }, { status: 500 })
     }
 
+    // ── Ruxsat tekshiruvi ──
+    if (adminMode) {
+      const adm = await requireAdmin(request)
+      if (!adm.ok) return adm.response
+    } else if (userId !== actorId) {
+      // Boshqasini chiqarish — faqat yaratuvchi/moderator
+      const allowed = await canModerateGroup(supabase, groupId, actorId)
+      if (!allowed) {
+        return NextResponse.json(
+          { success: false, error: "A'zoni chiqarish uchun ruxsat yo'q" },
+          { status: 403 }
+        )
+      }
+      // Yaratuvchini chiqarib bo'lmaydi
+      const { data: group } = await supabase
+        .from('community_groups')
+        .select('created_by')
+        .eq('id', groupId)
+        .single()
+      if (group?.created_by?.toString() === userId) {
+        return NextResponse.json(
+          { success: false, error: "Guruh yaratuvchisini chiqarib bo'lmaydi" },
+          { status: 403 }
+        )
+      }
+    }
+
     // 1) Chiqarilayotgan a'zoning ismini olamiz (bildirishnoma uchun)
     let removedName = ''
-    let removedEmail = ''
     const { data: removedUser } = await supabase
       .from('registered_users')
       .select('full_name, email')
       .eq('id', userId)
       .maybeSingle()
     removedName = removedUser?.full_name || removedUser?.email || ''
-    removedEmail = removedUser?.email || ''
 
     // 2) A'zolikni o'chirish
     const { error: delErr } = await supabase
@@ -150,16 +175,18 @@ export async function DELETE(request: NextRequest) {
       })
     } catch {}
 
-    // 2.7) Moderatsiya jurnaliga yozamiz
-    try {
-      await supabase.from('community_moderator_actions').insert({
-        group_id: groupId,
-        moderator_id: actorId || '',
-        moderator_name: '',
-        action: 'member_removed',
-        target_name: removedName || '',
-      })
-    } catch {}
+    // 2.7) Moderatsiya jurnaliga yozamiz (o'zini tark etishda emas)
+    if (userId !== actorId) {
+      try {
+        await supabase.from('community_moderator_actions').insert({
+          group_id: groupId,
+          moderator_id: actorId,
+          moderator_name: '',
+          action: 'member_removed',
+          target_name: removedName || '',
+        })
+      } catch {}
+    }
 
     // 3) member_count ni kamaytirish
     const { data: group } = await supabase
@@ -174,21 +201,24 @@ export async function DELETE(request: NextRequest) {
       .eq('id', groupId)
 
     return NextResponse.json({ success: true })
-  } catch (err: any) {
+  } catch (err: unknown) {
     return NextResponse.json(
-      { success: false, error: err.message || "A'zoni chiqarishda xatolik" },
+      { success: false, error: err instanceof Error ? err.message : "A'zoni chiqarishda xatolik" },
       { status: 500 }
     )
   }
 }
 
 // PATCH /api/community/groups/members
-// Body: { groupId, userId, role, actorId, actorName }
-// Guruh yaratuvchisi a'zoni moderator qiladi / moderatorlikdan oladi.
+// Body: { groupId, userId, role } — moderator tayinlash (guruh yaratuvchisi yoki admin)
 export async function PATCH(request: NextRequest) {
   try {
+    const auth = await requireUser(request)
+    if (!auth.ok) return auth.response
+
     const body = await request.json()
-    const { groupId, userId, role, actorId, actorName } = body
+    const { groupId, userId, role, actorId } = body
+    const adminMode = actorId === 'admin'
 
     if (!groupId || !userId || !['member', 'moderator'].includes(role)) {
       return NextResponse.json(
@@ -197,22 +227,29 @@ export async function PATCH(request: NextRequest) {
       )
     }
 
-    const supabase = await getSupabase()
+    const supabase = await getServiceClient()
     if (!supabase) {
       return NextResponse.json({ success: false, error: 'Supabase sozlanmagan' }, { status: 500 })
     }
 
-    // Faqat guruh yaratuvchisi rol o'zgartira oladi (admin panel bypass: actorId='admin')
-    const { data: group } = await supabase
-      .from('community_groups')
-      .select('created_by, name')
-      .eq('id', groupId)
-      .single()
-    if (actorId !== 'admin' && (!group || group.created_by?.toString() !== (actorId || ''))) {
-      return NextResponse.json(
-        { success: false, error: "Faqat guruh yaratuvchisi moderator tayinlashi mumkin" },
-        { status: 403 }
-      )
+    const actorUserId = auth.user.id
+
+    // ── Ruxsat: admin panel (actorId='admin') → server-side requireAdmin; aks holda yaratuvchi ──
+    if (adminMode) {
+      const adm = await requireAdmin(request)
+      if (!adm.ok) return adm.response
+    } else {
+      const { data: group } = await supabase
+        .from('community_groups')
+        .select('created_by, name')
+        .eq('id', groupId)
+        .single()
+      if (!group || group.created_by?.toString() !== actorUserId) {
+        return NextResponse.json(
+          { success: false, error: 'Faqat guruh yaratuvchisi moderator tayinlashi mumkin' },
+          { status: 403 }
+        )
+      }
     }
 
     const { data, error } = await supabase
@@ -229,8 +266,8 @@ export async function PATCH(request: NextRequest) {
     try {
       await supabase.from('community_moderator_actions').insert({
         group_id: groupId,
-        moderator_id: actorId || '',
-        moderator_name: actorName || '',
+        moderator_id: actorUserId,
+        moderator_name: '',
         action: 'moderator_set',
         target_name: userId,
       })
@@ -238,6 +275,11 @@ export async function PATCH(request: NextRequest) {
 
     // A'zoga bildirishnoma
     try {
+      const { data: group } = await supabase
+        .from('community_groups')
+        .select('name')
+        .eq('id', groupId)
+        .single()
       const isModerator = role === 'moderator'
       await supabase.from('community_group_notifications').insert({
         group_id: groupId,
@@ -247,16 +289,38 @@ export async function PATCH(request: NextRequest) {
         message: isModerator
           ? `"${group?.name || 'guruh'}" guruhida endi moderator siz — xabarlarni boshqarishingiz mumkin`
           : `"${group?.name || 'guruh'}" guruhida moderatorlik huquqi olindi`,
-        actor_id: actorId || '',
-        actor_name: actorName || '',
+        actor_id: actorUserId,
+        actor_name: '',
       })
     } catch {}
 
     return NextResponse.json({ success: true, data })
-  } catch (err: any) {
+  } catch (err: unknown) {
     return NextResponse.json(
-      { success: false, error: err.message || 'Rolni yangilashda xatolik' },
+      { success: false, error: err instanceof Error ? err.message : 'Rolni yangilashda xatolik' },
       { status: 500 }
     )
   }
+}
+
+// Guruh a'zosi/yaratuvchisi tekshiruvi
+async function canAccessGroup(
+  supabase: SupabaseClient,
+  groupId: string,
+  userId: string
+): Promise<boolean> {
+  if (!userId) return false
+  const { data: group } = await supabase
+    .from('community_groups')
+    .select('created_by')
+    .eq('id', groupId)
+    .single()
+  if (group && group.created_by?.toString() === userId) return true
+  const { data: member } = await supabase
+    .from('community_group_members')
+    .select('id')
+    .eq('group_id', groupId)
+    .eq('user_id', userId)
+    .maybeSingle()
+  return !!member
 }

@@ -68,7 +68,17 @@ export default function ScenarioGenerator() {
   const [currentScenario, setCurrentScenario] = useState<Scenario | null>(null)
   const [isGenerating, setIsGenerating] = useState(false)
   const [scenarios, setScenarios] = useState<Scenario[]>([])
-  const [templates, setTemplates] = useState<any[]>([])
+  interface ScenarioTemplateRow {
+    id: string
+    title: string
+    description: string
+    scenario_type: string
+    difficulty_level: string
+    complexity?: string
+    estimated_duration?: number
+    participants_count?: number
+  }
+  const [templates, setTemplates] = useState<ScenarioTemplateRow[]>([])
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -100,23 +110,34 @@ export default function ScenarioGenerator() {
       const res = await fetch('/api/scenario-generator/templates')
       const data = await res.json()
       if (data && Array.isArray(data.templates)) {
-        const mapped = data.templates.map((t: any) => ({
-          id: t.id || 'template_' + Math.random().toString(36).slice(2, 8),
-          title: t.name || 'Senariy shabloni',
-          description: t.description || '',
-          scenario_type: t.scenario_type || 'civil',
-          difficulty_level:
-            t.difficulty_level === 'easy'
-              ? 'beginner'
-              : t.difficulty_level === 'medium'
-                ? 'intermediate'
-                : t.difficulty_level === 'hard'
-                  ? 'advanced'
-                  : t.difficulty_level || 'intermediate',
-          complexity: t.complexity || 'standard',
-          estimated_duration: t.duration_minutes || 45,
-          participants_count: t.participants_count || 3,
-        }))
+        const mapped = data.templates.map(
+          (t: {
+            id?: string
+            name?: string
+            description?: string
+            scenario_type?: string
+            difficulty_level?: string
+            complexity?: string
+            duration_minutes?: number
+            participants_count?: number
+          }) => ({
+            id: t.id || 'template_' + Math.random().toString(36).slice(2, 8),
+            title: t.name || 'Senariy shabloni',
+            description: t.description || '',
+            scenario_type: t.scenario_type || 'civil',
+            difficulty_level:
+              t.difficulty_level === 'easy'
+                ? 'beginner'
+                : t.difficulty_level === 'medium'
+                  ? 'intermediate'
+                  : t.difficulty_level === 'hard'
+                    ? 'advanced'
+                    : t.difficulty_level || 'intermediate',
+            complexity: t.complexity || 'standard',
+            estimated_duration: t.duration_minutes || 45,
+            participants_count: t.participants_count || 3,
+          })
+        )
         setTemplates(mapped)
       }
     } catch (err) {
@@ -124,7 +145,21 @@ export default function ScenarioGenerator() {
     }
   }
 
-  const loadScenarios = () => {
+  const loadScenarios = async () => {
+    // 1) Supabase'dan REAL saqlangan senariylar (boshqa qurilmada ham ko'rinadi)
+    try {
+      const res = await fetch('/api/scenario-generator/scenarios')
+      if (res.ok) {
+        const json = await res.json()
+        if (Array.isArray(json.scenarios)) {
+          setScenarios(json.scenarios)
+          return
+        }
+      }
+    } catch (err) {
+      console.error('Scenarios API loading error:', err)
+    }
+    // 2) Fallback: localStorage
     try {
       const stored = localStorage.getItem('generated_scenarios')
       if (stored) {
@@ -135,10 +170,20 @@ export default function ScenarioGenerator() {
     }
   }
 
-  const saveScenario = (scenario: Scenario) => {
+  const saveScenario = async (scenario: Scenario) => {
     const updated = [scenario, ...scenarios]
     setScenarios(updated)
     localStorage.setItem('generated_scenarios', JSON.stringify(updated))
+    // Supabase'ga saqlash (session mavjud bo'lsa)
+    try {
+      await fetch('/api/scenario-generator/scenarios', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ data: scenario }),
+      })
+    } catch (err) {
+      console.error('Scenario API save error:', err)
+    }
   }
 
   const parseScenarioResponse = (
@@ -367,7 +412,15 @@ export default function ScenarioGenerator() {
     }
   }
 
-  const renderParticipant = (participant: any) => (
+  const renderParticipant = (participant: {
+    id: string
+    name?: string
+    role?: string
+    description?: string
+    objectives?: string[]
+    background?: string
+    personality_traits?: string[]
+  }) => (
     <Card
       key={participant.id}
       className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl"
@@ -385,7 +438,7 @@ export default function ScenarioGenerator() {
           <div>
             <p className="text-sm font-medium text-blue-700 mb-2">Maqsadlar:</p>
             <div className="space-y-1">
-              {participant.objectives.map((obj: string, index: number) => (
+              {(participant.objectives || []).map((obj: string, index: number) => (
                 <div key={index} className="text-sm text-gray-600 dark:text-zinc-400">
                   • {obj}
                 </div>
@@ -401,7 +454,7 @@ export default function ScenarioGenerator() {
           <div>
             <p className="text-sm font-medium text-blue-700 mb-2">Xususiyatlar:</p>
             <div className="flex flex-wrap gap-1">
-              {participant.personality_traits.map((trait: string, index: number) => (
+              {(participant.personality_traits || []).map((trait: string, index: number) => (
                 <Badge
                   key={index}
                   className="bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200 text-xs"
@@ -832,7 +885,7 @@ export default function ScenarioGenerator() {
 
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-600 dark:text-zinc-400">Murakkablik:</span>
-                        <Badge className={getComplexityColor(template.complexity)}>
+                        <Badge className={getComplexityColor(template.complexity || 'standard')}>
                           {template.complexity}
                         </Badge>
                       </div>

@@ -1,10 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
+import { requireAdmin } from '@/lib/server-auth'
+import { getErrorMessage } from '@/lib/errors'
 
 // GET /api/admin/users/details?userId=xxx
 // Returns detailed user info: payment history, AI usage, login activity
 export async function GET(request: NextRequest) {
   try {
+    const auth = await requireAdmin(request)
+    if (!auth.ok) return auth.response
+
     const { searchParams } = new URL(request.url)
     const userId = searchParams.get('userId')
 
@@ -13,7 +18,7 @@ export async function GET(request: NextRequest) {
     }
 
     // ── Fetch user profile from multiple sources ──
-    let profile: Record<string, any> | null = null
+    let profile: Record<string, unknown> | null = null
 
     // Try registered_users
     const { data: regUser } = await supabase
@@ -118,8 +123,8 @@ export async function GET(request: NextRequest) {
       paymentStats,
       usageStats,
     })
-  } catch (error: any) {
+  } catch (error) {
     console.error('[User Details] Error:', error)
-    return NextResponse.json({ error: error?.message || 'Xatolik' }, { status: 500 })
+    return NextResponse.json({ error: getErrorMessage(error) || 'Xatolik' }, { status: 500 })
   }
 }

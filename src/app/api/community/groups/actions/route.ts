@@ -1,20 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { errorMessage, getServiceClient, requireUser } from '@/lib/community-server'
 
-async function getSupabase() {
-  const { createClient } = await import('@supabase/supabase-js')
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-  if (!supabaseUrl || !supabaseKey) return null
-  return createClient(supabaseUrl, supabaseKey)
-}
-
-// GET /api/community/groups/actions?groupId=...&moderatorId=...
-// Moderatsiya jurnali — faqat guruh yaratuvchisi/moderatori ko'ra oladi
+// GET /api/community/groups/actions?groupId=...
+// Moderatsiya jurnali — faqat guruh yaratuvchisi/moderatori ko'ra oladi.
+// Identity faqat session'dan — query'dagi moderatorId ishonilmaydi.
 export async function GET(request: NextRequest) {
   try {
+    const auth = await requireUser(request)
+    if (!auth.ok) return auth.response
+
     const { searchParams } = new URL(request.url)
     const groupId = searchParams.get('groupId')
-    const moderatorId = searchParams.get('moderatorId') || ''
+    const moderatorId = auth.user.id
 
     if (!groupId) {
       return NextResponse.json(
@@ -23,7 +20,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const supabase = await getSupabase()
+    const supabase = await getServiceClient()
     if (!supabase) return NextResponse.json({ success: true, data: [] })
 
     // Faqat yaratuvchi/moderator
@@ -34,7 +31,7 @@ export async function GET(request: NextRequest) {
       .single()
     const isCreator = group?.created_by?.toString() === moderatorId
     let isModerator = false
-    if (!isCreator && moderatorId) {
+    if (!isCreator) {
       const { data: member } = await supabase
         .from('community_group_members')
         .select('role')
@@ -59,9 +56,9 @@ export async function GET(request: NextRequest) {
 
     if (error) throw error
     return NextResponse.json({ success: true, data: data || [] })
-  } catch (err: any) {
+  } catch (err: unknown) {
     return NextResponse.json(
-      { success: false, error: err.message || "Jurnalni yuklashda xatolik" },
+      { success: false, error: errorMessage(err, 'Jurnalni yuklashda xatolik') },
       { status: 500 }
     )
   }

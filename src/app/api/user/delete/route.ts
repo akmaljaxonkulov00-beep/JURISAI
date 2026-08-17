@@ -1,116 +1,67 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireUser } from '@/lib/server-auth'
+import { getSupabaseAdmin } from '@/lib/supabase-admin'
 
+/**
+ * POST /api/user/delete
+ *
+ * Foydalanuvchi FAQAT O'Z hisobini o'chira oladi — identity tasdiqlangan
+ * session'dan olinadi. Client yuborgan userId/email/authToken ishonilmaydi.
+ *
+ * (Admin boshqa foydalanuvchini o'chirishi — /api/admin/users DELETE orqali,
+ * u requireAdmin bilan himoyalangan.)
+ */
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const { userId, email, authToken } = body
+    const auth = await requireUser(request)
+    if (!auth.ok) return auth.response
 
-    if (!userId && !email) {
-      return NextResponse.json(
-        { success: false, error: 'Foydalanuvchi ID yoki email talab qilinadi' },
-        { status: 400 }
-      )
-    }
+    const userId = auth.user.id
 
-    // ── Verify auth — server-side session check ──
-    // The client sends the session auth token. We verify it matches at least one identifier.
-    // Additionally check the jurisai_auth cookie set by firebase-auth.ts on login.
-    const cookieAuth = request.cookies.get('jurisai_auth')?.value
-
-    // If no valid auth token and no auth cookie, reject
-    const hasValidToken = authToken && (authToken === userId || authToken === email)
-    const hasValidCookie = cookieAuth === '1' && (userId || email)
-
-    if (!hasValidToken && !hasValidCookie) {
-      return NextResponse.json(
-        { success: false, error: 'Ruxsat etilmagan. Iltimos, qayta kiring.' },
-        { status: 401 }
-      )
-    }
-
-    // ── 1. Delete from Supabase tables ──
-    let supabaseDeleted = false
+    let supabase
     try {
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-      const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+      supabase = getSupabaseAdmin()
+    } catch {
+      return NextResponse.json({ success: false, error: 'Supabase sozlanmagan' }, { status: 500 })
+    }
 
-      if (supabaseUrl && supabaseKey) {
-        const headers = {
-          apikey: supabaseKey,
-          Authorization: `Bearer ${supabaseKey}`,
-          'Content-Type': 'application/json',
-          Prefer: 'return=minimal',
-        }
+    // ── Bog'liq ma'lumotlarni o'chirish (faqat o'z id bilan) ──
+    try {
+      await supabase.from('registered_users').delete().eq('id', userId)
+    } catch {}
+    try {
+      await supabase.from('payment_requests').delete().eq('user_id', userId)
+    } catch {}
+    try {
+      await supabase.from('user_notifications').delete().eq('user_id', userId)
+    } catch {}
+    try {
+      await supabase.from('community_group_members').delete().eq('user_id', userId)
+    } catch {}
+    try {
+      await supabase.from('community_group_posts').delete().eq('user_id', userId)
+    } catch {}
+    try {
+      await supabase.from('usage_logs').delete().eq('user_id', userId)
+    } catch {}
 
-        // Delete from profiles
-        if (userId) {
-          await fetch(`${supabaseUrl}/rest/v1/profiles?id=eq.${encodeURIComponent(userId)}`, {
-            method: 'DELETE',
-            headers,
-          })
-        }
-
-        // Delete from payments — by user_id OR user_email
-        const paymentFilters = []
-        if (userId) paymentFilters.push(`user_id=eq.${encodeURIComponent(userId)}`)
-        if (email) paymentFilters.push(`user_email=eq.${encodeURIComponent(email)}`)
-        if (paymentFilters.length > 0) {
-          await fetch(`${supabaseUrl}/rest/v1/payments?or=(${paymentFilters.join(',')})`, {
-            method: 'DELETE',
-            headers,
-          })
-        }
-
-        // Delete from subscriptions
-        if (userId) {
-          await fetch(
-            `${supabaseUrl}/rest/v1/subscriptions?user_id=eq.${encodeURIComponent(userId)}`,
-            {
-              method: 'DELETE',
-              headers,
-            }
-          )
-        }
-
-        // Delete from usage_logs
-        if (userId) {
-          await fetch(
-            `${supabaseUrl}/rest/v1/usage_logs?user_id=eq.${encodeURIComponent(userId)}`,
-            {
-              method: 'DELETE',
-              headers,
-            }
-          )
-        }
-
-        // Delete from login_activity
-        if (email) {
-          await fetch(
-            `${supabaseUrl}/rest/v1/login_activity?email=eq.${encodeURIComponent(email)}`,
-            {
-              method: 'DELETE',
-              headers,
-            }
-          )
-        }
-
-        supabaseDeleted = true
-      }
-    } catch (dbError) {
-      console.error('Supabase deletion error:', dbError)
-      // Continue — client will clear locally
+    // ── Supabase Auth'dan o'chirish ──
+    let authDeleted = false
+    try {
+      const { error } = await supabase.auth.admin.deleteUser(userId)
+      authDeleted = !error
+    } catch {
+      authDeleted = false
     }
 
     return NextResponse.json({
       success: true,
       message: "Hisob muvaffaqiyatli o'chirildi",
-      supabaseDeleted,
+      authDeleted,
     })
-  } catch (error) {
-    console.error('Account deletion error:', error)
-    return NextResponse.json(
-      { success: false, error: "Hisobni o'chirishda xatolik yuz berdi" },
-      { status: 500 }
-    )
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "Hisobni o'chirishda xatolik yuz berdi"
+    console.error('Account deletion error:', e)
+    return NextResponse.json({ success: false, error: message }, { status: 500 })
   }
 }

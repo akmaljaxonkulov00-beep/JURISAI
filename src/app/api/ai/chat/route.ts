@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { checkAndIncrement, getIdentityFromRequest, usageMessage } from '@/lib/usage-limits'
+import { requireUser } from '@/lib/server-auth'
+import { checkAndIncrement, usageMessage } from '@/lib/usage-limits'
 import {
   retrieveLegalArticles,
   buildLegalContext,
@@ -7,7 +8,7 @@ import {
   appendCitationNote,
 } from '@/lib/legal-rag'
 
-const GROQ_API_KEY = process.env.GROQ_API_KEY || process.env.NEXT_PUBLIC_GROQ_API_KEY
+const GROQ_API_KEY = process.env.GROQ_API_KEY
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
 
 export async function POST(request: NextRequest) {
@@ -18,14 +19,19 @@ export async function POST(request: NextRequest) {
     if (!message || typeof message !== 'string') {
       return NextResponse.json({ error: 'Message is required' }, { status: 400 })
     }
+    if (message.length > 4000) {
+      return NextResponse.json({ error: 'Xabar juda uzun — maksimal 4000 belgi' }, { status: 400 })
+    }
 
     if (!GROQ_API_KEY) {
       console.error('GROQ_API_KEY not found')
       return NextResponse.json({ error: 'AI service not configured' }, { status: 500 })
     }
 
-    // ── AI limit tekshiruvi ──
-    const identity = getIdentityFromRequest(request, body)
+    // ── Autentifikatsiya + AI limit tekshiruvi ──
+    const auth = await requireUser(request)
+    if (!auth.ok) return auth.response
+    const identity = { userId: auth.user.id, email: auth.user.email || undefined }
     const usage = await checkAndIncrement({
       ...identity,
       feature: 'ai_chat',

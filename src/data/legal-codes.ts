@@ -33,14 +33,14 @@ import fullData from './full-legal-codes.json'
 function loadFullCodes(): LegalCode[] {
   try {
     if (!fullData || !Array.isArray(fullData)) return []
-    return fullData.map((item: any) => ({
+    return fullData.map((item: LegalCode) => ({
       id: item.id,
       name: item.name,
       shortName: item.shortName || item.name,
       description: item.description || '',
       totalArticles: item.totalArticles || item.articles?.length || 0,
       effectiveDate: item.effectiveDate || '01.01.2024',
-      articles: (item.articles || []).map((a: any) => ({
+      articles: (item.articles || []).map((a: LegalArticle) => ({
         number: a.number,
         title: a.title || '',
         content: a.content || '',

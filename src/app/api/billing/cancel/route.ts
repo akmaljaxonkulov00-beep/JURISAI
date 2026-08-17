@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { getSupabaseAdmin } from '@/lib/supabase-admin'
 // Stripe import with error handling
-let stripe: any = null
+let stripe: { subscriptions: { cancel: (id: string) => Promise<unknown> } } | null = null
 try {
   if (process.env.STRIPE_SECRET_KEY) {
     const Stripe = require('stripe')
@@ -21,17 +21,18 @@ export async function POST(request: Request) {
     }
 
     // Verify user with Supabase
+    const admin = getSupabaseAdmin()
     const {
       data: { user },
       error,
-    } = await supabase.auth.getUser(authHeader)
+    } = await admin.auth.getUser(authHeader)
 
     if (error || !user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     // Get user's subscription from Supabase
-    const { data: subscription, error: subError } = await supabase
+    const { data: subscription, error: subError } = await admin
       .from('subscriptions')
       .select('*')
       .eq('user_id', user.id)
@@ -44,11 +45,11 @@ export async function POST(request: Request) {
 
     // Cancel subscription in Stripe if it exists
     if (subscription.stripe_subscription_id) {
-      await stripe.subscriptions.cancel(subscription.stripe_subscription_id)
+      await stripe?.subscriptions.cancel(subscription.stripe_subscription_id)
     }
 
     // Update subscription in Supabase
-    const { error: updateError } = await supabase
+    const { error: updateError } = await admin
       .from('subscriptions')
       .update({
         status: 'CANCELED',

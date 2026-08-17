@@ -9,13 +9,34 @@ Usage:
 """
 
 import json
+import os
 import requests
 import sys
 from pathlib import Path
 
-# ── Supabase credentials (from .env.local) ────────────────────────────────
-SUPABASE_URL = "https://blayqzykzlmrjuvhzvsk.supabase.co"
-SERVICE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJsYXlxenlremxtcmp1dmh6dnNrIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NDczMDM3MCwiZXhwIjoyMTAwMzA2MzcwfQ.PxS4umHEdnJpz_iaVSsxEVok0sPsiLGtXo-IL2XMMgg"
+# ── Supabase credentials — FAQAT muhit o'zgaruvchilaridan (.env.local) ──
+# Hech qachon kalitni kodga yozmang!
+SUPABASE_URL = os.environ.get('NEXT_PUBLIC_SUPABASE_URL')
+SERVICE_KEY = os.environ.get('SUPABASE_SERVICE_ROLE_KEY')
+
+if not SUPABASE_URL or not SERVICE_KEY:
+    # .env.local dan o'qish (agar env sozlanmagan bo'lsa)
+    env_file = Path(__file__).resolve().parent.parent / '.env.local'
+    if env_file.exists():
+        with open(env_file, 'r', encoding='utf-8') as f:
+            for line in f:
+                line = line.strip()
+                if '=' in line and not line.startswith('#'):
+                    k, _, v = line.partition('=')
+                    v = v.strip('"\'')
+                    if k.strip() == 'NEXT_PUBLIC_SUPABASE_URL':
+                        SUPABASE_URL = v
+                    elif k.strip() == 'SUPABASE_SERVICE_ROLE_KEY':
+                        SERVICE_KEY = v
+
+if not SUPABASE_URL or not SERVICE_KEY:
+    print('[FATAL] Supabase kredensiallari topilmadi! .env.local ni tekshiring.')
+    sys.exit(1)
 
 HEADERS = {
     'apikey': SERVICE_KEY,

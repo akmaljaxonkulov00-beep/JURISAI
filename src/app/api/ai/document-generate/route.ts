@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSupabaseAdmin } from '@/lib/supabase-admin'
-import { checkAndIncrement, getIdentityFromRequest, usageMessage } from '@/lib/usage-limits'
+import { requireUser } from '@/lib/server-auth'
+import { checkAndIncrement, usageMessage } from '@/lib/usage-limits'
 import { groundPrompt, validateCitations, appendCitationNote } from '@/lib/legal-rag'
 
-const GROQ_API_KEY = process.env.GROQ_API_KEY || process.env.NEXT_PUBLIC_GROQ_API_KEY
+const GROQ_API_KEY = process.env.GROQ_API_KEY
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
 
 const SYSTEM_PROMPT =
@@ -25,7 +25,7 @@ const SYSTEM_PROMPT =
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { templateId, templateName, documentData, outputFormat, language, customFields } = body
+    const { templateId, templateName, documentData, outputFormat, language } = body
 
     if (!templateId || !documentData) {
       return NextResponse.json(
@@ -33,9 +33,22 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
+    // Input hajmi chegarasi — suiste'mol va juda katta so'rovlarning oldini olish
+    const dataSize = JSON.stringify(documentData).length
+    if (dataSize > 50000) {
+      return NextResponse.json(
+        { error: "Hujjat ma'lumotlari juda katta — maksimal 50 000 belgi" },
+        { status: 400 }
+      )
+    }
+    if (!GROQ_API_KEY) {
+      return NextResponse.json({ error: 'AI xizmati sozlanmagan' }, { status: 503 })
+    }
 
-    // ── AI limit tekshiruvi ──
-    const identity = getIdentityFromRequest(request, body)
+    // ── Autentifikatsiya + AI limit tekshiruvi ──
+    const auth = await requireUser(request)
+    if (!auth.ok) return auth.response
+    const identity = { userId: auth.user.id, email: auth.user.email || undefined }
     const usage = await checkAndIncrement({
       ...identity,
       feature: 'document_generate',
@@ -48,77 +61,69 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Log usage to Supabase
-    let documentContent = 'Hujjat: ' + templateId + '\n\nMalumotlar qabul qilindi.'
+    // RAG: hujjat turi va ma'lumotlariga mos REAL qonun moddalari bazadan olinadi
+    // va AI faqat shu moddalarga asoslanib hujjat yozadi (to'qima modda yo'q).
+    const question = `${templateName || templateId}: ${String(documentData).slice(0, 600)}`
+    const { prompt } = await groundPrompt(question, SYSTEM_PROMPT, 4)
+
+    // Call Groq for document generation
+    const response = await fetch(GROQ_API_URL, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${GROQ_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        messages: [
+          { role: 'system', content: prompt },
+          {
+            role: 'user',
+            content:
+              'Template: ' +
+              (templateName || templateId) +
+              '\nData: ' +
+              JSON.stringify(documentData) +
+              '\nFormat: ' +
+              (outputFormat || 'docx'),
+          },
+        ],
+        temperature: 0.1,
+        max_tokens: 2048,
+      }),
+    })
+
+    // Provider xatosi — fake muvaffaqiyat QAYTARILMAYDI
+    if (!response.ok) {
+      console.error('Groq document-generate error:', response.status, await response.text())
+      return NextResponse.json({ error: 'AI xizmatida xatolik yuz berdi' }, { status: 502 })
+    }
+
+    const data = await response.json()
+    const documentContent = data.choices[0]?.message?.content
+    if (!documentContent) {
+      return NextResponse.json({ error: 'AI javob olinmadi' }, { status: 502 })
+    }
+
+    // AI javobidagi modda iqtiboslari bazaga mosligini tekshiramiz —
+    // to'qima/noto'g'ri modda raqamlari qolmasligi uchun.
+    let finalContent = documentContent
     try {
-      // RAG: hujjat turi va ma'lumotlariga mos REAL qonun moddalari bazadan olinadi
-      // va AI faqat shu moddalarga asoslanib hujjat yozadi (to'qima modda yo'q).
-      const question = `${templateName || templateId}: ${String(documentData).slice(0, 600)}`
-      const { prompt } = await groundPrompt(question, SYSTEM_PROMPT, 4)
-
-      // Call Groq for document generation
-      const response = await fetch(GROQ_API_URL, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${GROQ_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'llama-3.3-70b-versatile',
-          messages: [
-            { role: 'system', content: prompt },
-            {
-              role: 'user',
-              content:
-                'Template: ' +
-                (templateName || templateId) +
-                '\nData: ' +
-                JSON.stringify(documentData) +
-                '\nFormat: ' +
-                (outputFormat || 'docx'),
-            },
-          ],
-          temperature: 0.1,
-          max_tokens: 2048,
-        }),
-      })
-      if (response.ok) {
-        const data = await response.json()
-        documentContent = data.choices[0]?.message?.content || documentContent
+      const citeResult = await validateCitations(finalContent)
+      if (citeResult.invalid.length > 0) {
+        finalContent = appendCitationNote(finalContent, citeResult)
       }
-
-      // AI javobidagi modda iqtiboslari bazaga mosligini tekshiramiz —
-      // to'qima/noto'g'ri modda raqamlari qolmasligi uchun.
-      try {
-        const citeResult = await validateCitations(documentContent)
-        if (citeResult.invalid.length > 0) {
-          documentContent = appendCitationNote(documentContent, citeResult)
-        }
-      } catch {
-        // Validatsiya xatosi hujjatni buzmasin
-      }
-    } catch {}
-
-    try {
-      const supabase = getSupabaseAdmin()
-      await supabase.from('usage_logs').insert({
-        user_id: 'api',
-        email: 'api@jurisai.uz',
-        name: 'API',
-        tokens: Math.ceil(documentContent.length / 4),
-        action: 'document_generate',
-        metadata: { templateId, output_format: outputFormat || 'docx', language: language || 'uz' },
-        created_at: new Date().toISOString(),
-      })
-    } catch {}
+    } catch {
+      // Validatsiya xatosi hujjatni buzmasin
+    }
 
     return NextResponse.json({
       success: true,
-      document: documentContent,
+      document: finalContent,
       templateId,
       outputFormat,
       language,
-      usage: { totalTokens: Math.ceil(documentContent.length / 4) },
+      usage: { totalTokens: Math.ceil(finalContent.length / 4) },
     })
   } catch (error) {
     console.error('Document generation error:', error)

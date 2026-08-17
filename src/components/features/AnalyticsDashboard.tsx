@@ -227,7 +227,7 @@ export default function AnalyticsDashboard() {
         <div className="flex gap-2">
           <select
             value={timeRange}
-            onChange={e => setTimeRange(e.target.value as any)}
+            onChange={e => setTimeRange(e.target.value as Parameters<typeof setTimeRange>[0])}
             className="px-3 py-2 border border-gray-300 dark:border-zinc-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="7d">7 kun</option>

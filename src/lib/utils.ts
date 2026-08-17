@@ -1,6 +1,6 @@
-export function cn(...classes: any[]) {
+export function cn(...classes: unknown[]) {
   return classes.filter(Boolean).join(' ')
 }
-export function formatDate(date: any) {
+export function formatDate(date: { toLocaleDateString: () => string }) {
   return date.toLocaleDateString()
 }

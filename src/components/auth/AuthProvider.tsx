@@ -2,8 +2,25 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import { auth as simpleAuth } from '@/lib/simple-auth'
-const auth = simpleAuth as any
-type User = any
+
+interface User {
+  id?: string
+  email?: string
+  name?: string
+  role?: string
+  [key: string]: unknown
+}
+
+const auth = simpleAuth as unknown as {
+  getUser: () => User | null
+  hasActiveSubscription: () => boolean
+  getSubscriptionPlan: () => string
+  subscribe: (cb: (user: User) => void) => () => void
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>
+  register: (data: unknown) => Promise<{ success: boolean; error?: string }>
+  logout: () => void
+  updateProfile: (updates: unknown) => Promise<{ success: boolean; error?: string }>
+}
 
 interface AuthContextType {
   user: User | null
@@ -34,7 +51,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const getSubscriptionPlan = auth.getSubscriptionPlan()
 
   useEffect(() => {
-    const unsubscribe = auth.subscribe((user: any) => {
+    const unsubscribe = auth.subscribe(user => {
       setUser(user)
     })
 

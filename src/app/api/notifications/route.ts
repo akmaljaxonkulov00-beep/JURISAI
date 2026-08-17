@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireUser } from '@/lib/server-auth'
 
 async function getSupabase() {
   const { createClient } = await import('@supabase/supabase-js')
@@ -9,25 +10,37 @@ async function getSupabase() {
 }
 
 /**
- * GET /api/notifications?userId=...
- * Foydalanuvchi bildirishnomalari + to'lov holati (payment_requests dan sintez)
+ * GET /api/notifications
+ * Foydalanuvchi bildirishnomalari + to'lov holati (payment_requests dan sintez).
+ * Identity FAQAT tasdiqlangan session'dan — query parametrdagi userId ishonilmaydi.
  */
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
-    const userId = searchParams.get('userId')
-    const limit = Math.min(50, parseInt(searchParams.get('limit') || '20'))
+    const auth = await requireUser(request)
+    if (!auth.ok) return auth.response
 
-    if (!userId) {
-      return NextResponse.json({ success: false, error: 'userId required' }, { status: 400 })
-    }
+    const userId = auth.user.id
+    const { searchParams } = new URL(request.url)
+    const limit = Math.min(50, parseInt(searchParams.get('limit') || '20'))
 
     const supabase = await getSupabase()
     if (!supabase) {
       return NextResponse.json({ success: true, data: [] })
     }
 
-    const notifications: any[] = []
+    interface Notif {
+      id: string
+      type: string
+      category: string
+      title: string
+      message: string
+      read: boolean
+      action_url?: string
+      action_text?: string
+      created_at?: string
+      [key: string]: unknown
+    }
+    const notifications: Notif[] = []
 
     // 1) user_notifications jadvalidan
     try {
@@ -86,19 +99,21 @@ export async function GET(request: NextRequest) {
       success: true,
       data: notifications.slice(0, limit),
     })
-  } catch (error: any) {
-    return NextResponse.json(
-      { success: false, error: error?.message || 'Xatolik' },
-      { status: 500 }
-    )
+  } catch (e) {
+    const message = e instanceof Error ? e.message : 'Xatolik'
+    return NextResponse.json({ success: false, error: message }, { status: 500 })
   }
 }
 
-// PUT — o'qilgan deb belgilash  { id, userId }
+// PUT — o'qilgan deb belgilash { id, markAll } — faqat session userning o'z bildirishnomalari
 export async function PUT(request: NextRequest) {
   try {
+    const auth = await requireUser(request)
+    if (!auth.ok) return auth.response
+    const userId = auth.user.id
+
     const body = await request.json()
-    const { id, userId, markAll } = body
+    const { id, markAll } = body
 
     const supabase = await getSupabase()
     if (!supabase) {
@@ -116,19 +131,26 @@ export async function PUT(request: NextRequest) {
     if (!id) {
       return NextResponse.json({ success: false, error: 'id required' }, { status: 400 })
     }
-    await supabase.from('user_notifications').update({ read: true }).eq('id', id)
+    // Faqat o'z bildirishnomasi — user_id sharti bilan
+    await supabase
+      .from('user_notifications')
+      .update({ read: true })
+      .eq('id', id)
+      .eq('user_id', userId)
     return NextResponse.json({ success: true })
-  } catch (error: any) {
-    return NextResponse.json(
-      { success: false, error: error?.message || 'Xatolik' },
-      { status: 500 }
-    )
+  } catch (e) {
+    const message = e instanceof Error ? e.message : 'Xatolik'
+    return NextResponse.json({ success: false, error: message }, { status: 500 })
   }
 }
 
-// DELETE — o'chirish { id }
+// DELETE — o'chirish { id } — faqat session userning o'z bildirishnomasi
 export async function DELETE(request: NextRequest) {
   try {
+    const auth = await requireUser(request)
+    if (!auth.ok) return auth.response
+    const userId = auth.user.id
+
     const body = await request.json()
     const { id } = body
 
@@ -143,12 +165,10 @@ export async function DELETE(request: NextRequest) {
     if (!id) {
       return NextResponse.json({ success: false, error: 'id required' }, { status: 400 })
     }
-    await supabase.from('user_notifications').delete().eq('id', id)
+    await supabase.from('user_notifications').delete().eq('id', id).eq('user_id', userId)
     return NextResponse.json({ success: true })
-  } catch (error: any) {
-    return NextResponse.json(
-      { success: false, error: error?.message || 'Xatolik' },
-      { status: 500 }
-    )
+  } catch (e) {
+    const message = e instanceof Error ? e.message : 'Xatolik'
+    return NextResponse.json({ success: false, error: message }, { status: 500 })
   }
 }

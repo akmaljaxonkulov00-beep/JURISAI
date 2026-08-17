@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Badge } from '@/components/ui/Badge'
 import { supabase } from '@/lib/supabase-browser'
+import { getErrorMessage } from '@/lib/errors'
 import {
   BookOpen,
   Plus,
@@ -154,8 +155,8 @@ export default function AdminLegalManager() {
       } else {
         setArticles([])
       }
-    } catch (err: any) {
-      setError(err.message || 'Yuklashda xatolik')
+    } catch (err) {
+      setError(getErrorMessage(err) || 'Yuklashda xatolik')
     } finally {
       setLoading(false)
     }
@@ -181,8 +182,8 @@ export default function AdminLegalManager() {
       setShowAddCategory(false)
       setNewCategory({ code_id: '', name: '', description: '' })
       fetchData()
-    } catch (err: any) {
-      alert(err.message)
+    } catch (err) {
+      alert(getErrorMessage(err))
     } finally {
       setSaving(false)
     }
@@ -193,8 +194,8 @@ export default function AdminLegalManager() {
     try {
       await supabase.from('categories').delete().eq('id', id)
       fetchData()
-    } catch (err: any) {
-      alert(err.message)
+    } catch (err) {
+      alert(getErrorMessage(err))
     }
   }
 
@@ -233,8 +234,8 @@ export default function AdminLegalManager() {
         penalties: '',
       })
       fetchData()
-    } catch (err: any) {
-      alert(err.message)
+    } catch (err) {
+      alert(getErrorMessage(err))
     } finally {
       setSaving(false)
     }
@@ -258,8 +259,8 @@ export default function AdminLegalManager() {
     try {
       await supabase.from('articles').delete().eq('id', id)
       fetchData()
-    } catch (err: any) {
-      alert(err.message)
+    } catch (err) {
+      alert(getErrorMessage(err))
     }
   }
 

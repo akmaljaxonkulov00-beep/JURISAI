@@ -1,86 +1,85 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireUser } from '@/lib/server-auth'
 import { supabase } from '@/lib/supabase'
-import { trackUsage } from '@/lib/usage-tracking'
+
+interface IracInput {
+  issue?: string
+  rule?: string
+  application?: string
+  conclusion?: string
+}
 
 export async function POST(request: NextRequest) {
   try {
-    const { case_title, case_category, case_difficulty, irac_analysis, total_score, completed_at } =
-      await request.json()
+    const auth = await requireUser(request)
+    if (!auth.ok) return auth.response
 
-    if (!case_title || !irac_analysis) {
+    const body = await request.json().catch(() => ({}))
+    const case_title: string = String(body.case_title || '').trim()
+    const case_category: string = String(body.case_category || 'general').slice(0, 50)
+    const case_difficulty: string = String(body.case_difficulty || 'medium').slice(0, 50)
+    const analysis: IracInput =
+      body.irac_analysis && typeof body.irac_analysis === 'object' ? body.irac_analysis : {}
+    const total_score: number =
+      typeof body.total_score === 'number'
+        ? Math.min(100, Math.max(0, Math.round(body.total_score)))
+        : 0
+    const completed_at: string | null =
+      typeof body.completed_at === 'string' ? body.completed_at : new Date().toISOString()
+
+    if (!case_title) {
       return NextResponse.json(
         { error: 'Barcha maydonlar talab qilinadi: case_title, irac_analysis' },
         { status: 400 }
       )
     }
 
-    // Generate unique analysis ID
-    const analysisId = `irac_analysis_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    // ── Deterministik baholash (Math.random YO'Q — har safar bir xil natija) ──
+    const grade = getGrade(total_score)
+    const feedback = buildFeedback(total_score, analysis)
+    const suggestions = buildSuggestions(analysis)
+    const strengths = buildStrengths(analysis)
+    const weaknesses = buildWeaknesses(analysis)
 
-    // Mock analysis processing
-    const mockAnalysis = {
-      id: analysisId,
-      case_title: case_title,
-      case_category: case_category || 'general',
-      case_difficulty: case_difficulty || 'medium',
-      irac_analysis: irac_analysis,
-      total_score: total_score || 75,
-      grade: getGrade(total_score || 75),
-      feedback: generateFeedback(total_score || 75, irac_analysis),
-      suggestions: generateSuggestions(irac_analysis),
-      strengths: identifyStrengths(irac_analysis),
-      weaknesses: identifyWeaknesses(irac_analysis),
-      processing_time: '2.5 soniya',
-      completed_at: completed_at || new Date().toISOString(),
-      created_at: new Date().toISOString(),
-    }
-
-    // Save analysis to database
     const { data, error } = await supabase
       .from('irac_analyses')
-      .insert([
-        {
-          id: analysisId,
-          case_title: case_title,
-          case_category: case_category || 'general',
-          case_difficulty: case_difficulty || 'medium',
-          irac_analysis: irac_analysis,
-          total_score: total_score || 75,
-          grade: mockAnalysis.grade,
-          feedback: mockAnalysis.feedback,
-          suggestions: mockAnalysis.suggestions,
-          strengths: mockAnalysis.strengths,
-          weaknesses: mockAnalysis.weaknesses,
-          completed_at: completed_at || new Date().toISOString(),
-          created_at: new Date().toISOString(),
-        },
-      ])
-      .select()
+      .insert({
+        user_id: auth.user.id,
+        case_title,
+        case_category,
+        case_difficulty,
+        irac_analysis: analysis as unknown as Record<string, unknown>,
+        total_score,
+        grade,
+        feedback,
+        suggestions,
+        strengths,
+        weaknesses,
+        completed_at,
+      })
+      .select('id')
       .single()
 
     if (error) {
-      console.error('IRAC analysis save error:', error)
+      console.error('IRAC analysis save error:', error.message)
+      // Yolg'on "muvaffaqiyat" qaytarilmaydi — real xato
+      return NextResponse.json(
+        { error: 'IRAC tahlilini saqlashda xatolik yuz berdi' },
+        { status: 500 }
+      )
     }
-
-    // Track usage
-    await trackUsage('irac_analysis_save', {
-      analysis_id: analysisId,
-      total_score: total_score || 75,
-      case_category: case_category,
-    })
 
     return NextResponse.json({
       success: true,
-      id: analysisId,
-      total_score: mockAnalysis.total_score,
-      grade: mockAnalysis.grade,
-      feedback: mockAnalysis.feedback,
-      suggestions: mockAnalysis.suggestions,
-      strengths: mockAnalysis.strengths,
-      weaknesses: mockAnalysis.weaknesses,
-      processing_time: mockAnalysis.processing_time,
+      id: data.id,
+      total_score,
+      grade,
+      feedback,
+      suggestions,
+      strengths,
+      weaknesses,
       message: 'IRAC tahlili muvaffaqiyatli saqlandi',
-      saved_at: mockAnalysis.created_at,
+      saved_at: new Date().toISOString(),
     })
   } catch (error) {
     console.error('IRAC analysis save error:', error)
@@ -102,110 +101,88 @@ function getGrade(score: number): string {
   return 'F (Qayta urinish kerak)'
 }
 
-function generateFeedback(score: number, analysis: any): string {
-  const feedbacks = {
-    high: [
-      "A'lo ishladingiz! IRAC metodikasini to'liq qo'lladingiz.",
-      "Mukammal tahlil! Barcha bosqichlar to'g'ri bajarilgan.",
-      'Ajoyib natija! Huquqiy tahlilingiz juda yuqori saviyyada.',
-    ],
-    medium: [
-      'Yaxshi ish, lekin yaxshilash mumkin. IRAC bosqichlariga diqqat bering.',
-      "Qoniqarli natija. Ba'zi bosqichlar kuchaytirilishi kerak.",
-      "Yaxshi boshlangan, lekin to'ldirish kerak bo'lgan joylar bor.",
-    ],
-    low: [
-      "Qayta urinib ko'ring. IRAC metodikasini to'g'ri qo'llashingiz kerak.",
-      "Yaxshilash uchun ko'p ish kerak. Barcha bosqichlarni tekshiring.",
-      "IRAC metodikasini chuqurroq o'rganing va qayta urining.",
-    ],
+/** Deterministik fikr-mulohaza — tahlil mazmuniga asoslanadi, tasodifiy emas */
+function buildFeedback(score: number, analysis: IracInput): string {
+  const hasRule = Boolean(analysis.rule && /modda|kodeks|qonun/i.test(analysis.rule))
+  const hasApplication = Boolean(
+    analysis.application && /chunki|sabab|qo'llaniladi|holat/i.test(analysis.application)
+  )
+  const full = Boolean(
+    analysis.issue && analysis.rule && analysis.application && analysis.conclusion
+  )
+
+  if (score >= 80 && hasRule && hasApplication && full) {
+    return "A'lo ishladingiz! IRAC metodikasini to'liq qo'lladingiz va qonun havolalarini to'g'ri keltirdingiz."
   }
-
-  let category: 'high' | 'medium' | 'low'
-  if (score >= 80) category = 'high'
-  else if (score >= 60) category = 'medium'
-  else category = 'low'
-
-  const categoryFeedbacks = feedbacks[category]
-  return categoryFeedbacks[Math.floor(Math.random() * categoryFeedbacks.length)]
+  if (score >= 60) {
+    const missing: string[] = []
+    if (!hasRule) missing.push("rule bosqichida aniq qonun moddasini ko'rsating")
+    if (!hasApplication) missing.push("application bosqichida qonunni faktlarga bog'lang")
+    return missing.length
+      ? `Yaxshi natija. Yaxshilash uchun: ${missing.join('; ')}.`
+      : 'Yaxshi natija. IRAC bosqichlarini biroz kuchaytirish mumkin.'
+  }
+  return "Qayta urinib ko'ring. IRAC metodikasini to'g'ri qo'llashingiz va qonun havolalarini keltirishingiz kerak."
 }
 
-function generateSuggestions(analysis: any): string[] {
-  const suggestions = []
-
-  if (!analysis.issue || analysis.issue.length < 50) {
-    suggestions.push('Issue bosqichini batafsilroq yozing - asosiy huquqiy muammoni aniq belgilang')
+function buildSuggestions(analysis: IracInput): string[] {
+  const suggestions: string[] = []
+  if (!analysis.issue || (analysis.issue || '').trim().length < 50) {
+    suggestions.push('Issue bosqichini batafsilroq yozing — asosiy huquqiy muammoni aniq belgilang')
   }
-
-  if (!analysis.rule || !analysis.rule.includes('modda')) {
+  if (!analysis.rule || !/modda|kodeks|qonun/i.test(analysis.rule || '')) {
     suggestions.push("Rule bosqichiga tegishli qonun moddasini va kodeksni ko'rsating")
   }
-
-  if (!analysis.application || !analysis.application.includes('chunki')) {
+  if (!analysis.application || !/chunki|sabab|qo'llaniladi/i.test(analysis.application || '')) {
     suggestions.push(
-      'Application bosqichida qonunni faktlarga bog\'lang - "chunki" so\'zidan foydalaning'
+      'Application bosqichida qonunni faktlarga bog\'lang — "chunki" so\'zidan foydalaning'
     )
   }
-
-  if (!analysis.conclusion || analysis.conclusion.length < 30) {
-    suggestions.push('Conclusion bosqichini kuchaytiring - aniq xulosa chiqaring')
+  if (!analysis.conclusion || (analysis.conclusion || '').trim().length < 30) {
+    suggestions.push('Conclusion bosqichini kuchaytiring — aniq xulosa chiqaring')
   }
-
   if (suggestions.length === 0) {
     suggestions.push("Ajoyib ish! IRAC metodikasini to'liq qo'lladingiz.")
   }
-
   return suggestions
 }
 
-function identifyStrengths(analysis: any): string[] {
-  const strengths = []
-
-  if (analysis.issue && analysis.issue.length > 100) {
+function buildStrengths(analysis: IracInput): string[] {
+  const strengths: string[] = []
+  if (analysis.issue && (analysis.issue || '').trim().length > 100) {
     strengths.push('Issue bosqichi batafsil va aniq yozilgan')
   }
-
-  if (analysis.rule && analysis.rule.includes('modda')) {
+  if (analysis.rule && /modda|kodeks|qonun/i.test(analysis.rule)) {
     strengths.push("Qonun havolalari to'g'ri keltirilgan")
   }
-
-  if (analysis.application && analysis.application.includes('chunki')) {
+  if (analysis.application && /chunki|sabab|qo'llaniladi/i.test(analysis.application)) {
     strengths.push("Qonunni faktlarga to'g'ri bog'langan")
   }
-
-  if (analysis.conclusion && analysis.conclusion.includes("shu sababga ko'ra")) {
+  if (analysis.conclusion && /shu sababga ko'ra|xulosa/i.test(analysis.conclusion)) {
     strengths.push('Xulosa mantiqan asoslangan')
   }
-
   if (strengths.length === 0) {
     strengths.push("IRAC metodikasiga urinib ko'rilgan")
   }
-
   return strengths
 }
 
-function identifyWeaknesses(analysis: any): string[] {
-  const weaknesses = []
-
-  if (!analysis.issue || analysis.issue.length < 30) {
+function buildWeaknesses(analysis: IracInput): string[] {
+  const weaknesses: string[] = []
+  if (!analysis.issue || (analysis.issue || '').trim().length < 30) {
     weaknesses.push('Issue juda qisqa va noaniq')
   }
-
-  if (!analysis.rule || !analysis.rule.includes('modda')) {
+  if (!analysis.rule || !/modda|kodeks|qonun/i.test(analysis.rule || '')) {
     weaknesses.push("Qonun havolasi yo'q yoki noto'g'ri")
   }
-
-  if (!analysis.application || analysis.application.length < 50) {
+  if (!analysis.application || (analysis.application || '').trim().length < 50) {
     weaknesses.push('Application bosqichi zaif')
   }
-
-  if (!analysis.conclusion || analysis.conclusion.length < 20) {
+  if (!analysis.conclusion || (analysis.conclusion || '').trim().length < 20) {
     weaknesses.push('Conclusion yetarli emas')
   }
-
   if (weaknesses.length === 0) {
     weaknesses.push('Hech qanday aniq zaiflik topilmadi')
   }
-
   return weaknesses
 }

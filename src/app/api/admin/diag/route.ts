@@ -1,4 +1,5 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { requireAdmin } from '@/lib/server-auth'
 
 /**
  * GET /api/admin/diag
@@ -7,9 +8,30 @@ import { NextResponse } from 'next/server'
  * what works and what doesn't.
  *
  * Used to debug why admin panel shows empty users/payments.
+ * FAQAT admin session bilan ishlaydi (boshqalarga 401/403).
  */
-export async function GET() {
-  const results: Record<string, any> = {}
+export async function GET(request: NextRequest) {
+  try {
+    const auth = await requireAdmin(request)
+    if (!auth.ok) return auth.response
+  } catch (e: unknown) {
+    return NextResponse.json(
+      { success: false, error: e instanceof Error ? e.message : 'Forbidden' },
+      { status: 403 }
+    )
+  }
+  interface DiagResult {
+    status?: string
+    count?: number
+    http_status?: number
+    http_ok?: boolean
+    is_array?: boolean
+    sample?: unknown
+    error_text?: string
+    has_data?: boolean
+    [key: string]: unknown
+  }
+  const results: Record<string, DiagResult> = {}
   const errors: Record<string, string> = {}
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
@@ -51,9 +73,9 @@ export async function GET() {
       results.test_auth_users_api.error_text = errText.substring(0, 200)
       errors.auth_users_api = `HTTP ${authRes.status}: ${errText.substring(0, 100)}`
     }
-  } catch (e: any) {
+  } catch (e: unknown) {
     results.test_auth_users_api.status = 'error'
-    errors.auth_users_api = e?.message || 'fetch failed'
+    errors.auth_users_api = e instanceof Error ? e.message : 'fetch failed'
   }
 
   // ── 2. Test registered_users table ──
@@ -74,9 +96,9 @@ export async function GET() {
       results.test_registered_users.count = count || 0
       results.test_registered_users.has_data = (count || 0) > 0
     }
-  } catch (e: any) {
+  } catch (e: unknown) {
     results.test_registered_users.status = 'error'
-    errors.registered_users = e?.message || 'failed'
+    errors.registered_users = e instanceof Error ? e.message : 'failed'
   }
 
   // ── 3. Test users table (legacy) ──
@@ -97,9 +119,9 @@ export async function GET() {
       results.test_users_table.count = count || 0
       results.test_users_table.has_data = (count || 0) > 0
     }
-  } catch (e: any) {
+  } catch (e: unknown) {
     results.test_users_table.status = 'error'
-    errors.users_table = e?.message || 'failed'
+    errors.users_table = e instanceof Error ? e.message : 'failed'
   }
 
   // ── 4. Test payment_requests table ──
@@ -120,9 +142,9 @@ export async function GET() {
       results.test_payment_requests.count = count || 0
       results.test_payment_requests.has_data = (count || 0) > 0
     }
-  } catch (e: any) {
+  } catch (e: unknown) {
     results.test_payment_requests.status = 'error'
-    errors.payment_requests = e?.message || 'failed'
+    errors.payment_requests = e instanceof Error ? e.message : 'failed'
   }
 
   // ── 5. Test categories table ──
@@ -143,9 +165,9 @@ export async function GET() {
       results.test_categories.count = count || 0
       results.test_categories.has_data = (count || 0) > 0
     }
-  } catch (e: any) {
+  } catch (e: unknown) {
     results.test_categories.status = 'error'
-    errors.categories = e?.message || 'failed'
+    errors.categories = e instanceof Error ? e.message : 'failed'
   }
 
   // ── 6. Test auth_logs table ──
@@ -166,9 +188,9 @@ export async function GET() {
       results.test_auth_logs.count = count || 0
       results.test_auth_logs.has_data = (count || 0) > 0
     }
-  } catch (e: any) {
+  } catch (e: unknown) {
     results.test_auth_logs.status = 'error'
-    errors.auth_logs = e?.message || 'failed'
+    errors.auth_logs = e instanceof Error ? e.message : 'failed'
   }
 
   // ── 7. Test usage_logs table ──
@@ -189,9 +211,9 @@ export async function GET() {
       results.test_usage_logs.count = count || 0
       results.test_usage_logs.has_data = (count || 0) > 0
     }
-  } catch (e: any) {
+  } catch (e: unknown) {
     results.test_usage_logs.status = 'error'
-    errors.usage_logs = e?.message || 'failed'
+    errors.usage_logs = e instanceof Error ? e.message : 'failed'
   }
 
   // ── 8. Test pricing_plans table ──
@@ -212,9 +234,9 @@ export async function GET() {
       results.test_pricing_plans.count = count || 0
       results.test_pricing_plans.has_data = (count || 0) > 0
     }
-  } catch (e: any) {
+  } catch (e: unknown) {
     results.test_pricing_plans.status = 'error'
-    errors.pricing_plans = e?.message || 'failed'
+    errors.pricing_plans = e instanceof Error ? e.message : 'failed'
   }
 
   // ── 9. Test site_settings table ──
@@ -235,9 +257,9 @@ export async function GET() {
       results.test_site_settings.count = count || 0
       results.test_site_settings.has_data = (count || 0) > 0
     }
-  } catch (e: any) {
+  } catch (e: unknown) {
     results.test_site_settings.status = 'error'
-    errors.site_settings = e?.message || 'failed'
+    errors.site_settings = e instanceof Error ? e.message : 'failed'
   }
 
   return NextResponse.json({
@@ -245,7 +267,7 @@ export async function GET() {
     summary: {
       env_configured: !!supabaseUrl && !!serviceRoleKey,
       supabase_url: supabaseUrl?.substring(0, 30) + '...',
-      auth_users_available: results.test_auth_users_api.count > 0,
+      auth_users_available: (results.test_auth_users_api.count || 0) > 0,
       registered_users_table_ok: results.test_registered_users.status === 'ok',
       users_table_ok: results.test_users_table.status === 'ok',
       payment_requests_table_ok: results.test_payment_requests.status === 'ok',

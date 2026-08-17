@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { X, Upload, Check, AlertCircle, Loader2, Shield, CreditCard } from 'lucide-react'
+import { getErrorMessage } from '@/lib/errors'
 
 interface CheckoutModalProps {
   isOpen: boolean
@@ -108,10 +109,10 @@ export default function CheckoutModal({
       setTimeout(() => {
         onClose()
       }, 2000)
-    } catch (err: any) {
+    } catch (err) {
       setStatus('error')
-      setErrorMsg(err.message || 'Yuklashda xatolik yuz berdi')
-      onError?.(err.message || 'Yuklashda xatolik')
+      setErrorMsg(getErrorMessage(err) || 'Yuklashda xatolik yuz berdi')
+      onError?.(getErrorMessage(err) || 'Yuklashda xatolik')
     } finally {
       setIsSubmitting(false)
     }

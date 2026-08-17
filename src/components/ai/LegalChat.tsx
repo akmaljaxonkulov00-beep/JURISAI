@@ -94,7 +94,7 @@ export default function LegalChat() {
             {messages.length === 0 ? (
               <div className="text-center text-gray-500 dark:text-zinc-500 py-8">
                 <p>Yuridik savolingizni yozing</p>
-                <p className="text-sm mt-2">Masalan: "Shartnomani bekor qilish tartibi qanday?"</p>
+                <p className="text-sm mt-2">Masalan: “Shartnomani bekor qilish tartibi qanday?”</p>
               </div>
             ) : (
               <div className="space-y-4">

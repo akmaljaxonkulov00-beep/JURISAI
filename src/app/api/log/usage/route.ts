@@ -1,10 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
+import { requireUser } from '@/lib/server-auth'
 
 export async function POST(request: NextRequest) {
   try {
+    const auth = await requireUser(request)
+    if (!auth.ok) return auth.response
+
     const body = await request.json()
-    const { userId, email, name, tokens, action, metadata } = body
+    const { name, tokens, action, metadata } = body
+
+    // Identity session'dan — client yuborgan userId/email ishonilmaydi
+    const userId = auth.user.id
+    const email = auth.user.email
 
     if (!email) {
       return NextResponse.json({ success: false, error: 'Email is required' }, { status: 400 })
@@ -33,11 +41,9 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true })
-  } catch (error: any) {
-    console.error('Usage logging API error:', error)
-    return NextResponse.json(
-      { success: false, error: error?.message || 'Logging failed' },
-      { status: 500 }
-    )
+  } catch (e) {
+    const message = e instanceof Error ? e.message : 'Logging failed'
+    console.error('Usage logging API error:', e)
+    return NextResponse.json({ success: false, error: message }, { status: 500 })
   }
 }

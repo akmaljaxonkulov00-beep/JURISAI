@@ -68,67 +68,50 @@ export default function PaymentAdmin() {
     try {
       setLoading(true)
 
-      // Mock API call
-      await new Promise(resolve => setTimeout(resolve, 1500))
+      // Real ma'lumot — Supabase payment_requests (admin analytics orqali)
+      const res = await fetch('/api/admin/analytics?days=90&type=payments', {
+        cache: 'no-cache',
+        headers: { 'Cache-Control': 'no-cache' },
+      })
+      const result = await res.json()
+      const rows = result?.data?.paymentRequests || []
 
-      // Mock data
-      const mockPayments: PaymentRequest[] = [
-        {
-          id: '1',
-          userId: 'user_1',
-          userName: 'Sarvar Karimov',
-          userEmail: 'sarvar@example.com',
-          planId: 'pro',
-          planName: 'Pro',
-          planPrice: 99000,
-          status: 'pending',
-          checkImage: '/api/placeholder/400/300',
-          submittedAt: '2024-01-20T10:30:00Z',
-        },
-        {
-          id: '2',
-          userId: 'user_2',
-          userName: 'Dilora Azimova',
-          userEmail: 'dilora@example.com',
-          planId: 'basic',
-          planName: 'Basic',
-          planPrice: 49000,
-          status: 'pending',
-          checkImage: '/api/placeholder/400/300',
-          submittedAt: '2024-01-20T09:15:00Z',
-        },
-        {
-          id: '3',
-          userId: 'user_3',
-          userName: 'Bekzod Toshmatov',
-          userEmail: 'bekzod@example.com',
-          planId: 'lifetime',
-          planName: 'Lifetime',
-          planPrice: 499000,
-          status: 'approved',
-          checkImage: '/api/placeholder/400/300',
-          submittedAt: '2024-01-19T16:45:00Z',
-          processedAt: '2024-01-19T17:30:00Z',
-          processedBy: 'Admin',
-        },
-        {
-          id: '4',
-          userId: 'user_4',
-          userName: 'Gulnora Soliyeva',
-          userEmail: 'gulnora@example.com',
-          planId: 'pro',
-          planName: 'Pro',
-          planPrice: 99000,
-          status: 'rejected',
-          checkImage: '/api/placeholder/400/300',
-          submittedAt: '2024-01-19T14:20:00Z',
-          processedAt: '2024-01-19T15:00:00Z',
-          processedBy: 'Admin',
-          notes: 'Chek aniq emas, summa mos kelmadi',
-        },
-      ]
+      const mapped: PaymentRequest[] = rows.map(
+        (p: {
+          id?: string
+          user_id?: string
+          userId?: string
+          user_name?: string
+          userName?: string
+          user_email?: string
+          userEmail?: string
+          plan?: string
+          amount?: number
+          status?: string
+          receipt_image?: string
+          receiptImage?: string
+          created_at?: string
+          createdAt?: string
+          updated_at?: string
+          reject_reason?: string
+        }) => ({
+          id: p.id,
+          userId: p.user_id || p.userId || '',
+          userName: p.user_name || p.userName || '—',
+          userEmail: p.user_email || p.userEmail || '',
+          planId: p.plan || '',
+          planName: p.plan || '',
+          planPrice: Number(p.amount || 0),
+          status: (p.status || 'pending') as PaymentRequest['status'],
+          checkImage: p.receipt_image || p.receiptImage || '',
+          submittedAt: p.created_at || p.createdAt || '',
+          processedAt: p.updated_at || '',
+          processedBy: '',
+          notes: p.reject_reason || '',
+        })
+      )
 
-      setPayments(mockPayments)
+      setPayments(mapped)
       setLoading(false)
     } catch (error) {
       console.error('Error loading payments:', error)
@@ -161,8 +144,15 @@ export default function PaymentAdmin() {
     try {
       setActionLoading(true)
 
-      // Mock API call
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      const res = await fetch('/api/payments/approve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ paymentId }),
+      })
+      const result = await res.json()
+      if (!res.ok || !result.success) {
+        throw new Error(result.error || 'Approve failed')
+      }
 
       // Update payment status
       setPayments(prev =>
@@ -192,8 +182,15 @@ export default function PaymentAdmin() {
     try {
       setActionLoading(true)
 
-      // Mock API call
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      const res = await fetch('/api/payments/reject', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ paymentId, notes: notes || '' }),
+      })
+      const result = await res.json()
+      if (!res.ok || !result.success) {
+        throw new Error(result.error || 'Reject failed')
+      }
 
       // Update payment status
       setPayments(prev =>

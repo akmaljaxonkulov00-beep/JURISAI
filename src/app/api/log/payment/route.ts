@@ -1,16 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
+import { requireUser } from '@/lib/server-auth'
+import { resolvePlan } from '@/lib/payment-admin'
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const { id, userId, userEmail, userName, plan, amount, receiptImage } = body
+    const auth = await requireUser(request)
+    if (!auth.ok) return auth.response
 
-    if (!userEmail || !plan || !amount) {
-      return NextResponse.json(
-        { success: false, error: 'Email, plan and amount are required' },
-        { status: 400 }
-      )
+    const body = await request.json()
+    const { id, userName, plan, receiptImage } = body
+
+    // Identity session'dan — client yuborgan userId/userEmail ishonilmaydi
+    const userId = auth.user.id
+    const userEmail = auth.user.email
+
+    if (!userEmail || !plan) {
+      return NextResponse.json({ success: false, error: 'Email va plan required' }, { status: 400 })
     }
 
     let supabase
@@ -20,6 +26,18 @@ export async function POST(request: NextRequest) {
       // Supabase not configured - silently skip logging
       return NextResponse.json({ success: true, note: 'Supabase not configured' })
     }
+
+    // Tarif va narx — faqat server tomondagi pricing_plans'dan.
+    // Client yuborgan amount ishonilmaydi, haqiqiy narx bazadan olinadi.
+    const resolved = await resolvePlan(supabase, plan)
+    if (!resolved || Number(resolved.price) <= 0) {
+      return NextResponse.json(
+        { success: false, error: `Tarif topilmadi: ${plan}` },
+        { status: 400 }
+      )
+    }
+    const planId = resolved.id
+    const amount = Number(resolved.price)
 
     // CRITICAL: payment_requests.id — UUID tipida. Frontend matn ID yuboradi
     // ('pay_...'), shuning uchun UUID server tomonda generatsiya qilinadi,
@@ -42,10 +60,12 @@ export async function POST(request: NextRequest) {
       user_id: userId || userEmail,
       user_email: userEmail,
       user_name: userName || '',
-      plan,
+      plan: planId,
+      plan_id: planId,
       amount,
       receipt_image: receiptImage || '',
       status: 'pending',
+      billing_cycle: 'monthly',
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     })
@@ -56,11 +76,9 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true })
-  } catch (error: any) {
-    console.error('Payment logging API error:', error)
-    return NextResponse.json(
-      { success: false, error: error?.message || 'Logging failed' },
-      { status: 500 }
-    )
+  } catch (e) {
+    const message = e instanceof Error ? e.message : 'Logging failed'
+    console.error('Payment logging API error:', e)
+    return NextResponse.json({ success: false, error: message }, { status: 500 })
   }
 }

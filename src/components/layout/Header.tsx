@@ -36,7 +36,7 @@ const Header: React.FC<HeaderProps> = ({ user, className }) => {
 
   const handleLogout = async () => {
     try {
-      const { firebaseAuth } = await import('@/services/firebase-auth')
+      const { firebaseAuth } = await import('@/services/supabase-auth')
       await firebaseAuth.signOut()
     } catch {
       // Nuclear clear fallback

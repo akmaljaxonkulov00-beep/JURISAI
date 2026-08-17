@@ -1,11 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import {
-  checkAndIncrement,
-  getIdentityFromRequest,
-  usageMessage,
-} from '@/lib/usage-limits'
+import { requireUser } from '@/lib/server-auth'
+import { checkAndIncrement, usageMessage } from '@/lib/usage-limits'
 
-const GROQ_API_KEY = process.env.GROQ_API_KEY || process.env.NEXT_PUBLIC_GROQ_API_KEY
+const GROQ_API_KEY = process.env.GROQ_API_KEY
 
 // Text-to-Speech (TTS) - Matnni ovozga aylantirish
 export async function POST(request: NextRequest) {
@@ -13,11 +10,25 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { action, text, audioData } = body
 
+    // ── Autentifikatsiya ──
+    const auth = await requireUser(request)
+    if (!auth.ok) return auth.response
+
+    // Audio hajm chegarasi (base64 — ~5 MB audio)
+    if (action === 'speech-to-text' && audioData && typeof audioData === 'string') {
+      if (audioData.length > 8000000) {
+        return NextResponse.json(
+          { error: 'Audio fayl juda katta — maksimal 5 MB' },
+          { status: 400 }
+        )
+      }
+    }
+
     // ── AI limit tekshiruvi (STT — Groq Whisper narxlanadigan xizmat) ──
     if (action === 'speech-to-text' && audioData) {
-      const identity = getIdentityFromRequest(request, body)
       const usage = await checkAndIncrement({
-        ...identity,
+        userId: auth.user.id,
+        email: auth.user.email || undefined,
         feature: 'speech_stt',
         metadata: { action: 'speech-to-text' },
       })
@@ -54,8 +65,8 @@ async function textToSpeech(text: string) {
       audio_url: null, // Browser TTS ishlatiladi
       message: 'Browser TTS ishlatiladi',
     })
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message || 'TTS failed' }, { status: 500 })
+  } catch {
+    return NextResponse.json({ error: 'TTS failed' }, { status: 500 })
   }
 }
 
@@ -105,10 +116,10 @@ async function speechToText(audioData: string) {
       use_browser_stt: true,
       language: 'uz-UZ',
     })
-  } catch (error: any) {
+  } catch (error) {
     console.error('STT error:', error)
     return NextResponse.json(
-      { error: error.message || 'STT xatosi', use_browser_stt: true, language: 'uz-UZ' },
+      { error: 'STT xatosi', use_browser_stt: true, language: 'uz-UZ' },
       { status: 500 }
     )
   }

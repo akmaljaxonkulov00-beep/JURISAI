@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import { cn } from '@/lib/utils'
 
 interface DialogContextType {
@@ -54,7 +55,9 @@ const DialogTrigger: React.FC<{ asChild?: boolean; children: ReactNode }> = ({
   const { open } = useDialog()
 
   if (asChild && React.isValidElement(children)) {
-    return React.cloneElement(children as React.ReactElement<any>, { onClick: open })
+    return React.cloneElement(children as React.ReactElement<{ onClick?: () => void }>, {
+      onClick: open,
+    })
   }
 
   return (
@@ -75,7 +78,7 @@ const DialogPortal: React.FC<{ children: ReactNode }> = ({ children }) => {
   if (!mounted) return null
 
   return typeof document !== 'undefined' && document.body
-    ? (document.body as any).createPortal(children, document.body)
+    ? createPortal(children, document.body)
     : null
 }
 
@@ -156,7 +159,9 @@ const DialogClose: React.FC<{ asChild?: boolean; children: ReactNode }> = ({
   const { close } = useDialog()
 
   if (asChild && React.isValidElement(children)) {
-    return React.cloneElement(children as React.ReactElement<any>, { onClick: close })
+    return React.cloneElement(children as React.ReactElement<{ onClick?: () => void }>, {
+      onClick: close,
+    })
   }
 
   return (

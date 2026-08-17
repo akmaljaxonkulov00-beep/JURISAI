@@ -2,8 +2,8 @@
 
 import { ReactNode, createContext, useContext, useState, useEffect } from 'react'
 import { ThemeProvider } from '@/context/ThemeContext'
-import { firebaseAuth } from '@/services/firebase-auth'
-import type { AuthUser } from '@/services/firebase-auth'
+import { firebaseAuth } from '@/services/supabase-auth'
+import type { AuthUser } from '@/services/supabase-auth'
 import { isAdminRole } from '@/lib/roles'
 
 interface AuthContextType {
@@ -56,8 +56,8 @@ function AuthProvider({ children }: { children: ReactNode }) {
         return { success: true }
       }
       return { success: false, error: result.error || 'Login xatosi' }
-    } catch (error: any) {
-      return { success: false, error: error?.message || 'Login xatosi' }
+    } catch (error) {
+      return { success: false, error: getErrorMessage(error) || 'Login xatosi' }
     } finally {
       setIsLoading(false)
     }
@@ -142,6 +142,7 @@ interface ProvidersProps {
 
 import { ToastProvider } from '@/components/ui/Toast'
 import { PaymentNotificationListener } from '@/components/payment/PaymentNotificationListener'
+import { getErrorMessage } from '@/lib/errors'
 
 export default function Providers({ children }: ProvidersProps) {
   return (

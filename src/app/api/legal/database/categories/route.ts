@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getErrorMessage } from '@/lib/errors'
 
 export async function GET(request: NextRequest) {
   try {
@@ -42,23 +43,33 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      categories: categories.map((cat: any) => ({
-        id: cat.code_id,
-        name: cat.name,
-        slug: cat.code_id,
-        description: cat.description || '',
-        document_count: cat.article_count || 0,
-        code_id: cat.code_id,
-      })),
+      categories: categories.map(
+        (cat: {
+          code_id?: string
+          name?: string
+          description?: string
+          article_count?: number
+        }) => ({
+          id: cat.code_id,
+          name: cat.name,
+          slug: cat.code_id,
+          description: cat.description || '',
+          document_count: cat.article_count || 0,
+          code_id: cat.code_id,
+        })
+      ),
       total_categories: categories.length,
-      total_documents: categories.reduce((sum: number, c: any) => sum + (c.article_count || 0), 0),
+      total_documents: categories.reduce(
+        (sum: number, c: { article_count?: number }) => sum + (c.article_count || 0),
+        0
+      ),
       last_updated: new Date().toISOString(),
     })
-  } catch (error: any) {
+  } catch (error) {
     console.error('Legal categories API error:', error)
     return NextResponse.json({
       success: false,
-      error: error.message || 'Kategoriyalarni olishda xatolik',
+      error: getErrorMessage(error) || 'Kategoriyalarni olishda xatolik',
       categories: [],
       total_categories: 0,
       total_documents: 0,

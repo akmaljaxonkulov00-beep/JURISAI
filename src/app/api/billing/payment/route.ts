@@ -1,34 +1,92 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import crypto from 'crypto'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import {
+  getPaymentAdminClient,
+  resolvePlan,
+  approvePayment,
+  type PaymentRecord,
+} from '@/lib/payment-admin'
 
-// Payme API endpoint for handling payment callbacks
+/**
+ * POST /api/billing/payment — Payme webhook
+ *
+ * XAVFSIZLIK:
+ * - PAYME_MERCHANT_KEY environment variable'isiz endpoint UMUMAN ishlamaydi (503).
+ *   Soxta/webhook'ni chaqirib subskriptiya faollashtirib bo'lmaydi.
+ * - Har bir so'rov Payme imzosi bilan tekshiriladi:
+ *   sign = base64(sha1(merchant_key + sha1(JSON.stringify(params))))
+ * - To'lov faqat 'pending' → 'approved' state machine orqali tasdiqlanadi
+ *   (approvePayment — takroriy tasdiqlash balansni ikki marta qo'shmaydi).
+ * - Tarif/narx faqat pricing_plans'dan.
+ */
+
+type PaymeParams = Record<string, unknown>
+
+function paymeSignature(merchantKey: string, params: PaymeParams): string {
+  const payload = JSON.stringify(params)
+  const inner = crypto.createHash('sha1').update(payload).digest()
+  const outer = crypto
+    .createHash('sha1')
+    .update(Buffer.concat([Buffer.from(merchantKey, 'utf8'), inner]))
+    .digest('base64')
+  return outer
+}
+
+function paymeError(id: unknown, code: number, message: string) {
+  return NextResponse.json({
+    jsonrpc: '2.0',
+    id,
+    error: { code, message },
+  })
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-
-    // Validate Payme signature (implement actual validation)
-    const isValidPaymeRequest = validatePaymeRequest(body)
-    if (!isValidPaymeRequest) {
-      return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
+    const merchantKey = process.env.PAYME_MERCHANT_KEY
+    if (!merchantKey) {
+      // Payme integratsiyasi sozlanmagan — soxta chaqiruvlar ishlamaydi
+      return NextResponse.json({ error: 'Payme integratsiyasi sozlanmagan' }, { status: 503 })
     }
 
-    const { method, params } = body
+    const body = await request.json()
+    const { method, params, id, sign } = body || {}
 
+    if (!method || !params) {
+      return paymeError(id, -32700, 'Invalid request')
+    }
+
+    // Imzoni tekshirish
+    const expected = paymeSignature(merchantKey, params as PaymeParams)
+    const provided = String(sign || '')
+    const valid =
+      provided.length === expected.length &&
+      crypto.timingSafeEqual(Buffer.from(provided), Buffer.from(expected))
+    if (!valid) {
+      return paymeError(id, -32504, 'Invalid signature')
+    }
+
+    const supabase = getPaymentAdminClient()
+    if (!supabase) {
+      return paymeError(id, -32500, 'Supabase not configured')
+    }
+
+    const p = params as PaymeParams
     switch (method) {
       case 'CheckPerformTransaction':
-        return await checkTransaction(params)
+        return checkPerform(supabase, id, p)
       case 'CreateTransaction':
-        return await createTransaction(params)
+        return createTransaction(supabase, id, p)
       case 'PerformTransaction':
-        return await performTransaction(params)
+        return performTransaction(supabase, id, p)
       case 'CancelTransaction':
-        return await cancelTransaction(params)
+        return cancelTransaction(supabase, id, p)
       case 'CheckTransaction':
-        return await checkTransactionStatus(params)
+        return checkTransaction(supabase, id, p)
       case 'GetStatement':
-        return await getStatement(params)
+        return getStatement(supabase, id, p)
       default:
-        return NextResponse.json({ error: 'Method not found' }, { status: 404 })
+        return paymeError(id, -32601, 'Method not found')
     }
   } catch (error) {
     console.error('Payme webhook error:', error)
@@ -36,260 +94,209 @@ export async function POST(request: NextRequest) {
   }
 }
 
-function validatePaymeRequest(body: any): boolean {
-  // Implement Payme signature validation
-  // This is a placeholder - implement actual validation
-  return true
+function accountOf(params: PaymeParams): Record<string, string> {
+  return (params.account || {}) as Record<string, string>
 }
 
-async function checkTransaction(params: any) {
-  const { account, amount, id } = params
+/** account.user_id + account.plan_id + amount tekshiruvi */
+async function validateOrder(
+  supabase: SupabaseClient,
+  params: PaymeParams
+): Promise<{ plan: { id: string; name: string; price: number }; userId: string } | null> {
+  const account = accountOf(params)
+  const plan = await resolvePlan(supabase, account.plan_id || '')
+  if (!plan || Number(plan.price) <= 0) return null
+  const userId = String(account.user_id || '')
+  if (!userId) return null
+  const amountTiyin = Number(params.amount)
+  if (amountTiyin > 0 && amountTiyin !== Math.round(Number(plan.price) * 100)) return null
+  return { plan, userId }
+}
 
-  // Check if user exists and subscription is valid
-  const { data: user, error } = await supabase
-    .from('profiles')
+async function checkPerform(supabase: SupabaseClient, id: unknown, params: PaymeParams) {
+  const order = await validateOrder(supabase, params)
+  if (!order) {
+    return paymeError(id, -31050, 'Invalid order')
+  }
+  return NextResponse.json({
+    jsonrpc: '2.0',
+    id,
+    result: { allow: true },
+  })
+}
+
+async function createTransaction(supabase: SupabaseClient, id: unknown, params: PaymeParams) {
+  const order = await validateOrder(supabase, params)
+  if (!order) {
+    return paymeError(id, -31050, 'Invalid order')
+  }
+
+  const paymeTxnId = String(params.id || '')
+  if (!paymeTxnId) return paymeError(id, -32700, 'Transaction id required')
+
+  // Bir xil Payme tranzaksiyasi takroran yaratilmasin
+  const { data: existing } = await supabase
+    .from('payment_requests')
     .select('*')
-    .eq('id', account.user_id)
-    .single()
-
-  if (error || !user) {
+    .eq('provider_transaction_id', paymeTxnId)
+    .maybeSingle()
+  if (existing) {
     return NextResponse.json({
       jsonrpc: '2.0',
       id,
       result: {
-        allow: false,
-        error: {
-          code: -32504,
-          message: 'User not found',
-        },
+        create_time: new Date(existing.created_at).getTime(),
+        transaction: existing.id,
+        state: existing.status === 'approved' ? 2 : 1,
       },
     })
   }
 
-  return NextResponse.json({
-    jsonrpc: '2.0',
-    id,
-    result: {
-      allow: true,
-    },
-  })
-}
-
-async function createTransaction(params: any) {
-  const { account, amount, id, time } = params
-
-  // Create transaction record
-  const { data: transaction, error } = await supabase
-    .from('orders')
+  const { data: payment, error } = await supabase
+    .from('payment_requests')
     .insert({
-      user_id: account.user_id,
-      number: `INV-${Date.now()}`,
-      amount: amount / 100, // Convert from tiyin to UZS
-      total: amount / 100, // Add total property
-      currency: 'UZS',
-      status: 'OPEN',
-      metadata: {
-        payme_transaction_id: id,
-        payme_time: time,
-      },
+      user_id: order.userId,
+      user_email: '',
+      user_name: '',
+      plan: order.plan.id,
+      plan_id: order.plan.id,
+      amount: Number(order.plan.price),
+      status: 'pending',
+      provider: 'payme',
+      provider_transaction_id: paymeTxnId,
+      billing_cycle: 'monthly',
       created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     })
     .select()
     .single()
 
   if (error) {
-    console.error('Error creating transaction:', error)
-    return NextResponse.json({
-      jsonrpc: '2.0',
-      id,
-      result: {
-        error: {
-          code: -32500,
-          message: 'Failed to create transaction',
-        },
-      },
-    })
+    console.error('Payme createTransaction error:', error)
+    return paymeError(id, -32500, 'Failed to create transaction')
   }
 
   return NextResponse.json({
     jsonrpc: '2.0',
     id,
-    result: {
-      create_time: Date.now(),
-      transaction: transaction.id,
-      state: 1,
-    },
+    result: { create_time: Date.now(), transaction: payment.id, state: 1 },
   })
 }
 
-async function performTransaction(params: any) {
-  const { id, account, amount } = params
-
-  // Find transaction
-  const { data: invoice, error: findError } = await supabase
-    .from('orders')
+async function performTransaction(supabase: SupabaseClient, id: unknown, params: PaymeParams) {
+  const paymeTxnId = String(params.id || '')
+  const { data } = await supabase
+    .from('payment_requests')
     .select('*')
-    .eq('metadata->>payme_transaction_id', id)
-    .single()
+    .eq('provider_transaction_id', paymeTxnId)
+    .maybeSingle()
+  const payment = data as PaymentRecord | null
 
-  if (findError || !invoice) {
-    return NextResponse.json({
-      jsonrpc: '2.0',
-      id,
-      result: {
-        error: {
-          code: -32400,
-          message: 'Transaction not found',
-        },
-      },
-    })
+  if (!payment) {
+    return paymeError(id, -32400, 'Transaction not found')
   }
 
-  // Update invoice status to paid
-  const { error: updateError } = await supabase
-    .from('orders')
-    .update({
-      status: 'PAID',
-      paid_at: new Date().toISOString(),
-    })
-    .eq('id', invoice.id)
-
-  if (updateError) {
-    console.error('Error updating invoice:', updateError)
+  // To'lov egasini tekshirish — boshqa foydalanuvchi to'lovini bajara olmaydi
+  const accountUserId = String(accountOf(params).user_id || '')
+  if (accountUserId && String(payment.user_id) !== accountUserId) {
+    return paymeError(id, -32504, 'Order mismatch')
   }
 
-  // Update user subscription
-  const { data: user, error: userError } = await supabase
-    .from('profiles')
+  // Faqat pending to'lov tasdiqlanadi; approved bo'lsa idempotent
+  const result = await approvePayment(supabase, payment.id || '', 'payme-webhook')
+  if (!result.ok && result.status !== 404) {
+    return paymeError(id, -32500, result.message)
+  }
+
+  const { data: updated } = await supabase
+    .from('payment_requests')
     .select('*')
-    .eq('id', account.user_id)
-    .single()
-
-  if (user && !userError) {
-    // Activate or extend subscription
-    const { data: plan, error: planError } = await supabase
-      .from('subscription_plans')
-      .select('*')
-      .eq('price', amount / 100)
-      .eq('is_active', true)
-      .single()
-
-    if (plan && !planError) {
-      // First check if subscription exists
-      const { data: existingSubscription, error: existingError } = await supabase
-        .from('subscriptions')
-        .select('*')
-        .eq('user_id', user.id)
-        .single()
-
-      if (existingSubscription && !existingError) {
-        await supabase
-          .from('subscriptions')
-          .update({
-            plan_id: plan.id,
-            status: 'ACTIVE',
-            current_period_start: new Date().toISOString(),
-            current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', existingSubscription.id)
-      } else {
-        await supabase.from('subscriptions').insert({
-          user_id: user.id,
-          plan_id: plan.id,
-          status: 'ACTIVE',
-          current_period_start: new Date().toISOString(),
-          current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        })
-      }
-    }
-  }
+    .eq('id', payment.id)
+    .maybeSingle()
 
   return NextResponse.json({
     jsonrpc: '2.0',
     id,
     result: {
       perform_time: Date.now(),
-      transaction: invoice.id,
-      state: 2,
+      transaction: payment.id,
+      state: updated?.status === 'approved' ? 2 : 1,
     },
   })
 }
 
-async function cancelTransaction(params: any) {
-  const { id } = params
-
-  // Find and cancel transaction
-  const { data: invoice, error: findError } = await supabase
-    .from('orders')
+async function cancelTransaction(supabase: SupabaseClient, id: unknown, params: PaymeParams) {
+  const paymeTxnId = String(params.id || '')
+  const { data } = await supabase
+    .from('payment_requests')
     .select('*')
-    .eq('metadata->>payme_transaction_id', id)
-    .single()
+    .eq('provider_transaction_id', paymeTxnId)
+    .maybeSingle()
+  const payment = data as PaymentRecord | null
 
-  if (invoice && !findError) {
-    await supabase.from('orders').update({ status: 'VOID' }).eq('id', invoice.id)
+  if (!payment) return paymeError(id, -32400, 'Transaction not found')
+
+  if (payment.status === 'pending') {
+    await supabase
+      .from('payment_requests')
+      .update({ status: 'cancelled', updated_at: new Date().toISOString() })
+      .eq('id', payment.id)
   }
 
   return NextResponse.json({
     jsonrpc: '2.0',
     id,
-    result: {
-      cancel_time: Date.now(),
-      transaction: invoice?.id,
-      state: -1,
-    },
+    result: { cancel_time: Date.now(), transaction: payment.id, state: -1 },
   })
 }
 
-async function checkTransactionStatus(params: any) {
-  const { id } = params
-
-  const { data: invoice, error } = await supabase
-    .from('orders')
+async function checkTransaction(supabase: SupabaseClient, id: unknown, params: PaymeParams) {
+  const paymeTxnId = String(params.id || '')
+  const { data } = await supabase
+    .from('payment_requests')
     .select('*')
-    .eq('metadata->>payme_transaction_id', id)
-    .single()
+    .eq('provider_transaction_id', paymeTxnId)
+    .maybeSingle()
+  const payment = data as PaymentRecord | null
 
-  const state = invoice?.status === 'PAID' ? 2 : 1
+  const state = payment?.status === 'approved' ? 2 : payment?.status === 'cancelled' ? -1 : 1
 
   return NextResponse.json({
     jsonrpc: '2.0',
     id,
     result: {
-      create_time: invoice ? new Date(invoice.created_at).getTime() : Date.now(),
-      perform_time: invoice?.paid_at ? new Date(invoice.paid_at).getTime() : 0,
+      create_time: payment?.created_at ? new Date(payment.created_at).getTime() : Date.now(),
+      perform_time: payment?.processed_at ? new Date(payment.processed_at).getTime() : 0,
       cancel_time: 0,
-      transaction: invoice?.id,
+      transaction: payment?.id,
       state,
       reason: 0,
     },
   })
 }
 
-async function getStatement(params: any) {
-  const { from, to } = params
+async function getStatement(supabase: SupabaseClient, id: unknown, params: PaymeParams) {
+  const from = new Date(Number(params.from || 0)).toISOString()
+  const to = new Date(Number(params.to || Date.now())).toISOString()
 
-  const { data: invoices, error } = await supabase
-    .from('orders')
+  const { data: rows } = await supabase
+    .from('payment_requests')
     .select('*')
-    .gte('created_at', new Date(Number(from)).toISOString())
-    .lte('created_at', new Date(Number(to)).toISOString())
+    .eq('provider', 'payme')
+    .gte('created_at', from)
+    .lte('created_at', to)
 
-  const transactions = (invoices || []).map((invoice: any) => ({
-    id: invoice.id,
-    time: new Date(invoice.created_at).getTime(),
-    amount: Number(invoice.amount) * 100, // Convert to tiyin
-    type: 1, // Payment
-    state: invoice.status === 'PAID' ? 2 : 1,
+  const transactions = ((rows as PaymentRecord[] | null) || []).map((row: PaymentRecord) => ({
+    id: row.id,
+    time: row.created_at ? new Date(row.created_at).getTime() : 0,
+    amount: Math.round(Number(row.amount || 0) * 100),
+    type: 1,
+    state: row.status === 'approved' ? 2 : 1,
   }))
 
   return NextResponse.json({
     jsonrpc: '2.0',
-    id: params.id,
-    result: {
-      transactions,
-    },
+    id,
+    result: { transactions },
   })
 }

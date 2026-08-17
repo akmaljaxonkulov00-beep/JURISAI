@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
+import { requireAdmin } from '@/lib/server-auth'
+import { logAdminAction } from '@/lib/admin-audit'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const auth = await requireAdmin(request)
+    if (!auth.ok) return auth.response
+
     let supabase
     try {
       supabase = getSupabaseAdmin()
@@ -22,13 +27,17 @@ export async function GET() {
     }
 
     return NextResponse.json({ success: true, data: data || null })
-  } catch (error: any) {
-    return NextResponse.json({ success: false, error: error?.message }, { status: 500 })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Xatolik'
+    return NextResponse.json({ success: false, error: message }, { status: 500 })
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
+    const auth = await requireAdmin(request)
+    if (!auth.ok) return auth.response
+
     const body = await request.json()
     const { settings } = body
 
@@ -44,7 +53,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Convert camelCase keys to snake_case for Supabase table
-    const snakeCaseSettings: Record<string, any> = {
+    const snakeCaseSettings: Record<string, unknown> = {
       id: 'global',
       updated_at: new Date().toISOString(),
     }
@@ -70,12 +79,30 @@ export async function POST(request: NextRequest) {
     const { error } = await supabase.from('site_settings').upsert(snakeCaseSettings)
 
     if (error) {
+      await logAdminAction({
+        admin: auth.user,
+        action: 'settings_update',
+        targetType: 'settings',
+        targetId: 'global',
+        details: { error: error.message },
+        success: false,
+      })
       console.error('Settings save error:', error)
       return NextResponse.json({ success: false, error: error.message }, { status: 500 })
     }
 
+    await logAdminAction({
+      admin: auth.user,
+      action: 'settings_update',
+      targetType: 'settings',
+      targetId: 'global',
+      details: { changedKeys: Object.keys(settings) },
+      success: true,
+    })
+
     return NextResponse.json({ success: true })
-  } catch (error: any) {
-    return NextResponse.json({ success: false, error: error?.message }, { status: 500 })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Xatolik'
+    return NextResponse.json({ success: false, error: message }, { status: 500 })
   }
 }

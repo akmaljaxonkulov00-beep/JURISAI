@@ -18,7 +18,7 @@ interface SubscriptionPlan {
   currency: string
   billingCycle: string
   features: string[]
-  limits: Record<string, any>
+  limits: Record<string, unknown>
   isActive: boolean
   isPublic: boolean
 }
@@ -43,146 +43,62 @@ export default function Billing() {
     fetchCurrentSubscription()
   }, [])
 
+  // Tariflar — Supabase pricing_plans jadvalidan (real ma'lumot)
   const fetchPlans = async () => {
-    const mockPlans: SubscriptionPlan[] = [
-      {
-        id: '1',
-        name: 'Bepul',
-        slug: 'free',
-        description: 'Boshlash uchun bepul reja',
-        price: 0,
-        currency: "so'm",
-        billingCycle: 'monthly',
-        features: [
-          "To'liq qonunlar bazasi — cheksiz",
-          "10 ta AI chat so'rovi / oy",
-          '3 ta IRAC tahlili / oy',
-          '3 ta hujjat generator / oy',
-          '5 ta ovozli yozuv (STT) / oy',
-          '3 ta senariy generator / oy',
-          'Asboblar, jamiyat, statistika — cheksiz',
-        ],
-        limits: {
-          ai_chat: 10,
-          irac: 3,
-          document_generate: 3,
-          document_analysis: 2,
-          virtual_court: 2,
-          decision_tree: 2,
-          speech_stt: 5,
-          scenario: 3,
-          weakness: 3,
-        },
-        isActive: true,
-        isPublic: true,
-      },
-      {
-        id: '2',
-        name: 'Standart',
-        slug: 'standart',
-        description: 'Faol foydalanuvchilar uchun keng imkoniyatlar',
-        price: 45000,
-        currency: "so'm",
-        billingCycle: 'monthly',
-        features: [
-          "200 ta AI chat so'rovi / oy",
-          'Cheksiz IRAC tahlili',
-          '50 ta hujjat generator / oy',
-          '20 ta hujjat tahlili / oy',
-          '20 ta qarorlar daraxti / oy',
-          '100 ta ovozli yozuv (STT) / oy',
-          '5 ta virtual sud sessiyasi / oy',
-          '20 ta senariy generator / oy',
-        ],
-        limits: {
-          ai_chat: 200,
-          irac: -1,
-          document_generate: 50,
-          document_analysis: 20,
-          virtual_court: 5,
-          decision_tree: 20,
-          speech_stt: 100,
-          scenario: 20,
-          weakness: 20,
-        },
-        isActive: true,
-        isPublic: true,
-      },
-      {
-        id: '3',
-        name: 'Pro',
-        slug: 'pro',
-        description: 'Professional huquqshunoslar va advokatlar uchun',
-        price: 140000,
-        currency: "so'm",
-        billingCycle: 'monthly',
-        features: [
-          "Cheksiz AI chat so'rovlari",
-          'Cheksiz IRAC, hujjat, daraxt, senariy',
-          'Cheksiz ovozli yozuv (STT)',
-          'Cheksiz virtual sud sessiyalari',
-          'Shaxsiy maslahatchi',
-          'Ekspert konsultatsiyasi',
-        ],
-        limits: {
-          ai_chat: -1,
-          irac: -1,
-          document_generate: -1,
-          document_analysis: -1,
-          virtual_court: -1,
-          decision_tree: -1,
-          speech_stt: -1,
-          scenario: -1,
-          weakness: -1,
-        },
-        isActive: true,
-        isPublic: true,
-      },
-    ]
-    setPlans(mockPlans)
+    try {
+      const res = await fetch('/api/billing/plans', { cache: 'no-cache' })
+      const result = await res.json()
+      if (result.success && Array.isArray(result.data) && result.data.length > 0) {
+        setPlans(result.data)
+      }
+    } catch (e) {
+      console.error('[Billing] Plans load error:', e)
+    }
   }
 
+  // Joriy obuna — registered_users dan (subscription_plan + expires_at)
   const fetchCurrentSubscription = async () => {
     try {
-      const mockSubscription: UserSubscription = {
-        id: 'sub_123',
-        status: 'ACTIVE',
-        currentPeriodStart: '2024-01-01T00:00:00Z',
-        currentPeriodEnd: '2024-02-01T00:00:00Z',
-        plan: {
-          id: '2',
-          name: 'Standart',
-          slug: 'standart',
-          description: 'Faol foydalanuvchilar uchun keng imkoniyatlar',
-          price: 45000,
-          currency: "so'm",
-          billingCycle: 'monthly',
-          features: [
-            "200 ta AI chat so'rovi / oy",
-            'Cheksiz IRAC tahlili',
-            '50 ta hujjat generator / oy',
-            '20 ta hujjat tahlili / oy',
-            '20 ta qarorlar daraxti / oy',
-            '100 ta ovozli yozuv (STT) / oy',
-            '5 ta virtual sud sessiyasi / oy',
-            '20 ta senariy generator / oy',
-          ],
-          limits: {
-            ai_chat: 200,
-            irac: -1,
-            document_generate: 50,
-            document_analysis: 20,
-            virtual_court: 5,
-            decision_tree: 20,
-            speech_stt: 100,
-            scenario: 20,
-            weakness: 20,
-          },
-          isActive: true,
-          isPublic: true,
-        },
+      const identity = await import('@/lib/client-user').then(m => m.getUserIdentityPayload())
+      const userId = identity.userId
+      if (!userId) {
+        setLoading(false)
+        return
       }
-      setCurrentSubscription(mockSubscription)
+      const { supabase } = await import('@/lib/supabase-client')
+      const { data, error } = await supabase
+        .from('registered_users')
+        .select('subscription_plan, subscription_expires_at')
+        .eq('id', userId)
+        .maybeSingle()
+      if (error) throw error
+
+      const planId = data?.subscription_plan || 'free'
+      const expiresAt = data?.subscription_expires_at
+      const isActive = !expiresAt || new Date(expiresAt).getTime() > Date.now()
+      if (planId && planId !== 'free') {
+        setCurrentSubscription({
+          id: 'sub_' + planId,
+          status: isActive ? 'ACTIVE' : 'EXPIRED',
+          currentPeriodStart: new Date().toISOString(),
+          currentPeriodEnd: expiresAt || new Date().toISOString(),
+          plan: {
+            id: planId,
+            name: planId === 'standart' ? 'Standart' : 'Pro',
+            slug: planId,
+            description: '',
+            price: 0,
+            currency: "so'm",
+            billingCycle: 'monthly',
+            features: [],
+            limits: {},
+            isActive: true,
+            isPublic: true,
+          },
+        })
+      }
+    } catch (e) {
+      console.error('[Billing] Subscription load error:', e)
     } finally {
       setLoading(false)
     }

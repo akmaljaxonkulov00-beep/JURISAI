@@ -12,31 +12,62 @@
 // -1 = cheksiz
 // ═══════════════════════════════════════════════════════════════════════════
 
+import type { SupabaseClient } from '@supabase/supabase-js'
+
 // ── Identity: request'dan foydalanuvchini aniqlash ────────────────────────
 /**
  * NextRequest'dan foydalanuvchi identity sini aniqlaydi.
  * 1) Body ichidagi userId/email (mavjud bo'lsa)
  * 2) sb-access-token cookie (Supabase JWT — sub va email)
  */
-export function getIdentityFromRequest(
-  request: any,
-  body: Record<string, any> = {}
-): { userId?: string; email?: string } {
-  const fromBody = {
-    userId: body.userId || body.user_id || body.uid || undefined,
-    email: body.email || undefined,
+/**
+ * Identity FAQAT tasdiqlangan Supabase session'dan olinadi: token Supabase
+ * `auth.getUser` orqali server tomonda TEKSHIRILADI (imzo + amal qilish
+ * muddati). Client tomonidan yuborilgan userId/email ishonilmaydi — aks holda
+ * boshqa foydalanuvchining limitini ishlatish yoki soxta token bilan chetlab
+ * o'tish mumkin bo'lardi.
+ */
+interface IdentityRequest {
+  headers?: { get?: (name: string) => string | null }
+  cookies?: { get?: (name: string) => { value?: string } | undefined }
+}
+
+export async function getIdentityFromRequest(
+  request: IdentityRequest
+): Promise<{ userId?: string; email?: string }> {
+  let token: string | undefined
+  const authHeader = request?.headers?.get?.('authorization')
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    token = authHeader.slice('Bearer '.length).trim()
+  } else {
+    token = request?.cookies?.get?.('sb-access-token')?.value
   }
-  if (fromBody.userId || fromBody.email) return fromBody
+
+  if (!token) return {}
 
   try {
-    const token = request.cookies?.get('sb-access-token')?.value
-    if (token) {
-      const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64url').toString('utf-8'))
-      if (payload.sub) return { userId: payload.sub, email: payload.email || undefined }
-    }
-  } catch {}
+    const client = getVerifyClient()
+    if (!client) return {}
+    const { data, error } = await client.auth.getUser(token)
+    if (error || !data?.user) return {}
+    return { userId: data.user.id, email: data.user.email || undefined }
+  } catch {
+    return {}
+  }
+}
 
-  return {}
+let _verifyClient: SupabaseClient | null = null
+function getVerifyClient() {
+  if (_verifyClient) return _verifyClient
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  if (!url || !anon) return null
+  const { createClient } =
+    require('@supabase/supabase-js') as typeof import('@supabase/supabase-js')
+  _verifyClient = createClient(url, anon, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  })
+  return _verifyClient
 }
 
 // ── Feature kalitlari va o'zbekcha nomlari ─────────────────────────────────
@@ -111,7 +142,7 @@ async function getFairUseLimit(feature: string): Promise<number | null> {
         .eq('id', 'global')
         .maybeSingle()
       if (!error && data && data.fair_use_limits && typeof data.fair_use_limits === 'object') {
-        const val = (data.fair_use_limits as Record<string, any>)[feature]
+        const val = (data.fair_use_limits as Record<string, unknown>)[feature]
         if (typeof val === 'number' && val > 0) return val
       }
     }
@@ -136,7 +167,7 @@ interface CheckOptions {
   email?: string
   feature: string
   tokens?: number
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 }
 
 async function getSupabaseAdminLazy() {
@@ -366,7 +397,8 @@ export async function getUsageStatus(
   features: Record<string, { used: number; limit: number; remaining: number; label: string }>
 }> {
   const plan = await getUserPlan(userId, email)
-  const result: Record<string, any> = {}
+  const result: Record<string, { used: number; limit: number; remaining: number; label: string }> =
+    {}
 
   for (const [feature, label] of Object.entries(FEATURES)) {
     const { limit } = await getEffectiveLimit(userId, plan, feature)

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { getSupabaseAdmin } from '@/lib/supabase-admin'
 
 export async function GET(request: Request) {
   try {
@@ -11,17 +11,18 @@ export async function GET(request: Request) {
     }
 
     // Verify user with Supabase
+    const admin = getSupabaseAdmin()
     const {
       data: { user },
       error,
-    } = await supabase.auth.getUser(authHeader)
+    } = await admin.auth.getUser(authHeader)
 
     if (error || !user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     // Get user's subscription from Supabase
-    const { data: subscription, error: subError } = await supabase
+    const { data: subscription, error: subError } = await admin
       .from('subscriptions')
       .select(
         `

@@ -1,17 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase-client'
+import { requireUser } from '@/lib/server-auth'
+import { getSupabaseAdmin } from '@/lib/supabase-admin'
 
 export async function POST(request: NextRequest) {
   try {
+    const auth = await requireUser(request)
+    if (!auth.ok) return auth.response
+    const userId = auth.user.id
+
     const formData = await request.formData()
     const file = formData.get('file') as File
-    const userId = formData.get('userId') as string
 
-    if (!file || !userId) {
-      return NextResponse.json(
-        { success: false, error: 'File and userId are required' },
-        { status: 400 }
-      )
+    if (!file) {
+      return NextResponse.json({ success: false, error: 'File is required' }, { status: 400 })
     }
 
     // Validate file type
@@ -32,9 +33,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Upload to Supabase Storage
-    const fileName = `${userId}/${Date.now()}_${file.name}`
-    const { data, error } = await supabase.storage.from('check-images').upload(fileName, file, {
+    // Upload to Supabase Storage — path session user id dan (client userId ishonilmaydi)
+    const supabase = getSupabaseAdmin()
+    const safeFileName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_')
+    const fileName = `${userId}/${Date.now()}_${safeFileName}`
+    const { error } = await supabase.storage.from('check-images').upload(fileName, file, {
       cacheControl: '3600',
       upsert: false,
     })

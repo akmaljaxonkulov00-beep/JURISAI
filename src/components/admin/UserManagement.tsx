@@ -121,9 +121,9 @@ export default function UserManagement() {
         const data = await response.json()
         let sorted = data.users || []
         if (sortField) {
-          sorted = [...sorted].sort((a: any, b: any) => {
-            const va = a[sortField] ?? 0
-            const vb = b[sortField] ?? 0
+          sorted = [...sorted].sort((a: Record<string, unknown>, b: Record<string, unknown>) => {
+            const va = Number(a[sortField] ?? 0)
+            const vb = Number(b[sortField] ?? 0)
             return sortDir === 'asc' ? va - vb : vb - va
           })
         }

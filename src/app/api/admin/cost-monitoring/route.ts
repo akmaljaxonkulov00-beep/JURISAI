@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
+import { requireAdmin } from '@/lib/server-auth'
+import { getErrorMessage } from '@/lib/errors'
 
 // Har bir funksiya chaqiruvining TAXMINIY narxi (USD) — Groq llama-3.3-70b
 // va whisper-large-v3 narxlari asosida (token miqdori bo'yicha o'rtacha):
@@ -32,6 +34,9 @@ const FEATURE_LABELS: Record<string, string> = {
 // GET /api/admin/cost-monitoring?days=30 — joriy oy bo'yicha xarajat hisoboti
 export async function GET(request: NextRequest) {
   try {
+    const auth = await requireAdmin(request)
+    if (!auth.ok) return auth.response
+
     const { searchParams } = new URL(request.url)
     const days = Math.min(90, Math.max(1, parseInt(searchParams.get('days') || '30') || 30))
 
@@ -51,7 +56,11 @@ export async function GET(request: NextRequest) {
 
     // 2) Foydalanuvchilar → tarif rejasi (registered_users)
     const userIds = Array.from(
-      new Set((logs || []).map((l: any) => l.user_id).filter((u: any) => u && u.includes('-')))
+      new Set(
+        (logs || [])
+          .map((l: { user_id?: string }) => l.user_id)
+          .filter((u: string | undefined): u is string => !!u && u.includes('-'))
+      )
     ).slice(0, 500)
     const plans: Record<string, string> = {}
     if (userIds.length > 0) {
@@ -111,7 +120,7 @@ export async function GET(request: NextRequest) {
       .sort((a, b) => b.cost - a.cost)
 
     // 4) O'rtacha 1 foydalanuvchi narxi (faol foydalanuvchilar bo'yicha)
-    const activeUsers = new Set((logs || []).map((l: any) => l.user_id)).size
+    const activeUsers = new Set((logs || []).map((l: { user_id?: string }) => l.user_id)).size
 
     return NextResponse.json({
       success: true,
@@ -132,9 +141,9 @@ export async function GET(request: NextRequest) {
         per_plan: planList,
       },
     })
-  } catch (error: any) {
+  } catch (error) {
     return NextResponse.json(
-      { success: false, error: error?.message || 'Xatolik' },
+      { success: false, error: getErrorMessage(error) || 'Xatolik' },
       { status: 500 }
     )
   }

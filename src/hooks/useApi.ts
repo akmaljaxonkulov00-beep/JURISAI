@@ -8,28 +8,28 @@ interface UseApiOptions<T> {
   onError?: (error: Error) => void
 }
 
-interface UseApiResult<T> {
+interface UseApiResult<T, A extends unknown[] = unknown[]> {
   data: T | null
   loading: boolean
   error: Error | null
-  execute: (...args: any[]) => Promise<T | null>
+  execute: (...args: A) => Promise<T | null>
   reset: () => void
   refetch: () => Promise<T | null>
 }
 
-export function useApi<T>(
-  apiCall: (...args: any[]) => Promise<any>,
+export function useApi<T, A extends unknown[] = unknown[]>(
+  apiCall: (...args: A) => Promise<T>,
   options: UseApiOptions<T> = {}
-): UseApiResult<T> {
+): UseApiResult<T, A> {
   const [data, setData] = useState<T | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<Error | null>(null)
-  const [lastArgs, setLastArgs] = useState<any[]>([])
+  const [lastArgs, setLastArgs] = useState<A>([] as unknown as A)
 
   const { immediate = false, onSuccess, onError } = options
 
   const execute = useCallback(
-    async (...args: any[]): Promise<T | null> => {
+    async (...args: A): Promise<T | null> => {
       setLoading(true)
       setError(null)
       setLastArgs(args)
@@ -70,12 +70,12 @@ export function useApi<T>(
     setData(null)
     setLoading(false)
     setError(null)
-    setLastArgs([])
+    setLastArgs([] as unknown as A)
   }, [])
 
   useEffect(() => {
     if (immediate) {
-      execute()
+      ;(execute as (...args: unknown[]) => Promise<T | null>)()
     }
   }, [immediate, execute])
 
@@ -110,16 +110,10 @@ export function useDocumentGeneration() {
   return useApi(
     (
       template: string,
-      data: Record<string, any>,
+      data: Record<string, unknown>,
       outputFormat: string = 'pdf',
       language: string = 'uz'
     ) => api.generateDocument(template, data, outputFormat, language)
-  )
-}
-
-export function useWeaknessDetection() {
-  return useApi((argument: string, argumentType: string) =>
-    api.detectWeaknesses(argument, argumentType)
   )
 }
 
@@ -145,46 +139,14 @@ export function useScenarioGeneration() {
 }
 
 export function useDecisionAnalysis() {
-  return useApi((scenario: string, caseType: string, decisions: Record<string, any>) =>
+  return useApi((scenario: string, caseType: string, decisions: Record<string, unknown>) =>
     api.analyzeDecisionPath(scenario, caseType, decisions)
   )
 }
 
-export function useLegalForms() {
-  const getTemplates = useApi(() => api.getFormTemplates())
-  const getTemplate = useApi((templateId: string) => api.getFormTemplate(templateId))
-  const submitForm = useApi((formId: string, formData: Record<string, any>) =>
-    api.submitLegalForm(formId, formData)
-  )
-  const getSubmitted = useApi(() => api.getSubmittedForms())
-
-  return {
-    getTemplates,
-    getTemplate,
-    submitForm,
-    getSubmitted,
-  }
-}
-
-export function useUserProfile() {
-  const getProfile = useApi(() => api.getUserProfile())
-  const updateProfile = useApi((profileData: Record<string, any>) =>
-    api.updateUserProfile(profileData)
-  )
-  const getStats = useApi(() => api.getUserStats())
-  const getActivity = useApi(() => api.getUserActivity())
-
-  return {
-    getProfile,
-    updateProfile,
-    getStats,
-    getActivity,
-  }
-}
-
 // Hook for polling (real-time updates)
 export function usePolling<T>(
-  apiCall: () => Promise<any>,
+  apiCall: () => Promise<T>,
   interval: number = 5000,
   options: UseApiOptions<T> = {}
 ) {
@@ -202,13 +164,16 @@ export function usePolling<T>(
 }
 
 // Hook for debounced API calls
-export function useDebouncedApi<T>(apiCall: (...args: any[]) => Promise<any>, delay: number = 300) {
+export function useDebouncedApi<T>(
+  apiCall: (...args: unknown[]) => Promise<T>,
+  delay: number = 300
+) {
   const [data, setData] = useState<T | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<Error | null>(null)
 
   const debouncedExecute = useCallback(
-    debounce(async (...args: any[]) => {
+    debounce(async (...args: unknown[]) => {
       setLoading(true)
       setError(null)
 
@@ -236,7 +201,7 @@ export function useDebouncedApi<T>(apiCall: (...args: any[]) => Promise<any>, de
 }
 
 // Debounce utility function
-function debounce<T extends (...args: any[]) => any>(
+function debounce<T extends (...args: never[]) => unknown>(
   func: T,
   wait: number
 ): (...args: Parameters<T>) => void {

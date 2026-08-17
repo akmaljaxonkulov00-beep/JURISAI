@@ -62,30 +62,32 @@ export default function MonitoringDashboard() {
 
         // Build chart data from login activities
         const loginMap: Record<string, number> = {}
-        ;(d.loginActivities || []).forEach((l: any) => {
-          const date = new Date(l.created_at).toLocaleDateString('uz-UZ')
+        ;(d.loginActivities || []).forEach((l: { created_at?: string }) => {
+          const date = new Date(l.created_at || '').toLocaleDateString('uz-UZ')
           loginMap[date] = (loginMap[date] || 0) + 1
         })
 
         // Build token data from usage_logs
         const tokenMap: Record<string, number> = {}
-        ;(d.tokenUsages || []).forEach((t: any) => {
-          const date = new Date(t.created_at).toLocaleDateString('uz-UZ')
+        ;(d.tokenUsages || []).forEach((t: { created_at?: string; tokens?: number }) => {
+          const date = new Date(t.created_at || '').toLocaleDateString('uz-UZ')
           tokenMap[date] = (tokenMap[date] || 0) + (t.tokens || 0)
         })
 
         // Build revenue data from payments
         const revenueMap: Record<string, number> = {}
-        ;(d.paymentRequests || []).forEach((p: any) => {
-          if (p.status === 'approved') {
-            const date = new Date(p.created_at).toLocaleDateString('uz-UZ')
-            revenueMap[date] = (revenueMap[date] || 0) + (p.amount || 0)
+        ;(d.paymentRequests || []).forEach(
+          (p: { status?: string; created_at?: string; amount?: number }) => {
+            if (p.status === 'approved') {
+              const date = new Date(p.created_at || '').toLocaleDateString('uz-UZ')
+              revenueMap[date] = (revenueMap[date] || 0) + (p.amount || 0)
+            }
           }
-        })
+        )
 
         // Build user data from registered_users
         const userMap: Record<string, number> = {}
-        ;(d.users || []).forEach((u: any) => {
+        ;(d.users || []).forEach((u: { created_at?: string }) => {
           const date = u.created_at ? new Date(u.created_at).toLocaleDateString('uz-UZ') : ''
           if (date) userMap[date] = (userMap[date] || 0) + 1
         })
@@ -171,7 +173,7 @@ export default function MonitoringDashboard() {
       try {
         const channel = supabase
           .channel(chName)
-          .on('postgres_changes' as any, { event: '*', schema: 'public', table }, () => {
+          .on('postgres_changes', { event: '*', schema: 'public', table }, () => {
             // Any DB change → reload chart data immediately
             loadData(false)
           })

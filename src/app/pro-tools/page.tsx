@@ -248,7 +248,15 @@ export default function ProTools() {
 
   // Legal search
   const [query, setQuery] = useState('')
-  const [searchResults, setSearchResults] = useState<any[]>([])
+  const [searchResults, setSearchResults] = useState<
+    Array<{
+      code_id?: string
+      article_number?: string
+      title?: string
+      content?: string
+      code_name?: string
+    }>
+  >([])
   const [searchLoading, setSearchLoading] = useState(false)
   const [searchRun, setSearchRun] = useState(false)
   const [codeFilter, setCodeFilter] = useState('')
@@ -301,7 +309,7 @@ export default function ProTools() {
         setSearchError(data.error || 'Qidirishda xatolik')
         setSearchResults([])
       }
-    } catch (err: any) {
+    } catch {
       setSearchError("Serverga ulanishda xatolik. Iltimos qayta urinib ko'ring.")
       setSearchResults([])
     } finally {
@@ -344,7 +352,7 @@ export default function ProTools() {
             `  • Nizolarni hal qilish tartibini kiriting`
         )
       }
-    } catch (err) {
+    } catch {
       setAnalysis('❌ Hujjat tahlilida xatolik yuz berdi.')
     } finally {
       setAnalysisLoading(false)
@@ -449,7 +457,7 @@ export default function ProTools() {
                   <button
                     key={ct.id}
                     onClick={() => {
-                      setCalcType(ct.id as any)
+                      setCalcType(ct.id as Parameters<typeof setCalcType>[0])
                       setCalcResult(null)
                     }}
                     className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-xl transition-all ${
@@ -840,31 +848,45 @@ export default function ProTools() {
                       <p className="text-sm text-gray-500 dark:text-zinc-400">
                         {searchResults.length} ta natija (Supabase)
                       </p>
-                      {searchResults.map((item: any, i: number) => (
-                        <Link
-                          key={i}
-                          href={`/qonunlar?code_id=${item.code_id}&article=${item.article_number}`}
-                          className="block bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl p-4 hover:border-blue-300 dark:hover:border-blue-700 transition-all hover:shadow-sm"
-                        >
-                          <div className="flex items-center gap-2 mb-1">
-                            <Badge className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 text-[10px]">
-                              {CODE_DISPLAY_NAMES[item.code_id] || item.code_name || item.code_id}
-                            </Badge>
-                            <span className="font-medium text-sm text-gray-900 dark:text-white">
-                              {item.article_number}-modda
-                            </span>
-                          </div>
-                          {item.title && (
-                            <p className="text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">
-                              {item.title}
-                            </p>
-                          )}
-                          <div
-                            className="text-xs text-gray-500 dark:text-zinc-400 line-clamp-3"
-                            dangerouslySetInnerHTML={{ __html: item.content || '' }}
-                          />
-                        </Link>
-                      ))}
+                      {searchResults.map(
+                        (
+                          item: {
+                            code_id?: string
+                            article_number?: string
+                            title?: string
+                            content?: string
+                            code_name?: string
+                          },
+                          i: number
+                        ) => (
+                          <Link
+                            key={i}
+                            href={`/qonunlar?code_id=${item.code_id}&article=${item.article_number}`}
+                            className="block bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl p-4 hover:border-blue-300 dark:hover:border-blue-700 transition-all hover:shadow-sm"
+                          >
+                            <div className="flex items-center gap-2 mb-1">
+                              <Badge className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 text-[10px]">
+                                {CODE_DISPLAY_NAMES[item.code_id || ''] ||
+                                  item.code_name ||
+                                  item.code_id ||
+                                  ''}
+                              </Badge>
+                              <span className="font-medium text-sm text-gray-900 dark:text-white">
+                                {item.article_number}-modda
+                              </span>
+                            </div>
+                            {item.title && (
+                              <p className="text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">
+                                {item.title}
+                              </p>
+                            )}
+                            <div
+                              className="text-xs text-gray-500 dark:text-zinc-400 line-clamp-3"
+                              dangerouslySetInnerHTML={{ __html: item.content || '' }}
+                            />
+                          </Link>
+                        )
+                      )}
                     </>
                   ) : (
                     <div className="text-center py-8">

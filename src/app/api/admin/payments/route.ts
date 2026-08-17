@@ -1,46 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireAdmin } from '@/lib/server-auth'
+import { getPaymentAdminClient, approvePayment, rejectPayment } from '@/lib/payment-admin'
+import { logAdminAction } from '@/lib/admin-audit'
 
 /**
  * Admin Payments API
- * Handles payment approval/rejection and listing
+ * GET  — to'lovlar ro'yxati (payment_requests)
+ * PATCH — approve/reject (shared state machine orqali)
  */
-
-async function getSupabaseAdmin() {
-  // Dynamic import to avoid build issues
-  const { createClient } = await import('@supabase/supabase-js')
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-  const serviceRoleKey =
-    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY || ''
-
-  if (!supabaseUrl || !serviceRoleKey) {
-    return null
-  }
-
-  return createClient(supabaseUrl, serviceRoleKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
-  })
-}
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await getSupabaseAdmin()
+    const auth = await requireAdmin(request)
+    if (!auth.ok) return auth.response
+
+    const supabase = getPaymentAdminClient()
     const { searchParams } = new URL(request.url)
     const status = searchParams.get('status') // pending, approved, rejected
 
     if (!supabase) {
-      // Fallback: return from localStorage-based storage
       return NextResponse.json({
         success: true,
         payments: [],
-        source: 'fallback',
+        source: 'empty',
         message: 'Supabase mavjud emas',
       })
     }
 
-    let query = supabase.from('payments').select('*').order('created_at', { ascending: false })
+    let query = supabase
+      .from('payment_requests')
+      .select('*')
+      .order('created_at', { ascending: false })
 
     if (status) {
       query = query.eq('status', status)
@@ -49,40 +39,20 @@ export async function GET(request: NextRequest) {
     const { data, error } = await query
 
     if (error) {
-      // Try alternative table names
-      const altQuery = supabase
-        .from('payment_requests')
-        .select('*')
-        .order('created_at', { ascending: false })
-
-      if (status) {
-        altQuery.eq('status', status)
-      }
-
-      const { data: altData, error: altError } = await altQuery
-
-      if (altError) {
-        return NextResponse.json({
-          success: true,
-          payments: [],
-          source: 'empty',
-          message: "To'lov jadvallari mavjud emas",
-        })
-      }
-
       return NextResponse.json({
         success: true,
-        payments: altData || [],
-        source: 'payment_requests',
+        payments: [],
+        source: 'empty',
+        message: "To'lov jadvali mavjud emas",
       })
     }
 
     return NextResponse.json({
       success: true,
       payments: data || [],
-      source: 'payments',
+      source: 'payment_requests',
     })
-  } catch (error: any) {
+  } catch (error) {
     console.error('Admin payments API error:', error)
     return NextResponse.json({ success: false, error: 'Failed to fetch payments' }, { status: 500 })
   }
@@ -90,8 +60,11 @@ export async function GET(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   try {
+    const auth = await requireAdmin(request)
+    if (!auth.ok) return auth.response
+
     const body = await request.json()
-    const { paymentId, action, userId, amount } = body
+    const { paymentId, action, reason } = body
 
     if (!paymentId || !action) {
       return NextResponse.json(
@@ -100,55 +73,43 @@ export async function PATCH(request: NextRequest) {
       )
     }
 
-    const supabase = await getSupabaseAdmin()
-
+    const supabase = getPaymentAdminClient()
     if (!supabase) {
       return NextResponse.json({ success: false, error: 'Supabase mavjud emas' }, { status: 503 })
     }
 
-    const status = action === 'approve' ? 'approved' : 'rejected'
+    // Status/balans/admin tekshiruvi yagona payment-admin mantiqidan
+    const result =
+      action === 'approve'
+        ? await approvePayment(supabase, paymentId, auth.user.id)
+        : action === 'reject'
+          ? await rejectPayment(supabase, paymentId, auth.user.id, reason)
+          : {
+              ok: false as const,
+              status: 400,
+              message: 'Action "approve" yoki "reject" bo\'lishi kerak',
+            }
 
-    // Update payment status
-    let updateResult = await supabase
-      .from('payments')
-      .update({ status, updated_at: new Date().toISOString() })
-      .eq('id', paymentId)
-
-    if (updateResult.error) {
-      // Try alternative table
-      updateResult = await supabase
-        .from('payment_requests')
-        .update({ status, updated_at: new Date().toISOString() })
-        .eq('id', paymentId)
-    }
-
-    // If approved and we have user info, update balance
-    if (action === 'approve' && userId && amount) {
-      const balanceUpdate = await supabase.rpc('add_to_balance', {
-        p_user_id: userId,
-        p_amount: amount,
+    if (action === 'approve' || action === 'reject') {
+      await logAdminAction({
+        admin: auth.user,
+        action: action === 'approve' ? 'payment_approve' : 'payment_reject',
+        targetType: 'payment',
+        targetId: paymentId,
+        details: { paymentId, action, reason: reason || '' },
+        success: result.ok,
       })
-
-      if (balanceUpdate.error) {
-        // Try direct update on profiles table
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('balance')
-          .eq('id', userId)
-          .single()
-
-        if (profile) {
-          const currentBalance = Number(profile.balance || 0)
-          await supabase
-            .from('profiles')
-            .update({ balance: currentBalance + Number(amount || 0) })
-            .eq('id', userId)
-        }
-      }
     }
 
-    return NextResponse.json({ success: true, status })
-  } catch (error: any) {
+    return NextResponse.json(
+      {
+        success: result.ok,
+        message: result.message,
+        payment: result.ok ? result.payment : undefined,
+      },
+      { status: result.ok ? 200 : result.status }
+    )
+  } catch (error) {
     console.error('Admin payments PATCH error:', error)
     return NextResponse.json({ success: false, error: 'Failed to update payment' }, { status: 500 })
   }

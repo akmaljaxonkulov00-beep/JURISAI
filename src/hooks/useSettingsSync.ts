@@ -76,8 +76,10 @@ function syncUserSessionWithPayments(payments: PaymentRequest[]) {
   }
 }
 
+type Announcement = { message: string; type: 'info' | 'warning' | 'success'; active: boolean }
+
 // ── Re-fetch a single data source ──
-async function fetchOne(source: string): Promise<any> {
+async function fetchOne(source: string): Promise<unknown> {
   switch (source) {
     case 'settings':
       return getPublicSettings()
@@ -96,7 +98,7 @@ export function useSettingsSync(): SettingsState {
   const [settings, setSettings] = useState<SiteSettings | null>(null)
   const [pricingPlans, setPricingPlans] = useState<PricingPlan[]>([])
   const [paymentRequests, setPaymentRequests] = useState<PaymentRequest[]>([])
-  const [announcements, setAnnouncements] = useState<any[]>([])
+  const [announcements, setAnnouncements] = useState<Announcement[]>([])
   const [loading, setLoading] = useState(true)
   const [lastSynced, setLastSynced] = useState<Date | null>(null)
   const mountedRef = useRef(true)
@@ -155,7 +157,7 @@ export function useSettingsSync(): SettingsState {
           break
         }
         case 'announcements':
-          setAnnouncements(data)
+          setAnnouncements((data || []) as Announcement[])
           break
       }
       setLastSynced(new Date())
@@ -187,13 +189,9 @@ export function useSettingsSync(): SettingsState {
       try {
         const channel = supabase
           .channel(channelName)
-          .on(
-            'postgres_changes' as any,
-            { event: '*', schema: 'public', table: table.name },
-            (payload: any) => {
-              handleRealtimeUpdate(table.key)
-            }
-          )
+          .on('postgres_changes', { event: '*', schema: 'public', table: table.name }, () => {
+            handleRealtimeUpdate(table.key)
+          })
           .subscribe((status: string) => {
             if (status === 'CHANNEL_ERROR') {
               // Realtime failed — fallback to polling handles this

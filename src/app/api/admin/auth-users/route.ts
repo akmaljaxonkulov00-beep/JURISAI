@@ -1,4 +1,36 @@
+interface AdminAuthRow {
+  id?: string
+  email?: string
+  name?: string
+  display_name?: string
+  role?: string
+  subscription_plan?: string
+  subscription_expires_at?: string
+  balance?: number
+  blocked?: boolean
+  created_at?: string
+  createdAt?: string
+  last_login?: string
+  lastLogin?: string
+  last_sign_in_at?: string
+  updated_at?: string
+  banned_until?: string
+  raw_user_meta_data?: {
+    name?: string
+    subscription_plan?: string
+    subscription_expires_at?: string
+    balance?: number
+    blocked?: boolean
+  }
+  raw_app_meta_data?: { name?: string; role?: string }
+  app_metadata?: { provider?: string }
+  phone?: string
+  [key: string]: unknown
+}
+
 import { NextRequest, NextResponse } from 'next/server'
+import { requireAdmin } from '@/lib/server-auth'
+import { getErrorMessage } from '@/lib/errors'
 
 /**
  * GET /api/admin/auth-users
@@ -15,6 +47,9 @@ import { NextRequest, NextResponse } from 'next/server'
  */
 export async function GET(request: NextRequest) {
   try {
+    const auth = await requireAdmin(request)
+    if (!auth.ok) return auth.response
+
     const { searchParams } = new URL(request.url)
     const search = searchParams.get('search') || ''
     const page = Math.max(1, parseInt(searchParams.get('page') || '1'))
@@ -73,7 +108,7 @@ export async function GET(request: NextRequest) {
         .order(sort === 'created_at' ? 'created_at' : sort, { ascending: order === 'asc' })
 
       if (!usersError && users) {
-        const mapped = users.map((u: any) => ({
+        const mapped = users.map((u: AdminAuthRow) => ({
           id: u.id,
           email: u.email,
           name: u.name || u.display_name || '',
@@ -110,7 +145,7 @@ export async function GET(request: NextRequest) {
         .order('created_at', { ascending: order === 'asc' })
 
       if (!regError && regUsers) {
-        const mapped = regUsers.map((u: any) => ({
+        const mapped = regUsers.map((u: AdminAuthRow) => ({
           id: u.id,
           email: u.email || '',
           name: u.name || '',
@@ -150,7 +185,7 @@ export async function GET(request: NextRequest) {
     if (authError) throw authError
 
     // Map auth.users to admin-friendly format
-    const mapped = (authUsers || []).map((u: any) => ({
+    const mapped = (authUsers || []).map((u: AdminAuthRow) => ({
       id: u.id,
       email: u.email || '',
       name: u.raw_user_meta_data?.name || u.raw_app_meta_data?.name || u.email?.split('@')[0] || '',
@@ -175,11 +210,11 @@ export async function GET(request: NextRequest) {
       limit,
       source: 'auth.users',
     })
-  } catch (error: any) {
+  } catch (error) {
     console.error('[Admin Auth Users] Error:', error)
     return NextResponse.json({
       success: false,
-      error: error?.message || 'Failed to fetch users',
+      error: getErrorMessage(error) || 'Failed to fetch users',
       users: [],
       total: 0,
     })

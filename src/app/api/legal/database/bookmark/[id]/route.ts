@@ -1,41 +1,39 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { requireUser } from '@/lib/server-auth'
+import { getSupabaseAdmin } from '@/lib/supabase-admin'
 import { trackUsage } from '@/lib/usage-tracking'
 
+/** Auth: faqat haqiqiy session foydalanuvchi o'z bookmarklarini boshqaradi. */
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = await params
+    const auth = await requireUser(request)
+    if (!auth.ok) return auth.response
 
+    const { id } = await params
     if (!id) {
       return NextResponse.json({ error: 'Document ID talab qilinadi' }, { status: 400 })
     }
 
-    // Add bookmark to database
-    const bookmarkData = {
-      document_id: id,
-      user_id: 'demo-user', // Replace with actual user ID from auth
-      created_at: new Date().toISOString(),
+    const supabase = getSupabaseAdmin()
+    if (!supabase) {
+      return NextResponse.json({ error: 'Supabase not configured' }, { status: 503 })
     }
 
     const { data, error } = await supabase
       .from('legal_bookmarks')
-      .insert([bookmarkData])
+      .insert({
+        document_id: id,
+        user_id: auth.user.id,
+        created_at: new Date().toISOString(),
+      })
       .select()
       .single()
 
     if (error) {
       console.error('Legal bookmark add error:', error)
-      // Fallback response
-      return NextResponse.json({
-        success: true,
-        bookmark_id: `bookmark_${Date.now()}`,
-        document_id: id,
-        message: "Hujjat bookmarklarga muvaffaqiyatli qo'shildi",
-        timestamp: new Date().toISOString(),
-      })
+      return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    // Track usage
     await trackUsage('legal_bookmark_add', { document_id: id })
 
     return NextResponse.json({
@@ -56,33 +54,30 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params
+    const auth = await requireUser(request)
+    if (!auth.ok) return auth.response
 
+    const { id } = await params
     if (!id) {
       return NextResponse.json({ error: 'Document ID talab qilinadi' }, { status: 400 })
     }
 
-    // Remove bookmark from database
-    const { data, error } = await supabase
+    const supabase = getSupabaseAdmin()
+    if (!supabase) {
+      return NextResponse.json({ error: 'Supabase not configured' }, { status: 503 })
+    }
+
+    const { error } = await supabase
       .from('legal_bookmarks')
       .delete()
       .eq('document_id', id)
-      .eq('user_id', 'demo-user') // Replace with actual user ID from auth
-      .select()
-      .single()
+      .eq('user_id', auth.user.id)
 
     if (error) {
       console.error('Legal bookmark remove error:', error)
-      // Fallback response
-      return NextResponse.json({
-        success: true,
-        document_id: id,
-        message: 'Hujjat bookmarklardan muvaffaqiyatli olib tashlandi',
-        timestamp: new Date().toISOString(),
-      })
+      return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    // Track usage
     await trackUsage('legal_bookmark_remove', { document_id: id })
 
     return NextResponse.json({

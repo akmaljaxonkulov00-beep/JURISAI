@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
+import { getErrorMessage } from '@/lib/errors'
 
 export async function GET() {
   try {
@@ -31,8 +32,8 @@ export async function GET() {
     }
 
     return NextResponse.json({ success: true, data: announcements })
-  } catch (error: any) {
-    return NextResponse.json({ success: false, error: error?.message }, { status: 500 })
+  } catch (error) {
+    return NextResponse.json({ success: false, error: getErrorMessage(error) }, { status: 500 })
   }
 }
 
@@ -72,7 +73,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true, data: { count: 1 } })
-  } catch (error: any) {
-    return NextResponse.json({ success: false, error: error?.message }, { status: 500 })
+  } catch (error) {
+    return NextResponse.json({ success: false, error: getErrorMessage(error) }, { status: 500 })
   }
 }

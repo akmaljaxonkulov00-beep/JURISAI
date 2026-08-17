@@ -44,6 +44,19 @@ import { AnalysisError, getErrorMessage } from '@/components/ui/AnalysisError'
 import { getDisplayNameFromCodeId } from '@/lib/utils/code-mapper'
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
 
+// AI javobidagi daraxt tugunlari (any o'rniga)
+interface AiTreeNode {
+  label?: string
+  type?: string
+  probability?: number
+  duration?: string
+  cost?: number
+  legalBasis?: string
+  actionItems?: string[]
+  details?: string
+  children?: AiTreeNode[]
+}
+
 interface TreeNode {
   id: string
   label: string
@@ -265,16 +278,26 @@ export default function DecisionTreeEngine() {
           .select('*')
           .order('updated_at', { ascending: false })
         if (!error && data && Array.isArray(data)) {
-          supabaseTrees = data.map((t: any) => ({
-            id: t.id,
-            dbId: t.id,
-            name: t.name,
-            caseType: t.case_type || 'huquqiy',
-            scenario: t.scenario || '',
-            tree: t.tree as TreeNode,
-            createdAt: t.created_at,
-            updatedAt: t.updated_at,
-          }))
+          supabaseTrees = data.map(
+            (t: {
+              id?: string
+              name?: string
+              case_type?: string
+              scenario?: string
+              tree?: TreeNode
+              created_at?: string
+              updated_at?: string
+            }) => ({
+              id: t.id || '',
+              dbId: t.id || '',
+              name: t.name || '',
+              caseType: t.case_type || 'huquqiy',
+              scenario: t.scenario || '',
+              tree: t.tree as TreeNode,
+              createdAt: t.created_at || '',
+              updatedAt: t.updated_at || '',
+            })
+          )
         }
       } catch {
         /* jadval mavjud emas yoki ruxsat yo'q — localStorage'da qoladi */
@@ -323,7 +346,15 @@ export default function DecisionTreeEngine() {
           .select('article_number, title, code_id')
           .or(`title.ilike.%${q}%,content.ilike.%${q}%`)
           .limit(3)
-        setDetailLegal((data || []) as any)
+        setDetailLegal(
+          (
+            (data || []) as Array<{ article_number?: string; title?: string; code_id?: string }>
+          ).map(r => ({
+            article_number: r.article_number || '',
+            title: r.title || '',
+            code_id: r.code_id || '',
+          }))
+        )
       } catch {
         setDetailLegal([])
       } finally {
@@ -334,7 +365,7 @@ export default function DecisionTreeEngine() {
   }, [detailNode])
 
   // ── Track activity for statistics ─────────────────────────────
-  const trackActivity = useCallback((action: string, data?: Record<string, any>) => {
+  const trackActivity = useCallback((action: string, data?: Record<string, unknown>) => {
     try {
       const stats = JSON.parse(localStorage.getItem('user_stats') || '{}')
       if (!stats.recentActivity) stats.recentActivity = []
@@ -342,7 +373,7 @@ export default function DecisionTreeEngine() {
         id: Date.now().toString(),
         type: 'case_completed',
         title: action,
-        description: data?.scenario || 'Qarorlar daraxti tahlili',
+        description: String(data?.scenario || 'Qarorlar daraxti tahlili'),
         timestamp: new Date().toISOString(),
         xp: 10,
       })
@@ -451,9 +482,9 @@ export default function DecisionTreeEngine() {
   }
 
   // ── AI'dan kelgan daraxtni TreeNode formatiga o'tkazish ───────
-  const buildTreeFromAi = (ai: any): TreeNode => {
+  const buildTreeFromAi = (ai: AiTreeNode): TreeNode => {
     let counter = 0
-    const convert = (n: any, isRoot: boolean): TreeNode => {
+    const convert = (n: AiTreeNode, isRoot: boolean): TreeNode => {
       const prob = typeof n.probability === 'number' ? n.probability : undefined
       const node: TreeNode = {
         id: `ai_${counter++}`,
@@ -475,7 +506,7 @@ export default function DecisionTreeEngine() {
           prob != null && prob >= 60 ? 'optimal' : prob != null && prob <= 40 ? 'risk' : 'neutral'
       }
       if (Array.isArray(n.children) && n.children.length) {
-        node.children = n.children.map((c: any) => convert(c, false))
+        node.children = n.children.map((c: AiTreeNode) => convert(c, false))
       }
       return node
     }
@@ -507,7 +538,11 @@ export default function DecisionTreeEngine() {
       const res = await fetch('/api/decision-tree/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ scenario: scenario.trim(), case_type: 'huquqiy', ...getUserIdentityPayload() }),
+        body: JSON.stringify({
+          scenario: scenario.trim(),
+          case_type: 'huquqiy',
+          ...getUserIdentityPayload(),
+        }),
       })
       const json = await res.json().catch(() => null)
       if (json?.success && json.tree && json.tree.label) {
@@ -735,10 +770,10 @@ export default function DecisionTreeEngine() {
           .limit(5)
         if (data) {
           setRecommendations(
-            data.map((a: any) => ({
-              number: a.article_number,
+            data.map((a: { article_number?: string; title?: string; content?: string }) => ({
+              number: a.article_number || '',
               title: a.title || '',
-              content: a.content?.substring(0, 120) || '',
+              content: (a.content || '').substring(0, 120),
             }))
           )
         }

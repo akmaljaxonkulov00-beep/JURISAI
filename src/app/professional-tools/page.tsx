@@ -122,7 +122,6 @@ export default function ProfessionalTools() {
     },
   ]
 
-
   const calculateStateFee = (caseType: string, amount: number) => {
     let fee = 0
 
@@ -163,15 +162,15 @@ export default function ProfessionalTools() {
         setCalculatorResult(result)
       } else {
         // Fallback to mock calculation
-        useMockCalculation()
+        applyMockCalculation()
       }
     } catch (error) {
       console.log('Legal calculator API error, using fallback:', error)
-      useMockCalculation()
+      applyMockCalculation()
     }
   }
 
-  const useMockCalculation = () => {
+  const applyMockCalculation = () => {
     // Simulate fee calculation
     const mockResult: CalculatorResult = {
       stateFee: calculateStateFee(
@@ -202,7 +201,11 @@ export default function ProfessionalTools() {
       const response = await fetch('/api/ai/document-analysis', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ documentText: text, documentType: 'contract', ...getUserIdentityPayload() }),
+        body: JSON.stringify({
+          documentText: text,
+          documentType: 'contract',
+          ...getUserIdentityPayload(),
+        }),
       })
 
       if (response.ok) {
@@ -230,15 +233,15 @@ export default function ProfessionalTools() {
           ],
         })
       } else {
-        useMockFallback()
+        applyMockFallback()
       }
     } catch (error) {
       console.log('Risk analysis API error, using fallback:', error)
-      useMockFallback()
+      applyMockFallback()
     }
   }
 
-  const useMockFallback = () => {
+  const applyMockFallback = () => {
     const mockAssessment: RiskAssessment = {
       overallRisk: 'medium',
       score: 65,
@@ -396,7 +399,9 @@ export default function ProfessionalTools() {
                       ].map(type => (
                         <button
                           key={type.id}
-                          onClick={() => setCalculatorType(type.id as any)}
+                          onClick={() =>
+                            setCalculatorType(type.id as Parameters<typeof setCalculatorType>[0])
+                          }
                           className={`w-full text-left px-3 py-2 rounded-lg transition-colors ${
                             calculatorType === type.id
                               ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600'
@@ -455,7 +460,9 @@ export default function ProfessionalTools() {
                       ].map(type => (
                         <button
                           key={type.id}
-                          onClick={() => setCalculatorType(type.id as any)}
+                          onClick={() =>
+                            setCalculatorType(type.id as Parameters<typeof setCalculatorType>[0])
+                          }
                           className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
                             calculatorType === type.id
                               ? 'bg-blue-600 text-white'

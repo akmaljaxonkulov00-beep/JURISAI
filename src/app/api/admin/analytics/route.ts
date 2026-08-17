@@ -1,21 +1,54 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { requireAdmin } from '@/lib/server-auth'
+
+// Supabase'dan keladigan xom qatorlar (any o'rniga)
+interface UserRow {
+  id?: string
+  email?: string
+  created_at?: string
+  last_login?: string
+  subscription_plan?: string
+  banned_until?: string | null
+  last_sign_in_at?: string
+  raw_user_meta_data?: Record<string, unknown>
+  raw_app_meta_data?: Record<string, unknown>
+  app_metadata?: Record<string, unknown>
+  [key: string]: unknown
+}
+
+interface LoginRow {
+  user_id?: string
+  email?: string
+  [key: string]: unknown
+}
+
+interface TokenRow {
+  tokens?: number
+  [key: string]: unknown
+}
+
+interface PaymentRow {
+  status?: string
+  amount?: number
+  [key: string]: unknown
+}
 
 export async function GET(request: NextRequest) {
   try {
+    const auth = await requireAdmin(request)
+    if (!auth.ok) return auth.response
+
     const { searchParams } = new URL(request.url)
     const days = parseInt(searchParams.get('days') || '30')
     const type = searchParams.get('type') || 'all'
 
-    // Try admin client first (service_role), fallback to anon client
-    const supabaseUrl =
-      process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://blayqzykzlmrjuvhzvsk.supabase.co'
-    const anonKey =
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJsYXlxenlremxtcmp1dmh6dnNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ3MzAzNzAsImV4cCI6MjEwMDMwNjM3MH0._4WASFfKkRenHpScrQM6vS2zPTZmyDfMCNr5GmAgOkw'
-    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    // Kalitlar faqat server environment variable'laridan — kodda hardcoded yo'q
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
 
-    let supabase: any = null
+    let supabase: ReturnType<typeof createClient> | null = null
 
     if (supabaseUrl && serviceKey) {
       try {
@@ -64,7 +97,7 @@ export async function GET(request: NextRequest) {
     prevCutoff.setDate(prevCutoff.getDate() - days * 2)
 
     // ── Always return these fields, even if empty ──
-    const result: Record<string, any> = {
+    const result: Record<string, unknown> = {
       users: [],
       paymentRequests: [],
       loginActivities: [],
@@ -91,12 +124,12 @@ export async function GET(request: NextRequest) {
           // registered_users has data — use it directly
           result.users = users
           result.totalUsers = users.length
-          const newUsers = users.filter((u: any) => {
+          const newUsers = users.filter((u: UserRow) => {
             const created = u.created_at || u.last_login
             return created && new Date(created) >= cutoff
           })
           result.newUsers = newUsers.length
-          const prevNewUsers = users.filter((u: any) => {
+          const prevNewUsers = users.filter((u: UserRow) => {
             const created = u.created_at || u.last_login
             return created && new Date(created) >= prevCutoff && new Date(created) < cutoff
           })
@@ -105,7 +138,7 @@ export async function GET(request: NextRequest) {
               ? Math.round(((newUsers.length - prevNewUsers.length) / prevNewUsers.length) * 100)
               : 0
           const premiumUsers = users.filter(
-            (u: any) => u.subscription_plan && u.subscription_plan !== 'free'
+            (u: UserRow) => u.subscription_plan && u.subscription_plan !== 'free'
           )
           result.premiumUsers = premiumUsers.length
           result.userSource = 'registered_users'
@@ -130,7 +163,7 @@ export async function GET(request: NextRequest) {
               if (authRes.ok) {
                 const authUsers = await authRes.json()
                 if (Array.isArray(authUsers) && authUsers.length > 0) {
-                  result.users = authUsers.map((u: any) => ({
+                  result.users = authUsers.map((u: UserRow) => ({
                     id: u.id,
                     email: u.email || '',
                     name: u.raw_user_meta_data?.name || u.email?.split('@')[0] || '',
@@ -153,8 +186,8 @@ export async function GET(request: NextRequest) {
             /* fallback failed */
           }
         }
-      } catch (e: any) {
-        result.usersError = e?.message || 'jadval mavjud emas'
+      } catch (e: unknown) {
+        result.usersError = e instanceof Error ? e.message : 'jadval mavjud emas'
       }
     }
 
@@ -170,13 +203,13 @@ export async function GET(request: NextRequest) {
         if (!loginsError && logins) {
           result.loginActivities = logins
           result.recentLogins = logins.length
-          const activeUserIds = new Set(logins.map((l: any) => l.user_id || l.email))
+          const activeUserIds = new Set(logins.map((l: LoginRow) => l.user_id || l.email))
           result.activeUsers = activeUserIds.size
         } else if (loginsError) {
           result.loginsError = loginsError.message
         }
-      } catch (e: any) {
-        result.loginsError = e?.message || 'jadval mavjud emas'
+      } catch (e: unknown) {
+        result.loginsError = e instanceof Error ? e.message : 'jadval mavjud emas'
       }
     }
 
@@ -191,12 +224,12 @@ export async function GET(request: NextRequest) {
           .limit(100)
         if (!tokensError && tokens) {
           result.tokenUsages = tokens
-          result.tokensUsed = tokens.reduce((sum: number, t: any) => sum + (t.tokens || 0), 0)
+          result.tokensUsed = tokens.reduce((sum: number, t: TokenRow) => sum + (t.tokens || 0), 0)
         } else if (tokensError) {
           result.tokensError = tokensError.message
         }
-      } catch (e: any) {
-        result.tokensError = e?.message || 'jadval mavjud emas'
+      } catch (e: unknown) {
+        result.tokensError = e instanceof Error ? e.message : 'jadval mavjud emas'
       }
     }
 
@@ -210,28 +243,31 @@ export async function GET(request: NextRequest) {
           .limit(50)
         if (!paymentsError && payments) {
           result.paymentRequests = payments
-          const approvedPayments = payments.filter((p: any) => p.status === 'approved')
+          const approvedPayments = payments.filter((p: PaymentRow) => p.status === 'approved')
           const totalRevenue = approvedPayments.reduce(
-            (sum: number, p: any) => sum + (p.amount || 0),
+            (sum: number, p: PaymentRow) => sum + (p.amount || 0),
             0
           )
           result.totalRevenue = totalRevenue
-          result.pendingCount = payments.filter((p: any) => p.status === 'pending').length
+          result.pendingCount = payments.filter((p: PaymentRow) => p.status === 'pending').length
           result.approvedCount = approvedPayments.length
         } else if (paymentsError) {
           result.paymentsError = paymentsError.message
         }
-      } catch (e: any) {
-        result.paymentsError = e?.message || 'jadval mavjud emas'
+      } catch (e: unknown) {
+        result.paymentsError = e instanceof Error ? e.message : 'jadval mavjud emas'
       }
     }
 
     result.source = 'supabase'
     return NextResponse.json({ success: true, data: result })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Admin analytics API error:', error)
     return NextResponse.json(
-      { success: false, error: error?.message || 'Failed to fetch analytics' },
+      {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to fetch analytics',
+      },
       { status: 500 }
     )
   }

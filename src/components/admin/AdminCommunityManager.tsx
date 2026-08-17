@@ -81,7 +81,7 @@ type Consultation = {
   admin_reply?: string
   reply_at?: string
   assigned_expert_id?: string
-  status_history?: any[]
+  status_history?: Array<{ status?: string; at?: string }>
   created_at: string
 }
 
@@ -98,7 +98,7 @@ type FeedPost = {
   tags?: string[]
   likes?: number
   dislikes?: number
-  comments?: any[]
+  comments?: unknown[]
   views?: number
   is_pinned?: boolean
   created_at?: string
@@ -123,7 +123,9 @@ export default function AdminCommunityManager() {
 
   // ── Group detail (a'zolar boshqaruvi) ──
   const [expandedGroup, setExpandedGroup] = useState<string | null>(null)
-  const [groupMembers, setGroupMembers] = useState<any[]>([])
+  const [groupMembers, setGroupMembers] = useState<
+    Array<{ role?: string; user_id?: string; name?: string }>
+  >([])
   const [groupMembersLoading, setGroupMembersLoading] = useState(false)
 
   // ── Add group form ──
@@ -339,7 +341,8 @@ export default function AdminCommunityManager() {
     )
       return
     try {
-      await fetch(`/api/community/groups?id=${id}&admin=1`, { method: 'DELETE' })
+      // Admin ruxsati session orqali tekshiriladi — admin=1 param ishonilmaydi
+      await fetch(`/api/community/groups?id=${id}`, { method: 'DELETE' })
       setExpandedGroup(null)
       await loadGroups()
     } catch {}
@@ -356,7 +359,7 @@ export default function AdminCommunityManager() {
     setGroupMembersLoading(true)
     setGroupMembers([])
     try {
-      const r = await fetch(`/api/community/groups/members?groupId=${g.id}&memberId=&admin=1`, {
+      const r = await fetch(`/api/community/groups/members?groupId=${g.id}`, {
         cache: 'no-cache',
       })
       const d = await r.json()
@@ -807,7 +810,7 @@ export default function AdminCommunityManager() {
                   ) : (
                     <div className="space-y-1.5">
                       {groupMembers.map(m => {
-                        const isModerator = ['moderator', 'admin'].includes(m.role)
+                        const isModerator = ['moderator', 'admin'].includes(m.role || '')
                         const isCreator = g.created_by?.toString() === m.user_id
                         return (
                           <div
@@ -837,7 +840,7 @@ export default function AdminCommunityManager() {
                                   onClick={() =>
                                     setGroupModerator(
                                       g.id,
-                                      m.user_id,
+                                      m.user_id || '',
                                       isModerator ? 'member' : 'moderator'
                                     )
                                   }
@@ -851,7 +854,7 @@ export default function AdminCommunityManager() {
                                   <UserCheck size={13} />
                                 </button>
                                 <button
-                                  onClick={() => removeGroupMember(g.id, m.user_id)}
+                                  onClick={() => removeGroupMember(g.id, m.user_id || '')}
                                   className="p-1.5 rounded-lg text-xs bg-red-100 text-red-700 hover:bg-red-200"
                                   title="A'zoni chiqarish"
                                 >
@@ -939,13 +942,13 @@ export default function AdminCommunityManager() {
                   {/* Holat tarixi */}
                   {Array.isArray(c.status_history) && c.status_history.length > 0 && (
                     <div className="mt-2 flex flex-wrap gap-1.5">
-                      {c.status_history.map((h: any, hi: number) => (
+                      {c.status_history.map((h: { status?: string; at?: string }, hi: number) => (
                         <span
                           key={hi}
                           className="text-[9px] px-1.5 py-0.5 bg-gray-100 dark:bg-zinc-800 text-gray-500 dark:text-zinc-400 rounded"
                         >
                           {h.status} •{' '}
-                          {new Date(h.at).toLocaleDateString('uz-UZ', {
+                          {new Date(h.at || '').toLocaleDateString('uz-UZ', {
                             day: 'numeric',
                             month: 'short',
                           })}

@@ -131,20 +131,19 @@ export default function LegalDatabase() {
   const [copied, setCopied] = useState(false)
   const [bookmarks, setBookmarks] = useState<string[]>([])
 
-  // Load bookmarks from localStorage
+  // Xatcho'plar — Supabase (yagona tizim). localStorage ishlatilmaydi.
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem('legal_bookmarks')
-      if (stored) setBookmarks(JSON.parse(stored))
-    } catch {}
+    let cancelled = false
+    fetch('/api/legal/database/bookmarks', { cache: 'no-cache' })
+      .then(res => (res.ok ? res.json() : null))
+      .then(data => {
+        if (!cancelled && data?.success) setBookmarks(data.bookmarks || [])
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
   }, [])
-
-  const saveBookmarks = (items: string[]) => {
-    setBookmarks(items)
-    try {
-      localStorage.setItem('legal_bookmarks', JSON.stringify(items))
-    } catch {}
-  }
 
   const handleSearch = () => {
     if (!searchQuery.trim()) return
@@ -171,11 +170,22 @@ export default function LegalDatabase() {
     setShowArticleModal(true)
   }
 
-  const toggleBookmark = (articleId: string) => {
-    if (bookmarks.includes(articleId)) {
-      saveBookmarks(bookmarks.filter(id => id !== articleId))
-    } else {
-      saveBookmarks([...bookmarks, articleId])
+  const toggleBookmark = async (articleId: string) => {
+    const isBookmarked = bookmarks.includes(articleId)
+    // Optimistic update
+    setBookmarks(prev =>
+      isBookmarked ? prev.filter(id => id !== articleId) : [...prev, articleId]
+    )
+    try {
+      const res = await fetch(`/api/legal/database/bookmark/${encodeURIComponent(articleId)}`, {
+        method: isBookmarked ? 'DELETE' : 'POST',
+      })
+      if (!res.ok) throw new Error('Bookmark sync failed')
+    } catch {
+      // Rollback on failure
+      setBookmarks(prev =>
+        isBookmarked ? [...prev, articleId] : prev.filter(id => id !== articleId)
+      )
     }
   }
 
@@ -1046,7 +1056,7 @@ export default function LegalDatabase() {
           ].map(tab => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
+              onClick={() => setActiveTab(tab.id as Parameters<typeof setActiveTab>[0])}
               className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                 activeTab === tab.id
                   ? 'bg-blue-600 text-white shadow-md'

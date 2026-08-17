@@ -9,15 +9,28 @@ const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabase
 
 // ── Helpers ──────────────────────────────────────────────────────────────
 
-function mapFromDb(row: any): DocumentTemplate {
+function mapFromDb(row: {
+  slug?: string
+  id?: string
+  name?: string
+  category?: string
+  description?: string
+  content?: string
+  law_ref?: string
+  format?: string
+  file_size?: string
+  downloads?: number
+  created_at?: string
+  tags?: string[]
+}): DocumentTemplate {
   return {
-    id: row.slug || row.id,
-    name: row.name,
-    category: row.category,
+    id: row.slug || row.id || '',
+    name: row.name || '',
+    category: row.category || '',
     description: row.description || '',
-    content: row.content,
+    content: row.content || '',
     lawRef: row.law_ref || '',
-    format: row.format || 'TXT',
+    format: (row.format as DocumentTemplate['format']) || 'TXT',
     size: row.file_size || `${Math.ceil((row.content || '').length / 1024)} KB`,
     downloads: row.downloads || 0,
     createdAt: row.created_at?.split('T')[0] || '',
@@ -251,7 +264,7 @@ export async function PUT(request: NextRequest) {
     if (!id) return NextResponse.json({ success: false, error: 'ID majburiy' }, { status: 400 })
 
     if (supabase) {
-      const updateData: Record<string, any> = {}
+      const updateData: Record<string, unknown> = {}
       if (name !== undefined) updateData.name = name
       if (category !== undefined) updateData.category = category
       if (description !== undefined) updateData.description = description

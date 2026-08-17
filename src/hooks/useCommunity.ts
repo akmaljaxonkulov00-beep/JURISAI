@@ -203,13 +203,9 @@ export function useCommunity() {
     // Supabase Realtime — yangi post boshqa qurilmada yozilganda darhol ko'rinadi
     const channel = supabase
       .channel(`community-feed-${Date.now()}`)
-      .on(
-        'postgres_changes' as any,
-        { event: '*', schema: 'public', table: 'community_posts' },
-        () => {
-          loadFromApi()
-        }
-      )
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'community_posts' }, () => {
+        loadFromApi()
+      })
       .subscribe()
 
     try {

@@ -1,32 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server'
-
-async function getSupabase() {
-  const { createClient } = await import('@supabase/supabase-js')
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-  if (!supabaseUrl || !supabaseKey) return null
-  return createClient(supabaseUrl, supabaseKey)
-}
+import { getServiceClient, requireUser } from '@/lib/community-server'
 
 // POST /api/community/groups/posts/reaction
-// Body: { postId, userId, emoji }
+// Body: { postId, emoji } — userId faqat session'dan.
 // Reaksiyani yoqish/o'chirish (toggle). reactions = { "👍": ["user1", "user2"], ... }
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const { postId, userId, emoji } = body
+    const auth = await requireUser(request)
+    if (!auth.ok) return auth.response
 
-    if (!postId || !userId || !emoji) {
+    const body = await request.json()
+    const { postId, emoji } = body
+
+    if (!postId || !emoji) {
       return NextResponse.json(
-        { success: false, error: 'postId, userId va emoji kiritilishi shart' },
+        { success: false, error: 'postId va emoji kiritilishi shart' },
         { status: 400 }
       )
     }
 
-    const supabase = await getSupabase()
+    const supabase = await getServiceClient()
     if (!supabase) {
       return NextResponse.json({ success: false, error: 'Supabase sozlanmagan' }, { status: 500 })
     }
+
+    const userId = auth.user.id
 
     const { data: post, error: postErr } = await supabase
       .from('community_group_posts')
@@ -77,9 +75,12 @@ export async function POST(request: NextRequest) {
     if (error) throw error
 
     return NextResponse.json({ success: true, data })
-  } catch (err: any) {
+  } catch (err: unknown) {
     return NextResponse.json(
-      { success: false, error: err.message || 'Reaksiyani yangilashda xatolik' },
+      {
+        success: false,
+        error: err instanceof Error ? err.message : 'Reaksiyani yangilashda xatolik',
+      },
       { status: 500 }
     )
   }

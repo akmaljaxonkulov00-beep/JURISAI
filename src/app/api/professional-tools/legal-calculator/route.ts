@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { requireUser } from '@/lib/server-auth'
+import { getSupabaseAdmin } from '@/lib/supabase-admin'
 import { trackUsage } from '@/lib/usage-tracking'
 
 export async function POST(request: NextRequest) {
   try {
+    const auth = await requireUser(request)
+    if (!auth.ok) return auth.response
+
     const { case_type, claim_amount, contract_amount, days_late, start_date } = await request.json()
 
     if (!case_type || !claim_amount) {
@@ -129,12 +133,13 @@ export async function POST(request: NextRequest) {
       valid_until: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days validity
     }
 
-    // Save calculation to database
-    const { data, error } = await supabase
+    // Save calculation to database (user_id — session'dan)
+    const { data, error } = await getSupabaseAdmin()
       .from('legal_calculations')
       .insert([
         {
           id: calculationId,
+          user_id: auth.user.id,
           case_type: case_type,
           claim_amount: claimAmount,
           state_fee: calculationResult.state_fee,

@@ -37,7 +37,7 @@ import {
 import { useTheme } from '@/context/ThemeContext'
 import { useSearchParams } from 'next/navigation'
 import { useSettingsSync } from '@/hooks/useSettingsSync'
-import { firebaseAuth } from '@/services/firebase-auth'
+import { firebaseAuth } from '@/services/supabase-auth'
 import { supabase } from '@/lib/supabase-browser'
 
 interface UserProfile {
@@ -75,20 +75,26 @@ function ProfileContent() {
     if (typeof window !== 'undefined') {
       // Haqiqiy Supabase session user birinchi navbatda (yangi tab/refresh ham to'g'ri)
       const realUser = firebaseAuth.getCurrentUser()
-      const storedUser = realUser || (() => {
-        try {
-          const stored = localStorage.getItem('auth_user')
-          return stored ? JSON.parse(stored) : null
-        } catch {
-          return null
-        }
-      })()
+      const storedUser =
+        realUser ||
+        (() => {
+          try {
+            const stored = localStorage.getItem('auth_user')
+            return stored ? JSON.parse(stored) : null
+          } catch {
+            return null
+          }
+        })()
       if (storedUser) {
         const name = storedUser.name || storedUser.full_name || ''
         const nameParts = (name || '').split(' ').filter(Boolean)
         return {
           id: storedUser.id || '0',
-          firstName: nameParts[0] || storedUser.firstName || storedUser.email?.split('@')[0] || 'Foydalanuvchi',
+          firstName:
+            nameParts[0] ||
+            storedUser.firstName ||
+            storedUser.email?.split('@')[0] ||
+            'Foydalanuvchi',
           lastName: nameParts.slice(1).join(' ') || storedUser.lastName || '',
           email: storedUser.email || '',
           phone: storedUser.phone || '+998 __ ___ __ __',
@@ -148,7 +154,10 @@ function ProfileContent() {
     typeof window !== 'undefined'
       ? (() => {
           try {
-            return (JSON.parse(localStorage.getItem('auth_user') || '{}') as any).email || ''
+            return (
+              (JSON.parse(localStorage.getItem('auth_user') || '{}') as { email?: string }).email ||
+              ''
+            )
           } catch {
             return ''
           }
@@ -222,14 +231,14 @@ function ProfileContent() {
       if (profile.email && editedProfile.email !== profile.email) {
         const emailResult = await firebaseAuth.changeEmail(editedProfile.email)
         if (!emailResult.success) {
-          setSaveError(emailResult.error || 'Emailni o\'zgartirishda xatolik')
+          setSaveError(emailResult.error || "Emailni o'zgartirishda xatolik")
           setSaveLoading(false)
           return
         }
         // Email o'zgarganda tasdiqlash talab qilinadi — ko'rsatamiz
         setSaveError(
           emailResult.needsConfirmation
-            ? "Email yangilandi. Tasdiqlash xati yangi emailingizga yuborildi."
+            ? 'Email yangilandi. Tasdiqlash xati yangi emailingizga yuborildi.'
             : null
         )
       }
@@ -299,7 +308,7 @@ function ProfileContent() {
           await firebaseAuth.updateProfile({ avatar: avatarUrl }).catch(() => {})
         } else {
           // Bucket yo'q bo'lsa — lokal saqlash davom etadi
-          setAvatarError('Rasm saqlandi (server yuklash hozircha o\'chirilgan)')
+          setAvatarError("Rasm saqlandi (server yuklash hozircha o'chirilgan)")
           setTimeout(() => setAvatarError(null), 3000)
         }
       } catch {
@@ -334,7 +343,7 @@ function ProfileContent() {
     // (foydalanuvchi tizimga kirgan, session mavjud)
     const result = await firebaseAuth.changePassword(passwordData.newPass)
     if (!result.success) {
-      setPasswordError(result.error || 'Parolni o\'zgartirishda xatolik')
+      setPasswordError(result.error || "Parolni o'zgartirishda xatolik")
       return
     }
     setPasswordSuccess("Parol muvaffaqiyatli o'zgartirildi!")
@@ -385,7 +394,7 @@ function ProfileContent() {
 
       // 2. Sign out from Firebase if available
       try {
-        const { firebaseAuth } = await import('@/services/firebase-auth')
+        const { firebaseAuth } = await import('@/services/supabase-auth')
         await firebaseAuth.signOut()
       } catch {}
 
@@ -456,7 +465,12 @@ function ProfileContent() {
             return (
               <button
                 key={tab.id}
-                onClick={() => setSettingsSubTab(tab.id as any)}
+                onClick={() =>
+                  setSettingsSubTab(
+                    tab.id as
+                      'profil' | 'personal' | 'notifications' | 'appearance' | 'security' | 'data'
+                  )
+                }
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive ? 'nav-item-active' : 'text-gray-600 dark:text-gray-400 dark:text-zinc-500 hover:bg-gray-100 dark:hover:bg-gray-700/50'}`}
               >
                 <Icon className="w-4 h-4" /> {tab.label}
@@ -746,7 +760,10 @@ function ProfileContent() {
                 <select
                   value={editedProfile.status}
                   onChange={e =>
-                    setEditedProfile({ ...editedProfile, status: e.target.value as any })
+                    setEditedProfile({
+                      ...editedProfile,
+                      status: e.target.value as UserProfile['status'],
+                    })
                   }
                   className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
                 >
@@ -1050,7 +1067,10 @@ function ProfileContent() {
                   <select
                     value={editedProfile.language}
                     onChange={e =>
-                      setEditedProfile({ ...editedProfile, language: e.target.value as any })
+                      setEditedProfile({
+                        ...editedProfile,
+                        language: e.target.value as UserProfile['language'],
+                      })
                     }
                     className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
                   >

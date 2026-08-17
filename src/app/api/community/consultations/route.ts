@@ -1,21 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getServiceClient, getUserProfile, requireAdmin, requireUser } from '@/lib/community-server'
 
-async function getSupabase() {
-  const { createClient } = await import('@supabase/supabase-js')
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-  if (!supabaseUrl || !supabaseKey) return null
-  return createClient(supabaseUrl, supabaseKey)
-}
-
-// GET — maslahat/mentorlik so'rovlari (admin uchun ro'yxat)
+// GET — maslahat/mentorlik so'rovlari ro'yxati (FAQAT ADMIN)
 export async function GET(request: NextRequest) {
   try {
+    const adm = await requireAdmin(request)
+    if (!adm.ok) return adm.response
+
     const { searchParams } = new URL(request.url)
     const status = searchParams.get('status')
     const limit = Math.min(100, parseInt(searchParams.get('limit') || '50'))
 
-    const supabase = await getSupabase()
+    const supabase = await getServiceClient()
     if (!supabase) {
       return NextResponse.json({ success: true, data: [] })
     }
@@ -29,19 +25,25 @@ export async function GET(request: NextRequest) {
 
     if (error) throw error
     return NextResponse.json({ success: true, data: data || [] })
-  } catch (err: any) {
+  } catch (err: unknown) {
     return NextResponse.json(
-      { success: false, error: err.message || "So'rovlarni yuklashda xatolik" },
+      {
+        success: false,
+        error: err instanceof Error ? err.message : "So'rovlarni yuklashda xatolik",
+      },
       { status: 500 }
     )
   }
 }
 
-// POST — maslahat/mentorlik so'rovi yuborish
+// POST — maslahat/mentorlik so'rovi yuborish (session identity)
 export async function POST(request: NextRequest) {
   try {
+    const auth = await requireUser(request)
+    if (!auth.ok) return auth.response
+
     const body = await request.json()
-    const { expertId, expertName, userId, userName, userEmail, type, message } = body
+    const { expertId, expertName, type, message } = body
 
     if (!expertId || !message) {
       return NextResponse.json(
@@ -50,63 +52,72 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const supabase = await getSupabase()
-    if (supabase) {
-      const { data, error } = await supabase
-        .from('community_consultations')
-        .insert({
-          expert_id: expertId,
-          expert_name: expertName || '',
-          user_id: userId || '',
-          user_name: userName || '',
-          user_email: userEmail || '',
-          type: type === 'mentorship' ? 'mentorship' : 'consultation',
-          message: message.slice(0, 2000),
-          status: 'pending',
-        })
-        .select()
-        .single()
-
-      if (!error && data) {
-        return NextResponse.json({ success: true, data, source: 'supabase' })
-      }
+    const supabase = await getServiceClient()
+    if (!supabase) {
+      return NextResponse.json({ success: false, error: 'Supabase sozlanmagan' }, { status: 500 })
     }
 
-    return NextResponse.json({ success: false, error: 'Saqlashda xatolik' }, { status: 500 })
-  } catch (err: any) {
+    const userId = auth.user.id
+    const profile = await getUserProfile(supabase, userId)
+
+    const { data, error } = await supabase
+      .from('community_consultations')
+      .insert({
+        expert_id: expertId,
+        expert_name: expertName || '',
+        user_id: userId,
+        user_name: profile?.full_name || '',
+        user_email: profile?.email || '',
+        type: type === 'mentorship' ? 'mentorship' : 'consultation',
+        message: message.slice(0, 2000),
+        status: 'pending',
+      })
+      .select()
+      .single()
+
+    if (error) throw error
+
+    return NextResponse.json({ success: true, data, source: 'supabase' })
+  } catch (err: unknown) {
     return NextResponse.json(
-      { success: false, error: err?.message || "So'rov yuborishda xatolik" },
+      { success: false, error: err instanceof Error ? err.message : "So'rov yuborishda xatolik" },
       { status: 500 }
     )
   }
 }
 
-// PUT — statusni yangilash (admin: pending → answered/closed)
-// Qo'shimcha: admin javobi, ekspertga ulash, holat tarixi
-// Body: { id, status?, adminReply?, assignedExpertId?, actor? }
+// PUT — statusni yangilash (FAQAT ADMIN: pending → answered/closed + javob)
 export async function PUT(request: NextRequest) {
   try {
+    const adm = await requireAdmin(request)
+    if (!adm.ok) return adm.response
+
     const body = await request.json()
     const { id } = body
 
     if (!id) {
-      return NextResponse.json(
-        { success: false, error: 'id kiritilishi shart' },
-        { status: 400 }
-      )
+      return NextResponse.json({ success: false, error: 'id kiritilishi shart' }, { status: 400 })
     }
 
-    const supabase = await getSupabase()
+    const supabase = await getServiceClient()
     if (!supabase) {
       return NextResponse.json({ success: false, error: 'Supabase sozlanmagan' }, { status: 500 })
     }
 
     // Joriy yozuvni o'qib, holat tarixini yangilaymiz
-    // (status_history ustuni migratsiyagacha mavjud bo'lmasa ham ishlaydi)
+    interface ConsultationRow {
+      status?: string
+      status_history?: unknown[]
+      user_id?: string
+      user_name?: string
+      user_email?: string
+      expert_name?: string
+      message?: string
+    }
     let currentStatus = 'pending'
-    let history: any[] = []
+    let history: unknown[] = []
     let hasExtended = true
-    let consultationUser: Record<string, any> = {} // notification uchun
+    let consultationUser: ConsultationRow = {} // notification uchun
     try {
       const { data: cur, error: curErr } = await supabase
         .from('community_consultations')
@@ -132,7 +143,7 @@ export async function PUT(request: NextRequest) {
       hasExtended = false
     }
 
-    const updatePayload: Record<string, any> = {}
+    const updatePayload: Record<string, unknown> = {}
 
     if (body.status) {
       updatePayload.status = body.status
@@ -154,7 +165,7 @@ export async function PUT(request: NextRequest) {
           {
             status: body.status || currentStatus,
             at: new Date().toISOString(),
-            by: body.actor || 'admin',
+            by: adm.user.id,
           },
         ]
         updatePayload.status_history = history.slice(-50)
@@ -172,14 +183,13 @@ export async function PUT(request: NextRequest) {
 
     // ── Bildirishnoma: admin javob yozganda foydalanuvchiga xabar ──
     if (typeof body.adminReply === 'string' && body.adminReply.trim()) {
-      const userId = consultationUser?.user_id || ''
-      if (userId) {
+      const targetUserId = consultationUser?.user_id || ''
+      if (targetUserId) {
         const expertName = consultationUser?.expert_name || 'Ekspert'
         const replyPreview = body.adminReply.trim().slice(0, 180)
-        const userName = consultationUser?.user_name || consultationUser?.user_email || 'Foydalanuvchi'
         try {
           await supabase.from('user_notifications').insert({
-            user_id: userId,
+            user_id: targetUserId,
             type: 'success',
             category: 'community',
             title: 'Ekspert javobi keldi ✅',
@@ -194,9 +204,9 @@ export async function PUT(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true, data })
-  } catch (err: any) {
+  } catch (err: unknown) {
     return NextResponse.json(
-      { success: false, error: err?.message || 'Yangilashda xatolik' },
+      { success: false, error: err instanceof Error ? err.message : 'Yangilashda xatolik' },
       { status: 500 }
     )
   }

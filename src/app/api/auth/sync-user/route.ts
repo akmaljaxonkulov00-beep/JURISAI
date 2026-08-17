@@ -1,136 +1,111 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { getSupabaseAdmin } from '@/lib/supabase-admin'
+import { requireUser } from '@/lib/server-auth'
 
 /**
  * POST /api/auth/sync-user
  *
- * Firebase Auth dan foydalanuvchi ma'lumotlarini Supabase registered_users
- * jadvaliga sinxronlash. Bu endpoint firebase-auth.ts dagi syncUserToSupabase()
- * funksiyasi tomonidan chaqiriladi.
+ * Foydalanuvchi profil ma'lumotlarini registered_users jadvaliga sinxronlaydi.
  *
- * Agar SUPABASE_SERVICE_ROLE_KEY mavjud bo'lmasa, anon key bilan ishlaydi.
+ * XAVFSIZLIK:
+ *   - identity (id/email) FAQAT tasdiqlangan Supabase session'dan olinadi —
+ *     client tomonidan yuborilgan `id`, `email` ishonilmaydi.
+ *   - `role` va `subscription_plan` HECH QACHON client'dan qabul qilinmaydi.
+ *     Rol jadvaldagi mavjud qiymat saqlanadi; yangi userlar har doim 'USER'
+ *     va 'free' bilan yaratiladi. Admin bo'lish faqat server/admin orqali mumkin.
  */
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const {
-      id,
-      email,
-      name,
-      full_name,
-      phone,
-      avatar,
-      role,
-      subscription_plan,
-      provider,
-    } = body
+    const auth = await requireUser(request)
+    if (!auth.ok) return auth.response
 
-    if (!id || !email) {
-      return NextResponse.json({ success: false, error: 'id va email majburiy' }, { status: 400 })
-    }
+    const sessionUserId = auth.user.id
+    const sessionEmail = auth.user.email
 
-    // `name` bilan birga `full_name` ham yoziladi — Jamiyat a'zolar ro'yxati
-    // va boshqa joylar full_name dan o'qiydi
-    const resolvedName = full_name || name || email.split('@')[0] || ''
+    const body = await request.json().catch(() => ({}))
+    // Profil maydonlari (faqat ko'rsatish uchun) — xavfsiz, lekin rolni
+    // o'zgartira olmaydi.
+    const clientName = String(body?.name || body?.full_name || '').trim()
+    const provider = String(body?.provider || 'email').trim()
+    const phone = body?.phone ? String(body.phone) : undefined
+    const avatar = body?.avatar ? String(body.avatar) : undefined
 
-    const supabaseUrl =
-      process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://blayqzykzlmrjuvhzvsk.supabase.co'
-    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-    const anonKey =
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJsYXlxenlremxtcmp1dmh6dnNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ3MzAzNzAsImV4cCI6MjEwMDMwNjM3MH0._4WASFfKkRenHpScrQM6vS2zPTZmyDfMCNr5GmAgOkw'
+    const admin = getSupabaseAdmin()
 
-    // Try service role key first, fallback to anon key
-    const key = serviceKey || anonKey
-    if (!key) {
-      return NextResponse.json(
-        { success: false, error: 'Supabase key not configured' },
-        { status: 500 }
-      )
-    }
+    // ── Mavjud yozuv — rol/subscription faqat shu yerdan olinadi ──
+    const { data: existing } = await admin
+      .from('registered_users')
+      .select('id, role, subscription_plan, subscription_expires_at, name')
+      .eq('id', sessionUserId)
+      .maybeSingle()
 
-    const supabase = createClient(supabaseUrl, key, {
-      auth: { autoRefreshToken: false, persistSession: false },
-    })
+    const resolvedName = clientName || existing?.name || sessionEmail.split('@')[0] || ''
 
-    // Insert or update: preserve original created_at
     const now = new Date().toISOString()
-
-    const insertPayload: Record<string, any> = {
-      id,
-      email,
+    const safePayload: Record<string, unknown> = {
+      email: sessionEmail,
       name: resolvedName,
       full_name: resolvedName,
-      role: role || 'USER',
-      subscription_plan: subscription_plan || 'free',
-      provider: provider || 'email',
+      provider,
+      last_login: now,
+    }
+    if (phone) safePayload.phone = phone
+    if (avatar) safePayload.avatar = avatar
+
+    if (existing) {
+      // Mavjud user: rol va subscription O'ZGARMAYDI (client ularni yubora olmaydi)
+      const { error: updateError } = await admin
+        .from('registered_users')
+        .update(safePayload)
+        .eq('id', sessionUserId)
+      if (updateError) {
+        console.warn('[sync-user] update error:', updateError.message)
+        return NextResponse.json({ success: false, error: updateError.message }, { status: 200 })
+      }
+      const { data: updated } = await admin
+        .from('registered_users')
+        .select('*')
+        .eq('id', sessionUserId)
+        .single()
+      return NextResponse.json({ success: true, data: updated })
+    }
+
+    // ── Yangi user: har doim USER + free ──
+    const insertPayload: Record<string, unknown> = {
+      ...safePayload,
+      id: sessionUserId,
+      role: 'USER',
+      subscription_plan: 'free',
       created_at: now,
       last_login: now,
     }
-    if (phone) insertPayload.phone = phone
-    if (avatar) insertPayload.avatar = avatar
+    let insertResult = await admin.from('registered_users').insert(insertPayload)
 
-    // ── Yozish (chidamli: phone ustuni bazada bo'lmasa unsiz qayta urinamiz) ──
-    const runInsert = async (payload: Record<string, any>) =>
-      supabase.from('registered_users').insert(payload)
-    const runUpdate = async (payload: Record<string, any>) =>
-      supabase.from('registered_users').update(payload).eq('id', id).select().single()
-
-    // First try INSERT (for new users)
-    let insertResult = await runInsert(insertPayload)
-
-    // `phone` ustuni yo'q (eski baza) — phone'siz qayta urinamiz
+    // `phone` ustuni bo'lmagan eski baza uchun chidamli urinish
     if (insertResult.error && /column.*phone|phone.*column/i.test(insertResult.error.message)) {
-      const { phone: _drop, ...payloadNoPhone } = insertPayload
-      insertResult = await runInsert(payloadNoPhone)
+      const noPhone = { ...insertPayload }
+      delete noPhone.phone
+      insertResult = await admin.from('registered_users').insert(noPhone)
     }
 
-    // If user already exists (duplicate key), only update metadata — keep created_at
-    if (insertResult.error && insertResult.error.code === '23505') {
-      const updatePayload: Record<string, any> = {
-        email,
-        name: resolvedName,
-        full_name: resolvedName,
-        role: role || 'USER',
-        subscription_plan: subscription_plan || 'free',
-        provider: provider || 'email',
-        last_login: now,
-      }
-      if (phone) updatePayload.phone = phone
-      if (avatar) updatePayload.avatar = avatar
-      let updateResult = await runUpdate(updatePayload)
-      if (updateResult.error && /column.*phone|phone.*column/i.test(updateResult.error.message)) {
-        const { phone: _drop, ...payloadNoPhone } = updatePayload
-        updateResult = await runUpdate(payloadNoPhone)
-      }
-      if (updateResult.error) {
-        console.warn('[sync-user] Update error:', updateResult.error.message)
-        return NextResponse.json({ success: false, error: updateResult.error.message }, { status: 200 })
-      }
-      return NextResponse.json({ success: true, data: updateResult.data })
+    if (insertResult.error && insertResult.error.code !== '23505') {
+      console.warn('[sync-user] insert error:', insertResult.error.message)
+      return NextResponse.json(
+        { success: false, error: insertResult.error.message },
+        { status: 200 }
+      )
     }
 
-    if (insertResult.error) {
-      console.warn('[sync-user] Insert error:', insertResult.error.message)
-      return NextResponse.json({ success: false, error: insertResult.error.message }, { status: 200 })
-    }
-
-    // Fetch the newly created record
-    const { data, error: fetchError } = await supabase
+    const { data: created } = await admin
       .from('registered_users')
       .select('*')
-      .eq('id', id)
-      .single()
+      .eq('id', sessionUserId)
+      .maybeSingle()
 
-    if (fetchError) {
-      // If table doesn't exist or RLS blocks, silently ignore
-      console.warn('[sync-user] Upsert error:', fetchError.message)
-      return NextResponse.json({ success: false, error: fetchError.message }, { status: 200 })
-    }
-
-    return NextResponse.json({ success: true, data })
-  } catch (error: any) {
-    console.warn('[sync-user] Error:', error?.message)
-    return NextResponse.json({ success: false, error: error?.message }, { status: 200 })
+    return NextResponse.json({ success: true, data: created })
+  } catch (e) {
+    const message = e instanceof Error ? e.message : 'Xatolik'
+    console.warn('[sync-user] error:', message)
+    return NextResponse.json({ success: false, error: message }, { status: 200 })
   }
 }

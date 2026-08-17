@@ -20,6 +20,18 @@ export interface RAGArticle {
   penalties: string
 }
 
+/** Supabase jadval satrlari (any o'rniga) */
+interface RagRow {
+  id?: string
+  code_id?: string
+  article_number?: string
+  title?: string
+  content?: string
+  chapter?: string
+  penalties?: string
+  name?: string
+}
+
 const CATEGORY_DISPLAY: Record<string, string> = {
   constitution: "O'zbekiston Respublikasi Konstitutsiyasi",
   criminal_code: "O'zbekiston Respublikasi Jinoyat Kodeksi",
@@ -35,8 +47,7 @@ const CATEGORY_DISPLAY: Record<string, string> = {
 
 function makeSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const key =
-    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   if (!url || !key || url.includes('your-supabase-url')) return null
   return createClient(url, key, {
     auth: { autoRefreshToken: false, persistSession: false },
@@ -49,12 +60,49 @@ const APOSTROPHES = /['‘’ʻ`]/g
 /** Savoldan mazmunli kalit so'zlarni ajratib oladi (uzun va ahamiyatsiz so'zlar tashlanadi). */
 function extractKeywords(message: string): string[] {
   const stopwords = new Set([
-    'qanday', 'qanaqa', 'nima', 'uchun', 'bilan', 'haqida', 'bo\'yicha', 'bo‘yicha',
-    'kerak', 'mumkin', 'emas', 'sizga', 'meni', 'menga', 'savol', 'bor', 'yoq',
-    'bering', 'ayting', 'tushuntir', 'tushuntiring', 'yordam', 'bering', 'holat',
-    'holatda', 'bo\'lsa', 'bo‘lsa', 'agar', 'keyin', 'so\'ng', 'so‘ng', 'ham',
-    'modda', 'moddasi', 'qonun', 'qonuni', 'kodeks', 'kodeksi', 'respublika',
-    'o\'zbekiston', 'o‘zbekiston', 'bo\'yicha', 'bo‘yicha',
+    'qanday',
+    'qanaqa',
+    'nima',
+    'uchun',
+    'bilan',
+    'haqida',
+    "bo'yicha",
+    'bo‘yicha',
+    'kerak',
+    'mumkin',
+    'emas',
+    'sizga',
+    'meni',
+    'menga',
+    'savol',
+    'bor',
+    'yoq',
+    'bering',
+    'ayting',
+    'tushuntir',
+    'tushuntiring',
+    'yordam',
+    'bering',
+    'holat',
+    'holatda',
+    "bo'lsa",
+    'bo‘lsa',
+    'agar',
+    'keyin',
+    "so'ng",
+    'so‘ng',
+    'ham',
+    'modda',
+    'moddasi',
+    'qonun',
+    'qonuni',
+    'kodeks',
+    'kodeksi',
+    'respublika',
+    "o'zbekiston",
+    'o‘zbekiston',
+    "bo'yicha",
+    'bo‘yicha',
   ])
   return message
     .toLowerCase()
@@ -84,9 +132,30 @@ function keywordPatterns(word: string): string[] {
 
 /** O'zbekcha so'z qo'shimchalari — fe'l va otlarni o'zakka keltirish uchun */
 const SUFFIXES = [
-  'ganlar', 'dilar', 'gani', 'gan', 'moqda', 'moqchi', 'moq', 'ishlar', 'ish',
-  'ib', 'di', 'lar', 'larni', 'ni', 'ning', 'dan', 'da', 'ga', 'lik', 'ligi',
-  'lash', 'ladi', 'lagan', 'la',
+  'ganlar',
+  'dilar',
+  'gani',
+  'gan',
+  'moqda',
+  'moqchi',
+  'moq',
+  'ishlar',
+  'ish',
+  'ib',
+  'di',
+  'lar',
+  'larni',
+  'ni',
+  'ning',
+  'dan',
+  'da',
+  'ga',
+  'lik',
+  'ligi',
+  'lash',
+  'ladi',
+  'lagan',
+  'la',
 ]
 
 function commonPrefixLen(a: string, b: string): number {
@@ -176,7 +245,7 @@ function fuzzyMatch(word: string, keyword: string): boolean {
 
 /** Sarlavha/full row bo'yicha reyting balli. Uzun (aniq) so'z ko'proq og'irlik oladi; eng uzun kalit so'z mos tushsa qo'shimcha bonus. */
 function scoreRow(
-  row: any,
+  row: RagRow,
   keywords: string[],
   numMatch: RegExpMatchArray | null,
   selected?: string[]
@@ -201,7 +270,7 @@ function scoreRow(
       constitution: 2,
       civil_code: 1,
     }
-    score += codePriority[row.code_id] || 0
+    score += codePriority[row.code_id || ''] || 0
   } else if (numMatch && String(row.article_number || '').startsWith(numMatch[1])) {
     score += 30
   }
@@ -258,10 +327,7 @@ function scoreRow(
             hitTitle = true
             break
           }
-          if (
-            fuzzyMatch(twRoot, kwRoot) &&
-            commonPrefixLen(twRoot, kwRoot) >= 2
-          ) {
+          if (fuzzyMatch(twRoot, kwRoot) && commonPrefixLen(twRoot, kwRoot) >= 2) {
             score += weight * 2
             hit = true
             hitTitle = true
@@ -281,11 +347,7 @@ function scoreRow(
           const twStrippedRoot = rootOf(tw.replace(APOSTROPHES, ''))
           const d = levenshtein(twStrippedRoot, kwStrippedRoot)
           const maxDist = kwStrippedRoot.length >= 6 ? 2 : 1
-          if (
-            d >= 1 &&
-            d <= maxDist &&
-            commonPrefixLen(twStrippedRoot, kwStrippedRoot) >= 2
-          ) {
+          if (d >= 1 && d <= maxDist && commonPrefixLen(twStrippedRoot, kwStrippedRoot) >= 2) {
             score += weight * 2
             hit = true
             hitTitle = true
@@ -320,10 +382,7 @@ function scoreRow(
  *     kollatsiyasi apostroflarni e'tiborsiz qoldirgani ("O‘g‘rilik" ~ "o'g'irlik")
  *     va foydalanuvchi yozuv xatolari uchun ishonchli natija beradi.
  */
-export async function retrieveLegalArticles(
-  message: string,
-  limit = 6
-): Promise<RAGArticle[]> {
+export async function retrieveLegalArticles(message: string, limit = 6): Promise<RAGArticle[]> {
   try {
     const supabase = makeSupabase()
     if (!supabase) return []
@@ -333,7 +392,7 @@ export async function retrieveLegalArticles(
     try {
       const { data: cats } = await supabase.from('categories').select('code_id, name')
       if (cats && cats.length > 0) {
-        codeNames = new Map((cats as any[]).map((c: any) => [c.code_id, c.name]))
+        codeNames = new Map(cats.map((c: RagRow) => [c.code_id || '', c.name || '']))
       }
     } catch {
       // categories bo'lmasa display map ishlatiladi
@@ -345,7 +404,7 @@ export async function retrieveLegalArticles(
     const keywordWords = rawKeywords.map(w => w.replace(APOSTROPHES, ''))
 
     const candidateIds = new Set<string>()
-    const add = (rows: any[]) => {
+    const add = (rows: RagRow[]) => {
       for (const r of rows || []) {
         if (r && r.id && !candidateIds.has(r.id)) candidateIds.add(r.id)
       }
@@ -394,7 +453,7 @@ export async function retrieveLegalArticles(
     let selectedKeywords: string[] | undefined
     const fuzzyIds: string[] = []
     if (keywordWords.length > 0) {
-      const titles: any[] = []
+      const titles: RagRow[] = []
       const PAGE = 1000
       for (let from = 0; ; from += PAGE) {
         const { data } = await supabase
@@ -436,12 +495,15 @@ export async function retrieveLegalArticles(
       selectedKeywords = withHits.slice(0, 3)
 
       const scored = titles
-        .map((row: any) => ({ row, s: scoreRow(row, rawKeywords, null, selectedKeywords).score }))
+        .map((row: RagRow) => ({
+          row,
+          s: scoreRow(row, rawKeywords, null, selectedKeywords).score,
+        }))
         .filter(x => x.s > 0)
         .sort((a, b) => b.s - a.s)
         .slice(0, 40)
       for (const x of scored) {
-        if (!candidateIds.has(x.row.id)) {
+        if (x.row.id && !candidateIds.has(x.row.id)) {
           candidateIds.add(x.row.id)
           fuzzyIds.push(x.row.id)
         }
@@ -466,16 +528,13 @@ export async function retrieveLegalArticles(
     if (!full || full.length === 0) return []
 
     // To'liq matn bilan reyting
-    const ranked = (full as any[])
-      .map((row: any) => ({
+    const ranked = (full as RagRow[])
+      .map((row: RagRow) => ({
         row,
         ...scoreRow(row, rawKeywords, numMatch, selectedKeywords),
       }))
       .filter(r => r.score > 0 || full.length <= limit)
-      .sort(
-        (a, b) =>
-          b.score - a.score || b.maxWordLen - a.maxWordLen || b.matched - a.matched
-      )
+      .sort((a, b) => b.score - a.score || b.maxWordLen - a.maxWordLen || b.matched - a.matched)
       .slice(0, limit)
       .map(r => r.row)
 
@@ -486,10 +545,10 @@ export async function retrieveLegalArticles(
   }
 }
 
-function mapRows(rows: any[], codeNames: Map<string, string>): RAGArticle[] {
-  const results = rows.map((row: any) => {
-    const codeName =
-      codeNames.get(row.code_id) || CATEGORY_DISPLAY[row.code_id] || row.code_id
+function mapRows(rows: RagRow[], codeNames: Map<string, string>): RAGArticle[] {
+  const results = rows.map((row: RagRow) => {
+    const codeId = row.code_id || ''
+    const codeName = codeNames.get(codeId) || CATEGORY_DISPLAY[codeId] || codeId
     return {
       code_id: row.code_id || '',
       code_name: codeName,
@@ -517,9 +576,10 @@ export function buildLegalContext(articles: RAGArticle[], maxCharsPerArticle = 1
   if (!articles || articles.length === 0) return ''
 
   const blocks = articles.map((a, i) => {
-    const content = a.content.length > maxCharsPerArticle
-      ? a.content.slice(0, maxCharsPerArticle).trim() + '…'
-      : a.content
+    const content =
+      a.content.length > maxCharsPerArticle
+        ? a.content.slice(0, maxCharsPerArticle).trim() + '…'
+        : a.content
     const header = `${a.code_name}, ${a.article_number}-modda${a.title ? ' — ' + a.title : ''}`
     return `[${i + 1}] ${header}\n${content}${a.penalties ? `\n(Javobgarlik: ${a.penalties})` : ''}`
   })
@@ -552,15 +612,15 @@ export async function groundPrompt(
 
   if (articles.length === 0) {
     const noDataRule =
-      '\n\nQAT\'IY QOIDA: Hech qachon modda raqami, kodeks nomi yoki jazo muddatini to\'qima. ' +
+      "\n\nQAT'IY QOIDA: Hech qachon modda raqami, kodeks nomi yoki jazo muddatini to'qima. " +
       'Aniq moddani bilmasang, "aniq modda uchun qonunlar bazasiga qarang" deb yoz va modda raqami keltirma.'
     return { prompt: basePrompt + noDataRule, articles }
   }
 
   const context = buildLegalContext(articles, 1200)
   const rule =
-    '\n\nQAT\'IY QOIDA: Javobingda keltiriladigan HAR BIR modda raqami va kodeks nomi ' +
-    'faqat yuqoridagi BAZA MA\'LUMOTLARI blokidan olinishi SHART. Boshqa modda raqami, jazo ' +
+    "\n\nQAT'IY QOIDA: Javobingda keltiriladigan HAR BIR modda raqami va kodeks nomi " +
+    "faqat yuqoridagi BAZA MA'LUMOTLARI blokidan olinishi SHART. Boshqa modda raqami, jazo " +
     'muddati yoki norma to\'qima. Berilgan moddalar savolga mos kelmasa, "Bazada bu savol ' +
     'bo\'yicha aniq modda topilmadi" deb yoz va modda raqami keltirma.'
   return { prompt: basePrompt + context + rule, articles }
@@ -610,7 +670,7 @@ const CODE_PREFIX_ALIASES: Record<string, string> = {
 }
 
 const CODE_PREFIX_PATTERN =
-  'Ma\'muriy javobgarlik to\'g\'risidagi kodeksi|Ma\'muriy javobgarlik to\'g\'risidagi kodeks|' +
+  "Ma'muriy javobgarlik to'g'risidagi kodeksi|Ma'muriy javobgarlik to'g'risidagi kodeks|" +
   'Jinoyat-protsessual kodeksi|Jinoyat protsessual kodeksi|Fuqarolik protsessual kodeksi|' +
   'Fuqarolik kodeksi|Mehnat kodeksi|Soliq kodeksi|Oila kodeksi|Jinoyat kodeksi|Konstitutsiya|' +
   'JPK|GPK|FPK|MJtK|JK|FK|MK|SK|OK'
@@ -657,9 +717,7 @@ export async function validateCitations(text: string): Promise<CitationValidatio
 
   for (const ref of refs) {
     try {
-      const codeId = ref.code
-        ? CODE_PREFIX_ALIASES[ref.code.toLowerCase()] || null
-        : null
+      const codeId = ref.code ? CODE_PREFIX_ALIASES[ref.code.toLowerCase()] || null : null
       let query = supabase
         .from('articles')
         .select('code_id, article_number, title')
@@ -668,16 +726,13 @@ export async function validateCitations(text: string): Promise<CitationValidatio
       query = query.limit(2)
 
       const { data } = await query
-      const rows = (data || []) as any[]
+      const rows = (data || []) as RagRow[]
       if (rows.length === 0) {
         invalid.push(ref)
         continue
       }
       // Kodeks nomi keltirilgan bo'lsa — mos tushgan qatorni olamiz
-      const hit =
-        codeId
-          ? rows.find((r: any) => r.code_id === codeId)
-          : rows[0]
+      const hit = codeId ? rows.find((r: RagRow) => r.code_id === codeId) : rows[0]
       if (!hit) {
         invalid.push(ref)
         continue
@@ -701,19 +756,14 @@ export async function validateCitations(text: string): Promise<CitationValidatio
  * Noto'g'ri (bazada yo'q) modda havolalari topilgan bo'lsa, javob oxiriga
  * eslatma qo'shiladi — AI to'qigan raqamlar jim o'tib ketmaydi.
  */
-export function appendCitationNote(
-  text: string,
-  validation: CitationValidation
-): string {
+export function appendCitationNote(text: string, validation: CitationValidation): string {
   if (!validation.invalid || validation.invalid.length === 0) return text
   const list = [
-    ...new Set(
-      validation.invalid.map(i => `${i.code ? i.code + ' ' : ''}${i.article}-modda`)
-    ),
+    ...new Set(validation.invalid.map(i => `${i.code ? i.code + ' ' : ''}${i.article}-modda`)),
   ]
   const note =
     '\n\n⚠️ Eslatma: quyidagi modda havolalari qonunlar bazasida mavjud emas ' +
-    '(raqam noto\'g\'ri bo\'lishi mumkin): ' +
+    "(raqam noto'g'ri bo'lishi mumkin): " +
     list.join(', ') +
     '.'
   // Eslatma bir necha marta qo'shilib ketmasligi uchun tekshiramiz

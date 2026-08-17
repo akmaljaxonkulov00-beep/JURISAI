@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getErrorMessage } from '@/lib/errors'
 
 /**
  * POST /api/legal/search
@@ -45,7 +46,17 @@ export async function POST(request: NextRequest) {
     // yaratilgan (O'g'irlik ~ Ogirlik bitta token bo'lib qoladi)
     const strippedQ = sanitized.replace(/['‘’ʻ`]/g, '')
 
-    let articles: any[] | null = null
+    let articles: Array<{
+      code_id?: string
+      article_number?: string
+      title?: string
+      content?: string
+      chapter?: string
+      penalties?: string
+      cross_references?: string[]
+      references?: string[]
+      categories?: { code_id?: string; name?: string }
+    }> | null = null
     let count: number | null = null
 
     // ── 1) Tezkor indekslangan to'liq matn qidiruvi (search_vector + GIN) ──
@@ -106,35 +117,47 @@ export async function POST(request: NextRequest) {
       count = res.count
     }
 
-    const documents = (articles || []).map((a: any) => ({
-      id: `${a.categories?.code_id || a.code_id || 'unknown'}_${a.article_number}`,
-      title: `${a.categories?.name || ''} ${a.article_number}-modda: ${a.title || ''}`,
-      type: 'code',
-      category: a.categories?.code_id || a.code_id || 'unknown',
-      description:
-        (a.content || '').substring(0, 200) + (a.content && a.content.length > 200 ? '...' : ''),
-      content: a.content || '',
-      article_number: a.article_number,
-      code_name: a.categories?.name || "Noma'lum kodeks",
-      code_short: a.categories?.name || '',
-      penalties: a.penalties || '',
-      references:
-        Array.isArray(a.cross_references) && a.cross_references.length > 0
-          ? a.cross_references
-          : Array.isArray(a.references) && a.references.length > 0
-            ? a.references
+    const documents = (articles || []).map(
+      (a: {
+        code_id?: string
+        article_number?: string
+        title?: string
+        content?: string
+        chapter?: string
+        penalties?: string
+        cross_references?: string[]
+        references?: string[]
+        categories?: { code_id?: string; name?: string }
+      }) => ({
+        id: `${a.categories?.code_id || a.code_id || 'unknown'}_${a.article_number}`,
+        title: `${a.categories?.name || ''} ${a.article_number}-modda: ${a.title || ''}`,
+        type: 'code',
+        category: a.categories?.code_id || a.code_id || 'unknown',
+        description:
+          (a.content || '').substring(0, 200) + (a.content && a.content.length > 200 ? '...' : ''),
+        content: a.content || '',
+        article_number: a.article_number,
+        code_name: a.categories?.name || "Noma'lum kodeks",
+        code_short: a.categories?.name || '',
+        penalties: a.penalties || '',
+        references:
+          Array.isArray(a.cross_references) && a.cross_references.length > 0
+            ? a.cross_references
+            : Array.isArray(a.references) && a.references.length > 0
+              ? a.references
+              : [],
+        publication_date: '',
+        effective_date: '',
+        status: 'active' as const,
+        keywords: [a.chapter || '', a.title || '', ...(a.cross_references || [])],
+        related_documents:
+          Array.isArray(a.cross_references) && a.cross_references.length > 0
+            ? a.cross_references
             : [],
-      publication_date: '',
-      effective_date: '',
-      status: 'active' as const,
-      keywords: [a.chapter || '', a.title || '', ...(a.cross_references || [])],
-      related_documents:
-        Array.isArray(a.cross_references) && a.cross_references.length > 0
-          ? a.cross_references
-          : [],
-      citations: 0,
-      last_updated: new Date().toISOString(),
-    }))
+        citations: 0,
+        last_updated: new Date().toISOString(),
+      })
+    )
 
     const searchTime = Date.now() - startTime
 
@@ -146,12 +169,12 @@ export async function POST(request: NextRequest) {
       success: true,
       source: 'supabase',
     })
-  } catch (error: any) {
+  } catch (error) {
     console.error('Legal Search API Error:', error)
     return NextResponse.json(
       {
         error: 'Qidirishda xatolik yuz berdi',
-        message: error.message || "Noma'lum xatolik",
+        message: getErrorMessage(error) || "Noma'lum xatolik",
         success: false,
       },
       { status: 500 }

@@ -1,37 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import { getServiceClient, getUserProfile, requireUser } from '@/lib/community-server'
 
-async function getSupabase() {
-  const { createClient } = await import('@supabase/supabase-js')
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-  if (!supabaseUrl || !supabaseKey) return null
-  return createClient(supabaseUrl, supabaseKey)
-}
-
-// Foydalanuvchi guruh a'zosimi yoki yaratuvchimi?
-async function canAccessGroup(supabase: any, groupId: string, userId: string): Promise<boolean> {
-  if (!userId) return false
-  const { data: group } = await supabase
-    .from('community_groups')
-    .select('created_by')
-    .eq('id', groupId)
-    .single()
-  if (group && group.created_by?.toString() === userId) return true
-  const { data: member } = await supabase
-    .from('community_group_members')
-    .select('id')
-    .eq('group_id', groupId)
-    .eq('user_id', userId)
-    .maybeSingle()
-  return !!member
-}
-
-// GET /api/community/groups/posts?groupId=...&memberId=...
+// Guruh xabarlari (chat). Identity faqat session'dan — memberId/userId/actorId
+// query/body parametrlari ishonilmaydi.
 export async function GET(request: NextRequest) {
   try {
+    const auth = await requireUser(request)
+    if (!auth.ok) return auth.response
+
     const { searchParams } = new URL(request.url)
     const groupId = searchParams.get('groupId')
-    const memberId = searchParams.get('memberId') || ''
+    const memberId = auth.user.id
 
     if (!groupId) {
       return NextResponse.json(
@@ -40,7 +20,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const supabase = await getSupabase()
+    const supabase = await getServiceClient()
     if (!supabase) {
       return NextResponse.json({ success: true, data: [] })
     }
@@ -64,19 +44,22 @@ export async function GET(request: NextRequest) {
     if (error) throw error
 
     return NextResponse.json({ success: true, data: data || [] })
-  } catch (err: any) {
+  } catch (err: unknown) {
     return NextResponse.json(
-      { success: false, error: err.message || 'Postlarni yuklashda xatolik' },
+      { success: false, error: err instanceof Error ? err.message : 'Postlarni yuklashda xatolik' },
       { status: 500 }
     )
   }
 }
 
-// POST /api/community/groups/posts  { groupId, userId, userName, content, parentId? }
+// POST /api/community/groups/posts  { groupId, content, parentId? }
 export async function POST(request: NextRequest) {
   try {
+    const auth = await requireUser(request)
+    if (!auth.ok) return auth.response
+
     const body = await request.json()
-    const { groupId, userId, userName, content, parentId } = body
+    const { groupId, content, parentId } = body
 
     if (!groupId || !content?.trim()) {
       return NextResponse.json(
@@ -85,13 +68,17 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const supabase = await getSupabase()
+    const supabase = await getServiceClient()
     if (!supabase) {
       return NextResponse.json({ success: false, error: 'Supabase sozlanmagan' }, { status: 500 })
     }
 
+    const userId = auth.user.id
+    const profile = await getUserProfile(supabase, userId)
+    const userName = profile?.full_name || profile?.email || 'Foydalanuvchi'
+
     // Faqat guruh a'zolari yozishi mumkin
-    const allowed = await canAccessGroup(supabase, groupId, userId || '')
+    const allowed = await canAccessGroup(supabase, groupId, userId)
     if (!allowed) {
       return NextResponse.json(
         { success: false, error: "Faqat guruh a'zolari xabar yozishi mumkin" },
@@ -103,8 +90,8 @@ export async function POST(request: NextRequest) {
       .from('community_group_posts')
       .insert({
         group_id: groupId,
-        user_id: userId || '',
-        user_name: userName || 'Foydalanuvchi',
+        user_id: userId,
+        user_name: userName,
         content: content.slice(0, 2000),
         parent_id: parentId || null,
         reactions: {},
@@ -130,22 +117,24 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true, data })
-  } catch (err: any) {
+  } catch (err: unknown) {
     return NextResponse.json(
-      { success: false, error: err.message || 'Post yozishda xatolik' },
+      { success: false, error: err instanceof Error ? err.message : 'Post yozishda xatolik' },
       { status: 500 }
     )
   }
 }
 
-// DELETE /api/community/groups/posts?postId=...&actorId=...
-// Post muallifi, guruh yaratuvchisi yoki moderator o'chira oladi.
-// Javoblar (parent_id) CASCADE bo'yicha birga o'chadi.
+// DELETE /api/community/groups/posts?postId=...
+// Post muallifi, guruh yaratuvchisi yoki moderator o'chira oladi (session identity).
 export async function DELETE(request: NextRequest) {
   try {
+    const auth = await requireUser(request)
+    if (!auth.ok) return auth.response
+
     const { searchParams } = new URL(request.url)
     const postId = searchParams.get('postId')
-    const actorId = searchParams.get('actorId') || ''
+    const actorId = auth.user.id
 
     if (!postId) {
       return NextResponse.json(
@@ -154,7 +143,7 @@ export async function DELETE(request: NextRequest) {
       )
     }
 
-    const supabase = await getSupabase()
+    const supabase = await getServiceClient()
     if (!supabase) {
       return NextResponse.json({ success: false, error: 'Supabase sozlanmagan' }, { status: 500 })
     }
@@ -167,27 +156,25 @@ export async function DELETE(request: NextRequest) {
     if (postErr || !post) throw postErr || new Error('Post topilmadi')
 
     // Ruxsat: muallif | guruh yaratuvchisi | moderator
-    const isAuthor = actorId && post.user_id === actorId
+    const isAuthor = post.user_id === actorId
     if (!isAuthor) {
       const { data: group } = await supabase
         .from('community_groups')
         .select('created_by')
         .eq('id', post.group_id)
         .single()
-      const isCreator = actorId && group?.created_by?.toString() === actorId
+      const isGroupCreator = group?.created_by?.toString() === actorId
 
       let isModerator = false
-      if (actorId) {
-        const { data: member } = await supabase
-          .from('community_group_members')
-          .select('role')
-          .eq('group_id', post.group_id)
-          .eq('user_id', actorId)
-          .maybeSingle()
-        isModerator = !!member && ['moderator', 'admin'].includes(member.role)
-      }
+      const { data: member } = await supabase
+        .from('community_group_members')
+        .select('role')
+        .eq('group_id', post.group_id)
+        .eq('user_id', actorId)
+        .maybeSingle()
+      isModerator = !!member && ['moderator', 'admin'].includes(member.role)
 
-      if (!isCreator && !isModerator) {
+      if (!isGroupCreator && !isModerator) {
         return NextResponse.json(
           { success: false, error: "Xabarni o'chirish uchun ruxsat yo'q" },
           { status: 403 }
@@ -195,10 +182,7 @@ export async function DELETE(request: NextRequest) {
       }
     }
 
-    const { error: delErr } = await supabase
-      .from('community_group_posts')
-      .delete()
-      .eq('id', postId)
+    const { error: delErr } = await supabase.from('community_group_posts').delete().eq('id', postId)
     if (delErr) throw delErr
 
     // Moderator/yaratuvchi boshqa a'zoning xabarini o'chirsa — jurnalga yozamiz
@@ -206,7 +190,7 @@ export async function DELETE(request: NextRequest) {
       try {
         await supabase.from('community_moderator_actions').insert({
           group_id: post.group_id,
-          moderator_id: actorId || '',
+          moderator_id: actorId,
           moderator_name: '',
           action: 'post_deleted',
           target_name: post.user_name || '',
@@ -233,10 +217,32 @@ export async function DELETE(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true, deleted: postId })
-  } catch (err: any) {
+  } catch (err: unknown) {
     return NextResponse.json(
-      { success: false, error: err.message || "Xabarni o'chirishda xatolik" },
+      { success: false, error: err instanceof Error ? err.message : "Xabarni o'chirishda xatolik" },
       { status: 500 }
     )
   }
+}
+
+// Guruh a'zosi/yaratuvchisi tekshiruvi (session identity asosida)
+async function canAccessGroup(
+  supabase: SupabaseClient,
+  groupId: string,
+  userId: string
+): Promise<boolean> {
+  if (!userId) return false
+  const { data: group } = await supabase
+    .from('community_groups')
+    .select('created_by')
+    .eq('id', groupId)
+    .single()
+  if (group && group.created_by?.toString() === userId) return true
+  const { data: member } = await supabase
+    .from('community_group_members')
+    .select('id')
+    .eq('group_id', groupId)
+    .eq('user_id', userId)
+    .maybeSingle()
+  return !!member
 }

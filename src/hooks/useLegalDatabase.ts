@@ -1,5 +1,7 @@
 'use client'
 
+import type { RealtimeChannel } from '@supabase/supabase-js'
+
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { getDisplayNameFromCodeId } from '@/lib/utils/code-mapper'
 import { supabase as browserSupabase } from '@/lib/supabase-browser'
@@ -19,6 +21,35 @@ export interface LegalCode {
   shortName: string
   description: string
   totalArticles: number
+  effectiveDate: string
+  articles: LegalArticle[]
+}
+
+// Supabase'dan keladigan xom qatorlar (any o'rniga)
+interface CategoryRow {
+  code_id: string
+  name?: string
+  description?: string
+  [key: string]: unknown
+}
+
+interface ArticleRow {
+  code_id?: string
+  article_number?: string
+  title?: string
+  content?: string
+  chapter?: string
+  penalties?: string
+  cross_references?: string[]
+  references?: string[]
+  [key: string]: unknown
+}
+
+interface CodeEntry {
+  id: string
+  name: string
+  shortName: string
+  description: string
   effectiveDate: string
   articles: LegalArticle[]
 }
@@ -58,7 +89,7 @@ export function useLegalCodes() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [fromSupabase, setFromSupabase] = useState(false)
-  const subscriptionRef = useRef<any>(null)
+  const subscriptionRef = useRef<RealtimeChannel | null>(null)
 
   const fetchFromSupabase = useCallback(async (silent?: boolean) => {
     if (!silent) setLoading(true)
@@ -86,12 +117,12 @@ export function useLegalCodes() {
       //    `.in('code_id', ...)` fetch silently truncates the full database
       //    (only ~first 125 articles per code came through — the rest were lost).
       //    Loop with `.range()` until every article of every code is loaded.
-      const codeIds = categories.map((c: any) => c.code_id).filter(Boolean)
+      const codeIds = categories.map((c: CategoryRow) => c.code_id).filter(Boolean)
       const uniqueIds = [...new Set(codeIds)]
       const PAGE = 1000
 
       const fetchAllArticles = async (orderColumn: 'article_number_int' | 'article_number') => {
-        const all: any[] = []
+        const all: ArticleRow[] = []
         for (const codeId of uniqueIds) {
           let from = 0
           for (;;) {
@@ -110,7 +141,7 @@ export function useLegalCodes() {
         return all
       }
 
-      let articles: any[]
+      let articles: ArticleRow[]
       try {
         // Numeric sort column first
         articles = await fetchAllArticles('article_number_int')
@@ -120,14 +151,14 @@ export function useLegalCodes() {
       }
 
       // 3. Merge categories + articles into LegalCode[] format
-      const categoryMap = new Map<string, any>()
-      categories.forEach((cat: any) => {
+      const categoryMap = new Map<string, CodeEntry>()
+      categories.forEach((cat: CategoryRow) => {
         const existing = categoryMap.get(cat.code_id)
         if (!existing) {
           categoryMap.set(cat.code_id, {
             id: cat.code_id,
-            name: CODE_DISPLAY_NAMES_MAP[cat.code_id] || cat.name,
-            shortName: CODE_DISPLAY_NAMES_MAP[cat.code_id] || cat.name,
+            name: CODE_DISPLAY_NAMES_MAP[cat.code_id] || cat.name || '',
+            shortName: CODE_DISPLAY_NAMES_MAP[cat.code_id] || cat.name || '',
             description: cat.description || '',
             effectiveDate: '01.01.2024',
             articles: [],
@@ -135,8 +166,8 @@ export function useLegalCodes() {
         }
       })
 
-      articles.forEach((article: any) => {
-        const codeEntry = categoryMap.get(article.code_id)
+      articles.forEach((article: ArticleRow) => {
+        const codeEntry = categoryMap.get(article.code_id || '')
         if (codeEntry) {
           codeEntry.articles.push({
             number: article.article_number || '',
@@ -156,7 +187,7 @@ export function useLegalCodes() {
 
       // NUMERIC SORT: Sort articles by article_number as integer (not string!)
       // This is the PRIMARY sort — it works even without article_number_int column
-      Array.from(categoryMap.values()).forEach((entry: any) => {
+      Array.from(categoryMap.values()).forEach((entry: CodeEntry) => {
         entry.articles.sort((a: LegalArticle, b: LegalArticle) => {
           const numA = parseInt(a.number, 10) || 0
           const numB = parseInt(b.number, 10) || 0
@@ -164,17 +195,17 @@ export function useLegalCodes() {
         })
       })
 
-      const mapped: LegalCode[] = Array.from(categoryMap.values()).map((c: any) => ({
+      const mapped: LegalCode[] = Array.from(categoryMap.values()).map((c: CodeEntry) => ({
         ...c,
         totalArticles: c.articles.length,
       }))
 
       setCodes(mapped)
       setFromSupabase(true)
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.warn(
         '[useLegalCodes] Supabase direct fetch failed, trying API fallback:',
-        err.message
+        err instanceof Error ? err.message : String(err)
       )
 
       // Fallback: try API route
@@ -187,23 +218,34 @@ export function useLegalCodes() {
         if (res.ok) {
           const result = await res.json()
           if (result.success && result.codes && result.codes.length > 0) {
-            const apiCodes: LegalCode[] = result.codes.map((c: any) => ({
-              id: c.id,
-              name: c.name,
-              shortName: c.shortName || c.name,
-              description: c.description || '',
-              totalArticles: c.articles?.length || 0,
-              effectiveDate: c.effectiveDate || '01.01.2024',
-              articles: (c.articles || []).map((a: any) => ({
-                number: a.number,
-                title: a.title || '',
-                content: a.content || '',
-                category: a.category || 'Umumiy',
-                penalties: a.penalties || undefined,
-                references:
-                  Array.isArray(a.references) && a.references.length > 0 ? a.references : undefined,
-              })),
-            }))
+            const apiCodes: LegalCode[] = result.codes.map(
+              (c: {
+                id: string
+                name: string
+                shortName?: string
+                description?: string
+                effectiveDate?: string
+                articles?: LegalArticle[]
+              }) => ({
+                id: c.id,
+                name: c.name,
+                shortName: c.shortName || c.name,
+                description: c.description || '',
+                totalArticles: c.articles?.length || 0,
+                effectiveDate: c.effectiveDate || '01.01.2024',
+                articles: (c.articles || []).map((a: LegalArticle) => ({
+                  number: a.number,
+                  title: a.title || '',
+                  content: a.content || '',
+                  category: a.category || 'Umumiy',
+                  penalties: a.penalties || undefined,
+                  references:
+                    Array.isArray(a.references) && a.references.length > 0
+                      ? a.references
+                      : undefined,
+                })),
+              })
+            )
             setCodes(apiCodes)
             setFromSupabase(result.source === 'supabase')
             setLoading(false)
@@ -214,7 +256,7 @@ export function useLegalCodes() {
         // Both Supabase and API failed
       }
 
-      const errMsg = err?.message || ''
+      const errMsg = err instanceof Error ? err.message : String(err)
       if (
         errMsg.includes('Supabase') ||
         errMsg.includes('supabase') ||

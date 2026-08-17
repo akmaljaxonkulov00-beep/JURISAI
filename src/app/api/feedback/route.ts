@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { getSupabaseAdmin } from '@/lib/supabase-admin'
 import { isAdminRole } from '@/lib/roles'
 
 // Telegram service import with error handling
-let telegramService: any = null
+let telegramService: { sendCustomNotification: (text: string) => Promise<unknown> } | null = null
 try {
   const { telegramService: ts } = require('@/lib/telegram')
   telegramService = ts
@@ -29,10 +29,11 @@ export async function POST(request: NextRequest) {
 
     if (authHeader) {
       // Verify user with Supabase
+      const admin = getSupabaseAdmin()
       const {
         data: { user },
         error,
-      } = await supabase.auth.getUser(authHeader)
+      } = await admin.auth.getUser(authHeader)
       if (!error && user?.id) {
         userId = user.id
         userEmail = user.email
@@ -40,7 +41,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create feedback record
-    const { data: feedback, error: insertError } = await supabase
+    const { data: feedback, error: insertError } = await getSupabaseAdmin()
       .from('feedback')
       .insert({
         type: type || 'improvement',
@@ -105,17 +106,18 @@ export async function GET(request: NextRequest) {
     }
 
     // Verify user with Supabase
+    const admin = getSupabaseAdmin()
     const {
       data: { user },
       error,
-    } = await supabase.auth.getUser(authHeader)
+    } = await admin.auth.getUser(authHeader)
 
     if (error || !user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     // Check if user is admin — rol registered_users (database) dan olinadi
-    const { data: userData, error: userError } = await supabase
+    const { data: userData, error: userError } = await admin
       .from('registered_users')
       .select('role')
       .eq('id', user.id)
@@ -133,19 +135,8 @@ export async function GET(request: NextRequest) {
 
     const offset = (page - 1) * limit
 
-    // Build query
-    let query = supabase.from('feedback').select(
-      `
-        *,
-        profiles:user_id (
-          id,
-          email,
-          first_name,
-          last_name
-        )
-      `,
-      { count: 'exact' }
-    )
+    // Build query (profiles embed o'rniga manual join — registered_users yagona manba)
+    let query = admin.from('feedback').select('*', { count: 'exact' })
 
     // Apply filters
     if (status !== 'all') {
@@ -168,8 +159,33 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Fikrlarni olishda xatolik yuz berdi' }, { status: 500 })
     }
 
+    // Manual join: feedback.user_id → registered_users (id, email, name)
+    interface FeedbackRow {
+      user_id?: string
+      [key: string]: unknown
+    }
+    const userIds = Array.from(
+      new Set(
+        (feedbacks || []).map((f: FeedbackRow) => f.user_id).filter((id): id is string => !!id)
+      )
+    )
+    const profilesMap: Record<string, { id: string; email: string; name: string }> = {}
+    if (userIds.length > 0) {
+      const { data: profiles } = await admin
+        .from('registered_users')
+        .select('id, email, name')
+        .in('id', userIds)
+      for (const p of (profiles || []) as Array<{ id: string; email: string; name: string }>) {
+        profilesMap[p.id] = p
+      }
+    }
+    const enriched = (feedbacks || []).map((f: FeedbackRow) => ({
+      ...f,
+      profiles: f.user_id ? profilesMap[f.user_id] || null : null,
+    }))
+
     return NextResponse.json({
-      feedbacks,
+      feedbacks: enriched,
       pagination: {
         page,
         limit,
@@ -193,17 +209,18 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Verify user with Supabase
+    const admin = getSupabaseAdmin()
     const {
       data: { user },
       error,
-    } = await supabase.auth.getUser(authHeader)
+    } = await admin.auth.getUser(authHeader)
 
     if (error || !user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     // Check if user is admin — rol registered_users (database) dan olinadi
-    const { data: userData, error: userError } = await supabase
+    const { data: userData, error: userError } = await admin
       .from('registered_users')
       .select('role')
       .eq('id', user.id)
@@ -219,7 +236,7 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Feedback ID and status are required' }, { status: 400 })
     }
 
-    const { data: updatedFeedback, error: updateError } = await supabase
+    const { data: updatedFeedback, error: updateError } = await admin
       .from('feedback')
       .update({
         status,

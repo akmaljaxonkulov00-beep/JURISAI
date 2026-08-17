@@ -144,7 +144,7 @@ const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ className }) 
 
                 {/* Content */}
                 <blockquote className="text-gray-700 dark:text-zinc-300 mb-6 leading-relaxed italic">
-                  "{testimonial.content}"
+                  “{testimonial.content}”
                 </blockquote>
 
                 {/* Author */}

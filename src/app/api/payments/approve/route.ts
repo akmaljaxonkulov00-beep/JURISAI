@@ -1,14 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireAdmin } from '@/lib/server-auth'
+import { getPaymentAdminClient, approvePayment } from '@/lib/payment-admin'
+import { logAdminAction } from '@/lib/admin-audit'
 
 /**
  * POST /api/payments/approve
  *
- * Admin tomonidan to'lovni tasdiqlash.
- * payment_requests jadvalidagi statusni 'approved' ga o'zgartiradi
- * va foydalanuvchi balansiga summani qo'shadi.
+ * FAQAT ADMIN session (server-side tekshiruv) — oddiy foydalanuvchi yoki
+ * tashrif buyuruvchi to'lovni tasdiqlay olmaydi.
+ * State machine: faqat 'pending' → 'approved'; takroriy chaqiruv idempotent.
+ * Tarif/narx server tomondagi pricing_plans'dan olinadi.
  */
 export async function POST(request: NextRequest) {
   try {
+    const auth = await requireAdmin(request)
+    if (!auth.ok) return auth.response
+
     const body = await request.json()
     const { paymentId } = body
 
@@ -16,148 +23,34 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Payment ID is required' }, { status: 400 })
     }
 
-    const { createClient } = await import('@supabase/supabase-js')
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-
-    if (!supabaseUrl || !serviceRoleKey) {
+    const supabase = getPaymentAdminClient()
+    if (!supabase) {
       return NextResponse.json(
         { success: false, error: 'Supabase not configured' },
-        { status: 500 }
+        { status: 503 }
       )
     }
 
-    const supabase = createClient(supabaseUrl, serviceRoleKey, {
-      auth: { autoRefreshToken: false, persistSession: false },
+    const result = await approvePayment(supabase, paymentId, auth.user.id)
+    await logAdminAction({
+      admin: auth.user,
+      action: 'payment_approve',
+      targetType: 'payment',
+      targetId: paymentId,
+      details: { paymentId },
+      success: result.ok,
     })
-
-    // Try payment_requests first (table from admin migration)
-    let payment: any = null
-    const { data: prData } = await supabase
-      .from('payment_requests')
-      .select('*')
-      .eq('id', paymentId)
-      .single()
-
-    if (prData) {
-      payment = prData
-      // Update status in payment_requests
-      await supabase
-        .from('payment_requests')
-        .update({ status: 'approved', updated_at: new Date().toISOString() })
-        .eq('id', paymentId)
-
-      // Foydalanuvchiga bildirishnoma yuborish (to'lov holati haqida)
-      try {
-        await supabase.from('user_notifications').insert({
-          user_id: payment.user_id,
-          type: 'success',
-          category: 'payment',
-          title: "To'lov tasdiqlandi ✅",
-          message: `"${payment.plan}" tarifi faollashtirildi. ${Number(payment.amount || 0).toLocaleString()} so'm to'lov muvaffaqiyatli tasdiqlandi.`,
-          action_url: '/dashboard',
-          action_text: 'Dashboardga o\u02BBtish',
-        })
-      } catch {}
-
-      // Update user balance + premium subscription in registered_users
-      if (payment.user_id) {
-        const plan = (payment.plan || 'standart').toLowerCase()
-        const expiresAt = new Date()
-        expiresAt.setMonth(expiresAt.getMonth() + 1)
-        const expiresIso = expiresAt.toISOString()
-
-        // Fetch current balance first
-        const { data: userData } = await supabase
-          .from('registered_users')
-          .select('balance')
-          .eq('id', payment.user_id)
-          .maybeSingle()
-
-        const currentBalance = Number(userData?.balance || 0)
-        const newBalance = currentBalance + Number(payment.amount || 0)
-
-        await supabase
-          .from('registered_users')
-          .update({
-            balance: newBalance,
-            subscription_plan: plan,
-            subscription_expires_at: expiresIso,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', payment.user_id)
-
-        // Auth user_metadata — premium huquq sayt bo'ylab darhol faollashadi
-        try {
-          await supabase.auth.admin.updateUserById(payment.user_id, {
-            user_metadata: {
-              subscription_plan: plan,
-              subscription_expires_at: expiresIso,
-            },
-          })
-        } catch {}
-
-        // Legacy users table (mavjud bo'lsa)
-        try {
-          await supabase
-            .from('users')
-            .update({
-              subscription_plan: plan,
-              subscription_expires_at: expiresIso,
-            })
-            .eq('id', payment.user_id)
-        } catch {}
-      }
-
-      return NextResponse.json({
-        success: true,
-        message: "To'lov tasdiqlandi",
-        payment: payment,
-      })
-    }
-
-    // Fallback: try 'payments' table (legacy)
-    const { data: legacyPayment, error: fetchError } = await supabase
-      .from('payments')
-      .select('*')
-      .eq('id', paymentId)
-      .single()
-
-    if (legacyPayment) {
-      await supabase
-        .from('payments')
-        .update({
-          status: 'approved',
-          processed_at: new Date().toISOString(),
-        })
-        .eq('id', paymentId)
-
-      // Update user subscription in users table
-      if (legacyPayment.user_id) {
-        const expiresAt = new Date()
-        expiresAt.setMonth(expiresAt.getMonth() + 1)
-        await supabase
-          .from('users')
-          .update({
-            subscription_plan: legacyPayment.plan || legacyPayment.plan_id,
-            subscription_expires_at: expiresAt.toISOString(),
-          })
-          .eq('id', legacyPayment.user_id)
-      }
-
-      return NextResponse.json({
-        success: true,
-        message: "To'lov tasdiqlandi",
-        payment: legacyPayment,
-      })
-    }
-
-    return NextResponse.json({ success: false, error: "To'lov topilmadi" }, { status: 404 })
-  } catch (error: any) {
-    console.error('Error approving payment:', error)
     return NextResponse.json(
-      { success: false, error: error?.message || "To'lovni tasdiqlashda xatolik" },
-      { status: 500 }
+      {
+        success: result.ok,
+        message: result.message,
+        payment: result.ok ? result.payment : undefined,
+      },
+      { status: result.ok ? 200 : result.status }
     )
+  } catch (error) {
+    console.error('Error approving payment:', error)
+    const message = error instanceof Error ? error.message : "To'lovni tasdiqlashda xatolik"
+    return NextResponse.json({ success: false, error: message }, { status: 500 })
   }
 }

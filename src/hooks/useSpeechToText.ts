@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { getSpeechRecognitionCtor, type SpeechRecognitionInstance } from '@/lib/speech-types'
 
 interface SpeechToTextOptions {
   /** Language code, default 'uz-UZ' */
@@ -46,7 +47,7 @@ export function useSpeechToText(options: SpeechToTextOptions = {}): SpeechToText
     error: null,
   })
 
-  const recognitionRef = useRef<any>(null)
+  const recognitionRef = useRef<SpeechRecognitionInstance | null>(null)
   const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const audioAnimFrameRef = useRef<number>(0)
   const isListeningRef = useRef(false)
@@ -107,8 +108,7 @@ export function useSpeechToText(options: SpeechToTextOptions = {}): SpeechToText
       return
     }
 
-    const SpeechRecognition =
-      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+    const SpeechRecognition = getSpeechRecognitionCtor()
     if (!SpeechRecognition) {
       setState(prev => ({
         ...prev,
@@ -138,7 +138,7 @@ export function useSpeechToText(options: SpeechToTextOptions = {}): SpeechToText
       startAudioVisualizer()
     }
 
-    recognition.onresult = (event: any) => {
+    recognition.onresult = event => {
       let interim = ''
       let final = ''
 
@@ -175,7 +175,7 @@ export function useSpeechToText(options: SpeechToTextOptions = {}): SpeechToText
       }
     }
 
-    recognition.onerror = (event: any) => {
+    recognition.onerror = event => {
       const errorMsg =
         event.error === 'no-speech'
           ? 'Ovoz eshitilmadi'

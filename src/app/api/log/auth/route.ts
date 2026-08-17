@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
 import { isAdminRole } from '@/lib/roles'
+import { getErrorMessage } from '@/lib/errors'
 
 /**
  * GET /api/log/auth?limit=50
@@ -17,11 +18,17 @@ export async function GET(request: NextRequest) {
     try {
       supabase = getSupabaseAdmin()
     } catch {
-      return NextResponse.json({ success: false, error: 'Supabase not configured' }, { status: 500 })
+      return NextResponse.json(
+        { success: false, error: 'Supabase not configured' },
+        { status: 500 }
+      )
     }
 
     // JWT'dan foydalanuvchini olamiz va admin ekanligini tekshiramiz
-    const { data: { user }, error: userErr } = await supabase.auth.getUser(authHeader)
+    const {
+      data: { user },
+      error: userErr,
+    } = await supabase.auth.getUser(authHeader)
     if (userErr || !user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -48,9 +55,9 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true, logs: logs || [] })
-  } catch (error: any) {
+  } catch (error) {
     return NextResponse.json(
-      { success: false, error: error?.message || 'Xatolik' },
+      { success: false, error: getErrorMessage(error) || 'Xatolik' },
       { status: 500 }
     )
   }
@@ -87,10 +94,10 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true })
-  } catch (error: any) {
+  } catch (error) {
     console.error('Auth logging API error:', error)
     return NextResponse.json(
-      { success: false, error: error?.message || 'Logging failed' },
+      { success: false, error: getErrorMessage(error) || 'Logging failed' },
       { status: 500 }
     )
   }

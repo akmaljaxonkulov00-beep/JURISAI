@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { checkAndIncrement, getIdentityFromRequest, usageMessage } from '@/lib/usage-limits'
+import { requireUser } from '@/lib/server-auth'
+import { checkAndIncrement, usageMessage } from '@/lib/usage-limits'
 import { groundPrompt } from '@/lib/legal-rag'
 
-const GROQ_API_KEY = process.env.GROQ_API_KEY || process.env.NEXT_PUBLIC_GROQ_API_KEY
+const GROQ_API_KEY = process.env.GROQ_API_KEY
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
 
 // POST /api/scenario-generator/generate
@@ -18,13 +19,18 @@ export async function POST(request: NextRequest) {
     if (!topic) {
       return NextResponse.json({ error: 'Senariy mavzusi kiritilishi shart' }, { status: 400 })
     }
+    if (topic.length > 500) {
+      return NextResponse.json({ error: 'Mavzu juda uzun — maksimal 500 belgi' }, { status: 400 })
+    }
 
     if (!GROQ_API_KEY) {
       return NextResponse.json({ error: 'AI xizmati sozlanmagan' }, { status: 500 })
     }
 
-    // ── AI limit tekshiruvi ──
-    const identity = getIdentityFromRequest(request, body)
+    // ── Autentifikatsiya + AI limit tekshiruvi ──
+    const auth = await requireUser(request)
+    if (!auth.ok) return auth.response
+    const identity = { userId: auth.user.id, email: auth.user.email || undefined }
     const usage = await checkAndIncrement({
       ...identity,
       feature: 'scenario',

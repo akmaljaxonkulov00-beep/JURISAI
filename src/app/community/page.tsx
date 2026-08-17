@@ -38,9 +38,103 @@ import {
   ShieldCheck,
   Reply,
 } from 'lucide-react'
-import { useCommunity, CommunityPost } from '@/hooks/useCommunity'
+import { useCommunity, CommunityPost, CommunityComment } from '@/hooks/useCommunity'
 import AppSidebar from '@/components/layout/AppSidebar'
 import { getUserIdentityPayload } from '@/lib/client-user'
+
+// ── Umumiy tiplar (any o'rniga) ────────────────────────────────────────
+interface GroupPost {
+  id: string
+  parent_id?: string | null
+  group_id?: string
+  author_id?: string
+  author_name?: string
+  user_id?: string
+  user_name?: string
+  content?: string
+  reactions?: Record<string, string[]>
+  reply_count?: number
+  post_count?: number
+  created_at?: string
+  [key: string]: unknown
+}
+
+interface CommunityGroup {
+  id: string
+  name?: string
+  description?: string
+  icon?: string
+  category?: string
+  created_by?: string
+  is_private?: boolean
+  join_approval?: boolean
+  member_count?: number
+  post_count?: number
+  invite_code?: string
+  [key: string]: unknown
+}
+
+interface Expert {
+  id: string
+  name?: string
+  full_name?: string
+  title?: string
+  specialty?: string
+  specialization?: string
+  avatar?: string
+  is_verified?: boolean
+  reputation?: number
+  webinars_count?: number
+  [key: string]: unknown
+}
+
+interface Webinar {
+  id: string
+  title?: string
+  description?: string
+  date?: string
+  duration_minutes?: number
+  participants_count?: number
+  max_participants?: number
+  host?: string
+  host_title?: string
+  category?: string
+  [key: string]: unknown
+}
+
+interface GroupMember {
+  user_id: string
+  role?: string
+  name?: string
+  [key: string]: unknown
+}
+
+interface GroupRequest {
+  id: string
+  user_id?: string
+  user_name?: string
+  user_email?: string
+  status?: string
+  [key: string]: unknown
+}
+
+interface GroupNotification {
+  id: string
+  read?: boolean
+  title?: string
+  message?: string
+  created_at?: string
+  [key: string]: unknown
+}
+
+interface GroupAction {
+  id: string
+  action?: string
+  moderator_name?: string
+  target_name?: string
+  created_at?: string
+  [key: string]: unknown
+}
 
 // ── Guruh posti kartasi (reaksiya + javoblar + o'chirish) ─────────────
 function GroupPostCard({
@@ -57,8 +151,8 @@ function GroupPostCard({
   onDelete,
   onDeleteReply,
 }: {
-  post: any
-  replies: any[]
+  post: GroupPost
+  replies: GroupPost[]
   myUserId: string
   canDelete: boolean
   replyInput: string
@@ -96,7 +190,7 @@ function GroupPostCard({
           )}
         </span>
         <div className="flex items-center gap-1 flex-shrink-0">
-          <span className="text-[10px] text-gray-400">{fmt(post.created_at)}</span>
+          <span className="text-[10px] text-gray-400">{fmt(post.created_at || '')}</span>
           {canDelete && (
             <button
               onClick={onDelete}
@@ -158,7 +252,7 @@ function GroupPostCard({
                     <span className="truncate">{rp.user_name || 'Foydalanuvchi'}</span>
                   </span>
                   <div className="flex items-center gap-1 flex-shrink-0">
-                    <span className="text-[9px] text-gray-400">{fmt(rp.created_at)}</span>
+                    <span className="text-[9px] text-gray-400">{fmt(rp.created_at || '')}</span>
                     {(canDelete || (rp.user_id && rp.user_id === myUserId)) && (
                       <button
                         onClick={() => onDeleteReply(rp.id)}
@@ -266,9 +360,9 @@ export default function Community() {
   const [commentInputs, setCommentInputs] = useState<Record<string, string>>({})
   const [replyInputs, setReplyInputs] = useState<Record<string, string>>({})
   const [showNotifications, setShowNotifications] = useState(false)
-  const [experts, setExperts] = useState<any[]>([])
-  const [groups, setGroups] = useState<any[]>([])
-  const [webinars, setWebinars] = useState<any[]>([])
+  const [experts, setExperts] = useState<Expert[]>([])
+  const [groups, setGroups] = useState<CommunityGroup[]>([])
+  const [webinars, setWebinars] = useState<Webinar[]>([])
   const [expertsLoading, setExpertsLoading] = useState(false)
   const [groupsLoading, setGroupsLoading] = useState(false)
   const [webinarsLoading, setWebinarsLoading] = useState(false)
@@ -289,7 +383,7 @@ export default function Community() {
   const [joinCode, setJoinCode] = useState('')
   const [joinCodeLoading, setJoinCodeLoading] = useState(false)
   const [joinCodeError, setJoinCodeError] = useState('')
-  const [createdGroup, setCreatedGroup] = useState<any>(null)
+  const [createdGroup, setCreatedGroup] = useState<CommunityGroup | null>(null)
   const [copiedCode, setCopiedCode] = useState(false)
   // ── Guruh xonasi (Telegram'dek) ──
   const [roomTab, setRoomTab] = useState<'chat' | 'members' | 'requests' | 'settings'>('chat')
@@ -298,8 +392,8 @@ export default function Community() {
   const [groupEditDesc, setGroupEditDesc] = useState('')
   const [groupSettingsSaving, setGroupSettingsSaving] = useState(false)
   const [transferTarget, setTransferTarget] = useState('')
-  const [groupMembers, setGroupMembers] = useState<any[]>([])
-  const [groupRequests, setGroupRequests] = useState<any[]>([])
+  const [groupMembers, setGroupMembers] = useState<GroupMember[]>([])
+  const [groupRequests, setGroupRequests] = useState<GroupRequest[]>([])
   const [membersLoading, setMembersLoading] = useState(false)
   const [isRoomCreator, setIsRoomCreator] = useState(false)
   const [myRequestSent, setMyRequestSent] = useState(false)
@@ -310,21 +404,21 @@ export default function Community() {
   const [groupReplyInputs, setGroupReplyInputs] = useState<Record<string, string>>({})
   const [groupReplyingTo, setGroupReplyingTo] = useState<string | null>(null)
   // Guruh bildirishnomalari (qo'ng'iroq)
-  const [groupNotifs, setGroupNotifs] = useState<any[]>([])
+  const [groupNotifs, setGroupNotifs] = useState<GroupNotification[]>([])
   const [showGroupNotifs, setShowGroupNotifs] = useState(false)
   // Moderatsiya jurnali
-  const [groupActions, setGroupActions] = useState<any[]>([])
+  const [groupActions, setGroupActions] = useState<GroupAction[]>([])
   const [actionsLoading, setActionsLoading] = useState(false)
 
   // ── Guruh ichidagi muhokama ───────────────────────────────────
-  const [openGroup, setOpenGroup] = useState<any>(null)
-  const [groupPosts, setGroupPosts] = useState<any[]>([])
+  const [openGroup, setOpenGroup] = useState<CommunityGroup | null>(null)
+  const [groupPosts, setGroupPosts] = useState<GroupPost[]>([])
   const [groupPostsLoading, setGroupPostsLoading] = useState(false)
   const [newGroupPost, setNewGroupPost] = useState('')
   const [sendingGroupPost, setSendingGroupPost] = useState(false)
 
   // ── Maslahat / Mentorlik so'rovi ──────────────────────────────
-  const [consultExpert, setConsultExpert] = useState<any>(null)
+  const [consultExpert, setConsultExpert] = useState<Expert | null>(null)
   const [consultType, setConsultType] = useState<'consultation' | 'mentorship'>('consultation')
   const [consultMessage, setConsultMessage] = useState('')
   const [consultSending, setConsultSending] = useState(false)
@@ -375,9 +469,9 @@ export default function Community() {
           >
             {item.icon}
             <span>{item.label}</span>
-            {(item as any).badge > 0 && (
+            {((item as { badge?: number }).badge ?? 0) > 0 && (
               <span className="ml-auto px-1.5 py-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] text-center">
-                {(item as any).badge}
+                {(item as { badge?: number }).badge ?? 0}
               </span>
             )}
           </button>
@@ -412,9 +506,9 @@ export default function Community() {
         >
           {item.icon}
           {item.label}
-          {(item as any).badge > 0 && (
+          {((item as { badge?: number }).badge ?? 0) > 0 && (
             <span className="px-1 py-0.5 bg-red-500 text-white text-[9px] font-bold rounded-full">
-              {(item as any).badge}
+              {(item as { badge?: number }).badge ?? 0}
             </span>
           )}
         </button>
@@ -592,7 +686,7 @@ export default function Community() {
   }
 
   // ── Guruh xonasini ochish (chat + a'zolar + so'rovlar) ──────
-  const openGroupRoom = async (g: any) => {
+  const openGroupRoom = async (g: CommunityGroup) => {
     setOpenGroup(g)
     setGroupPosts([])
     setGroupPostsLoading(true)
@@ -651,7 +745,7 @@ export default function Community() {
         const reqs = d.data || []
         setGroupRequests(reqs)
         if (identity.userId) {
-          const mine = reqs.find((x: any) => x.user_id === identity.userId)
+          const mine = reqs.find((x: GroupRequest) => x.user_id === identity.userId)
           if (mine) setMyRequestSent(mine.status === 'pending')
         }
       } catch {}
@@ -671,7 +765,7 @@ export default function Community() {
       const list = d.data || []
       setGroupMembers(list)
       if (identity.userId) {
-        const me = list.find((m: any) => m.user_id === identity.userId)
+        const me = list.find((m: GroupMember) => m.user_id === identity.userId)
         setIsRoomModerator(!!me && ['moderator', 'admin'].includes(me.role))
       }
     } catch {
@@ -727,10 +821,13 @@ export default function Community() {
         setGroupRequests(prev => prev.map(x => (x.id === reqId ? { ...x, status } : x)))
         if (status === 'approved' && openGroup) {
           // A'zo sonini + ro'yxatni yangilash
-          setOpenGroup((g: any) => ({
-            ...g,
-            member_count: (g?.member_count || 0) + 1,
-          }))
+          setOpenGroup(
+            (g: CommunityGroup | null) =>
+              ({
+                ...g,
+                member_count: (g?.member_count || 0) + 1,
+              }) as CommunityGroup
+          )
           loadGroupMembers(openGroup.id)
         }
       }
@@ -751,10 +848,13 @@ export default function Community() {
       )
       if (r.ok) {
         setGroupMembers(prev => prev.filter(m => m.user_id !== userId))
-        setOpenGroup((g: any) => ({
-          ...g,
-          member_count: Math.max(0, (g?.member_count || 0) - 1),
-        }))
+        setOpenGroup(
+          (g: CommunityGroup | null) =>
+            ({
+              ...g,
+              member_count: Math.max(0, (g?.member_count || 0) - 1),
+            }) as CommunityGroup
+        )
       }
     } catch {}
     setRoomBusy(false)
@@ -804,10 +904,10 @@ export default function Community() {
         setOpenGroup({ ...openGroup, ...d.data })
         setGroups(prev => prev.map(g => (g.id === openGroup.id ? { ...g, ...d.data } : g)))
       } else {
-        alert(d.error || "Sozlamalarni saqlashda xatolik")
+        alert(d.error || 'Sozlamalarni saqlashda xatolik')
       }
     } catch {
-      alert("Sozlamalarni saqlashda xatolik yuz berdi")
+      alert('Sozlamalarni saqlashda xatolik yuz berdi')
     } finally {
       setGroupSettingsSaving(false)
     }
@@ -912,15 +1012,15 @@ export default function Community() {
     const channel = supabase
       .channel(`group-posts-${openGroup.id}-${Date.now()}`)
       .on(
-        'postgres_changes' as any,
+        'postgres_changes',
         {
           event: 'INSERT',
           schema: 'public',
           table: 'community_group_posts',
           filter: `group_id=eq.${openGroup.id}`,
         },
-        (payload: any) => {
-          const np = payload?.new
+        payload => {
+          const np = payload?.new as GroupPost | undefined
           if (np?.id) {
             setGroupPosts(prev => (prev.some(p => p.id === np.id) ? prev : [np, ...prev]))
             if (!np.parent_id) {
@@ -934,14 +1034,14 @@ export default function Community() {
         }
       )
       .on(
-        'postgres_changes' as any,
+        'postgres_changes',
         {
           event: 'UPDATE',
           schema: 'public',
           table: 'community_group_posts',
           filter: `group_id=eq.${openGroup.id}`,
         },
-        (payload: any) => {
+        payload => {
           const np = payload?.new
           if (np?.id) {
             setGroupPosts(prev => prev.map(p => (p.id === np.id ? { ...p, ...np } : p)))
@@ -949,14 +1049,14 @@ export default function Community() {
         }
       )
       .on(
-        'postgres_changes' as any,
+        'postgres_changes',
         {
           event: 'DELETE',
           schema: 'public',
           table: 'community_group_posts',
           filter: `group_id=eq.${openGroup.id}`,
         },
-        (payload: any) => {
+        payload => {
           const old = payload?.old
           if (old?.id) {
             setGroupPosts(prev => prev.filter(p => p.id !== old.id && p.parent_id !== old.id))
@@ -973,19 +1073,19 @@ export default function Community() {
   useEffect(() => {
     const identity = getUserIdentityPayload()
     if (!identity.userId) return
-    loadGroupNotifications(identity.userId)
+    loadGroupNotifications()
     const channel = supabase
       .channel(`group-notifs-${identity.userId}-${Date.now()}`)
       .on(
-        'postgres_changes' as any,
+        'postgres_changes',
         {
           event: 'INSERT',
           schema: 'public',
           table: 'community_group_notifications',
           filter: `user_id=eq.${identity.userId}`,
         },
-        (payload: any) => {
-          const np = payload?.new
+        payload => {
+          const np = payload?.new as GroupNotification | undefined
           if (np?.id) {
             setGroupNotifs(prev => (prev.some(n => n.id === np.id) ? prev : [np, ...prev]))
           }
@@ -995,7 +1095,6 @@ export default function Community() {
     return () => {
       supabase.removeChannel(channel)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // ── Guruh ichiga post yozish ──────────────────────────────────
@@ -1146,9 +1245,10 @@ export default function Community() {
   }
 
   // ── Guruh bildirishnomalari ──────────────────────────────────
-  const loadGroupNotifications = async (userId: string) => {
+  // Identity session'dan olinadi — userId param uzatilmaydi (IDOR himoyasi)
+  const loadGroupNotifications = async () => {
     try {
-      const r = await fetch(`/api/community/groups/notifications?userId=${userId}`, {
+      const r = await fetch('/api/community/groups/notifications', {
         cache: 'no-cache',
       })
       const d = await r.json()
@@ -1190,7 +1290,7 @@ export default function Community() {
   }
 
   // ── Maslahat / Mentorlik so'rovini ochish ─────────────────────
-  const openConsultation = (expert: any, type: 'consultation' | 'mentorship') => {
+  const openConsultation = (expert: Expert, type: 'consultation' | 'mentorship') => {
     setConsultExpert(expert)
     setConsultType(type)
     setConsultMessage('')
@@ -1400,7 +1500,7 @@ export default function Community() {
     const post = allPosts.find(p => p.id === postId)
     if (!post || post.comments.length === 0) return null
 
-    const renderComment = (comment: any, depth: number = 0) => (
+    const renderComment = (comment: CommunityComment, depth: number = 0) => (
       <div
         key={comment.id}
         className={`${depth > 0 ? 'ml-6 pl-4 border-l-2 border-gray-100 dark:border-zinc-700' : ''}`}
@@ -1472,7 +1572,7 @@ export default function Community() {
             {/* Nested replies */}
             {comment.replies && comment.replies.length > 0 && (
               <div className="mt-1">
-                {comment.replies.map((reply: any) => renderComment(reply, depth + 1))}
+                {comment.replies.map((reply: CommunityComment) => renderComment(reply, depth + 1))}
               </div>
             )}
           </div>
@@ -1482,7 +1582,9 @@ export default function Community() {
 
     return (
       <div className="mt-3 pt-3 border-t border-gray-100 dark:border-zinc-800">
-        <div className="space-y-1">{post.comments.map((c: any) => renderComment(c))}</div>
+        <div className="space-y-1">
+          {post.comments.map((c: CommunityComment) => renderComment(c))}
+        </div>
       </div>
     )
   }
@@ -2082,7 +2184,7 @@ export default function Community() {
                                   {n.message}
                                 </p>
                                 <p className="text-[11px] text-gray-400 dark:text-zinc-500 mt-1">
-                                  {timeAgo(n.created_at)}
+                                  {timeAgo(n.created_at || '')}
                                 </p>
                               </div>
                               {!n.read && (
@@ -2219,7 +2321,7 @@ export default function Community() {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {experts.map((e: any, i: number) => (
+                  {experts.map((e: Expert, i: number) => (
                     <div
                       key={e.id || i}
                       className="bg-white dark:bg-zinc-900 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all border border-gray-100 dark:border-zinc-800"
@@ -2366,7 +2468,7 @@ export default function Community() {
   if (activeTab === 'groups') {
     // Postlarni daraxtga ajratamiz (asosiy xabarlar + ularning javoblari)
     const topGroupPosts = groupPosts.filter(p => !p.parent_id)
-    const groupRepliesByParent: Record<string, any[]> = {}
+    const groupRepliesByParent: Record<string, GroupPost[]> = {}
     for (const p of groupPosts) {
       if (p.parent_id) {
         if (!groupRepliesByParent[p.parent_id]) groupRepliesByParent[p.parent_id] = []
@@ -2375,7 +2477,7 @@ export default function Community() {
     }
     for (const key of Object.keys(groupRepliesByParent)) {
       groupRepliesByParent[key].sort(
-        (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+        (a, b) => new Date(a.created_at || '').getTime() - new Date(b.created_at || '').getTime()
       )
     }
     const roomIdentity = getUserIdentityPayload()
@@ -2424,8 +2526,8 @@ export default function Community() {
             Hozircha moderatsiya harakatlari yo'q
           </p>
         ) : (
-          groupActions.slice(0, 15).map((a: any) => {
-            const meta = ACTION_LABELS[a.action] || {
+          groupActions.slice(0, 15).map((a: GroupAction) => {
+            const meta = ACTION_LABELS[a.action || ''] || {
               icon: '🔧',
               label: a.action,
               cls: 'text-gray-600 dark:text-zinc-400',
@@ -2443,7 +2545,7 @@ export default function Community() {
                     {a.target_name ? ` → ${a.target_name}` : ''}
                   </p>
                   <p className="text-[9px] text-gray-400 dark:text-zinc-500">
-                    {fmtActionTime(a.created_at)}
+                    {fmtActionTime(a.created_at || '')}
                   </p>
                 </div>
               </div>
@@ -2454,9 +2556,9 @@ export default function Community() {
     )
 
     // A'zo qatori (mobil tab + desktop panel uchun umumiy)
-    const renderMemberRow = (m: any) => {
-      const isCreator = openGroup.created_by?.toString() === m.user_id
-      const isModerator = ['moderator', 'admin'].includes(m.role)
+    const renderMemberRow = (m: GroupMember) => {
+      const isCreator = openGroup?.created_by?.toString() === m.user_id
+      const isModerator = ['moderator', 'admin'].includes(m.role || '')
       const isMe = myRoomUserId && m.user_id === myRoomUserId
       return (
         <div
@@ -2521,7 +2623,7 @@ export default function Community() {
             )}
             {isMe && !isCreator && (
               <button
-                onClick={() => leaveGroup(openGroup.id)}
+                onClick={() => openGroup && leaveGroup(openGroup.id)}
                 className="px-2.5 py-1 text-[11px] rounded-lg bg-gray-200 dark:bg-zinc-700 text-gray-600 dark:text-zinc-300 hover:bg-gray-300 dark:hover:bg-zinc-600 transition-colors"
               >
                 Chiqish
@@ -2633,7 +2735,7 @@ export default function Community() {
                                       {n.message}
                                     </p>
                                     <p className="text-[10px] text-gray-400 dark:text-zinc-500 mt-1">
-                                      {timeAgo(n.created_at)}
+                                      {timeAgo(n.created_at || '')}
                                     </p>
                                   </div>
                                   {!n.read && (
@@ -2671,7 +2773,9 @@ export default function Community() {
                   className="px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="all">Barcha kategoriyalar</option>
-                  {Array.from(new Set(groups.map((g: any) => g.category).filter(Boolean))).map(c => (
+                  {Array.from(
+                    new Set(groups.map((g: CommunityGroup) => g.category).filter(Boolean))
+                  ).map(c => (
                     <option key={c} value={c}>
                       {c}
                     </option>
@@ -2728,7 +2832,7 @@ export default function Community() {
               ) : (
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {groups.map((g: any, i: number) => {
+                    {groups.map((g: CommunityGroup, i: number) => {
                       const isJoined = joinedGroups.includes(g.id)
                       return (
                         <div
@@ -2983,7 +3087,7 @@ export default function Community() {
                 Maxfiy guruh yaratildi!
               </h3>
               <p className="text-sm text-gray-500 dark:text-zinc-400 mb-4">
-                "{createdGroup.name}" guruhining taklif kodi:
+                “{createdGroup.name}” guruhining taklif kodi:
               </p>
               <div className="flex items-center justify-center gap-2 mb-4">
                 <div className="font-mono text-2xl font-bold tracking-widest text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border-2 border-dashed border-amber-300 dark:border-amber-700 px-6 py-3 rounded-xl">
@@ -3207,9 +3311,13 @@ export default function Community() {
                           className={`px-3 py-1.5 text-xs font-medium rounded-t-lg transition-colors flex items-center gap-1 ${roomTab === 'requests' ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-b-2 border-blue-500' : 'text-gray-500 dark:text-zinc-400 hover:text-gray-700 dark:hover:text-zinc-200'}`}
                         >
                           🔔 So'rovlar
-                          {groupRequests.filter((r: any) => r.status === 'pending').length > 0 && (
+                          {groupRequests.filter((r: GroupRequest) => r.status === 'pending')
+                            .length > 0 && (
                             <span className="px-1.5 py-0.5 bg-red-500 text-white rounded-full text-[9px] leading-none">
-                              {groupRequests.filter((r: any) => r.status === 'pending').length}
+                              {
+                                groupRequests.filter((r: GroupRequest) => r.status === 'pending')
+                                  .length
+                              }
                             </span>
                           )}
                         </button>
@@ -3244,7 +3352,7 @@ export default function Community() {
                               </p>
                             </div>
                           ) : (
-                            topGroupPosts.map((p: any) => (
+                            topGroupPosts.map((p: GroupPost) => (
                               <GroupPostCard
                                 key={p.id}
                                 post={p}
@@ -3252,7 +3360,7 @@ export default function Community() {
                                 myUserId={myRoomUserId}
                                 canDelete={
                                   !!myRoomUserId &&
-                                  (canModerate || (p.user_id && p.user_id === myRoomUserId))
+                                  (canModerate || (!!p.user_id && p.user_id === myRoomUserId))
                                 }
                                 replyInput={groupReplyInputs[p.id] || ''}
                                 replyOpen={groupReplyingTo === p.id}
@@ -3346,7 +3454,8 @@ export default function Community() {
                       {/* So'rovlar — yaratuvchi/moderator uchun */}
                       {roomTab === 'requests' && (
                         <div className="p-4 space-y-3">
-                          {groupRequests.filter((r: any) => r.status === 'pending').length === 0 ? (
+                          {groupRequests.filter((r: GroupRequest) => r.status === 'pending')
+                            .length === 0 ? (
                             <div className="text-center py-10">
                               <Bell className="w-10 h-10 text-gray-300 dark:text-zinc-700 mx-auto mb-3" />
                               <p className="text-sm text-gray-500 dark:text-zinc-400">
@@ -3355,8 +3464,8 @@ export default function Community() {
                             </div>
                           ) : (
                             groupRequests
-                              .filter((r: any) => r.status === 'pending')
-                              .map((req: any) => (
+                              .filter((r: GroupRequest) => r.status === 'pending')
+                              .map((req: GroupRequest) => (
                                 <div
                                   key={req.id}
                                   className="flex items-center justify-between p-3 bg-gray-50 dark:bg-zinc-800/50 rounded-xl gap-2"
@@ -3435,8 +3544,8 @@ export default function Community() {
                                 </p>
                                 <p className="text-[11px] text-gray-500 dark:text-zinc-400">
                                   {openGroup.is_private
-                                    ? 'Faqat taklif kodi yoki tasdiqlangan a\'zolar ko\'radi'
-                                    : 'Barcha foydalanuvchilar ko\'radi va qo\'shiladi'}
+                                    ? "Faqat taklif kodi yoki tasdiqlangan a'zolar ko'radi"
+                                    : "Barcha foydalanuvchilar ko'radi va qo'shiladi"}
                                 </p>
                               </div>
                               <button
@@ -3548,21 +3657,23 @@ export default function Community() {
                   <div className="border-t border-gray-200 dark:border-zinc-800 p-3 max-h-52 overflow-y-auto">
                     <p className="text-xs font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-1">
                       🔔 So'rovlar
-                      {groupRequests.filter((r: any) => r.status === 'pending').length > 0 && (
+                      {groupRequests.filter((r: GroupRequest) => r.status === 'pending').length >
+                        0 && (
                         <span className="px-1.5 py-0.5 bg-red-500 text-white rounded-full text-[9px] leading-none">
-                          {groupRequests.filter((r: any) => r.status === 'pending').length}
+                          {groupRequests.filter((r: GroupRequest) => r.status === 'pending').length}
                         </span>
                       )}
                     </p>
-                    {groupRequests.filter((r: any) => r.status === 'pending').length === 0 ? (
+                    {groupRequests.filter((r: GroupRequest) => r.status === 'pending').length ===
+                    0 ? (
                       <p className="text-[11px] text-gray-400 dark:text-zinc-500">
                         Yangi so'rovlar yo'q
                       </p>
                     ) : (
                       <div className="space-y-1.5">
                         {groupRequests
-                          .filter((r: any) => r.status === 'pending')
-                          .map((req: any) => (
+                          .filter((r: GroupRequest) => r.status === 'pending')
+                          .map((req: GroupRequest) => (
                             <div
                               key={req.id}
                               className="flex items-center justify-between gap-2 p-2 bg-gray-50 dark:bg-zinc-800/50 rounded-lg"
@@ -3757,9 +3868,9 @@ export default function Community() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {webinars.map((w: any, i: number) => {
+                  {webinars.map((w: Webinar, i: number) => {
                     const isRegistered = registeredWebinars.includes(w.id)
-                    const webinarStart = new Date(w.date).getTime()
+                    const webinarStart = new Date(w.date || '').getTime()
                     const webinarEnd = webinarStart + (w.duration_minutes || 60) * 60000
                     const now = Date.now()
                     const isLive = now >= webinarStart - 30 * 60000 && now <= webinarEnd
@@ -3798,7 +3909,7 @@ export default function Community() {
                               {w.host_title ? ` (${w.host_title})` : ''}
                             </p>
                             <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-zinc-400 mb-2">
-                              <span>📅 {formatWebinarDate(w.date)}</span>
+                              <span>📅 {formatWebinarDate(w.date || '')}</span>
                               <span>
                                 ⏱ {w.duration_minutes ? w.duration_minutes + ' min' : '1 soat'}
                               </span>

@@ -6,7 +6,7 @@ import type { NextRequest } from 'next/server'
  *
  * Auth holati asosan client-side (Supabase localStorage/sessionStorage)
  * da saqlanadi, lekin login/OAuth tugagach `jurisai_auth` cookie'si ham
- * yoziladi (firebase-auth.ts saveUserToLocal + /auth/callback).
+ * yoziladi (/auth/callback + login route'lar).
  *
  * Himoyalangan routlar (/admin, /payment-admin):
  *   - cookie yo'q → /signin ga qayta yo'naltirish (server-side gate)

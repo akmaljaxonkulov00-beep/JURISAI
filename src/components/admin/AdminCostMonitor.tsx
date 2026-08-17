@@ -57,7 +57,7 @@ export default function AdminCostMonitor() {
     load()
   }, [load])
 
-  const fmtUZS = (n: number) => n.toLocaleString('uz-UZ') + ' so\'m'
+  const fmtUZS = (n: number) => n.toLocaleString('uz-UZ') + " so'm"
   const fmtUSD = (n: number) => '$' + n.toFixed(4)
 
   return (

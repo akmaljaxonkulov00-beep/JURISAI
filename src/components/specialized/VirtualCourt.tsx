@@ -411,7 +411,7 @@ const VirtualCourt: React.FC<VirtualCourtProps> = ({ className }) => {
                         ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
                         : 'border-gray-200 dark:border-zinc-800 hover:border-gray-300 dark:border-zinc-700'
                     )}
-                    onClick={() => setUserRole(role.id as any)}
+                    onClick={() => setUserRole(role.id as Parameters<typeof setUserRole>[0])}
                   >
                     <h4 className="font-medium mb-1">{role.name}</h4>
                     <p className="text-sm text-gray-600 dark:text-zinc-400">{role.description}</p>

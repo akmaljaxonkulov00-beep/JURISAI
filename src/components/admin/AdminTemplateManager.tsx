@@ -391,7 +391,7 @@ export default function AdminTemplateManager() {
           <FolderOpen className="w-12 h-12 text-gray-300 dark:text-zinc-600 mx-auto mb-3" />
           <p className="text-gray-500 dark:text-zinc-400 font-medium">Hujjat topilmadi</p>
           <p className="text-xs text-gray-400 dark:text-zinc-500 mt-1">
-            Yangi hujjat qo'shish uchun "Yangi hujjat" tugmasini bosing
+            Yangi hujjat qo'shish uchun “Yangi hujjat” tugmasini bosing
           </p>
         </div>
       ) : (

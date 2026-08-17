@@ -225,17 +225,36 @@ export async function getPaymentRequests(): Promise<PaymentRequest[]> {
     })
     const result = await res.json()
     if (result.success && result.data?.paymentRequests) {
-      const mapped = (result.data.paymentRequests as any[]).map((p: any) => ({
-        id: p.id,
-        userId: p.user_id || p.userId || p.userEmail,
-        userEmail: p.user_email || p.userEmail,
+      const mapped = (
+        result.data.paymentRequests as Array<{
+          id?: string
+          user_id?: string
+          userId?: string
+          userEmail?: string
+          user_email?: string
+          user_name?: string
+          userName?: string
+          plan?: string
+          amount?: number
+          receipt_image?: string
+          receiptImage?: string
+          status?: string
+          created_at?: string
+          createdAt?: string
+          reject_reason?: string
+          rejectReason?: string
+        }>
+      ).map(p => ({
+        id: p.id || '',
+        userId: p.user_id || p.userId || p.userEmail || '',
+        userEmail: p.user_email || p.userEmail || '',
         userName: p.user_name || p.userName || '',
-        plan: p.plan,
-        amount: p.amount,
+        plan: p.plan || '',
+        amount: p.amount || 0,
         receiptImage: p.receipt_image || p.receiptImage || '',
-        status: p.status as 'pending' | 'approved' | 'rejected',
-        createdAt: p.created_at || p.createdAt,
-        rejectReason: p.reject_reason || p.rejectReason,
+        status: (p.status as 'pending' | 'approved' | 'rejected') || 'pending',
+        createdAt: p.created_at || p.createdAt || '',
+        rejectReason: p.reject_reason || p.rejectReason || '',
       }))
       try {
         localStorage.setItem('jurisai_payment_requests', JSON.stringify(mapped))
@@ -352,7 +371,7 @@ export async function rejectPayment(paymentId: string, reason?: string): Promise
 // 4. USER PROFILE / SUBSCRIPTION — Foydalanuvchi profili va obuna
 // =========================================================================
 
-export function getUserProfile(): Record<string, any> | null {
+export function getUserProfile(): Record<string, unknown> | null {
   try {
     const stored = sessionStorage.getItem('jurisai_user') || sessionStorage.getItem('auth_user')
     if (stored) return JSON.parse(stored)

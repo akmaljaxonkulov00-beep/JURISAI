@@ -15,13 +15,9 @@ export function usePricingRealtime(onChange: () => void) {
   useEffect(() => {
     const channel = supabase
       .channel(`pricing-realtime-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`)
-      .on(
-        'postgres_changes' as any,
-        { event: '*', schema: 'public', table: 'pricing_plans' },
-        () => {
-          cb.current()
-        }
-      )
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'pricing_plans' }, () => {
+        cb.current()
+      })
       .subscribe()
 
     return () => {

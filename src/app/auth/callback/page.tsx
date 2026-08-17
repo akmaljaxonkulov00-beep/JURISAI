@@ -3,8 +3,10 @@
 import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase-browser'
-import { finalizeUserSession } from '@/services/firebase-auth'
+import { finalizeUserSession } from '@/services/supabase-auth'
 import { isAdminRole } from '@/lib/roles'
+import { syncSessionCookies, clearSessionCookies } from '@/lib/session-cookies'
+import { getErrorMessage } from '@/lib/errors'
 
 export default function AuthCallbackPage() {
   const router = useRouter()
@@ -39,19 +41,27 @@ export default function AuthCallbackPage() {
        * DB'dan aniqlab, role asosida redirect qilamiz — adminni hech
        * qachon /dashboard ga yubormaymiz.
        */
-      const completeSession = async (sbUser: any) => {
-        setStatus("Rol aniqlanmoqda...")
+      const completeSession = async (sbUser: {
+        id: string
+        email?: string | null
+        phone?: string | null
+        user_metadata?: Record<string, unknown>
+        app_metadata?: { provider?: string; providers?: string[]; [key: string]: unknown }
+      }) => {
+        setStatus('Rol aniqlanmoqda...')
         try {
           // Rol Supabase registered_users dan aniqlanadi (user_metadata emas).
           // admin/super_admin → /admin, qolgani → /dashboard
           const savedUser = await finalizeUserSession(sbUser)
           document.cookie = `jurisai_auth=1; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax`
+          syncSessionCookies().catch(() => {})
 
           // OAuth duplicate mavjud email/parol akkaunt bilan birlashtirildi —
           // eski session user o'chirilgan, qayta kirish kerak (endi identity
           // bog'langan: Google yoki email/parol bilan kirsangiz yagona profil)
           if (savedUser.accountMerged) {
             await supabase.auth.signOut().catch(() => {})
+            clearSessionCookies()
             router.replace('/signin?linked=1')
             return
           }
@@ -61,6 +71,7 @@ export default function AuthCallbackPage() {
           console.error('[AuthCallback] finalizeUserSession error:', err)
           // Rol aniqlanmagan bo'lsa ham cookie'ni o'rnatamiz — dashboardga kiradi
           document.cookie = `jurisai_auth=1; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax`
+          syncSessionCookies().catch(() => {})
           router.replace('/dashboard')
         }
       }
@@ -116,7 +127,7 @@ export default function AuthCallbackPage() {
           console.error('[AuthCallback] No session after exchange')
           router.replace('/signin?error=' + encodeURIComponent('Session creation failed'))
         }
-      } catch (err: any) {
+      } catch (err) {
         console.error('[AuthCallback] Exception:', err)
         // Exception holatida ham session bo'lishi mumkin — tekshiramiz
         const {
@@ -125,7 +136,9 @@ export default function AuthCallbackPage() {
         if (catchSession?.user) {
           await completeSession(catchSession.user)
         } else {
-          router.replace('/signin?error=' + encodeURIComponent(err?.message || 'Unknown error'))
+          router.replace(
+            '/signin?error=' + encodeURIComponent(getErrorMessage(err) || 'Unknown error')
+          )
         }
       }
     }

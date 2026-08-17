@@ -253,7 +253,7 @@ export default function AdminUsageLimitsManager() {
           <h4 className="text-sm font-semibold text-gray-800 dark:text-white">
             Pro — adolatli ishlatish (fair use) chegaralari{' '}
             <span className="text-gray-400 font-normal">
-              (Pro UI'da "cheksiz" ko'rinadi, lekin suiste'moldan himoya uchun oylik chek)
+              (Pro UI'da “cheksiz” ko'rinadi, lekin suiste'moldan himoya uchun oylik chek)
             </span>
           </h4>
         </div>
@@ -271,7 +271,10 @@ export default function AdminUsageLimitsManager() {
                 min={0}
                 value={fairUse[f.key] ?? 0}
                 onChange={e =>
-                  setFairUse(prev => ({ ...prev, [f.key]: Math.max(0, parseInt(e.target.value) || 0) }))
+                  setFairUse(prev => ({
+                    ...prev,
+                    [f.key]: Math.max(0, parseInt(e.target.value) || 0),
+                  }))
                 }
                 className="w-20 text-center text-xs rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-700 dark:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-blue-500 px-1 py-1"
                 title={`${f.label} — oylik yuqori chek`}
@@ -280,7 +283,7 @@ export default function AdminUsageLimitsManager() {
           ))}
         </div>
         <p className="px-4 pb-3 text-[11px] text-gray-400 dark:text-zinc-500">
-          0 = funksiya Pro'da to'liq o'chiriladi. O'zgarishlar "Limitlarni saqlash" tugmasi bilan
+          0 = funksiya Pro'da to'liq o'chiriladi. O'zgarishlar “Limitlarni saqlash” tugmasi bilan
           bazaga yoziladi. Migratsiya{' '}
           <code className="text-blue-500">20250815_group_join_policy_fair_use.sql</code> run
           qilingunga qadar kod ichidagi default qiymatlar ishlaydi.

@@ -1,13 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireAdmin } from '@/lib/server-auth'
+import { getPaymentAdminClient, rejectPayment } from '@/lib/payment-admin'
+import { logAdminAction } from '@/lib/admin-audit'
 
 /**
  * POST /api/payments/reject
  *
- * Admin tomonidan to'lovni rad etish.
- * payment_requests jadvalidagi statusni 'rejected' ga o'zgartiradi.
+ * FAQAT ADMIN session (server-side tekshiruv).
+ * State machine: faqat 'pending' → 'rejected'; takroriy chaqiruv idempotent.
  */
 export async function POST(request: NextRequest) {
   try {
+    const auth = await requireAdmin(request)
+    if (!auth.ok) return auth.response
+
     const body = await request.json()
     const { paymentId, notes } = body
 
@@ -15,82 +21,34 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Payment ID is required' }, { status: 400 })
     }
 
-    const { createClient } = await import('@supabase/supabase-js')
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-
-    if (!supabaseUrl || !serviceRoleKey) {
+    const supabase = getPaymentAdminClient()
+    if (!supabase) {
       return NextResponse.json(
         { success: false, error: 'Supabase not configured' },
-        { status: 500 }
+        { status: 503 }
       )
     }
 
-    const supabase = createClient(supabaseUrl, serviceRoleKey, {
-      auth: { autoRefreshToken: false, persistSession: false },
+    const result = await rejectPayment(supabase, paymentId, auth.user.id, notes)
+    await logAdminAction({
+      admin: auth.user,
+      action: 'payment_reject',
+      targetType: 'payment',
+      targetId: paymentId,
+      details: { paymentId, reason: notes || '' },
+      success: result.ok,
     })
-
-    // Try payment_requests first (table from admin migration)
-    const { data: prData } = await supabase
-      .from('payment_requests')
-      .select('*')
-      .eq('id', paymentId)
-      .single()
-
-    if (prData) {
-      await supabase
-        .from('payment_requests')
-        .update({ status: 'rejected', updated_at: new Date().toISOString() })
-        .eq('id', paymentId)
-
-      // Foydalanuvchiga bildirishnoma yuborish (to'lov holati haqida)
-      try {
-        await supabase.from('user_notifications').insert({
-          user_id: prData.user_id,
-          type: 'error',
-          category: 'payment',
-          title: "To'lov rad etildi ❌",
-          message: `To'lov tekshiruvdan o'tmadi${notes ? `: ${notes}` : ''}. Iltimos, yangi chek yuklang.`,
-          action_url: '/premium',
-          action_text: 'Qayta urinish',
-        })
-      } catch {}
-
-      return NextResponse.json({
-        success: true,
-        message: "To'lov rad etildi",
-      })
-    }
-
-    // Fallback: try 'payments' table (legacy)
-    const { data: legacyPayment } = await supabase
-      .from('payments')
-      .select('*')
-      .eq('id', paymentId)
-      .single()
-
-    if (legacyPayment) {
-      await supabase
-        .from('payments')
-        .update({
-          status: 'rejected',
-          processed_at: new Date().toISOString(),
-          notes: notes || 'Payment rejected by admin',
-        })
-        .eq('id', paymentId)
-
-      return NextResponse.json({
-        success: true,
-        message: "To'lov rad etildi",
-      })
-    }
-
-    return NextResponse.json({ success: false, error: "To'lov topilmadi" }, { status: 404 })
-  } catch (error: any) {
-    console.error('Error rejecting payment:', error)
     return NextResponse.json(
-      { success: false, error: error?.message || "To'lovni rad etishda xatolik" },
-      { status: 500 }
+      {
+        success: result.ok,
+        message: result.message,
+        payment: result.ok ? result.payment : undefined,
+      },
+      { status: result.ok ? 200 : result.status }
     )
+  } catch (error) {
+    console.error('Error rejecting payment:', error)
+    const message = error instanceof Error ? error.message : "To'lovni rad etishda xatolik"
+    return NextResponse.json({ success: false, error: message }, { status: 500 })
   }
 }

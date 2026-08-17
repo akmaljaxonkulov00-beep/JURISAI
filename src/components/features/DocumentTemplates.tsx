@@ -264,7 +264,7 @@ startxref
               <Sparkles className="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0" />
               <p className="text-xs text-purple-700 dark:text-purple-300">
                 Quyidagi matnni o'z ehtiyojingizga qarab tahrir qiling. Matnni o'zgartirish,
-                qo'shimchalar kiritish yoki formatlash mumkin. Tugatgach "Yuklab olish" tugmasini
+                qo'shimchalar kiritish yoki formatlash mumkin. Tugatgach “Yuklab olish” tugmasini
                 bosing.
               </p>
             </div>

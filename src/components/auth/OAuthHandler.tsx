@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react'
 import { supabase } from '@/lib/supabase-browser'
 import { isAdminRole } from '@/lib/roles'
+import { syncSessionCookies, clearSessionCookies } from '@/lib/session-cookies'
 
 /**
  * Universal OAuth callback handler.
@@ -136,8 +137,14 @@ export default function OAuthHandler() {
    * yo'naltiradi: Admin → /admin, oddiy foydalanuvchi → /dashboard.
    * Rol Supabase registered_users dan olinadi (user_metadata emas).
    */
-  function redirectAfterOAuth(sbUser: any) {
-    import('@/services/firebase-auth')
+  function redirectAfterOAuth(sbUser: {
+    id: string
+    email?: string | null
+    phone?: string | null
+    user_metadata?: Record<string, unknown>
+    app_metadata?: { provider?: string; providers?: string[]; [key: string]: unknown }
+  }) {
+    import('@/services/supabase-auth')
       .then(async ({ finalizeUserSession }) => {
         try {
           // Rol DB'dan aniqlanmaguncha redirect qilinmaydi —
@@ -145,11 +152,13 @@ export default function OAuthHandler() {
           const savedUser = await finalizeUserSession(sbUser)
           // Cookie'ni ham o'rnatamiz — middleware /admin himoyasi uchun
           document.cookie = `jurisai_auth=1; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax`
+          syncSessionCookies().catch(() => {})
 
           // OAuth duplicate mavjud email/parol akkaunt bilan birlashtirildi —
           // qayta kirish kerak (endi identity bog'langan)
           if (savedUser.accountMerged) {
             supabase.auth.signOut().then(() => {
+              clearSessionCookies()
               window.location.href = '/signin?linked=1'
             })
             return

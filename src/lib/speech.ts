@@ -15,6 +15,8 @@
 // TYPE DEFINITIONS
 // ============================================================================
 
+import { getSpeechRecognitionCtor, type SpeechRecognitionInstance } from '@/lib/speech-types'
+
 export interface TTSOptions {
   lang?: string
   rate?: number
@@ -251,7 +253,7 @@ export class AdvancedTTS {
 // ============================================================================
 
 export class AdvancedSTT {
-  private recognition: any = null
+  private recognition: SpeechRecognitionInstance | null = null
   private listening = false
   private finalTranscript = ''
   private interimTranscript = ''
@@ -262,8 +264,8 @@ export class AdvancedSTT {
       return
     }
 
-    const SpeechRecognition =
-      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+    const SpeechRecognition = getSpeechRecognitionCtor()
+    if (!SpeechRecognition) return
     this.recognition = new SpeechRecognition()
     this.setupRecognition()
   }
@@ -313,13 +315,13 @@ export class AdvancedSTT {
       options.onStart?.()
     }
 
-    this.recognition.onresult = (event: any) => {
+    this.recognition.onresult = event => {
       this.interimTranscript = ''
 
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const result = event.results[i]
         const transcript = result[0].transcript
-        const confidence = result[0].confidence
+        const confidence = result[0].confidence ?? 0
 
         if (result.isFinal) {
           this.finalTranscript += transcript + ' '
@@ -333,12 +335,12 @@ export class AdvancedSTT {
       }
     }
 
-    this.recognition.onerror = (event: any) => {
+    this.recognition.onerror = event => {
       console.error('[X] STT Error:', event.error)
 
       const errorObj: SpeechRecognitionError = {
-        error: event.error,
-        message: this.getErrorMessage(event.error),
+        error: (event.error || 'service-not-allowed') as SpeechRecognitionError['error'],
+        message: this.getErrorMessage(event.error || ''),
       }
 
       // Don't stop on no-speech

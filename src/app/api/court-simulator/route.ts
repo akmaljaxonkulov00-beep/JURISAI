@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { checkAndIncrement, getIdentityFromRequest, usageMessage } from '@/lib/usage-limits'
+import { requireUser } from '@/lib/server-auth'
+import { checkAndIncrement, usageMessage } from '@/lib/usage-limits'
 import { groundPrompt } from '@/lib/legal-rag'
+import { supabase } from '@/lib/supabase'
 
-const GROQ_API_KEY = process.env.GROQ_API_KEY || process.env.NEXT_PUBLIC_GROQ_API_KEY
+const GROQ_API_KEY = process.env.GROQ_API_KEY
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
 
 // Server-side conversation history store (by simulationId)
@@ -40,37 +42,42 @@ async function groqChat(
   maxTokens = 2048,
   history?: { role: 'user' | 'assistant'; content: string }[]
 ): Promise<{ text: string }> {
-  if (!GROQ_API_KEY) return { text: 'AI xizmati sozlanmagan' }
+  if (!GROQ_API_KEY) throw new Error('AI xizmati sozlanmagan')
 
-  try {
-    const messages: any[] = [{ role: 'system', content: systemPrompt }]
-    // Add conversation history if provided (limited to last 10 turns to save tokens)
-    if (history && history.length > 0) {
-      const recentHistory = history.slice(-10)
-      for (const msg of recentHistory) {
-        messages.push({ role: msg.role, content: msg.content })
-      }
+  const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
+    { role: 'system', content: systemPrompt },
+  ]
+  // Add conversation history if provided (limited to last 10 turns to save tokens)
+  if (history && history.length > 0) {
+    const recentHistory = history.slice(-10)
+    for (const msg of recentHistory) {
+      messages.push({ role: msg.role, content: msg.content })
     }
-    messages.push({ role: 'user', content: userMessage })
-
-    const res = await fetch(GROQ_API_URL, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${GROQ_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
-        messages,
-        temperature: 0.15,
-        max_tokens: maxTokens,
-      }),
-    })
-    const data = await res.json()
-    return { text: data.choices?.[0]?.message?.content || 'Javob olinmadi' }
-  } catch {
-    return { text: 'Xatolik yuz berdi' }
   }
+  messages.push({ role: 'user', content: userMessage })
+
+  const res = await fetch(GROQ_API_URL, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${GROQ_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'llama-3.3-70b-versatile',
+      messages,
+      temperature: 0.15,
+      max_tokens: maxTokens,
+    }),
+  })
+  if (!res.ok) {
+    const errText = await res.text().catch(() => '')
+    console.error('Groq court-simulator error:', res.status, errText.slice(0, 300))
+    throw new Error('AI xizmatida xatolik yuz berdi')
+  }
+  const data = await res.json()
+  const text = data.choices?.[0]?.message?.content
+  if (!text) throw new Error('AI javob olinmadi')
+  return { text }
 }
 
 /**
@@ -111,11 +118,29 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { action, caseDetails, argument, simulationId, history, userRole, userName } = body
 
+    // ── Autentifikatsiya ──
+    const auth = await requireUser(request)
+    if (!auth.ok) return auth.response
+
+    // Input hajmi chegaralari
+    if (typeof caseDetails === 'string' && caseDetails.length > 10000) {
+      return NextResponse.json(
+        { error: 'Ish tavsifi juda uzun — maksimal 10 000 belgi' },
+        { status: 400 }
+      )
+    }
+    if (typeof argument === 'string' && argument.length > 6000) {
+      return NextResponse.json(
+        { error: 'Argument juda uzun — maksimal 6 000 belgi' },
+        { status: 400 }
+      )
+    }
+
     // ── AI limit tekshiruvi (virtual sud — faqat sessiya boshlanganda) ──
     if (action === 'start') {
-      const identity = getIdentityFromRequest(request, body)
       const usage = await checkAndIncrement({
-        ...identity,
+        userId: auth.user.id,
+        email: auth.user.email || undefined,
         feature: 'virtual_court',
         metadata: { case_title: typeof caseDetails === 'string' ? caseDetails.slice(0, 100) : '' },
       })
@@ -171,7 +196,7 @@ STRICT RULES:
 
     switch (action) {
       case 'start':
-        return await startSimulation(caseDetails, systemBase, userRole, userName)
+        return await startSimulation(caseDetails, systemBase, userRole, userName, auth.user.id)
       case 'submit_argument':
         return await submitArgument(
           simulationId,
@@ -179,16 +204,62 @@ STRICT RULES:
           systemBase,
           userRole,
           userName,
-          history
+          history,
+          auth.user.id
         )
       case 'get_verdict':
-        return await getVerdict(simulationId, systemBase, userRole)
+        return await getVerdict(simulationId, systemBase, userRole, auth.user.id)
       default:
         return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
     }
   } catch (error) {
     console.error('Court simulator API error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ error: 'AI xizmatida xatolik yuz berdi' }, { status: 502 })
+  }
+}
+
+/**
+ * Sessiya egasini tekshiradi.
+ * - 'ok' → sessiya shu foydalanuvchiga tegishli
+ * - 'forbidden' → sessiya boshqa foydalanuvchiga tegishli (403)
+ * - 'missing' → jadval hali mavjud emas (migratsiya run qilinmagan) — in-memory davom etadi
+ */
+async function verifySessionOwnership(
+  simulationId: string,
+  userId: string
+): Promise<'ok' | 'forbidden' | 'missing'> {
+  try {
+    const { data, error } = await supabase
+      .from('court_sessions')
+      .select('id')
+      .eq('id', simulationId)
+      .eq('user_id', userId)
+      .maybeSingle()
+    if (error) return 'missing'
+    return data ? 'ok' : 'forbidden'
+  } catch {
+    return 'missing'
+  }
+}
+
+/** Sessiya ichidagi qatnashchi xabarlarini Supabase'ga yozadi (xato yutsa ham oqim buzilmaydi) */
+async function persistMessages(
+  sessionId: string,
+  userId: string,
+  messages: { speaker: string; role: string; content: string }[]
+) {
+  if (!messages.length) return
+  try {
+    const rows = messages.map(m => ({
+      session_id: sessionId,
+      user_id: userId,
+      speaker: m.speaker,
+      role: m.role,
+      content: m.content,
+    }))
+    await supabase.from('court_messages').insert(rows)
+  } catch (e) {
+    console.error('court_messages save error:', e)
   }
 }
 
@@ -196,7 +267,8 @@ async function startSimulation(
   caseDetails: string,
   systemBase: string,
   userRole?: string,
-  userName?: string
+  userName?: string,
+  userId?: string
 ) {
   const userRoleUpper = (userRole || 'SUDYA').toUpperCase()
   const displayName = userName || 'Foydalanuvchi'
@@ -256,11 +328,37 @@ ESLATMA: Faqat hozir gapirishi KERAK bo'lgan rollarni formatga kirit. Boshqa rol
     2048
   )
 
-  // Save initial AI response to server history
-  const simulationId = 'sim_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6)
-  addToHistory(simulationId, { role: 'assistant', content: response.text })
-
   const roles = parseMultiRoleResponse(response.text)
+
+  // ── Supabase'da real sessiya yaratish (egasiga tegishli) ──
+  let simulationId = 'sim_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6)
+  if (userId) {
+    try {
+      const { data: sessionRow, error: sErr } = await supabase
+        .from('court_sessions')
+        .insert({
+          user_id: userId,
+          title: (caseDetails || '').slice(0, 80) || 'Virtual sud majlisi',
+          case_details: caseDetails || '',
+          user_role: userRoleUpper,
+          status: 'active',
+        })
+        .select('id')
+        .single()
+      if (!sErr && sessionRow?.id) simulationId = sessionRow.id
+    } catch (e) {
+      console.error('court session save error:', e)
+    }
+  }
+
+  // Save initial AI response to server history
+  addToHistory(simulationId, { role: 'assistant', content: response.text })
+  // AI qatnashchi xabarlarini bazaga yozish
+  persistMessages(
+    simulationId,
+    userId || '',
+    roles.map(r => ({ speaker: r.speaker, role: r.role, content: r.text }))
+  )
 
   return NextResponse.json({
     simulation_id: simulationId,
@@ -279,9 +377,18 @@ async function submitArgument(
   systemBase: string,
   userRole?: string,
   userName?: string,
-  history?: { role: 'user' | 'assistant'; content: string }[]
+  history?: { role: 'user' | 'assistant'; content: string }[],
+  userId?: string
 ) {
   const userRoleUpper = (userRole || 'SUDYA').toUpperCase()
+
+  // ── Egalik tekshiruvi: boshqa foydalanuvchining sessiyasiga yozib bo'lmaydi ──
+  if (simulationId && userId) {
+    const own = await verifySessionOwnership(simulationId, userId)
+    if (own === 'forbidden') {
+      return NextResponse.json({ error: "Bu sessiyaga ruxsat yo'q" }, { status: 403 })
+    }
+  }
 
   // Use server-side history if no client history provided
   let convHistory = history
@@ -352,6 +459,15 @@ MUHIM ENG MUHIM QOIDA: Bir vaqtda faqat 1-2 ta rol gapirsin. Hammasi birdan gapi
 
   const roles = parseMultiRoleResponse(response.text)
 
+  // ── Foydalanuvchi va AI xabarlarini bazaga yozish ──
+  if (simulationId && userId) {
+    const msgs: { speaker: string; role: string; content: string }[] = [
+      { speaker: userRoleUpper, role: userRoleUpper, content: argument },
+      ...roles.map(r => ({ speaker: r.speaker, role: r.role, content: r.text })),
+    ]
+    persistMessages(simulationId, userId, msgs)
+  }
+
   return NextResponse.json({
     success: true,
     roles,
@@ -359,12 +475,23 @@ MUHIM ENG MUHIM QOIDA: Bir vaqtda faqat 1-2 ta rol gapirsin. Hammasi birdan gapi
   })
 }
 
-async function getVerdict(simulationId: string, systemBase: string, userRole?: string) {
+async function getVerdict(
+  simulationId: string,
+  systemBase: string,
+  userRole?: string,
+  userId?: string
+) {
   const userRoleUpper = (userRole || 'SUDYA').toUpperCase()
 
-  // Hukmda barcha rollar gapirishi mumkin (shu jumladan foydalanuvchi roli)
-  const allRoles = ['SUDYA', 'PROKUROR', 'ADVOKAT', 'SUDLANUVCHI', 'KOTIBA']
+  // ── Egalik tekshiruvi ──
+  if (simulationId && userId) {
+    const own = await verifySessionOwnership(simulationId, userId)
+    if (own === 'forbidden') {
+      return NextResponse.json({ error: "Bu sessiyaga ruxsat yo'q" }, { status: 403 })
+    }
+  }
 
+  // Hukmda barcha rollar gapirishi mumkin (shu jumladan foydalanuvchi roli)
   const systemPrompt = `${systemBase}
 
 Sen O'zbekiston Respublikasining sudyasisan. Barcha dalillar va argumentlarni tahlil qilib, yakuniy sud qarorini (hukmni) chiqar.
@@ -418,12 +545,37 @@ Javobni faqat JSON formatida bering:
   }
 
   const totalScore = Math.round((evalData.legalAccuracy + evalData.argument + evalData.ethics) / 3)
+  const outcome = totalScore >= 80 ? 'Yutildi' : totalScore >= 60 ? 'Qisman yutildi' : 'Yutirilmadi'
+
+  // ── Sessiya yakunini bazaga yozish (score, outcome, evaluation) ──
+  if (simulationId && userId) {
+    try {
+      await supabase
+        .from('court_sessions')
+        .update({
+          status: 'completed',
+          score: totalScore,
+          outcome,
+          evaluation: evalData as unknown as Record<string, unknown>,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', simulationId)
+        .eq('user_id', userId)
+      persistMessages(
+        simulationId,
+        userId,
+        roles.map(r => ({ speaker: r.speaker, role: r.role, content: r.text }))
+      )
+    } catch (e) {
+      console.error('court session finalize error:', e)
+    }
+  }
 
   return NextResponse.json({
     roles,
     verdict: roles.find(r => r.role === 'SUDYA')?.text || response.text,
     score: totalScore,
-    outcome: totalScore >= 80 ? 'Yutildi' : totalScore >= 60 ? 'Qisman yutildi' : 'Yutirilmadi',
+    outcome,
     evaluation: evalData,
   })
 }

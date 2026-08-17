@@ -161,7 +161,7 @@ export default function PrivacyPage() {
                 12. Qonunlar
               </h2>
               <p className="text-gray-600 dark:text-zinc-400 mb-6">
-                Ushbu siyosat O'zbekiston Respublikasining "Shaxsiy ma'lumotlar to'g'risida" qonuni
+                Ushbu siyosat O'zbekiston Respublikasining “Shaxsiy ma'lumotlar to'g'risida” qonuni
                 va boshqa tegishli qonun hujjatlariga muvofiq tuzilgan.
               </p>
             </div>

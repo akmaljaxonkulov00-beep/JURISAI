@@ -1,37 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import { errorMessage, getServiceClient, getUserProfile, requireUser } from '@/lib/community-server'
 
-async function getSupabase() {
-  const { createClient } = await import('@supabase/supabase-js')
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-  if (!supabaseUrl || !supabaseKey) return null
-  return createClient(supabaseUrl, supabaseKey)
-}
-
-// Foydalanuvchi guruh yaratuvchisi yoki moderatormi?
-async function canModerateGroup(supabase: any, groupId: string, userId: string): Promise<boolean> {
-  if (!userId) return false
-  const { data: group } = await supabase
-    .from('community_groups')
-    .select('created_by')
-    .eq('id', groupId)
-    .single()
-  if (group && group.created_by?.toString() === userId) return true
-  const { data: member } = await supabase
-    .from('community_group_members')
-    .select('role')
-    .eq('group_id', groupId)
-    .eq('user_id', userId)
-    .maybeSingle()
-  return !!member && ['moderator', 'admin'].includes(member.role)
-}
-
-// GET /api/community/groups/requests?groupId=...&moderatorId=... — guruhga yuborilgan so'rovlar
+// GET /api/community/groups/requests?groupId=... — guruhga yuborilgan so'rovlar
+// PATCH — tasdiqlash / rad etish
+// Identity faqat session'dan (moderatorId/actorId/userId ishonilmaydi).
 export async function GET(request: NextRequest) {
   try {
+    const auth = await requireUser(request)
+    if (!auth.ok) return auth.response
+
     const { searchParams } = new URL(request.url)
     const groupId = searchParams.get('groupId')
-    const moderatorId = searchParams.get('moderatorId') || ''
+    const moderatorId = auth.user.id
 
     if (!groupId) {
       return NextResponse.json(
@@ -40,7 +21,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const supabase = await getSupabase()
+    const supabase = await getServiceClient()
     if (!supabase) return NextResponse.json({ success: true, data: [] })
 
     // So'rovlarni faqat yaratuvchi/moderator ko'ra oladi
@@ -60,31 +41,39 @@ export async function GET(request: NextRequest) {
 
     if (error) throw error
     return NextResponse.json({ success: true, data: data || [] })
-  } catch (err: any) {
+  } catch (err: unknown) {
     return NextResponse.json(
-      { success: false, error: err.message || "So'rovlarni yuklashda xatolik" },
+      { success: false, error: errorMessage(err, "So'rovlarni yuklashda xatolik") },
       { status: 500 }
     )
   }
 }
 
-// POST — foydalanuvchi guruhga qo'shilish so'rovini yuboradi
+// POST — foydalanuvchi guruhga qo'shilish so'rovini yuboradi (session identity)
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const { groupId, userId, userName, userEmail } = body
+    const auth = await requireUser(request)
+    if (!auth.ok) return auth.response
 
-    if (!groupId || !userId) {
+    const body = await request.json()
+    const { groupId } = body
+
+    if (!groupId) {
       return NextResponse.json(
-        { success: false, error: 'groupId va userId kiritilishi shart' },
+        { success: false, error: 'groupId kiritilishi shart' },
         { status: 400 }
       )
     }
 
-    const supabase = await getSupabase()
+    const supabase = await getServiceClient()
     if (!supabase) {
       return NextResponse.json({ success: false, error: 'Supabase sozlanmagan' }, { status: 500 })
     }
+
+    const userId = auth.user.id
+    const profile = await getUserProfile(supabase, userId)
+    const userName = profile?.full_name || ''
+    const userEmail = profile?.email || ''
 
     const { data, error } = await supabase
       .from('community_group_join_requests')
@@ -92,8 +81,8 @@ export async function POST(request: NextRequest) {
         {
           group_id: groupId,
           user_id: userId,
-          user_name: userName || '',
-          user_email: userEmail || '',
+          user_name: userName,
+          user_email: userEmail,
           status: 'pending',
           created_at: new Date().toISOString(),
           decided_at: null,
@@ -130,20 +119,22 @@ export async function POST(request: NextRequest) {
       data,
       message: "Qo'shilish so'rovingiz yuborildi. Guruh yaratuvchisi tasdiqlashini kuting.",
     })
-  } catch (err: any) {
+  } catch (err: unknown) {
     return NextResponse.json(
-      { success: false, error: err.message || "So'rov yuborishda xatolik" },
+      { success: false, error: errorMessage(err, "So'rov yuborishda xatolik") },
       { status: 500 }
     )
   }
 }
 
 // PATCH — tasdiqlash / rad etish (guruh yaratuvchisi yoki moderator)
-// Body: { id: requestId, status: 'approved' | 'rejected', actorId? }
 export async function PATCH(request: NextRequest) {
   try {
+    const auth = await requireUser(request)
+    if (!auth.ok) return auth.response
+
     const body = await request.json()
-    const { id, status, actorId } = body
+    const { id, status } = body
 
     if (!id || !['approved', 'rejected'].includes(status)) {
       return NextResponse.json(
@@ -152,10 +143,14 @@ export async function PATCH(request: NextRequest) {
       )
     }
 
-    const supabase = await getSupabase()
+    const supabase = await getServiceClient()
     if (!supabase) {
       return NextResponse.json({ success: false, error: 'Supabase sozlanmagan' }, { status: 500 })
     }
+
+    const actorId = auth.user.id
+    const profile = await getUserProfile(supabase, actorId)
+    const actorName = profile?.full_name || profile?.email || ''
 
     // 1) So'rovni topish
     const { data: req, error: reqErr } = await supabase
@@ -165,11 +160,14 @@ export async function PATCH(request: NextRequest) {
       .single()
     if (reqErr || !req) throw reqErr || new Error("So'rov topilmadi")
 
-    // 1.5) Ruxsat: faqat yaratuvchi/moderator
-    const allowed = await canModerateGroup(supabase, req.group_id, actorId || '')
+    // 1.5) Ruxsat: faqat yaratuvchi/moderator (session identity)
+    const allowed = await canModerateGroup(supabase, req.group_id, actorId)
     if (!allowed) {
       return NextResponse.json(
-        { success: false, error: "So'rovni faqat guruh yaratuvchisi/moderatori boshqarishi mumkin" },
+        {
+          success: false,
+          error: "So'rovni faqat guruh yaratuvchisi/moderatori boshqarishi mumkin",
+        },
         { status: 403 }
       )
     }
@@ -217,8 +215,8 @@ export async function PATCH(request: NextRequest) {
     try {
       await supabase.from('community_moderator_actions').insert({
         group_id: req.group_id,
-        moderator_id: actorId || '',
-        moderator_name: '',
+        moderator_id: actorId,
+        moderator_name: actorName,
         action: status === 'approved' ? 'request_approved' : 'request_rejected',
         target_name: req.user_name || req.user_email || '',
       })
@@ -236,10 +234,12 @@ export async function PATCH(request: NextRequest) {
         group_id: req.group_id,
         user_id: req.user_id,
         type: approved ? 'approved' : 'rejected',
-        title: approved ? 'Qo\'shilish so\'rovingiz tasdiqlandi ✅' : 'Qo\'shilish so\'rovingiz rad etildi',
+        title: approved
+          ? "Qo'shilish so'rovingiz tasdiqlandi ✅"
+          : "Qo'shilish so'rovingiz rad etildi",
         message: approved
           ? `Siz "${group?.name || 'guruh'}" guruhiga qabul qilindingiz — endi muhokamada qatnashishingiz mumkin`
-          : `"${group?.name || 'guruh'}" guruhiga qo\'shilish so\'rovingiz rad etildi`,
+          : `"${group?.name || 'guruh'}" guruhiga qo'shilish so'rovingiz rad etildi`,
       })
     } catch {}
 
@@ -251,10 +251,32 @@ export async function PATCH(request: NextRequest) {
           ? "So'rov tasdiqlandi — foydalanuvchi a'zo bo'ldi"
           : "So'rov rad etildi",
     })
-  } catch (err: any) {
+  } catch (err: unknown) {
     return NextResponse.json(
-      { success: false, error: err.message || "So'rovni yangilashda xatolik" },
+      { success: false, error: errorMessage(err, "So'rovni yangilashda xatolik") },
       { status: 500 }
     )
   }
+}
+
+// Guruh yaratuvchisi/moderatori tekshiruvi (session identity asosida)
+async function canModerateGroup(
+  supabase: SupabaseClient,
+  groupId: string,
+  userId: string
+): Promise<boolean> {
+  if (!userId) return false
+  const { data: group } = await supabase
+    .from('community_groups')
+    .select('created_by')
+    .eq('id', groupId)
+    .single()
+  if (group && group.created_by?.toString() === userId) return true
+  const { data: member } = await supabase
+    .from('community_group_members')
+    .select('role')
+    .eq('group_id', groupId)
+    .eq('user_id', userId)
+    .maybeSingle()
+  return !!member && ['moderator', 'admin'].includes((member as { role?: string })?.role || '')
 }

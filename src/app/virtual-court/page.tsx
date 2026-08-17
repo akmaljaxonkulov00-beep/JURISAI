@@ -32,6 +32,24 @@ interface Msg {
   type: 'statement' | 'objection' | 'evidence' | 'question' | 'ruling'
 }
 
+// Minimal SpeechRecognition tipi (webkit-prefixed brauzerlar uchun)
+interface SpeechRecognitionLike {
+  lang: string
+  continuous: boolean
+  interimResults: boolean
+  onresult:
+    | ((e: {
+        resultIndex: number
+        results: ArrayLike<{ isFinal: boolean; 0: { transcript: string } }>
+      }) => void)
+    | null
+  onend: (() => void) | null
+  onerror: ((e: { error?: string }) => void) | null
+  start: () => void
+  stop: () => void
+  __vuCleanup?: () => void
+}
+
 interface SimResult {
   legalAccuracy: number
   ethics: number
@@ -163,9 +181,9 @@ export default function VirtualCourt() {
   const [userName, setUserName] = useState('')
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
-  const recognitionRef = useRef<any>(null)
+  const recognitionRef = useRef<SpeechRecognitionLike | null>(null)
   const listeningRef = useRef(false)
-  const silenceTimerRef = useRef<any>(null)
+  const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const voiceModeRef = useRef(false) // Track if user was using voice
 
   // Load user info from Supabase
@@ -221,7 +239,11 @@ export default function VirtualCourt() {
   // ── STT (Speech-to-Text) — faqat foydalanuvchi ovozi ──
   const SILENCE_TIMEOUT_MS = 3000
   const startMic = async () => {
-    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+    const w = window as unknown as {
+      SpeechRecognition?: new () => SpeechRecognitionLike
+      webkitSpeechRecognition?: new () => SpeechRecognitionLike
+    }
+    const SR = w.SpeechRecognition || w.webkitSpeechRecognition
     if (!SR) {
       alert('Ovozli kiritish faqat Chrome yoki Edge brauzerida ishlaydi.')
       return
@@ -238,7 +260,7 @@ export default function VirtualCourt() {
     // fullTranscript — barcha final natijalarni yig'ib boradi
     let fullTranscript = ''
 
-    r.onresult = (e: any) => {
+    r.onresult = e => {
       if (silenceTimerRef.current) {
         clearTimeout(silenceTimerRef.current)
         silenceTimerRef.current = null
@@ -286,7 +308,7 @@ export default function VirtualCourt() {
       }
     }
 
-    r.onerror = (e: any) => {
+    r.onerror = e => {
       if (e.error === 'no-speech') {
         if (listeningRef.current)
           setTimeout(() => {
@@ -301,7 +323,7 @@ export default function VirtualCourt() {
         'not-allowed': "Mikrofon ruxsati yo'q.",
         'audio-capture': 'Mikrofon topilmadi.',
       }
-      if (msg[e.error]) alert(msg[e.error])
+      if (e.error && msg[e.error]) alert(msg[e.error])
     }
     // Start real audio level visualization via getUserMedia + AnalyserNode
     let audioCtx: AudioContext | null = null
@@ -312,7 +334,10 @@ export default function VirtualCourt() {
 
     try {
       stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-      audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)()
+      audioCtx = new (
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
+      )()
       analyser = audioCtx.createAnalyser()
       analyser.fftSize = 256
       source = audioCtx.createMediaStreamSource(stream)
@@ -340,7 +365,7 @@ export default function VirtualCourt() {
       if (stream) stream.getTracks().forEach(t => t.stop())
       if (audioCtx) audioCtx.close().catch(() => {})
     }
-    ;(r as any).__vuCleanup = cleanup
+    ;(r as SpeechRecognitionLike).__vuCleanup = cleanup
   }
   const stopMic = () => {
     listeningRef.current = false
@@ -683,7 +708,7 @@ Eslatma: Tomonlarni tinglang, ularga kelishuvga erishishga yordam bering va nizo
         const roles = data.roles || []
         if (roles.length > 0) {
           await addMultiRoleMessages(roles)
-          const allText = roles.map((r: any) => r.text).join(' ')
+          const allText = roles.map((r: { text?: string }) => r.text).join(' ')
           if (allText.toLowerCase().includes('xato') || allText.toLowerCase().includes("e'tiroz")) {
             setStressLevel(s => Math.min(100, s + 15))
           }

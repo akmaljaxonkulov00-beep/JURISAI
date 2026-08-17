@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSupabaseAdmin } from '@/lib/supabase-admin'
-import { checkAndIncrement, getIdentityFromRequest, usageMessage } from '@/lib/usage-limits'
+import { requireUser } from '@/lib/server-auth'
+import { checkAndIncrement, usageMessage } from '@/lib/usage-limits'
 import { groundPrompt } from '@/lib/legal-rag'
 
-const GROQ_API_KEY = process.env.GROQ_API_KEY || process.env.NEXT_PUBLIC_GROQ_API_KEY
+const GROQ_API_KEY = process.env.GROQ_API_KEY
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
 
 const SYSTEM_PROMPT =
@@ -25,7 +25,7 @@ const BASE_SYSTEM_PROMPT = SYSTEM_PROMPT
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
-    const { documentText, documentType, userId } = body
+    const { documentText, documentType } = body
 
     if (!documentText || documentText.trim().length < 50) {
       return NextResponse.json(
@@ -33,9 +33,21 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       )
     }
+    if (documentText.length > 30000) {
+      return NextResponse.json(
+        { error: 'Hujjat matni juda katta — maksimal 30 000 belgi' },
+        { status: 400 }
+      )
+    }
+    if (!GROQ_API_KEY) {
+      return NextResponse.json({ error: 'AI xizmati sozlanmagan' }, { status: 503 })
+    }
 
-    // ── AI limit tekshiruvi ──
-    const identity = getIdentityFromRequest(req, body)
+    // ── Autentifikatsiya + AI limit tekshiruvi ──
+    // (identity FAQAT session'dan — client body'dagi userId ishonilmaydi)
+    const auth = await requireUser(req)
+    if (!auth.ok) return auth.response
+    const identity = { userId: auth.user.id, email: auth.user.email || undefined }
     const usage = await checkAndIncrement({
       ...identity,
       feature: 'document_analysis',
@@ -48,20 +60,6 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Log usage to Supabase
-    try {
-      const supabase = getSupabaseAdmin()
-      await supabase.from('usage_logs').insert({
-        user_id: userId || 'api',
-        email: 'api@jurisai.uz',
-        name: 'API',
-        tokens: Math.ceil(documentText.length / 4),
-        action: 'document_analysis',
-        metadata: { document_type: documentType || 'general', text_length: documentText.length },
-        created_at: new Date().toISOString(),
-      })
-    } catch {}
-
     // ── RAG: hujjat matniga mos moddalarni qonunchilik bazasidan qidirish ──
     const { prompt: systemPrompt } = await groundPrompt(
       documentText.slice(0, 3000),
@@ -69,9 +67,9 @@ export async function POST(req: NextRequest) {
     )
 
     // Call Groq for document analysis
-    let analysisText = 'Hujjat tahlili muvaffaqiyatli.\n\nHujjat qonunchilikka mos keladi.'
+    let response: Response
     try {
-      const response = await fetch(GROQ_API_URL, {
+      response = await fetch(GROQ_API_URL, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${GROQ_API_KEY}`,
@@ -87,11 +85,22 @@ export async function POST(req: NextRequest) {
           max_tokens: 1024,
         }),
       })
-      if (response.ok) {
-        const data = await response.json()
-        analysisText = data.choices[0]?.message?.content || analysisText
-      }
-    } catch {}
+    } catch (err) {
+      console.error('Groq document-analysis fetch error:', err)
+      return NextResponse.json({ error: 'AI xizmatida xatolik yuz berdi' }, { status: 502 })
+    }
+
+    // Provider xatosi — fake muvaffaqiyat QAYTARILMAYDI
+    if (!response.ok) {
+      console.error('Groq document-analysis error:', response.status, await response.text())
+      return NextResponse.json({ error: 'AI xizmatida xatolik yuz berdi' }, { status: 502 })
+    }
+
+    const data = await response.json()
+    const analysisText = data.choices[0]?.message?.content
+    if (!analysisText) {
+      return NextResponse.json({ error: 'AI javob olinmadi' }, { status: 502 })
+    }
 
     return NextResponse.json({
       analysis: analysisText,

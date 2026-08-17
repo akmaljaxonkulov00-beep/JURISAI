@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import CheckoutModal from '@/components/payment/checkout-modal'
+import type { SiteSettings } from '@/lib/settings-sync'
 
 function PaymentContent() {
   const router = useRouter()
@@ -24,7 +25,7 @@ function PaymentContent() {
   const [previewUrl, setPreviewUrl] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [paymentStatus, setPaymentStatus] = useState<'idle' | 'pending' | 'success'>('idle')
-  const [adminSettings, setAdminSettings] = useState<any>(null)
+  const [adminSettings, setAdminSettings] = useState<Partial<SiteSettings> | null>(null)
   const [showCheckout, setShowCheckout] = useState(false)
   const [checkStatus, setCheckStatus] = useState<'pending' | 'approved' | 'rejected'>('pending')
 
@@ -44,7 +45,8 @@ function PaymentContent() {
     let cancelled = false
     const checkStatusNow = async () => {
       try {
-        const res = await fetch('/api/payments?userId=' + encodeURIComponent(user.id), {
+        // Identity session'dan olinadi — userId param uzatilmaydi (IDOR himoyasi)
+        const res = await fetch('/api/payments', {
           cache: 'no-cache',
         })
         const result = await res.json()

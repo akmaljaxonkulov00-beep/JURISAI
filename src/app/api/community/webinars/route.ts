@@ -1,20 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getServiceClient, requireAdmin, requireUser } from '@/lib/community-server'
 
-async function getSupabase() {
-  const { createClient } = await import('@supabase/supabase-js')
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-  if (!supabaseUrl || !supabaseKey) return null
-  return createClient(supabaseUrl, supabaseKey)
-}
-
+// Vebinarlar. GET — hamma ko'radi; POST/PUT/DELETE — FAQAT admin;
+// PATCH (ishtirokchi soni) — faqat tizimga kirgan foydalanuvchi.
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const id = searchParams.get('id')
     const category = searchParams.get('category')
 
-    const supabase = await getSupabase()
+    const supabase = await getServiceClient()
     if (!supabase) {
       return NextResponse.json({ success: true, data: [] })
     }
@@ -35,9 +30,12 @@ export async function GET(request: NextRequest) {
     if (error) throw error
 
     return NextResponse.json({ success: true, data: data || [] })
-  } catch (err: any) {
+  } catch (err: unknown) {
     return NextResponse.json(
-      { success: false, error: err.message || 'Vebinarlarni yuklashda xatolik' },
+      {
+        success: false,
+        error: err instanceof Error ? err.message : 'Vebinarlarni yuklashda xatolik',
+      },
       { status: 500 }
     )
   }
@@ -45,6 +43,9 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const adm = await requireAdmin(request)
+    if (!adm.ok) return adm.response
+
     const body = await request.json()
     const {
       title,
@@ -64,12 +65,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const supabase = await getSupabase()
+    const supabase = await getServiceClient()
     if (!supabase) {
-      return NextResponse.json(
-        { success: false, error: 'Supabase sozlanmagan' },
-        { status: 500 }
-      )
+      return NextResponse.json({ success: false, error: 'Supabase sozlanmagan' }, { status: 500 })
     }
 
     const { data, error } = await supabase
@@ -92,9 +90,9 @@ export async function POST(request: NextRequest) {
     if (error) throw error
 
     return NextResponse.json({ success: true, data })
-  } catch (err: any) {
+  } catch (err: unknown) {
     return NextResponse.json(
-      { success: false, error: err.message || 'Vebinar yaratishda xatolik' },
+      { success: false, error: err instanceof Error ? err.message : 'Vebinar yaratishda xatolik' },
       { status: 500 }
     )
   }
@@ -102,6 +100,9 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
+    const adm = await requireAdmin(request)
+    if (!adm.ok) return adm.response
+
     const body = await request.json()
     const { id, ...updates } = body
 
@@ -112,12 +113,9 @@ export async function PUT(request: NextRequest) {
       )
     }
 
-    const supabase = await getSupabase()
+    const supabase = await getServiceClient()
     if (!supabase) {
-      return NextResponse.json(
-        { success: false, error: 'Supabase sozlanmagan' },
-        { status: 500 }
-      )
+      return NextResponse.json({ success: false, error: 'Supabase sozlanmagan' }, { status: 500 })
     }
 
     const { data, error } = await supabase
@@ -130,17 +128,23 @@ export async function PUT(request: NextRequest) {
     if (error) throw error
 
     return NextResponse.json({ success: true, data })
-  } catch (err: any) {
+  } catch (err: unknown) {
     return NextResponse.json(
-      { success: false, error: err.message || 'Vebinarni yangilashda xatolik' },
+      {
+        success: false,
+        error: err instanceof Error ? err.message : 'Vebinarni yangilashda xatolik',
+      },
       { status: 500 }
     )
   }
 }
 
-// PATCH — participants_count ni nisbiy o'zgartirish (delta: +1 / -1)
+// PATCH — participants_count ni nisbiy o'zgartirish (delta: +1 / -1) — faqat kirgan user
 export async function PATCH(request: NextRequest) {
   try {
+    const auth = await requireUser(request)
+    if (!auth.ok) return auth.response
+
     const body = await request.json()
     const { id, delta } = body
 
@@ -151,12 +155,9 @@ export async function PATCH(request: NextRequest) {
       )
     }
 
-    const supabase = await getSupabase()
+    const supabase = await getServiceClient()
     if (!supabase) {
-      return NextResponse.json(
-        { success: false, error: 'Supabase sozlanmagan' },
-        { status: 500 }
-      )
+      return NextResponse.json({ success: false, error: 'Supabase sozlanmagan' }, { status: 500 })
     }
 
     const { data: current, error: curErr } = await supabase
@@ -180,9 +181,12 @@ export async function PATCH(request: NextRequest) {
     if (error) throw error
 
     return NextResponse.json({ success: true, data })
-  } catch (err: any) {
+  } catch (err: unknown) {
     return NextResponse.json(
-      { success: false, error: err.message || "Ishtirokchilar sonini yangilashda xatolik" },
+      {
+        success: false,
+        error: err instanceof Error ? err.message : 'Ishtirokchilar sonini yangilashda xatolik',
+      },
       { status: 500 }
     )
   }
@@ -190,6 +194,9 @@ export async function PATCH(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+    const adm = await requireAdmin(request)
+    if (!adm.ok) return adm.response
+
     const { searchParams } = new URL(request.url)
     const id = searchParams.get('id')
 
@@ -200,12 +207,9 @@ export async function DELETE(request: NextRequest) {
       )
     }
 
-    const supabase = await getSupabase()
+    const supabase = await getServiceClient()
     if (!supabase) {
-      return NextResponse.json(
-        { success: false, error: 'Supabase sozlanmagan' },
-        { status: 500 }
-      )
+      return NextResponse.json({ success: false, error: 'Supabase sozlanmagan' }, { status: 500 })
     }
 
     const { error } = await supabase.from('community_webinars').delete().eq('id', id)
@@ -213,9 +217,12 @@ export async function DELETE(request: NextRequest) {
     if (error) throw error
 
     return NextResponse.json({ success: true })
-  } catch (err: any) {
+  } catch (err: unknown) {
     return NextResponse.json(
-      { success: false, error: err.message || "Vebinarni o'chirishda xatolik" },
+      {
+        success: false,
+        error: err instanceof Error ? err.message : "Vebinarni o'chirishda xatolik",
+      },
       { status: 500 }
     )
   }

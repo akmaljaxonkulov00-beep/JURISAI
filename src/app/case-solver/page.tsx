@@ -191,15 +191,15 @@ export default function CaseSolver() {
       } else {
         // Fallback to simple scoring if API fails
         console.log('IRAC API failed, using fallback scoring')
-        useFallbackScoring(userAnswer, currentStepId)
+        applyFallbackScoring(userAnswer, currentStepId)
       }
     } catch (error) {
       console.log('IRAC API error, using fallback:', error)
-      useFallbackScoring(userAnswer, currentStepId)
+      applyFallbackScoring(userAnswer, currentStepId)
     }
   }
 
-  const useFallbackScoring = (userAnswer: string, currentStepId: string) => {
+  const applyFallbackScoring = (userAnswer: string, currentStepId: string) => {
     // Simple scoring logic as fallback
     let calculatedScore = 0
     const stepErrors: string[] = []
@@ -595,7 +595,7 @@ export default function CaseSolver() {
                     <div className="text-center py-8">
                       <Lightbulb className="w-12 h-12 text-gray-300 mx-auto mb-3" />
                       <p className="text-sm text-gray-500 dark:text-zinc-400">
-                        Maslahat olish uchun "Maslahat" tugmasini bosing
+                        Maslahat olish uchun “Maslahat” tugmasini bosing
                       </p>
                     </div>
                   )}

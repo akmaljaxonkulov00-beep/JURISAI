@@ -154,7 +154,12 @@ export default function Statistics() {
         const apiStats = await api.getUserStats()
         if (apiStats?.data) {
           setApiConnected(true)
-          const apiData = apiStats.data as any
+          const apiData = apiStats.data as {
+            xp?: number
+            level?: number
+            completedCases?: number
+            totalCases?: number
+          }
           setStats(prev => ({
             ...prev,
             xp: apiData.xp ?? prev.xp,
@@ -204,57 +209,43 @@ export default function Statistics() {
         { name: myName, xp: myXp, level: myLevel, streak: myStreak, isCurrentUser: true },
       ]
 
-      // Try to fetch real users from Supabase registered_users
-      let supabaseUsers: { name: string; email: string }[] = []
+      // Try to fetch real users from Supabase public_profiles (faqat id + name — email RLS bilan himoyalangan)
+      let supabaseUsers: { id: string; name: string | null }[] = []
       try {
         const { supabase } = await import('@/lib/supabase-browser')
         const { data } = await supabase
-          .from('registered_users')
-          .select('name, email')
-          .order('created_at', { ascending: true })
+          .from('public_profiles')
+          .select('id, name')
+          .order('name', { ascending: true })
           .limit(50)
         if (data && data.length > 0) {
-          // Filter out current user to avoid duplicates
-          const myEmail = profileRaw ? JSON.parse(profileRaw)?.email || '' : ''
-          supabaseUsers = data.filter(u => u.email !== myEmail)
+          // Joriy foydalanuvchini chiqarib tashlash (takrorlanmaslik uchun)
+          let myId = ''
+          try {
+            const identity = await import('@/lib/client-user').then(m => m.getUserIdentityPayload())
+            myId = identity.userId || ''
+          } catch {
+            // identity olinmasa — id orqali filtr ishlamaydi, hammasi qo'shiladi
+          }
+          supabaseUsers = data.filter(u => u.id !== myId)
         }
       } catch {
-        // Supabase not available — fall back to simulated
+        // Supabase mavjud emas — leaderboard faqat joriy foydalanuvchi bilan qoladi
       }
 
       if (supabaseUsers.length > 0) {
-        // Map real users with approximate XP based on registration order
+        // Real foydalanuvchilar — ro'yxat tartibi bo'yicha taxminiy XP
         const multiplier = 1.3
         supabaseUsers.forEach((u, i) => {
           const pct = supabaseUsers.length > 1 ? i / (supabaseUsers.length - 1) : 0
           entries.push({
-            name: u.name || u.email?.split('@')[0] || `Foydalanuvchi ${i + 1}`,
+            name: u.name || `Foydalanuvchi ${i + 1}`,
             xp: Math.round(myXp * (multiplier - pct * 0.9)),
             level: Math.max(1, myLevel + Math.round((1 - pct) * 2) - 1),
             streak: Math.max(0, myStreak - Math.round(pct * 20)),
             isCurrentUser: false,
           })
         })
-      } else {
-        // Fallback: simulated users with decreasing XP curve
-        const simUsers = [
-          { name: 'Akmal J.', xp: Math.round(myXp * 1.35), level: myLevel + 2, streak: 24 },
-          { name: 'Nigora T.', xp: Math.round(myXp * 1.15), level: myLevel + 1, streak: 18 },
-          {
-            name: 'Bobur M.',
-            xp: Math.round(myXp * 0.9),
-            level: Math.max(1, myLevel - 1),
-            streak: 7,
-          },
-          {
-            name: 'Madina K.',
-            xp: Math.round(myXp * 0.65),
-            level: Math.max(1, myLevel - 1),
-            streak: 5,
-          },
-          { name: 'Shoxruh B.', xp: Math.round(myXp * 0.4), level: 1, streak: 2 },
-        ]
-        simUsers.forEach(s => entries.push({ ...s, isCurrentUser: false }))
       }
 
       const merged = entries.sort((a, b) => b.xp - a.xp).slice(0, 20)

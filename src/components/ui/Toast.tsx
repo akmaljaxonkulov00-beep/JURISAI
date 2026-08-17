@@ -29,10 +29,19 @@ export const useToast = () => {
   return context
 }
 
+// Modul darajasidagi toast dispatcher — `toast` obyekti hook'ni komponent
+// ichidan emas, shu reestr orqali chaqiradi (rules-of-hooks talabi).
+type ToastPayload = Omit<Toast, 'id'>
+let toastDispatcher: ((toast: ToastPayload) => void) | null = null
+
 export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [toasts, setToasts] = useState<Toast[]>([])
 
-  const addToast = (toast: Omit<Toast, 'id'>) => {
+  const removeToast = (id: string) => {
+    setToasts(prev => prev.filter(toast => toast.id !== id))
+  }
+
+  const addToast = (toast: ToastPayload) => {
     const id = Math.random().toString(36).substr(2, 9)
     const newToast: Toast = { ...toast, id }
 
@@ -45,9 +54,13 @@ export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     }, duration)
   }
 
-  const removeToast = (id: string) => {
-    setToasts(prev => prev.filter(toast => toast.id !== id))
-  }
+  // Provider mount bo'lganda modul dispatcher'ini ulash
+  useEffect(() => {
+    toastDispatcher = addToast
+    return () => {
+      toastDispatcher = null
+    }
+  }, [])
 
   return (
     <ToastContext.Provider value={{ toasts, addToast, removeToast }}>
@@ -133,31 +146,16 @@ const ToastItem: React.FC<{ toast: Toast }> = ({ toast }) => {
   )
 }
 
-// Toast hook for convenience
+// Toast convenience obyekti — hook'ni komponent tashqarisida ishlatmaydi,
+// ToastProvider mount bo'lganda ulangan dispatcher orqali ishlaydi.
 export const toast = {
   success: (title: string, description?: string) => {
-    try {
-      const { addToast } = useToast()
-      addToast({ title, description, variant: 'success' })
-    } catch {
-      // Fallback if used outside provider
-      console.log('Toast:', { title, description, variant: 'success' })
-    }
+    toastDispatcher?.({ title, description, variant: 'success' })
   },
   error: (title: string, description?: string) => {
-    try {
-      const { addToast } = useToast()
-      addToast({ title, description, variant: 'destructive' })
-    } catch {
-      console.error('Toast:', { title, description, variant: 'destructive' })
-    }
+    toastDispatcher?.({ title, description, variant: 'destructive' })
   },
   info: (title: string, description?: string) => {
-    try {
-      const { addToast } = useToast()
-      addToast({ title, description, variant: 'default' })
-    } catch {
-      console.log('Toast:', { title, description, variant: 'default' })
-    }
+    toastDispatcher?.({ title, description, variant: 'default' })
   },
 }

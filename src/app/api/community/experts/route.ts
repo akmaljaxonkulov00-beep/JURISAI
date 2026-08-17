@@ -1,20 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getServiceClient, requireAdmin } from '@/lib/community-server'
 
-async function getSupabase() {
-  const { createClient } = await import('@supabase/supabase-js')
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-  if (!supabaseUrl || !supabaseKey) return null
-  return createClient(supabaseUrl, supabaseKey)
-}
-
+// Ekspertlar. GET — hamma ko'radi; POST/PUT/DELETE — FAQAT admin.
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const id = searchParams.get('id')
     const specialization = searchParams.get('specialization')
 
-    const supabase = await getSupabase()
+    const supabase = await getServiceClient()
     if (!supabase) {
       return NextResponse.json({ success: true, data: [] })
     }
@@ -35,9 +29,12 @@ export async function GET(request: NextRequest) {
     if (error) throw error
 
     return NextResponse.json({ success: true, data: data || [] })
-  } catch (err: any) {
+  } catch (err: unknown) {
     return NextResponse.json(
-      { success: false, error: err.message || 'Ekspertlarni yuklashda xatolik' },
+      {
+        success: false,
+        error: err instanceof Error ? err.message : 'Ekspertlarni yuklashda xatolik',
+      },
       { status: 500 }
     )
   }
@@ -45,6 +42,9 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const adm = await requireAdmin(request)
+    if (!adm.ok) return adm.response
+
     const body = await request.json()
     const { name, title, specialization, bio } = body
 
@@ -55,12 +55,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const supabase = await getSupabase()
+    const supabase = await getServiceClient()
     if (!supabase) {
-      return NextResponse.json(
-        { success: false, error: 'Supabase sozlanmagan' },
-        { status: 500 }
-      )
+      return NextResponse.json({ success: false, error: 'Supabase sozlanmagan' }, { status: 500 })
     }
 
     const { data, error } = await supabase
@@ -81,9 +78,9 @@ export async function POST(request: NextRequest) {
     if (error) throw error
 
     return NextResponse.json({ success: true, data })
-  } catch (err: any) {
+  } catch (err: unknown) {
     return NextResponse.json(
-      { success: false, error: err.message || 'Ekspert yaratishda xatolik' },
+      { success: false, error: err instanceof Error ? err.message : 'Ekspert yaratishda xatolik' },
       { status: 500 }
     )
   }
@@ -91,6 +88,9 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
+    const adm = await requireAdmin(request)
+    if (!adm.ok) return adm.response
+
     const body = await request.json()
     const { id, ...updates } = body
 
@@ -101,12 +101,9 @@ export async function PUT(request: NextRequest) {
       )
     }
 
-    const supabase = await getSupabase()
+    const supabase = await getServiceClient()
     if (!supabase) {
-      return NextResponse.json(
-        { success: false, error: 'Supabase sozlanmagan' },
-        { status: 500 }
-      )
+      return NextResponse.json({ success: false, error: 'Supabase sozlanmagan' }, { status: 500 })
     }
 
     const { data, error } = await supabase
@@ -119,9 +116,12 @@ export async function PUT(request: NextRequest) {
     if (error) throw error
 
     return NextResponse.json({ success: true, data })
-  } catch (err: any) {
+  } catch (err: unknown) {
     return NextResponse.json(
-      { success: false, error: err.message || 'Ekspertni yangilashda xatolik' },
+      {
+        success: false,
+        error: err instanceof Error ? err.message : 'Ekspertni yangilashda xatolik',
+      },
       { status: 500 }
     )
   }
@@ -129,6 +129,9 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+    const adm = await requireAdmin(request)
+    if (!adm.ok) return adm.response
+
     const { searchParams } = new URL(request.url)
     const id = searchParams.get('id')
 
@@ -139,12 +142,9 @@ export async function DELETE(request: NextRequest) {
       )
     }
 
-    const supabase = await getSupabase()
+    const supabase = await getServiceClient()
     if (!supabase) {
-      return NextResponse.json(
-        { success: false, error: 'Supabase sozlanmagan' },
-        { status: 500 }
-      )
+      return NextResponse.json({ success: false, error: 'Supabase sozlanmagan' }, { status: 500 })
     }
 
     const { error } = await supabase.from('community_experts').delete().eq('id', id)
@@ -152,9 +152,12 @@ export async function DELETE(request: NextRequest) {
     if (error) throw error
 
     return NextResponse.json({ success: true })
-  } catch (err: any) {
+  } catch (err: unknown) {
     return NextResponse.json(
-      { success: false, error: err.message || "Ekspertni o'chirishda xatolik" },
+      {
+        success: false,
+        error: err instanceof Error ? err.message : "Ekspertni o'chirishda xatolik",
+      },
       { status: 500 }
     )
   }

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { getErrorMessage } from '@/lib/errors'
 import {
   X,
   CreditCard,
@@ -31,11 +32,11 @@ interface UsageLog {
   tokens: number
   created_at: string
   email?: string
-  metadata?: any
+  metadata?: Record<string, unknown>
 }
 
 interface UserDetails {
-  profile: Record<string, any> | null
+  profile: Record<string, unknown> | null
   payments: PaymentRequest[]
   usageLogs: UsageLog[]
   loginActivity: {
@@ -65,10 +66,10 @@ interface UserProfileModalProps {
   userEmail?: string
   onClose: () => void
   isOpen?: boolean
-  user?: any
-  paymentHistory?: any[]
-  tokenHistory?: any[]
-  loginHistory?: any[]
+  user?: Record<string, unknown> | null
+  paymentHistory?: unknown[]
+  tokenHistory?: unknown[]
+  loginHistory?: unknown[]
 }
 
 export default function UserProfileModal({
@@ -107,8 +108,8 @@ export default function UserProfileModal({
       if (!res.ok) throw new Error("Ma'lumotlarni yuklashda xatolik")
       const data = await res.json()
       setDetails(data)
-    } catch (err: any) {
-      setError(err.message || 'Xatolik yuz berdi')
+    } catch (err) {
+      setError(getErrorMessage(err) || 'Xatolik yuz berdi')
     } finally {
       setLoading(false)
     }
@@ -172,8 +173,8 @@ export default function UserProfileModal({
       const result = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(result?.error || 'Tasdiqlashda xatolik')
       await fetchDetails()
-    } catch (err: any) {
-      alert(err?.message || "To'lovni tasdiqlashda xatolik yuz berdi")
+    } catch (err) {
+      alert(getErrorMessage(err) || "To'lovni tasdiqlashda xatolik yuz berdi")
     } finally {
       setProcessingPayments(prev => {
         const next = new Set(prev)
@@ -196,8 +197,8 @@ export default function UserProfileModal({
       setRejectPaymentId(null)
       setRejectReason('')
       await fetchDetails()
-    } catch (err: any) {
-      alert(err?.message || "To'lovni rad etishda xatolik yuz berdi")
+    } catch (err) {
+      alert(getErrorMessage(err) || "To'lovni rad etishda xatolik yuz berdi")
     } finally {
       setProcessingPayments(prev => {
         const next = new Set(prev)
@@ -207,15 +208,8 @@ export default function UserProfileModal({
     }
   }
 
-  // If not open, render nothing
-  if (isOpen === false) return null
-
-  const filteredPayments =
-    (details?.payments || []).filter(p =>
-      paymentFilter === 'all' ? true : p.status === paymentFilter
-    ) || []
-
   // ── Close on Escape ──
+  // (Hook'lar conditional return'dan OLDIIN chaqirilishi shart)
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose()
@@ -227,6 +221,14 @@ export default function UserProfileModal({
       document.body.style.overflow = ''
     }
   }, [onClose])
+
+  // If not open, render nothing
+  if (isOpen === false) return null
+
+  const filteredPayments =
+    (details?.payments || []).filter(p =>
+      paymentFilter === 'all' ? true : p.status === paymentFilter
+    ) || []
 
   return (
     <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto bg-black/50 backdrop-blur-sm pt-4 sm:pt-10 pb-10">
@@ -262,7 +264,7 @@ export default function UserProfileModal({
           ].map(tab => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
+              onClick={() => setActiveTab(tab.id as 'overview' | 'payments' | 'usage' | 'activity')}
               className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === tab.id
                   ? 'border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400'
@@ -355,23 +357,33 @@ export default function UserProfileModal({
                         Profil ma'lumotlari
                       </h3>
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
-                        {Object.entries({
-                          ID: details.profile.id?.slice(0, 12) + '...' || '—',
-                          Rol: details.profile.role || '—',
-                          Holat: details.profile.blocked ? 'Bloklangan' : 'Faol',
-                          "Ro'yxatdan o'tgan": formatDate(details.profile.created_at),
-                          Telefon: details.profile.phone || '—',
-                          Obuna: details.profile.subscription_plan || 'Bepul',
-                        }).map(([key, val]) => (
-                          <div key={key}>
-                            <span className="text-gray-500 dark:text-zinc-500 text-xs block">
-                              {key}
-                            </span>
-                            <span className="text-gray-900 dark:text-zinc-100 font-medium">
-                              {val}
-                            </span>
-                          </div>
-                        ))}
+                        {(() => {
+                          const p = details.profile as {
+                            id?: string
+                            role?: string
+                            blocked?: boolean
+                            created_at?: string
+                            phone?: string
+                            subscription_plan?: string
+                          }
+                          return Object.entries({
+                            ID: p.id?.slice(0, 12) + '...' || '—',
+                            Rol: p.role || '—',
+                            Holat: p.blocked ? 'Bloklangan' : 'Faol',
+                            "Ro'yxatdan o'tgan": formatDate(p.created_at || ''),
+                            Telefon: p.phone || '—',
+                            Obuna: p.subscription_plan || 'Bepul',
+                          }).map(([key, val]) => (
+                            <div key={key}>
+                              <span className="text-gray-500 dark:text-zinc-500 text-xs block">
+                                {key}
+                              </span>
+                              <span className="text-gray-900 dark:text-zinc-100 font-medium">
+                                {val}
+                              </span>
+                            </div>
+                          ))
+                        })()}
                       </div>
                     </div>
                   )}
@@ -606,7 +618,10 @@ export default function UserProfileModal({
                       </p>
                       <p className="text-sm font-medium text-gray-900 dark:text-zinc-100">
                         {formatDate(
-                          details.loginActivity.registeredAt || details.profile?.created_at
+                          details.loginActivity.registeredAt ||
+                            String(
+                              (details.profile as { created_at?: string } | null)?.created_at || ''
+                            )
                         )}
                       </p>
                     </div>
@@ -685,7 +700,7 @@ export default function UserProfileModal({
         {/* Footer */}
         <div className="px-6 py-3 border-t border-gray-200 dark:border-zinc-800 bg-gray-50 dark:bg-zinc-800/50 flex items-center justify-between">
           <span className="text-xs text-gray-400 dark:text-zinc-500">
-            ID: {(userId || user?.id || '').slice(0, 12)}...
+            ID: {String(userId || (user && user.id) || '').slice(0, 12)}...
           </span>
           <div className="flex items-center gap-2">
             <button

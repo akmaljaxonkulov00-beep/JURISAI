@@ -10,6 +10,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Bell, Check, CheckCheck, X, Trash2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase-client'
+import { getUserIdentityPayload } from '@/lib/client-user'
 
 interface AppNotification {
   id: string
@@ -31,25 +32,16 @@ export default function NotificationBell() {
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   const getUserId = useCallback((): string => {
-    try {
-      const stored =
-        sessionStorage.getItem('jurisai_user') ||
-        sessionStorage.getItem('auth_user') ||
-        localStorage.getItem('auth_user')
-      if (stored) {
-        const u = JSON.parse(stored)
-        if (u?.id) return u.id
-        if (u?.uid) return u.uid
-      }
-    } catch {}
-    return ''
+    // Supabase session asosiy manba — eski akkaunt ma'lumoti bilan aralashmaydi
+    return getUserIdentityPayload().userId || ''
   }, [])
 
   const loadNotifications = useCallback(async () => {
     const userId = getUserId()
     if (!userId) return
     try {
-      const res = await fetch('/api/notifications?userId=' + encodeURIComponent(userId), {
+      // Identity session'dan olinadi — userId param uzatilmaydi (IDOR himoyasi)
+      const res = await fetch('/api/notifications', {
         cache: 'no-cache',
       })
       const result = await res.json()
@@ -74,7 +66,7 @@ export default function NotificationBell() {
       const ch1 = supabase
         .channel(`notif-user-${userId}-${ts}`)
         .on(
-          'postgres_changes' as any,
+          'postgres_changes',
           {
             event: '*',
             schema: 'public',
@@ -89,7 +81,7 @@ export default function NotificationBell() {
       const ch2 = supabase
         .channel(`notif-pay-${userId}-${ts}`)
         .on(
-          'postgres_changes' as any,
+          'postgres_changes',
           {
             event: 'UPDATE',
             schema: 'public',

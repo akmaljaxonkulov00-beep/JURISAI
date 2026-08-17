@@ -2,13 +2,14 @@
 
 import { useState, useEffect, useRef, useCallback, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { firebaseAuth } from '@/services/firebase-auth'
+import { firebaseAuth } from '@/services/supabase-auth'
 import { isAdminRole } from '@/lib/roles'
 import { useAuth } from '@/app/providers'
 import { useRealtimeStats } from '@/hooks/useRealtimeStats'
 import AnimatedCounter from '@/components/AnimatedCounter'
 
-import { motion, useSpring, useTransform, useMotionValue } from 'framer-motion'
+import { motion, useSpring, useTransform, useMotionValue, type MotionValue } from 'framer-motion'
+import type { PlatformStats } from '@/hooks/useRealtimeStats'
 
 // ═══════════════════════════════════════════════════════════════════════════
 // PREMIUM 3D GLASS CARD
@@ -25,8 +26,8 @@ function FloatingCard({
   children: React.ReactNode
   depth?: number
   index?: number
-  mouseX: any
-  mouseY: any
+  mouseX: MotionValue<number>
+  mouseY: MotionValue<number>
   className?: string
 }) {
   const rotateX = useTransform(mouseY, [0, 1], [depth * 2.5, -depth * 2.5])
@@ -379,10 +380,10 @@ function FloatingScene({
   stats,
   statsLoading,
 }: {
-  mouseX: any
-  mouseY: any
+  mouseX: MotionValue<number>
+  mouseY: MotionValue<number>
   onNavigate: (href: string) => void
-  stats: any
+  stats: PlatformStats
   statsLoading: boolean
 }) {
   return (

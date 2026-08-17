@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
+import { getErrorMessage } from '@/lib/errors'
 
 export async function GET() {
   try {
@@ -23,7 +24,7 @@ export async function GET() {
 
     // Transform snake_case to camelCase for frontend
     if (data) {
-      const transformed: Record<string, any> = {
+      const transformed: Record<string, unknown> = {
         announcementBanner: data.announcement_banner || '',
         heroTitle: data.hero_title || '',
         heroSubtitle: data.hero_subtitle || '',
@@ -39,7 +40,7 @@ export async function GET() {
     }
 
     return NextResponse.json({ success: true, data: null })
-  } catch (error: any) {
-    return NextResponse.json({ success: false, error: error?.message }, { status: 500 })
+  } catch (error) {
+    return NextResponse.json({ success: false, error: getErrorMessage(error) }, { status: 500 })
   }
 }

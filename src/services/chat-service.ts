@@ -20,7 +20,7 @@ export interface ChatMessage {
   related_laws?: string[]
   suggestions?: string[]
   timestamp: string
-  metadata?: any
+  metadata?: Record<string, unknown>
 }
 
 class ChatService {
@@ -111,7 +111,7 @@ class ChatService {
     category?: 'legal' | 'case' | 'document' | 'general',
     relatedLaws?: string[],
     suggestions?: string[],
-    metadata?: any
+    metadata?: Record<string, unknown>
   ): Promise<ChatMessage | null> {
     try {
       const { data, error } = await supabase

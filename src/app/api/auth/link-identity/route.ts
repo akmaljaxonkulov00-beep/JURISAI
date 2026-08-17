@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { requireUser } from '@/lib/server-auth'
 
 /**
  * POST /api/auth/link-identity
@@ -14,18 +15,17 @@ import { createClient } from '@supabase/supabase-js'
  *   3) registered_users ni birlashtiradi (ADMIN rol saqlanadi)
  *   4) duplicate auth userni o'chiradi
  *
- * Body: { email: string, userId: string }   — userId = hozirgi session user
- *
- * Javob:
- *   { success: true, merged: boolean, keepUserId?: string }
- *   merged=true bo'lsa session user o'chirilgan — client qayta kirishni so'rashi
- *   kerak (cookie tozalanadi, /signin?linked=1 ga yuboriladi).
+ * XAVFSIZLIK: faqat TASDIQLANGAN SESSION foydalanuvchisini birlashtirish
+ * mumkin. Client yuborgan userId/email ishonilmaydi — identity session'dan
+ * olinadi. Boshqa foydalanuvchini birlashtirish/imsonatsiya qilib bo'lmaydi.
  */
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const email = (body?.email || '').toLowerCase().trim()
-    const currentUserId = body?.userId as string | undefined
+    const auth = await requireUser(request)
+    if (!auth.ok) return auth.response
+
+    const currentUserId = auth.user.id
+    const email = auth.user.email.toLowerCase().trim()
 
     if (!email || !currentUserId) {
       return NextResponse.json({ success: false, error: 'email va userId kerak' }, { status: 400 })
@@ -34,7 +34,10 @@ export async function POST(request: NextRequest) {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
     if (!supabaseUrl || !serviceKey) {
-      return NextResponse.json({ success: false, error: 'Supabase not configured' }, { status: 500 })
+      return NextResponse.json(
+        { success: false, error: 'Supabase not configured' },
+        { status: 500 }
+      )
     }
 
     const supabase = createClient(supabaseUrl, serviceKey, {
@@ -66,7 +69,7 @@ export async function POST(request: NextRequest) {
         'id',
         candidates.map(c => c.id)
       )
-    const regIds = new Set((regRows || []).map((r: any) => r.id))
+    const regIds = new Set((regRows || []).map((r: { id: string }) => r.id))
 
     const keep =
       candidates.find(c => regIds.has(c.id)) ||
@@ -90,17 +93,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log(
-      `[link-identity] Merged ${currentUserId} (${email}) into ${mergedId || keep.id}`
-    )
+    console.log(`[link-identity] Merged ${currentUserId} (${email}) into ${mergedId || keep.id}`)
 
     return NextResponse.json({
       success: true,
       merged: true,
       keepUserId: mergedId || keep.id,
     })
-  } catch (error: any) {
-    console.warn('[link-identity] error:', error?.message)
-    return NextResponse.json({ success: false, error: error?.message || 'Xatolik' }, { status: 500 })
+  } catch (e) {
+    const message = e instanceof Error ? e.message : 'Xatolik'
+    console.warn('[link-identity] error:', message)
+    return NextResponse.json({ success: false, error: message }, { status: 500 })
   }
 }

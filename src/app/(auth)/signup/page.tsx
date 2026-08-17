@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import Link from 'next/link'
-import { firebaseAuth } from '@/services/firebase-auth'
+import { firebaseAuth } from '@/services/supabase-auth'
 
 // Form validation schema
 const signUpSchema = z

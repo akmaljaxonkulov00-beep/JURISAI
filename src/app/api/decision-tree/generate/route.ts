@@ -1,11 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import {
-  checkAndIncrement,
-  getIdentityFromRequest,
-  usageMessage,
-} from '@/lib/usage-limits'
+import { requireUser } from '@/lib/server-auth'
+import { checkAndIncrement, usageMessage } from '@/lib/usage-limits'
 
-const GROQ_API_KEY = process.env.GROQ_API_KEY || process.env.NEXT_PUBLIC_GROQ_API_KEY
+const GROQ_API_KEY = process.env.GROQ_API_KEY
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
 
 interface AiNode {
@@ -36,13 +33,21 @@ export async function POST(request: NextRequest) {
     if (!scenario || typeof scenario !== 'string' || scenario.trim().length < 5) {
       return NextResponse.json({ success: false, error: 'Ish tavsifi juda qisqa' }, { status: 400 })
     }
+    if (scenario.length > 8000) {
+      return NextResponse.json(
+        { success: false, error: 'Ish tavsifi juda uzun — maksimal 8 000 belgi' },
+        { status: 400 }
+      )
+    }
 
     if (!GROQ_API_KEY) {
       return NextResponse.json({ success: false, error: 'AI xizmati sozlanmagan' }, { status: 500 })
     }
 
-    // ── AI limit tekshiruvi ──
-    const identity = getIdentityFromRequest(request, body)
+    // ── Autentifikatsiya + AI limit tekshiruvi ──
+    const auth = await requireUser(request)
+    if (!auth.ok) return auth.response
+    const identity = { userId: auth.user.id, email: auth.user.email || undefined }
     const usage = await checkAndIncrement({
       ...identity,
       feature: 'decision_tree',
@@ -137,7 +142,7 @@ QAT'IY QOIDALAR:
     }
 
     const data = await response.json()
-    let raw = data.choices[0]?.message?.content || ''
+    const raw = data.choices[0]?.message?.content || ''
 
     // JSON ni matndan ajratib olish (ba'zi modellar ```json blok qaytaradi)
     const jsonMatch = raw.match(/\{[\s\S]*\}/)
@@ -194,11 +199,8 @@ QAT'IY QOIDALAR:
     }
 
     return NextResponse.json({ success: true, tree: normalized })
-  } catch (error: any) {
+  } catch (error) {
     console.error('Decision tree generate error:', error)
-    return NextResponse.json(
-      { success: false, error: error?.message || 'Xatolik yuz berdi' },
-      { status: 500 }
-    )
+    return NextResponse.json({ success: false, error: 'Xatolik yuz berdi' }, { status: 500 })
   }
 }

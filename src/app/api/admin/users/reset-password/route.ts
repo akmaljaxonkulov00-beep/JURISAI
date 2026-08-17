@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { requireAdmin } from '@/lib/server-auth'
+import { logAdminAction } from '@/lib/admin-audit'
 
 /**
  * POST /api/admin/users/reset-password
@@ -13,6 +15,9 @@ import { createClient } from '@supabase/supabase-js'
  */
 export async function POST(request: NextRequest) {
   try {
+    const auth = await requireAdmin(request)
+    if (!auth.ok) return auth.response
+
     const body = await request.json()
     const userId = String(body?.userId || '').trim()
     const email = String(body?.email || '').trim()
@@ -34,10 +39,7 @@ export async function POST(request: NextRequest) {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
     if (!supabaseUrl || !serviceKey) {
-      return NextResponse.json(
-        { success: false, error: 'Supabase sozlanmagan' },
-        { status: 500 }
-      )
+      return NextResponse.json({ success: false, error: 'Supabase sozlanmagan' }, { status: 500 })
     }
 
     const supabase = createClient(supabaseUrl, serviceKey, {
@@ -49,6 +51,16 @@ export async function POST(request: NextRequest) {
       email_confirm: true,
     })
 
+    await logAdminAction({
+      admin: auth.user,
+      action: 'user_password_reset',
+      targetType: 'user',
+      targetId: userId,
+      targetEmail: email || data?.user?.email || '',
+      details: { userId },
+      success: !error,
+    })
+
     if (error) {
       console.warn('[reset-password] error:', error.message)
       return NextResponse.json({ success: false, error: error.message }, { status: 200 })
@@ -58,11 +70,9 @@ export async function POST(request: NextRequest) {
       success: true,
       message: `Parol muvaffaqiyatli o'rnatildi (${data?.user?.email || email || userId.slice(0, 8)})`,
     })
-  } catch (error: any) {
-    console.warn('[reset-password] exception:', error?.message)
-    return NextResponse.json(
-      { success: false, error: error?.message || 'Xatolik' },
-      { status: 200 }
-    )
+  } catch (error) {
+    console.warn('[reset-password] exception:', error)
+    const message = error instanceof Error ? error.message : 'Xatolik'
+    return NextResponse.json({ success: false, error: message }, { status: 200 })
   }
 }

@@ -17,7 +17,7 @@ import {
   BarChart3,
   LogOut,
 } from 'lucide-react'
-import { firebaseAuth } from '@/services/firebase-auth'
+import { firebaseAuth } from '@/services/supabase-auth'
 
 interface SidebarProps {
   currentPage?: string

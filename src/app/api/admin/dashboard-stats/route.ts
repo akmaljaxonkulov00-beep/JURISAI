@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireAdmin } from '@/lib/server-auth'
+import { getErrorMessage } from '@/lib/errors'
 
 /**
  * GET /api/admin/dashboard-stats
@@ -24,6 +26,9 @@ import { NextRequest, NextResponse } from 'next/server'
  */
 export async function GET(request: NextRequest) {
   try {
+    const auth = await requireAdmin(request)
+    if (!auth.ok) return auth.response
+
     const { createClient } = await import('@supabase/supabase-js')
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
@@ -96,22 +101,40 @@ export async function GET(request: NextRequest) {
           const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate())
           const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
 
-          result.active_users_today = authUsers.filter((u: any) => {
-            const lastLogin = u.last_sign_in_at ? new Date(u.last_sign_in_at) : null
-            return lastLogin && lastLogin >= todayStart
-          }).length
+          result.active_users_today = authUsers.filter(
+            (u: {
+              last_sign_in_at?: string
+              created_at?: string
+              raw_user_meta_data?: { subscription_plan?: string }
+            }) => {
+              const lastLogin = u.last_sign_in_at ? new Date(u.last_sign_in_at) : null
+              return lastLogin && lastLogin >= todayStart
+            }
+          ).length
 
           // Count users registered this month
-          result.users_this_month = authUsers.filter((u: any) => {
-            const created = u.created_at ? new Date(u.created_at) : null
-            return created && created >= monthStart
-          }).length
+          result.users_this_month = authUsers.filter(
+            (u: {
+              last_sign_in_at?: string
+              created_at?: string
+              raw_user_meta_data?: { subscription_plan?: string }
+            }) => {
+              const created = u.created_at ? new Date(u.created_at) : null
+              return created && created >= monthStart
+            }
+          ).length
 
           // Count premium users
-          result.premium_users = authUsers.filter((u: any) => {
-            const plan = (u.raw_user_meta_data?.subscription_plan || '').toLowerCase()
-            return plan && plan !== 'free' && plan !== ''
-          }).length
+          result.premium_users = authUsers.filter(
+            (u: {
+              last_sign_in_at?: string
+              created_at?: string
+              raw_user_meta_data?: { subscription_plan?: string }
+            }) => {
+              const plan = (u.raw_user_meta_data?.subscription_plan || '').toLowerCase()
+              return plan && plan !== 'free' && plan !== ''
+            }
+          ).length
         }
       }
     } catch {
@@ -140,12 +163,12 @@ export async function GET(request: NextRequest) {
     })
     res.headers.set('Cache-Control', 'no-store, max-age=0')
     return res
-  } catch (error: any) {
+  } catch (error) {
     console.error('[Dashboard Stats] Error:', error)
     return NextResponse.json(
       {
         success: false,
-        error: error?.message || 'Failed to fetch dashboard stats',
+        error: getErrorMessage(error) || 'Failed to fetch dashboard stats',
         stats: {
           total_users: 0,
           total_documents: 0,

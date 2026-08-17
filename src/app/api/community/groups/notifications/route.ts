@@ -1,22 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getServiceClient, requireUser } from '@/lib/community-server'
 
-async function getSupabase() {
-  const { createClient } = await import('@supabase/supabase-js')
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-  if (!supabaseUrl || !supabaseKey) return null
-  return createClient(supabaseUrl, supabaseKey)
-}
+// Guruh bildirishnomalari. Identity faqat session'dan — userId ishonilmaydi.
 
-// GET /api/community/groups/notifications?userId=... — foydalanuvchining guruh bildirishnomalari
+// GET /api/community/groups/notifications — foydalanuvchining O'Z bildirishnomalari
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
-    const userId = searchParams.get('userId')
+    const auth = await requireUser(request)
+    if (!auth.ok) return auth.response
+    const userId = auth.user.id
 
-    if (!userId) return NextResponse.json({ success: true, data: [] })
-
-    const supabase = await getSupabase()
+    const supabase = await getServiceClient()
     if (!supabase) return NextResponse.json({ success: true, data: [] })
 
     const { data, error } = await supabase
@@ -28,26 +22,33 @@ export async function GET(request: NextRequest) {
 
     if (error) throw error
     return NextResponse.json({ success: true, data: data || [] })
-  } catch (err: any) {
+  } catch (err: unknown) {
     return NextResponse.json(
-      { success: false, error: err.message || "Bildirishnomalarni yuklashda xatolik" },
+      {
+        success: false,
+        error: err instanceof Error ? err.message : 'Bildirishnomalarni yuklashda xatolik',
+      },
       { status: 500 }
     )
   }
 }
 
-// PATCH — o'qilgan deb belgilash. Body: { id } yoki { all: true, userId }
+// PATCH — o'qilgan deb belgilash. Body: { id } yoki { all: true } — faqat O'Z bildirishnomalari
 export async function PATCH(request: NextRequest) {
   try {
-    const body = await request.json()
-    const { id, all, userId } = body
+    const auth = await requireUser(request)
+    if (!auth.ok) return auth.response
+    const userId = auth.user.id
 
-    const supabase = await getSupabase()
+    const body = await request.json()
+    const { id, all } = body
+
+    const supabase = await getServiceClient()
     if (!supabase) {
       return NextResponse.json({ success: false, error: 'Supabase sozlanmagan' }, { status: 500 })
     }
 
-    if (all && userId) {
+    if (all) {
       const { data, error } = await supabase
         .from('community_group_notifications')
         .update({ read: true })
@@ -59,42 +60,44 @@ export async function PATCH(request: NextRequest) {
     }
 
     if (!id) {
-      return NextResponse.json(
-        { success: false, error: 'id kiritilishi shart' },
-        { status: 400 }
-      )
+      return NextResponse.json({ success: false, error: 'id kiritilishi shart' }, { status: 400 })
     }
 
+    // Boshqa foydalanuvchining bildirishnomasi mos kelmasa — xato emas, no-op
     const { data, error } = await supabase
       .from('community_group_notifications')
       .update({ read: true })
       .eq('id', id)
+      .eq('user_id', userId)
       .select()
-      .single()
     if (error) throw error
-    return NextResponse.json({ success: true, data })
-  } catch (err: any) {
+    return NextResponse.json({ success: true, data: data || [] })
+  } catch (err: unknown) {
     return NextResponse.json(
-      { success: false, error: err.message || "Bildirishnomani yangilashda xatolik" },
+      {
+        success: false,
+        error: err instanceof Error ? err.message : 'Bildirishnomani yangilashda xatolik',
+      },
       { status: 500 }
     )
   }
 }
 
-// DELETE — bildirishnomani o'chirish. ?id=...
+// DELETE — bildirishnomani o'chirish (faqat O'Z bildirishnomasi). ?id=...
 export async function DELETE(request: NextRequest) {
   try {
+    const auth = await requireUser(request)
+    if (!auth.ok) return auth.response
+    const userId = auth.user.id
+
     const { searchParams } = new URL(request.url)
     const id = searchParams.get('id')
 
     if (!id) {
-      return NextResponse.json(
-        { success: false, error: 'id kiritilishi shart' },
-        { status: 400 }
-      )
+      return NextResponse.json({ success: false, error: 'id kiritilishi shart' }, { status: 400 })
     }
 
-    const supabase = await getSupabase()
+    const supabase = await getServiceClient()
     if (!supabase) {
       return NextResponse.json({ success: false, error: 'Supabase sozlanmagan' }, { status: 500 })
     }
@@ -103,11 +106,15 @@ export async function DELETE(request: NextRequest) {
       .from('community_group_notifications')
       .delete()
       .eq('id', id)
+      .eq('user_id', userId)
     if (error) throw error
     return NextResponse.json({ success: true })
-  } catch (err: any) {
+  } catch (err: unknown) {
     return NextResponse.json(
-      { success: false, error: err.message || "Bildirishnomani o'chirishda xatolik" },
+      {
+        success: false,
+        error: err instanceof Error ? err.message : "Bildirishnomani o'chirishda xatolik",
+      },
       { status: 500 }
     )
   }

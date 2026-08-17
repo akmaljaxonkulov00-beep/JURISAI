@@ -67,7 +67,7 @@ export function useOnlineUsers(): OnlineUsersState {
         for (const [key, presences] of Object.entries(presenceState)) {
           const presencesArray = Array.isArray(presences) ? presences : [presences]
           for (const p of presencesArray) {
-            const pData = p as any
+            const pData = p as { email?: string; name?: string; joined_at?: number }
             onlineUsers.push({
               userId: key,
               email: pData.email || '',

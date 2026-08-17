@@ -1,28 +1,40 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { errorMessage, getServiceClient, requireAdmin, requireUser } from '@/lib/community-server'
 
-async function getSupabase() {
-  const { createClient } = await import('@supabase/supabase-js')
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-  if (!supabaseUrl || !supabaseKey) return null
-  return createClient(supabaseUrl, supabaseKey)
+interface GroupLite {
+  id: string
+  member_count?: number
+  [key: string]: unknown
 }
 
+/**
+ * Jamiyat guruhlari — umumiy endpoint.
+ *
+ * XAVFSIZLIK:
+ * - GET — ommaviy guruhlar hammaga ko'rinadi; maxfiy guruhlar FAQAT
+ *   session'dagi foydalanuvchining o'z a'zoligiga qarab qaytadi
+ *   (query'dagi memberId ishonilmaydi — boshqa userning maxfiy guruhlari ko'rinmaydi).
+ * - POST/PUT/PATCH/DELETE — identity faqat tasdiqlangan session'dan.
+ *   `admin: true` body flag'i o'rniga server-side requireAdmin ishlaydi.
+ */
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const id = searchParams.get('id')
     const category = searchParams.get('category')
-    const memberId = searchParams.get('memberId') || ''
     const search = (searchParams.get('search') || '').trim()
     const privacy = searchParams.get('privacy') || 'all'
 
-    const supabase = await getSupabase()
+    const supabase = await getServiceClient()
     if (!supabase) {
       return NextResponse.json({ success: true, data: [] })
     }
 
-    // 1) Ommaviy guruhlar — hamma ko'radi (is_private=false; join_approval ham shu yerda)
+    // Maxfiy guruhlar uchun identity faqat session'dan (ixtiyoriy auth)
+    const auth = await requireUser(request)
+    const memberId = auth.ok ? auth.user.id : ''
+
+    // 1) Ommaviy guruhlar — hamma ko'radi
     let query = supabase.from('community_groups').select('*').eq('is_private', false)
 
     if (id) {
@@ -34,22 +46,20 @@ export async function GET(request: NextRequest) {
     if (search) {
       query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%`)
     }
-
-    const { data: publicGroups, error: pubErr } = await query
-      .order('member_count', { ascending: false })
-      .limit(50)
-    if (pubErr) throw pubErr
-
-    let groups = [...(publicGroups || [])]
-
-    // 1b) Maxfiylik filtri: public (tasdiqsiz), approval (tasdiq bilan), private (a'zo orqali)
     if (privacy === 'public') {
       query = query.eq('join_approval', false)
     } else if (privacy === 'approval') {
       query = query.eq('join_approval', true)
     }
 
-    // 2) Maxfiy guruhlar — faqat a'zo bo'lganlar ko'radi
+    const { data: publicGroups, error: pubErr } = await query
+      .order('member_count', { ascending: false })
+      .limit(50)
+    if (pubErr) throw pubErr
+
+    const groups: GroupLite[] = [...(publicGroups || [])] as GroupLite[]
+
+    // 2) Maxfiy guruhlar — faqat session userning O'Z a'zoliklari
     if (memberId) {
       try {
         const { data: memberships } = await supabase
@@ -57,7 +67,9 @@ export async function GET(request: NextRequest) {
           .select('group_id')
           .eq('user_id', memberId)
 
-        const ids = (memberships || []).map((m: any) => m.group_id).filter(Boolean)
+        const ids = (memberships || [])
+          .map((m: { group_id?: string }) => m.group_id)
+          .filter(Boolean)
         if (ids.length > 0) {
           const { data: privateGroups } = await supabase
             .from('community_groups')
@@ -66,7 +78,7 @@ export async function GET(request: NextRequest) {
             .eq('is_private', true)
             .order('member_count', { ascending: false })
             .limit(50)
-          groups = [...groups, ...(privateGroups || [])]
+          groups.push(...(privateGroups || []))
         }
       } catch {
         /* a'zolik so'rovi xatosi — faqat ommaviy guruhlar qaytadi */
@@ -75,7 +87,7 @@ export async function GET(request: NextRequest) {
 
     // 3) Birlashtirilgan ro'yxat (duplikat yo'q)
     const seen = new Set<string>()
-    groups = groups
+    const merged = groups
       .filter(g => {
         if (seen.has(g.id)) return false
         seen.add(g.id)
@@ -83,10 +95,10 @@ export async function GET(request: NextRequest) {
       })
       .sort((a, b) => (b.member_count || 0) - (a.member_count || 0))
 
-    return NextResponse.json({ success: true, data: groups })
-  } catch (err: any) {
+    return NextResponse.json({ success: true, data: merged })
+  } catch (err: unknown) {
     return NextResponse.json(
-      { success: false, error: err.message || 'Guruhlarni yuklashda xatolik' },
+      { success: false, error: errorMessage(err, 'Guruhlarni yuklashda xatolik') },
       { status: 500 }
     )
   }
@@ -94,8 +106,11 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const auth = await requireUser(request)
+    if (!auth.ok) return auth.response
+
     const body = await request.json()
-    const { name, description, icon, category, is_private, join_approval, userId } = body
+    const { name, description, icon, category, is_private, join_approval } = body
 
     if (!name) {
       return NextResponse.json(
@@ -104,19 +119,21 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const supabase = await getSupabase()
+    const supabase = await getServiceClient()
     if (!supabase) {
       return NextResponse.json({ success: false, error: 'Supabase sozlanmagan' }, { status: 500 })
     }
 
-    // join_approval ustuni hali migratsiya run qilinmagan bo'lsa — xatoni yumshoq o'tkazamiz
-    let insertPayload: Record<string, any> = {
+    // Yaratuvchi — faqat session user (body'dagi userId ishonilmaydi)
+    const creatorId = auth.user.id
+
+    const insertPayload: Record<string, unknown> = {
       name,
       description: description || '',
       icon: icon || '👥',
       category: category || 'Umumiy',
       is_private: !!is_private,
-      created_by: userId || null,
+      created_by: creatorId,
       member_count: 0,
       post_count: 0,
     }
@@ -141,9 +158,9 @@ export async function POST(request: NextRequest) {
     if (error) throw error
 
     return NextResponse.json({ success: true, data })
-  } catch (err: any) {
+  } catch (err: unknown) {
     return NextResponse.json(
-      { success: false, error: err.message || 'Guruh yaratishda xatolik' },
+      { success: false, error: errorMessage(err, 'Guruh yaratishda xatolik') },
       { status: 500 }
     )
   }
@@ -151,8 +168,11 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
+    const auth = await requireUser(request)
+    if (!auth.ok) return auth.response
+
     const body = await request.json()
-    const { id, userId, admin, ...updates } = body
+    const { id, admin, ...updates } = body
 
     if (!id) {
       return NextResponse.json(
@@ -161,26 +181,28 @@ export async function PUT(request: NextRequest) {
       )
     }
 
-    const supabase = await getSupabase()
+    const supabase = await getServiceClient()
     if (!supabase) {
       return NextResponse.json({ success: false, error: 'Supabase sozlanmagan' }, { status: 500 })
     }
 
-    // ── Ruxsat tekshiruvi: faqat guruh yaratuvchisi (yoki admin panel) ──
-    let isAdminActor = admin === true || admin === '1'
+    const actorId = auth.user.id
+
+    // ── Ruxsat: admin flag'i body'dan EMAS — server-side requireAdmin ──
+    let isAdminActor = false
+    if (admin === true || admin === '1') {
+      const adm = await requireAdmin(request)
+      if (!adm.ok) return adm.response
+      isAdminActor = true
+    }
+
     if (!isAdminActor) {
-      if (!userId) {
-        return NextResponse.json(
-          { success: false, error: "Guruhni faqat yaratuvchisi o'zgartira oladi" },
-          { status: 403 }
-        )
-      }
       const { data: existing } = await supabase
         .from('community_groups')
         .select('created_by')
         .eq('id', id)
         .single()
-      if (!existing || existing.created_by?.toString() !== userId) {
+      if (!existing || existing.created_by?.toString() !== actorId) {
         return NextResponse.json(
           { success: false, error: "Guruhni faqat yaratuvchisi o'zgartira oladi" },
           { status: 403 }
@@ -188,8 +210,10 @@ export async function PUT(request: NextRequest) {
       }
     }
 
-    // member_count — mutlaq qiymat o'rniga nisbiy o'zgartirish (increment/decrement)
-    let updatePayload: Record<string, any> = { ...updates, updated_at: new Date().toISOString() }
+    const updatePayload: Record<string, unknown> = {
+      ...updates,
+      updated_at: new Date().toISOString(),
+    }
     if (typeof updates.member_count !== 'undefined') {
       delete updatePayload.member_count
     }
@@ -209,12 +233,11 @@ export async function PUT(request: NextRequest) {
         delete updatePayload.transfer_to
       } else {
         const newOwnerId = String(updates.transfer_to)
-        // Eski yaratuvchi → moderator, yangi → creator
         const { data: ownerMembership } = await supabase
           .from('community_group_members')
           .select('id')
           .eq('group_id', id)
-          .eq('user_id', userId)
+          .eq('user_id', actorId)
           .maybeSingle()
         if (ownerMembership) {
           await supabase
@@ -222,10 +245,17 @@ export async function PUT(request: NextRequest) {
             .update({ role: 'moderator', updated_at: new Date().toISOString() })
             .eq('id', ownerMembership.id)
         }
-        await supabase.from('community_group_members').upsert(
-          { group_id: id, user_id: newOwnerId, role: 'creator', joined_at: new Date().toISOString() },
-          { onConflict: 'group_id,user_id' }
-        )
+        await supabase
+          .from('community_group_members')
+          .upsert(
+            {
+              group_id: id,
+              user_id: newOwnerId,
+              role: 'creator',
+              joined_at: new Date().toISOString(),
+            },
+            { onConflict: 'group_id,user_id' }
+          )
         updatePayload.created_by = newOwnerId
         delete updatePayload.transfer_to
       }
@@ -241,21 +271,23 @@ export async function PUT(request: NextRequest) {
     if (error) throw error
 
     return NextResponse.json({ success: true, data })
-  } catch (err: any) {
+  } catch (err: unknown) {
     return NextResponse.json(
-      { success: false, error: err.message || 'Guruhni yangilashda xatolik' },
+      { success: false, error: errorMessage(err, 'Guruhni yangilashda xatolik') },
       { status: 500 }
     )
   }
 }
 
 // PATCH — member_count ni nisbiy o'zgartirish (delta: +1 / -1)
-// PostgREST arifmetik update qilmaydi, shuning uchun joriy qiymatni o'qib,
-// yangi qiymatni yozamiz.
+// Identity faqat session'dan — foydalanuvchi faqat O'Z a'zoligini qo'shadi/olib tashlaydi.
 export async function PATCH(request: NextRequest) {
   try {
+    const auth = await requireUser(request)
+    if (!auth.ok) return auth.response
+
     const body = await request.json()
-    const { id, delta, userId } = body
+    const { id, delta } = body
 
     if (!id || typeof delta !== 'number') {
       return NextResponse.json(
@@ -264,38 +296,46 @@ export async function PATCH(request: NextRequest) {
       )
     }
 
-    const supabase = await getSupabase()
+    const supabase = await getServiceClient()
     if (!supabase) {
       return NextResponse.json({ success: false, error: 'Supabase sozlanmagan' }, { status: 500 })
     }
 
-    // 1) A'zolikni DB'da saqlash (userId berilgan bo'lsa)
-    if (userId) {
-      if (delta > 0) {
-        await supabase
-          .from('community_group_members')
-          .upsert(
-            { group_id: id, user_id: userId, role: 'member', joined_at: new Date().toISOString() },
-            { onConflict: 'group_id,user_id', ignoreDuplicates: true }
-          )
-      } else {
-        await supabase
-          .from('community_group_members')
-          .delete()
-          .eq('group_id', id)
-          .eq('user_id', userId)
-      }
-    }
+    const userId = auth.user.id
 
-    // 2) member_count ni nisbiy yangilash
+    // 1) Guruh holatini o'qish (a'zolik + maxfiylik tekshiruvi uchun)
     const { data: current, error: curErr } = await supabase
       .from('community_groups')
-      .select('member_count')
+      .select('member_count, is_private, created_by')
       .eq('id', id)
       .single()
-
     if (curErr) throw curErr
 
+    // Maxfiy guruhga to'g'ridan-to'g'ri qo'shilish taqiqlanadi — taklif kodi kerak
+    if (delta > 0 && current?.is_private && current.created_by?.toString() !== userId) {
+      return NextResponse.json(
+        { success: false, error: "Maxfiy guruhga taklif kodi orqali qo'shilishingiz mumkin" },
+        { status: 403 }
+      )
+    }
+
+    // 2) A'zolikni DB'da saqlash (faqat session user uchun)
+    if (delta > 0) {
+      await supabase
+        .from('community_group_members')
+        .upsert(
+          { group_id: id, user_id: userId, role: 'member', joined_at: new Date().toISOString() },
+          { onConflict: 'group_id,user_id', ignoreDuplicates: true }
+        )
+    } else {
+      await supabase
+        .from('community_group_members')
+        .delete()
+        .eq('group_id', id)
+        .eq('user_id', userId)
+    }
+
+    // 3) member_count ni nisbiy yangilash
     const newCount = Math.max(0, (current?.member_count || 0) + delta)
 
     const { data, error } = await supabase
@@ -308,9 +348,9 @@ export async function PATCH(request: NextRequest) {
     if (error) throw error
 
     return NextResponse.json({ success: true, data })
-  } catch (err: any) {
+  } catch (err: unknown) {
     return NextResponse.json(
-      { success: false, error: err.message || "A'zolar sonini yangilashda xatolik" },
+      { success: false, error: errorMessage(err, "A'zolar sonini yangilashda xatolik") },
       { status: 500 }
     )
   }
@@ -318,10 +358,12 @@ export async function PATCH(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+    const auth = await requireUser(request)
+    if (!auth.ok) return auth.response
+
     const { searchParams } = new URL(request.url)
     const id = searchParams.get('id')
-    const userId = searchParams.get('userId') || ''
-    const admin = searchParams.get('admin') === '1'
+    const adminMode = searchParams.get('admin') === '1'
 
     if (!id) {
       return NextResponse.json(
@@ -330,19 +372,17 @@ export async function DELETE(request: NextRequest) {
       )
     }
 
-    const supabase = await getSupabase()
+    const supabase = await getServiceClient()
     if (!supabase) {
       return NextResponse.json({ success: false, error: 'Supabase sozlanmagan' }, { status: 500 })
     }
 
-    // ── Ruxsat tekshiruvi: faqat guruh yaratuvchisi (yoki admin panel) ──
-    if (!admin) {
-      if (!userId) {
-        return NextResponse.json(
-          { success: false, error: "Guruhni faqat yaratuvchisi o'chira oladi" },
-          { status: 403 }
-        )
-      }
+    // ── Ruxsat: admin=1 query flag'i o'rniga server-side requireAdmin ──
+    if (adminMode) {
+      const adm = await requireAdmin(request)
+      if (!adm.ok) return adm.response
+    } else {
+      const userId = auth.user.id
       const { data: existing } = await supabase
         .from('community_groups')
         .select('created_by')
@@ -361,9 +401,9 @@ export async function DELETE(request: NextRequest) {
     if (error) throw error
 
     return NextResponse.json({ success: true })
-  } catch (err: any) {
+  } catch (err: unknown) {
     return NextResponse.json(
-      { success: false, error: err.message || "Guruhni o'chirishda xatolik" },
+      { success: false, error: errorMessage(err, "Guruhni o'chirishda xatolik") },
       { status: 500 }
     )
   }

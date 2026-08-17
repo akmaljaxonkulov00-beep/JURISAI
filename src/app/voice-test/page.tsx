@@ -349,10 +349,10 @@ export default function VoiceTestPage() {
                 <h3 className="font-medium text-blue-900 mb-2">NOTE Ko'rsatmalar:</h3>
                 <ul className="text-sm text-blue-700 space-y-1">
                   <li>• Mikrofon tugmasini bosing</li>
-                  <li>• Browser ruxsat so'rasa, "Allow" bering</li>
+                  <li>• Browser ruxsat so'rasa, “Allow” bering</li>
                   <li>• Aniq va sekin gapiring</li>
                   <li>• Rus tilida gapirish yaxshiroq taniladi</li>
-                  <li>• To'xtatish uchun "Stop" bosing</li>
+                  <li>• To'xtatish uchun “Stop” bosing</li>
                 </ul>
               </div>
 

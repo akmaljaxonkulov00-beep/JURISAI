@@ -3,8 +3,7 @@
  * Uses Node.js https module directly to bypass SSL issues in development
  */
 
-const GROQ_API_KEY =
-  process.env.GROQ_API_KEY || process.env.NEXT_PUBLIC_GROQ_API_KEY || 'YOUR_GROQ_API_KEY_HERE'
+const GROQ_API_KEY = process.env.GROQ_API_KEY || 'YOUR_GROQ_API_KEY_HERE'
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
 
 export interface AIRequest {
@@ -23,8 +22,22 @@ export interface AIResponse {
   }
 }
 
+interface HttpsResult {
+  ok: boolean
+  status?: number
+  data: {
+    choices?: Array<{ message?: { content?: string } }>
+    usage?: { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number }
+    error?: { message?: string }
+  }
+}
+
 // Make HTTPS request using Node.js native https module to bypass SSL issues
-async function httpsRequest(url: string, options: any, body: string): Promise<any> {
+async function httpsRequest(
+  url: string,
+  options: { method?: string; headers?: Record<string, string> },
+  body: string
+): Promise<HttpsResult> {
   return new Promise((resolve, reject) => {
     try {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -39,26 +52,29 @@ async function httpsRequest(url: string, options: any, body: string): Promise<an
         rejectUnauthorized: process.env.NODE_ENV === 'production', // Production da true, development da false
       }
 
-      const req = https.request(reqOptions, (res: any) => {
-        let data = ''
-        res.on('data', (chunk: any) => {
-          data += chunk
-        })
-        res.on('end', () => {
-          try {
-            const parsed = JSON.parse(data)
-            if (res.statusCode >= 400) {
-              reject(new Error(`API Error ${res.statusCode}: ${parsed?.error?.message || data}`))
-            } else {
-              resolve({ ok: true, status: res.statusCode, data: parsed })
+      const req = https.request(
+        reqOptions,
+        (res: { statusCode?: number; on: (ev: string, cb: (chunk?: unknown) => void) => void }) => {
+          let data = ''
+          res.on('data', (chunk?: unknown) => {
+            data += String(chunk || '')
+          })
+          res.on('end', () => {
+            try {
+              const parsed = JSON.parse(data)
+              if ((res.statusCode || 0) >= 400) {
+                reject(new Error(`API Error ${res.statusCode}: ${parsed?.error?.message || data}`))
+              } else {
+                resolve({ ok: true, status: res.statusCode, data: parsed })
+              }
+            } catch {
+              reject(new Error(`JSON parse error: ${data.substring(0, 200)}`))
             }
-          } catch {
-            reject(new Error(`JSON parse error: ${data.substring(0, 200)}`))
-          }
-        })
-      })
+          })
+        }
+      )
 
-      req.on('error', (err: any) => reject(err))
+      req.on('error', (err: Error) => reject(err))
       req.write(body)
       req.end()
     } catch (err) {
@@ -106,7 +122,7 @@ export class AIClient {
           headers: {
             Authorization: `Bearer ${this.apiKey}`,
             'Content-Type': 'application/json',
-            'Content-Length': Buffer.byteLength(requestBody),
+            'Content-Length': String(Buffer.byteLength(requestBody)),
           },
         },
         requestBody

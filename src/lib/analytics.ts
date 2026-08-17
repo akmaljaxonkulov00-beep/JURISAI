@@ -5,12 +5,24 @@
 
 interface AnalyticsEvent {
   name: string
-  properties?: Record<string, any>
+  properties?: Record<string, unknown>
 }
 
 interface PageView {
   path: string
   title?: string
+}
+
+// Analytics provider'larning minimal tiplari (any o'rniga)
+type GtagFn = (...args: unknown[]) => void
+type Posthog = {
+  capture: (...args: unknown[]) => void
+  identify: (...args: unknown[]) => void
+}
+
+interface AnalyticsWindow {
+  gtag?: GtagFn
+  posthog?: Posthog
 }
 
 class Analytics {
@@ -26,17 +38,19 @@ class Analytics {
   pageView({ path, title }: PageView): void {
     if (!this.isEnabled) return
 
+    const w = window as unknown as AnalyticsWindow
+
     // Google Analytics
-    if (typeof window !== 'undefined' && (window as any).gtag) {
-      ;(window as any).gtag('config', process.env.NEXT_PUBLIC_GA_ID, {
+    if (typeof window !== 'undefined' && w.gtag) {
+      w.gtag('config', process.env.NEXT_PUBLIC_GA_ID, {
         page_path: path,
         page_title: title,
       })
     }
 
     // Posthog
-    if (typeof window !== 'undefined' && (window as any).posthog) {
-      ;(window as any).posthog.capture('$pageview', {
+    if (typeof window !== 'undefined' && w.posthog) {
+      w.posthog.capture('$pageview', {
         $current_url: path,
         title,
       })
@@ -49,14 +63,16 @@ class Analytics {
   event({ name, properties = {} }: AnalyticsEvent): void {
     if (!this.isEnabled) return
 
+    const w = window as unknown as AnalyticsWindow
+
     // Google Analytics
-    if (typeof window !== 'undefined' && (window as any).gtag) {
-      ;(window as any).gtag('event', name, properties)
+    if (typeof window !== 'undefined' && w.gtag) {
+      w.gtag('event', name, properties)
     }
 
     // Posthog
-    if (typeof window !== 'undefined' && (window as any).posthog) {
-      ;(window as any).posthog.capture(name, properties)
+    if (typeof window !== 'undefined' && w.posthog) {
+      w.posthog.capture(name, properties)
     }
 
     // Console in development
@@ -68,17 +84,19 @@ class Analytics {
   /**
    * Track user properties
    */
-  identify(userId: string, properties?: Record<string, any>): void {
+  identify(userId: string, properties?: Record<string, unknown>): void {
     if (!this.isEnabled) return
 
+    const w = window as unknown as AnalyticsWindow
+
     // Google Analytics
-    if (typeof window !== 'undefined' && (window as any).gtag) {
-      ;(window as any).gtag('set', { user_id: userId, ...properties })
+    if (typeof window !== 'undefined' && w.gtag) {
+      w.gtag('set', { user_id: userId, ...properties })
     }
 
     // Posthog
-    if (typeof window !== 'undefined' && (window as any).posthog) {
-      ;(window as any).posthog.identify(userId, properties)
+    if (typeof window !== 'undefined' && w.posthog) {
+      w.posthog.identify(userId, properties)
     }
   }
 
@@ -124,7 +142,7 @@ class Analytics {
   /**
    * Track error
    */
-  trackError(error: Error, context?: Record<string, any>): void {
+  trackError(error: Error, context?: Record<string, unknown>): void {
     this.event({
       name: 'error_occurred',
       properties: {

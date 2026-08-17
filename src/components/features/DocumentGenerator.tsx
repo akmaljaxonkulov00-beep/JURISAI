@@ -53,7 +53,7 @@ export default function DocumentGenerator() {
 
   const loadTemplates = () => {
     try {
-      setTemplates(documentTemplatesData.templates as any)
+      setTemplates(documentTemplatesData.templates as DocumentTemplate[])
     } catch (error) {
       console.error('Error loading templates:', error)
     }
@@ -124,15 +124,13 @@ export default function DocumentGenerator() {
 
       if (!response.ok) {
         const err = await response.json().catch(() => null)
-        throw new Error(
-          err?.message || err?.error || 'Hujjat yaratishda xatolik yuz berdi'
-        )
+        throw new Error(err?.message || err?.error || 'Hujjat yaratishda xatolik yuz berdi')
       }
 
       const data = await response.json()
       const content = data.document || ''
       if (!content) {
-        throw new Error('Hujjat bo\'sh qaytdi, qayta urinib ko\'ring')
+        throw new Error("Hujjat bo'sh qaytdi, qayta urinib ko'ring")
       }
 
       const newDocument: GeneratedDocument = {
@@ -482,7 +480,7 @@ export default function DocumentGenerator() {
             return (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
+                onClick={() => setActiveTab(tab.id as 'templates' | 'generator' | 'history')}
                 className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg transition-all text-sm font-medium ${
                   activeTab === tab.id
                     ? 'nav-item-active'

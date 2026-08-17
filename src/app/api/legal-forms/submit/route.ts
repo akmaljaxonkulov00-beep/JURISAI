@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { requireUser } from '@/lib/server-auth'
+import { getSupabaseAdmin } from '@/lib/supabase-admin'
 import { trackUsage } from '@/lib/usage-tracking'
 
 export async function POST(request: NextRequest) {
   try {
+    const auth = await requireUser(request)
+    if (!auth.ok) return auth.response
+
     const { template_id, template_name, form_data, category } = await request.json()
 
     if (!template_id || !template_name || !form_data) {
@@ -41,12 +45,13 @@ export async function POST(request: NextRequest) {
       priority: 'normal',
     }
 
-    // Save submission to database
-    const { data, error } = await supabase
+    // Save submission to database (user_id — session'dan)
+    const { data, error } = await getSupabaseAdmin()
       .from('legal_form_submissions')
       .insert([
         {
           id: submissionId,
+          user_id: auth.user.id,
           template_id: template_id,
           template_name: template_name,
           category: category || 'general',

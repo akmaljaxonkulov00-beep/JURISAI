@@ -1,92 +1,90 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
 
+interface ArticleDetailRow {
+  article_number: string
+  title?: string | null
+  content?: string | null
+  chapter?: string | null
+  section?: string | null
+  penalties?: string | null
+  cross_references?: string[] | null
+  updated_at?: string | null
+  categories?: { id: string; code_id: string; name: string } | null
+}
+
+/**
+ * GET /api/legal/database/documents/:id
+ *
+ * Real ma'lumot: Supabase `articles` + `categories` jadvalidan moddani qaytaradi.
+ * id formati: `{code_id}_{article_number}` (masalan criminal_code_169).
+ * Topilmasa 404. Mock/hardcoded matn yo'q.
+ */
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
-
     if (!id) {
       return NextResponse.json({ error: 'Document ID talab qilinadi' }, { status: 400 })
     }
 
-    // Mock document details
-    const mockDocument = {
-      id: id,
-      title: "O'zbekiston Respublikasi Fuqarolik kodeksi",
-      type: 'code',
-      category: 'civil',
-      content: `O\'zbekiston Respublikasi Fuqarolik kodeksi
+    // id: {code_id}_{article_number}
+    const underscore = id.lastIndexOf('_')
+    if (underscore <= 0 || underscore === id.length - 1) {
+      return NextResponse.json({ error: "Noto'g'ri document ID formati" }, { status: 400 })
+    }
+    const codeId = id.slice(0, underscore)
+    const articleNumber = id.slice(underscore + 1)
 
-BO'LIM 1. UMUMIY QOIDALAR
+    const { createClient } = await import('@supabase/supabase-js')
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseKey =
+      process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-1-modda. Fuqarolik qonunchiligi
-O\'zbekiston Respublikasida fuqarolik qonunchiligiga fuqarolik-huquqiy munosabatlarni tartibga soluvchi qonun hujjatlari, shu jumladan, ushbu Kodeks, fuqarolik huquqlari va erkinliklarining asosini tashkil etuvchi O\'zbekiston Respublikasi Konstitutsiyasi, shuningdek, O\'zbekiston Respublikasining xalqaro shartnomalari kiradi.
-
-2-modda. Fuqarolik-huquqiy munosabatlarning asoslari
-Fuqarolik-huquqiy munosabatlar asoslari fuqarolik qonunchiligida nazarda tutilgan hollarda, shuningdek, fuqarolik huquqlari va erkinliklarining buzilishi oqibatida kelib chiqqan holatlarda yuzaga keladi.
-
-3-modda. Fuqarolik-huquqiy munosabatlarning turlari
-Fuqarolik-huquqiy munosabatlar shartnoma asosida yoki boshqa asoslarda vujudga kelishi mumkin.
-
-BO'LIM 2. SHARTNOMALAR
-
-350-modda. Shartnomaning bajarilishi
-Shartnoma tomonlari o\'z majburiyatlarini qonun hujjatlarida belgilangan tartibda bajarishlari shart.
-
-357-modda. Shartnomani bekor qilish asoslari
-Shartnoma qonunda nazarda tutilgan hollarda, shuningdek, tomonlarning o\'zaro kelishuviga ko\'ra bekor qilinishi mumkin.
-
-367-modda. Majburiyatni noto\'g\'ri bajarish oqibatida yetkazilgan zararning qoplanishi
-Majburiyatni noto\'g\'ri bajarish oqibatida yetkazilgan zarar to\'liq qoplanishi shart. Zararni qoplashning miqdori va tartibi qonun hujjatlarida belgilanadi.`,
-      url: 'https://lex.uz/acts/-/text/1492387',
-      publication_date: '1996-12-25T00:00:00Z',
-      effective_date: '1997-03-01T00:00:00Z',
-      last_updated: '2023-12-15T00:00:00Z',
-      language: 'uz',
-      pages: 245,
-      articles_count: 768,
-      tags: ['fuqarolik', 'shartnoma', 'majburiyat', 'zarar'],
-      related_documents: [
-        {
-          id: 'doc_2',
-          title: "O'zbekiston Respublikasi Mehnat kodeksi",
-          relation_type: 'related',
-        },
-        {
-          id: 'doc_3',
-          title: "O'zbekiston Respublikasi Oilaviy kodeksi",
-          relation_type: 'related',
-        },
-      ],
-      sections: [
-        {
-          id: 'section_1',
-          title: 'Umumiy qoidalar',
-          articles_range: '1-11',
-          description: 'Fuqarolik qonunchiligining asosiy tamoyillari',
-        },
-        {
-          id: 'section_2',
-          title: 'Shartnomalar',
-          articles_range: '350-453',
-          description: 'Shartnomalar tuzilishi va bajarilishi qoidalari',
-        },
-        {
-          id: 'section_3',
-          title: 'Majburiyatlar',
-          articles_range: '454-653',
-          description: 'Majburiyatlar turlari va bajarilishi',
-        },
-      ],
-      popularity_score: 95,
-      view_count: 15420,
-      download_count: 3280,
-      bookmark_count: 892,
-      created_at: '2024-01-01T00:00:00Z',
-      updated_at: '2024-01-01T00:00:00Z',
+    if (!supabaseUrl || !supabaseKey) {
+      return NextResponse.json({ error: 'Supabase not configured' }, { status: 503 })
     }
 
-    return NextResponse.json(mockDocument)
+    const supabase = createClient(supabaseUrl, supabaseKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    })
+
+    const { data, error } = await supabase
+      .from('articles')
+      .select('*, categories!inner(id, code_id, name)')
+      .eq('code_id', codeId)
+      .eq('article_number', articleNumber)
+      .maybeSingle()
+    const article = data as ArticleDetailRow | null
+
+    if (error) throw error
+    if (!article) {
+      return NextResponse.json(
+        { error: `Modda topilmadi: ${codeId} ${articleNumber}-modda` },
+        { status: 404 }
+      )
+    }
+
+    const category = article.categories
+    const references =
+      Array.isArray(article.cross_references) && article.cross_references.length > 0
+        ? article.cross_references
+        : []
+
+    return NextResponse.json({
+      id,
+      title: `${category?.name || ''} ${article.article_number}-modda: ${article.title || ''}`,
+      type: 'code',
+      category: category?.code_id || codeId,
+      content: article.content || '',
+      article_number: article.article_number,
+      code_name: category?.name || "Noma'lum kodeks",
+      chapter: article.chapter || '',
+      section: article.section || '',
+      penalties: article.penalties || '',
+      references,
+      status: 'active' as const,
+      last_updated: article.updated_at || new Date().toISOString(),
+      source: 'supabase',
+    })
   } catch (error) {
     console.error('Legal document get error:', error)
     return NextResponse.json(

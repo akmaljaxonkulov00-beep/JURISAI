@@ -36,8 +36,9 @@ import {
   FileText,
   BookOpen,
   Mail,
+  type LucideIcon,
 } from 'lucide-react'
-import { firebaseAuth } from '@/services/firebase-auth'
+import { firebaseAuth, type AuthUser } from '@/services/supabase-auth'
 import MonitoringDashboard from '@/components/admin/MonitoringDashboard'
 import AdminTemplateManager from '@/components/admin/AdminTemplateManager'
 import AdminCommunityManager from '@/components/admin/AdminCommunityManager'
@@ -54,6 +55,22 @@ import {
 import UserProfileModal from '@/components/admin/UserProfileModal'
 import OnlineUsersMonitor from '@/components/admin/OnlineUsersMonitor'
 import { useOnlineUsers } from '@/hooks/useOnlineUsers'
+
+interface AdminUser {
+  id: string
+  uid?: string
+  email?: string
+  role?: string
+  subscription_plan?: string
+  subscription_expires_at?: string | null
+  blocked?: boolean
+  is_active?: boolean
+  name?: string
+  full_name?: string
+  created_at?: string
+  last_login?: string
+  [key: string]: unknown
+}
 
 // Lightbox component for viewing receipt images
 function ImageLightbox({ image, onClose }: { image: string | null; onClose: () => void }) {
@@ -147,7 +164,7 @@ export default function AdminDashboard() {
   const { user, isAdmin, setUser, logout: authLogout } = useAuth()
   const [activeTab, setActiveTab] = useState<TabType>('dashboard')
   const [loading, setLoading] = useState(true)
-  const [adminUser, setAdminUser] = useState<any>(null)
+  const [adminUser, setAdminUser] = useState<AdminUser | null>(null)
   const [adminAuthError, setAdminAuthError] = useState('')
   const [authEmail, setAuthEmail] = useState('')
   const [authPassword, setAuthPassword] = useState('')
@@ -217,7 +234,7 @@ export default function AdminDashboard() {
   const [editPlanData, setEditPlanData] = useState<PricingPlan | null>(null)
 
   // Profile modal
-  const [profileModalUser, setProfileModalUser] = useState<any>(null)
+  const [profileModalUser, setProfileModalUser] = useState<AdminUser | null>(null)
   const [profileModalOpen, setProfileModalOpen] = useState(false)
 
   // Payments
@@ -225,7 +242,7 @@ export default function AdminDashboard() {
   const [lightboxImage, setLightboxImage] = useState<string | null>(null)
 
   // Users
-  const [allUsers, setAllUsers] = useState<any[]>([])
+  const [allUsers, setAllUsers] = useState<AdminUser[]>([])
 
   // Site settings
   const [siteSettings, setSiteSettings] = useState<SiteSettings>({
@@ -254,7 +271,7 @@ export default function AdminDashboard() {
 
     // Wire real-time data to local state (initial load + continuous updates)
     setPaymentRequests(realtime.paymentRequests)
-    setAllUsers(realtime.allUsers)
+    setAllUsers(realtime.allUsers.map(u => ({ ...u, id: u.id || u.user_id || u.uid || '' })))
     setLoginActivities(realtime.loginActivities)
     setTokenUsages(realtime.tokenUsages)
     setLoading(realtime.loading)
@@ -311,8 +328,8 @@ export default function AdminDashboard() {
       const result = await firebaseAuth.signIn(normalizedEmail, normalizedPass)
       if (result.success && result.data) {
         if (isAdminRole(result.data.role)) {
-          const adminData: any = {
-            ...result.data,
+          const adminData: AdminUser = {
+            ...(result.data as unknown as AdminUser),
             id: result.data.id || 'admin',
             subscription_plan: result.data.subscription_plan || 'pro',
           }
@@ -323,7 +340,7 @@ export default function AdminDashboard() {
           sessionStorage.setItem('auth_token', adminData.id)
 
           setAdminUser(adminData)
-          setUser(adminData)
+          setUser(adminData as unknown as AuthUser)
           setAdminAuthError('')
         } else {
           setAdminAuthError('Bu akkaunt admin huquqiga ega emas')
@@ -337,7 +354,7 @@ export default function AdminDashboard() {
   }
 
   // ===== USER MANAGEMENT (local + Supabase sync) =====
-  const syncUserToSupabase = async (userData: any) => {
+  const syncUserToSupabase = async (userData: AdminUser) => {
     try {
       await fetch('/api/admin/users', {
         method: 'PATCH',
@@ -356,7 +373,7 @@ export default function AdminDashboard() {
   }
 
   const updateUserRole = (userId: string, newRole: string) => {
-    const updated = allUsers.map((u: any) => {
+    const updated = allUsers.map((u: AdminUser) => {
       if (u.id === userId || u.uid === userId) {
         const newData = { ...u, role: newRole }
         syncUserToSupabase(newData)
@@ -369,7 +386,7 @@ export default function AdminDashboard() {
   }
 
   const updateUserSubscription = (userId: string, plan: string) => {
-    const updated = allUsers.map((u: any) => {
+    const updated = allUsers.map((u: AdminUser) => {
       if (u.id === userId || u.uid === userId) {
         const expiresAt = plan !== 'free' ? new Date(Date.now() + 365 * 86400000).toISOString() : ''
         const newData = { ...u, subscription_plan: plan, subscription_expires_at: expiresAt }
@@ -383,7 +400,7 @@ export default function AdminDashboard() {
   }
 
   const toggleUserBlock = (userId: string) => {
-    const updated = allUsers.map((u: any) => {
+    const updated = allUsers.map((u: AdminUser) => {
       if (u.id === userId || u.uid === userId) {
         const newData = { ...u, blocked: !u.blocked }
         syncUserToSupabase(newData)
@@ -404,21 +421,19 @@ export default function AdminDashboard() {
         body: JSON.stringify({ userId }),
       })
     } catch {}
-    const updated = allUsers.filter((u: any) => u.id !== userId && u.uid !== userId)
+    const updated = allUsers.filter((u: AdminUser) => u.id !== userId && u.uid !== userId)
     setAllUsers(updated)
     localStorage.setItem('registered_users', JSON.stringify(updated))
   }
 
   const resetUserPassword = async (userId: string, email?: string) => {
-    const newPass = prompt(
-      `Yangi parolni kiriting${email ? ` (${email})` : ''} — kamida 6 belgi:`
-    )
+    const newPass = prompt(`Yangi parolni kiriting${email ? ` (${email})` : ''} — kamida 6 belgi:`)
     if (!newPass) return
     if (newPass.length < 6) {
-      alert('Parol kamida 6 belgidan iborat bo\'lishi kerak')
+      alert("Parol kamida 6 belgidan iborat bo'lishi kerak")
       return
     }
-    if (!confirm('Parolni o\'rnatishni tasdiqlaysizmi? Foydalanuvchi yangi parol bilan kiradi.'))
+    if (!confirm("Parolni o'rnatishni tasdiqlaysizmi? Foydalanuvchi yangi parol bilan kiradi."))
       return
     try {
       const res = await fetch('/api/admin/users/reset-password', {
@@ -428,9 +443,9 @@ export default function AdminDashboard() {
       })
       const json = await res.json()
       if (json.success) {
-        alert(json.message || 'Parol muvaffaqiyatli o\'rnatildi')
+        alert(json.message || "Parol muvaffaqiyatli o'rnatildi")
       } else {
-        alert(json.error || 'Parolni o\'rnatishda xatolik')
+        alert(json.error || "Parolni o'rnatishda xatolik")
       }
     } catch {
       alert("Server bilan bog'lanishda xatolik")
@@ -457,7 +472,7 @@ export default function AdminDashboard() {
     cutoff.setDate(cutoff.getDate() - reportDays)
 
     // Users registered in period
-    const newUsers = allUsers.filter((u: any) => {
+    const newUsers = allUsers.filter((u: AdminUser) => {
       const created = u.created_at || u.last_login
       return created && new Date(created) >= cutoff
     })
@@ -483,7 +498,7 @@ export default function AdminDashboard() {
     // Calculate growth vs previous period
     const prevCutoff = new Date()
     prevCutoff.setDate(prevCutoff.getDate() - reportDays * 2)
-    const prevNewUsers = allUsers.filter((u: any) => {
+    const prevNewUsers = allUsers.filter((u: AdminUser) => {
       const created = u.created_at || u.last_login
       return created && new Date(created) >= prevCutoff && new Date(created) < cutoff
     })
@@ -656,7 +671,7 @@ export default function AdminDashboard() {
   const effectiveIsAdmin = isAdmin || isSuperAdmin || !!adminUser || autoDetectedAdmin
   const effectiveUser = adminUser || user
 
-  const tabs: { id: TabType; label: string; icon: any; badge?: number }[] = [
+  const tabs: { id: TabType; label: string; icon: LucideIcon; badge?: number }[] = [
     { id: 'dashboard', label: 'Boshqaruv', icon: Shield },
     { id: 'monitoring', label: 'Monitoring', icon: Activity },
     { id: 'cost', label: 'Xarajat', icon: TrendingUp },
@@ -889,7 +904,7 @@ export default function AdminDashboard() {
                       <p className="text-2xl font-bold text-purple-600 mt-1">
                         {
                           allUsers.filter(
-                            (u: any) => u.subscription_plan && u.subscription_plan !== 'free'
+                            (u: AdminUser) => u.subscription_plan && u.subscription_plan !== 'free'
                           ).length
                         }
                       </p>
@@ -1199,7 +1214,7 @@ export default function AdminDashboard() {
               ) : (
                 <div className="space-y-3">
                   {allUsers
-                    .filter((u: any) => {
+                    .filter((u: AdminUser) => {
                       if (!userSearchQuery) return true
                       const q = userSearchQuery.toLowerCase()
                       return (
@@ -1207,9 +1222,9 @@ export default function AdminDashboard() {
                         (u.email || '').toLowerCase().includes(q)
                       )
                     })
-                    .map((u: any) => {
-                      const tokenCount = getUserTokens(u.id || u.uid)
-                      const tokenCount30 = getUserTokensByPeriod(u.id || u.uid, 30)
+                    .map((u: AdminUser) => {
+                      const tokenCount = getUserTokens(u.id || u.uid || '')
+                      const tokenCount30 = getUserTokensByPeriod(u.id || u.uid || '', 30)
                       return (
                         <div
                           key={u.id || u.uid}
@@ -1281,7 +1296,7 @@ export default function AdminDashboard() {
                               </button>
                               <select
                                 value={u.role || 'USER'}
-                                onChange={e => updateUserRole(u.id || u.uid, e.target.value)}
+                                onChange={e => updateUserRole(u.id || u.uid || '', e.target.value)}
                                 className="text-xs p-1.5 rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-700 dark:text-zinc-300"
                               >
                                 <option value="USER">User</option>
@@ -1290,7 +1305,7 @@ export default function AdminDashboard() {
                               <select
                                 value={u.subscription_plan || 'free'}
                                 onChange={e =>
-                                  updateUserSubscription(u.id || u.uid, e.target.value)
+                                  updateUserSubscription(u.id || u.uid || '', e.target.value)
                                 }
                                 className="text-xs p-1.5 rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-700 dark:text-zinc-300"
                               >
@@ -1299,21 +1314,21 @@ export default function AdminDashboard() {
                                 <option value="pro">Pro</option>
                               </select>
                               <button
-                                onClick={() => toggleUserBlock(u.id || u.uid)}
+                                onClick={() => toggleUserBlock(u.id || u.uid || '')}
                                 className={`p-1.5 rounded-lg text-xs ${u.blocked ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}
                                 title={u.blocked ? 'Faollashtirish' : 'Bloklash'}
                               >
                                 {u.blocked ? <UserCheck size={14} /> : <UserX size={14} />}
                               </button>
                               <button
-                                onClick={() => resetUserPassword(u.id || u.uid, u.email)}
+                                onClick={() => resetUserPassword(u.id || u.uid || '', u.email)}
                                 className="p-1.5 rounded-lg text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-all"
                                 title="Parolni qayta o'rnatish"
                               >
                                 <Key size={14} />
                               </button>
                               <button
-                                onClick={() => deleteUser(u.id || u.uid)}
+                                onClick={() => deleteUser(u.id || u.uid || '')}
                                 className="p-1.5 rounded-lg text-xs bg-red-100 text-red-700 hover:bg-red-200"
                                 title="O'chirish"
                               >
@@ -1324,7 +1339,7 @@ export default function AdminDashboard() {
                         </div>
                       )
                     })}
-                  {allUsers.filter((u: any) => {
+                  {allUsers.filter((u: AdminUser) => {
                     if (!userSearchQuery) return true
                     const q = userSearchQuery.toLowerCase()
                     return (
@@ -1641,7 +1656,7 @@ export default function AdminDashboard() {
                       {field.label}
                     </label>
                     <Input
-                      value={(siteSettings as any)[field.key]}
+                      value={(siteSettings as unknown as Record<string, string>)[field.key]}
                       onChange={e =>
                         setSiteSettings(prev => ({ ...prev, [field.key]: e.target.value }))
                       }

@@ -73,7 +73,7 @@ export default function AppSidebar({ children }: AppSidebarProps) {
 
   // Single source of truth: shared NAV_GROUPS + auth/admin filter
   const groups = filterNavGroups(NAV_GROUPS, { isAuthenticated, isAdmin })
-  const levelProgress = ((stats.level % 20) * 5)
+  const levelProgress = (stats.level % 20) * 5
 
   return (
     <aside

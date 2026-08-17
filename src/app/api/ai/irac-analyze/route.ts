@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSupabaseAdmin } from '@/lib/supabase-admin'
-import { checkAndIncrement, getIdentityFromRequest, usageMessage } from '@/lib/usage-limits'
+import { requireUser } from '@/lib/server-auth'
+import { checkAndIncrement, usageMessage } from '@/lib/usage-limits'
 import { groundPrompt } from '@/lib/legal-rag'
 
-const GROQ_API_KEY = process.env.GROQ_API_KEY || process.env.NEXT_PUBLIC_GROQ_API_KEY
+const GROQ_API_KEY = process.env.GROQ_API_KEY
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
 
 export async function POST(request: NextRequest) {
@@ -17,13 +17,21 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
+    if (caseText.length > 20000) {
+      return NextResponse.json(
+        { error: 'Holat matni juda uzun — maksimal 20 000 belgi' },
+        { status: 400 }
+      )
+    }
 
     if (!GROQ_API_KEY) {
       return NextResponse.json({ error: 'AI xizmati sozlanmagan' }, { status: 500 })
     }
 
-    // ── AI limit tekshiruvi ──
-    const identity = getIdentityFromRequest(request, body)
+    // ── Autentifikatsiya + AI limit tekshiruvi ──
+    const auth = await requireUser(request)
+    if (!auth.ok) return auth.response
+    const identity = { userId: auth.user.id, email: auth.user.email || undefined }
     const usage = await checkAndIncrement({
       ...identity,
       feature: 'irac',
@@ -126,22 +134,6 @@ Analyze the following legal case using IRAC methodology:
     if (conclusion && conclusion.length > 20) confidence += 10
     if (sources.length > 0) confidence += 10
     confidence = Math.min(confidence, 95)
-
-    // Track usage
-    try {
-      const supabase = getSupabaseAdmin()
-      await supabase.from('usage_logs').insert({
-        user_id: 'api',
-        email: 'api@jurisai.uz',
-        name: 'API',
-        tokens: Math.ceil(caseText.length / 4) + Math.ceil(analysisText.length / 4),
-        action: 'irac_analysis',
-        metadata: { text_length: caseText.length, confidence },
-        created_at: new Date().toISOString(),
-      })
-    } catch {
-      /* silent */
-    }
 
     return NextResponse.json({
       issue: issue || analysisText,

@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { checkAndIncrement, getIdentityFromRequest, usageMessage } from '@/lib/usage-limits'
+import { requireUser } from '@/lib/server-auth'
+import { checkAndIncrement, usageMessage } from '@/lib/usage-limits'
 import { groundPrompt } from '@/lib/legal-rag'
 
-const GROQ_API_KEY = process.env.GROQ_API_KEY || process.env.NEXT_PUBLIC_GROQ_API_KEY
+const GROQ_API_KEY = process.env.GROQ_API_KEY
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
 
 /**
@@ -28,13 +29,21 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
+    if (caseText.length > 20000) {
+      return NextResponse.json(
+        { error: 'Holat matni juda uzun — maksimal 20 000 belgi' },
+        { status: 400 }
+      )
+    }
 
     if (!GROQ_API_KEY) {
       return NextResponse.json({ error: 'AI xizmati sozlanmagan' }, { status: 500 })
     }
 
-    // ── AI limit tekshiruvi ──
-    const identity = getIdentityFromRequest(request, body)
+    // ── Autentifikatsiya + AI limit tekshiruvi ──
+    const auth = await requireUser(request)
+    if (!auth.ok) return auth.response
+    const identity = { userId: auth.user.id, email: auth.user.email || undefined }
     const usage = await checkAndIncrement({
       ...identity,
       feature: 'irac',
@@ -121,7 +130,7 @@ Yuqoridagi formatda JSON qaytaring.`
         conclusion: Math.max(0, Math.min(100, Number(parsed.scores?.conclusion) || 0)),
       }
       suggestions = Array.isArray(parsed.suggestions)
-        ? parsed.suggestions.slice(0, 5).map((s: any) => String(s))
+        ? parsed.suggestions.slice(0, 5).map((s: unknown) => String(s))
         : []
     } catch {
       // JSON bo'lmasa — matndan qidirish
@@ -134,9 +143,6 @@ Yuqoridagi formatda JSON qaytaring.`
     return NextResponse.json({ scores, suggestions })
   } catch (error) {
     console.error('IRAC analyze-real error:', error)
-    return NextResponse.json(
-      { error: 'Tahlil qilishda xatolik yuz berdi' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Tahlil qilishda xatolik yuz berdi' }, { status: 500 })
   }
 }
