@@ -29,6 +29,7 @@ import {
   Activity,
   UserCheck,
   UserX,
+  Key,
   Smartphone,
   Search,
   Download,
@@ -406,6 +407,34 @@ export default function AdminDashboard() {
     const updated = allUsers.filter((u: any) => u.id !== userId && u.uid !== userId)
     setAllUsers(updated)
     localStorage.setItem('registered_users', JSON.stringify(updated))
+  }
+
+  const resetUserPassword = async (userId: string, email?: string) => {
+    const newPass = prompt(
+      `Yangi parolni kiriting${email ? ` (${email})` : ''} — kamida 6 belgi:`
+    )
+    if (!newPass) return
+    if (newPass.length < 6) {
+      alert('Parol kamida 6 belgidan iborat bo\'lishi kerak')
+      return
+    }
+    if (!confirm('Parolni o\'rnatishni tasdiqlaysizmi? Foydalanuvchi yangi parol bilan kiradi.'))
+      return
+    try {
+      const res = await fetch('/api/admin/users/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, email, password: newPass }),
+      })
+      const json = await res.json()
+      if (json.success) {
+        alert(json.message || 'Parol muvaffaqiyatli o\'rnatildi')
+      } else {
+        alert(json.error || 'Parolni o\'rnatishda xatolik')
+      }
+    } catch {
+      alert("Server bilan bog'lanishda xatolik")
+    }
   }
 
   // ===== TOKEN TRACKING =====
@@ -1275,6 +1304,13 @@ export default function AdminDashboard() {
                                 title={u.blocked ? 'Faollashtirish' : 'Bloklash'}
                               >
                                 {u.blocked ? <UserCheck size={14} /> : <UserX size={14} />}
+                              </button>
+                              <button
+                                onClick={() => resetUserPassword(u.id || u.uid, u.email)}
+                                className="p-1.5 rounded-lg text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-all"
+                                title="Parolni qayta o'rnatish"
+                              >
+                                <Key size={14} />
                               </button>
                               <button
                                 onClick={() => deleteUser(u.id || u.uid)}
