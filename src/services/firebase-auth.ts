@@ -344,10 +344,42 @@ export async function signUp(
     if (!data?.user) throw new Error("Ro'yxatdan o'tish xatosi")
 
     // ── Email tasdiqlash YOQILGAN (confirmed=false, session=null) ──
-    // Bu holatda session yo'q — foydalanuvchini DARHOL dashboardga
-    // yuborib bo'lmaydi (fake login bo'ladi). Tasdiqlash xati yuborilganini
-    // ko'rsatamiz va /signin ga yo'naltiramiz. Fake session saqlanmaydi.
+    // Supabase'ning standart SMTP'si tasdiqlash xatini ko'p hollarda
+    // yetkazmaydi. Shuning uchun emailni SERVER TOMONIDAN avtomatik
+    // tasdiqlaymiz (/api/auth/auto-confirm) va foydalanuvchini darhol
+    // tizimga kiritamiz — email kutish shart emas.
     if (!data.session) {
+      try {
+        const confirmRes = await fetch('/api/auth/auto-confirm', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: data.user.id }),
+        })
+        const confirmJson = await confirmRes.json()
+
+        // Tasdiqlash muvaffaqiyatli bo'lsa — session ochamiz (avtomatik kirish)
+        if (confirmJson.success) {
+          const { data: signedIn, error: signInError } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+          })
+          if (!signInError && signedIn?.user) {
+            const user = mapSupabaseUser({
+              ...signedIn.user,
+              user_metadata: { name, full_name: name, role: 'USER', subscription_plan: 'free' },
+            })
+            const resolved = await resolveUserRole(user)
+            const saved = saveUserToLocal(resolved)
+            return { success: true, data: saved }
+          }
+        }
+      } catch {
+        // Auto-confirm xatosi — pastdagi fallback
+      }
+
+      // Fallback: tasdiqlash hali amalga oshmagan bo'lsa, foydalanuvchiga
+      // xabar ko'rsatamiz (emailni tekshirish kerak emas — qayta urinishda
+      // auto-confirm ishlaydi)
       return {
         success: true,
         needsEmailConfirmation: true,
@@ -511,25 +543,19 @@ export async function updateProfile(
 }
 
 export async function changePassword(
-  currentPassword: string,
   newPassword: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const user = getCurrentUser()
-    if (!user?.email) return { success: false, error: "Foydalanuvchi topilmadi" }
-
-    // 1) Joriy parolni tekshiramiz (haqiqiy login orqali)
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email: user.email,
-      password: currentPassword,
-    })
-    if (signInError) {
-      return { success: false, error: "Joriy parol noto'g'ri" }
-    }
-
-    // 2) Yangi parolni o'rnatamiz
+    // Joriy parol SHART EMAS — foydalanuvchi tizimga kirgan (session mavjud),
+    // shuning uchun to'g'ridan-to'g'ri yangi parolni o'rnatamiz.
     const { error } = await supabase.auth.updateUser({ password: newPassword })
     if (error) throw error
+
+    // Xavfsizlik uchun auth_log ga yozamiz (admin kirish loglarida ko'rinadi)
+    const user = getCurrentUser()
+    if (user?.email) {
+      logAuthEvent(user.email, 'password_changed', user.id, true).catch(() => {})
+    }
 
     return { success: true }
   } catch (error: any) {

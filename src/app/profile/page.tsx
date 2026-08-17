@@ -132,8 +132,7 @@ function ProfileContent() {
   })
   const [darkMode, setDarkMode] = useState(themeDark)
   const [showPasswordForm, setShowPasswordForm] = useState(false)
-  const [passwordData, setPasswordData] = useState({ current: '', newPass: '', confirm: '' })
-  const [showCurrentPass, setShowCurrentPass] = useState(false)
+  const [passwordData, setPasswordData] = useState({ newPass: '', confirm: '' })
   const [showNewPass, setShowNewPass] = useState(false)
   const [settingsSaved, setSettingsSaved] = useState(false)
   const [profileImage, setProfileImage] = useState<string | null>(() => {
@@ -323,10 +322,6 @@ function ProfileContent() {
   const handleChangePassword = async () => {
     setPasswordError(null)
     setPasswordSuccess(null)
-    if (!passwordData.current) {
-      setPasswordError('Joriy parolni kiriting!')
-      return
-    }
     if (passwordData.newPass !== passwordData.confirm) {
       setPasswordError('Yangi parollar mos kelmadi!')
       return
@@ -335,8 +330,9 @@ function ProfileContent() {
       setPasswordError("Parol kamida 6 belgidan iborat bo'lishi kerak!")
       return
     }
-    // Haqiqiy Supabase parol o'zgarishi — joriy parol tekshiriladi
-    const result = await firebaseAuth.changePassword(passwordData.current, passwordData.newPass)
+    // Haqiqiy Supabase parol o'zgarishi — joriy parol talab qilinmaydi
+    // (foydalanuvchi tizimga kirgan, session mavjud)
+    const result = await firebaseAuth.changePassword(passwordData.newPass)
     if (!result.success) {
       setPasswordError(result.error || 'Parolni o\'zgartirishda xatolik')
       return
@@ -344,7 +340,7 @@ function ProfileContent() {
     setPasswordSuccess("Parol muvaffaqiyatli o'zgartirildi!")
     setTimeout(() => setPasswordSuccess(null), 3000)
     setShowPasswordForm(false)
-    setPasswordData({ current: '', newPass: '', confirm: '' })
+    setPasswordData({ newPass: '', confirm: '' })
   }
 
   const handleExportData = () => {
@@ -1101,27 +1097,10 @@ function ProfileContent() {
                 </div>
                 {showPasswordForm && (
                   <div className="space-y-3 mt-3 pt-3 border-t border-gray-200 dark:border-gray-600">
-                    <div className="relative">
-                      <input
-                        type={showCurrentPass ? 'text' : 'password'}
-                        placeholder="Joriy parol"
-                        value={passwordData.current}
-                        onChange={e =>
-                          setPasswordData({ ...passwordData, current: e.target.value })
-                        }
-                        className="w-full px-4 py-2.5 pr-10 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                      />
-                      <button
-                        onClick={() => setShowCurrentPass(!showCurrentPass)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:text-zinc-400"
-                      >
-                        {showCurrentPass ? (
-                          <EyeOff className="w-4 h-4" />
-                        ) : (
-                          <Eye className="w-4 h-4" />
-                        )}
-                      </button>
-                    </div>
+                    <p className="text-xs text-gray-500 dark:text-zinc-500">
+                      Joriy parolni kiritish shart emas — tizimga kirganingiz uchun yangi parol
+                      darhol o'rnatiladi.
+                    </p>
                     <div className="relative">
                       <input
                         type={showNewPass ? 'text' : 'password'}
