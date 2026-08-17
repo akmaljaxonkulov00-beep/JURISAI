@@ -639,7 +639,7 @@ function SignInContent() {
     const linked = searchParams?.get('linked')
     if (linked === '1') {
       setSuccessMsg(
-        "Akkauntlaringiz birlashtirildi! Endi Google yoki email/parol bilan kirsangiz ham bitta profil ochiladi."
+        'Akkauntlaringiz birlashtirildi! Endi Google yoki email/parol bilan kirsangiz ham bitta profil ochiladi.'
       )
     }
   }, [searchParams])
@@ -701,8 +701,19 @@ function SignInContent() {
         }
         const result = await firebaseAuth.signUp(email, password, name)
         if (result.success) {
-          setSuccessMsg("Ro'yxatdan o'tish muvaffaqiyatli!")
-          setTimeout(() => router.replace('/dashboard'), 1500)
+          // Email tasdiqlash talab qilinsa — dashboardga fake-login qilmaymiz
+          if (result.needsEmailConfirmation) {
+            setSuccessMsg(
+              "Ro'yxatdan o'tish muvaffaqiyatli! Tasdiqlash xati emailingizga yuborildi. Iltimos, emailingizni tekshiring va hisobingizni tasdiqlang."
+            )
+            setMode('login')
+            setTimeout(() => {
+              setSuccessMsg('')
+            }, 8000)
+          } else {
+            setSuccessMsg("Ro'yxatdan o'tish muvaffaqiyatli!")
+            setTimeout(() => router.replace('/dashboard'), 1500)
+          }
         } else {
           setError(result.error || "Ro'yxatdan o'tish xatosi")
         }

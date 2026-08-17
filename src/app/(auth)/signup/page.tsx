@@ -46,6 +46,18 @@ export default function SignUpPage() {
       const result = await firebaseAuth.signUp(data.email, data.password, data.name)
 
       if (result.success) {
+        // Email tasdiqlash talab qilinadi — session yaratilmagan, shuning
+        // uchun dashboardga yubormaymiz (fake login bo'ladi)
+        if (result.needsEmailConfirmation) {
+          setSuccess(
+            "Ro'yxatdan o'tish muvaffaqiyatli! Tasdiqlash xati emailingizga yuborildi. Iltimos, emailingizni tekshiring va hisobingizni tasdiqlang."
+          )
+          setTimeout(() => {
+            router.replace('/signin?registered=1')
+          }, 2500)
+          return
+        }
+
         setSuccess("Ro'yxatdan muvaffaqiyatli o'tdingiz!")
 
         // Redirect to dashboard immediately

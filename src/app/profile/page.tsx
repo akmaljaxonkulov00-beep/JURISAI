@@ -37,6 +37,8 @@ import {
 import { useTheme } from '@/context/ThemeContext'
 import { useSearchParams } from 'next/navigation'
 import { useSettingsSync } from '@/hooks/useSettingsSync'
+import { firebaseAuth } from '@/services/firebase-auth'
+import { supabase } from '@/lib/supabase-browser'
 
 interface UserProfile {
   id: string
@@ -71,26 +73,35 @@ function ProfileContent() {
   >('profil')
   const [profile, setProfile] = useState<UserProfile>(() => {
     if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('auth_user')
-      if (stored) {
+      // Haqiqiy Supabase session user birinchi navbatda (yangi tab/refresh ham to'g'ri)
+      const realUser = firebaseAuth.getCurrentUser()
+      const storedUser = realUser || (() => {
         try {
-          const user = JSON.parse(stored)
-          return {
-            id: user.id || '0',
-            firstName: user.name?.split(' ')[0] || user.firstName || 'Foydalanuvchi',
-            lastName: (user.name?.split(' ') ?? []).slice(1).join(' ') || user.lastName || '',
-            email: user.email || '',
-            phone: user.phone || '+998 __ ___ __ __',
-            status: 'Talaba' as const,
-            specialization: user.specialization || '',
-            subscription: user.subscription_plan === 'pro' ? ('Pro' as const) : ('Free' as const),
-            language: 'uz' as const,
-            xp: user.xp || 0,
-            coursesCount: user.coursesCount || 0,
-            rating: user.rating || 0,
-            certificates: user.certificates || 0,
-          }
-        } catch {}
+          const stored = localStorage.getItem('auth_user')
+          return stored ? JSON.parse(stored) : null
+        } catch {
+          return null
+        }
+      })()
+      if (storedUser) {
+        const name = storedUser.name || storedUser.full_name || ''
+        const nameParts = (name || '').split(' ').filter(Boolean)
+        return {
+          id: storedUser.id || '0',
+          firstName: nameParts[0] || storedUser.firstName || storedUser.email?.split('@')[0] || 'Foydalanuvchi',
+          lastName: nameParts.slice(1).join(' ') || storedUser.lastName || '',
+          email: storedUser.email || '',
+          phone: storedUser.phone || '+998 __ ___ __ __',
+          status: 'Talaba' as const,
+          specialization: storedUser.specialization || '',
+          subscription:
+            storedUser.subscription_plan === 'pro' ? ('Pro' as const) : ('Free' as const),
+          language: 'uz' as const,
+          xp: storedUser.xp || 0,
+          coursesCount: storedUser.coursesCount || 0,
+          rating: storedUser.rating || 0,
+          certificates: storedUser.certificates || 0,
+        }
       }
     }
     return {
@@ -187,42 +198,117 @@ function ProfileContent() {
     } catch {}
   }, [sync.paymentRequests])
 
-  const handleSave = () => {
-    const userData = {
-      id: editedProfile.id,
-      email: editedProfile.email,
-      name: editedProfile.firstName + ' ' + editedProfile.lastName,
-      firstName: editedProfile.firstName,
-      lastName: editedProfile.lastName,
-      phone: editedProfile.phone,
-      status: editedProfile.status,
-      specialization: editedProfile.specialization,
-      language: editedProfile.language,
-      subscription_plan: editedProfile.subscription.toLowerCase(),
-      role: 'USER',
+  const [saveError, setSaveError] = useState<string | null>(null)
+  const [saveLoading, setSaveLoading] = useState(false)
+
+  const handleSave = async () => {
+    setSaveError(null)
+    setSaveLoading(true)
+    try {
+      const fullName = (editedProfile.firstName + ' ' + editedProfile.lastName).trim()
+      const userData = {
+        id: editedProfile.id,
+        email: editedProfile.email,
+        name: fullName,
+        firstName: editedProfile.firstName,
+        lastName: editedProfile.lastName,
+        phone: editedProfile.phone,
+        status: editedProfile.status,
+        specialization: editedProfile.specialization,
+        language: editedProfile.language,
+        subscription_plan: editedProfile.subscription.toLowerCase(),
+      }
+
+      // ── Email o'zgargan bo'lsa — Supabase orqali yangilaymiz ──
+      if (profile.email && editedProfile.email !== profile.email) {
+        const emailResult = await firebaseAuth.changeEmail(editedProfile.email)
+        if (!emailResult.success) {
+          setSaveError(emailResult.error || 'Emailni o\'zgartirishda xatolik')
+          setSaveLoading(false)
+          return
+        }
+        // Email o'zgarganda tasdiqlash talab qilinadi — ko'rsatamiz
+        setSaveError(
+          emailResult.needsConfirmation
+            ? "Email yangilandi. Tasdiqlash xati yangi emailingizga yuborildi."
+            : null
+        )
+      }
+
+      // ── Profil ma'lumotlari Supabase'ga sinxronlanadi (auth + registered_users) ──
+      const result = await firebaseAuth.updateProfile({
+        name: fullName,
+        phone: editedProfile.phone || undefined,
+        email: editedProfile.email,
+      })
+      if (!result.success) {
+        setSaveError(result.error || 'Profilni saqlashda xatolik')
+        setSaveLoading(false)
+        return
+      }
+
+      setProfile(editedProfile)
+      localStorage.setItem('auth_user', JSON.stringify(userData))
+      localStorage.setItem('jurisai_user', JSON.stringify(userData))
+      setSettingsSaved(true)
+      setTimeout(() => setSettingsSaved(false), 3000)
+    } catch {
+      setSaveError('Profilni saqlashda kutilmagan xatolik')
+    } finally {
+      setSaveLoading(false)
     }
-    setProfile(editedProfile)
-    localStorage.setItem('auth_user', JSON.stringify(userData))
-    localStorage.setItem('jurisai_user', JSON.stringify(userData))
-    setSettingsSaved(true)
-    setTimeout(() => setSettingsSaved(false), 3000)
   }
 
   const handleCancel = () => {
     setEditedProfile(profile)
   }
 
-  const handleProfileImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const [avatarUploading, setAvatarUploading] = useState(false)
+  const [avatarError, setAvatarError] = useState<string | null>(null)
+
+  const handleProfileImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onload = event => {
-        const dataUrl = event.target?.result as string
-        setProfileImage(dataUrl)
-        localStorage.setItem('profile_image', dataUrl)
-      }
-      reader.readAsDataURL(file)
+    if (!file) return
+    if (file.size > 4 * 1024 * 1024) {
+      setAvatarError('Rasm hajmi 4 MB dan oshmasligi kerak')
+      setTimeout(() => setAvatarError(null), 3000)
+      return
     }
+    setAvatarUploading(true)
+    setAvatarError(null)
+
+    const reader = new FileReader()
+    reader.onload = async event => {
+      const dataUrl = event.target?.result as string
+      setProfileImage(dataUrl)
+      localStorage.setItem('profile_image', dataUrl)
+
+      // ── Supabase Storage'ga yuklash (avatars bucket) ──
+      const current = firebaseAuth.getCurrentUser()
+      const userId = current?.id || ''
+      const ext = file.name.split('.').pop() || 'jpg'
+      const fileName = `${userId || 'user'}-${Date.now()}.${ext}`
+      try {
+        const { error: uploadError } = await supabase.storage
+          .from('avatars')
+          .upload(fileName, file, { upsert: true, cacheControl: '3600' })
+        if (!uploadError) {
+          const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(fileName)
+          const avatarUrl = urlData?.publicUrl || dataUrl
+          setProfileImage(avatarUrl)
+          localStorage.setItem('profile_image', avatarUrl)
+          await firebaseAuth.updateProfile({ avatar: avatarUrl }).catch(() => {})
+        } else {
+          // Bucket yo'q bo'lsa — lokal saqlash davom etadi
+          setAvatarError('Rasm saqlandi (server yuklash hozircha o\'chirilgan)')
+          setTimeout(() => setAvatarError(null), 3000)
+        }
+      } catch {
+        // Offline / storage xato — lokal dataUrl yetarli
+      }
+      setAvatarUploading(false)
+    }
+    reader.readAsDataURL(file)
   }
 
   const handleSaveSettings = () => {
@@ -234,15 +320,25 @@ function ProfileContent() {
   const [passwordError, setPasswordError] = useState<string | null>(null)
   const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null)
 
-  const handleChangePassword = () => {
+  const handleChangePassword = async () => {
     setPasswordError(null)
     setPasswordSuccess(null)
+    if (!passwordData.current) {
+      setPasswordError('Joriy parolni kiriting!')
+      return
+    }
     if (passwordData.newPass !== passwordData.confirm) {
       setPasswordError('Yangi parollar mos kelmadi!')
       return
     }
     if (passwordData.newPass.length < 6) {
       setPasswordError("Parol kamida 6 belgidan iborat bo'lishi kerak!")
+      return
+    }
+    // Haqiqiy Supabase parol o'zgarishi — joriy parol tekshiriladi
+    const result = await firebaseAuth.changePassword(passwordData.current, passwordData.newPass)
+    if (!result.success) {
+      setPasswordError(result.error || 'Parolni o\'zgartirishda xatolik')
       return
     }
     setPasswordSuccess("Parol muvaffaqiyatli o'zgartirildi!")
@@ -379,6 +475,16 @@ function ProfileContent() {
         {settingsSaved && (
           <div className="mb-4 px-4 py-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl flex items-center gap-2 text-sm text-green-700 dark:text-green-300">
             <CheckCircle className="w-4 h-4" /> Sozlamalar muvaffaqiyatli saqlandi!
+          </div>
+        )}
+        {saveError && (
+          <div className="mb-4 px-4 py-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl flex items-center gap-2 text-sm text-amber-700 dark:text-amber-300">
+            <AlertTriangle className="w-4 h-4" /> {saveError}
+          </div>
+        )}
+        {avatarError && (
+          <div className="mb-4 px-4 py-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl flex items-center gap-2 text-sm text-amber-700 dark:text-amber-300">
+            <AlertTriangle className="w-4 h-4" /> {avatarError}
           </div>
         )}
 
@@ -671,13 +777,15 @@ function ProfileContent() {
             <div className="flex gap-3 pt-2">
               <button
                 onClick={handleSave}
-                className="px-6 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-medium"
+                disabled={saveLoading}
+                className="px-6 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-medium disabled:opacity-60"
               >
-                Saqlash
+                {saveLoading ? 'Saqlanmoqda...' : 'Saqlash'}
               </button>
               <button
                 onClick={handleCancel}
-                className="px-6 py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium"
+                disabled={saveLoading}
+                className="px-6 py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium disabled:opacity-60"
               >
                 Bekor qilish
               </button>

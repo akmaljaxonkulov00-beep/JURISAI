@@ -18,7 +18,7 @@ interface AuthContextType {
     name: string
     email: string
     password: string
-  }) => Promise<{ success: boolean; error?: string }>
+  }) => Promise<{ success: boolean; error?: string; needsEmailConfirmation?: boolean }>
   logout: () => Promise<void>
   updateProfile: (updates: Partial<AuthUser>) => Promise<{ success: boolean; error?: string }>
   setUser: (user: AuthUser | null) => void
@@ -67,8 +67,14 @@ function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(true)
     try {
       const result = await firebaseAuth.signUp(userData.email, userData.password, userData.name)
-      if (result.success && result.data) {
-        setUser(result.data)
+      if (result.success) {
+        if (result.needsEmailConfirmation) {
+          // Session yaratilmagan — fake-login qilmaymiz
+          return { success: true, needsEmailConfirmation: true }
+        }
+        if (result.data) {
+          setUser(result.data)
+        }
         return { success: true }
       }
       return { success: false, error: result.error || "Ro'yxatdan o'tish xatosi" }

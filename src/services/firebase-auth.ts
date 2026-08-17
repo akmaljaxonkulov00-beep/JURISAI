@@ -282,9 +282,13 @@ async function syncUserToSupabase(user: AuthUser): Promise<void> {
 }
 
 function clearUserFromLocal() {
-  sessionStorage.removeItem('jurisai_user')
-  sessionStorage.removeItem('auth_user')
-  sessionStorage.removeItem('auth_token')
+  // Har ikkala storage'dan barcha identity keylarni tozalaymiz —
+  // aks holda eski akkaunt ma'lumoti localStorage'da qolib, boshqa
+  // akkaunt kirganda "egasi men" kabi chalkashliklar yuzaga keladi.
+  for (const key of ['jurisai_user', 'auth_user', 'currentUser', 'auth_token']) {
+    sessionStorage.removeItem(key)
+    localStorage.removeItem(key)
+  }
   localStorage.removeItem('profile_image')
 }
 
@@ -324,21 +328,36 @@ export async function signUp(
   email: string,
   password: string,
   name: string
-): Promise<{ success: boolean; data?: AuthUser; error?: string }> {
+): Promise<
+  | { success: true; data?: AuthUser; needsEmailConfirmation?: boolean }
+  | { success: false; error: string }
+> {
   try {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: { name, role: 'USER', subscription_plan: 'free' },
+        data: { name, full_name: name, role: 'USER', subscription_plan: 'free' },
       },
     })
     if (error) throw error
     if (!data?.user) throw new Error("Ro'yxatdan o'tish xatosi")
 
+    // ── Email tasdiqlash YOQILGAN (confirmed=false, session=null) ──
+    // Bu holatda session yo'q — foydalanuvchini DARHOL dashboardga
+    // yuborib bo'lmaydi (fake login bo'ladi). Tasdiqlash xati yuborilganini
+    // ko'rsatamiz va /signin ga yo'naltiramiz. Fake session saqlanmaydi.
+    if (!data.session) {
+      return {
+        success: true,
+        needsEmailConfirmation: true,
+        data: mapSupabaseUser(data.user),
+      }
+    }
+
     const user = mapSupabaseUser({
       ...data.user,
-      user_metadata: { name, role: 'USER', subscription_plan: 'free' },
+      user_metadata: { name, full_name: name, role: 'USER', subscription_plan: 'free' },
     })
     saveUserToLocal(user)
     return { success: true, data: user }
@@ -355,6 +374,8 @@ export async function signUp(
       message = "Parol juda oddiy. Kamida 6 belgidan iborat bo'lishi kerak"
     } else if (code.includes('invalid')) {
       message = "Email formati noto'g'ri"
+    } else if (code.includes('rate_limit')) {
+      message = 'Juda ko\'p urinishlar. Bir necha daqiqadan so\'ng qayta urinib ko\'ring.'
     }
     return { success: false, error: message }
   }
@@ -377,23 +398,6 @@ export async function signInWithGoogle(): Promise<{
     })
     if (error) throw error
     if (data?.url) {
-      // ── Debug: log OAuth state before redirect ──
-      console.log('[OAuth] signInWithOAuth completed, redirecting to:', data.url)
-      // Check what Supabase PKCE/state keys were stored in localStorage
-      const allKeys: string[] = []
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i)
-        if (key && (key.includes('pkce') || key.includes('oauth') || key.includes('sb-'))) {
-          allKeys.push(key)
-        }
-      }
-      console.log('[OAuth] Supabase localStorage keys before redirect:', allKeys)
-      // Log the PKCE verifier values (safely, truncated)
-      allKeys.forEach(k => {
-        const val = localStorage.getItem(k)
-        console.log(`[OAuth] ${k}:`, val ? val.substring(0, 80) + '...' : 'EMPTY')
-      })
-
       // Redirect user to Google OAuth page
       window.location.href = data.url
       return { success: true }
@@ -431,10 +435,7 @@ export async function signOut(): Promise<void> {
     // Ignore signOut errors
   } finally {
     if (typeof window !== 'undefined') {
-      // Clear auth-related data only, preserve user preferences
-      sessionStorage.removeItem('jurisai_user')
-      sessionStorage.removeItem('auth_user')
-      sessionStorage.removeItem('auth_token')
+      clearUserFromLocal()
       // Clear cookie
       document.cookie = 'jurisai_auth=; path=/; max-age=0; SameSite=Lax'
       window.location.href = '/signin'
@@ -463,22 +464,100 @@ export async function updateProfile(
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const userToUpdate: any = {}
-    if (updates.name) userToUpdate.name = updates.name
+    if (updates.name) {
+      userToUpdate.name = updates.name
+      userToUpdate.full_name = updates.name
+    }
     if (updates.role) userToUpdate.role = updates.role
     if (updates.subscription_plan) userToUpdate.subscription_plan = updates.subscription_plan
     if (updates.phone) userToUpdate.phone = updates.phone
     if (updates.avatar) userToUpdate.avatar = updates.avatar
 
+    // Auth metadata (user_metadata) yangilanadi
     const { error } = await supabase.auth.updateUser({ data: userToUpdate })
     if (error) throw error
 
-    const storedUser = localStorage.getItem('auth_user')
+    // registered_users jadvaliga ham yozamiz (name + full_name + avatar + phone)
+    const current = getCurrentUser()
+    if (current?.id) {
+      try {
+        await fetch('/api/auth/sync-user', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: current.id,
+            email: updates.email || current.email,
+            name: updates.name || current.name,
+            full_name: updates.name || current.name,
+            phone: updates.phone || current.phone,
+            avatar: updates.avatar || current.avatar,
+            role: updates.role || current.role || 'USER',
+            subscription_plan: updates.subscription_plan || current.subscription_plan || 'free',
+            provider: current.provider || 'email',
+          }),
+        })
+      } catch {}
+    }
+
+    const storedUser =
+      localStorage.getItem('auth_user') || sessionStorage.getItem('auth_user') || '{}'
     const existingUser = storedUser ? JSON.parse(storedUser) : {}
     const updatedUser = { ...existingUser, ...updates }
     saveUserToLocal(updatedUser)
     return { success: true }
   } catch (error: any) {
     return { success: false, error: error?.message || 'Profilni yangilash xatosi' }
+  }
+}
+
+export async function changePassword(
+  currentPassword: string,
+  newPassword: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const user = getCurrentUser()
+    if (!user?.email) return { success: false, error: "Foydalanuvchi topilmadi" }
+
+    // 1) Joriy parolni tekshiramiz (haqiqiy login orqali)
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: user.email,
+      password: currentPassword,
+    })
+    if (signInError) {
+      return { success: false, error: "Joriy parol noto'g'ri" }
+    }
+
+    // 2) Yangi parolni o'rnatamiz
+    const { error } = await supabase.auth.updateUser({ password: newPassword })
+    if (error) throw error
+
+    return { success: true }
+  } catch (error: any) {
+    return { success: false, error: error?.message || 'Parolni o\'zgartirish xatosi' }
+  }
+}
+
+export async function changeEmail(
+  newEmail: string
+): Promise<{ success: boolean; error?: string; needsConfirmation?: boolean }> {
+  try {
+    const { data, error } = await supabase.auth.updateUser({ email: newEmail })
+    if (error) throw error
+
+    // Email o'zgargan — session yangilanadi; yangi email tasdiqlashni talab
+    // qiladi (Supabase konfiguratsiyasiga bog'liq).
+    const user = getCurrentUser()
+    if (user) {
+      const updated = { ...user, email: data?.user?.email || newEmail }
+      saveUserToLocal(updated)
+    }
+    return { success: true, needsConfirmation: true }
+  } catch (error: any) {
+    let message = 'Emailni o\'zgartirish xatosi'
+    if (error?.message?.includes('already')) {
+      message = "Bu email allaqachon ro'yxatdan o'tgan"
+    }
+    return { success: false, error: message }
   }
 }
 
@@ -489,8 +568,27 @@ export function getCurrentUser(): AuthUser | null {
     try {
       return JSON.parse(stored)
     } catch {
-      return null
+      /* yaroqsiz json — pastdagi manbalarga o'tamiz */
     }
+  }
+  // Yangi tab / refresh holatida sessionStorage bo'sh bo'ladi —
+  // Supabase'ning o'z session storage'sidan (sb-<ref>-auth-token)
+  // foydalanuvchini tiklaymiz. Bu har doim haqiqiy session.
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i)
+      if (key && key.startsWith('sb-') && key.endsWith('-auth-token')) {
+        const raw = localStorage.getItem(key)
+        if (!raw) continue
+        const parsed = JSON.parse(raw)
+        const u = parsed?.user
+        if (u?.id) {
+          return mapSupabaseUser(u)
+        }
+      }
+    }
+  } catch {
+    /* localStorage o'qib bo'lmadi */
   }
   return null
 }
@@ -543,6 +641,8 @@ export const firebaseAuth = {
   signOut,
   resetPassword,
   updateProfile,
+  changePassword,
+  changeEmail,
   getCurrentUser,
   isAuthenticated,
   onAuthChange,

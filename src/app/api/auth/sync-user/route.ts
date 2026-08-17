@@ -13,11 +13,25 @@ import { createClient } from '@supabase/supabase-js'
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { id, email, name, role, subscription_plan, provider } = body
+    const {
+      id,
+      email,
+      name,
+      full_name,
+      phone,
+      avatar,
+      role,
+      subscription_plan,
+      provider,
+    } = body
 
     if (!id || !email) {
       return NextResponse.json({ success: false, error: 'id va email majburiy' }, { status: 400 })
     }
+
+    // `name` bilan birga `full_name` ham yoziladi — Jamiyat a'zolar ro'yxati
+    // va boshqa joylar full_name dan o'qiydi
+    const resolvedName = full_name || name || email.split('@')[0] || ''
 
     const supabaseUrl =
       process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://blayqzykzlmrjuvhzvsk.supabase.co'
@@ -42,40 +56,63 @@ export async function POST(request: NextRequest) {
     // Insert or update: preserve original created_at
     const now = new Date().toISOString()
 
-    // First try INSERT (for new users)
-    const { error: insertError } = await supabase.from('registered_users').insert({
+    const insertPayload: Record<string, any> = {
       id,
       email,
-      name: name || email.split('@')[0] || '',
+      name: resolvedName,
+      full_name: resolvedName,
       role: role || 'USER',
       subscription_plan: subscription_plan || 'free',
       provider: provider || 'email',
       created_at: now,
       last_login: now,
-    })
+    }
+    if (phone) insertPayload.phone = phone
+    if (avatar) insertPayload.avatar = avatar
 
-    // If user already exists (duplicate key), only update metadata — keep created_at
-    if (insertError && insertError.code === '23505') {
-      const { data: updated } = await supabase
-        .from('registered_users')
-        .update({
-          email,
-          name: name || email.split('@')[0] || '',
-          role: role || 'USER',
-          subscription_plan: subscription_plan || 'free',
-          provider: provider || 'email',
-          last_login: now,
-        })
-        .eq('id', id)
-        .select()
-        .single()
+    // ── Yozish (chidamli: phone ustuni bazada bo'lmasa unsiz qayta urinamiz) ──
+    const runInsert = async (payload: Record<string, any>) =>
+      supabase.from('registered_users').insert(payload)
+    const runUpdate = async (payload: Record<string, any>) =>
+      supabase.from('registered_users').update(payload).eq('id', id).select().single()
 
-      return NextResponse.json({ success: true, data: updated })
+    // First try INSERT (for new users)
+    let insertResult = await runInsert(insertPayload)
+
+    // `phone` ustuni yo'q (eski baza) — phone'siz qayta urinamiz
+    if (insertResult.error && /column.*phone|phone.*column/i.test(insertResult.error.message)) {
+      const { phone: _drop, ...payloadNoPhone } = insertPayload
+      insertResult = await runInsert(payloadNoPhone)
     }
 
-    if (insertError) {
-      console.warn('[sync-user] Insert error:', insertError.message)
-      return NextResponse.json({ success: false, error: insertError.message }, { status: 200 })
+    // If user already exists (duplicate key), only update metadata — keep created_at
+    if (insertResult.error && insertResult.error.code === '23505') {
+      const updatePayload: Record<string, any> = {
+        email,
+        name: resolvedName,
+        full_name: resolvedName,
+        role: role || 'USER',
+        subscription_plan: subscription_plan || 'free',
+        provider: provider || 'email',
+        last_login: now,
+      }
+      if (phone) updatePayload.phone = phone
+      if (avatar) updatePayload.avatar = avatar
+      let updateResult = await runUpdate(updatePayload)
+      if (updateResult.error && /column.*phone|phone.*column/i.test(updateResult.error.message)) {
+        const { phone: _drop, ...payloadNoPhone } = updatePayload
+        updateResult = await runUpdate(payloadNoPhone)
+      }
+      if (updateResult.error) {
+        console.warn('[sync-user] Update error:', updateResult.error.message)
+        return NextResponse.json({ success: false, error: updateResult.error.message }, { status: 200 })
+      }
+      return NextResponse.json({ success: true, data: updateResult.data })
+    }
+
+    if (insertResult.error) {
+      console.warn('[sync-user] Insert error:', insertResult.error.message)
+      return NextResponse.json({ success: false, error: insertResult.error.message }, { status: 200 })
     }
 
     // Fetch the newly created record
