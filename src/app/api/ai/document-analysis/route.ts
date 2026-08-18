@@ -76,13 +76,13 @@ export async function POST(req: NextRequest) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'llama-3.3-70b-versatile',
+          model: 'openai/gpt-oss-120b',
           messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: documentText },
           ],
           temperature: 0.1,
-          max_tokens: 1024,
+          max_tokens: 2048,
         }),
       })
     } catch (err) {

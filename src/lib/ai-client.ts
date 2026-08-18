@@ -106,10 +106,10 @@ export class AIClient {
     messages.push({ role: 'user', content: request.prompt })
 
     const requestBody = JSON.stringify({
-      model: 'llama-3.3-70b-versatile',
+      model: 'openai/gpt-oss-120b',
       messages,
       temperature: request.temperature ?? 0.2,
-      max_tokens: request.maxTokens ?? 500,
+      max_tokens: request.maxTokens ?? 1500,
       frequency_penalty: 0.6,
       presence_penalty: 0.3,
     })
@@ -181,7 +181,7 @@ QAT'IY QOIDALAR:
       systemPrompt: context && context.trim() ? context : defaultPrompt,
       prompt: message,
       temperature: 0.15,
-      maxTokens: 350,
+      maxTokens: 1024,
     })
   }
 
@@ -191,7 +191,7 @@ QAT'IY QOIDALAR:
       systemPrompt: `Sen O'zbekiston huquq tizimi bo'yicha ekspert. IRAC metodologiyasi bo'yicha qisqa tahlil ber. O'zbek tilida.`,
       prompt: `IRAC tahlil qiling:\n\n${caseText}\n\nFormat:\n**ISSUE:** [masala]\n**RULE:** [qoidalar]\n**APPLICATION:** [qo'llash]\n**CONCLUSION:** [xulosa]`,
       temperature: 0.3,
-      maxTokens: 800,
+      maxTokens: 1500,
     })
   }
 
@@ -201,7 +201,7 @@ QAT'IY QOIDALAR:
       systemPrompt: `Sen O'zbekiston huquqiy hujjatlar mutaxassisissan. Rasmiy uslubda hujjat yarat.`,
       prompt: `"${docType}" hujjat yarating:\n\n${details}`,
       temperature: 0.2,
-      maxTokens: 1500,
+      maxTokens: 2500,
     })
   }
 
@@ -211,7 +211,7 @@ QAT'IY QOIDALAR:
       systemPrompt: `Sen huquqiy argument tahlilchisan. Zaif tomonlarni topib, takliflar ber. O'zbek tilida.`,
       prompt: `Argumentni tahlil qiling:\n\n${argument}\n\nFormat:\n**ZAIF TOMONLAR:**\n- ...\n**KUCHLI TOMONLAR:**\n- ...\n**TAKLIFLAR:**\n- ...`,
       temperature: 0.3,
-      maxTokens: 600,
+      maxTokens: 1200,
     })
   }
 
@@ -221,7 +221,7 @@ QAT'IY QOIDALAR:
       systemPrompt: `Sen ta'lim uchun huquqiy stsenariylar yaratuvchisan. O'zbekiston qonunchiligiga asoslan.`,
       prompt: `"${topic}" mavzusida "${difficulty}" darajasida stsenariy yarat.`,
       temperature: 0.7,
-      maxTokens: 800,
+      maxTokens: 1500,
     })
   }
 
@@ -231,7 +231,7 @@ QAT'IY QOIDALAR:
       systemPrompt: `Sen O'zbekiston sudyasissan. Sud jarayonini qisqa va rasmiy tarzda olib bor.`,
       prompt: `Sud jarayoni: ${caseDetails}`,
       temperature: 0.4,
-      maxTokens: 600,
+      maxTokens: 1200,
     })
   }
 }

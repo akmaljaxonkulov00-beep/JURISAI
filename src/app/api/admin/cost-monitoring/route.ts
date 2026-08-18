@@ -3,20 +3,20 @@ import { getSupabaseAdmin } from '@/lib/supabase-admin'
 import { requireAdmin } from '@/lib/server-auth'
 import { getErrorMessage } from '@/lib/errors'
 
-// Har bir funksiya chaqiruvining TAXMINIY narxi (USD) — Groq llama-3.3-70b
+// Har bir funksiya chaqiruvining TAXMINIY narxi (USD) — Groq openai/gpt-oss-120b
 // va whisper-large-v3 narxlari asosida (token miqdori bo'yicha o'rtacha):
-//   ai_chat ~0.0009 | irac ~0.0028 | hujjat gen ~0.0038 | tahlil ~0.0035
-//   virtual sud ~0.011/sessiya | daraxt ~0.0029 | STT ~0.003 | senariy ~0.0022
+//   ai_chat ~0.0005 | irac ~0.0015 | hujjat gen ~0.0021 | tahlil ~0.0019
+//   virtual sud ~0.006/sessiya | daraxt ~0.0016 | STT ~0.003 | senariy ~0.0012
 const FEATURE_COST: Record<string, number> = {
-  ai_chat: 0.0009,
-  irac: 0.0028,
-  document_generate: 0.0038,
-  document_analysis: 0.0035,
-  virtual_court: 0.011,
-  decision_tree: 0.0029,
+  ai_chat: 0.0005,
+  irac: 0.0015,
+  document_generate: 0.0021,
+  document_analysis: 0.0019,
+  virtual_court: 0.006,
+  decision_tree: 0.0016,
   speech_stt: 0.003,
-  scenario: 0.0022,
-  weakness: 0.0028,
+  scenario: 0.0012,
+  weakness: 0.0015,
 }
 
 const FEATURE_LABELS: Record<string, string> = {

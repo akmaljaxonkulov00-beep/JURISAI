@@ -230,8 +230,8 @@ export default function AdminCostMonitor() {
           </div>
 
           <p className="text-[11px] text-gray-400 dark:text-zinc-500">
-            * Xarajat — Groq narxlari bo'yicha taxmin (llama-3.3-70b: $0.59/1M kirish, $0.79/1M
-            chiqish token; whisper-large-v3: $0.111/soat). Haqiqiy xarajat Groq billing
+            * Xarajat — Groq narxlari bo'yicha taxmin (openai/gpt-oss-120b: $0.15/1M kirish,
+            $0.60/1M chiqish token; whisper-large-v3: $0.111/soat). Haqiqiy xarajat Groq billing
             dashboard'ida farq qilishi mumkin.
           </p>
         </>

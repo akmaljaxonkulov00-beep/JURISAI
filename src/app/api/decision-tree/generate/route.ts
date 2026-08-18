@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireUser } from '@/lib/server-auth'
 import { checkAndIncrement, usageMessage } from '@/lib/usage-limits'
+import { groundPrompt } from '@/lib/legal-rag'
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
@@ -60,7 +61,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const systemPrompt = `Sen O'zbekiston Respublikasi qonunchiligiga ixtisoslashgan professional yuridik strategisаn.
+    const basePrompt = `Sen O'zbekiston Respublikasi qonunchiligiga ixtisoslashgan professional yuridik strategisаn.
 Foydalanuvchi ish holatini tasvirlaydi. Sening vazifang — REAL qonunchilikka asoslangan QARORLAR DARAXTINI yaratish.
 
 DARAHT TUZILISHI:
@@ -109,8 +110,10 @@ JAVOB FORMATI — FAQAT JSON (boshqa hech narsa yozma):
 QAT'IY QOIDALAR:
 - Faqat JSON qaytar, markdown kod bloklari, tushuntirish yoki boshqa matn YO'Q.
 - Yolg'on modda raqami to'qima — legalBasis ni bilmasang bo'sh qoldir.
-- Ish tavsifi: ${scenario}
-- Ish turi: ${caseType}`
+- Quyidagi "BAZA MA'LUMOTLARI" blokidagi moddalardan tashqari hech qachon modda raqami keltirma.`
+
+    // ── RAG: ish tavsifiga mos moddalarni qonunchilik bazasidan qidirish ──
+    const { prompt: systemPrompt } = await groundPrompt(scenario, basePrompt, 6)
 
     const response = await fetch(GROQ_API_URL, {
       method: 'POST',
@@ -119,7 +122,7 @@ QAT'IY QOIDALAR:
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
+        model: 'openai/gpt-oss-120b',
         messages: [
           { role: 'system', content: systemPrompt },
           {

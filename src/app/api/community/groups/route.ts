@@ -245,17 +245,15 @@ export async function PUT(request: NextRequest) {
             .update({ role: 'moderator', updated_at: new Date().toISOString() })
             .eq('id', ownerMembership.id)
         }
-        await supabase
-          .from('community_group_members')
-          .upsert(
-            {
-              group_id: id,
-              user_id: newOwnerId,
-              role: 'creator',
-              joined_at: new Date().toISOString(),
-            },
-            { onConflict: 'group_id,user_id' }
-          )
+        await supabase.from('community_group_members').upsert(
+          {
+            group_id: id,
+            user_id: newOwnerId,
+            role: 'creator',
+            joined_at: new Date().toISOString(),
+          },
+          { onConflict: 'group_id,user_id' }
+        )
         updatePayload.created_by = newOwnerId
         delete updatePayload.transfer_to
       }
