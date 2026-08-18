@@ -7,6 +7,7 @@ import {
   validateCitations,
   appendCitationNote,
 } from '@/lib/legal-rag'
+import { ensureUzbekLatin } from '@/lib/uz-latin'
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
@@ -89,6 +90,7 @@ Hayotiy misol yoz. Foydalanuvchi oson tushunishi uchun. Masalan: "Fuqaro boshqa 
 2-3 gaplik yakuniy xulosa. Asosiy fikrni takrorla va amaliy tavsiya ber.
 
 BOSHQA QOIDALAR:
+- ALIFBO: JAVOBLAR FAQAT LOTIN O'ZBEK ALIFBOSIDA bo'lsin. Kirill harflari (ў, қ, ғ, ҳ, ё, ж, ц, щ, ы, э, ю, я kabi) MUTLAQO ISHLATILMAYDI. "ўқитувчи" emas, "o'qituvchi"; "ҳимоя" emas, "himoya"; "қўлланилади" emas, "qo'llaniladi".
 - Hech qachon **, ##, * kabi markdown belgilarini ishlatma. Oddiy matn yoz.
 - Bo'lim sarlavhalarini aynan 📘, ⚖️, 📚, 💡, ✅ bilan boshla.
 - Kodeks nomlarini to'liq yoz: "O'zbekiston Respublikasi Jinoyat Kodeksi" — qisqartma ("JK") ishlatma.
@@ -128,6 +130,9 @@ ${legalContext}${contextText}`
 
     const data = await response.json()
     let responseText = data.choices[0]?.message?.content || 'Javob olinmadi'
+
+    // ── Lotin alifbosi kafolati: kirillcha aralashsa transliteratsiya qilinadi ──
+    responseText = ensureUzbekLatin(responseText)
 
     // Clean up: trim if extremely long (over 3000 chars)
     if (responseText.length > 3000) {

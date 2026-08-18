@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireUser } from '@/lib/server-auth'
 import { checkAndIncrement, usageMessage } from '@/lib/usage-limits'
 import { groundPrompt } from '@/lib/legal-rag'
+import { ensureUzbekLatin } from '@/lib/uz-latin'
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
@@ -72,7 +73,7 @@ QAT'IY QOIDALAR:
 - (har bir tomon uchun maqsadlar)
 
 3. Hech qachon yolg'on modda raqami to'qima.
-4. O'zbek tilida, ta'limiy va batafsil yoz.`
+4. O'zbek tilida, FAQAT LOTIN ALIFBOSIDA, ta'limiy va batafsil yoz. Kirill harflari (ў, қ, ғ, ҳ, ё, ж kabi) MUTLAQO ISHLATILMAYDI.`
 
     // ── RAG: mavzuga mos moddalarni qonunchilik bazasidan qidirish ──
     const { prompt: systemPrompt } = await groundPrompt(
@@ -108,7 +109,7 @@ QAT'IY QOIDALAR:
     }
 
     const data = await response.json()
-    const aiText = data.choices[0]?.message?.content || 'Senariy olinmadi'
+    const aiText = ensureUzbekLatin(data.choices[0]?.message?.content || 'Senariy olinmadi')
 
     return NextResponse.json({ text: aiText })
   } catch (error) {

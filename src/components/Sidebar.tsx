@@ -28,7 +28,7 @@ export default function Sidebar({ currentPage = 'home' }: SidebarProps) {
     { id: 'home', label: 'Bosh sahifa', icon: <HomeIcon className="w-5 h-5" />, href: '/' },
     {
       id: 'case-solver',
-      label: 'Case Solver',
+      label: 'Kazus Yechish',
       icon: <Scale className="w-5 h-5" />,
       href: '/case-solver',
     },

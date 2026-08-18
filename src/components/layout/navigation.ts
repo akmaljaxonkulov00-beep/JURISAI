@@ -50,7 +50,7 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       {
         id: 'case-solver',
-        name: 'IRAC Huquqiy Tahlil',
+        name: 'Kazus Yechish (IRAC)',
         href: '/case-solver',
         icon: Scale,
         requiresAuth: true,

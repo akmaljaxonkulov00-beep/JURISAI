@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireUser } from '@/lib/server-auth'
 import { checkAndIncrement, usageMessage } from '@/lib/usage-limits'
 import { groundPrompt } from '@/lib/legal-rag'
+import { ensureUzbekLatin } from '@/lib/uz-latin'
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
@@ -49,7 +50,7 @@ export async function POST(request: NextRequest) {
 STRICT RULES:
 1. ACCURACY FIRST: You must NEVER invent or hallucinate legal articles (moddalar) or punishments.
 2. FORMATTING: Use clear structure with headings and bullet points.
-3. LANGUAGE: Answer strictly in formal Uzbek language (O'zbek tili).
+3. LANGUAGE: Answer strictly in formal Uzbek language (O'zbek tili), LATIN ALPHABET ONLY. NEVER use Cyrillic letters (ў, қ, ғ, ҳ, ё, ж).
 
 Analyze the following legal case using IRAC methodology:
 
@@ -92,7 +93,7 @@ Analyze the following legal case using IRAC methodology:
     }
 
     const data = await response.json()
-    const analysisText = data.choices[0]?.message?.content || 'Tahlil olinmadi'
+    const analysisText = ensureUzbekLatin(data.choices[0]?.message?.content || 'Tahlil olinmadi')
 
     // Parse IRAC sections from the response
     const extractSection = (text: string, sectionName: string): string => {

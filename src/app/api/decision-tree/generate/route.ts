@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireUser } from '@/lib/server-auth'
 import { checkAndIncrement, usageMessage } from '@/lib/usage-limits'
 import { groundPrompt } from '@/lib/legal-rag'
+import { ensureUzbekLatin } from '@/lib/uz-latin'
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
@@ -110,7 +111,8 @@ JAVOB FORMATI — FAQAT JSON (boshqa hech narsa yozma):
 QAT'IY QOIDALAR:
 - Faqat JSON qaytar, markdown kod bloklari, tushuntirish yoki boshqa matn YO'Q.
 - Yolg'on modda raqami to'qima — legalBasis ni bilmasang bo'sh qoldir.
-- Quyidagi "BAZA MA'LUMOTLARI" blokidagi moddalardan tashqari hech qachon modda raqami keltirma.`
+- Quyidagi "BAZA MA'LUMOTLARI" blokidagi moddalardan tashqari hech qachon modda raqami keltirma.
+- ALIFBO: label, details, actionItems — barchasi FAQAT LOTIN O'ZBEK ALIFBOSIDA bo'lsin. Kirill harflari (ў, қ, ғ, ҳ, ё, ж kabi) MUTLAQO ISHLATILMAYDI.`
 
     // ── RAG: ish tavsifiga mos moddalarni qonunchilik bazasidan qidirish ──
     const { prompt: systemPrompt } = await groundPrompt(scenario, basePrompt, 6)
@@ -145,7 +147,7 @@ QAT'IY QOIDALAR:
     }
 
     const data = await response.json()
-    const raw = data.choices[0]?.message?.content || ''
+    const raw = ensureUzbekLatin(data.choices[0]?.message?.content || '')
 
     // JSON ni matndan ajratib olish (ba'zi modellar ```json blok qaytaradi)
     const jsonMatch = raw.match(/\{[\s\S]*\}/)

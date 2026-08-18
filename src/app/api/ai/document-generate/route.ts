@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireUser } from '@/lib/server-auth'
 import { checkAndIncrement, usageMessage } from '@/lib/usage-limits'
 import { groundPrompt, validateCitations, appendCitationNote } from '@/lib/legal-rag'
+import { ensureUzbekLatin } from '@/lib/uz-latin'
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
@@ -11,7 +12,7 @@ const SYSTEM_PROMPT =
   'STRICT RULES:\n' +
   '1. ACCURACY FIRST: You must NEVER invent or hallucinate legal clauses, article numbers, or official references.\n' +
   '2. FORMATTING: Generate professionally formatted legal documents with clear sections, numbered clauses, and proper legal language.\n' +
-  "3. LANGUAGE: Answer strictly in formal Uzbek language (O'zbek tili).\n\n" +
+  "3. LANGUAGE: Answer strictly in formal Uzbek language (O'zbek tili), LATIN ALPHABET ONLY. NEVER use Cyrillic letters (ў, қ, ғ, ҳ, ё, ж).\n\n" +
   'Based on the provided template and data, generate a complete legal document including:\n' +
   "- Document title and header (with O'zbekiston Respublikasi reference)\n" +
   '- Parties/participants section\n' +
@@ -100,7 +101,7 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await response.json()
-    const documentContent = data.choices[0]?.message?.content
+    const documentContent = ensureUzbekLatin(data.choices[0]?.message?.content || '')
     if (!documentContent) {
       return NextResponse.json({ error: 'AI javob olinmadi' }, { status: 502 })
     }

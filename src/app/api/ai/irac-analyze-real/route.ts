@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireUser } from '@/lib/server-auth'
 import { checkAndIncrement, usageMessage } from '@/lib/usage-limits'
 import { groundPrompt } from '@/lib/legal-rag'
+import { ensureUzbekLatin } from '@/lib/uz-latin'
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
@@ -72,6 +73,8 @@ Baholash mezonlari (har bir bo'lim uchun 0-100 ball):
 - 50-69: o'rtacha — qisman to'g'ri, muhim jihatlar yetishmayapti
 - 0-49: qoniqarsiz — noto'g'ri yoki juda qisqa
 
+ALIFBO: BARCHA matnlar (suggestions) FAQAT LOTIN O'ZBEK ALIFBOSIDA bo'lsin. Kirill harflari (ў, қ, ғ, ҳ, ё, ж kabi) MUTLAQO ISHLATILMAYDI.
+
 JAVOB FORMATI — faqat JSON (boshqa matn yozma):
 {
   "scores": { "issue": 0, "rule": 0, "application": 0, "conclusion": 0 },
@@ -115,7 +118,7 @@ Yuqoridagi formatda JSON qaytaring.`
     }
 
     const data = await response.json()
-    const raw = data.choices?.[0]?.message?.content || ''
+    const raw = ensureUzbekLatin(data.choices?.[0]?.message?.content || '')
 
     // AI javobidan JSON ni ajratib olish
     const jsonMatch = raw.match(/\{[\s\S]*\}/)

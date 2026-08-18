@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireUser } from '@/lib/server-auth'
 import { checkAndIncrement, usageMessage } from '@/lib/usage-limits'
 import { groundPrompt } from '@/lib/legal-rag'
+import { ensureUzbekLatin } from '@/lib/uz-latin'
 import { supabase } from '@/lib/supabase'
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY
@@ -77,7 +78,8 @@ async function groqChat(
   const data = await res.json()
   const text = data.choices?.[0]?.message?.content
   if (!text) throw new Error('AI javob olinmadi')
-  return { text }
+  // ── Lotin alifbosi kafolati: kirillcha aralashsa transliteratsiya qilinadi ──
+  return { text: ensureUzbekLatin(text) }
 }
 
 /**
@@ -179,7 +181,7 @@ STRICT RULES:
    [PROKUROR]: Prokurorning matni...
    [ADVOKAT]: Advokatning matni...
    (omit roles not relevant to this phase)
-5. LANGUAGE: Answer strictly in formal Uzbek language (O'zbek tili).
+5. LANGUAGE: Answer strictly in formal Uzbek language (O'zbek tili), LATIN ALPHABET ONLY. NEVER use Cyrillic letters (ў, қ, ғ, ҳ, ё, ж).
 6. If unsure about an exact article number, say "aniq modda uchun qonunlar bazasiga qarang" — never make up fake citations.`
 
     // ── RAG: ishga mos moddalarni qonunchilik bazasidan qidirib, sud jarayoni

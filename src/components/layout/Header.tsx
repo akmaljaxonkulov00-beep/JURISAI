@@ -29,7 +29,7 @@ const Header: React.FC<HeaderProps> = ({ user, className }) => {
 
   const navigation = [
     { name: 'Bosh sahifa', href: '/' },
-    { name: 'IRAC Tahlil', href: '/case-solver' },
+    { name: 'Kazus Yechish', href: '/case-solver' },
     { name: 'Qaror daraxti', href: '/decision-tree' },
     { name: 'Jamiyat', href: '/community' },
   ]

@@ -6,6 +6,9 @@
 const GROQ_API_KEY = process.env.GROQ_API_KEY || 'YOUR_GROQ_API_KEY_HERE'
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
 
+// AI javoblari lotin o'zbek alifbosida bo'lishini kafolatlash
+import { ensureUzbekLatin } from './uz-latin'
+
 export interface AIRequest {
   prompt: string
   systemPrompt?: string
@@ -135,7 +138,7 @@ export class AIClient {
       }
 
       return {
-        text: data.choices[0].message.content,
+        text: ensureUzbekLatin(data.choices[0].message.content),
         usage: {
           promptTokens: data.usage?.prompt_tokens || 0,
           completionTokens: data.usage?.completion_tokens || 0,
@@ -175,6 +178,7 @@ QAT'IY QOIDALAR:
 - Punktlar • belgisi bilan
 - Maksimal 130 so'z
 - Sodda, tushunarli o'zbek tili
+- FAQAT LOTIN ALIFBOSIDA — kirill harflari (ў, қ, ғ, ҳ, ё, ж) ishlatilmaydi
 - 4 ta bo'lim ham bo'lishi SHART`
 
     return this.chat({

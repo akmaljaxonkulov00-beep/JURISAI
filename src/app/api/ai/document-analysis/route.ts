@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireUser } from '@/lib/server-auth'
 import { checkAndIncrement, usageMessage } from '@/lib/usage-limits'
 import { groundPrompt } from '@/lib/legal-rag'
+import { ensureUzbekLatin } from '@/lib/uz-latin'
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
@@ -11,7 +12,7 @@ const SYSTEM_PROMPT =
   'STRICT RULES:\n' +
   '1. ACCURACY FIRST: You must NEVER invent or hallucinate legal articles (moddalar) or punishments.\n' +
   '2. FORMATTING: Use clean Markdown with headings, bold terms, and bullet points.\n' +
-  "3. LANGUAGE: Answer strictly in formal Uzbek language (O'zbek tili).\n\n" +
+  "3. LANGUAGE: Answer strictly in formal Uzbek language (O'zbek tili), LATIN ALPHABET ONLY. NEVER use Cyrillic letters (ў, қ, ғ, ҳ, ё, ж).\n\n" +
   'Analyze the legal document and provide:\n' +
   '- Hujjatning qisqa tavsifi\n' +
   '- Qonunchilikka moslik tekshiruvi\n' +
@@ -102,8 +103,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'AI javob olinmadi' }, { status: 502 })
     }
 
+    // ── Lotin alifbosi kafolati ──
+    const latinAnalysis = ensureUzbekLatin(analysisText)
+
     return NextResponse.json({
-      analysis: analysisText,
+      analysis: latinAnalysis,
       documentType,
       timestamp: new Date().toISOString(),
       usage: { totalTokens: Math.ceil(documentText.length / 4) },

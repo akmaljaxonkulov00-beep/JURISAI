@@ -7,6 +7,7 @@ import {
   validateCitations,
   appendCitationNote,
 } from '@/lib/legal-rag'
+import { ensureUzbekLatin } from '@/lib/uz-latin'
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
@@ -66,7 +67,7 @@ QAT'IY QOIDALAR:
 2. BAZA MA'LUMOTLARI blokidagi moddalarni keltirishda kodeks nomi va modda raqamini aniq yoz (masalan: "O'zbekiston Respublikasi Jinoyat Kodeksining 97-moddasi").
 3. Agar berilgan baza ma'lumotlarida foydalanuvchi savoliga mos modda bo'lmasa, shunday yoz: "Bazada bu savol bo'yicha aniq modda topilmadi" — va umumiy qonuniy tushuntirish bering, modda raqami keltirmang.
 4. JAVOBLAR ANIQLIGI: Jinoyat Kodeksi 97-moddasi — "Qasddan odam o'ldirish". Moddalarni boshqa kodekslar bilan adashtirma.
-5. TIL: Faqat adabiy o'zbek tilida javob ber.
+5. TIL: Faqat adabiy o'zbek tilida, FAQAT LOTIN ALIFBOSIDA javob ber. Kirill harflari (ў, қ, ғ, ҳ, ё, ж kabi) MUTLAQO ISHLATILMAYDI.
 6. FORMAT: Toza Markdown ishlat (## sarlavhalar, **qalin**, • ro'yxatlar).
 7. Qisqa va aniq bo'l: odatda 150-250 so'z. Foydalanuvchi "batafsil" desa 300-500 so'z.${legalContext}`,
           },
@@ -94,6 +95,9 @@ QAT'IY QOIDALAR:
 
     const data = await response.json()
     let aiResponse = data.choices[0]?.message?.content || 'Javob olinmadi'
+
+    // ── Lotin alifbosi kafolati: kirillcha aralashsa transliteratsiya qilinadi ──
+    aiResponse = ensureUzbekLatin(aiResponse)
 
     // AI javobidagi modda iqtiboslari bazaga mosligini tekshiramiz —
     // to'qima modda raqamlari javobda qolmasligi uchun.
