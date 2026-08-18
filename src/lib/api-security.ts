@@ -209,13 +209,20 @@ export function validatePasswordStrength(password: string): {
  * Check if request comes from allowed origin
  */
 export function isAllowedOrigin(origin: string): boolean {
+  // Environment variable'dan production URL olish
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || ''
   const allowedOrigins = [
     'http://localhost:3000',
+    'http://localhost:3001',
     'https://jurisai-dm4b-ten.vercel.app',
+    'https://jurisai-rouge.vercel.app',
     'https://jurisai.uz',
     'https://www.jurisai.uz',
     'https://jurisai.vercel.app',
   ]
+  if (siteUrl && !allowedOrigins.includes(siteUrl)) {
+    allowedOrigins.push(siteUrl)
+  }
 
   return allowedOrigins.includes(origin)
 }
