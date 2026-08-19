@@ -900,6 +900,47 @@ export default function ScenarioGenerator() {
                         <span className="font-medium">{template.participants_count} kishi</span>
                       </div>
                     </div>
+
+                    <Button
+                      onClick={() => {
+                        // Shablon parametrlarini qo'llash
+                        const typeMap: Record<string, string> = {
+                          tergov: 'criminal',
+                          sud: 'criminal',
+                          muzokara: 'civil',
+                          mehnat: 'labor',
+                          oila: 'family',
+                          jinoyat: 'criminal',
+                          fuqarolik: 'civil',
+                        }
+                        const diffMap: Record<string, string> = {
+                          "boshlang'ich": 'beginner',
+                          "o'rta": 'intermediate',
+                          murakkab: 'advanced',
+                          beginner: 'beginner',
+                          intermediate: 'intermediate',
+                          advanced: 'advanced',
+                        }
+                        setScenarioType(
+                          typeMap[template.scenario_type] || template.scenario_type || 'civil'
+                        )
+                        setDifficultyLevel(
+                          diffMap[template.difficulty_level] ||
+                            template.difficulty_level ||
+                            'intermediate'
+                        )
+                        setComplexity(template.complexity || 'standard')
+                        setParticipantsCount(template.participants_count || 3)
+                        setDuration(template.estimated_duration || 45)
+                        setActiveTab('create')
+                        // Avtomatik generatsiya
+                        setTimeout(() => handleGenerateScenario(), 100)
+                      }}
+                      disabled={isGenerating}
+                      className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white"
+                    >
+                      {isGenerating ? 'Yaratilmoqda...' : 'Ishlatish'}
+                    </Button>
                   </CardContent>
                 </Card>
               ))}

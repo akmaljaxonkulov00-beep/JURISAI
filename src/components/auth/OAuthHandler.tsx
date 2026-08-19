@@ -53,35 +53,14 @@ export default function OAuthHandler() {
         sbKeys.push(key)
       }
     }
-    console.log('[OAuthHandler] Supabase localStorage keys:', sbKeys)
-
-    // ── Debug: check for Supabase auth token ──
-    const sbAuthToken = localStorage.getItem('sb-blayqzykzlmrjuvhzvsk-auth-token')
-    console.log('[OAuthHandler] sb-auth-token exists:', !!sbAuthToken)
-
     // Check for PKCE authorization code in query string
     const params = new URLSearchParams(window.location.search)
     const code = params.get('code')
-    console.log('[OAuthHandler] URL:', window.location.href)
-    console.log('[OAuthHandler] code param:', code)
 
     if (!code) {
       // No OAuth code — nothing to handle
       return
     }
-
-    console.log('[OAuthHandler] Found auth code in URL, exchanging for session...')
-
-    // ── Debug: check for PKCE code verifier in localStorage ──
-    // Supabase stores the verifier under: sb-<project_ref>-pkce-code-verifier-<...>
-    const pkceKeys: string[] = []
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i)
-      if (key && key.includes('pkce')) {
-        pkceKeys.push(key)
-      }
-    }
-    console.log('[OAuthHandler] PKCE verifier keys:', pkceKeys)
 
     // Exchange the PKCE authorization code for a session.
     // This relies on the PKCE code verifier that was stored in
