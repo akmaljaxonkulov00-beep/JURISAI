@@ -3,6 +3,9 @@
 -- Admin tomonidan qo'shilgan haqiqiy huquqiy kazuslar
 -- ═══════════════════════════════════════════════════════════════════════════
 
+-- Agar irac_cases VIEW bo'lsa, uni o'chirib JADVAL sifatida qayta yaratamiz
+DROP VIEW IF EXISTS public.irac_cases CASCADE;
+
 CREATE TABLE IF NOT EXISTS public.irac_cases (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   title TEXT NOT NULL,
