@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import AppSidebar from '@/components/layout/AppSidebar'
 import {
@@ -16,7 +16,21 @@ import {
   AlertCircle,
   RotateCcw,
   CheckCircle2,
+  Brain,
+  PenTool,
+  Shuffle,
+  ChevronDown,
+  ChevronUp,
+  Plus,
+  Trash2,
+  ToggleLeft,
+  ToggleRight,
 } from 'lucide-react'
+import { supabase } from '@/lib/supabase-browser'
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   TYPES
+   ═══════════════════════════════════════════════════════════════════════════ */
 
 interface IracResult {
   issue: string
@@ -27,77 +41,223 @@ interface IracResult {
   confidence: number
 }
 
+interface IracCase {
+  id: string
+  title: string
+  description: string
+  category: string
+  difficulty: string
+  law_references: string[]
+  is_active: boolean
+}
+
 interface IracSection {
   id: 'issue' | 'rule' | 'application' | 'conclusion'
   title: string
+  subtitle: string
   icon: React.ReactNode
   color: string
+  placeholder: string
 }
+
+type Mode = 'ai_solves' | 'user_solves'
 
 const SECTIONS: IracSection[] = [
   {
     id: 'issue',
     title: 'Muammo (Issue)',
+    subtitle: 'Asosiy huquqiy masalani aniqlang',
     icon: <Target className="w-5 h-5" />,
     color: 'blue',
+    placeholder:
+      "Masalan: Sudlanuvchi o'g'irlikda ayblanmoqda. Asosiy masala — JK 169-modda qo'llanilishi to'g'rimi?",
   },
   {
     id: 'rule',
     title: 'Qoida (Rule)',
+    subtitle: "Tegishli qonun moddalarini ko'rsating",
     icon: <Scale className="w-5 h-5" />,
     color: 'purple',
+    placeholder: "Masalan: JK 169-modda — O'g'irlik. Bazaviy hisoblash miqdorining ...",
   },
   {
     id: 'application',
     title: "Qo'llash (Application)",
+    subtitle: "Qonunni faktlarga bog'lang",
     icon: <FileText className="w-5 h-5" />,
     color: 'green',
+    placeholder:
+      "Masalan: Sudlanuvchi supermarketdan 450 000 so'mlik tovarni yashirin ravishda o'g'irlagan...",
   },
   {
     id: 'conclusion',
     title: 'Xulosa (Conclusion)',
+    subtitle: 'Yakuniy huquqiy pozitsiyangizni bildiring',
     icon: <Award className="w-5 h-5" />,
     color: 'orange',
+    placeholder:
+      'Masalan: JK 169-modda 2-qism asosida sudlanuvchiga jazo tayinlash tavsiya etiladi...',
   },
 ]
 
-const COLOR_STYLES: Record<string, { header: string; icon: string }> = {
+const COLOR_STYLES: Record<string, { header: string; border: string; text: string; bg: string }> = {
   blue: {
     header: 'border-blue-200 dark:border-blue-900 bg-blue-50/60 dark:bg-blue-950/30',
-    icon: 'text-blue-600 dark:text-blue-400',
+    border: 'border-blue-300 dark:border-blue-700',
+    text: 'text-blue-600 dark:text-blue-400',
+    bg: 'bg-blue-50 dark:bg-blue-950/30',
   },
   purple: {
     header: 'border-purple-200 dark:border-purple-900 bg-purple-50/60 dark:bg-purple-950/30',
-    icon: 'text-purple-600 dark:text-purple-400',
+    border: 'border-purple-300 dark:border-purple-700',
+    text: 'text-purple-600 dark:text-purple-400',
+    bg: 'bg-purple-50 dark:bg-purple-950/30',
   },
   green: {
     header: 'border-green-200 dark:border-green-900 bg-green-50/60 dark:bg-green-950/30',
-    icon: 'text-green-600 dark:text-green-400',
+    border: 'border-green-300 dark:border-green-700',
+    text: 'text-green-600 dark:text-green-400',
+    bg: 'bg-green-50 dark:bg-green-950/30',
   },
   orange: {
     header: 'border-orange-200 dark:border-orange-900 bg-orange-50/60 dark:bg-orange-950/30',
-    icon: 'text-orange-600 dark:text-orange-400',
+    border: 'border-orange-300 dark:border-orange-700',
+    text: 'text-orange-600 dark:text-orange-400',
+    bg: 'bg-orange-50 dark:bg-orange-950/30',
   },
 }
 
+const CATEGORIES = [
+  { value: 'all', label: 'Barchasi' },
+  { value: 'jinoyat', label: 'Jinoyat' },
+  { value: 'fuqarolik', label: 'Fuqarolik' },
+  { value: 'mehnat', label: 'Mehnat' },
+  { value: 'oila', label: 'Oila' },
+  { value: 'mamuriy', label: "Ma'muriy" },
+  { value: 'tijorat', label: 'Tijorat' },
+]
+
+const DIFFICULTIES = [
+  { value: 'all', label: 'Barchasi' },
+  { value: 'easy', label: "Boshlang'ich" },
+  { value: 'medium', label: "O'rta" },
+  { value: 'hard', label: 'Murakkab' },
+]
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PAGE
+   ═══════════════════════════════════════════════════════════════════════════ */
+
 export default function CaseSolver() {
-  const [kazusText, setKazusText] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [result, setResult] = useState<IracResult | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [saved, setSaved] = useState(false)
   const router = useRouter()
 
-  const analyze = async () => {
-    const text = kazusText.trim()
-    if (text.length < 50) {
-      setError('Kazus juda qisqa. Iltimos, holatni batafsilroq tasvirlang (kamida 50 belgi).')
+  // ── Mode ──
+  const [mode, setMode] = useState<Mode>('ai_solves')
+
+  // ── AI yechishi uchun ──
+  const [cases, setCases] = useState<IracCase[]>([])
+  const [currentCase, setCurrentCase] = useState<IracCase | null>(null)
+  const [category, setCategory] = useState('all')
+  const [difficulty, setDifficulty] = useState('all')
+  const [loadingCases, setLoadingCases] = useState(false)
+
+  // ── AI tahlil natijasi ──
+  const [result, setResult] = useState<IracResult | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [saved, setSaved] = useState(false)
+
+  // ── Foydalanuvchi yechishi uchun ──
+  const [userAnswers, setUserAnswers] = useState<Record<string, string>>({
+    issue: '',
+    rule: '',
+    application: '',
+    conclusion: '',
+  })
+  const [evaluation, setEvaluation] = useState<IracResult | null>(null)
+  const [evalLoading, setEvalLoading] = useState(false)
+
+  // ── Admin kazus qo'shish ──
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [showAddCase, setShowAddCase] = useState(false)
+  const [newCase, setNewCase] = useState({
+    title: '',
+    description: '',
+    category: 'jinoyat',
+    difficulty: 'medium',
+    law_references: '',
+  })
+  const [addCaseLoading, setAddCaseLoading] = useState(false)
+
+  // ── Admin: barcha kazuslarni ko'rish ──
+  const [allCases, setAllCases] = useState<IracCase[]>([])
+  const [showAllCases, setShowAllCases] = useState(false)
+
+  /* ── Admin aniqlash ── */
+  useEffect(() => {
+    const checkAdmin = async () => {
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession()
+        if (!session?.user?.id) return
+        const { data } = await supabase
+          .from('registered_users')
+          .select('role')
+          .eq('id', session.user.id)
+          .single()
+        if (data && ['ADMIN', 'SUPER_ADMIN'].includes(data.role?.toUpperCase())) {
+          setIsAdmin(true)
+        }
+      } catch {}
+    }
+    checkAdmin()
+  }, [])
+
+  /* ── Kazuslarni yuklash ── */
+  const loadCases = useCallback(async () => {
+    setLoadingCases(true)
+    try {
+      let url = '/api/irac/cases?'
+      if (category !== 'all') url += `category=${category}&`
+      if (difficulty !== 'all') url += `difficulty=${difficulty}&`
+      const res = await fetch(url)
+      const data = await res.json()
+      if (data.cases && Array.isArray(data.cases)) {
+        setCases(data.cases)
+      }
+    } catch {
+      setCases([])
+    } finally {
+      setLoadingCases(false)
+    }
+  }, [category, difficulty])
+
+  useEffect(() => {
+    loadCases()
+  }, [loadCases])
+
+  /* ── Tasodifiy kazus tanlash ── */
+  const pickRandomCase = () => {
+    if (cases.length === 0) {
+      setError('Kazuslar topilmadi. Boshqa kategoriya yoki qiyinlik darajasini tanlang.')
       return
     }
+    const randomIndex = Math.floor(Math.random() * cases.length)
+    setCurrentCase(cases[randomIndex])
+    setResult(null)
+    setError(null)
+    setSaved(false)
+  }
+
+  /* ── AI tahlil (AI yechishi rejimi) ── */
+  const analyzeWithAI = async () => {
+    if (!currentCase) return
     setLoading(true)
     setError(null)
     setSaved(false)
     try {
+      const text = `${currentCase.title}\n\n${currentCase.description}`
       const res = await fetch('/api/ai/irac-analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -108,9 +268,9 @@ export default function CaseSolver() {
         if (res.status === 429 && data.error === 'limit_reached') {
           setError(data.message || "AI limiti tugadi. Keyinroq urinib ko'ring.")
         } else if (res.status === 401) {
-          setError('Tizimga kirishingiz kerak. Iltimos, avval login qiling.')
+          setError('Tizimga kirishingiz kerak.')
         } else {
-          setError(data.error || "Tahlil qilishda xatolik yuz berdi. Qayta urinib ko'ring.")
+          setError(data.error || 'Tahlil qilishda xatolik yuz berdi.')
         }
         return
       }
@@ -123,22 +283,129 @@ export default function CaseSolver() {
         confidence: typeof data.confidence === 'number' ? data.confidence : 0,
       })
     } catch {
-      setError("Server bilan aloqa yo'qoldi. Internet aloqangizni tekshirib, qayta urinib ko'ring.")
+      setError("Server bilan aloqa yo'qoldi.")
     } finally {
       setLoading(false)
     }
   }
 
+  /* ── AI baholash (foydalanuvchi yechishi rejimi) ── */
+  const evaluateWithAI = async () => {
+    if (!currentCase) return
+    const allEmpty = Object.values(userAnswers).every(v => v.trim().length === 0)
+    if (allEmpty) {
+      setError("Kamida bitta bo'limni to'ldiring.")
+      return
+    }
+    setEvalLoading(true)
+    setError(null)
+    try {
+      const prompt = `Siz O'zbekiston Respublikasi huquq tizimini yaxshi biladigan tajribali huquqshunossiz.
+
+Kazus: ${currentCase.title}
+${currentCase.description}
+
+Tegishli qonunlar: ${currentCase.law_references?.join(', ') || 'aniqlanmagan'}
+
+Foydalanuvchi quyidagi IRAC analizini yozdi:
+
+MUAMMO (Issue):
+${userAnswers.issue || 'yozilmagan'}
+
+QOIDA (Rule):
+${userAnswers.rule || 'yozilmagan'}
+
+QO'LLASH (Application):
+${userAnswers.application || 'yozilmagan'}
+
+XULOSA (Conclusion):
+${userAnswers.conclusion || 'yozilmagan'}
+
+Bu analizni baholang. Har bir bo'lim uchun:
+1. To'g'ri javobni yozing (foydalanuvchi noto'g'ri yoki kam yozgan bo'lsa)
+2. Foydalanuvchining javobini baholang
+
+JSON formatda javob bering:
+{
+  "issue": "To'g'ri muammo aniqlanishi...",
+  "rule": "To'g'ri qonun moddalari...",
+  "application": "To'g'ri qo'llash...",
+  "conclusion": "To'g'ri xulosa...",
+  "sources": [{"title": "Kodeks nomi", "article": "modda raqami"}],
+  "confidence": 85,
+  "feedback": "Umumiy baholash..."
+}
+
+FAQAT O'ZBEK LOTIN ALIFBOSIDA yozing. Kirill harflari ishlatilmaydi.`
+
+      const res = await fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: prompt,
+          systemBase:
+            "Siz O'zbekiston huquq tizimi bo'yicha AI yordamchisiz. Faqat lotin o'zbek tilida javob bering.",
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setError(data.error || 'Baholashda xatolik.')
+        return
+      }
+
+      // JSON ajratish
+      const text = data.response || data.message || ''
+      const jsonMatch = text.match(/\{[\s\S]*\}/)
+      if (jsonMatch) {
+        try {
+          const parsed = JSON.parse(jsonMatch[0])
+          setEvaluation({
+            issue: parsed.issue || '',
+            rule: parsed.rule || '',
+            application: parsed.application || '',
+            conclusion: parsed.conclusion || '',
+            sources: Array.isArray(parsed.sources) ? parsed.sources : [],
+            confidence: typeof parsed.confidence === 'number' ? parsed.confidence : 0,
+          })
+        } catch {
+          // JSON parse xatosi — matnni to'g'ridan-to'g'ri ko'rsatish
+          setEvaluation({
+            issue: text.substring(0, 500),
+            rule: '',
+            application: '',
+            conclusion: '',
+            sources: [],
+            confidence: 50,
+          })
+        }
+      } else {
+        setEvaluation({
+          issue: text.substring(0, 500),
+          rule: '',
+          application: '',
+          conclusion: '',
+          sources: [],
+          confidence: 50,
+        })
+      }
+    } catch {
+      setError('Baholashda xatolik yuz berdi.')
+    } finally {
+      setEvalLoading(false)
+    }
+  }
+
+  /* ── Saqlash ── */
   const saveAnalysis = async () => {
-    if (!result) return
+    if (!result || !currentCase) return
     try {
       const res = await fetch('/api/case-solver/save-analysis', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          case_title: 'Kazus tahlili',
-          case_category: 'general',
-          case_difficulty: "o'rta",
+          case_title: currentCase.title,
+          case_category: currentCase.category,
+          case_difficulty: currentCase.difficulty,
           irac_analysis: {
             issue: result.issue,
             rule: result.rule,
@@ -149,25 +416,98 @@ export default function CaseSolver() {
           completed_at: new Date().toISOString(),
         }),
       })
+      if (res.ok) setSaved(true)
+    } catch {}
+  }
+
+  /* ── Admin: yangi kazus qo'shish ── */
+  const addCase = async () => {
+    if (!newCase.title || !newCase.description) return
+    setAddCaseLoading(true)
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+      const res = await fetch('/api/irac/cases', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session?.access_token || ''}`,
+        },
+        body: JSON.stringify({
+          ...newCase,
+          law_references: newCase.law_references
+            ? newCase.law_references.split(',').map(s => s.trim())
+            : [],
+        }),
+      })
       if (res.ok) {
-        setSaved(true)
+        setNewCase({
+          title: '',
+          description: '',
+          category: 'jinoyat',
+          difficulty: 'medium',
+          law_references: '',
+        })
+        setShowAddCase(false)
+        loadCases()
+      } else {
+        const data = await res.json()
+        setError(data.error || "Qo'shishda xatolik.")
       }
     } catch {
-      // saqlash xatosi javobni buzmasin
+      setError("Qo'shishda xatolik yuz berdi.")
+    } finally {
+      setAddCaseLoading(false)
     }
   }
 
+  /* ── Admin: barcha kazuslarni olish ── */
+  const loadAllCases = async () => {
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+      const res = await fetch('/api/admin/irac-cases', {
+        headers: { Authorization: `Bearer ${session?.access_token || ''}` },
+      })
+      const data = await res.json()
+      if (data.cases) setAllCases(data.cases)
+    } catch {}
+  }
+
+  /* ── Admin: kazusni o'chirish ── */
+  const deleteCase = async (id: string) => {
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+      await fetch(`/api/admin/irac-cases?id=${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${session?.access_token || ''}` },
+      })
+      loadAllCases()
+      loadCases()
+    } catch {}
+  }
+
+  /* ── Reset ── */
   const reset = () => {
-    setKazusText('')
+    setCurrentCase(null)
     setResult(null)
+    setEvaluation(null)
     setError(null)
     setSaved(false)
+    setUserAnswers({ issue: '', rule: '', application: '', conclusion: '' })
   }
+
+  /* ═══════════════════════════════════════════════════════════════════════
+     RENDER
+     ═══════════════════════════════════════════════════════════════════════ */
 
   return (
     <div className="min-h-screen bg-[#f8faff] dark:bg-gray-950 mobile-safe-top">
       <div className="flex flex-col md:flex-row">
-        {/* Sidebar — yagona navigatsiya (desktop) */}
         <AppSidebar>
           <div className="space-y-1">
             <button
@@ -187,7 +527,6 @@ export default function CaseSolver() {
           </div>
         </AppSidebar>
 
-        {/* Main Content */}
         <div className="flex-1">
           {/* Header */}
           <header className="bg-white dark:bg-zinc-900 px-4 sm:px-8 py-4 border-b border-gray-100 dark:border-zinc-800">
@@ -197,104 +536,521 @@ export default function CaseSolver() {
                   Kazus Yechish (IRAC)
                 </h1>
                 <p className="text-sm text-gray-600 dark:text-zinc-300">
-                  Kazusingizni yozing — AI tegishli qonun moddalari bilan tahlil qilib beradi
+                  Huquqiy kazusni AI bilan yeching yoki o'zingiz yechib AI baholasin
                 </p>
               </div>
-              {result && (
-                <span className="px-3 py-1 rounded-full text-sm font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">
-                  Ishonchlilik: {result.confidence}%
-                </span>
+              {isAdmin && (
+                <button
+                  onClick={() => {
+                    setShowAddCase(!showAddCase)
+                    if (!showAllCases) loadAllCases()
+                    setShowAllCases(!showAllCases)
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 text-sm bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors"
+                >
+                  <Plus className="w-4 h-4" />
+                  Kazus qo'shish
+                </button>
               )}
             </div>
           </header>
 
-          {/* Main Content Area */}
           <main className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto">
-            {!result ? (
-              /* ── Kazus kiritish ── */
-              <div className="bg-white dark:bg-zinc-900 rounded-2xl p-4 sm:p-6 shadow-sm">
-                <div className="flex items-center gap-3 mb-1">
-                  <Sparkles className="w-5 h-5 text-blue-600" />
-                  <h2 className="text-lg font-bold text-gray-800 dark:text-zinc-100">
-                    Kazusingizni yozing
-                  </h2>
-                </div>
-                <p className="text-sm text-gray-600 dark:text-zinc-400 mb-4">
-                  Huquqiy holatingizni yoki kazusni tasvirlang. AI uni IRAC metodikasi bilan tahlil
-                  qiladi va qonunlar bazasidagi tegishli moddalarni ko'rsatadi.
-                </p>
-
-                <textarea
-                  value={kazusText}
-                  onChange={e => {
-                    setKazusText(e.target.value)
-                    if (error) setError(null)
-                  }}
-                  placeholder={`Misol:\n2024-yil 15-mart kuni A.A. Karimov "Mega Market" do'konidan 10 million so'm naqd pulni olib qochib ketdi. U 2 kundan keyin qo'lga olindi va aybini tan oldi...`}
-                  className="w-full h-48 sm:h-56 p-4 border border-gray-200 dark:border-zinc-700 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base bg-white dark:bg-zinc-900 text-gray-800 dark:text-zinc-200"
-                />
-
-                <div className="flex items-center justify-between mt-2 mb-4">
-                  <span className="text-xs text-gray-400 dark:text-zinc-500">
-                    {kazusText.trim().length} belgi · kamida 50 belgi
-                  </span>
-                  <span className="text-xs text-gray-400 dark:text-zinc-500">
-                    Nimani tasvirlash kerak: kim, qachon, qayerda, nima bo'lgan, tomonlar
-                  </span>
-                </div>
-
-                {error && (
-                  <div className="mb-4 p-3 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 rounded-xl flex items-start gap-2">
-                    <AlertCircle className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
-                    <p className="text-sm text-red-700 dark:text-red-400">{error}</p>
-                  </div>
-                )}
-
-                <button
-                  onClick={analyze}
-                  disabled={loading}
-                  className="w-full sm:w-auto flex items-center justify-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed font-medium"
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                      Tahlil qilinmoqda...
-                    </>
-                  ) : (
-                    <>
-                      <Send className="w-5 h-5" />
-                      Kazusni tahlil qilish
-                    </>
-                  )}
-                </button>
-
-                <div className="mt-6 grid grid-cols-1 sm:grid-cols-4 gap-3">
-                  {SECTIONS.map(s => (
+            {/* ═══════════════ ADMIN: KAZUSLAR RO'YXATI ═══════════════ */}
+            {isAdmin && showAllCases && (
+              <div className="mb-6 bg-white dark:bg-zinc-900 rounded-2xl p-4 sm:p-6 shadow-sm border border-purple-200 dark:border-purple-900">
+                <h3 className="text-lg font-bold text-gray-800 dark:text-zinc-100 mb-4 flex items-center gap-2">
+                  <BookMarked className="w-5 h-5 text-purple-600" />
+                  Barcha kazuslar ({allCases.length})
+                </h3>
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {allCases.map(c => (
                     <div
-                      key={s.id}
-                      className={`border rounded-xl p-3 ${COLOR_STYLES[s.color].header}`}
+                      key={c.id}
+                      className="flex items-center justify-between p-3 bg-gray-50 dark:bg-zinc-800 rounded-xl"
                     >
-                      <div className={`flex items-center gap-2 mb-1 ${COLOR_STYLES[s.color].icon}`}>
-                        {s.icon}
-                        <span className="font-medium text-sm">{s.title.split(' (')[0]}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm text-gray-800 dark:text-zinc-200 truncate">
+                          {c.title}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-zinc-400">
+                          {c.category} · {c.difficulty} · {c.is_active ? '✅ Faol' : '❌ Nofaol'}
+                        </p>
                       </div>
-                      <p className="text-xs text-gray-500 dark:text-zinc-400">
-                        {s.id === 'issue' && 'Asosiy huquqiy masala'}
-                        {s.id === 'rule' && 'Tegishli qonun moddalari'}
-                        {s.id === 'application' && "Qonunni faktlarga bog'lash"}
-                        {s.id === 'conclusion' && 'Yakuniy pozitsiya'}
-                      </p>
+                      <button
+                        onClick={() => deleteCase(c.id)}
+                        className="ml-2 p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
                   ))}
                 </div>
               </div>
-            ) : (
-              /* ── AI tahlil natijasi ── */
+            )}
+
+            {/* ═══════════════ ADMIN: YANGI KAZUS QO'SHISH ═══════════════ */}
+            {isAdmin && showAddCase && (
+              <div className="mb-6 bg-white dark:bg-zinc-900 rounded-2xl p-4 sm:p-6 shadow-sm border border-purple-200 dark:border-purple-900">
+                <h3 className="text-lg font-bold text-gray-800 dark:text-zinc-100 mb-4 flex items-center gap-2">
+                  <Plus className="w-5 h-5 text-purple-600" />
+                  Yangi kazus qo'shish
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="sm:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">
+                      Kazus nomi
+                    </label>
+                    <input
+                      type="text"
+                      value={newCase.title}
+                      onChange={e => setNewCase({ ...newCase, title: e.target.value })}
+                      className="w-full p-3 border border-gray-200 dark:border-zinc-700 rounded-xl bg-white dark:bg-zinc-900 text-gray-800 dark:text-zinc-200 text-sm"
+                      placeholder="Masalan: O'g'irlik ishi"
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">
+                      Kazus tavsifi
+                    </label>
+                    <textarea
+                      value={newCase.description}
+                      onChange={e => setNewCase({ ...newCase, description: e.target.value })}
+                      className="w-full h-32 p-3 border border-gray-200 dark:border-zinc-700 rounded-xl resize-none bg-white dark:bg-zinc-900 text-gray-800 dark:text-zinc-200 text-sm"
+                      placeholder="Holatni batafsil tasvirlang..."
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">
+                      Kategoriya
+                    </label>
+                    <select
+                      value={newCase.category}
+                      onChange={e => setNewCase({ ...newCase, category: e.target.value })}
+                      className="w-full p-3 border border-gray-200 dark:border-zinc-700 rounded-xl bg-white dark:bg-zinc-900 text-gray-800 dark:text-zinc-200 text-sm"
+                    >
+                      {CATEGORIES.filter(c => c.value !== 'all').map(c => (
+                        <option key={c.value} value={c.value}>
+                          {c.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">
+                      Qiyinlik
+                    </label>
+                    <select
+                      value={newCase.difficulty}
+                      onChange={e => setNewCase({ ...newCase, difficulty: e.target.value })}
+                      className="w-full p-3 border border-gray-200 dark:border-zinc-700 rounded-xl bg-white dark:bg-zinc-900 text-gray-800 dark:text-zinc-200 text-sm"
+                    >
+                      {DIFFICULTIES.filter(d => d.value !== 'all').map(d => (
+                        <option key={d.value} value={d.value}>
+                          {d.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">
+                      Tegishli qonun moddalari (vergul bilan ajrating)
+                    </label>
+                    <input
+                      type="text"
+                      value={newCase.law_references}
+                      onChange={e => setNewCase({ ...newCase, law_references: e.target.value })}
+                      className="w-full p-3 border border-gray-200 dark:border-zinc-700 rounded-xl bg-white dark:bg-zinc-900 text-gray-800 dark:text-zinc-200 text-sm"
+                      placeholder="JK 169-modda, JK 47-modda"
+                    />
+                  </div>
+                </div>
+                <div className="flex gap-3 mt-4">
+                  <button
+                    onClick={addCase}
+                    disabled={addCaseLoading || !newCase.title || !newCase.description}
+                    className="flex items-center gap-2 px-6 py-2.5 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors disabled:opacity-50 text-sm font-medium"
+                  >
+                    {addCaseLoading ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Plus className="w-4 h-4" />
+                    )}
+                    Qo'shish
+                  </button>
+                  <button
+                    onClick={() => setShowAddCase(false)}
+                    className="px-6 py-2.5 text-gray-600 dark:text-zinc-300 border border-gray-200 dark:border-zinc-700 rounded-xl hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors text-sm"
+                  >
+                    Bekor qilish
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* ═══════════════ MODE SELECTOR ═══════════════ */}
+            {!currentCase && !result && !evaluation && (
+              <div className="mb-6">
+                <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-sm">
+                  <h2 className="text-lg font-bold text-gray-800 dark:text-zinc-100 mb-4 flex items-center gap-2">
+                    <Sparkles className="w-5 h-5 text-blue-600" />
+                    Rejimni tanlang
+                  </h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <button
+                      onClick={() => setMode('ai_solves')}
+                      className={`p-6 rounded-2xl border-2 text-left transition-all ${
+                        mode === 'ai_solves'
+                          ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30'
+                          : 'border-gray-200 dark:border-zinc-700 hover:border-blue-300'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3 mb-3">
+                        <div
+                          className={`p-2 rounded-xl ${mode === 'ai_solves' ? 'bg-blue-600 text-white' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-600'}`}
+                        >
+                          <Brain className="w-6 h-6" />
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-gray-800 dark:text-zinc-100">
+                            AI Kazus Yechishi
+                          </h3>
+                          <p className="text-xs text-gray-500 dark:text-zinc-400">
+                            AI kazusni IRAC bo'yicha tahlil qiladi
+                          </p>
+                        </div>
+                      </div>
+                      <ul className="text-xs text-gray-600 dark:text-zinc-400 space-y-1 ml-11">
+                        <li>• Tasodifiy kazus tanlash</li>
+                        <li>• AI to'liq IRAC tahlili beradi</li>
+                        <li>• Tegishli qonun moddalari ko'rsatiladi</li>
+                        <li>• Saqlash va eksport qilish</li>
+                      </ul>
+                    </button>
+
+                    <button
+                      onClick={() => setMode('user_solves')}
+                      className={`p-6 rounded-2xl border-2 text-left transition-all ${
+                        mode === 'user_solves'
+                          ? 'border-green-500 bg-green-50 dark:bg-green-950/30'
+                          : 'border-gray-200 dark:border-zinc-700 hover:border-green-300'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3 mb-3">
+                        <div
+                          className={`p-2 rounded-xl ${mode === 'user_solves' ? 'bg-green-600 text-white' : 'bg-green-100 dark:bg-green-900/30 text-green-600'}`}
+                        >
+                          <PenTool className="w-6 h-6" />
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-gray-800 dark:text-zinc-100">
+                            Kazus Baholash
+                          </h3>
+                          <p className="text-xs text-gray-500 dark:text-zinc-400">
+                            Siz yeching, AI baholasin
+                          </p>
+                        </div>
+                      </div>
+                      <ul className="text-xs text-gray-600 dark:text-zinc-400 space-y-1 ml-11">
+                        <li>• Kazusni o'qing</li>
+                        <li>• O'zingiz IRAC yozing</li>
+                        <li>• AI baholab beradi</li>
+                        <li>• To'g'ri javobni ko'ring</li>
+                      </ul>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ═══════════════ KAZUS TANLASH ═══════════════ */}
+            {!currentCase && !result && !evaluation && (
+              <div className="bg-white dark:bg-zinc-900 rounded-2xl p-4 sm:p-6 shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-bold text-gray-800 dark:text-zinc-100">
+                    {mode === 'ai_solves' ? 'Kazus tanlang' : 'Kazus tanlang'}
+                  </h2>
+                  <button
+                    onClick={pickRandomCase}
+                    disabled={loadingCases || cases.length === 0}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-50 text-sm font-medium"
+                  >
+                    <Shuffle className="w-4 h-4" />
+                    Tasodifiy kazus
+                  </button>
+                </div>
+
+                {/* Filtrlar */}
+                <div className="flex flex-wrap gap-3 mb-4">
+                  <select
+                    value={category}
+                    onChange={e => setCategory(e.target.value)}
+                    className="px-3 py-2 border border-gray-200 dark:border-zinc-700 rounded-xl bg-white dark:bg-zinc-900 text-gray-800 dark:text-zinc-200 text-sm"
+                  >
+                    {CATEGORIES.map(c => (
+                      <option key={c.value} value={c.value}>
+                        {c.label}
+                      </option>
+                    ))}
+                  </select>
+                  <select
+                    value={difficulty}
+                    onChange={e => setDifficulty(e.target.value)}
+                    className="px-3 py-2 border border-gray-200 dark:border-zinc-700 rounded-xl bg-white dark:bg-zinc-900 text-gray-800 dark:text-zinc-200 text-sm"
+                  >
+                    {DIFFICULTIES.map(d => (
+                      <option key={d.value} value={d.value}>
+                        {d.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Kazuslar ro'yxati */}
+                {loadingCases ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+                  </div>
+                ) : cases.length === 0 ? (
+                  <div className="text-center py-12 text-gray-500 dark:text-zinc-400">
+                    <p className="text-lg mb-2">Kazuslar topilmadi</p>
+                    <p className="text-sm">
+                      {isAdmin
+                        ? '"Kazus qo\'shish" tugmasi orqali yangi kazus qo\'shing.'
+                        : "Admin kazuslar qo'shishini kuting."}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {cases.map(c => (
+                      <button
+                        key={c.id}
+                        onClick={() => {
+                          setCurrentCase(c)
+                          setResult(null)
+                          setEvaluation(null)
+                          setUserAnswers({ issue: '', rule: '', application: '', conclusion: '' })
+                        }}
+                        className="p-4 text-left border border-gray-200 dark:border-zinc-700 rounded-xl hover:border-blue-300 dark:hover:border-blue-700 hover:bg-blue-50/50 dark:hover:bg-blue-950/20 transition-all"
+                      >
+                        <div className="flex items-start justify-between mb-2">
+                          <h3 className="font-medium text-gray-800 dark:text-zinc-200 text-sm">
+                            {c.title}
+                          </h3>
+                          <span
+                            className={`text-xs px-2 py-0.5 rounded-full ${
+                              c.difficulty === 'easy'
+                                ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                                : c.difficulty === 'hard'
+                                  ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                                  : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
+                            }`}
+                          >
+                            {c.difficulty === 'easy'
+                              ? "Boshlang'ich"
+                              : c.difficulty === 'hard'
+                                ? 'Murakkab'
+                                : "O'rta"}
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-500 dark:text-zinc-400 line-clamp-2 mb-2">
+                          {c.description}
+                        </p>
+                        <div className="flex flex-wrap gap-1">
+                          {c.law_references?.slice(0, 3).map((ref, i) => (
+                            <span
+                              key={i}
+                              className="text-[10px] px-1.5 py-0.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded"
+                            >
+                              {ref}
+                            </span>
+                          ))}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ═══════════════ KAZUS KO'RSATISH ═══════════════ */}
+            {currentCase && !result && !evaluation && (
+              <div className="space-y-4">
+                {/* Kazus matni */}
+                <div className="bg-white dark:bg-zinc-900 rounded-2xl p-4 sm:p-6 shadow-sm">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h2 className="text-lg font-bold text-gray-800 dark:text-zinc-100">
+                        {currentCase.title}
+                      </h2>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span
+                          className={`text-xs px-2 py-0.5 rounded-full ${
+                            currentCase.difficulty === 'easy'
+                              ? 'bg-green-100 text-green-700'
+                              : currentCase.difficulty === 'hard'
+                                ? 'bg-red-100 text-red-700'
+                                : 'bg-yellow-100 text-yellow-700'
+                          }`}
+                        >
+                          {currentCase.difficulty === 'easy'
+                            ? "Boshlang'ich"
+                            : currentCase.difficulty === 'hard'
+                              ? 'Murakkab'
+                              : "O'rta"}
+                        </span>
+                        <span className="text-xs px-2 py-0.5 bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-400 rounded-full">
+                          {currentCase.category}
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={reset}
+                      className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 dark:text-zinc-300 border border-gray-200 dark:border-zinc-700 rounded-xl hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors"
+                    >
+                      <RotateCcw className="w-4 h-4" />
+                      Qayta
+                    </button>
+                  </div>
+                  <div className="p-4 bg-gray-50 dark:bg-zinc-800 rounded-xl">
+                    <p className="text-sm sm:text-base text-gray-700 dark:text-zinc-300 leading-relaxed whitespace-pre-wrap">
+                      {currentCase.description}
+                    </p>
+                  </div>
+                  {currentCase.law_references && currentCase.law_references.length > 0 && (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <span className="text-xs text-gray-500 dark:text-zinc-400">Tegishli:</span>
+                      {currentCase.law_references.map((ref, i) => (
+                        <span
+                          key={i}
+                          className="text-xs px-2 py-0.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full"
+                        >
+                          {ref}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* ═══════════════ AI YECHISHI REJIMI ═══════════════ */}
+                {mode === 'ai_solves' && (
+                  <div className="bg-white dark:bg-zinc-900 rounded-2xl p-4 sm:p-6 shadow-sm">
+                    <div className="flex items-center gap-3 mb-4">
+                      <Brain className="w-5 h-5 text-blue-600" />
+                      <h3 className="font-bold text-gray-800 dark:text-zinc-100">
+                        AI IRAC tahlili
+                      </h3>
+                    </div>
+                    <p className="text-sm text-gray-600 dark:text-zinc-400 mb-4">
+                      AI kazusni o''qib, IRAC metodikasi bo''yicha to''liq tahlil beradi.
+                    </p>
+                    {error && (
+                      <div className="mb-4 p-3 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 rounded-xl flex items-start gap-2">
+                        <AlertCircle className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
+                        <p className="text-sm text-red-700 dark:text-red-400">{error}</p>
+                      </div>
+                    )}
+                    <button
+                      onClick={analyzeWithAI}
+                      disabled={loading}
+                      className="w-full sm:w-auto flex items-center justify-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-60 font-medium"
+                    >
+                      {loading ? (
+                        <>
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                          AI tahlil qilmoqda...
+                        </>
+                      ) : (
+                        <>
+                          <Send className="w-5 h-5" />
+                          AI bilan tahlil qilish
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
+
+                {/* ═══════════════ FOYDALANUVCHI YECHISHI REJIMI ═══════════════ */}
+                {mode === 'user_solves' && (
+                  <div className="bg-white dark:bg-zinc-900 rounded-2xl p-4 sm:p-6 shadow-sm">
+                    <div className="flex items-center gap-3 mb-4">
+                      <PenTool className="w-5 h-5 text-green-600" />
+                      <h3 className="font-bold text-gray-800 dark:text-zinc-100">
+                        IRAC analizini yozing
+                      </h3>
+                    </div>
+                    <p className="text-sm text-gray-600 dark:text-zinc-400 mb-6">
+                      Kazusni o''qing va o''zingiz IRAC bo''yicha javob yozing. AI baholab beradi.
+                    </p>
+
+                    <div className="space-y-4">
+                      {SECTIONS.map(s => {
+                        const styles = COLOR_STYLES[s.color]
+                        return (
+                          <div key={s.id} className={`border rounded-xl ${styles.header}`}>
+                            <div className={`flex items-center gap-2 px-4 py-3 ${styles.text}`}>
+                              {s.icon}
+                              <div>
+                                <span className="font-semibold text-sm">{s.title}</span>
+                                <p className="text-xs opacity-70">{s.subtitle}</p>
+                              </div>
+                            </div>
+                            <div className="px-4 pb-4">
+                              <textarea
+                                value={userAnswers[s.id]}
+                                onChange={e =>
+                                  setUserAnswers({ ...userAnswers, [s.id]: e.target.value })
+                                }
+                                placeholder={s.placeholder}
+                                className="w-full h-28 p-3 border border-gray-200 dark:border-zinc-700 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-green-500 text-sm bg-white dark:bg-zinc-900 text-gray-800 dark:text-zinc-200"
+                              />
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+
+                    {error && (
+                      <div className="mt-4 p-3 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 rounded-xl flex items-start gap-2">
+                        <AlertCircle className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
+                        <p className="text-sm text-red-700 dark:text-red-400">{error}</p>
+                      </div>
+                    )}
+
+                    <div className="flex gap-3 mt-4">
+                      <button
+                        onClick={evaluateWithAI}
+                        disabled={evalLoading}
+                        className="flex items-center justify-center gap-2 bg-green-600 text-white px-6 py-3 rounded-xl hover:bg-green-700 transition-colors disabled:opacity-60 font-medium"
+                      >
+                        {evalLoading ? (
+                          <>
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                            AI baholamoqda...
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle2 className="w-5 h-5" />
+                            AI baholasin
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ═══════════════ AI TAHLIL NATIJASI (AI yechishi) ═══════════════ */}
+            {result && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between flex-wrap gap-3">
                   <h2 className="text-lg font-bold text-gray-800 dark:text-zinc-100 flex items-center gap-2">
                     <CheckCircle2 className="w-5 h-5 text-green-600" />
                     AI tahlili tayyor
+                    <span className="text-sm font-normal text-gray-500 dark:text-zinc-400">
+                      — Ishonchlilik: {result.confidence}%
+                    </span>
                   </h2>
                   <div className="flex gap-2">
                     <button
@@ -315,33 +1071,28 @@ export default function CaseSolver() {
                   </div>
                 </div>
 
-                {/* IRAC bo'limlari */}
-                <div className="grid grid-cols-1 gap-4">
-                  {SECTIONS.map(s => {
-                    const content = result[s.id]
-                    if (!content) return null
-                    return (
-                      <div
-                        key={s.id}
-                        className={`bg-white dark:bg-zinc-900 rounded-2xl p-4 sm:p-5 shadow-sm border ${COLOR_STYLES[s.color].header.split(' ').slice(0, 2).join(' ')}`}
-                      >
-                        <div
-                          className={`flex items-center gap-2 mb-3 ${COLOR_STYLES[s.color].icon}`}
-                        >
-                          {s.icon}
-                          <h3 className="font-semibold text-gray-800 dark:text-zinc-100">
-                            {s.title}
-                          </h3>
-                        </div>
-                        <p className="text-sm sm:text-base text-gray-700 dark:text-zinc-300 leading-relaxed whitespace-pre-wrap">
-                          {content}
-                        </p>
+                {SECTIONS.map(s => {
+                  const content = result[s.id]
+                  if (!content) return null
+                  const styles = COLOR_STYLES[s.color]
+                  return (
+                    <div
+                      key={s.id}
+                      className={`bg-white dark:bg-zinc-900 rounded-2xl p-4 sm:p-5 shadow-sm border ${styles.border}`}
+                    >
+                      <div className={`flex items-center gap-2 mb-3 ${styles.text}`}>
+                        {s.icon}
+                        <h3 className="font-semibold text-gray-800 dark:text-zinc-100">
+                          {s.title}
+                        </h3>
                       </div>
-                    )
-                  })}
-                </div>
+                      <p className="text-sm sm:text-base text-gray-700 dark:text-zinc-300 leading-relaxed whitespace-pre-wrap">
+                        {content}
+                      </p>
+                    </div>
+                  )
+                })}
 
-                {/* Manbalar */}
                 {result.sources.length > 0 && (
                   <div className="bg-white dark:bg-zinc-900 rounded-2xl p-4 sm:p-5 shadow-sm border border-blue-200 dark:border-blue-900">
                     <div className="flex items-center gap-2 mb-3 text-blue-600 dark:text-blue-400">
@@ -360,11 +1111,110 @@ export default function CaseSolver() {
                         </li>
                       ))}
                     </ul>
-                    <p className="text-[11px] text-gray-400 dark:text-zinc-500 mt-2">
-                      * Moddalar qonunlar bazasidagi haqiqiy matnlar asosida keltiriladi.
-                    </p>
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* ═══════════════ AI BAHO NATIJASI (Foydalanuvchi yechishi) ═══════════════ */}
+            {evaluation && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between flex-wrap gap-3">
+                  <h2 className="text-lg font-bold text-gray-800 dark:text-zinc-100 flex items-center gap-2">
+                    <CheckCircle2 className="w-5 h-5 text-green-600" />
+                    AI bahosi tayyor
+                    <span className="text-sm font-normal text-gray-500 dark:text-zinc-400">
+                      — Baholash: {evaluation.confidence}%
+                    </span>
+                  </h2>
+                  <button
+                    onClick={reset}
+                    className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 dark:text-zinc-300 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 rounded-xl hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors"
+                  >
+                    <RotateCcw className="w-4 h-4" />
+                    Yangi kazus
+                  </button>
+                </div>
+
+                {/* Foydalanuvchi javoblari vs AI bahosi */}
+                {SECTIONS.map(s => {
+                  const userAnswer = userAnswers[s.id]
+                  const aiAnswer = evaluation[s.id]
+                  if (!userAnswer && !aiAnswer) return null
+                  const styles = COLOR_STYLES[s.color]
+                  return (
+                    <div key={s.id} className="space-y-2">
+                      <div
+                        className={`bg-white dark:bg-zinc-900 rounded-2xl p-4 sm:p-5 shadow-sm border ${styles.border}`}
+                      >
+                        <div className={`flex items-center gap-2 mb-3 ${styles.text}`}>
+                          {s.icon}
+                          <h3 className="font-semibold text-gray-800 dark:text-zinc-100">
+                            {s.title}
+                          </h3>
+                          <span className="text-xs px-2 py-0.5 bg-gray-100 dark:bg-zinc-800 text-gray-500 rounded-full">
+                            Sizning javobingiz
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-700 dark:text-zinc-300 leading-relaxed whitespace-pre-wrap">
+                          {userAnswer || 'Yozilmagan'}
+                        </p>
+                      </div>
+                      {aiAnswer && (
+                        <div
+                          className={`bg-green-50 dark:bg-green-950/20 rounded-2xl p-4 sm:p-5 shadow-sm border border-green-200 dark:border-green-900`}
+                        >
+                          <div className="flex items-center gap-2 mb-3 text-green-600 dark:text-green-400">
+                            <CheckCircle2 className="w-5 h-5" />
+                            <h3 className="font-semibold text-sm">AI to'g'ri javob</h3>
+                          </div>
+                          <p className="text-sm text-gray-700 dark:text-zinc-300 leading-relaxed whitespace-pre-wrap">
+                            {aiAnswer}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+
+                {evaluation.sources.length > 0 && (
+                  <div className="bg-white dark:bg-zinc-900 rounded-2xl p-4 sm:p-5 shadow-sm border border-blue-200 dark:border-blue-900">
+                    <div className="flex items-center gap-2 mb-3 text-blue-600 dark:text-blue-400">
+                      <BookMarked className="w-5 h-5" />
+                      <h3 className="font-semibold">Tegishli qonun manbalari</h3>
+                    </div>
+                    <ul className="space-y-2">
+                      {evaluation.sources.map((src, i) => (
+                        <li key={i} className="text-sm text-gray-700 dark:text-zinc-300">
+                          <span className="font-medium">{src.title}</span>
+                          {src.article && (
+                            <span className="ml-2 text-blue-600 dark:text-blue-400">
+                              {src.article}
+                            </span>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ═══════════════ IRAC TUSHUNTIRMASI ═══════════════ */}
+            {!currentCase && !result && !evaluation && (
+              <div className="mt-6 grid grid-cols-1 sm:grid-cols-4 gap-3">
+                {SECTIONS.map(s => {
+                  const styles = COLOR_STYLES[s.color]
+                  return (
+                    <div key={s.id} className={`border rounded-xl p-3 ${styles.header}`}>
+                      <div className={`flex items-center gap-2 mb-1 ${styles.text}`}>
+                        {s.icon}
+                        <span className="font-medium text-sm">{s.title.split(' (')[0]}</span>
+                      </div>
+                      <p className="text-xs text-gray-500 dark:text-zinc-400">{s.subtitle}</p>
+                    </div>
+                  )
+                })}
               </div>
             )}
           </main>

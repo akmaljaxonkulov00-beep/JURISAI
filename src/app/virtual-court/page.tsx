@@ -446,27 +446,7 @@ export default function VirtualCourt() {
   const getRoleBriefing = () => {
     const roleUpper = role.id.toUpperCase()
     const briefings: Record<string, string> = {
-      SUDYA: `SIZNING ROLINGIZ: SUDBYA
-
-Vazifangiz:
-• Sud majlisini boshqarish
-• Protsessual qoidalarga rioya etilishini nazorat qilish
-• Tomonlarning argumentlarini tinglash
-• Dalillarni baholash
-• Yakuniy qaror (hukm) chiqarish
-
-Ish haqida ma'lumot:
-• ${caseItem.title}
-• ${caseItem.desc}
-• Qonun: ${caseItem.law}
-
-Ishtirokchilar:
-• Prokuror: Akbar Toshmatov
-• Advokat: Nilufar Karimova
-• Sudlanuvchi: Botir Rahimov
-• Kotiba: Zulfiya Xasanova
-
-Eslatma: Sud majlisini oching, taraflarni tanishtiring, so'z bering va jarayonni boshqaring. Ushbu ismlarni ishlating.`,
+      SUDYA: `SIZNING ROLINGIZ: SUDBYA\n\nVazifangiz:\n• Sud majlisini boshqarish\n• Protsessual qoidalarga rioya etilishini nazorat qilish\n• Tomonlarning argumentlarini tinglash\n• Dalillarni baholash\n• Yakuniy qaror (hukm) chiqarish\n\nIsh haqida ma'lumot:\n• ${caseItem.title}\n• ${caseItem.desc}\n• Qonun: ${caseItem.law}\n\nSiz mustaqil sudya sifatida ish yuritishingiz kerak. Tomonlarni o'zingiz aniqlang va ismlarni o'zingiz qo'ying.\n\nEslatma: Sud majlisini oching, taraflarni tanishtiring, so'z bering va jarayonni boshqaring.`,
       PROKUROR: `SIZNING ROLINGIZ: PROKUROR
 
 Vazifangiz:

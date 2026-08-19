@@ -385,100 +385,9 @@ export default function DecisionTreeEngine() {
   }, [])
 
   // ── Create a new case from template ───────────────────────────
-  const createFromTemplate = (template: (typeof CASE_TEMPLATES)[0]) => {
-    const newTree: TreeNode = {
-      id: 'root',
-      label: template.label,
-      type: 'root',
-      x: 400,
-      y: 50,
-      children: [
-        {
-          id: 'sud',
-          label: 'Sudga berish',
-          type: 'decision',
-          x: 200,
-          y: 150,
-          probability: 60,
-          risk: 'medium',
-          duration: '3-6 oy',
-          cost: 800000,
-          legalBasis: 'FK 333-moddasi',
-          actionItems: [
-            "Da'vo arizasini tayyorlash va sudga topshirish",
-            'Dalillarni toʻplash (shartnoma, hisob-fakturalar)',
-          ],
-          children: [
-            {
-              id: 'g_alaba',
-              label: "G'alaba",
-              type: 'outcome',
-              x: 100,
-              y: 250,
-              probability: 50,
-              status: 'neutral',
-              details: template.type,
-            },
-            {
-              id: 'xarajat',
-              label: 'Xarajat ortishi',
-              type: 'outcome',
-              x: 300,
-              y: 250,
-              probability: 25,
-              status: 'risk',
-              duration: '6-12 oy',
-              cost: 1200000,
-            },
-          ],
-        },
-        {
-          id: 'muzokara',
-          label: "Muzokara o'tkazish",
-          type: 'decision',
-          x: 600,
-          y: 150,
-          probability: 70,
-          risk: 'low',
-          duration: '15-45 kun',
-          cost: 200000,
-          legalBasis: 'FK 387-moddasi',
-          actionItems: [
-            'Kontragentga rasmiy taklif xati yuborish',
-            'Mediator yoki advokat ishtirokida uchrashuv tashkil qilish',
-          ],
-          children: [
-            {
-              id: 'kelishuv',
-              label: 'Kelishuv',
-              type: 'outcome',
-              x: 500,
-              y: 250,
-              probability: 50,
-              status: 'optimal',
-            },
-            {
-              id: 'arbitraj',
-              label: 'Arbitraj',
-              type: 'outcome',
-              x: 700,
-              y: 250,
-              probability: 50,
-              status: 'neutral',
-            },
-          ],
-        },
-      ],
-    }
-    setDecisionTree(newTree)
-    setCurrentTreeName(template.label)
-    setShowNewCase(false)
-    setShowSimulation(false)
-    setAiAnalysis(null)
-    setError(null)
-    setStatistics(computeTreeStats(newTree))
-    document.title = template.label
-    trackActivity('Yangi qarorlar daraxti yaratildi', { scenario: template.label })
+  const createFromTemplate = async (template: (typeof CASE_TEMPLATES)[0]) => {
+    // AI orqali haqiqiy daraxt yaratish
+    await createCustomCase(template.scenario)
   }
 
   // ── AI'dan kelgan daraxtni TreeNode formatiga o'tkazish ───────
@@ -558,91 +467,8 @@ export default function DecisionTreeEngine() {
       return
     }
 
-    // 2) Fallback: standart shablon daraxti
-    const newTree: TreeNode = {
-      id: 'root',
-      label: scenario.slice(0, 40),
-      type: 'root',
-      x: 400,
-      y: 50,
-      children: [
-        {
-          id: 'sud',
-          label: 'Sudga berish',
-          type: 'decision',
-          x: 200,
-          y: 150,
-          probability: 60,
-          risk: 'medium',
-          duration: '3-6 oy',
-          cost: 800000,
-          legalBasis: 'FK 333-moddasi',
-          actionItems: [
-            "Da'vo arizasini tayyorlash va sudga topshirish",
-            'Dalillarni toʻplash (shartnoma, hisob-fakturalar)',
-          ],
-          children: [
-            {
-              id: 'g_alaba',
-              label: "G'alaba",
-              type: 'outcome',
-              x: 100,
-              y: 250,
-              probability: 50,
-              status: 'neutral',
-            },
-            {
-              id: 'xarajat',
-              label: 'Xarajat ortishi',
-              type: 'outcome',
-              x: 300,
-              y: 250,
-              probability: 25,
-              status: 'risk',
-              duration: '6-12 oy',
-              cost: 1200000,
-            },
-          ],
-        },
-        {
-          id: 'muzokara',
-          label: "Muzokara o'tkazish",
-          type: 'decision',
-          x: 600,
-          y: 150,
-          probability: 70,
-          risk: 'low',
-          duration: '15-45 kun',
-          cost: 200000,
-          legalBasis: 'FK 387-moddasi',
-          actionItems: [
-            'Kontragentga rasmiy taklif xati yuborish',
-            'Mediator yoki advokat ishtirokida uchrashuv tashkil qilish',
-          ],
-          children: [
-            {
-              id: 'kelishuv',
-              label: 'Kelishuv',
-              type: 'outcome',
-              x: 500,
-              y: 250,
-              probability: 50,
-              status: 'optimal',
-            },
-            {
-              id: 'arbitraj',
-              label: 'Arbitraj',
-              type: 'outcome',
-              x: 700,
-              y: 250,
-              probability: 50,
-              status: 'neutral',
-            },
-          ],
-        },
-      ],
-    }
-    applyTree(newTree, false)
+    // 2) AI ishlamadi — xatolik ko'rsatish (demo daraxt emas)
+    setError("AI daraxt yarata olmadi. Qayta urinib ko'ring yoki boshqa senariy kiriting.")
   }
 
   // ── Add a new child node ──────────────────────────────────────
@@ -862,9 +688,8 @@ export default function DecisionTreeEngine() {
           `✅ Supabase asosida tahlil yakunlandi (${totalMatches} ta tegishli modda topildi)`
       )
     } catch {
-      const fallbackConf = 55 + Math.floor(Math.random() * 30)
-      setStatistics(prev => ({ ...computeTreeStats(decisionTree), confidence: fallbackConf }))
-      setAiAnalysis(prev => prev || '✅ Mahalliy tahlil yakunlandi')
+      setStatistics(prev => ({ ...computeTreeStats(decisionTree), confidence: 50 }))
+      setAiAnalysis(prev => prev || 'Tahlil amalga oshirildi')
     } finally {
       setLoading(false)
     }
