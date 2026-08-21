@@ -7,29 +7,13 @@ export default function HomePage() {
   const router = useRouter()
 
   useEffect(() => {
-    // Check if OAuth code is in the URL — OAuthHandler will process it
+    // OAuth callback — OAuthHandler will process it
     if (typeof window !== 'undefined') {
       const hasOAuthCode = new URLSearchParams(window.location.search).has('code')
-      if (hasOAuthCode) return // OAuthHandler will handle this
-
-      // Agar foydalanuvchi tizimga kirgan bo'lsa → dashboardga yo'naltirish
-      // (back button muammosini oldini olish uchun)
-      try {
-        const storedUser =
-          localStorage.getItem('jurisai_user') || sessionStorage.getItem('jurisai_user')
-        if (storedUser) {
-          const user = JSON.parse(storedUser)
-          if (user?.id) {
-            router.replace('/dashboard')
-            return
-          }
-        }
-      } catch {
-        /* ignore */
-      }
+      if (hasOAuthCode) return
     }
 
-    // Tizimga kirmagan → signin sahifasiga
+    // Har doim /signin ga yo'naltirish — auth tekshiruvi middleware/signin page'da
     router.replace('/signin')
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])

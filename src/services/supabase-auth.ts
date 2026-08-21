@@ -662,9 +662,35 @@ export function isAuthenticated(): boolean {
 }
 
 export function onAuthChange(callback: (user: AuthUser | null) => void): () => void {
-  // First, check sessionStorage
+  // Avval localStorage'dagi session'ni tekshiramiz
   const storedUser = getCurrentUser()
-  if (storedUser) callback(storedUser)
+
+  // Supabase session haqiqatan mavjudmi — localStorage yetarli emas
+  supabase.auth
+    .getSession()
+    .then(({ data: { session } }) => {
+      if (session?.user) {
+        // Session haqiqatan bor — localStorage'dagi user'ni ishlatamiz
+        if (storedUser) callback(storedUser)
+        // Agar localStorage'da user yo'q lekin session bor — session'dan olamiz
+        if (!storedUser) {
+          resolveUserRole(mapSupabaseUser(session.user))
+            .then(resolved => {
+              const saved = saveUserToLocal(resolved)
+              callback(saved)
+            })
+            .catch(() => callback(mapSupabaseUser(session.user)))
+        }
+      } else {
+        // Session yo'q — localStorage'dagi eski ma'lumotni tozalaymiz
+        clearUserFromLocal()
+        callback(null)
+      }
+    })
+    .catch(() => {
+      // Xato — localStorage'dagi ma'lumot bilan davom et
+      if (storedUser) callback(storedUser)
+    })
 
   // Role allaqachon aniqlanganmi? — SIGNED_IN da qayta resolveUserRole chaqirmaslik uchun
   let roleResolved = !!storedUser

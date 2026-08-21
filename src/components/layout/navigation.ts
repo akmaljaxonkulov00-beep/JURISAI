@@ -192,3 +192,44 @@ export function isNavItemActive(href: string | undefined, pathname: string): boo
   if (href === '/dashboard') return pathname === href
   return pathname === href || pathname.startsWith(href + '/')
 }
+
+// ═══════════════════════════════════════════════════════════════
+// Translation map — group title + item name kalitlari
+// ═══════════════════════════════════════════════════════════════
+export const NAV_GROUP_KEYS: Record<string, string> = {
+  Amaliyot: 'groupPractice',
+  Resurslar: 'groupResources',
+  Shaxsiy: 'groupPersonal',
+}
+
+export const NAV_ITEM_KEYS: Record<string, string> = {
+  'case-solver': 'navCaseSolver',
+  'decision-tree': 'navDecisionTree',
+  'virtual-court': 'navVirtualCourt',
+  'scenario-generator': 'navScenarioGen',
+  'legal-database': 'navLegalDatabase',
+  'professional-tools': 'navTools',
+  community: 'navCommunity',
+  statistics: 'navStatistics',
+  profile: 'navSettings',
+  premium: 'navPremium',
+  help: 'navHelp',
+  admin: 'navAdminPanel',
+  logout: 'navLogout',
+}
+
+/** Tarjima qilingan nav groups qaytaradi */
+export function getTranslatedNavGroups(
+  groups: NavGroup[],
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  t: any
+): NavGroup[] {
+  return groups.map(group => ({
+    ...group,
+    title: t(NAV_GROUP_KEYS[group.title] || group.title),
+    items: group.items.map(item => ({
+      ...item,
+      name: t(NAV_ITEM_KEYS[item.id] || item.name),
+    })),
+  }))
+}

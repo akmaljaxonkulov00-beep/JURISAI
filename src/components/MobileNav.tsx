@@ -6,7 +6,13 @@ import { usePathname } from 'next/navigation'
 import { Moon, Sun, X, LogIn } from 'lucide-react'
 import { useTheme } from '@/context/ThemeContext'
 import { useAuth } from '@/app/providers'
-import { NAV_GROUPS, filterNavGroups, isNavItemActive } from '@/components/layout/navigation'
+import {
+  NAV_GROUPS,
+  filterNavGroups,
+  isNavItemActive,
+  getTranslatedNavGroups,
+} from '@/components/layout/navigation'
+import { useLanguage } from '@/context/LanguageContext'
 
 const SWIPE_THRESHOLD = 80 // px
 
@@ -20,13 +26,17 @@ export default function MobileNav() {
   const pathname = usePathname()
   const { dark, toggle: toggleTheme } = useTheme()
   const { user, isAuthenticated, isAdmin, logout } = useAuth()
+  const { t } = useLanguage()
   const panelRef = useRef<HTMLDivElement>(null)
   const touchStartX = useRef(0)
   const touchStartY = useRef(0)
   const isSwiping = useRef(false)
 
   // ── Single source of truth: shared NAV_GROUPS + filter ──────────
-  const groups = filterNavGroups(NAV_GROUPS, { isAuthenticated, isAdmin })
+  const groups = getTranslatedNavGroups(
+    filterNavGroups(NAV_GROUPS, { isAuthenticated, isAdmin }),
+    t
+  )
 
   // ── Body scroll lock (menyu ochiq bo'lganda) ─────────────────────
   useEffect(() => {

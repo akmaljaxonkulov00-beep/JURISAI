@@ -13,7 +13,13 @@ import NotificationBell from '@/components/features/NotificationBell'
 import OnboardingTour from '@/components/OnboardingTour'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
-import { NAV_GROUPS, filterNavGroups, isNavItemActive } from '@/components/layout/navigation'
+import {
+  NAV_GROUPS,
+  filterNavGroups,
+  isNavItemActive,
+  getTranslatedNavGroups,
+} from '@/components/layout/navigation'
+import { useLanguage } from '@/context/LanguageContext'
 import { isAdminRole } from '@/lib/roles'
 import {
   FileText,
@@ -61,13 +67,15 @@ export default function Dashboard() {
   const { user, isLoading } = useAuth()
   const router = useRouter()
   const pathname = usePathname()
+  const { t } = useLanguage()
   const [userStats, setUserStats] = useState<UserStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [profileImage, setProfileImage] = useState<string | null>(null)
 
-  // Auth guard - tizimga kirmagan foydalanuvchini signin sahifasiga yo'naltirish
+  // Auth guard — tizimga kirmagan foydalanuvchini signin sahifasiga yo'naltirish
   useEffect(() => {
     if (!isLoading && !user) {
+      // replace — back button da qayta signIn ga qaytmaslik uchun
       router.replace('/signin')
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -166,10 +174,13 @@ export default function Dashboard() {
   }
 
   // ── Single source of truth: shared NAV_GROUPS + filter ──────────
-  const navigationGroups = filterNavGroups(NAV_GROUPS, {
-    isAuthenticated: !!user,
-    isAdmin: isAdminRole(user?.role),
-  })
+  const navigationGroups = getTranslatedNavGroups(
+    filterNavGroups(NAV_GROUPS, {
+      isAuthenticated: !!user,
+      isAdmin: isAdminRole(user?.role),
+    }),
+    t
+  )
 
   const getRarityColor = (rarity: string) => {
     switch (rarity) {
