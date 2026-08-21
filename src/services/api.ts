@@ -25,14 +25,45 @@ class ApiService {
     this.baseURL = API_BASE_URL
   }
 
+  /**
+   * Supabase session'dan access_token olish.
+   * localStorage'dagi 'sb-*-auth-token' kalitidan session oladi.
+   */
+  private getAuthToken(): string | null {
+    try {
+      if (typeof window === 'undefined') return null
+      const keys = Object.keys(localStorage)
+      for (const key of keys) {
+        if (key.startsWith('sb-') && key.endsWith('-auth-token')) {
+          const raw = localStorage.getItem(key)
+          if (!raw) continue
+          const session = JSON.parse(raw)
+          if (session?.access_token) return session.access_token
+        }
+      }
+    } catch {
+      /* ignore */
+    }
+    return null
+  }
+
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
     try {
       const url = `${this.baseURL}${endpoint}`
+
+      // Auth token olish (Supabase session'dan)
+      const authToken = this.getAuthToken()
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        ...((options.headers as Record<string, string>) || {}),
+      }
+      if (authToken) {
+        headers['Authorization'] = `Bearer ${authToken}`
+      }
+
       const response = await fetch(url, {
-        headers: {
-          'Content-Type': 'application/json',
-          ...options.headers,
-        },
+        credentials: 'include',
+        headers,
         ...options,
       })
 

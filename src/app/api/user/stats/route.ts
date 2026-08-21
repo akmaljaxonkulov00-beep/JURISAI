@@ -1,55 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabaseServer, getCurrentUser } from '@/lib/supabase-client'
+import { requireUser } from '@/lib/server-auth'
+import { getSupabaseAdmin } from '@/lib/supabase-admin'
 
 export async function GET(request: NextRequest) {
   try {
-    // Try multiple authentication methods
+    // Yagona autentifikatsiya manbai — requireUser (server-side JWT tekshirish)
+    const auth = await requireUser(request)
+    if (!auth.ok) return auth.response
 
-    // Method 1: Authorization header
-    const authHeader = request.headers.get('authorization')
-    const headerToken = authHeader?.replace('Bearer ', '')
-
-    // Method 2: Cookies
-    const cookieToken = request.cookies.get('sb-access-token')?.value
-
-    // Method 3: Use getCurrentUser helper (server-side session)
-    let user = null
-    let authError = null
-
-    if (headerToken) {
-      // Try header token first
-      const result = await supabaseServer.auth.getUser(headerToken)
-      user = result.data.user
-      authError = result.error
-    } else if (cookieToken) {
-      // Try cookie token
-      const result = await supabaseServer.auth.getUser(cookieToken)
-      user = result.data.user
-      authError = result.error
-    } else {
-      // Try server-side session
-      user = await getCurrentUser()
-      authError = user ? null : new Error('No user session found')
-    }
-
-    if (authError || !user?.email) {
-      console.log('Auth failed:', {
-        authError: authError?.message,
-        hasUser: !!user,
-        hasEmail: !!user?.email,
-      })
-      return NextResponse.json({ error: 'Unauthorized - Invalid session' }, { status: 401 })
-    }
-
-    if (!supabaseServer) {
-      return NextResponse.json({ error: 'Database not configured' }, { status: 500 })
-    }
+    const supabase = getSupabaseAdmin()
 
     // Get user from database (registered_users — yagona manba)
-    const { data: userData, error: userError } = await supabaseServer
+    const { data: userData, error: userError } = await supabase
       .from('registered_users')
       .select('id, email, name, role, subscription_plan, blocked, created_at')
-      .eq('id', user.id)
+      .eq('id', auth.user.id)
       .maybeSingle()
 
     if (userError || !userData) {
@@ -57,7 +22,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get usage logs for XP + recent activity (usage_logs — yagona manba)
-    const { data: usageData, error: usageError } = await supabaseServer
+    const { data: usageData, error: usageError } = await supabase
       .from('usage_logs')
       .select('id, user_id, email, action, tokens, created_at')
       .eq('user_id', userData.id)
@@ -75,13 +40,13 @@ export async function GET(request: NextRequest) {
     const iracData: Array<Record<string, unknown>> = []
     try {
       const [achRes, iracRes] = await Promise.all([
-        supabaseServer
+        supabase
           .from('achievements')
           .select('*')
           .eq('user_id', userData.id)
           .order('unlocked_at', { ascending: false })
           .limit(10),
-        supabaseServer
+        supabase
           .from('irac_cases')
           .select('id, title, status, total_score, created_at')
           .eq('user_id', userData.id)

@@ -220,31 +220,80 @@ export async function savePricingPlans(plans: PricingPlan[]): Promise<boolean> {
 
 export async function getPaymentRequests(): Promise<PaymentRequest[]> {
   try {
-    const res = await fetch('/api/admin/analytics?type=payments', {
+    // Avval foydalanuvchi admin ekanligini tekshirish
+    let isAdmin = false
+    try {
+      const storedUser =
+        localStorage.getItem('jurisai_user') || sessionStorage.getItem('jurisai_user')
+      if (storedUser) {
+        const parsed = JSON.parse(storedUser)
+        isAdmin = parsed?.role === 'ADMIN' || parsed?.role === 'SUPER_ADMIN'
+      }
+    } catch {
+      /* ignore */
+    }
+
+    // Admin bo'lmasa — faqat o'z to'lovlarini olish (admin API 403 qaytaradi)
+    const endpoint = isAdmin ? '/api/admin/analytics?type=payments' : '/api/payments'
+
+    const res = await fetch(endpoint, {
       cache: 'no-cache',
+      credentials: 'include',
     })
+
+    // 403/401 bo'lsa — bo'sh ro'yxat qaytarish (cheksiz loop oldini olish)
+    if (res.status === 403 || res.status === 401) {
+      return []
+    }
+
     const result = await res.json()
-    if (result.success && result.data?.paymentRequests) {
-      const mapped = (
-        result.data.paymentRequests as Array<{
-          id?: string
-          user_id?: string
-          userId?: string
-          userEmail?: string
-          user_email?: string
-          user_name?: string
-          userName?: string
-          plan?: string
-          amount?: number
-          receipt_image?: string
-          receiptImage?: string
-          status?: string
-          created_at?: string
-          createdAt?: string
-          reject_reason?: string
-          rejectReason?: string
-        }>
-      ).map(p => ({
+
+    // /api/payments formati: { success, data: { payments: [...] } }
+    // /api/admin/analytics formati: { success, data: { paymentRequests: [...] } }
+    const rawPayments = isAdmin
+      ? (result.data?.paymentRequests as
+          | Array<{
+              id?: string
+              user_id?: string
+              userId?: string
+              userEmail?: string
+              user_email?: string
+              user_name?: string
+              userName?: string
+              plan?: string
+              amount?: number
+              receipt_image?: string
+              receiptImage?: string
+              status?: string
+              created_at?: string
+              createdAt?: string
+              reject_reason?: string
+              rejectReason?: string
+            }>
+          | undefined)
+      : (result.data?.payments as
+          | Array<{
+              id?: string
+              user_id?: string
+              userId?: string
+              userEmail?: string
+              user_email?: string
+              user_name?: string
+              userName?: string
+              plan?: string
+              amount?: number
+              receipt_image?: string
+              receiptImage?: string
+              status?: string
+              created_at?: string
+              createdAt?: string
+              reject_reason?: string
+              rejectReason?: string
+            }>
+          | undefined)
+
+    if (result.success && rawPayments) {
+      const mapped = rawPayments.map(p => ({
         id: p.id || '',
         userId: p.user_id || p.userId || p.userEmail || '',
         userEmail: p.user_email || p.userEmail || '',

@@ -2,6 +2,7 @@
 
 import { ReactNode, createContext, useContext, useState, useEffect } from 'react'
 import { ThemeProvider } from '@/context/ThemeContext'
+import { LanguageProvider } from '@/context/LanguageContext'
 import { firebaseAuth } from '@/services/supabase-auth'
 import type { AuthUser } from '@/services/supabase-auth'
 import { isAdminRole } from '@/lib/roles'
@@ -147,12 +148,14 @@ import { getErrorMessage } from '@/lib/errors'
 export default function Providers({ children }: ProvidersProps) {
   return (
     <ThemeProvider>
-      <AuthProvider>
-        <ToastProvider>
-          {children}
-          <PaymentNotificationListener />
-        </ToastProvider>
-      </AuthProvider>
+      <LanguageProvider>
+        <AuthProvider>
+          <ToastProvider>
+            {children}
+            <PaymentNotificationListener />
+          </ToastProvider>
+        </AuthProvider>
+      </LanguageProvider>
     </ThemeProvider>
   )
 }

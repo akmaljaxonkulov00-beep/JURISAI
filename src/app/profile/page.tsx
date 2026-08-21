@@ -35,6 +35,7 @@ import {
   AlertCircle,
 } from 'lucide-react'
 import { useTheme } from '@/context/ThemeContext'
+import { useLanguage } from '@/context/LanguageContext'
 import { useSearchParams } from 'next/navigation'
 import { useSettingsSync } from '@/hooks/useSettingsSync'
 import { firebaseAuth } from '@/services/supabase-auth'
@@ -67,6 +68,7 @@ interface NotificationSettings {
 
 function ProfileContent() {
   const { dark: themeDark, toggle: toggleTheme } = useTheme()
+  const { language: currentLanguage, setLanguage } = useLanguage()
   const [activeTab, setActiveTab] = useState<'settings' | 'help' | 'premium'>('settings')
   const [settingsSubTab, setSettingsSubTab] = useState<
     'profil' | 'personal' | 'notifications' | 'appearance' | 'security' | 'data'
@@ -136,7 +138,8 @@ function ProfileContent() {
     caseReminders: true,
     weeklyReport: true,
   })
-  const [darkMode, setDarkMode] = useState(themeDark)
+  // darkMode — doimo context bilan sinxron
+  const darkMode = themeDark
   const [showPasswordForm, setShowPasswordForm] = useState(false)
   const [passwordData, setPasswordData] = useState({ newPass: '', confirm: '' })
   const [showNewPass, setShowNewPass] = useState(false)
@@ -322,7 +325,6 @@ function ProfileContent() {
   const handleSaveSettings = () => {
     setSettingsSaved(true)
     setTimeout(() => setSettingsSaved(false), 2000)
-    if (darkMode !== themeDark) toggleTheme()
   }
 
   const [passwordError, setPasswordError] = useState<string | null>(null)
@@ -1040,7 +1042,6 @@ function ProfileContent() {
                   <div className="flex gap-3">
                     <button
                       onClick={() => {
-                        setDarkMode(false)
                         if (themeDark) toggleTheme()
                       }}
                       className={`flex-1 flex items-center justify-center gap-2 p-4 rounded-xl border-2 transition-all ${!darkMode ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:border-zinc-700'}`}
@@ -1050,7 +1051,6 @@ function ProfileContent() {
                     </button>
                     <button
                       onClick={() => {
-                        setDarkMode(true)
                         if (!themeDark) toggleTheme()
                       }}
                       className={`flex-1 flex items-center justify-center gap-2 p-4 rounded-xl border-2 transition-all ${darkMode ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:border-zinc-700'}`}
@@ -1066,12 +1066,15 @@ function ProfileContent() {
                   </label>
                   <select
                     value={editedProfile.language}
-                    onChange={e =>
+                    onChange={e => {
+                      const newLang = e.target.value as UserProfile['language']
                       setEditedProfile({
                         ...editedProfile,
-                        language: e.target.value as UserProfile['language'],
+                        language: newLang,
                       })
-                    }
+                      // Tilni darhol butun saytga qo'llash
+                      setLanguage(newLang)
+                    }}
                     className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
                   >
                     <option value="uz">O'zbekcha</option>
