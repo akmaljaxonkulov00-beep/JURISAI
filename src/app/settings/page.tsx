@@ -7,7 +7,7 @@ export default function SettingsRedirect() {
   const router = useRouter()
 
   useEffect(() => {
-    router.replace('/profile')
+    router.push('/profile')
   }, [router])
 
   return (

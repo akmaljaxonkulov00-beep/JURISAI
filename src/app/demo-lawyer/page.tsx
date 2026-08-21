@@ -7,7 +7,7 @@ export default function DemoLawyerRedirect() {
   const router = useRouter()
 
   useEffect(() => {
-    router.replace('/signin')
+    router.push('/signin')
   }, [router])
 
   return null

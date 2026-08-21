@@ -76,7 +76,7 @@ export default function Dashboard() {
   useEffect(() => {
     if (!isLoading && !user) {
       // replace — back button da qayta signIn ga qaytmaslik uchun
-      router.replace('/signin')
+      router.push('/signin')
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, isLoading])

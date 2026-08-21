@@ -713,7 +713,7 @@ function SignInContent() {
             }, 8000)
           } else {
             setSuccessMsg("Ro'yxatdan o'tish muvaffaqiyatli!")
-            setTimeout(() => router.replace('/dashboard'), 1500)
+            setTimeout(() => router.push('/dashboard'), 1500)
           }
         } else {
           setError(result.error || "Ro'yxatdan o'tish xatosi")
