@@ -27,24 +27,24 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const savedLanguage = localStorage.getItem(STORAGE_KEY) as Language
     if (savedLanguage && availableLanguages[savedLanguage]) {
+      // Saqlangan til bor — shuni ishlatamiz (avtomatik aniqlash emas)
       setLanguageState(savedLanguage)
     } else {
-      // Check for cookie set by middleware
+      // Birinchi marta — faqat cookie yoki brauzer tilini aniqlash
       const cookieLanguage = document.cookie
         .split('; ')
         .find(row => row.startsWith('jurisai-language='))
         ?.split('=')[1] as Language
 
-      if (cookieLanguage && availableLanguages[cookieLanguage]) {
-        setLanguageState(cookieLanguage)
-        localStorage.setItem(STORAGE_KEY, cookieLanguage)
-      } else {
-        // Auto-detect browser language
-        const browserLanguage = navigator.language.split('-')[0] as Language
-        if (availableLanguages[browserLanguage]) {
-          setLanguageState(browserLanguage)
-        }
-      }
+      const initialLang =
+        cookieLanguage && availableLanguages[cookieLanguage]
+          ? cookieLanguage
+          : (navigator.language.split('-')[0] as Language) in availableLanguages
+            ? (navigator.language.split('-')[0] as Language)
+            : defaultLanguage
+
+      setLanguageState(initialLang)
+      localStorage.setItem(STORAGE_KEY, initialLang)
     }
   }, [])
 

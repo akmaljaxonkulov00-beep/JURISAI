@@ -1070,7 +1070,7 @@ function ProfileContent() {
                     Til
                   </label>
                   <select
-                    value={editedProfile.language}
+                    value={currentLanguage}
                     onChange={e => {
                       const newLang = e.target.value as UserProfile['language']
                       setEditedProfile({
