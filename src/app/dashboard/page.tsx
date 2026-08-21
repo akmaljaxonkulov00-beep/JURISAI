@@ -109,7 +109,7 @@ export default function Dashboard() {
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400 dark:text-zinc-500">Yuklanmoqda...</p>
+          <p className="text-gray-600 dark:text-gray-400 dark:text-zinc-500">{t('loadingText')}</p>
         </div>
       </div>
     )
@@ -369,7 +369,7 @@ export default function Dashboard() {
         <div className="relative flex flex-col sm:flex-row justify-between items-start">
           <div className="w-full">
             <h1 className="text-2xl sm:text-3xl font-bold mb-2">
-              Xush kelibsiz, {user?.name || 'Foydalanuvchi'}!
+              {t('dashboardWelcome')}, {user?.name || 'Foydalanuvchi'}!
             </h1>
             <p className="text-blue-100/80 text-sm sm:text-lg">
               Huquqiy bilimlaringizni rivojlantirishni davom ettiring
@@ -379,17 +379,23 @@ export default function Dashboard() {
                 <div className="text-xl sm:text-3xl font-bold">
                   {userStats?.completedCases || 0}
                 </div>
-                <div className="text-blue-100/70 text-xs sm:text-sm mt-1">Yechilgan ishlar</div>
+                <div className="text-blue-100/70 text-xs sm:text-sm mt-1">
+                  {t('dashboardCasesSolved')}
+                </div>
               </div>
               <div className="text-center">
                 <div className="text-xl sm:text-3xl font-bold">{userStats?.xp || 0}</div>
-                <div className="text-blue-100/70 text-xs sm:text-sm mt-1">Umumiy XP</div>
+                <div className="text-blue-100/70 text-xs sm:text-sm mt-1">
+                  {t('dashboardTotalXP')}
+                </div>
               </div>
               <div className="text-center">
                 <div className="text-xl sm:text-3xl font-bold">
                   {userStats?.weeklyProgress || 0}%
                 </div>
-                <div className="text-blue-100/70 text-xs sm:text-sm mt-1">Haftalik maqsad</div>
+                <div className="text-blue-100/70 text-xs sm:text-sm mt-1">
+                  {t('dashboardWeeklyGoal')}
+                </div>
               </div>
             </div>
           </div>
@@ -402,7 +408,7 @@ export default function Dashboard() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-secondary font-medium mb-1">Joriy daraja</p>
+                <p className="text-xs text-secondary font-medium mb-1">{t('dashboardLevel')}</p>
                 <p className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
                   {userStats?.level || 1}
                 </p>
@@ -421,12 +427,12 @@ export default function Dashboard() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-secondary font-medium mb-1">Umumiy XP</p>
+                <p className="text-xs text-secondary font-medium mb-1">{t('dashboardTotalXP')}</p>
                 <p className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-orange-400 bg-clip-text text-transparent">
                   {userStats?.xp || 0}
                 </p>
                 <p className="text-xs text-gray-400 dark:text-gray-500 dark:text-zinc-500 mt-1">
-                  +250 this week
+                  +250 {t('dashboardXpThisWeek')}
                 </p>
               </div>
               <div className="w-12 h-12 bg-orange-50 dark:bg-orange-900/30 rounded-xl flex items-center justify-center">
@@ -440,7 +446,7 @@ export default function Dashboard() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-secondary font-medium mb-1">Muvaffaqiyat</p>
+                <p className="text-xs text-secondary font-medium mb-1">{t('status')}</p>
                 <p className="text-3xl font-bold text-emerald-600">
                   {Math.round(
                     ((userStats?.completedCases || 0) / (userStats?.totalCases || 1)) * 100
@@ -448,7 +454,7 @@ export default function Dashboard() {
                   %
                 </p>
                 <p className="text-xs text-gray-400 dark:text-gray-500 dark:text-zinc-500 mt-1">
-                  Above average
+                  {t('dashboardAboveAverage')}
                 </p>
               </div>
               <div className="w-12 h-12 bg-emerald-50 dark:bg-emerald-900/30 rounded-xl flex items-center justify-center">
@@ -462,10 +468,10 @@ export default function Dashboard() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-secondary font-medium mb-1">O'qish zanjiri</p>
+                <p className="text-xs text-secondary font-medium mb-1">{t('dashboardStreak')}</p>
                 <p className="text-3xl font-bold text-orange-600">7</p>
                 <p className="text-xs text-gray-400 dark:text-gray-500 dark:text-zinc-500 mt-1">
-                  Days in a row
+                  {t('dashboardDaysRow')}
                 </p>
               </div>
               <div className="w-12 h-12 bg-orange-50 dark:bg-orange-900/30 rounded-xl flex items-center justify-center">
@@ -482,7 +488,7 @@ export default function Dashboard() {
           <CardHeader className="border-b border-gray-100 dark:border-zinc-800/50 dark:border-gray-700/50 pb-4">
             <CardTitle className="flex items-center space-x-2 text-gray-800 dark:text-white">
               <Clock className="w-5 h-5 text-blue-500" />
-              <span className="text-lg">So'nggi faoliyat</span>
+              <span className="text-lg">{t('dashboardRecentActivity')}</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-5">
@@ -526,7 +532,7 @@ export default function Dashboard() {
           <CardHeader className="border-b border-gray-100 dark:border-zinc-800/50 dark:border-gray-700/50 pb-4">
             <CardTitle className="flex items-center space-x-2 text-gray-800 dark:text-white">
               <Award className="w-5 h-5 text-orange-500" />
-              <span className="text-lg">Yutuqlar</span>
+              <span className="text-lg">{t('dashboardAchievements')}</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-5">
@@ -573,7 +579,9 @@ export default function Dashboard() {
       {/* Quick Actions */}{' '}
       <Card className="card-default rounded-2xl overflow-hidden">
         <CardHeader className="border-b border-gray-100 dark:border-zinc-800/50 dark:border-gray-700/50 pb-4">
-          <CardTitle className="text-gray-800 dark:text-white text-lg">Tezkor amallar</CardTitle>
+          <CardTitle className="text-gray-800 dark:text-white text-lg">
+            {t('dashboardQuickActions')}
+          </CardTitle>
         </CardHeader>
         <CardContent className="pt-5">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -583,8 +591,10 @@ export default function Dashboard() {
             >
               <div className="absolute -top-6 -right-6 w-20 h-20 bg-blue-200/20 rounded-full blur-xl group-hover:scale-150 transition-transform duration-500" />
               <Scale className="w-8 h-8 text-blue-600 mb-3 group-hover:scale-110 transition-transform duration-200" />
-              <h3 className="font-semibold text-blue-900 dark:text-blue-300">IRAC Tahlil</h3>
-              <p className="text-sm text-blue-600/70 mt-1">Huquqiy keyslarni tahlil qiling</p>
+              <h3 className="font-semibold text-blue-900 dark:text-blue-300">
+                {t('dashboardIrTitle')}
+              </h3>
+              <p className="text-sm text-blue-600/70 mt-1">{t('dashboardIrDesc')}</p>
             </div>
             <div
               onClick={() => handleNavigation('/legal-database-new')}
@@ -593,11 +603,9 @@ export default function Dashboard() {
               <div className="absolute -top-6 -right-6 w-20 h-20 bg-emerald-200/20 rounded-full blur-xl group-hover:scale-150 transition-transform duration-500" />
               <Database className="w-8 h-8 text-emerald-600 mb-3 group-hover:scale-110 transition-transform duration-200" />
               <h3 className="font-semibold text-emerald-900 dark:text-emerald-300">
-                Qonunlar bazasi
+                {t('dashboardLegalTitle')}
               </h3>
-              <p className="text-sm text-emerald-600/70 mt-1">
-                Qonun va kodifikatsiyalarni qidiring
-              </p>
+              <p className="text-sm text-emerald-600/70 mt-1">{t('dashboardLegalDesc')}</p>
             </div>
             <div
               onClick={() => handleNavigation('/virtual-court')}
@@ -605,8 +613,10 @@ export default function Dashboard() {
             >
               <div className="absolute -top-6 -right-6 w-20 h-20 bg-orange-200/20 rounded-full blur-xl group-hover:scale-150 transition-transform duration-500" />
               <Gavel className="w-8 h-8 text-orange-600 mb-3 group-hover:scale-110 transition-transform duration-200" />
-              <h3 className="font-semibold text-orange-900 dark:text-orange-300">Virtual Sud</h3>
-              <p className="text-sm text-orange-600/70 mt-1">Virtual sud jarayonida qatnashing</p>
+              <h3 className="font-semibold text-orange-900 dark:text-orange-300">
+                {t('dashboardCourtTitle')}
+              </h3>
+              <p className="text-sm text-orange-600/70 mt-1">{t('dashboardCourtDesc')}</p>
             </div>
           </div>
         </CardContent>
@@ -619,7 +629,7 @@ export default function Dashboard() {
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400 dark:text-zinc-500">Yuklanmoqda...</p>
+          <p className="text-gray-600 dark:text-gray-400 dark:text-zinc-500">{t('loadingText')}</p>
         </div>
       </div>
     )
