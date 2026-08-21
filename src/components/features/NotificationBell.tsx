@@ -244,29 +244,36 @@ export default function NotificationBell() {
                 >
                   <div className={`mt-1 w-2 h-2 rounded-full flex-shrink-0 ${dotColor(n.type)}`} />
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-2">
-                      <h4 className="font-medium text-xs text-gray-800 dark:text-white truncate">
+                    <div className="flex items-center justify-between gap-2 mb-0.5">
+                      <h4 className="font-medium text-[13px] text-gray-800 dark:text-white">
                         {n.title}
                       </h4>
-                      <span className="text-[9px] text-gray-400 flex-shrink-0">
+                      <span className="text-[10px] text-gray-400 flex-shrink-0 whitespace-nowrap">
                         {n.created_at
                           ? new Date(n.created_at).toLocaleDateString('uz-UZ', {
                               day: 'numeric',
                               month: 'short',
+                              hour: '2-digit',
+                              minute: '2-digit',
                             })
                           : ''}
                       </span>
                     </div>
-                    <p className="text-[11px] text-gray-500 dark:text-zinc-400 mt-0.5 line-clamp-2">
+                    <p className="text-[12px] text-gray-600 dark:text-zinc-400 leading-relaxed">
                       {n.message}
                     </p>
                     {n.action_url && n.action_text && (
-                      <span
-                        className={`inline-block mt-1.5 px-2 py-0.5 text-[10px] font-medium rounded ${typeColor(n.type)}`}
-                        onClick={e => e.stopPropagation()}
+                      <button
+                        className={`inline-block mt-1.5 px-2.5 py-1 text-[11px] font-medium rounded-lg ${typeColor(n.type)} hover:opacity-80 transition-opacity`}
+                        onClick={e => {
+                          e.stopPropagation()
+                          markRead(n.id)
+                          router.push(n.action_url!)
+                          setOpen(false)
+                        }}
                       >
                         {n.action_text}
-                      </span>
+                      </button>
                     )}
                   </div>
                   <button
