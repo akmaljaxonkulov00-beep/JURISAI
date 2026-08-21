@@ -666,6 +666,9 @@ export function onAuthChange(callback: (user: AuthUser | null) => void): () => v
   const storedUser = getCurrentUser()
   if (storedUser) callback(storedUser)
 
+  // Role allaqachon aniqlanganmi? — SIGNED_IN da qayta resolveUserRole chaqirmaslik uchun
+  let roleResolved = !!storedUser
+
   // Subscribe to Supabase auth state changes
   const {
     data: { subscription },
@@ -686,7 +689,17 @@ export function onAuthChange(callback: (user: AuthUser | null) => void): () => v
       return
     }
 
+    // SIGNED_IN — faqat yangi login qilganda resolveUserRole chaqiramiz.
+    // Sahifa yangilanganda SIGNED_IN ham keladi — bu holatda resolveUserRole
+    // chaqirmaymiz (cheksiz tsikl oldini olish uchun).
+    if (event === 'SIGNED_IN' && roleResolved) {
+      const existing = getCurrentUser()
+      if (existing) callback(existing)
+      return
+    }
+
     if (session?.user) {
+      roleResolved = true
       resolveUserRole(mapSupabaseUser(session.user))
         .then(resolved => {
           const savedUser = saveUserToLocal(resolved)

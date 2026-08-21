@@ -17,7 +17,8 @@ export default function HomePage() {
     // ALWAYS redirect to signin page
     // Users MUST actively log in each time — no auto-login even with existing session
     router.replace('/signin')
-  }, [router])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white dark:from-gray-900 dark:to-gray-950 flex items-center justify-center">

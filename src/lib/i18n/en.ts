@@ -1,0 +1,200 @@
+export const en = {
+  // Authentication
+  signIn: 'Sign In',
+  signUp: 'Sign Up',
+  email: 'Email',
+  password: 'Password',
+  confirmPassword: 'Confirm Password',
+  firstName: 'First Name',
+  lastName: 'Last Name',
+  forgotPassword: 'Forgot Password?',
+  createAccount: 'Create Account',
+  alreadyHaveAccount: 'Already have an account?',
+  dontHaveAccount: "Don't have an account?",
+  orContinueWith: 'Or continue with',
+  signInWithGoogle: 'Sign in with Google',
+
+  // Dashboard
+  dashboard: 'Dashboard',
+  overview: 'Overview',
+  welcome: 'Welcome',
+  iracSolver: 'IRAC Analysis',
+  decisionTree: 'Decision Tree',
+  scenarioGenerator: 'Scenario Generator',
+  weaknessDetector: 'Weakness Detector',
+  documentGenerator: 'Document Generator',
+  legalDatabase: 'Legal Database',
+  courtSimulator: 'Court Simulator',
+  aiChat: 'AI Assistant',
+  community: 'Community',
+  statistics: 'Statistics',
+  achievements: 'Achievements',
+  profile: 'Profile',
+  settings: 'Settings',
+  help: 'Help',
+  logout: 'Log Out',
+
+  // Billing
+  billing: 'Billing',
+  chooseYourPlan: 'Choose the plan that suits you',
+  currentPlan: 'Current Plan',
+  upgrade: 'Upgrade',
+  cancelSubscription: 'Cancel Subscription',
+  getStarted: 'Get Started',
+  currentSubscription: 'Current Subscription',
+  status: 'Status',
+  renewsOn: 'Renews on',
+  monthlyRevenue: 'Monthly Revenue',
+  totalRevenue: 'Total Revenue',
+
+  // Plans
+  free: 'Free',
+  basic: 'Basic',
+  standard: 'Standard',
+  pro: 'Pro',
+  enterprise: 'Enterprise',
+
+  // Plan Features
+  iracAnalysisFeature: 'IRAC Analysis',
+  aiRequestsFeature: 'AI Requests',
+  documentGenerationFeature: 'Document Generation',
+  legalDatabaseFeature: 'Legal Database',
+  prioritySupportFeature: 'Priority Support',
+  customBrandingFeature: 'Custom Branding',
+  unlimitedAccessFeature: 'Unlimited Access',
+  apiAccessFeature: 'API Access',
+
+  // Admin
+  adminDashboard: 'Admin Panel',
+  totalUsersCount: 'Total Users',
+  activeUsersCount: 'Active Users',
+  organizationsCount: 'Organizations',
+  usersManagement: 'User Management',
+  organizationManagement: 'Organization Management',
+  systemStatistics: 'System Statistics',
+  revenueAnalytics: 'Revenue Analytics',
+
+  // User Roles
+  studentRole: 'Student',
+  teacherRole: 'Teacher',
+  adminRole: 'Admin',
+  institutionRole: 'Institution',
+
+  // Status
+  activeStatus: 'Active',
+  inactiveStatus: 'Inactive',
+  suspendedStatus: 'Suspended',
+  deletedStatus: 'Deleted',
+  pendingStatus: 'Pending',
+  completedStatus: 'Completed',
+  draftStatus: 'Draft',
+  archivedStatus: 'Archived',
+
+  // Legal Terms
+  civilCase: 'Civil',
+  criminalCase: 'Criminal',
+  familyCase: 'Family',
+  laborCase: 'Labor',
+  administrativeCase: 'Administrative',
+
+  // Difficulty Levels
+  beginnerLevel: 'Beginner',
+  intermediateLevel: 'Intermediate',
+  advancedLevel: 'Advanced',
+  expertLevel: 'Expert',
+
+  // Common
+  saveAction: 'Save',
+  cancelAction: 'Cancel',
+  editAction: 'Edit',
+  deleteAction: 'Delete',
+  createAction: 'Create',
+  updateAction: 'Update',
+  searchAction: 'Search',
+  filterAction: 'Filter',
+  sortAction: 'Sort',
+  loadingText: 'Loading...',
+  errorText: 'Error',
+  successText: 'Success',
+  warningText: 'Warning',
+  infoText: 'Information',
+
+  // Currency
+  uzsCurrency: 'UZS',
+  pricePerMonthText: '/month',
+  pricePerYearText: '/year',
+
+  // AI Chat
+  askLegalQuestionText: 'Ask a legal question',
+  typeYourQuestionText: 'Type your question...',
+  sourceText: 'Source',
+  basedOnText: 'Based on',
+  legalDocumentText: 'Legal Document',
+  articleText: 'Article',
+  paragraphText: 'Paragraph',
+
+  // Document Generation
+  documentGenerationText: 'Document Generation',
+  selectDocumentTypeText: 'Select document type',
+  contractText: 'Contract',
+  claimText: 'Claim',
+  applicationText: 'Application',
+  agreementText: 'Agreement',
+  receiptText: 'Receipt',
+  powerOfAttorneyText: 'Power of Attorney',
+
+  // Form Fields
+  fullNameField: 'Full Name',
+  passportSeriesField: 'Passport Series',
+  passportNumberField: 'Passport Number',
+  amountField: 'Amount',
+  addressField: 'Address',
+  phoneField: 'Phone',
+  dateField: 'Date',
+  descriptionField: 'Description',
+  titleField: 'Title',
+  contentField: 'Content',
+
+  // Messages
+  accountCreatedSuccessfullyText: 'Account created successfully',
+  invalidEmailOrPasswordText: 'Invalid email or password',
+  passwordMismatchText: 'Passwords do not match',
+  fieldRequiredText: 'This field is required',
+  emailAlreadyExistsText: 'Email already registered',
+  subscriptionCanceledText: 'Subscription canceled',
+  paymentSuccessfulText: 'Payment successful',
+  paymentFailedText: 'Payment failed',
+  documentGeneratedText: 'Document generated successfully',
+  dailyLimitReachedText: 'Daily limit reached',
+  upgradeToProText: 'Upgrade to Pro',
+
+  // Navigation
+  homeNav: 'Home',
+  aboutNav: 'About',
+  contactNav: 'Contact',
+  termsNav: 'Terms of Service',
+  privacyNav: 'Privacy Policy',
+  faqNav: 'FAQ',
+
+  // Time
+  todayTime: 'Today',
+  yesterdayTime: 'Yesterday',
+  thisWeekTime: 'This Week',
+  thisMonthTime: 'This Month',
+  thisYearTime: 'This Year',
+  lastWeekTime: 'Last Week',
+  lastMonthTime: 'Last Month',
+  lastYearTime: 'Last Year',
+
+  // Numbers
+  oneNumber: 'One',
+  twoNumber: 'Two',
+  threeNumber: 'Three',
+  fourNumber: 'Four',
+  fiveNumber: 'Five',
+  tenNumber: 'Ten',
+  hundredNumber: 'Hundred',
+  thousandNumber: 'Thousand',
+  millionNumber: 'Million',
+  billionNumber: 'Billion',
+}

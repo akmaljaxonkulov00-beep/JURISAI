@@ -70,7 +70,8 @@ export default function Dashboard() {
     if (!isLoading && !user) {
       router.replace('/signin')
     }
-  }, [user, isLoading, router])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, isLoading])
 
   // ⚠️ ALL hooks MUST be before any early return — React Rules of Hooks
   useEffect(() => {

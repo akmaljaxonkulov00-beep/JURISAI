@@ -1,4 +1,6 @@
 import { uz } from './uz'
+import { en } from './en'
+import { ru } from './ru'
 
 // Type definition for translations
 export type TranslationKey = keyof typeof uz
@@ -8,7 +10,7 @@ export type Translations = typeof uz
 export const languages = {
   uz: 'Uzbek',
   en: 'English',
-  ru: 'Russian',
+  ru: 'Русский',
 } as const
 
 export type Language = keyof typeof languages
@@ -16,8 +18,8 @@ export type Language = keyof typeof languages
 // Translation objects
 export const translations: Record<Language, Partial<Translations>> = {
   uz,
-  en: {}, // English translations to be added
-  ru: {}, // Russian translations to be added
+  en,
+  ru,
 }
 
 // Default language

@@ -1,0 +1,200 @@
+export const ru = {
+  // Authentication
+  signIn: 'Вход',
+  signUp: 'Регистрация',
+  email: 'Электронная почта',
+  password: 'Пароль',
+  confirmPassword: 'Подтвердите пароль',
+  firstName: 'Имя',
+  lastName: 'Фамилия',
+  forgotPassword: 'Забыли пароль?',
+  createAccount: 'Создать аккаунт',
+  alreadyHaveAccount: 'Уже есть аккаунт?',
+  dontHaveAccount: 'Нет аккаунта?',
+  orContinueWith: 'Или продолжить с',
+  signInWithGoogle: 'Войти через Google',
+
+  // Dashboard
+  dashboard: 'Панель управления',
+  overview: 'Обзор',
+  welcome: 'Добро пожаловать',
+  iracSolver: 'IRAC Анализ',
+  decisionTree: 'Дерево решений',
+  scenarioGenerator: 'Генератор сценариев',
+  weaknessDetector: 'Детектор слабостей',
+  documentGenerator: 'Генератор документов',
+  legalDatabase: 'Правовая база',
+  courtSimulator: 'Судебный симулятор',
+  aiChat: 'AI Помощник',
+  community: 'Сообщество',
+  statistics: 'Статистика',
+  achievements: 'Достижения',
+  profile: 'Профиль',
+  settings: 'Настройки',
+  help: 'Помощь',
+  logout: 'Выйти',
+
+  // Billing
+  billing: 'Оплата',
+  chooseYourPlan: 'Выберите подходящий план',
+  currentPlan: 'Текущий план',
+  upgrade: 'Улучшить',
+  cancelSubscription: 'Отменить подписку',
+  getStarted: 'Начать',
+  currentSubscription: 'Текущая подписка',
+  status: 'Статус',
+  renewsOn: 'Продление',
+  monthlyRevenue: 'Месячный доход',
+  totalRevenue: 'Общий доход',
+
+  // Plans
+  free: 'Бесплатный',
+  basic: 'Базовый',
+  standard: 'Стандарт',
+  pro: 'Профессиональный',
+  enterprise: 'Корпоративный',
+
+  // Plan Features
+  iracAnalysisFeature: 'IRAC Анализ',
+  aiRequestsFeature: 'AI Запросы',
+  documentGenerationFeature: 'Генерация документов',
+  legalDatabaseFeature: 'Правовая база',
+  prioritySupportFeature: 'Приоритетная поддержка',
+  customBrandingFeature: 'Кастомный бренд',
+  unlimitedAccessFeature: 'Безлимитный доступ',
+  apiAccessFeature: 'API Доступ',
+
+  // Admin
+  adminDashboard: 'Админ панель',
+  totalUsersCount: 'Всего пользователей',
+  activeUsersCount: 'Активные пользователи',
+  organizationsCount: 'Организации',
+  usersManagement: 'Управление пользователями',
+  organizationManagement: 'Управление организациями',
+  systemStatistics: 'Статистика системы',
+  revenueAnalytics: 'Аналитика доходов',
+
+  // User Roles
+  studentRole: 'Студент',
+  teacherRole: 'Преподаватель',
+  adminRole: 'Админ',
+  institutionRole: 'Организация',
+
+  // Status
+  activeStatus: 'Активен',
+  inactiveStatus: 'Неактивен',
+  suspendedStatus: 'Заблокирован',
+  deletedStatus: 'Удален',
+  pendingStatus: 'Ожидание',
+  completedStatus: 'Выполнено',
+  draftStatus: 'Черновик',
+  archivedStatus: 'Архивирован',
+
+  // Legal Terms
+  civilCase: 'Гражданское',
+  criminalCase: 'Уголовное',
+  familyCase: 'Семейное',
+  laborCase: 'Трудовое',
+  administrativeCase: 'Административное',
+
+  // Difficulty Levels
+  beginnerLevel: 'Начинающий',
+  intermediateLevel: 'Средний',
+  advancedLevel: 'Продвинутый',
+  expertLevel: 'Эксперт',
+
+  // Common
+  saveAction: 'Сохранить',
+  cancelAction: 'Отмена',
+  editAction: 'Редактировать',
+  deleteAction: 'Удалить',
+  createAction: 'Создать',
+  updateAction: 'Обновить',
+  searchAction: 'Поиск',
+  filterAction: 'Фильтр',
+  sortAction: 'Сортировка',
+  loadingText: 'Загрузка...',
+  errorText: 'Ошибка',
+  successText: 'Успешно',
+  warningText: 'Предупреждение',
+  infoText: 'Информация',
+
+  // Currency
+  uzsCurrency: 'UZS',
+  pricePerMonthText: '/мес',
+  pricePerYearText: '/год',
+
+  // AI Chat
+  askLegalQuestionText: 'Задайте юридический вопрос',
+  typeYourQuestionText: 'Введите ваш вопрос...',
+  sourceText: 'Источник',
+  basedOnText: 'Основано на',
+  legalDocumentText: 'Правовой документ',
+  articleText: 'Статья',
+  paragraphText: 'Пункт',
+
+  // Document Generation
+  documentGenerationText: 'Генерация документов',
+  selectDocumentTypeText: 'Выберите тип документа',
+  contractText: 'Договор',
+  claimText: 'Исковое заявление',
+  applicationText: 'Заявление',
+  agreementText: 'Соглашение',
+  receiptText: 'Квитанция',
+  powerOfAttorneyText: 'Доверенность',
+
+  // Form Fields
+  fullNameField: 'Полное имя',
+  passportSeriesField: 'Серия паспорта',
+  passportNumberField: 'Номер паспорта',
+  amountField: 'Сумма',
+  addressField: 'Адрес',
+  phoneField: 'Телефон',
+  dateField: 'Дата',
+  descriptionField: 'Описание',
+  titleField: 'Заголовок',
+  contentField: 'Содержание',
+
+  // Messages
+  accountCreatedSuccessfullyText: 'Аккаунт успешно создан',
+  invalidEmailOrPasswordText: 'Неверный email или пароль',
+  passwordMismatchText: 'Пароли не совпадают',
+  fieldRequiredText: 'Это поле обязательно',
+  emailAlreadyExistsText: 'Email уже зарегистрирован',
+  subscriptionCanceledText: 'Подписка отменена',
+  paymentSuccessfulText: 'Оплата прошла успешно',
+  paymentFailedText: 'Оплата не прошла',
+  documentGeneratedText: 'Документ успешно создан',
+  dailyLimitReachedText: 'Дневной лимит достигнут',
+  upgradeToProText: 'Улучшить до Pro',
+
+  // Navigation
+  homeNav: 'Главная',
+  aboutNav: 'О нас',
+  contactNav: 'Контакты',
+  termsNav: 'Условия использования',
+  privacyNav: 'Политика конфиденциальности',
+  faqNav: 'Часто задаваемые вопросы',
+
+  // Time
+  todayTime: 'Сегодня',
+  yesterdayTime: 'Вчера',
+  thisWeekTime: 'На этой неделе',
+  thisMonthTime: 'В этом месяце',
+  thisYearTime: 'В этом году',
+  lastWeekTime: 'На прошлой неделе',
+  lastMonthTime: 'В прошлом месяце',
+  lastYearTime: 'В прошлом году',
+
+  // Numbers
+  oneNumber: 'Один',
+  twoNumber: 'Два',
+  threeNumber: 'Три',
+  fourNumber: 'Четыре',
+  fiveNumber: 'Пять',
+  tenNumber: 'Десять',
+  hundredNumber: 'Сто',
+  thousandNumber: 'Тысяча',
+  millionNumber: 'Миллион',
+  billionNumber: 'Миллиард',
+}
