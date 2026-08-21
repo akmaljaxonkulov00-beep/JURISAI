@@ -68,7 +68,7 @@ interface NotificationSettings {
 
 function ProfileContent() {
   const { dark: themeDark, toggle: toggleTheme } = useTheme()
-  const { language: currentLanguage, setLanguage } = useLanguage()
+  const { language: currentLanguage, setLanguage, t } = useLanguage()
   const [activeTab, setActiveTab] = useState<'settings' | 'help' | 'premium'>('settings')
   const [settingsSubTab, setSettingsSubTab] = useState<
     'profil' | 'personal' | 'notifications' | 'appearance' | 'security' | 'data'
@@ -440,9 +440,9 @@ function ProfileContent() {
       case 'uz':
         return "O'zbekcha"
       case 'en':
-        return 'Inglizcha'
+        return 'English'
       case 'ru':
-        return 'Ruscha'
+        return 'Русский'
       default:
         return lang
     }
@@ -639,9 +639,12 @@ function ProfileContent() {
               <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl flex items-center gap-3">
                 <Globe className="w-5 h-5 text-blue-600" />
                 <div>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-zinc-500">Til</p>
+                  {' '}
+                  <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-zinc-500">
+                    {t('language')}
+                  </p>
                   <p className="font-medium text-gray-800 dark:text-white">
-                    {getLanguageName(profile.language)}
+                    {getLanguageName(currentLanguage)}
                   </p>
                 </div>
               </div>
@@ -649,7 +652,8 @@ function ProfileContent() {
                 <Phone className="w-5 h-5 text-green-600" />
                 <div>
                   <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-zinc-500">
-                    Telefon
+                    {' '}
+                    {t('phoneField')}
                   </p>
                   <p className="font-medium text-gray-800 dark:text-white">{profile.phone}</p>
                 </div>
@@ -659,7 +663,8 @@ function ProfileContent() {
                 <Target className="w-5 h-5 text-blue-600" />
                 <div>
                   <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-zinc-500">
-                    Mutaxassislik
+                    {' '}
+                    {t('specialization')}
                   </p>
                   <p className="font-medium text-gray-800 dark:text-white">
                     {profile.specialization || "Ko'rsatilmagan"}

@@ -228,6 +228,17 @@ export const ru = {
   dark: 'Тёмная',
   language: 'Язык',
   saveSettings: 'Сохранить настройки',
+  // Profile page
+  specialization: 'Специализация',
+  currentLevel: 'Текущий уровень',
+  paymentApproved: 'Платёж одобрен',
+  paymentPending: 'Платёж проверяется',
+  paymentRejected: 'Платёж отклонён',
+  subscription: 'Подписка',
+  balance: 'Баланс',
+  coursesCompleted: 'Завершённые курсы',
+  rating: 'Рейтинг',
+  certificates: 'Сертификаты',
 
   // Time
   todayTime: 'Сегодня',

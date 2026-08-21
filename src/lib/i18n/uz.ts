@@ -228,6 +228,17 @@ export const uz = {
   dark: "Qorong'i",
   language: 'Til',
   saveSettings: 'Sozlamalarni saqlash',
+  // Profile page
+  specialization: 'Mutaxassislik',
+  currentLevel: 'Joriy daraja',
+  paymentApproved: "To'lov tasdiqlandi",
+  paymentPending: "To'lov tekshirilmoqda",
+  paymentRejected: "To'lov rad etildi",
+  subscription: 'Obuna',
+  balance: 'Balans',
+  coursesCompleted: 'Tugallangan kurslar',
+  rating: 'Reyting',
+  certificates: 'Sertifikatlar',
 
   // Time
   todayTime: 'Bugun',

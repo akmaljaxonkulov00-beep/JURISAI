@@ -228,6 +228,17 @@ export const en = {
   dark: 'Dark',
   language: 'Language',
   saveSettings: 'Save Settings',
+  // Profile page
+  specialization: 'Specialization',
+  currentLevel: 'Current Level',
+  paymentApproved: 'Payment Approved',
+  paymentPending: 'Payment Pending',
+  paymentRejected: 'Payment Rejected',
+  subscription: 'Subscription',
+  balance: 'Balance',
+  coursesCompleted: 'Courses Completed',
+  rating: 'Rating',
+  certificates: 'Certificates',
 
   // Time
   todayTime: 'Today',
