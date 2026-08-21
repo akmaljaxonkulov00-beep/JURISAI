@@ -662,40 +662,13 @@ export function isAuthenticated(): boolean {
 }
 
 export function onAuthChange(callback: (user: AuthUser | null) => void): () => void {
-  // Avval localStorage'dagi session'ni tekshiramiz
-  const storedUser = getCurrentUser()
+  // ════════════════════════════════════════════════════════════════════
+  // FAQAT bitta manbadan callback chaqiramiz — cheksiz loop oldini olish.
+  // 1) Agar Supabase session bor bo'lsa — SIGNED_IN/INITIAL_SESSION da callback
+  // 2) Agar session yo'q bo'lsa — SIGNED_OUT da callback(null)
+  // ════════════════════════════════════════════════════════════════════
+  let initialHandled = false
 
-  // Supabase session haqiqatan mavjudmi — localStorage yetarli emas
-  supabase.auth
-    .getSession()
-    .then(({ data: { session } }) => {
-      if (session?.user) {
-        // Session haqiqatan bor — localStorage'dagi user'ni ishlatamiz
-        if (storedUser) callback(storedUser)
-        // Agar localStorage'da user yo'q lekin session bor — session'dan olamiz
-        if (!storedUser) {
-          resolveUserRole(mapSupabaseUser(session.user))
-            .then(resolved => {
-              const saved = saveUserToLocal(resolved)
-              callback(saved)
-            })
-            .catch(() => callback(mapSupabaseUser(session.user)))
-        }
-      } else {
-        // Session yo'q — localStorage'dagi eski ma'lumotni tozalaymiz
-        clearUserFromLocal()
-        callback(null)
-      }
-    })
-    .catch(() => {
-      // Xato — localStorage'dagi ma'lumot bilan davom et
-      if (storedUser) callback(storedUser)
-    })
-
-  // Role allaqachon aniqlanganmi? — SIGNED_IN da qayta resolveUserRole chaqirmaslik uchun
-  let roleResolved = !!storedUser
-
-  // Subscribe to Supabase auth state changes
   const {
     data: { subscription },
   } = supabase.auth.onAuthStateChange((event, session) => {
@@ -706,38 +679,29 @@ export function onAuthChange(callback: (user: AuthUser | null) => void): () => v
       clearSessionCookies()
     }
 
-    // USER_UPDATED, TOKEN_REFRESHED, INITIAL_SESSION — resolveUserRole() dagi
-    // updateUser() dan keladi yoki sahifa yuklanganda chaqiriladi.
+    // USER_UPDATED / TOKEN_REFRESHED — resolveUserRole() dagi updateUser() dan keladi.
     // Cheksiz tsiklni oldini olish uchun e'tiborsiz qoldiramiz.
-    if (event === 'USER_UPDATED' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
-      const existing = getCurrentUser()
-      if (existing) callback(existing)
+    if (event === 'USER_UPDATED' || event === 'TOKEN_REFRESHED') {
       return
     }
 
-    // SIGNED_IN — faqat yangi login qilganda resolveUserRole chaqiramiz.
-    // Sahifa yangilanganda SIGNED_IN ham keladi — bu holatda resolveUserRole
-    // chaqirmaymiz (cheksiz tsikl oldini olish uchun).
-    if (event === 'SIGNED_IN' && roleResolved) {
-      const existing = getCurrentUser()
-      if (existing) callback(existing)
-      return
-    }
-
-    if (session?.user) {
-      roleResolved = true
-      resolveUserRole(mapSupabaseUser(session.user))
-        .then(resolved => {
-          const savedUser = saveUserToLocal(resolved)
-          callback(savedUser)
-        })
-        .catch(() => {
-          const savedUser = saveUserToLocal(mapSupabaseUser(session.user))
-          callback(savedUser)
-        })
-    } else {
-      clearUserFromLocal()
-      callback(null)
+    // INITIAL_SESSION / SIGNED_IN — dastlabki session aniqlash (faqat 1 marta)
+    if ((event === 'INITIAL_SESSION' || event === 'SIGNED_IN') && !initialHandled) {
+      initialHandled = true
+      if (session?.user) {
+        resolveUserRole(mapSupabaseUser(session.user))
+          .then(resolved => {
+            const savedUser = saveUserToLocal(resolved)
+            callback(savedUser)
+          })
+          .catch(() => {
+            const savedUser = saveUserToLocal(mapSupabaseUser(session.user))
+            callback(savedUser)
+          })
+      } else {
+        clearUserFromLocal()
+        callback(null)
+      }
     }
   })
 
