@@ -127,7 +127,9 @@ export default function Premium() {
     try {
       const fetched = await getPricingPlans()
       if (fetched && fetched.length > 0) {
-        setPlans(fetched)
+        // Narx bo'yicha tartiblash: Bepul → Standart → Pro
+        const sorted = [...fetched].sort((a, b) => (a.price ?? 0) - (b.price ?? 0))
+        setPlans(sorted)
       }
     } catch (err) {
       console.warn('[Premium] Failed to load pricing plans:', err)

@@ -352,7 +352,7 @@ export default function UserManagement() {
                 Yuklanmoqda...
               </div>
             ) : (
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto max-h-[60vh] overflow-y-auto">
                 <table className="min-w-full divide-y divide-gray-200 dark:divide-zinc-800">
                   <thead className="bg-gray-50 dark:bg-zinc-800/50">
                     <tr>

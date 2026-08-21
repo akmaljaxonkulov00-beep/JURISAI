@@ -677,9 +677,9 @@ export function onAuthChange(callback: (user: AuthUser | null) => void): () => v
       clearSessionCookies()
     }
 
-    // USER_UPDATED bizning resolveUserRole() dagi updateUser() dan keladi —
-    // cheksiz tsiklni oldini olish uchun e'tiborsiz qoldiramiz.
-    if (event === 'USER_UPDATED') {
+    // USER_UPDATED va TOKEN_REFRESHED — resolveUserRole() dagi updateUser() dan
+    // keladi. Cheksiz tsiklni oldini olish uchun e'tiborsiz qoldiramiz.
+    if (event === 'USER_UPDATED' || event === 'TOKEN_REFRESHED') {
       const existing = getCurrentUser()
       if (existing) callback(existing)
       return

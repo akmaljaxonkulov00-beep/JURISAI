@@ -154,7 +154,7 @@ const PricingSection: React.FC<PricingSectionProps> = ({ className }) => {
       price: db.price ?? base.price,
       features: db.features.length > 0 ? db.features : base.features,
     }
-  })
+  }).sort((a, b) => (a.price ?? 0) - (b.price ?? 0))
 
   const getYearlyDiscount = (monthlyPrice: number) => {
     const yearlyPrice = monthlyPrice * 12
