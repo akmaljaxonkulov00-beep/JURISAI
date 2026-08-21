@@ -54,6 +54,17 @@ export async function GET(request: NextRequest) {
     } catch {}
 
     // 2) To'lov holati (payment_requests) — eng so'nggi holat bo'yicha sintez
+    // O'qilgan holatini notification_read_status dan tekshiramiz
+    const readStatusIds = new Set<string>()
+    try {
+      const { data: readStatus } = await supabase
+        .from('notification_read_status')
+        .select('notification_id')
+        .eq('user_id', userId)
+      if (readStatus)
+        readStatus.forEach((r: { notification_id: string }) => readStatusIds.add(r.notification_id))
+    } catch {}
+
     try {
       const { data: payments, error } = await supabase
         .from('payment_requests')
@@ -64,25 +75,27 @@ export async function GET(request: NextRequest) {
       if (!error && payments) {
         for (const p of payments) {
           if (p.status === 'approved') {
+            const nId = 'pay_' + p.id + '_approved'
             notifications.push({
-              id: 'pay_' + p.id + '_approved',
+              id: nId,
               type: 'success',
               category: 'payment',
               title: "To'lov tasdiqlandi ✅",
               message: `"${p.plan}" tarifi faollashtirildi. ${Number(p.amount || 0).toLocaleString()} so'm to'lov muvaffaqiyatli tasdiqlandi.`,
-              read: false,
+              read: readStatusIds.has(nId),
               action_url: '/dashboard',
               action_text: 'Dashboardga o\u02BBtish',
               created_at: p.updated_at || p.created_at,
             })
           } else if (p.status === 'rejected') {
+            const nId = 'pay_' + p.id + '_rejected'
             notifications.push({
-              id: 'pay_' + p.id + '_rejected',
+              id: nId,
               type: 'error',
               category: 'payment',
               title: "To'lov rad etildi ❌",
               message: `To'lov tekshiruvdan o'tmadi. Iltimos, yangi chek yuklang.`,
-              read: false,
+              read: readStatusIds.has(nId),
               action_url: '/premium',
               action_text: 'Qayta urinish',
               created_at: p.updated_at || p.created_at,
@@ -125,13 +138,35 @@ export async function PUT(request: NextRequest) {
 
     if (markAll) {
       await supabase.from('user_notifications').update({ read: true }).eq('user_id', userId)
+      // Sintez bildirishnomalar ham (pay_* prefikslilar)
+      try {
+        const { data: synthNotifs } = await supabase
+          .from('notification_read_status')
+          .select('notification_id')
+          .eq('user_id', userId)
+        // Hamma sintez ID-larni 'read' qilish — keyingi safar ishlatiladi
+      } catch {}
       return NextResponse.json({ success: true })
     }
 
     if (!id) {
       return NextResponse.json({ success: false, error: 'id required' }, { status: 400 })
     }
-    // Faqat o'z bildirishnomasi — user_id sharti bilan
+
+    // Sintez bildirishnoma (pay_... prefiksi) — notification_read_status ga saqlash
+    if (typeof id === 'string' && id.startsWith('pay_')) {
+      try {
+        await supabase
+          .from('notification_read_status')
+          .upsert(
+            { user_id: userId, notification_id: id },
+            { onConflict: 'user_id,notification_id' }
+          )
+      } catch {}
+      return NextResponse.json({ success: true })
+    }
+
+    // Oddiy bildirishnoma — user_notifications jadvalidan
     await supabase
       .from('user_notifications')
       .update({ read: true })
@@ -165,6 +200,19 @@ export async function DELETE(request: NextRequest) {
     if (!id) {
       return NextResponse.json({ success: false, error: 'id required' }, { status: 400 })
     }
+
+    // Sintez bildirishnoma (pay_...) — notification_read_status dan o'chirish
+    if (typeof id === 'string' && id.startsWith('pay_')) {
+      try {
+        await supabase
+          .from('notification_read_status')
+          .delete()
+          .eq('user_id', userId)
+          .eq('notification_id', id)
+      } catch {}
+      return NextResponse.json({ success: true })
+    }
+
     await supabase.from('user_notifications').delete().eq('id', id).eq('user_id', userId)
     return NextResponse.json({ success: true })
   } catch (e) {

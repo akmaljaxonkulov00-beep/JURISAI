@@ -112,43 +112,75 @@ export function useLegalCodes() {
         return
       }
 
-      // 2. Fetch articles — paginated PER CODE.
-      //    Supabase REST API returns max 1000 rows per request, so a single
-      //    `.in('code_id', ...)` fetch silently truncates the full database
-      //    (only ~first 125 articles per code came through — the rest were lost).
-      //    Loop with `.range()` until every article of every code is loaded.
+      // 2. Fetch articles — PARALLEL per code (tezroq).
+      //    localStorage'dan cache tekshiriladi — agar yangilangan bo'lsa ishlatiladi.
       const codeIds = categories.map((c: CategoryRow) => c.code_id).filter(Boolean)
       const uniqueIds = [...new Set(codeIds)]
       const PAGE = 1000
+      const CACHE_KEY = 'legal_codes_cache'
+      const CACHE_TTL = 10 * 60 * 1000 // 10 daqiqa
 
-      const fetchAllArticles = async (orderColumn: 'article_number_int' | 'article_number') => {
+      // Cache tekshirish
+      let cachedCodes: LegalCode[] | null = null
+      try {
+        const raw = localStorage.getItem(CACHE_KEY)
+        if (raw) {
+          const parsed = JSON.parse(raw)
+          if (
+            parsed &&
+            parsed.ts &&
+            Date.now() - parsed.ts < CACHE_TTL &&
+            parsed.codes?.length > 0
+          ) {
+            cachedCodes = parsed.codes
+          }
+        }
+      } catch {}
+
+      let articles: ArticleRow[] = []
+
+      if (cachedCodes) {
+        // Cache bor — to'g'ridan-to'g'ri ishlatamiz (15-20 soniya o'rniga ~0 soniya)
+        setCodes(cachedCodes)
+        setFromSupabase(true)
+        setLoading(false)
+        return
+      }
+
+      // Cache yo'q — PARALLEL fetch (har bir kodeks alohida, lekin bir vaqtda)
+      const fetchCodeArticles = async (codeId: string): Promise<ArticleRow[]> => {
         const all: ArticleRow[] = []
-        for (const codeId of uniqueIds) {
-          let from = 0
-          for (;;) {
-            const { data, error } = await supabase
+        let from = 0
+        for (;;) {
+          const { data, error } = await supabase
+            .from('articles')
+            .select('*')
+            .eq('code_id', codeId)
+            .order('article_number_int', { ascending: true, nullsFirst: false })
+            .range(from, from + PAGE - 1)
+          if (error) {
+            // article_number_int mavjud emas — article_number bilan sinab ko'rish
+            const { data: fallback } = await supabase
               .from('articles')
               .select('*')
               .eq('code_id', codeId)
-              .order(orderColumn, { ascending: true, nullsFirst: false })
+              .order('article_number', { ascending: true, nullsFirst: false })
               .range(from, from + PAGE - 1)
-            if (error) throw error
+            if (!fallback || fallback.length === 0) break
+            all.push(...fallback)
+            if (fallback.length < PAGE) break
+          } else {
             all.push(...(data || []))
             if (!data || data.length < PAGE) break
-            from += PAGE
           }
+          from += PAGE
         }
         return all
       }
 
-      let articles: ArticleRow[]
-      try {
-        // Numeric sort column first
-        articles = await fetchAllArticles('article_number_int')
-      } catch {
-        // If article_number_int column doesn't exist, fall back to article_number (text)
-        articles = await fetchAllArticles('article_number')
-      }
+      // Barcha kodlarni bir vaqtda yuklash (parallel)
+      const allResults = await Promise.all(uniqueIds.map(fetchCodeArticles))
+      articles = allResults.flat()
 
       // 3. Merge categories + articles into LegalCode[] format
       const categoryMap = new Map<string, CodeEntry>()
@@ -202,6 +234,11 @@ export function useLegalCodes() {
 
       setCodes(mapped)
       setFromSupabase(true)
+
+      // Cache saqlash — keyingi safar tezroq yuklanadi
+      try {
+        localStorage.setItem(CACHE_KEY, JSON.stringify({ codes: mapped, ts: Date.now() }))
+      } catch {}
     } catch (err: unknown) {
       console.warn(
         '[useLegalCodes] Supabase direct fetch failed, trying API fallback:',

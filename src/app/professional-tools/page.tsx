@@ -39,6 +39,10 @@ interface CalculatorResult {
   damages: number
   interest: number
   total: number
+  breakdown?: { item: string; amount: number; description: string }[]
+  legal_basis?: string[]
+  courtFee?: number
+  lawyerFee?: number
 }
 
 interface RiskAssessment {
@@ -83,6 +87,7 @@ export default function ProfessionalTools() {
   const [caseLawResults, setCaseLawResults] = useState<CaseLawResult | null>(null)
   const [caseLawError, setCaseLawError] = useState<string | null>(null)
   const [caseLawLoading, setCaseLawLoading] = useState(false)
+  const [caseLawFullResponse, setCaseLawFullResponse] = useState('')
 
   const tools: Tool[] = [
     {
@@ -149,6 +154,10 @@ export default function ProfessionalTools() {
           damages: result.damages || 0,
           interest: result.interest || 0,
           total: result.total || 0,
+          breakdown: result.breakdown || [],
+          legal_basis: result.legal_basis || [],
+          courtFee: result.court_fee || 0,
+          lawyerFee: result.lawyer_fee || 0,
         })
       } else {
         const err = await response.json().catch(() => ({}))
@@ -225,7 +234,15 @@ export default function ProfessionalTools() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          message: `Sud amaliyoti bo\'yicha qidiruv: "${searchQuery}". O\'zbekiston sudlarining ushbu masala bo\'yicha qarorlari, statistikasi va umumiy tendensiyalari haqida ma'lumot bering.`,
+          message: `Sud amaliyoti tahlili: "${searchQuery}".
+
+O'zbekiston Respublikasi sudlarining ushbu masala bo'yicha:
+1) Amaldagi qonunchilik asosi (tegishli kodeks moddalari)
+2) Sud amaliyotidagi tendensiyalar
+3) O'xshash ishlar bo'yicha qarorlar
+4) Ehtimoliy natija va tavsiyalar
+
+Faqat O'zbekiston qonunchiligiga asoslangan javob bering. Har bir javobni tegishli qonun moddasi bilan mustahkamlang.`,
           context: [],
           ...getUserIdentityPayload(),
         }),
@@ -239,6 +256,7 @@ export default function ProfessionalTools() {
           return
         }
 
+        setCaseLawFullResponse(aiResponse)
         setCaseLawResults({
           precedents: [
             {
@@ -554,30 +572,71 @@ export default function ProfessionalTools() {
                           <h3 className="font-bold text-gray-800 dark:text-zinc-200 mb-3">
                             Hisoblash natijalari
                           </h3>
-                          <div className="space-y-2">
-                            {calculatorResult.stateFee > 0 && (
-                              <div className="flex justify-between">
-                                <span>Davlat boji:</span>
-                                <span className="font-bold">
-                                  {calculatorResult.stateFee.toLocaleString()} so\'m
+
+                          {/* Agar API breakdown bersa — to'liq ko'rsatamiz */}
+                          {calculatorResult.breakdown && calculatorResult.breakdown.length > 0 ? (
+                            <div className="space-y-2">
+                              {calculatorResult.breakdown.map((item, idx) => (
+                                <div key={idx} className="flex justify-between items-center">
+                                  <span className="text-sm text-gray-600 dark:text-zinc-400">
+                                    {item.item}
+                                    <span className="text-[10px] text-gray-400 ml-1">
+                                      ({item.description})
+                                    </span>
+                                  </span>
+                                  <span className="font-bold text-sm">
+                                    {item.amount.toLocaleString()} so\'m
+                                  </span>
+                                </div>
+                              ))}
+                              <div className="pt-2 border-t border-gray-200 dark:border-zinc-800 flex justify-between">
+                                <span className="font-bold">Jami:</span>
+                                <span className="font-bold text-blue-600">
+                                  {calculatorResult.total.toLocaleString()} so\'m
                                 </span>
                               </div>
-                            )}
-                            {calculatorResult.damages > 0 && (
-                              <div className="flex justify-between">
-                                <span>Zarar (penya):</span>
-                                <span className="font-bold">
-                                  {calculatorResult.damages.toLocaleString()} so\'m
-                                </span>
-                              </div>
-                            )}
-                            <div className="pt-2 border-t border-gray-200 dark:border-zinc-800 flex justify-between">
-                              <span className="font-bold">Jami:</span>
-                              <span className="font-bold text-blue-600">
-                                {calculatorResult.total.toLocaleString()} so\'m
-                              </span>
                             </div>
-                          </div>
+                          ) : (
+                            <div className="space-y-2">
+                              {calculatorResult.stateFee > 0 && (
+                                <div className="flex justify-between">
+                                  <span>Davlat boji:</span>
+                                  <span className="font-bold">
+                                    {calculatorResult.stateFee.toLocaleString()} so\'m
+                                  </span>
+                                </div>
+                              )}
+                              {calculatorResult.damages > 0 && (
+                                <div className="flex justify-between">
+                                  <span>Zarar (penya):</span>
+                                  <span className="font-bold">
+                                    {calculatorResult.damages.toLocaleString()} so\'m
+                                  </span>
+                                </div>
+                              )}
+                              <div className="pt-2 border-t border-gray-200 dark:border-zinc-800 flex justify-between">
+                                <span className="font-bold">Jami:</span>
+                                <span className="font-bold text-blue-600">
+                                  {calculatorResult.total.toLocaleString()} so\'m
+                                </span>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Huquqiy asos */}
+                          {calculatorResult.legal_basis &&
+                            calculatorResult.legal_basis.length > 0 && (
+                              <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                                <p className="text-xs font-medium text-blue-700 dark:text-blue-300 mb-1">
+                                  Huquqiy asos:
+                                </p>
+                                <ul className="text-[11px] text-blue-600 dark:text-blue-400 space-y-0.5">
+                                  {calculatorResult.legal_basis.map((basis, idx) => (
+                                    <li key={idx}>• {basis}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
                         </div>
                       )}
                     </div>
@@ -832,6 +891,18 @@ export default function ProfessionalTools() {
                               ))}
                             </div>
                           </div>
+
+                          {/* To'liq AI tahlili */}
+                          {caseLawFullResponse && (
+                            <div className="mt-4">
+                              <h3 className="font-bold text-gray-800 dark:text-zinc-200 mb-3">
+                                To'liq tahlil
+                              </h3>
+                              <div className="p-4 bg-gray-50 dark:bg-zinc-800/50 rounded-lg whitespace-pre-wrap text-sm text-gray-700 dark:text-zinc-300 leading-relaxed">
+                                {caseLawFullResponse}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
