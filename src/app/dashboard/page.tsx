@@ -110,12 +110,40 @@ export default function Dashboard() {
     try {
       setLoading(true)
 
-      // Load stats from localStorage or use default empty values
+      // 1) Avval localStorage'dan o'qi (tezroq ko'rinish uchun)
       const storedStats = localStorage.getItem('user_stats')
       if (storedStats) {
         setUserStats(JSON.parse(storedStats))
-      } else {
-        // Default empty stats for new users
+      }
+
+      // 2) API'dan real ma'lumot olishga harakat qil
+      try {
+        const apiStats = await api.getUserStats()
+        if (apiStats?.data) {
+          const d = apiStats.data as Record<string, unknown>
+          const realStats: UserStats = {
+            xp: (d.xp as number) || 0,
+            level: (d.level as number) || 1,
+            completedCases: (d.completedCases as number) || 0,
+            totalCases: (d.totalCases as number) || (d.completedCases as number) || 0,
+            weeklyProgress: (d.weeklyProgress as number) || 0,
+            rank: (d.rank as string) || 'Yangi boshlovchi',
+            achievements: Array.isArray(d.achievements)
+              ? (d.achievements as UserStats['achievements'])
+              : [],
+            recentActivity: Array.isArray(d.recentActivity)
+              ? (d.recentActivity as UserStats['recentActivity'])
+              : [],
+          }
+          setUserStats(realStats)
+          localStorage.setItem('user_stats', JSON.stringify(realStats))
+        }
+      } catch {
+        // API mavjud emas — localStorage'dagi ma'lumot bilan davom et
+      }
+
+      // Agar hech narsa yo'q bo'lsa — bo'sh stats
+      if (!localStorage.getItem('user_stats')) {
         const defaultStats: UserStats = {
           xp: 0,
           level: 1,

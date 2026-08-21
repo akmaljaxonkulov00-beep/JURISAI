@@ -82,6 +82,7 @@ export default function ProfessionalTools() {
   const [searchQuery, setSearchQuery] = useState('')
   const [caseLawResults, setCaseLawResults] = useState<CaseLawResult | null>(null)
   const [caseLawError, setCaseLawError] = useState<string | null>(null)
+  const [caseLawLoading, setCaseLawLoading] = useState(false)
 
   const tools: Tool[] = [
     {
@@ -122,27 +123,11 @@ export default function ProfessionalTools() {
     },
   ]
 
-  const calculateStateFee = (caseType: string, amount: number) => {
-    let fee = 0
-
-    if (amount <= 1000000) fee = amount * 0.05
-    else if (amount <= 5000000) fee = 50000 + (amount - 1000000) * 0.04
-    else if (amount <= 10000000) fee = 210000 + (amount - 5000000) * 0.03
-    else fee = 360000 + (amount - 10000000) * 0.02
-
-    return Math.min(fee, 2000000) // Maksimal 2 million so'm
-  }
-
-  const calculateDamages = (contractAmount: number, daysLate: number) => {
-    const penaltyRate = 0.01 // 1% kuniga
-
-    const penalty = contractAmount * penaltyRate * daysLate
-    return penalty
-  }
+  const [calculatorError, setCalculatorError] = useState<string | null>(null)
 
   const calculateLegalFees = async () => {
+    setCalculatorError(null)
     try {
-      // Call legal calculator API
       const response = await fetch('/api/professional-tools/legal-calculator', {
         method: 'POST',
         headers: {
@@ -159,42 +144,31 @@ export default function ProfessionalTools() {
 
       if (response.ok) {
         const result = await response.json()
-        setCalculatorResult(result)
+        setCalculatorResult({
+          stateFee: result.state_fee || 0,
+          damages: result.damages || 0,
+          interest: result.interest || 0,
+          total: result.total || 0,
+        })
       } else {
-        // Fallback to mock calculation
-        applyMockCalculation()
+        const err = await response.json().catch(() => ({}))
+        setCalculatorError(err.error || 'Hisoblashda xatolik yuz berdi')
       }
     } catch (error) {
-      console.log('Legal calculator API error, using fallback:', error)
-      applyMockCalculation()
+      setCalculatorError("API bilan bog'lanishda xatolik. Iltimos, qayta urinib ko'ring.")
     }
-  }
-
-  const applyMockCalculation = () => {
-    // Simulate fee calculation
-    const mockResult: CalculatorResult = {
-      stateFee: calculateStateFee(
-        calculatorInputs.caseType,
-        parseFloat(calculatorInputs.claimAmount)
-      ),
-      damages: calculateDamages(
-        parseFloat(calculatorInputs.contractAmount),
-        parseFloat(calculatorInputs.daysLate)
-      ),
-      interest: 0,
-      total: 0,
-    }
-    mockResult.total = mockResult.stateFee + mockResult.damages
-    setCalculatorResult(mockResult)
   }
 
   const handleCalculate = () => {
     calculateLegalFees()
   }
 
+  const [riskError, setRiskError] = useState<string | null>(null)
+
   const analyzeContract = async () => {
     if (!uploadedContract) return
     setRiskAssessment(null)
+    setRiskError(null)
 
     try {
       const text = await uploadedContract.text()
@@ -210,7 +184,6 @@ export default function ProfessionalTools() {
 
       if (response.ok) {
         const result = await response.json()
-        // Parse AI response into risk assessment structure
         const analysis = result.analysis || ''
         const hasRisk =
           analysis.includes('risk') || analysis.includes('xavf') || analysis.includes('muammo')
@@ -223,7 +196,7 @@ export default function ProfessionalTools() {
             {
               category: 'Hujjat tahlili',
               severity: riskLevel,
-              description: analysis.slice(0, 200),
+              description: analysis.slice(0, 500),
             },
           ],
           recommendations: [
@@ -233,44 +206,19 @@ export default function ProfessionalTools() {
           ],
         })
       } else {
-        applyMockFallback()
+        const err = await response.json().catch(() => ({}))
+        setRiskError(err.error || 'Tahlil qilishda xatolik yuz berdi')
       }
     } catch (error) {
-      console.log('Risk analysis API error, using fallback:', error)
-      applyMockFallback()
+      setRiskError("API bilan bog'lanishda xatolik. Iltimos, qayta urinib ko'ring.")
     }
-  }
-
-  const applyMockFallback = () => {
-    const mockAssessment: RiskAssessment = {
-      overallRisk: 'medium',
-      score: 65,
-      risks: [
-        {
-          category: "To'lov shartlari",
-          severity: 'medium',
-          description: "To'lov muddati noaniq belgilangan",
-        },
-        { category: "Mas'uliyat", severity: 'low', description: "Mas'uliyat chegaralari aniq" },
-        {
-          category: 'Nizolarni hal qilish',
-          severity: 'high',
-          description: "Arbitraj usuli ko'rsatilmagan",
-        },
-      ],
-      recommendations: [
-        "To'lov muddatlarini aniqroq belgilang",
-        "Nizolarni hal qilish tartibini qo'shing",
-        'Shartnoma buzilishi holatlarini batafsilroq bayon qiling',
-      ],
-    }
-    setRiskAssessment(mockAssessment)
   }
 
   const searchCaseLaw = async () => {
     if (!searchQuery.trim()) return
     setCaseLawResults(null)
     setCaseLawError(null)
+    setCaseLawLoading(true)
 
     try {
       const response = await fetch('/api/ai/legal-chat', {
@@ -287,14 +235,14 @@ export default function ProfessionalTools() {
         const result = await response.json()
         const aiResponse = result.response || ''
         if (!aiResponse) {
-          setCaseLawError('AI javob topilmadi. Iltimos, qayta urinib ko\u02BBring.')
+          setCaseLawError("AI javob topilmadi. Iltimos, qayta urinib ko'ring.")
           return
         }
 
         setCaseLawResults({
           precedents: [
             {
-              title: `${searchQuery} bo\u02BByicha AI tahlili`,
+              title: `${searchQuery} bo\'yicha AI tahlili`,
               court: "O'zbekiston qonunchiligi asosida AI tahlili",
               date: new Date().toISOString().split('T')[0],
               outcome: 'AI tahlil asosida',
@@ -304,19 +252,19 @@ export default function ProfessionalTools() {
           statistics: {
             winRate: 50,
             averageDuration: '30-60 kun',
-            commonIssues: [aiResponse.slice(0, 150)],
+            commonIssues: [aiResponse.slice(0, 300)],
           },
         })
       } else {
-        setCaseLawError(
-          'Sud amaliyoti ma\u02BBlumotlarini yuklab bo\u02BBlmadi. Iltimos, keyinroq qayta urinib ko\u02BBring.'
-        )
+        const err = await response.json().catch(() => ({}))
+        setCaseLawError(err.error || "Sud amaliyoti ma'lumotlarini yuklab bo'lmadi")
       }
     } catch (error) {
-      console.log('Case law search API error:', error)
       setCaseLawError(
-        'Sud amaliyoti ma\u02BBlumotlarini yuklab bo\u02BBlmadi. Iltimos, keyinroq qayta urinib ko\u02BBring.'
+        "Sud amaliyoti ma'lumotlarini yuklab bo'lmadi. Iltimos, keyinroq qayta urinib ko'ring."
       )
+    } finally {
+      setCaseLawLoading(false)
     }
   }
 
@@ -593,6 +541,14 @@ export default function ProfessionalTools() {
                         Hisoblash
                       </button>
 
+                      {calculatorError && (
+                        <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                          <p className="text-sm text-red-600 dark:text-red-400">
+                            {calculatorError}
+                          </p>
+                        </div>
+                      )}
+
                       {calculatorResult && (
                         <div className="mt-6 p-4 bg-gray-50 dark:bg-zinc-800/50 rounded-lg">
                           <h3 className="font-bold text-gray-800 dark:text-zinc-200 mb-3">
@@ -672,6 +628,12 @@ export default function ProfessionalTools() {
                               Tahlil qilish
                             </button>
                           </div>
+                        </div>
+                      )}
+
+                      {riskError && (
+                        <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                          <p className="text-sm text-red-600 dark:text-red-400">{riskError}</p>
                         </div>
                       )}
 
@@ -785,9 +747,10 @@ export default function ProfessionalTools() {
                         />
                         <button
                           onClick={searchCaseLaw}
-                          className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                          disabled={caseLawLoading || !searchQuery.trim()}
+                          className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          Qidirish
+                          {caseLawLoading ? 'Qidirilmoqda...' : 'Qidirish'}
                         </button>
                       </div>
 
