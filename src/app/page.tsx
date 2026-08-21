@@ -8,14 +8,28 @@ export default function HomePage() {
 
   useEffect(() => {
     // Check if OAuth code is in the URL — OAuthHandler will process it
-    // Don't redirect away while OAuth is in progress!
     if (typeof window !== 'undefined') {
       const hasOAuthCode = new URLSearchParams(window.location.search).has('code')
       if (hasOAuthCode) return // OAuthHandler will handle this
+
+      // Agar foydalanuvchi tizimga kirgan bo'lsa → dashboardga yo'naltirish
+      // (back button muammosini oldini olish uchun)
+      try {
+        const storedUser =
+          localStorage.getItem('jurisai_user') || sessionStorage.getItem('jurisai_user')
+        if (storedUser) {
+          const user = JSON.parse(storedUser)
+          if (user?.id) {
+            router.replace('/dashboard')
+            return
+          }
+        }
+      } catch {
+        /* ignore */
+      }
     }
 
-    // ALWAYS redirect to signin page
-    // Users MUST actively log in each time — no auto-login even with existing session
+    // Tizimga kirmagan → signin sahifasiga
     router.replace('/signin')
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
