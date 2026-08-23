@@ -723,3 +723,6 @@ export const firebaseAuth = {
   onAuthChange,
   finalizeUserSession,
 }
+
+/** @deprecated Use authService instead — firebaseAuth is a legacy name (Supabase, not Firebase) */
+export const authService = firebaseAuth

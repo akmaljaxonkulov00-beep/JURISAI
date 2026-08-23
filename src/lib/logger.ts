@@ -53,18 +53,22 @@ class Logger {
     }
   }
 
-  error(message: string, error?: Error, context?: LogContext): void {
+  error(message: string, error?: unknown, context?: LogContext): void {
     if (this.shouldLog('error')) {
       console.error(this.formatMessage('error', message, context), error)
     }
 
-    // Send to Sentry in production
-    if (this.isProduction && typeof window !== 'undefined') {
-      // if (error) {
-      //   Sentry.captureException(error, { contexts: { custom: context } })
-      // } else {
-      //   Sentry.captureMessage(message, 'error')
-      // }
+    // Sentry integration (production)
+    if (this.isProduction) {
+      // TODO: Enable when Sentry is configured
+      // try {
+      //   const Sentry = require('@sentry/nextjs')
+      //   if (error instanceof Error) {
+      //     Sentry.captureException(error, { extra: context })
+      //   } else {
+      //     Sentry.captureMessage(message, 'error')
+      //   }
+      // } catch {}
     }
   }
 
