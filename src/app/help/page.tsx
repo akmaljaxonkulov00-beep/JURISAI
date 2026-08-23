@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import { useLanguage } from '@/context/LanguageContext'
 import {
   ArrowLeft,
   Search,
@@ -28,16 +29,17 @@ interface FAQ {
 }
 
 export default function Help() {
+  const { t } = useLanguage()
   const [searchQuery, setSearchQuery] = useState('')
   const [openFAQ, setOpenFAQ] = useState<string | null>(null)
   const settings = useSiteSettings()
 
   const categories = [
-    { id: 'getting-started', label: 'Boshlash', icon: BookOpen },
-    { id: 'account', label: 'Hisob', icon: Shield },
-    { id: 'features', label: 'Imkoniyatlar', icon: Zap },
-    { id: 'community', label: 'Jamiyat', icon: Users },
-    { id: 'billing', label: "To'lov", icon: Globe },
+    { id: 'getting-started', label: t('helpGuides'), icon: BookOpen },
+    { id: 'account', label: t('helpSupport'), icon: Shield },
+    { id: 'features', label: t('helpFAQ'), icon: Zap },
+    { id: 'community', label: t('communityTitle'), icon: Users },
+    { id: 'billing', label: t('billingTitle'), icon: Globe },
   ]
 
   const faqs: FAQ[] = [

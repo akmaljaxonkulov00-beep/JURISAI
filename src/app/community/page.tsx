@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase-client'
+import { useLanguage } from '@/context/LanguageContext'
 import {
   ArrowLeft,
   Users,
@@ -316,6 +317,7 @@ function GroupPostCard({
 }
 
 export default function Community() {
+  const { t } = useLanguage()
   const {
     posts,
     allPosts,
@@ -447,16 +449,16 @@ export default function Community() {
       </button>
       <nav className="space-y-1">
         {[
-          { id: 'feed', label: 'Lenta', icon: <MessageCircle className="w-4 h-4" /> },
+          { id: 'feed', label: t('communityFeed'), icon: <MessageCircle className="w-4 h-4" /> },
           {
             id: 'notification',
-            label: 'Bildirishnomalar',
+            label: t('communityNotifications'),
             icon: <Bell className="w-4 h-4" />,
             badge: unreadCount,
           },
-          { id: 'experts', label: 'Ekspertlar', icon: <Star className="w-4 h-4" /> },
-          { id: 'groups', label: 'Guruhlar', icon: <Users className="w-4 h-4" /> },
-          { id: 'webinars', label: 'Vebinarlar', icon: <Video className="w-4 h-4" /> },
+          { id: 'experts', label: t('communityExperts'), icon: <Star className="w-4 h-4" /> },
+          { id: 'groups', label: t('communityGroups'), icon: <Users className="w-4 h-4" /> },
+          { id: 'webinars', label: t('communityWebinars'), icon: <Video className="w-4 h-4" /> },
         ].map(item => (
           <button
             key={item.id}
@@ -484,16 +486,16 @@ export default function Community() {
   const renderMobileTabs = () => (
     <div className="md:hidden mb-4 flex gap-2 overflow-x-auto pb-1">
       {[
-        { id: 'feed', label: 'Lenta', icon: <MessageCircle className="w-3.5 h-3.5" /> },
+        { id: 'feed', label: t('communityFeed'), icon: <MessageCircle className="w-3.5 h-3.5" /> },
         {
           id: 'notification',
-          label: 'Bildirishnomalar',
+          label: t('communityNotifications'),
           icon: <Bell className="w-3.5 h-3.5" />,
           badge: unreadCount,
         },
-        { id: 'experts', label: 'Ekspertlar', icon: <Star className="w-3.5 h-3.5" /> },
-        { id: 'groups', label: 'Guruhlar', icon: <Users className="w-3.5 h-3.5" /> },
-        { id: 'webinars', label: 'Vebinarlar', icon: <Video className="w-3.5 h-3.5" /> },
+        { id: 'experts', label: t('communityExperts'), icon: <Star className="w-3.5 h-3.5" /> },
+        { id: 'groups', label: t('communityGroups'), icon: <Users className="w-3.5 h-3.5" /> },
+        { id: 'webinars', label: t('communityWebinars'), icon: <Video className="w-3.5 h-3.5" /> },
       ].map(item => (
         <button
           key={item.id}

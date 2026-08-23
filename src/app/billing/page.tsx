@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { ArrowLeft, Crown, Check, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
+import { useLanguage } from '@/context/LanguageContext'
 
 interface SubscriptionPlan {
   id: string
@@ -32,6 +33,7 @@ interface UserSubscription {
 }
 
 export default function Billing() {
+  const { t } = useLanguage()
   const { user } = useAuth()
   const router = useRouter()
   const [plans, setPlans] = useState<SubscriptionPlan[]>([])
@@ -126,14 +128,16 @@ export default function Billing() {
             <ArrowLeft className="w-4 h-4" /> <span className="text-sm font-medium">Orqaga</span>
           </Link>
           <h1 className="text-xl md:text-2xl font-bold text-gray-800 dark:text-white">
-            To\'lovlar
+            {t('billingTitle')}
           </h1>
         </div>
 
         {currentSubscription && (
           <Card className="card-default mb-8 rounded-2xl">
             <CardHeader className="border-b border-gray-100 dark:border-gray-700 pb-4">
-              <CardTitle className="text-gray-800 dark:text-white">Joriy obuna</CardTitle>
+              <CardTitle className="text-gray-800 dark:text-white">
+                {t('billingCurrentPlan')}
+              </CardTitle>
             </CardHeader>
             <CardContent className="pt-5">
               <div className="flex items-center justify-between">
@@ -150,11 +154,11 @@ export default function Billing() {
                         variant={currentSubscription.status === 'ACTIVE' ? 'default' : 'secondary'}
                       >
                         {currentSubscription.status === 'ACTIVE'
-                          ? 'Faol'
+                          ? t('activeStatus')
                           : currentSubscription.status}
                       </Badge>
                       <span className="text-sm text-gray-500 dark:text-gray-400 dark:text-zinc-500">
-                        Qayta yangilanadi:{' '}
+                        {t('renewsOn')}:{' '}
                         {new Date(currentSubscription.currentPeriodEnd).toLocaleDateString('uz-UZ')}
                       </span>
                     </div>
@@ -162,7 +166,7 @@ export default function Billing() {
                 </div>
                 <Link href="/premium">
                   <Button variant="outline" className="flex items-center gap-2">
-                    Rejani o'zgartirish <ChevronRight className="w-4 h-4" />
+                    {t('billingUpgrade')} <ChevronRight className="w-4 h-4" />
                   </Button>
                 </Link>
               </div>
@@ -181,7 +185,7 @@ export default function Billing() {
                 {isCurrentPlan && (
                   <div className="absolute -top-3 right-4">
                     <Badge variant="default" className="bg-blue-600">
-                      Joriy reja
+                      {t('billingCurrentPlan')}
                     </Badge>
                   </div>
                 )}
@@ -217,10 +221,10 @@ export default function Billing() {
                       disabled={isCurrentPlan}
                     >
                       {isCurrentPlan
-                        ? 'Joriy reja'
+                        ? t('billingCurrentPlan')
                         : plan.price > 0
-                          ? "To'lov qilish"
-                          : 'Bepul reja'}
+                          ? t('billingSubmitCheck')
+                          : t('premiumFree') + ' ' + t('billingPlan')}
                     </Button>
                   </Link>
                 </CardContent>
