@@ -1212,7 +1212,7 @@ export default function AdminDashboard() {
                   <p>Hali foydalanuvchilar yo'q</p>
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-3 max-h-[600px] overflow-y-auto pr-1">
                   {allUsers
                     .filter((u: AdminUser) => {
                       if (!userSearchQuery) return true
@@ -1396,7 +1396,7 @@ export default function AdminDashboard() {
                     <p>Hali to'lov so'rovlari yo'q</p>
                   </div>
                 ) : (
-                  <div className="space-y-3">
+                  <div className="space-y-3 max-h-[600px] overflow-y-auto pr-1">
                     {paymentRequests.map(p => (
                       <div
                         key={p.id}

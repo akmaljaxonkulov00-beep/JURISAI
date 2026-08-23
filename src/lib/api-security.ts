@@ -211,9 +211,10 @@ export function validatePasswordStrength(password: string): {
 export function isAllowedOrigin(origin: string): boolean {
   // Environment variable'dan production URL olish
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || ''
+  const isProduction = process.env.NODE_ENV === 'production'
   const allowedOrigins = [
-    'http://localhost:3000',
-    'http://localhost:3001',
+    // Production faqat HTTPS — localhost faqat developmentda
+    ...(!isProduction ? ['http://localhost:3000', 'http://localhost:3001'] : []),
     'https://jurisai-dm4b-ten.vercel.app',
     'https://jurisai-rouge.vercel.app',
     'https://jurisai.uz',
