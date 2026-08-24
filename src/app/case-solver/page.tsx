@@ -193,6 +193,10 @@ export default function CaseSolver() {
   const [allCases, setAllCases] = useState<IracCase[]>([])
   const [showAllCases, setShowAllCases] = useState(false)
 
+  // ── Foydalanuvchi o'zi kazus yozishi uchun (Mode 1: AI yechishi) ──
+  const [useCustomCase, setUseCustomCase] = useState(false)
+  const [customCaseText, setCustomCaseText] = useState('')
+
   /* ── Admin aniqlash ── */
   useEffect(() => {
     const checkAdmin = async () => {
@@ -252,12 +256,20 @@ export default function CaseSolver() {
 
   /* ── AI tahlil (AI yechishi rejimi) ── */
   const analyzeWithAI = async () => {
-    if (!currentCase) return
+    const caseText = useCustomCase
+      ? customCaseText.trim()
+      : currentCase
+        ? `${currentCase.title}\n\n${currentCase.description}`
+        : ''
+    if (!caseText) {
+      setError('Kazus matnini kiriting yoki tayyor kazus tanlang.')
+      return
+    }
     setLoading(true)
     setError(null)
     setSaved(false)
     try {
-      const text = `${currentCase.title}\n\n${currentCase.description}`
+      const text = caseText
       const res = await fetch('/api/ai/irac-analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -498,6 +510,8 @@ FAQAT O'ZBEK LOTIN ALIFBOSIDA yozing. Kirill harflari ishlatilmaydi.`
     setEvaluation(null)
     setError(null)
     setSaved(false)
+    setUseCustomCase(false)
+    setCustomCaseText('')
     setUserAnswers({ issue: '', rule: '', application: '', conclusion: '' })
   }
 
@@ -766,280 +780,358 @@ FAQAT O'ZBEK LOTIN ALIFBOSIDA yozing. Kirill harflari ishlatilmaydi.`
             {/* ═══════════════ KAZUS TANLASH ═══════════════ */}
             {!currentCase && !result && !evaluation && (
               <div className="bg-white dark:bg-zinc-900 rounded-2xl p-4 sm:p-6 shadow-sm">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-bold text-gray-800 dark:text-zinc-100">
-                    {mode === 'ai_solves' ? 'Kazus tanlang' : 'Kazus tanlang'}
-                  </h2>
-                  <button
-                    onClick={pickRandomCase}
-                    disabled={loadingCases || cases.length === 0}
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-50 text-sm font-medium"
-                  >
-                    <Shuffle className="w-4 h-4" />
-                    Tasodifiy kazus
-                  </button>
-                </div>
-
-                {/* Filtrlar */}
-                <div className="flex flex-wrap gap-3 mb-4">
-                  <select
-                    value={category}
-                    onChange={e => setCategory(e.target.value)}
-                    className="px-3 py-2 border border-gray-200 dark:border-zinc-700 rounded-xl bg-white dark:bg-zinc-900 text-gray-800 dark:text-zinc-200 text-sm"
-                  >
-                    {CATEGORIES.map(c => (
-                      <option key={c.value} value={c.value}>
-                        {c.label}
-                      </option>
-                    ))}
-                  </select>
-                  <select
-                    value={difficulty}
-                    onChange={e => setDifficulty(e.target.value)}
-                    className="px-3 py-2 border border-gray-200 dark:border-zinc-700 rounded-xl bg-white dark:bg-zinc-900 text-gray-800 dark:text-zinc-200 text-sm"
-                  >
-                    {DIFFICULTIES.map(d => (
-                      <option key={d.value} value={d.value}>
-                        {d.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Kazuslar ro'yxati */}
-                {loadingCases ? (
-                  <div className="flex items-center justify-center py-12">
-                    <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-                  </div>
-                ) : cases.length === 0 ? (
-                  <div className="text-center py-12 text-gray-500 dark:text-zinc-400">
-                    <p className="text-lg mb-2">Kazuslar topilmadi</p>
-                    <p className="text-sm">
-                      {isAdmin
-                        ? '"Kazus qo\'shish" tugmasi orqali yangi kazus qo\'shing.'
-                        : "Admin kazuslar qo'shishini kuting."}
-                    </p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {cases.map(c => (
+                {/* Mode 1: AI yechishi — o'zim kazus yozish yoki tayyor tanlash */}
+                {mode === 'ai_solves' && (
+                  <div className="mb-4">
+                    <div className="flex gap-2 mb-4">
                       <button
-                        key={c.id}
-                        onClick={() => {
-                          setCurrentCase(c)
-                          setResult(null)
-                          setEvaluation(null)
-                          setUserAnswers({ issue: '', rule: '', application: '', conclusion: '' })
-                        }}
-                        className="p-4 text-left border border-gray-200 dark:border-zinc-700 rounded-xl hover:border-blue-300 dark:hover:border-blue-700 hover:bg-blue-50/50 dark:hover:bg-blue-950/20 transition-all"
+                        onClick={() => setUseCustomCase(false)}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
+                          !useCustomCase
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-400 hover:bg-gray-200 dark:hover:bg-zinc-700'
+                        }`}
                       >
-                        <div className="flex items-start justify-between mb-2">
-                          <h3 className="font-medium text-gray-800 dark:text-zinc-200 text-sm">
-                            {c.title}
-                          </h3>
-                          <span
-                            className={`text-xs px-2 py-0.5 rounded-full ${
-                              c.difficulty === 'easy'
-                                ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                                : c.difficulty === 'hard'
-                                  ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                                  : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
-                            }`}
-                          >
-                            {c.difficulty === 'easy'
-                              ? "Boshlang'ich"
-                              : c.difficulty === 'hard'
-                                ? 'Murakkab'
-                                : "O'rta"}
-                          </span>
-                        </div>
-                        <p className="text-xs text-gray-500 dark:text-zinc-400 line-clamp-2 mb-2">
-                          {c.description}
-                        </p>
-                        <div className="flex flex-wrap gap-1">
-                          {c.law_references?.slice(0, 3).map((ref, i) => (
-                            <span
-                              key={i}
-                              className="text-[10px] px-1.5 py-0.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded"
-                            >
-                              {ref}
-                            </span>
-                          ))}
-                        </div>
+                        <BookMarked className="w-4 h-4" />
+                        Tayyor kazuslar
                       </button>
-                    ))}
+                      <button
+                        onClick={() => setUseCustomCase(true)}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
+                          useCustomCase
+                            ? 'bg-green-600 text-white'
+                            : 'bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-400 hover:bg-gray-200 dark:hover:bg-zinc-700'
+                        }`}
+                      >
+                        <PenTool className="w-4 h-4" />
+                        O'zim yozaman
+                      </button>
+                    </div>
+
+                    {useCustomCase && (
+                      <div>
+                        <textarea
+                          value={customCaseText}
+                          onChange={e => setCustomCaseText(e.target.value)}
+                          placeholder="Huquqiy kazus matnini kiriting...\n\nMasalan: Sudlanuvchi A. shaxs B. ni aldab, uning 500 000 so'mini o'g'irlagan. B. shaxs A. ga ishonch bildirgan, chunki ular oldin tanish edi. A. bu mablag'ni shaxsiy ehtiyojlari uchun sarflab yuborgan..."
+                          className="w-full h-40 p-4 border border-gray-200 dark:border-zinc-700 rounded-xl resize-none bg-white dark:bg-zinc-900 text-gray-800 dark:text-zinc-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        <div className="flex justify-between items-center mt-3">
+                          <span className="text-xs text-gray-500 dark:text-zinc-400">
+                            {customCaseText.length > 0
+                              ? `${customCaseText.length} belgi`
+                              : 'Kamida 50 belgi kiriting'}
+                          </span>
+                          <button
+                            onClick={analyzeWithAI}
+                            disabled={loading || customCaseText.trim().length < 50}
+                            className="flex items-center justify-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-60 font-medium text-sm"
+                          >
+                            {loading ? (
+                              <>
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                                AI tahlil qilmoqda...
+                              </>
+                            ) : (
+                              <>
+                                <Send className="w-4 h-4" />
+                                AI bilan tahlil qilish
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
+                )}
+
+                {!useCustomCase && (
+                  <>
+                    <div className="flex items-center justify-between mb-4">
+                      <h2 className="text-lg font-bold text-gray-800 dark:text-zinc-100">
+                        Kazus tanlang
+                      </h2>
+                      <button
+                        onClick={pickRandomCase}
+                        disabled={loadingCases || cases.length === 0}
+                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-50 text-sm font-medium"
+                      >
+                        <Shuffle className="w-4 h-4" />
+                        Tasodifiy kazus
+                      </button>
+                    </div>
+
+                    {/* Filtrlar */}
+                    <div className="flex flex-wrap gap-3 mb-4">
+                      <select
+                        value={category}
+                        onChange={e => setCategory(e.target.value)}
+                        className="px-3 py-2 border border-gray-200 dark:border-zinc-700 rounded-xl bg-white dark:bg-zinc-900 text-gray-800 dark:text-zinc-200 text-sm"
+                      >
+                        {CATEGORIES.map(c => (
+                          <option key={c.value} value={c.value}>
+                            {c.label}
+                          </option>
+                        ))}
+                      </select>
+                      <select
+                        value={difficulty}
+                        onChange={e => setDifficulty(e.target.value)}
+                        className="px-3 py-2 border border-gray-200 dark:border-zinc-700 rounded-xl bg-white dark:bg-zinc-900 text-gray-800 dark:text-zinc-200 text-sm"
+                      >
+                        {DIFFICULTIES.map(d => (
+                          <option key={d.value} value={d.value}>
+                            {d.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Kazuslar ro'yxati */}
+                    {loadingCases ? (
+                      <div className="flex items-center justify-center py-12">
+                        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+                      </div>
+                    ) : cases.length === 0 ? (
+                      <div className="text-center py-12 text-gray-500 dark:text-zinc-400">
+                        <p className="text-lg mb-2">Kazuslar topilmadi</p>
+                        <p className="text-sm">
+                          {isAdmin
+                            ? '"Kazus qo\'shish" tugmasi orqali yangi kazus qo\'shing.'
+                            : "Admin kazuslar qo'shishini kuting."}
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {cases.map(c => (
+                          <button
+                            key={c.id}
+                            onClick={() => {
+                              setCurrentCase(c)
+                              setResult(null)
+                              setEvaluation(null)
+                              setUserAnswers({
+                                issue: '',
+                                rule: '',
+                                application: '',
+                                conclusion: '',
+                              })
+                            }}
+                            className="p-4 text-left border border-gray-200 dark:border-zinc-700 rounded-xl hover:border-blue-300 dark:hover:border-blue-700 hover:bg-blue-50/50 dark:hover:bg-blue-950/20 transition-all"
+                          >
+                            <div className="flex items-start justify-between mb-2">
+                              <h3 className="font-medium text-gray-800 dark:text-zinc-200 text-sm">
+                                {c.title}
+                              </h3>
+                              <span
+                                className={`text-xs px-2 py-0.5 rounded-full ${
+                                  c.difficulty === 'easy'
+                                    ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                                    : c.difficulty === 'hard'
+                                      ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                                      : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
+                                }`}
+                              >
+                                {c.difficulty === 'easy'
+                                  ? "Boshlang'ich"
+                                  : c.difficulty === 'hard'
+                                    ? 'Murakkab'
+                                    : "O'rta"}
+                              </span>
+                            </div>
+                            <p className="text-xs text-gray-500 dark:text-zinc-400 line-clamp-2 mb-2">
+                              {c.description}
+                            </p>
+                            <div className="flex flex-wrap gap-1">
+                              {c.law_references?.slice(0, 3).map((ref, i) => (
+                                <span
+                                  key={i}
+                                  className="text-[10px] px-1.5 py-0.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded"
+                                >
+                                  {ref}
+                                </span>
+                              ))}
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             )}
 
             {/* ═══════════════ KAZUS KO'RSATISH ═══════════════ */}
-            {currentCase && !result && !evaluation && (
-              <div className="space-y-4">
-                {/* Kazus matni */}
-                <div className="bg-white dark:bg-zinc-900 rounded-2xl p-4 sm:p-6 shadow-sm">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h2 className="text-lg font-bold text-gray-800 dark:text-zinc-100">
-                        {currentCase.title}
-                      </h2>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span
-                          className={`text-xs px-2 py-0.5 rounded-full ${
-                            currentCase.difficulty === 'easy'
-                              ? 'bg-green-100 text-green-700'
-                              : currentCase.difficulty === 'hard'
-                                ? 'bg-red-100 text-red-700'
-                                : 'bg-yellow-100 text-yellow-700'
-                          }`}
-                        >
-                          {currentCase.difficulty === 'easy'
-                            ? "Boshlang'ich"
-                            : currentCase.difficulty === 'hard'
-                              ? 'Murakkab'
-                              : "O'rta"}
-                        </span>
-                        <span className="text-xs px-2 py-0.5 bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-400 rounded-full">
-                          {currentCase.category}
-                        </span>
-                      </div>
-                    </div>
-                    <button
-                      onClick={reset}
-                      className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 dark:text-zinc-300 border border-gray-200 dark:border-zinc-700 rounded-xl hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors"
-                    >
-                      <RotateCcw className="w-4 h-4" />
-                      Qayta
-                    </button>
-                  </div>
-                  <div className="p-4 bg-gray-50 dark:bg-zinc-800 rounded-xl">
-                    <p className="text-sm sm:text-base text-gray-700 dark:text-zinc-300 leading-relaxed whitespace-pre-wrap">
-                      {currentCase.description}
-                    </p>
-                  </div>
-                  {currentCase.law_references && currentCase.law_references.length > 0 && (
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      <span className="text-xs text-gray-500 dark:text-zinc-400">Tegishli:</span>
-                      {currentCase.law_references.map((ref, i) => (
-                        <span
-                          key={i}
-                          className="text-xs px-2 py-0.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full"
-                        >
-                          {ref}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* ═══════════════ AI YECHISHI REJIMI ═══════════════ */}
-                {mode === 'ai_solves' && (
+            {(currentCase || (useCustomCase && customCaseText.trim())) &&
+              !result &&
+              !evaluation && (
+                <div className="space-y-4">
+                  {/* Kazus matni */}
                   <div className="bg-white dark:bg-zinc-900 rounded-2xl p-4 sm:p-6 shadow-sm">
-                    <div className="flex items-center gap-3 mb-4">
-                      <Brain className="w-5 h-5 text-blue-600" />
-                      <h3 className="font-bold text-gray-800 dark:text-zinc-100">
-                        AI IRAC tahlili
-                      </h3>
-                    </div>
-                    <p className="text-sm text-gray-600 dark:text-zinc-400 mb-4">
-                      AI kazusni o''qib, IRAC metodikasi bo''yicha to''liq tahlil beradi.
-                    </p>
-                    {error && (
-                      <div className="mb-4 p-3 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 rounded-xl flex items-start gap-2">
-                        <AlertCircle className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
-                        <p className="text-sm text-red-700 dark:text-red-400">{error}</p>
-                      </div>
-                    )}
-                    <button
-                      onClick={analyzeWithAI}
-                      disabled={loading}
-                      className="w-full sm:w-auto flex items-center justify-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-60 font-medium"
-                    >
-                      {loading ? (
-                        <>
-                          <Loader2 className="w-5 h-5 animate-spin" />
-                          AI tahlil qilmoqda...
-                        </>
-                      ) : (
-                        <>
-                          <Send className="w-5 h-5" />
-                          AI bilan tahlil qilish
-                        </>
-                      )}
-                    </button>
-                  </div>
-                )}
-
-                {/* ═══════════════ FOYDALANUVCHI YECHISHI REJIMI ═══════════════ */}
-                {mode === 'user_solves' && (
-                  <div className="bg-white dark:bg-zinc-900 rounded-2xl p-4 sm:p-6 shadow-sm">
-                    <div className="flex items-center gap-3 mb-4">
-                      <PenTool className="w-5 h-5 text-green-600" />
-                      <h3 className="font-bold text-gray-800 dark:text-zinc-100">
-                        IRAC analizini yozing
-                      </h3>
-                    </div>
-                    <p className="text-sm text-gray-600 dark:text-zinc-400 mb-6">
-                      Kazusni o''qing va o''zingiz IRAC bo''yicha javob yozing. AI baholab beradi.
-                    </p>
-
-                    <div className="space-y-4">
-                      {SECTIONS.map(s => {
-                        const styles = COLOR_STYLES[s.color]
-                        return (
-                          <div key={s.id} className={`border rounded-xl ${styles.header}`}>
-                            <div className={`flex items-center gap-2 px-4 py-3 ${styles.text}`}>
-                              {s.icon}
-                              <div>
-                                <span className="font-semibold text-sm">{s.title}</span>
-                                <p className="text-xs opacity-70">{s.subtitle}</p>
-                              </div>
-                            </div>
-                            <div className="px-4 pb-4">
-                              <textarea
-                                value={userAnswers[s.id]}
-                                onChange={e =>
-                                  setUserAnswers({ ...userAnswers, [s.id]: e.target.value })
-                                }
-                                placeholder={s.placeholder}
-                                className="w-full h-28 p-3 border border-gray-200 dark:border-zinc-700 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-green-500 text-sm bg-white dark:bg-zinc-900 text-gray-800 dark:text-zinc-200"
-                              />
-                            </div>
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <h2 className="text-lg font-bold text-gray-800 dark:text-zinc-100">
+                          {currentCase ? currentCase.title : 'Sizning kazusingiz'}
+                        </h2>
+                        {currentCase && (
+                          <div className="flex items-center gap-2 mt-1">
+                            <span
+                              className={`text-xs px-2 py-0.5 rounded-full ${
+                                currentCase.difficulty === 'easy'
+                                  ? 'bg-green-100 text-green-700'
+                                  : currentCase.difficulty === 'hard'
+                                    ? 'bg-red-100 text-red-700'
+                                    : 'bg-yellow-100 text-yellow-700'
+                              }`}
+                            >
+                              {currentCase.difficulty === 'easy'
+                                ? "Boshlang'ich"
+                                : currentCase.difficulty === 'hard'
+                                  ? 'Murakkab'
+                                  : "O'rta"}
+                            </span>
+                            <span className="text-xs px-2 py-0.5 bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-400 rounded-full">
+                              {currentCase.category}
+                            </span>
                           </div>
-                        )
-                      })}
+                        )}
+                      </div>
+                      <button
+                        onClick={reset}
+                        className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 dark:text-zinc-300 border border-gray-200 dark:border-zinc-700 rounded-xl hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors"
+                      >
+                        <RotateCcw className="w-4 h-4" />
+                        Qayta
+                      </button>
                     </div>
-
-                    {error && (
-                      <div className="mt-4 p-3 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 rounded-xl flex items-start gap-2">
-                        <AlertCircle className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
-                        <p className="text-sm text-red-700 dark:text-red-400">{error}</p>
+                    <div className="p-4 bg-gray-50 dark:bg-zinc-800 rounded-xl">
+                      <p className="text-sm sm:text-base text-gray-700 dark:text-zinc-300 leading-relaxed whitespace-pre-wrap">
+                        {currentCase ? currentCase.description : customCaseText}
+                      </p>
+                    </div>
+                    {currentCase?.law_references && currentCase.law_references.length > 0 && (
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        <span className="text-xs text-gray-500 dark:text-zinc-400">Tegishli:</span>
+                        {currentCase.law_references.map((ref, i) => (
+                          <span
+                            key={i}
+                            className="text-xs px-2 py-0.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full"
+                          >
+                            {ref}
+                          </span>
+                        ))}
                       </div>
                     )}
+                  </div>
 
-                    <div className="flex gap-3 mt-4">
+                  {/* ═══════════════ AI YECHISHI REJIMI ═══════════════ */}
+                  {mode === 'ai_solves' && (
+                    <div className="bg-white dark:bg-zinc-900 rounded-2xl p-4 sm:p-6 shadow-sm">
+                      <div className="flex items-center gap-3 mb-4">
+                        <Brain className="w-5 h-5 text-blue-600" />
+                        <h3 className="font-bold text-gray-800 dark:text-zinc-100">
+                          AI IRAC tahlili
+                        </h3>
+                      </div>
+                      <p className="text-sm text-gray-600 dark:text-zinc-400 mb-4">
+                        AI kazusni o''qib, IRAC metodikasi bo''yicha to''liq tahlil beradi.
+                      </p>
+                      {error && (
+                        <div className="mb-4 p-3 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 rounded-xl flex items-start gap-2">
+                          <AlertCircle className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
+                          <p className="text-sm text-red-700 dark:text-red-400">{error}</p>
+                        </div>
+                      )}
                       <button
-                        onClick={evaluateWithAI}
-                        disabled={evalLoading}
-                        className="flex items-center justify-center gap-2 bg-green-600 text-white px-6 py-3 rounded-xl hover:bg-green-700 transition-colors disabled:opacity-60 font-medium"
+                        onClick={analyzeWithAI}
+                        disabled={loading}
+                        className="w-full sm:w-auto flex items-center justify-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-60 font-medium"
                       >
-                        {evalLoading ? (
+                        {loading ? (
                           <>
                             <Loader2 className="w-5 h-5 animate-spin" />
-                            AI baholamoqda...
+                            AI tahlil qilmoqda...
                           </>
                         ) : (
                           <>
-                            <CheckCircle2 className="w-5 h-5" />
-                            AI baholasin
+                            <Send className="w-5 h-5" />
+                            AI bilan tahlil qilish
                           </>
                         )}
                       </button>
                     </div>
-                  </div>
-                )}
-              </div>
-            )}
+                  )}
+
+                  {/* ═══════════════ FOYDALANUVCHI YECHISHI REJIMI ═══════════════ */}
+                  {mode === 'user_solves' && (
+                    <div className="bg-white dark:bg-zinc-900 rounded-2xl p-4 sm:p-6 shadow-sm">
+                      <div className="flex items-center gap-3 mb-4">
+                        <PenTool className="w-5 h-5 text-green-600" />
+                        <h3 className="font-bold text-gray-800 dark:text-zinc-100">
+                          IRAC analizini yozing
+                        </h3>
+                      </div>
+                      <p className="text-sm text-gray-600 dark:text-zinc-400 mb-6">
+                        Kazusni o''qing va o''zingiz IRAC bo''yicha javob yozing. AI baholab beradi.
+                      </p>
+
+                      <div className="space-y-4">
+                        {SECTIONS.map(s => {
+                          const styles = COLOR_STYLES[s.color]
+                          return (
+                            <div key={s.id} className={`border rounded-xl ${styles.header}`}>
+                              <div className={`flex items-center gap-2 px-4 py-3 ${styles.text}`}>
+                                {s.icon}
+                                <div>
+                                  <span className="font-semibold text-sm">{s.title}</span>
+                                  <p className="text-xs opacity-70">{s.subtitle}</p>
+                                </div>
+                              </div>
+                              <div className="px-4 pb-4">
+                                <textarea
+                                  value={userAnswers[s.id]}
+                                  onChange={e =>
+                                    setUserAnswers({ ...userAnswers, [s.id]: e.target.value })
+                                  }
+                                  placeholder={s.placeholder}
+                                  className="w-full h-28 p-3 border border-gray-200 dark:border-zinc-700 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-green-500 text-sm bg-white dark:bg-zinc-900 text-gray-800 dark:text-zinc-200"
+                                />
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+
+                      {error && (
+                        <div className="mt-4 p-3 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 rounded-xl flex items-start gap-2">
+                          <AlertCircle className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
+                          <p className="text-sm text-red-700 dark:text-red-400">{error}</p>
+                        </div>
+                      )}
+
+                      <div className="flex gap-3 mt-4">
+                        <button
+                          onClick={evaluateWithAI}
+                          disabled={evalLoading}
+                          className="flex items-center justify-center gap-2 bg-green-600 text-white px-6 py-3 rounded-xl hover:bg-green-700 transition-colors disabled:opacity-60 font-medium"
+                        >
+                          {evalLoading ? (
+                            <>
+                              <Loader2 className="w-5 h-5 animate-spin" />
+                              AI baholamoqda...
+                            </>
+                          ) : (
+                            <>
+                              <CheckCircle2 className="w-5 h-5" />
+                              AI baholasin
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
 
             {/* ═══════════════ AI TAHLIL NATIJASI (AI yechishi) ═══════════════ */}
             {result && (

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import {
   ArrowLeft,
   TrendingUp,
@@ -122,6 +123,7 @@ export default function Statistics() {
   })
 
   const [daysActive, setDaysActive] = useState<Record<string, number>>({})
+  const router = useRouter()
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
 
   // ── Load real data ────────────────────────────────────────────
@@ -482,12 +484,12 @@ export default function Statistics() {
       <div className="min-h-screen bg-[#f8faff] dark:bg-gray-950 mobile-safe-top p-4 sm:p-6 lg:p-8">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center gap-3 mb-6">
-            <a
-              href="/dashboard"
+            <button
+              onClick={() => router.push('/dashboard')}
               className="p-2 bg-white dark:bg-zinc-900 rounded-xl shadow-sm hover:shadow-md transition-shadow"
             >
               <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-zinc-300" />
-            </a>
+            </button>
             <div>
               <h1 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-zinc-100">
                 Statistika
@@ -514,13 +516,14 @@ export default function Statistics() {
       <div className="flex flex-col lg:flex-row">
         <div className="hidden lg:block w-64 bg-white dark:bg-zinc-900 border-r border-gray-100 dark:border-zinc-800 min-h-screen flex-shrink-0">
           <div className="p-6">
-            <a
-              href="/dashboard"
+            {' '}
+            <button
+              onClick={() => router.push('/dashboard')}
               className="flex items-center gap-3 px-3 py-2 text-gray-600 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800 rounded-lg cursor-pointer mb-6 transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
               <span>Orqaga</span>
-            </a>
+            </button>
             <nav className="space-y-2">
               <div className="flex items-center gap-3 px-3 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 rounded-lg">
                 <BarChart3 className="w-5 h-5" />
@@ -554,12 +557,12 @@ export default function Statistics() {
           <header className="bg-white dark:bg-zinc-900 px-4 sm:px-6 lg:px-8 py-4 border-b border-gray-100 dark:border-zinc-800">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div className="flex items-center gap-3">
-                <a
-                  href="/dashboard"
+                <button
+                  onClick={() => router.push('/dashboard')}
                   className="lg:hidden p-2 text-gray-600 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
                 >
                   <ArrowLeft className="w-5 h-5" />
-                </a>
+                </button>
                 <div>
                   <h1 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-zinc-100">
                     Statistika

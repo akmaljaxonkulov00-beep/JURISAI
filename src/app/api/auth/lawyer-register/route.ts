@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseServer } from '@/lib/supabase-client'
+import crypto from 'crypto'
 
 export async function POST(request: NextRequest) {
   try {
@@ -95,7 +96,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create user account for lawyer
-    const tempPassword = Math.random().toString(36).slice(-8) // Generate temporary password
+    const tempPassword = crypto.randomBytes(12).toString('base64url').slice(0, 12) // Cryptographically secure
 
     const { data: userData, error: userError } = await supabaseServer.auth.admin.createUser({
       email,

@@ -1745,13 +1745,13 @@ export default function Community() {
   // ── Main Feed ──────────────────────────────────────────────────────────
   if (activeTab === 'feed') {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 mobile-safe-top">
-        <div className="flex">
+      <div className="h-[100dvh] flex flex-col bg-slate-50 dark:bg-zinc-950 overflow-hidden">
+        <div className="flex flex-1 min-h-0">
           {/* Sidebar — yagona navigatsiya (desktop) */}
           <AppSidebar>{renderSidebarTools()}</AppSidebar>
 
           {/* Main Content */}
-          <div className="flex-1 min-h-screen">
+          <div className="flex-1 flex flex-col min-h-0 overflow-y-auto">
             {/* Header */}
             <header className="bg-white dark:bg-zinc-900 px-6 py-4 border-b border-gray-200 dark:border-zinc-800 sticky top-0 z-10">
               <div className="flex items-center justify-between gap-4">
@@ -2074,12 +2074,12 @@ export default function Community() {
   // ── Notifications Tab ──────────────────────────────────────────────────
   if (activeTab === 'notification') {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 mobile-safe-top">
-        <div className="flex">
+      <div className="h-[100dvh] flex flex-col bg-slate-50 dark:bg-zinc-950 overflow-hidden">
+        <div className="flex flex-1 min-h-0">
           {/* Sidebar — yagona navigatsiya (desktop) */}
           <AppSidebar>{renderSidebarTools()}</AppSidebar>
 
-          <div className="flex-1">
+          <div className="flex-1 flex flex-col min-h-0 overflow-y-auto">
             <header className="bg-white dark:bg-zinc-900 px-6 py-4 border-b border-gray-200 dark:border-zinc-800">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -2276,11 +2276,11 @@ export default function Community() {
   // ── Experts Tab ────────────────────────────────────────────────────
   if (activeTab === 'experts') {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 mobile-safe-top">
-        <div className="flex">
+      <div className="h-[100dvh] flex flex-col bg-slate-50 dark:bg-zinc-950 overflow-hidden">
+        <div className="flex flex-1 min-h-0">
           {/* Sidebar — yagona navigatsiya (desktop) */}
           <AppSidebar>{renderSidebarTools()}</AppSidebar>
-          <div className="flex-1">
+          <div className="flex-1 flex flex-col min-h-0 overflow-y-auto">
             <header className="bg-white dark:bg-zinc-900 px-6 py-4 border-b border-gray-200 dark:border-zinc-800">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -2636,11 +2636,11 @@ export default function Community() {
       )
     }
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 mobile-safe-top">
-        <div className="flex">
+      <div className="h-[100dvh] flex flex-col bg-slate-50 dark:bg-zinc-950 overflow-hidden">
+        <div className="flex flex-1 min-h-0">
           {/* Sidebar — yagona navigatsiya (desktop) */}
           <AppSidebar>{renderSidebarTools()}</AppSidebar>
-          <div className="flex-1">
+          <div className="flex-1 flex flex-col min-h-0 overflow-y-auto">
             <header className="bg-white dark:bg-zinc-900 px-6 py-4 border-b border-gray-200 dark:border-zinc-800">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -3829,11 +3829,11 @@ export default function Community() {
   // ── Webinars Tab ────────────────────────────────────────────────────
   if (activeTab === 'webinars') {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 mobile-safe-top">
-        <div className="flex">
+      <div className="h-[100dvh] flex flex-col bg-slate-50 dark:bg-zinc-950 overflow-hidden">
+        <div className="flex flex-1 min-h-0">
           {/* Sidebar — yagona navigatsiya (desktop) */}
           <AppSidebar>{renderSidebarTools()}</AppSidebar>
-          <div className="flex-1">
+          <div className="flex-1 flex flex-col min-h-0 overflow-y-auto">
             <header className="bg-white dark:bg-zinc-900 px-6 py-4 border-b border-gray-200 dark:border-zinc-800">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">

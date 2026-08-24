@@ -234,7 +234,10 @@ export default function Dashboard() {
           <NotificationBell />
         </div>
         <div className="flex items-center space-x-4">
-          <a href="/profile" className="flex items-center space-x-4 group cursor-pointer">
+          <button
+            onClick={() => router.push('/profile')}
+            className="flex items-center space-x-4 group cursor-pointer"
+          >
             <div className="relative group">
               {profileImage ? (
                 <img
@@ -270,7 +273,7 @@ export default function Dashboard() {
                 </span>
               </div>
             </div>
-          </a>
+          </button>
         </div>
       </div>
       {/* XP and Stats */}

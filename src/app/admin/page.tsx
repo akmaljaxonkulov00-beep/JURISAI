@@ -756,9 +756,9 @@ export default function AdminDashboard() {
   const reportStats = getReportStats()
 
   return (
-    <div className="min-h-screen bg-page-custom mobile-safe-top">
+    <div className="h-[100dvh] flex flex-col bg-page-custom overflow-hidden">
       {/* ===== HEADER ===== */}
-      <div className="card-default border-b border-card-border">
+      <div className="card-default border-b border-card-border flex-shrink-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center gap-3">
@@ -844,7 +844,7 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-6 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto overscroll-contain">
         {/* ===== DASHBOARD ===== */}
         {activeTab === 'dashboard' && (
           <div className="space-y-6">
