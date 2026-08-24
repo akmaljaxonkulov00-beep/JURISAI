@@ -132,12 +132,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Send welcome email (in production, you'd use an email service)
-    console.log('Lawyer registered successfully:', {
-      lawyerId: lawyerData.id,
-      userId: userData.user.id,
-      email,
-      tempPassword,
-    })
+    // NOTE: tempPassword is NOT logged for security
 
     return NextResponse.json({
       message: "Advokat ro'yxatdan o'tish muvaffaqiyatli amalga oshirildi",

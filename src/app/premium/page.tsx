@@ -266,7 +266,7 @@ export default function Premium() {
                   </ul>
                   <Link href={`/manual-payment?plan=${plan.id}&amount=${plan.price}`}>
                     <Button
-                      className={`w-full ${isPopular ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-800 dark:bg-gray-600 hover:bg-gray-700 dark:hover:bg-gray-50 dark:bg-zinc-800/500'}`}
+                      className={`w-full ${isPopular ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-800 dark:bg-zinc-800 hover:bg-gray-700 dark:hover:bg-zinc-700'}`}
                       size="lg"
                     >
                       {isFree ? 'Bepul boshlash' : `${priceFormatted} to'lash`}
