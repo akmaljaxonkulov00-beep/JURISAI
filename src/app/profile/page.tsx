@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, Suspense, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import {
   ArrowLeft,
   User,
@@ -67,6 +68,7 @@ interface NotificationSettings {
 }
 
 function ProfileContent() {
+  const router = useRouter()
   const { dark: themeDark, toggle: toggleTheme } = useTheme()
   const { language: currentLanguage, setLanguage, t } = useLanguage()
   const [activeTab, setActiveTab] = useState<'settings' | 'help' | 'premium'>('settings')
@@ -1287,12 +1289,12 @@ function ProfileContent() {
     <div className="min-h-screen bg-page-custom mobile-safe-top p-4 md:p-6">
       <div className="max-w-5xl mx-auto">
         <div className="flex items-center gap-4 mb-6">
-          <a
-            href="/dashboard"
+          <button
+            onClick={() => router.push('/dashboard')}
             className="flex items-center gap-2 px-3 py-2 text-gray-500 dark:text-gray-400 dark:text-zinc-500 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all"
           >
             <ArrowLeft className="w-4 h-4" /> <span className="text-sm font-medium">Orqaga</span>
-          </a>
+          </button>
           <h1 className="text-xl font-bold text-gray-800 dark:text-white">Sozlamalar</h1>
         </div>
         {/* Toast messages */}

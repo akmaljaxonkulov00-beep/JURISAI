@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { getUserIdentityPayload } from '@/lib/client-user'
 import {
@@ -163,6 +164,7 @@ const SIM_TYPES = [
 ]
 
 export default function VirtualCourt() {
+  const router = useRouter()
   const [page, setPage] = useState<'select' | 'session' | 'verdict'>('select')
   const [simType, setSimType] = useState(SIM_TYPES[0])
   const [role, setRole] = useState(SIM_TYPES[0].roles[0])
@@ -789,8 +791,8 @@ Eslatma: Tomonlarni tinglang, ularga kelishuvga erishishga yordam bering va nizo
               flexShrink: 0,
             }}
           >
-            <a
-              href="/dashboard"
+            <button
+              onClick={() => router.push('/dashboard')}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -799,10 +801,14 @@ Eslatma: Tomonlarni tinglang, ularga kelishuvga erishishga yordam bering va nizo
                 textDecoration: 'none',
                 fontSize: 14,
                 marginBottom: 24,
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: 0,
               }}
             >
               <ArrowLeft size={16} /> Orqaga
-            </a>
+            </button>
             <div
               style={{
                 background: '#EDE9FE',
@@ -2050,8 +2056,8 @@ Eslatma: Tomonlarni tinglang, ularga kelishuvga erishishga yordam bering va nizo
             >
               Yangi simulyatsiya
             </button>
-            <a
-              href="/dashboard"
+            <button
+              onClick={() => router.push('/dashboard')}
               style={{
                 flex: 1,
                 padding: 12,
@@ -2062,6 +2068,8 @@ Eslatma: Tomonlarni tinglang, ularga kelishuvga erishishga yordam bering va nizo
                 fontWeight: 700,
                 textDecoration: 'none',
                 textAlign: 'center',
+                border: 'none',
+                cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -2069,7 +2077,7 @@ Eslatma: Tomonlarni tinglang, ularga kelishuvga erishishga yordam bering va nizo
               }}
             >
               Bosh sahifa
-            </a>
+            </button>
           </div>
         </div>
       </div>

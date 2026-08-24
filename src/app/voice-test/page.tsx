@@ -1,10 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { tts, stt, isSpeechSupported, testSpeech } from '@/lib/speech'
 import { ArrowLeft } from 'lucide-react'
 
 export default function VoiceTestPage() {
+  const router = useRouter()
   const [speechSupported, setSpeechSupported] = useState(false)
   const [isSpeaking, setIsSpeaking] = useState(false)
   const [isListening, setIsListening] = useState(false)
@@ -147,12 +149,12 @@ export default function VoiceTestPage() {
       <header className="bg-white dark:bg-zinc-900 border-b border-gray-200 dark:border-zinc-800 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center gap-4">
-            <a
-              href="/"
+            <button
+              onClick={() => router.push('/')}
               className="p-2 hover:bg-gray-100 dark:bg-zinc-800/30 rounded-lg transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
-            </a>
+            </button>
             <div>
               <h1 className="text-2xl font-bold text-gray-900 dark:text-zinc-100">
                 🎤 Voice Features Test
