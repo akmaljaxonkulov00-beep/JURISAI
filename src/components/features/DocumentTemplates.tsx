@@ -142,13 +142,16 @@ export default function DocumentTemplates() {
   }, [allTemplates])
 
   // Download template
-  const downloadTemplate = (template: DocumentTemplate, format: 'TXT' | 'DOCX' | 'PDF' = 'TXT') => {
+  const downloadTemplate = async (
+    template: DocumentTemplate,
+    format: 'TXT' | 'DOCX' | 'PDF' = 'TXT'
+  ) => {
     let content = template.content
     let mimeType = 'text/plain;charset=utf-8'
     let extension = 'txt'
 
     if (format === 'DOCX') {
-      // For DOCX, create a simple XML-based document
+      // For DOCX, create a proper XML-based document
       const docxContent = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <?mso-application progid="Word.Document"?>
 <w:wordDocument xmlns:w="urn:schemas-microsoft-com:office:word"
@@ -173,26 +176,90 @@ export default function DocumentTemplates() {
       mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
       extension = 'docx'
     } else if (format === 'PDF') {
-      // Simple text PDF
-      const pdfContent = `%PDF-1.4
-1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
-2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
-3 0 obj<</Type/Page/MediaBox[0 0 612 792]/Parent 2 0 R/Resources<</Font<</F1 4 0 R>>>>/Contents 5 0 R>>endobj
-4 0 obj<</Type/Font/Subtype/Type1/BaseFont/Helvetica>>endobj
-5 0 obj<</Length 44>>stream
-BT /F1 12 Tf 50 750 Td (PDF versiyasi) Tj ET
-endstream
-endobj
-xref
-0 6
-...
-trailer<</Size 6/Root 1 0 R>>
-startxref
-179
-%%EOF`
-      content = pdfContent
-      mimeType = 'application/pdf'
-      extension = 'pdf'
+      // Use pdf-lib for proper PDF generation
+      try {
+        const { PDFDocument, StandardFonts, rgb } = await import('pdf-lib')
+        const doc = await PDFDocument.create()
+        const font = await doc.embedFont(StandardFonts.Helvetica)
+        const bold = await doc.embedFont(StandardFonts.HelveticaBold)
+        const page = doc.addPage([595.28, 841.89]) // A4
+        const margin = 50
+        const pageWidth = 595.28 - margin * 2
+        let y = 841.89 - margin
+
+        const drawText = (
+          text: string,
+          opts: {
+            size?: number
+            bold?: boolean
+            color?: typeof rgb extends (...args: infer R) => unknown ? never : never
+          } = {}
+        ) => {
+          const f = opts.bold ? bold : font
+          const size = opts.size || 11
+          const words = text.split(/\s+/).filter(Boolean)
+          let line = ''
+          for (const w of words) {
+            const test = line ? line + ' ' + w : w
+            if (f.widthOfTextAtSize(test, size) > pageWidth) {
+              if (line) {
+                page.drawText(line, { x: margin, y, size, font: f, color: rgb(0.13, 0.15, 0.2) })
+                y -= size * 1.5
+                line = w
+              } else {
+                page.drawText(test, { x: margin, y, size, font: f, color: rgb(0.13, 0.15, 0.2) })
+                y -= size * 1.5
+                line = ''
+              }
+            } else {
+              line = test
+            }
+          }
+          if (line) {
+            page.drawText(line, { x: margin, y, size, font: f, color: rgb(0.13, 0.15, 0.2) })
+            y -= size * 1.5
+          }
+          y -= 4
+        }
+
+        // Title
+        drawText(template.name, { size: 16, bold: true })
+        drawText(template.description, { size: 11 })
+        if (template.lawRef) drawText(`Qonuniy asos: ${template.lawRef}`, { size: 10 })
+        y -= 10
+
+        // Content
+        const lines = content.split('\n')
+        for (const line of lines) {
+          if (y < margin + 30) break // Stop if page is full
+          const trimmed = line.trim()
+          if (trimmed.startsWith('---')) {
+            y -= 5
+            continue
+          }
+          drawText(trimmed || ' ')
+        }
+
+        // Footer
+        y -= 20
+        drawText(`JurisAI — ${template.name}`, { size: 8 })
+
+        const pdfBytes = await doc.save()
+        const blob = new Blob([pdfBytes as unknown as BlobPart], { type: 'application/pdf' })
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `${template.id}.pdf`
+        a.click()
+        URL.revokeObjectURL(url)
+        return
+      } catch {
+        // Fallback to simple text PDF if pdf-lib fails
+        const pdfContent = `%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj\n3 0 obj<</Type/Page/MediaBox[0 0 612 792]/Parent 2 0 R/Resources<</Font<</F1 4 0 R>>>>/Contents 5 0 R>>endobj\n4 0 obj<</Type/Font/Subtype/Type1/BaseFont/Helvetica>>endobj\n5 0 obj<</Length 44>>stream\nBT /F1 12 Tf 50 750 Td (PDF versiyasi) Tj ET\nendstream\nendobj\nxref\n0 6\n...\ntrailer<</Size 6/Root 1 0 R>>\nstartxref\n179\n%%EOF`
+        content = pdfContent
+        mimeType = 'application/pdf'
+        extension = 'pdf'
+      }
     }
 
     const blob = new Blob([content], { type: mimeType })

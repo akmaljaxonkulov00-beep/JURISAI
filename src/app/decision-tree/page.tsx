@@ -171,93 +171,14 @@ export default function DecisionTreeEngine() {
   const [editDuration, setEditDuration] = useState('')
   const [editCost, setEditCost] = useState('')
 
-  // ── Default tree (shown after user creates a case) ────────────
+  // ── Default tree (bo'sh — foydalanuvchi AI yoki qo'lda yaratadi) ────────────
   const [decisionTree, setDecisionTree] = useState<TreeNode>({
     id: 'root',
     label: 'Yangi ish',
     type: 'root',
     x: 400,
     y: 50,
-    children: [
-      {
-        id: 'sud',
-        label: 'Sudga berish',
-        type: 'decision',
-        x: 200,
-        y: 150,
-        probability: 60,
-        risk: 'medium',
-        duration: '3-6 oy',
-        cost: 800000,
-        legalBasis: 'FK 333-moddasi',
-        actionItems: [
-          "Da'vo arizasini tayyorlash va sudga topshirish",
-          'Dalillarni toʻplash (shartnoma, hisob-fakturalar)',
-        ],
-        children: [
-          {
-            id: 'g_alaba',
-            label: "G'alaba",
-            type: 'outcome',
-            x: 100,
-            y: 250,
-            probability: 75,
-            status: 'optimal',
-            duration: '3-6 oy',
-          },
-          {
-            id: 'xarajat',
-            label: 'Xarajat ortishi',
-            type: 'outcome',
-            x: 300,
-            y: 250,
-            probability: 25,
-            status: 'risk',
-            duration: '6-12 oy',
-            cost: 1200000,
-          },
-        ],
-      },
-      {
-        id: 'muzokara',
-        label: "Muzokara o'tkazish",
-        type: 'decision',
-        x: 600,
-        y: 150,
-        probability: 70,
-        risk: 'low',
-        duration: '15-45 kun',
-        cost: 200000,
-        legalBasis: 'FK 387-moddasi',
-        actionItems: [
-          'Kontragentga rasmiy taklif xati yuborish',
-          'Mediator yoki advokat ishtirokida uchrashuv tashkil qilish',
-        ],
-        children: [
-          {
-            id: 'kelishuv',
-            label: 'Kelishuv',
-            type: 'outcome',
-            x: 500,
-            y: 250,
-            probability: 80,
-            status: 'optimal',
-            duration: '15-45 kun',
-          },
-          {
-            id: 'maglubiyat',
-            label: "Mag'lubiyat",
-            type: 'outcome',
-            x: 700,
-            y: 250,
-            probability: 20,
-            status: 'risk',
-            duration: '1-3 oy',
-            cost: 300000,
-          },
-        ],
-      },
-    ],
+    children: [],
   })
 
   // ── Load saved trees from localStorage + Supabase ─────────────
