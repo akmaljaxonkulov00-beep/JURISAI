@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { useLanguage } from '@/context/LanguageContext'
 import {
@@ -29,6 +30,7 @@ interface FAQ {
 }
 
 export default function Help() {
+  const router = useRouter()
   const { t } = useLanguage()
   const [searchQuery, setSearchQuery] = useState('')
   const [openFAQ, setOpenFAQ] = useState<string | null>(null)

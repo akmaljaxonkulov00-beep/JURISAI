@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useRef, useEffect, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import {
   ArrowLeft,
   ZoomIn,
@@ -131,6 +132,7 @@ const CASE_TEMPLATES = [
 ]
 
 export default function DecisionTreeEngine() {
+  const router = useRouter()
   const [zoom, setZoom] = useState(1)
   const [selectedNode, setSelectedNode] = useState<string | null>(null)
   const [showSimulation, setShowSimulation] = useState(false)
@@ -1710,12 +1712,12 @@ export default function DecisionTreeEngine() {
       <div className="min-h-screen bg-[#f8faff] dark:bg-gray-950 mobile-safe-top p-4 md:p-8">
         <div className="max-w-5xl mx-auto">
           <div className="flex items-center gap-3 mb-8">
-            <a
-              href="/dashboard"
+            <button
+              onClick={() => router.push('/dashboard')}
               className="p-2 bg-white dark:bg-zinc-900 rounded-xl shadow-sm hover:shadow-md transition-shadow"
             >
               <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-zinc-300" />
-            </a>
+            </button>
             <div>
               <h1 className="text-2xl font-bold text-gray-800 dark:text-zinc-100">
                 Qarorlar Daraxti
