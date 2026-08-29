@@ -3,6 +3,9 @@
  * Uses Node.js https module directly to bypass SSL issues in development
  */
 
+import crypto from 'crypto'
+import { supabase } from '@/lib/supabase'
+
 const GROQ_API_KEY = process.env.GROQ_API_KEY || 'YOUR_GROQ_API_KEY_HERE'
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
 
@@ -101,6 +104,33 @@ export class AIClient {
       throw new Error('GROQ_API_KEY sozlanmagan')
     }
 
+    // Generate MD5 hash of prompt + systemPrompt to use as unique cache key
+    const promptHash = crypto
+      .createHash('md5')
+      .update(JSON.stringify({ prompt: request.prompt, systemPrompt: request.systemPrompt }))
+      .digest('hex')
+
+    // ── 1. Check DB Cache (less than 24h old) ──
+    try {
+      const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+      const { data: cachedRow } = await supabase
+        .from('ai_response_cache')
+        .select('response')
+        .eq('prompt_hash', promptHash)
+        .gte('created_at', yesterday)
+        .maybeSingle()
+
+      if (cachedRow?.response) {
+        console.log(`[Cache Hit] Returning cached response for hash: ${promptHash}`)
+        return {
+          text: cachedRow.response,
+          usage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
+        }
+      }
+    } catch (err) {
+      console.warn('[Cache Query Error] Proceeding to call LLM:', err)
+    }
+
     const messages: Array<{ role: string; content: string }> = []
 
     if (request.systemPrompt) {
@@ -137,8 +167,29 @@ export class AIClient {
         throw new Error('AI dan javob olinmadi')
       }
 
+      const responseText = ensureUzbekLatin(data.choices[0].message.content)
+
+      // ── 2. Save to Cache (non-blocking in background) ──
+      try {
+        supabase
+          .from('ai_response_cache')
+          .insert({
+            prompt_hash: promptHash,
+            prompt: request.prompt,
+            system_prompt: request.systemPrompt || '',
+            response: responseText,
+          })
+          .then(({ error }) => {
+            if (error && error.code !== '23505') {
+              console.warn('[Cache Save Error]:', error.message)
+            }
+          })
+      } catch (err) {
+        console.warn('[Cache Catch Error]:', err)
+      }
+
       return {
-        text: ensureUzbekLatin(data.choices[0].message.content),
+        text: responseText,
         usage: {
           promptTokens: data.usage?.prompt_tokens || 0,
           completionTokens: data.usage?.completion_tokens || 0,

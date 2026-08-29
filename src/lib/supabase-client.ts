@@ -18,9 +18,9 @@ export const getCurrentUser = async () => {
 }
 
 export const authHelpers = {
-  signIn: async (...args: unknown[]) => null,
-  signOut: async (...args: unknown[]) => null,
-  signUp: async (...args: unknown[]) => null,
+  signIn: async (..._args: unknown[]) => null,
+  signOut: async (..._args: unknown[]) => null,
+  signUp: async (..._args: unknown[]) => null,
   getSession: async () => {
     const {
       data: { session },

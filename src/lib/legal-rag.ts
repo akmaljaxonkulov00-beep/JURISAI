@@ -201,29 +201,6 @@ function levenshtein(a: string, b: string): number {
   return dp[n]
 }
 
-/** Eng uzun umumiy qator (substring) uzunligi — yolg'on mosliklarni (masalan 'odillik' ~ 'ogirlik') filtrlaydi. */
-function longestCommonSubstring(a: string, b: string): number {
-  const m = a.length
-  const n = b.length
-  if (m === 0 || n === 0) return 0
-  const dp: number[] = new Array(n + 1).fill(0)
-  let best = 0
-  for (let i = 1; i <= m; i++) {
-    let prev = 0
-    for (let j = 1; j <= n; j++) {
-      const tmp = dp[j]
-      if (a[i - 1] === b[j - 1]) {
-        dp[j] = prev + 1
-        if (dp[j] > best) best = dp[j]
-      } else {
-        dp[j] = 0
-      }
-      prev = tmp
-    }
-  }
-  return best
-}
-
 /**
  * So'z va kalit so'z o'rtasida ishonchli o'xshashlik bormi? (kanonik shaklda —
  * apostroflar saqlanadi: 'o'g'ir' (o'g'irlik) va 'og'ir' (og'ir shikast) farqlanadi)

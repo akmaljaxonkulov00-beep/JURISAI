@@ -842,7 +842,7 @@ function SignInContent() {
           className="absolute z-20 top-8 left-0 right-0 text-center pointer-events-none"
         >
           <h1 className="text-3xl font-bold text-white/90 tracking-tight">
-            JURIS<span className="text-indigo-400">AI</span>
+            JURIST<span className="text-indigo-400">IV</span>
           </h1>
           <p className="text-blue-200/40 text-xs mt-0.5 font-light tracking-[0.2em] uppercase">
             Huquqiy AI Platformasi
@@ -957,7 +957,7 @@ function SignInContent() {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.15, duration: 0.4 }}
-              className="text-2xl font-bold text-gray-900"
+              className="text-2xl font-bold text-gray-900 dark:text-white"
             >
               JURISTIV
             </motion.h1>
@@ -965,7 +965,7 @@ function SignInContent() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.3, duration: 0.4 }}
-              className="text-xs text-gray-500 mt-0.5"
+              className="text-xs text-gray-500 dark:text-zinc-400 mt-0.5"
             >
               Huquqiy AI Platformasi
             </motion.p>
@@ -982,16 +982,16 @@ function SignInContent() {
               animate={{ opacity: [0.4, 0.8, 0.4] }}
               transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
             />
-            <div className="relative p-6 sm:p-7 rounded-2xl bg-white/80 backdrop-blur-xl border border-gray-200/60 shadow-xl">
+            <div className="relative p-6 sm:p-7 rounded-2xl bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border border-gray-200/60 dark:border-zinc-700/60 shadow-xl">
               {/* Mode Toggle */}
-              <div className="flex mb-5 bg-gray-100 rounded-lg p-0.5">
+              <div className="flex mb-5 bg-gray-100 dark:bg-zinc-800 rounded-lg p-0.5">
                 <button
                   onClick={() => {
                     setMode('login')
                     setError('')
                     setSuccessMsg('')
                   }}
-                  className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${mode === 'login' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                  className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${mode === 'login' ? 'bg-white dark:bg-zinc-700 text-indigo-600 dark:text-indigo-300 shadow-sm' : 'text-gray-500 dark:text-zinc-400 hover:text-gray-700 dark:hover:text-zinc-200'}`}
                 >
                   <svg
                     className="w-3.5 h-3.5 inline mr-1.5"
@@ -1010,7 +1010,7 @@ function SignInContent() {
                     setError('')
                     setSuccessMsg('')
                   }}
-                  className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${mode === 'register' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                  className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${mode === 'register' ? 'bg-white dark:bg-zinc-700 text-indigo-600 dark:text-indigo-300 shadow-sm' : 'text-gray-500 dark:text-zinc-400 hover:text-gray-700 dark:hover:text-zinc-200'}`}
                 >
                   <svg
                     className="w-3.5 h-3.5 inline mr-1.5"
@@ -1032,7 +1032,7 @@ function SignInContent() {
                 <motion.div
                   initial={{ opacity: 0, y: -5 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="mb-4 p-2.5 rounded-lg bg-red-50 border border-red-200 text-xs text-red-700 flex items-center gap-2"
+                  className="mb-4 p-2.5 rounded-lg bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 text-xs text-red-700 dark:text-red-300 flex items-center gap-2"
                 >
                   <svg
                     className="w-3.5 h-3.5 flex-shrink-0"
@@ -1052,7 +1052,7 @@ function SignInContent() {
                 <motion.div
                   initial={{ opacity: 0, y: -5 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="mb-4 p-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-xs text-emerald-700 flex items-center gap-2"
+                  className="mb-4 p-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-900 text-xs text-emerald-700 dark:text-emerald-300 flex items-center gap-2"
                 >
                   <svg
                     className="w-3.5 h-3.5 flex-shrink-0"
@@ -1070,7 +1070,7 @@ function SignInContent() {
               <form onSubmit={handleSubmit} className="space-y-4">
                 {mode === 'register' && (
                   <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                    <label className="block text-xs font-medium text-gray-700 dark:text-zinc-300 mb-1.5">
                       Ismingiz
                     </label>
                     <input
@@ -1078,23 +1078,27 @@ function SignInContent() {
                       value={name}
                       onChange={e => setName(e.target.value)}
                       placeholder="Ismingizni kiriting"
-                      className="w-full px-3.5 py-2.5 text-sm rounded-lg border border-gray-300 bg-white text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-shadow"
+                      className="w-full px-3.5 py-2.5 text-sm rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-shadow"
                     />
                   </div>
                 )}
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1.5">Email</label>
+                  <label className="block text-xs font-medium text-gray-700 dark:text-zinc-300 mb-1.5">
+                    Email
+                  </label>
                   <input
                     type="email"
                     value={email}
                     onChange={e => setEmail(e.target.value)}
                     placeholder="email@example.com"
                     required
-                    className="w-full px-3.5 py-2.5 text-sm rounded-lg border border-gray-300 bg-white text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-shadow"
+                    className="w-full px-3.5 py-2.5 text-sm rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-shadow"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1.5">Parol</label>
+                  <label className="block text-xs font-medium text-gray-700 dark:text-zinc-300 mb-1.5">
+                    Parol
+                  </label>
                   <div className="relative">
                     <input
                       type={showPassword ? 'text' : 'password'}
@@ -1103,12 +1107,12 @@ function SignInContent() {
                       placeholder="••••••••"
                       required
                       minLength={6}
-                      className="w-full px-3.5 py-2.5 text-sm rounded-lg border border-gray-300 bg-white text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-shadow pr-9"
+                      className="w-full px-3.5 py-2.5 text-sm rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-shadow pr-9"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-0.5"
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-zinc-300 p-0.5"
                     >
                       {showPassword ? (
                         <svg
@@ -1140,7 +1144,7 @@ function SignInContent() {
 
                 {mode === 'login' && (
                   <div className="flex items-center justify-between">
-                    <label className="flex items-center gap-1.5 text-xs text-gray-500 cursor-pointer select-none">
+                    <label className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-zinc-400 cursor-pointer select-none">
                       <input
                         type="checkbox"
                         checked={rememberMe}
@@ -1189,7 +1193,9 @@ function SignInContent() {
                     <div className="w-full border-t border-gray-200" />
                   </div>
                   <div className="relative flex justify-center text-xs">
-                    <span className="px-3 bg-white text-gray-400">yoki</span>
+                    <span className="px-3 bg-white dark:bg-zinc-900 text-gray-400 dark:text-zinc-500">
+                      yoki
+                    </span>
                   </div>
                 </div>
                 <motion.button
@@ -1197,7 +1203,7 @@ function SignInContent() {
                   disabled={isGoogleLoading}
                   whileHover={{ scale: 1.01 }}
                   whileTap={{ scale: 0.99 }}
-                  className="w-full mt-4 py-2.5 rounded-lg text-sm font-medium border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 transition-all flex items-center justify-center gap-2.5 disabled:opacity-60"
+                  className="w-full mt-4 py-2.5 rounded-lg text-sm font-medium border border-gray-300 dark:border-zinc-700 text-gray-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 transition-all flex items-center justify-center gap-2.5 disabled:opacity-60"
                 >
                   {isGoogleLoading ? (
                     <span className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
@@ -1231,7 +1237,7 @@ function SignInContent() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6 }}
-            className="text-center text-[10px] text-gray-400 mt-4 leading-relaxed"
+            className="text-center text-[10px] text-gray-400 dark:text-zinc-500 mt-4 leading-relaxed"
           >
             Davom etish orqali siz{' '}
             <a href="/terms" className="text-indigo-500 hover:text-indigo-600 underline">

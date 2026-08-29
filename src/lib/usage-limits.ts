@@ -356,7 +356,8 @@ export async function checkAndIncrement(opts: CheckOptions): Promise<UsageResult
       const { error: insErr } = await supabase.from('usage_logs').insert(logRow)
       if (insErr) {
         // Eski baza: metadata ustuni bo'lmasa — metadatasiz qayta urinamiz
-        const { metadata: _drop, ...baseRow } = logRow
+        const baseRow = { ...logRow }
+        delete (baseRow as any).metadata
         await supabase.from('usage_logs').insert(baseRow)
       }
     }

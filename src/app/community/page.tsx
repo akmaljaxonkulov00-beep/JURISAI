@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase-client'
@@ -548,7 +548,25 @@ export default function Community() {
         setGroupsLoading(false)
       })
       .catch(() => setGroupsLoading(false))
-    // Load joined groups from localStorage
+    // Load joined groups from Supabase (with fallback to localStorage)
+    const currentUserId = identity.userId || ''
+    if (currentUserId) {
+      try {
+        const { data: memberships } = await supabase
+          .from('community_group_members')
+          .select('group_id')
+          .eq('user_id', currentUserId)
+        if (memberships) {
+          const ids = memberships.map((m: any) => m.group_id).filter(Boolean) as string[]
+          setJoinedGroups(ids)
+          localStorage.setItem('community_joined_groups', JSON.stringify(ids))
+          return
+        }
+      } catch (err) {
+        console.warn('Error loading joined groups from Supabase:', err)
+      }
+    }
+
     try {
       const joined = localStorage.getItem('community_joined_groups')
       if (joined) setJoinedGroups(JSON.parse(joined))

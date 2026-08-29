@@ -42,6 +42,7 @@
     "@langchain/core": "^0.2.36",
     "@langchain/openai": "^0.0.23",
     "@prisma/client": "^5.20.0",
+    "@sentry/nextjs": "^8.26.0",
     "@supabase/auth-helpers-nextjs": "^0.15.0",
     "@supabase/auth-helpers-react": "^0.15.0",
     "@supabase/supabase-js": "^2.110.9",

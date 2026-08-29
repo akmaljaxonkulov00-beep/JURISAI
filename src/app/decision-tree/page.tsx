@@ -40,6 +40,7 @@ import AppSidebar from '@/components/layout/AppSidebar'
 import { api } from '@/services/api'
 import { getUserIdentityPayload } from '@/lib/client-user'
 import { supabase } from '@/lib/supabase-browser'
+import { trackUserActivity } from '@/lib/stats-tracker'
 import { AnalysisSkeleton } from '@/components/ui/AnalysisSkeleton'
 import { AnalysisError, getErrorMessage } from '@/components/ui/AnalysisError'
 import { getDisplayNameFromCodeId } from '@/lib/utils/code-mapper'
@@ -289,22 +290,12 @@ export default function DecisionTreeEngine() {
 
   // ── Track activity for statistics ─────────────────────────────
   const trackActivity = useCallback((action: string, data?: Record<string, unknown>) => {
-    try {
-      const stats = JSON.parse(localStorage.getItem('user_stats') || '{}')
-      if (!stats.recentActivity) stats.recentActivity = []
-      stats.recentActivity.unshift({
-        id: Date.now().toString(),
-        type: 'case_completed',
-        title: action,
-        description: String(data?.scenario || 'Qarorlar daraxti tahlili'),
-        timestamp: new Date().toISOString(),
-        xp: 10,
-      })
-      if (stats.recentActivity.length > 20) stats.recentActivity = stats.recentActivity.slice(0, 20)
-      stats.xp = (stats.xp || 0) + 10
-      stats.completedCases = (stats.completedCases || 0) + 1
-      localStorage.setItem('user_stats', JSON.stringify(stats))
-    } catch {}
+    trackUserActivity(
+      'case_completed',
+      action,
+      String(data?.scenario || 'Qarorlar daraxti tahlili'),
+      10
+    )
   }, [])
 
   // ── Create a new case from template ───────────────────────────

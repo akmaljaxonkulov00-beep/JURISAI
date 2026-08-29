@@ -206,7 +206,7 @@ export async function finalizeUserSession(sbUser: SupabaseUserLike): Promise<Aut
 async function linkDuplicateIdentity(
   sessionUserId: string,
   email: string,
-  canonicalUserId: string
+  _canonicalUserId: string
 ): Promise<boolean> {
   try {
     const res = await fetch('/api/auth/link-identity', {

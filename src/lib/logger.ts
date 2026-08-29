@@ -1,6 +1,5 @@
 /**
  * Client-side logging utility
- * Integrates with Sentry for error tracking
  */
 
 type LogLevel = 'debug' | 'info' | 'warn' | 'error'
@@ -49,7 +48,11 @@ class Logger {
 
     // Send to Sentry in production
     if (this.isProduction && typeof window !== 'undefined') {
-      // Sentry.captureMessage(message, 'warning')
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        const Sentry = require('@sentry/nextjs')
+        Sentry.captureMessage(message, { level: 'warning', extra: context })
+      } catch {}
     }
   }
 
@@ -60,15 +63,15 @@ class Logger {
 
     // Sentry integration (production)
     if (this.isProduction) {
-      // TODO: Enable when Sentry is configured
-      // try {
-      //   const Sentry = require('@sentry/nextjs')
-      //   if (error instanceof Error) {
-      //     Sentry.captureException(error, { extra: context })
-      //   } else {
-      //     Sentry.captureMessage(message, 'error')
-      //   }
-      // } catch {}
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        const Sentry = require('@sentry/nextjs')
+        if (error instanceof Error) {
+          Sentry.captureException(error, { extra: context })
+        } else {
+          Sentry.captureMessage(message, { level: 'error', extra: context })
+        }
+      } catch {}
     }
   }
 

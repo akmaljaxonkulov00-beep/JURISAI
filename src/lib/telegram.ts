@@ -1,5 +1,5 @@
 // Stub - Telegram bot hozircha ishlatilmaydi
 export const telegramService = {
-  sendMessage: async (...args: unknown[]) => {},
-  sendNotification: async (...args: unknown[]) => {},
+  sendMessage: async (..._args: unknown[]) => {},
+  sendNotification: async (..._args: unknown[]) => {},
 }

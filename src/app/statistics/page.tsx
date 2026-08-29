@@ -185,6 +185,17 @@ export default function Statistics() {
     loadData()
   }, [loadData])
 
+  // ── Real-time: refresh when activity is tracked (same tab or other tabs) ──
+  useEffect(() => {
+    const refresh = () => loadData()
+    window.addEventListener('stats-updated', refresh)
+    window.addEventListener('storage', refresh)
+    return () => {
+      window.removeEventListener('stats-updated', refresh)
+      window.removeEventListener('storage', refresh)
+    }
+  }, [loadData])
+
   // ── Weekly goal ───────────────────────────────────────────────
   const getWeeklyXP = useCallback(() => {
     const now = Date.now()
