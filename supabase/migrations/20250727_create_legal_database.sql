@@ -1,5 +1,5 @@
 -- ============================================================================
--- JURISAI: YURIDIK MA'LUMOTLAR BAZASI (QONUN KODEKSLARI)
+-- JURISTIV: YURIDIK MA'LUMOTLAR BAZASI (QONUN KODEKSLARI)
 -- Supabase Migration: 20250727
 -- 
 -- Tables:

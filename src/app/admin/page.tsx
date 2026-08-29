@@ -246,15 +246,15 @@ export default function AdminDashboard() {
 
   // Site settings
   const [siteSettings, setSiteSettings] = useState<SiteSettings>({
-    announcementBanner: 'JURISAI - Huquqiy AI yordamchingiz!',
+    announcementBanner: 'JURISTIV - Huquqiy AI yordamchingiz!',
     heroTitle: 'Huquqiy masalalarni AI bilan yeching',
     heroSubtitle: "O'zbekiston qonunchiligi bo'yicha professional AI yordamchi",
-    contactEmail: 'support@jurisai.uz',
+    contactEmail: 'support@juristiv.uz',
     contactPhone: '+998 90 123 45 67',
-    telegramLink: 'https://t.me/jurisai_bot',
+    telegramLink: 'https://t.me/juristiv_bot',
     legalDisclaimer:
-      "JURISAI tomonidan berilgan ma'lumotlar faqat ma'lumot uchun. Rasmiy huquqiy maslahat o'rnini bosa olmaydi.",
-    systemPrompt: 'You are JurisAI — an expert legal consultant...',
+      "JURISTIV tomonidan berilgan ma'lumotlar faqat ma'lumot uchun. Rasmiy huquqiy maslahat o'rnini bosa olmaydi.",
+    systemPrompt: 'You are Juristiv — an expert legal consultant...',
     paymentCardNumber: '8600 1234 5678 9012',
     paymentDetails: 'Click: *123# 45000 UZS / Payme: 8600 1234 5678 9012',
   })
@@ -278,7 +278,7 @@ export default function AdminDashboard() {
 
     try {
       const storedSession =
-        sessionStorage.getItem('jurisai_user') || sessionStorage.getItem('auth_user')
+        sessionStorage.getItem('juristiv_user') || sessionStorage.getItem('auth_user')
       if (storedSession) {
         const parsedUser = JSON.parse(storedSession)
         if (parsedUser && parsedUser.email) {
@@ -335,8 +335,8 @@ export default function AdminDashboard() {
           }
           localStorage.setItem('auth_user', JSON.stringify(adminData))
           sessionStorage.setItem('auth_user', JSON.stringify(adminData))
-          localStorage.setItem('jurisai_user', JSON.stringify(adminData))
-          sessionStorage.setItem('jurisai_user', JSON.stringify(adminData))
+          localStorage.setItem('juristiv_user', JSON.stringify(adminData))
+          sessionStorage.setItem('juristiv_user', JSON.stringify(adminData))
           sessionStorage.setItem('auth_token', adminData.id)
 
           setAdminUser(adminData)
@@ -531,7 +531,7 @@ export default function AdminDashboard() {
         updateUserSubscription(p.userId, plan)
         try {
           const storedUser =
-            sessionStorage.getItem('jurisai_user') || sessionStorage.getItem('auth_user')
+            sessionStorage.getItem('juristiv_user') || sessionStorage.getItem('auth_user')
           if (storedUser) {
             const userData = JSON.parse(storedUser)
             if (userData.id === p.userId || userData.email === p.userEmail) {
@@ -542,9 +542,9 @@ export default function AdminDashboard() {
                 subscription_expires_at: new Date(Date.now() + 365 * 86400000).toISOString(),
                 balance: currentBalance + (p.amount || 0),
               }
-              sessionStorage.setItem('jurisai_user', JSON.stringify(updatedUser))
+              sessionStorage.setItem('juristiv_user', JSON.stringify(updatedUser))
               sessionStorage.setItem('auth_user', JSON.stringify(updatedUser))
-              localStorage.setItem('jurisai_user', JSON.stringify(updatedUser))
+              localStorage.setItem('juristiv_user', JSON.stringify(updatedUser))
               localStorage.setItem('auth_user', JSON.stringify(updatedUser))
             }
           }
@@ -575,7 +575,7 @@ export default function AdminDashboard() {
     // Update localStorage cache
     try {
       localStorage.setItem('payment_requests', JSON.stringify(updated))
-      localStorage.setItem('jurisai_payment_requests', JSON.stringify(updated))
+      localStorage.setItem('juristiv_payment_requests', JSON.stringify(updated))
     } catch {}
   }
 
@@ -592,7 +592,7 @@ export default function AdminDashboard() {
     // Update localStorage cache
     try {
       localStorage.setItem('payment_requests', JSON.stringify(updated))
-      localStorage.setItem('jurisai_payment_requests', JSON.stringify(updated))
+      localStorage.setItem('juristiv_payment_requests', JSON.stringify(updated))
     } catch {}
   }
 

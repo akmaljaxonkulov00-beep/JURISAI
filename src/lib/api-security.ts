@@ -215,11 +215,11 @@ export function isAllowedOrigin(origin: string): boolean {
   const allowedOrigins = [
     // Production faqat HTTPS — localhost faqat developmentda
     ...(!isProduction ? ['http://localhost:3000', 'http://localhost:3001'] : []),
-    'https://jurisai-dm4b-ten.vercel.app',
-    'https://jurisai-rouge.vercel.app',
-    'https://jurisai.uz',
-    'https://www.jurisai.uz',
-    'https://jurisai.vercel.app',
+    'https://juristiv-dm4b-ten.vercel.app',
+    'https://juristiv-rouge.vercel.app',
+    'https://juristiv.uz',
+    'https://www.juristiv.uz',
+    'https://juristiv.vercel.app',
   ]
   if (siteUrl && !allowedOrigins.includes(siteUrl)) {
     allowedOrigins.push(siteUrl)

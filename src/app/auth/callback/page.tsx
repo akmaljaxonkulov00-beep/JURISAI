@@ -53,7 +53,7 @@ export default function AuthCallbackPage() {
           // Rol Supabase registered_users dan aniqlanadi (user_metadata emas).
           // admin/super_admin → /admin, qolgani → /dashboard
           const savedUser = await finalizeUserSession(sbUser)
-          document.cookie = `jurisai_auth=1; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax`
+          document.cookie = `juristiv_auth=1; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax`
           syncSessionCookies().catch(() => {})
 
           // OAuth duplicate mavjud email/parol akkaunt bilan birlashtirildi —
@@ -70,7 +70,7 @@ export default function AuthCallbackPage() {
         } catch (err) {
           console.error('[AuthCallback] finalizeUserSession error:', err)
           // Rol aniqlanmagan bo'lsa ham cookie'ni o'rnatamiz — dashboardga kiradi
-          document.cookie = `jurisai_auth=1; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax`
+          document.cookie = `juristiv_auth=1; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax`
           syncSessionCookies().catch(() => {})
           router.replace('/dashboard')
         }

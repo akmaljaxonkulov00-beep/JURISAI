@@ -98,9 +98,9 @@ export default function CheckoutModal({
         receiptImage: receiptUrl,
         status: 'pending',
         createdAt: new Date().toISOString(),
-        userEmail: JSON.parse(sessionStorage.getItem('jurisai_user') || '{}').email || 'unknown',
+        userEmail: JSON.parse(sessionStorage.getItem('juristiv_user') || '{}').email || 'unknown',
         userName:
-          JSON.parse(sessionStorage.getItem('jurisai_user') || '{}').name || 'Foydalanuvchi',
+          JSON.parse(sessionStorage.getItem('juristiv_user') || '{}').name || 'Foydalanuvchi',
       })
       localStorage.setItem('payment_requests', JSON.stringify(existing))
 

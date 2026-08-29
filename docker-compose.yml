@@ -41,9 +41,9 @@ services:
     ports:
       - "5432:5432"
     environment:
-      - POSTGRES_USER=jurisai
+      - POSTGRES_USER=juristiv
       - POSTGRES_PASSWORD=${DB_PASSWORD}
-      - POSTGRES_DB=jurisai_db
+      - POSTGRES_DB=juristiv_db
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped

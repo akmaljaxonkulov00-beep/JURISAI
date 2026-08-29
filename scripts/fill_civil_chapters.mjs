@@ -1,5 +1,5 @@
 /**
- * JURISAI — Fuqarolik kodeksi bob nomlarini to'ldirish.
+ * JURISTIV — Fuqarolik kodeksi bob nomlarini to'ldirish.
  *
  * Muammo: civil part1 faylida bob sarlavhalari ikki qatorda ("1-BOB." keyin
  * "FUQAROLIK QONUNCHILIGI") — avvalgi parser faqat birinchi qatorni olgan,

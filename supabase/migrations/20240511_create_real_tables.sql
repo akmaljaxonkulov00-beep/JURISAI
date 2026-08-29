@@ -1,4 +1,4 @@
--- Real JurisAI Tables for Production
+-- Real Juristiv Tables for Production
 -- Replace all mock/demo data with real Supabase integration
 
 -- Users table for authentication and profiles

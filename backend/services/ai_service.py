@@ -12,7 +12,7 @@ from dataclasses import dataclass
 from enum import Enum
 
 from core.logging import get_logger, performance_logger
-from core.error_handling import handle_errors, JurisAIException, ExternalServiceError
+from core.error_handling import handle_errors, JuristivException, ExternalServiceError
 
 logger = get_logger(__name__)
 
@@ -119,7 +119,7 @@ class AIService:
             # Get model configuration
             config = self.model_configs.get(request.model_type)
             if not config:
-                raise JurisAIException(
+                raise JuristivException(
                     f"Unsupported model type: {request.model_type}",
                     error_code="UNSUPPORTED_MODEL"
                 )
@@ -138,7 +138,7 @@ class AIService:
             elif request.model_type == AIModelType.COURT_SIMULATION:
                 response_text = await self._process_court_simulation(request)
             else:
-                raise JurisAIException(
+                raise JuristivException(
                     f"Model type {request.model_type} not implemented",
                     error_code="MODEL_NOT_IMPLEMENTED"
                 )

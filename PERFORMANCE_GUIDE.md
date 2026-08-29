@@ -11,7 +11,7 @@ import Image from 'next/image'
   src="/logo.png"
   width={200}
   height={100}
-  alt="JurisAI Logo"
+  alt="Juristiv Logo"
   priority={true} // For above-the-fold images
   placeholder="blur"
 />

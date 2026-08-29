@@ -1,5 +1,5 @@
 """
-Integration Service - External system integration for JurisAI platform
+Integration Service - External system integration for Juristiv platform
 """
 
 import asyncio
@@ -16,7 +16,7 @@ import hashlib
 import hmac
 
 from core.logging import get_logger, performance_logger
-from core.error_handling import handle_errors, JurisAIException, ExternalServiceError
+from core.error_handling import handle_errors, JuristivException, ExternalServiceError
 from services.cache_service import CacheService, cached
 
 logger = get_logger(__name__)
@@ -226,13 +226,13 @@ class IntegrationService:
             # Get integration config
             config = self.integrations.get(request.integration_name)
             if not config:
-                raise JurisAIException(
+                raise JuristivException(
                     f"Integration not found: {request.integration_name}",
                     error_code="INTEGRATION_NOT_FOUND"
                 )
             
             if not config.enabled:
-                raise JurisAIException(
+                raise JuristivException(
                     f"Integration disabled: {request.integration_name}",
                     error_code="INTEGRATION_DISABLED"
                 )

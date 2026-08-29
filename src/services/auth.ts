@@ -1,6 +1,6 @@
 /**
  * ═══════════════════════════════════════════════════════════════════════════
- * JURISAI — Unified Authentication Service
+ * JURISTIV — Unified Authentication Service
  * ═══════════════════════════════════════════════════════════════════════════
  *
  * This file is the SINGLE entry point for all authentication needs.

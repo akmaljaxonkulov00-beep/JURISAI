@@ -5,7 +5,7 @@ import type { NextRequest } from 'next/server'
  * MIDDLEWARE — Route Protection
  *
  * Auth holati asosan client-side (Supabase localStorage/sessionStorage)
- * da saqlanadi, lekin login/OAuth tugagach `jurisai_auth` cookie'si ham
+ * da saqlanadi, lekin login/OAuth tugagach `juristiv_auth` cookie'si ham
  * yoziladi (/auth/callback + login route'lar).
  *
  * Himoyalangan routlar (/admin, /payment-admin):
@@ -21,7 +21,7 @@ export function middleware(request: NextRequest) {
 
   // Admin routlar — tizimga kirmagan foydalanuvchi uchun darhol /signin
   if (pathname.startsWith('/admin') || pathname.startsWith('/payment-admin')) {
-    const hasAuthCookie = request.cookies.get('jurisai_auth')?.value === '1'
+    const hasAuthCookie = request.cookies.get('juristiv_auth')?.value === '1'
     if (!hasAuthCookie) {
       const url = request.nextUrl.clone()
       url.pathname = '/signin'

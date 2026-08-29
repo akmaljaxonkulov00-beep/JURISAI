@@ -205,7 +205,7 @@ function ProfileContent() {
           setProfile(updatedProfile)
           setEditedProfile(updatedProfile)
           localStorage.setItem('auth_user', JSON.stringify(user))
-          localStorage.setItem('jurisai_user', JSON.stringify(user))
+          localStorage.setItem('juristiv_user', JSON.stringify(user))
         }
       }
     } catch {}
@@ -262,7 +262,7 @@ function ProfileContent() {
 
       setProfile(editedProfile)
       localStorage.setItem('auth_user', JSON.stringify(userData))
-      localStorage.setItem('jurisai_user', JSON.stringify(userData))
+      localStorage.setItem('juristiv_user', JSON.stringify(userData))
       setSettingsSaved(true)
       setTimeout(() => setSettingsSaved(false), 3000)
     } catch {
@@ -357,12 +357,12 @@ function ProfileContent() {
   }
 
   const handleExportData = () => {
-    const data = { profile, exportDate: new Date().toISOString(), platform: 'JurisAI' }
+    const data = { profile, exportDate: new Date().toISOString(), platform: 'Juristiv' }
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `jurisai-data-${Date.now()}.json`
+    a.download = `juristiv-data-${Date.now()}.json`
     a.click()
     URL.revokeObjectURL(url)
   }

@@ -194,7 +194,7 @@ export default function Premium() {
               </div>
             </div>
             <h1 className="text-3xl sm:text-5xl font-bold mb-4 sm:mb-6">
-              JurisAI Premium ga o'ting
+              Juristiv Premium ga o'ting
             </h1>
             <p className="text-base sm:text-xl text-white/90 mb-6 sm:mb-8 max-w-3xl mx-auto">
               Professional huquqchilar va talabalar uchun zamonaviy AI yordamchisi. Vaqtingizni
@@ -440,7 +440,7 @@ export default function Premium() {
         {/* Benefits Section */}
         <div className="mb-16">
           <h2 className="text-3xl font-bold text-center text-gray-800 dark:text-white mb-12">
-            Nega aynan JurisAI Premium?
+            Nega aynan Juristiv Premium?
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {benefits.map((benefit, index) => (

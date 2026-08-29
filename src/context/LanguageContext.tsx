@@ -12,7 +12,7 @@ interface LanguageContextType {
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined)
 
-const STORAGE_KEY = 'jurisai-language'
+const STORAGE_KEY = 'juristiv-language'
 
 const availableLanguages: Record<Language, string> = {
   uz: 'Uzbek',
@@ -33,7 +33,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       // Birinchi marta — faqat cookie yoki brauzer tilini aniqlash
       const cookieLanguage = document.cookie
         .split('; ')
-        .find(row => row.startsWith('jurisai-language='))
+        .find(row => row.startsWith('juristiv-language='))
         ?.split('=')[1] as Language
 
       const initialLang =

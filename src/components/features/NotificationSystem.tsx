@@ -88,7 +88,7 @@ export default function NotificationSystem() {
           type: 'success',
           title: 'Xush kelibsiz!',
           message:
-            "JurisAI platformasiga xush kelibsiz. Bu yerda sizning barcha bildirishnomalaringiz ko'rsatiladi.",
+            "Juristiv platformasiga xush kelibsiz. Bu yerda sizning barcha bildirishnomalaringiz ko'rsatiladi.",
           timestamp: new Date().toISOString(),
           read: false,
           category: 'system',

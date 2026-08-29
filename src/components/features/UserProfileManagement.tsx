@@ -91,7 +91,7 @@ export default function UserProfileManagement() {
         // Create default profile
         const defaultProfile: UserProfile = {
           id: 'user_' + Date.now(),
-          email: 'user@jurisai.uz',
+          email: 'user@juristiv.uz',
           name: 'Foydalanuvchi',
           phone: '',
           avatar: '',

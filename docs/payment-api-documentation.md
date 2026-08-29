@@ -1,4 +1,4 @@
-# JurisAI Manual Payment API Documentation
+# Juristiv Manual Payment API Documentation
 
 ## 📋 Overview
 Manual Payment tizimi uchun API endpoint lari. Bu API foydalanuvchilarning to'lovlarini qabul qilish, adminlar tomonidan tasdiqlash va ma'lumotlar bazasida saqlash uchun ishlatiladi.

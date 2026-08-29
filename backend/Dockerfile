@@ -20,8 +20,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Create non-root user
-RUN useradd -m -u 1000 jurisai && chown -R jurisai:jurisai /app
-USER jurisai
+RUN useradd -m -u 1000 juristiv && chown -R juristiv:juristiv /app
+USER juristiv
 
 # Expose port
 EXPOSE 8000

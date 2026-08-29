@@ -1,5 +1,5 @@
 /**
- * JURISAI — Source (scripts/kodeks_json) vs Supabase validation.
+ * JURISTIV — Source (scripts/kodeks_json) vs Supabase validation.
  *
  * Har bir kodeks uchun:
  *   SOURCE FILE, IMPORTED ARTICLES, DUPLICATES, MISSING, WRONG CODEX ARTICLES

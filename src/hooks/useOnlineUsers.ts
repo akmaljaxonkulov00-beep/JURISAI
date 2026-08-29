@@ -23,7 +23,7 @@ interface OnlineUsersState {
   leave: () => void
 }
 
-const PRESENCE_CHANNEL = 'jurisai-online-users'
+const PRESENCE_CHANNEL = 'juristiv-online-users'
 
 export function useOnlineUsers(): OnlineUsersState {
   const [count, setCount] = useState(0)
@@ -41,7 +41,7 @@ export function useOnlineUsers(): OnlineUsersState {
     let email = ''
     let name = 'Mehmon'
     try {
-      const stored = sessionStorage.getItem('jurisai_user') || sessionStorage.getItem('auth_user')
+      const stored = sessionStorage.getItem('juristiv_user') || sessionStorage.getItem('auth_user')
       if (stored) {
         const userData = JSON.parse(stored)
         userId = userData.id || userData.uid || userId

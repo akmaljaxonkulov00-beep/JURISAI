@@ -1,5 +1,5 @@
 /**
- * JURISAI Legal TXT Parser & Supabase Seeder
+ * JURISTIV Legal TXT Parser & Supabase Seeder
  * 
  * Usage:
  *   node scripts/parse-legal-txt.js --file="C:/path/to/Mehnat.txt" --code-id=labor_code --short-name=MK

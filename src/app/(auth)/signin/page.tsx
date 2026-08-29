@@ -834,7 +834,7 @@ function SignInContent() {
           />
         </div>
 
-        {/* Header — JURISAI */}
+        {/* Header — JURISTIV */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -959,7 +959,7 @@ function SignInContent() {
               transition={{ delay: 0.15, duration: 0.4 }}
               className="text-2xl font-bold text-gray-900"
             >
-              JURISAI
+              JURISTIV
             </motion.h1>
             <motion.p
               initial={{ opacity: 0 }}

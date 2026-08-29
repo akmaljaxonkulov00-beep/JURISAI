@@ -1,5 +1,5 @@
 /**
- * JURISAI — Qonunlar bazasini to'liq import qilish (Supabase).
+ * JURISTIV — Qonunlar bazasini to'liq import qilish (Supabase).
  *
  * 1. `articles` jadvalini tozalaydi (eski/noto'g'ri/aralash ma'lumotlar)
  * 2. scripts/kodeks_json/*.json fayllaridagi BARCHA moddalarni import qiladi

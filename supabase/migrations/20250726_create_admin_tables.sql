@@ -1,5 +1,5 @@
 -- ============================================================================
--- JURISAI ADMIN PANEL UCHUN TO'LIQ JADVALLAR
+-- JURISTIV ADMIN PANEL UCHUN TO'LIQ JADVALLAR
 -- Supabase SQL Editor'da ishga tushiring
 -- ============================================================================
 
@@ -136,7 +136,7 @@ ON CONFLICT (id) DO NOTHING;
 -- DEFAULT DATA — Site settings
 -- ============================================================================
 INSERT INTO public.site_settings (id, announcement_banner, hero_title, hero_subtitle, contact_email, payment_card_number, payment_details) VALUES
-  ('global', 'JURISAI - Huquqiy AI yordamchingiz!', 'Huquqiy masalalarni AI bilan yeching', 'O''zbekiston qonunchiligi bo''yicha professional AI yordamchi', 'support@jurisai.uz', '8600 1234 5678 9012', 'Click: *123# 45000 UZS / Payme: 8600 1234 5678 9012')
+  ('global', 'JURISTIV - Huquqiy AI yordamchingiz!', 'Huquqiy masalalarni AI bilan yeching', 'O''zbekiston qonunchiligi bo''yicha professional AI yordamchi', 'support@juristiv.uz', '8600 1234 5678 9012', 'Click: *123# 45000 UZS / Payme: 8600 1234 5678 9012')
 ON CONFLICT (id) DO NOTHING;
 
 -- ============================================================================

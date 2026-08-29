@@ -25,7 +25,7 @@ if (!supabaseUrl || !serviceKey) {
 const sb = createClient(supabaseUrl, serviceKey)
 
 const TEST_USER = '00000000-0000-4000-8000-00000000ca11'
-const TEST_EMAIL = 'limits-test@jurisai.uz'
+const TEST_EMAIL = 'limits-test@juristiv.uz'
 let pass = 0
 let fail = 0
 
@@ -137,7 +137,7 @@ async function checkAndIncrement({ userId, email, feature }) {
   }
   const logRow = {
     user_id: userId || email || 'anonymous',
-    email: email || 'anonymous@jurisai.uz',
+    email: email || 'anonymous@juristiv.uz',
     name: '',
     tokens: 1,
     action: feature,

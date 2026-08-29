@@ -52,40 +52,7 @@ export function useSpeechToText(options: SpeechToTextOptions = {}): SpeechToText
   const audioAnimFrameRef = useRef<number>(0)
   const isListeningRef = useRef(false)
 
-  // Check support on mount
-  useEffect(() => {
-    const supported =
-      typeof window !== 'undefined' &&
-      ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)
-    setState(prev => ({ ...prev, isSupported: supported }))
-  }, [])
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      stopListeningInternal()
-      if (audioAnimFrameRef.current) {
-        cancelAnimationFrame(audioAnimFrameRef.current)
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  // Simulate audio levels for visualizer when listening.
-  // Uses fake random values rather than real AnalyserNode data from Web Audio API
-  // because the Web Speech API does not expose audio levels.
-  // In a production upgrade, replace with getUserMedia + AnalyserNode for real VU levels.
-  const startAudioVisualizer = () => {
-    const animate = () => {
-      if (!isListeningRef.current) return // stop the loop when idle
-      // Vary randomly in 20-90 range for natural-looking wave motion
-      const level = Math.floor(Math.random() * 50) + 25
-      setState(prev => ({ ...prev, audioLevel: level }))
-      audioAnimFrameRef.current = requestAnimationFrame(animate)
-    }
-    audioAnimFrameRef.current = requestAnimationFrame(animate)
-  }
-
+  // 1. stopListeningInternal
   const stopListeningInternal = useCallback(() => {
     if (recognitionRef.current) {
       try {
@@ -102,6 +69,48 @@ export function useSpeechToText(options: SpeechToTextOptions = {}): SpeechToText
     isListeningRef.current = false
   }, [])
 
+  // 2. stopListening (depends on stopListeningInternal)
+  const stopListening = useCallback(() => {
+    stopListeningInternal()
+    setState(prev => ({
+      ...prev,
+      isListening: false,
+      interimText: '',
+      audioLevel: 0,
+    }))
+  }, [stopListeningInternal])
+
+  // 3. Check support on mount
+  useEffect(() => {
+    const supported =
+      typeof window !== 'undefined' &&
+      ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)
+    setState(prev => ({ ...prev, isSupported: supported }))
+  }, [])
+
+  // 4. Cleanup on unmount (depends on stopListeningInternal)
+  useEffect(() => {
+    return () => {
+      stopListeningInternal()
+      if (audioAnimFrameRef.current) {
+        cancelAnimationFrame(audioAnimFrameRef.current)
+      }
+    }
+  }, [stopListeningInternal])
+
+  // 5. Simulate audio levels for visualizer when listening.
+  const startAudioVisualizer = () => {
+    const animate = () => {
+      if (!isListeningRef.current) return // stop the loop when idle
+      // Vary randomly in 20-90 range for natural-looking wave motion
+      const level = Math.floor(Math.random() * 50) + 25
+      setState(prev => ({ ...prev, audioLevel: level }))
+      audioAnimFrameRef.current = requestAnimationFrame(animate)
+    }
+    audioAnimFrameRef.current = requestAnimationFrame(animate)
+  }
+
+  // 6. startListening (depends on stopListening and stopListeningInternal)
   const startListening = useCallback(() => {
     if (!state.isSupported) {
       setState(prev => ({ ...prev, error: "Brauzer ovozli kiritishni qo'llab-quvvatlamaydi" }))
@@ -207,17 +216,16 @@ export function useSpeechToText(options: SpeechToTextOptions = {}): SpeechToText
 
     recognitionRef.current = recognition
     recognition.start()
-  }, [state.isSupported, continuous, lang, onResult, onInterim, onError, stopListeningInternal])
-
-  const stopListening = useCallback(() => {
-    stopListeningInternal()
-    setState(prev => ({
-      ...prev,
-      isListening: false,
-      interimText: '',
-      audioLevel: 0,
-    }))
-  }, [stopListeningInternal])
+  }, [
+    state.isSupported,
+    continuous,
+    lang,
+    onResult,
+    onInterim,
+    onError,
+    stopListeningInternal,
+    stopListening,
+  ])
 
   const toggleListening = useCallback(() => {
     if (isListeningRef.current) {

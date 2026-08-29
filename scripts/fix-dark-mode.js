@@ -2,7 +2,7 @@
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
- * JURISAI — Global Dark Mode Batch Fixer
+ * JURISTIV — Global Dark Mode Batch Fixer
  * ═══════════════════════════════════════════════════════════════════════════
  *
  * Batch-fixes common light-mode Tailwind utility classes by adding
@@ -153,7 +153,7 @@ function shouldSkip(filePath) {
 // ── Main ────────────────────────────────────────────────────────────────
 function main() {
   console.log('══════════════════════════════════════════════════════════');
-  console.log('  JURISAI — Global Dark Mode Batch Fixer');
+  console.log('  JURISTIV — Global Dark Mode Batch Fixer');
   console.log('══════════════════════════════════════════════════════════\n');
 
   let totalFiles = 0;

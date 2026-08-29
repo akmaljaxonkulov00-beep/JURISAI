@@ -90,10 +90,10 @@ export default function Error({
             </p>
             <div className="flex justify-center space-x-4 mt-2">
               <a
-                href="mailto:support@jurisai.uz"
+                href="mailto:support@juristiv.uz"
                 className="text-xs text-blue-600 hover:text-blue-500"
               >
-                support@jurisai.uz
+                support@juristiv.uz
               </a>
               <span className="text-xs text-gray-400 dark:text-zinc-500">|</span>
               <a href="tel:+998901234567" className="text-xs text-blue-600 hover:text-blue-500">

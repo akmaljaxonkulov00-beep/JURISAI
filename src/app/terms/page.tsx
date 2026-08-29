@@ -1,8 +1,8 @@
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Foydalanish Shartlari - JURISAI',
-  description: 'JURISAI platformasi foydalanish shartlari',
+  title: 'Foydalanish Shartlari - JURISTIV',
+  description: 'JURISTIV platformasi foydalanish shartlari',
 }
 
 export default function TermsPage() {
@@ -24,7 +24,7 @@ export default function TermsPage() {
                 1. Umumiy qoidalar
               </h2>
               <p className="text-gray-600 dark:text-zinc-400 mb-4">
-                JURISAI platformasidan foydalanish ushbu shartlarga muvofiq amalga oshiriladi.
+                JURISTIV platformasidan foydalanish ushbu shartlarga muvofiq amalga oshiriladi.
                 Platformadan foydalanish orqali siz ushbu shartlarni qabul qilasiz.
               </p>
 
@@ -32,7 +32,7 @@ export default function TermsPage() {
                 2. Xizmatlar
               </h2>
               <p className="text-gray-600 dark:text-zinc-400 mb-4">
-                JURISAI quyidagi xizmatlarni taqdim etadi:
+                JURISTIV quyidagi xizmatlarni taqdim etadi:
               </p>
               <ul className="list-disc pl-6 text-gray-600 dark:text-zinc-400 mb-6">
                 <li>Yuridik maslahatlar</li>
@@ -115,7 +115,7 @@ export default function TermsPage() {
                 8. Mas'uliyat chegaralari
               </h2>
               <p className="text-gray-600 dark:text-zinc-400 mb-4">
-                JURISAI quyidagilar uchun mas'uliyatni o'z zimmasiga olmaydi:
+                JURISTIV quyidagilar uchun mas'uliyatni o'z zimmasiga olmaydi:
               </p>
               <ul className="list-disc pl-6 text-gray-600 dark:text-zinc-400 mb-6">
                 <li>Foydalanuvchilar tomonidan kiritilgan ma'lumotlar uchun</li>
@@ -179,7 +179,7 @@ export default function TermsPage() {
               </p>
               <div className="bg-gray-50 dark:bg-zinc-800/50 p-4 rounded-lg mb-6">
                 <p className="text-gray-600 dark:text-zinc-400">
-                  <strong>Email:</strong> legal@jurisai.uz
+                  <strong>Email:</strong> legal@juristiv.uz
                   <br />
                   <strong>Telefon:</strong> +998 90 123 45 67
                   <br />
@@ -199,7 +199,7 @@ export default function TermsPage() {
 
             <div className="mt-12 pt-8 border-t border-gray-200 dark:border-zinc-800">
               <p className="text-sm text-gray-500 dark:text-zinc-500 text-center">
-                © {new Date().getFullYear()} JURISAI. Barcha huquqlar himoyalangan.
+                © {new Date().getFullYear()} JURISTIV. Barcha huquqlar himoyalangan.
               </p>
             </div>
           </div>

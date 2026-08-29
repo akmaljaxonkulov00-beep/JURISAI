@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const BASE_SYSTEM_PROMPT = `Sen JurisAI IRAC — O'zbekiston Respublikasi qonunchiligi bo'yicha professional huquqiy tahlil tizimisan.
+    const BASE_SYSTEM_PROMPT = `Sen Juristiv IRAC — O'zbekiston Respublikasi qonunchiligi bo'yicha professional huquqiy tahlil tizimisan.
 
 QAT'IY QOIDALAR:
 1. FAQAT BAZA MA'LUMOTLARIGA ASOSLAN: Javobingda keltiriladigan HAR BIR modda raqami va kodeks nomi "BAZA MA'LUMOTLARI" blokida berilgan bo'lishi SHART. Bazada mavjud bo'lmagan modda raqami to'qima.

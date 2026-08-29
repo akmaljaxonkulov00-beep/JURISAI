@@ -75,7 +75,7 @@ function getCurrentUser(): CommunityUser {
   try {
     const stored =
       localStorage.getItem(LS_CURRENT_USER) ||
-      sessionStorage.getItem('jurisai_user') ||
+      sessionStorage.getItem('juristiv_user') ||
       localStorage.getItem('auth_user')
     if (stored) {
       const u = JSON.parse(stored)

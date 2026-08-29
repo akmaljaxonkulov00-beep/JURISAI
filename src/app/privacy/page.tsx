@@ -1,8 +1,8 @@
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Maxfiylik Siyosati - JURISAI',
-  description: 'JURISAI platformasi maxfiylik siyosati',
+  title: 'Maxfiylik Siyosati - JURISTIV',
+  description: 'JURISTIV platformasi maxfiylik siyosati',
 }
 
 export default function PrivacyPage() {
@@ -24,7 +24,7 @@ export default function PrivacyPage() {
                 1. Ma'lumotlar to'plami
               </h2>
               <p className="text-gray-600 dark:text-zinc-400 mb-4">
-                JURISAI platformasi foydalanuvchilardan quyidagi ma'lumotlarni to'playdi:
+                JURISTIV platformasi foydalanuvchilardan quyidagi ma'lumotlarni to'playdi:
               </p>
               <ul className="list-disc pl-6 text-gray-600 dark:text-zinc-400 mb-6">
                 <li>Ism va familya</li>
@@ -149,7 +149,7 @@ export default function PrivacyPage() {
               </p>
               <div className="bg-gray-50 dark:bg-zinc-800/50 p-4 rounded-lg mb-6">
                 <p className="text-gray-600 dark:text-zinc-400">
-                  <strong>Email:</strong> privacy@jurisai.uz
+                  <strong>Email:</strong> privacy@juristiv.uz
                   <br />
                   <strong>Telefon:</strong> +998 90 123 45 67
                   <br />
@@ -168,7 +168,7 @@ export default function PrivacyPage() {
 
             <div className="mt-12 pt-8 border-t border-gray-200 dark:border-zinc-800">
               <p className="text-sm text-gray-500 dark:text-zinc-500 text-center">
-                © {new Date().getFullYear()} JURISAI. Barcha huquqlar himoyalangan.
+                © {new Date().getFullYear()} JURISTIV. Barcha huquqlar himoyalangan.
               </p>
             </div>
           </div>

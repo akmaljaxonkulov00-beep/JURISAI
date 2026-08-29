@@ -41,8 +41,8 @@ const HeroSection: React.FC<HeroSectionProps> = ({ className }) => {
 
           {/* Subheading */}
           <p className="text-xl sm:text-2xl text-blue-100 mb-8 max-w-3xl mx-auto leading-relaxed">
-            JurisAI bilan zamonaviy AI texnologiyalari orqali huquqiy tahlil, IRAC metodologiyasi va
-            interaktiv sud simulyatsiyalari orqali professional huquqshunoslik mahoratini
+            Juristiv bilan zamonaviy AI texnologiyalari orqali huquqiy tahlil, IRAC metodologiyasi
+            va interaktiv sud simulyatsiyalari orqali professional huquqshunoslik mahoratini
             rivojlantiring
           </p>
 

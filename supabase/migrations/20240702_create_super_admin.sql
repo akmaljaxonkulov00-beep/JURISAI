@@ -1,5 +1,5 @@
 -- ============================================================
--- JURISAI — Super Admin Seed Script
+-- JURISTIV — Super Admin Seed Script
 -- Run this in Supabase SQL Editor to create the super admin
 -- ============================================================
 -- This script:
@@ -59,7 +59,7 @@ CREATE TABLE IF NOT EXISTS admin_settings (
 
 -- Insert default admin settings
 INSERT INTO admin_settings (key, value) VALUES
-  ('announcement_banner', 'JURISAI - Huquqiy AI yordamchingiz!'),
+  ('announcement_banner', 'JURISTIV - Huquqiy AI yordamchingiz!'),
   ('pricing_free_name', 'Bepul'),
   ('pricing_free_price', '0'),
   ('pricing_free_features', '["5 ta IRAC tahlili","Asosiy qonunlar bazasi","10 ta AI so''rovi"]'),
@@ -69,11 +69,11 @@ INSERT INTO admin_settings (key, value) VALUES
   ('pricing_pro_name', 'Pro'),
   ('pricing_pro_price', '140000'),
   ('pricing_pro_features', '["Cheksiz AI so''rovlari","Cheksiz hujjat","Shaxsiy maslahatchi","Ekspert konsultatsiyasi"]'),
-  ('contact_email', 'support@jurisai.uz'),
+  ('contact_email', 'support@juristiv.uz'),
   ('contact_phone', '+998 90 123 45 67'),
   ('payment_card_number', '8600 1234 5678 9012'),
   ('payment_details', 'Click: *123# 45000 UZS / Payme: 8600 1234 5678 9012'),
-  ('legal_disclaimer', 'JURISAI tomonidan berilgan ma''lumotlar faqat ma''lumot uchun. Rasmiy huquqiy maslahat o''rnini bosa olmaydi.')
+  ('legal_disclaimer', 'JURISTIV tomonidan berilgan ma''lumotlar faqat ma''lumot uchun. Rasmiy huquqiy maslahat o''rnini bosa olmaydi.')
 ON CONFLICT (key) DO NOTHING;
 
 -- ============================================================

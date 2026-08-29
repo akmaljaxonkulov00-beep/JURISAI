@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
 <b>ID:</b> ${feedback.id}
 <b>Vaqt:</b> ${new Date().toLocaleString('uz-UZ')}
 
-<b>Platform:</b> JURISAI Legal AI
+<b>Platform:</b> JURISTIV Legal AI
     `.trim()
 
     if (telegramService) {

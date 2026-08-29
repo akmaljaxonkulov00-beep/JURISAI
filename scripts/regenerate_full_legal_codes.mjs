@@ -1,5 +1,5 @@
 /**
- * JURISAI — src/data/full-legal-codes.json ni TO'G'RI manbadan qayta yaratish.
+ * JURISTIV — src/data/full-legal-codes.json ni TO'G'RI manbadan qayta yaratish.
  *
  * Source: scripts/kodeks_json/*.json (foydalanuvchi yuklagan PDF'lardan
  * ekstrakt qilingan, 4397 modda). Statik fallback ma'lumot hech qachon

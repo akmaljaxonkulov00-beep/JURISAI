@@ -25,6 +25,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Supabase not configured' })
     }
 
+    // Fetch existing limits to preserve them
+    const { data: existingPlans } = await supabase.from('pricing_plans').select('id, limits')
+
+    const limitsMap: Record<string, any> = {}
+    if (existingPlans) {
+      existingPlans.forEach((p: any) => {
+        if (p.id) limitsMap[p.id] = p.limits
+      })
+    }
+
     // Delete existing plans and re-insert
     const { error: deleteError } = await supabase
       .from('pricing_plans')
@@ -42,6 +52,7 @@ export async function POST(request: NextRequest) {
       price: Number(plan.price) || 0,
       features: Array.isArray(plan.features) ? plan.features : [],
       case_limit: Number(plan.caseLimit || plan.case_limit || -1),
+      limits: limitsMap[plan.id as string] || (plan.limits as any) || {},
       updated_at: new Date().toISOString(),
     }))
 

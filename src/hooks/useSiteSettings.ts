@@ -16,15 +16,15 @@ export interface SiteSettings {
 }
 
 const DEFAULT_SETTINGS: SiteSettings = {
-  announcementBanner: 'JURISAI - Huquqiy AI yordamchingiz!',
+  announcementBanner: 'JURISTIV - Huquqiy AI yordamchingiz!',
   heroTitle: 'Huquqiy masalalarni AI bilan yeching',
   heroSubtitle: "O'zbekiston qonunchiligi bo'yicha professional AI yordamchi",
-  contactEmail: 'support@jurisai.uz',
+  contactEmail: 'support@juristiv.uz',
   contactPhone: '+998 90 123 45 67',
-  telegramLink: 'https://t.me/jurisai_bot',
+  telegramLink: 'https://t.me/juristiv_bot',
   legalDisclaimer:
-    "JURISAI tomonidan berilgan ma'lumotlar faqat ma'lumot uchun. Rasmiy huquqiy maslahat o'rnini bosa olmaydi.",
-  systemPrompt: 'You are JurisAI — an expert legal consultant...',
+    "JURISTIV tomonidan berilgan ma'lumotlar faqat ma'lumot uchun. Rasmiy huquqiy maslahat o'rnini bosa olmaydi.",
+  systemPrompt: 'You are Juristiv — an expert legal consultant...',
   paymentCardNumber: '8600 1234 5678 9012',
   paymentDetails: 'Click: *123# 45000 UZS / Payme: 8600 1234 5678 9012',
 }

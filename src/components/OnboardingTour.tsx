@@ -13,7 +13,7 @@ import {
   Award,
 } from 'lucide-react'
 
-const STORAGE_KEY = 'jurisai_onboarding_completed'
+const STORAGE_KEY = 'juristiv_onboarding_completed'
 
 interface Step {
   icon: React.ReactNode
@@ -26,7 +26,7 @@ interface Step {
 const steps: Step[] = [
   {
     icon: <Sparkles className="w-8 h-8 text-blue-500" />,
-    title: 'JURISAI ga xush kelibsiz!',
+    title: 'JURISTIV ga xush kelibsiz!',
     description:
       "Bu platforma O'zbekiston qonunchiligi asosida huquqiy bilimlaringizni rivojlantirish, real keyslarni yechish va AI yordamida professional hujjatlar tayyorlash uchun yaratilgan.",
     highlight: 'Statistika paneli',

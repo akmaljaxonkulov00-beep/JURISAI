@@ -26,7 +26,7 @@ const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ className }) 
       organization: 'Toshkent Davlat Universiteti',
       avatar: 'DA',
       content:
-        "JurisAI o'qish jarayonimni butunlay o'zgartirdi. IRAC tahlili va virtual sud simulyatsiyalari orqali nazariy bilimlarni amaliyotga tatbiq qildim. AI yordamchisi esa murakkab masalalarda instant yordam beradi.",
+        "Juristiv o'qish jarayonimni butunlay o'zgartirdi. IRAC tahlili va virtual sud simulyatsiyalari orqali nazariy bilimlarni amaliyotga tatbiq qildim. AI yordamchisi esa murakkab masalalarda instant yordam beradi.",
       rating: 5,
       achievement: '95% ball bilan kursni tugatdi',
     },
@@ -37,7 +37,7 @@ const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ className }) 
       organization: 'Advokatlar palatasi',
       avatar: 'BT',
       content:
-        "Kundalik ishlarimda JurisAI dan foydalanaman. Huquqiy ma'lumotlar bazasi va hujjat generatori vaqtni juda qisqartirdi. Qaror daraxti esa murakkab ishlarda to'g'ri yo'nalishni tanlashga yordam beradi.",
+        "Kundalik ishlarimda Juristiv dan foydalanaman. Huquqiy ma'lumotlar bazasi va hujjat generatori vaqtni juda qisqartirdi. Qaror daraxti esa murakkab ishlarda to'g'ri yo'nalishni tanlashga yordam beradi.",
       rating: 5,
       achievement: 'Ish samaradorligi 40% oshdi',
     },
@@ -48,7 +48,7 @@ const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ className }) 
       organization: 'Adliya vazirligi',
       avatar: 'MR',
       content:
-        "Davlat organi sifatida JurisAI ning qonun hujjatlari bazasi ayniqsa foydali. Yangi qonunlar va o'zgarishlarni tez kuzatib borish mumkin. Senariy generatori esa yangi xodimlarni o'qitishda yordam beradi.",
+        "Davlat organi sifatida Juristiv ning qonun hujjatlari bazasi ayniqsa foydali. Yangi qonunlar va o'zgarishlarni tez kuzatib borish mumkin. Senariy generatori esa yangi xodimlarni o'qitishda yordam beradi.",
       rating: 5,
       achievement: '500+ ishda foydalanildi',
     },
@@ -70,7 +70,7 @@ const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ className }) 
       organization: "O'zbekiston Milliy Universiteti",
       avatar: 'NK',
       content:
-        "Talabalarni o'qitishda JurisAI juda qulay. Virtual sud simulyatsiyalari talabalarni sud jarayonini tushunishga yordam beradi. IRAC tahlili esa xalqaro standartlarni o'rgatishda asosiy vositaga aylandi.",
+        "Talabalarni o'qitishda Juristiv juda qulay. Virtual sud simulyatsiyalari talabalarni sud jarayonini tushunishga yordam beradi. IRAC tahlili esa xalqaro standartlarni o'rgatishda asosiy vositaga aylandi.",
       rating: 5,
       achievement: "1000+ talaba o'qitildi",
     },
@@ -81,7 +81,7 @@ const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ className }) 
       organization: 'Tech Solutions LLC',
       avatar: 'JU',
       content:
-        'Korporativ huquqiy masalalarda JurisAI ning AI yordamchisi juda foydali. Murakkab shartnomalarni tahlil qilish va xavflarni aniqlash vaqtini sezilarli qisqartirdi. Platform doimiy yangilanib turadi.',
+        'Korporativ huquqiy masalalarda Juristiv ning AI yordamchisi juda foydali. Murakkab shartnomalarni tahlil qilish va xavflarni aniqlash vaqtini sezilarli qisqartirdi. Platform doimiy yangilanib turadi.',
       rating: 5,
       achievement: '50+ korporativ ish',
     },
@@ -113,7 +113,7 @@ const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ className }) 
             Foydalanuvchilar <span className="text-emerald-600">fikrlari</span>
           </h2>
           <p className="text-xl text-gray-600 dark:text-zinc-400 max-w-3xl mx-auto">
-            10,000+ dan ortiq professional foydalanuvchilar JurisAI ning samaradorligini
+            10,000+ dan ortiq professional foydalanuvchilar Juristiv ning samaradorligini
             tasdiqladilar
           </p>
         </div>
@@ -200,7 +200,7 @@ const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ className }) 
               Ularning qatoriga qo\'shiling
             </h3>
             <p className="text-gray-600 dark:text-zinc-400 mb-6 max-w-2xl mx-auto">
-              Minglabar professional huquqshunoslar kabi JurisAI dan foydalanib o\'z karerasini
+              Minglabar professional huquqshunoslar kabi Juristiv dan foydalanib o\'z karerasini
               yangi bosqichga ko\'tardilar
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">

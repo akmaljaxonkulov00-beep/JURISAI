@@ -346,7 +346,7 @@ export async function checkAndIncrement(opts: CheckOptions): Promise<UsageResult
     if (supabase) {
       const logRow = {
         user_id: userId || email || 'anonymous',
-        email: email || 'anonymous@jurisai.uz',
+        email: email || 'anonymous@juristiv.uz',
         name: '',
         tokens: Math.max(1, Math.round(tokens || 1)),
         action: feature,

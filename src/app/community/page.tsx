@@ -1109,7 +1109,7 @@ export default function Community() {
     let userId = user?.id || ''
     let userName = user?.name || 'Foydalanuvchi'
     try {
-      const stored = sessionStorage.getItem('jurisai_user') || localStorage.getItem('auth_user')
+      const stored = sessionStorage.getItem('juristiv_user') || localStorage.getItem('auth_user')
       if (stored) {
         const u = JSON.parse(stored)
         if (u?.id) userId = u.id
@@ -1169,7 +1169,7 @@ export default function Community() {
     let userId = user?.id || ''
     let userName = user?.name || 'Foydalanuvchi'
     try {
-      const stored = sessionStorage.getItem('jurisai_user') || localStorage.getItem('auth_user')
+      const stored = sessionStorage.getItem('juristiv_user') || localStorage.getItem('auth_user')
       if (stored) {
         const u = JSON.parse(stored)
         if (u?.id) userId = u.id
@@ -1308,7 +1308,7 @@ export default function Community() {
       // Email'ni sessionStorage'dan olish (CommunityUser'da email yo'q)
       let userEmail = ''
       try {
-        const stored = sessionStorage.getItem('jurisai_user') || localStorage.getItem('auth_user')
+        const stored = sessionStorage.getItem('juristiv_user') || localStorage.getItem('auth_user')
         if (stored) userEmail = JSON.parse(stored).email || ''
       } catch {}
       await fetch('/api/community/consultations', {

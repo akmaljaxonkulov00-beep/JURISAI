@@ -15,7 +15,7 @@ from pathlib import Path
 # Logging configuration
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
 LOG_FORMAT = os.getenv("LOG_FORMAT", "%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-LOG_FILE = os.getenv("LOG_FILE", "logs/jurisai.log")
+LOG_FILE = os.getenv("LOG_FILE", "logs/juristiv.log")
 LOG_MAX_SIZE = int(os.getenv("LOG_MAX_SIZE", "10485760"))  # 10MB
 LOG_BACKUP_COUNT = int(os.getenv("LOG_BACKUP_COUNT", "5"))
 

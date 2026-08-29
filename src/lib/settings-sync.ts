@@ -45,7 +45,7 @@ export async function getPublicSettings(): Promise<SiteSettings | null> {
   // 0. Optimistic cache read — return cached immediately, refresh in bg
   let cachedData: SiteSettings | null = null
   try {
-    const cached = localStorage.getItem('jurisai_settings')
+    const cached = localStorage.getItem('juristiv_settings')
     if (cached) cachedData = JSON.parse(cached) as SiteSettings
   } catch {}
   if (!cachedData) {
@@ -66,7 +66,7 @@ export async function getPublicSettings(): Promise<SiteSettings | null> {
     if (result.success && result.data) {
       const freshData = result.data as SiteSettings
       try {
-        localStorage.setItem('jurisai_settings', JSON.stringify(freshData))
+        localStorage.setItem('juristiv_settings', JSON.stringify(freshData))
         localStorage.setItem('admin_site_settings', JSON.stringify(freshData))
         localStorage.setItem('siteSettings', JSON.stringify(freshData))
       } catch {}
@@ -98,7 +98,7 @@ export async function saveSiteSettings(settings: SiteSettings): Promise<boolean>
 
   // 2. Save to localStorage cache (SECONDARY)
   try {
-    localStorage.setItem('jurisai_settings', JSON.stringify(settings))
+    localStorage.setItem('juristiv_settings', JSON.stringify(settings))
     localStorage.setItem('admin_site_settings', JSON.stringify(settings))
     localStorage.setItem('siteSettings', JSON.stringify(settings))
   } catch {}
@@ -110,7 +110,7 @@ export async function saveSiteSettings(settings: SiteSettings): Promise<boolean>
 // 2. PRICING PLANS — Narxlar va rejalar
 // =========================================================================
 
-const PRICING_STORAGE_KEY = 'jurisai_pricing_plans'
+const PRICING_STORAGE_KEY = 'juristiv_pricing_plans'
 
 export async function getPricingPlans(): Promise<PricingPlan[]> {
   // Try Supabase first
@@ -224,7 +224,7 @@ export async function getPaymentRequests(): Promise<PaymentRequest[]> {
     let isAdmin = false
     try {
       const storedUser =
-        localStorage.getItem('jurisai_user') || sessionStorage.getItem('jurisai_user')
+        localStorage.getItem('juristiv_user') || sessionStorage.getItem('juristiv_user')
       if (storedUser) {
         const parsed = JSON.parse(storedUser)
         isAdmin = parsed?.role === 'ADMIN' || parsed?.role === 'SUPER_ADMIN'
@@ -306,7 +306,7 @@ export async function getPaymentRequests(): Promise<PaymentRequest[]> {
         rejectReason: p.reject_reason || p.rejectReason || '',
       }))
       try {
-        localStorage.setItem('jurisai_payment_requests', JSON.stringify(mapped))
+        localStorage.setItem('juristiv_payment_requests', JSON.stringify(mapped))
       } catch {}
       return mapped
     }
@@ -314,7 +314,7 @@ export async function getPaymentRequests(): Promise<PaymentRequest[]> {
 
   // Fallback to localStorage
   try {
-    const cached = localStorage.getItem('jurisai_payment_requests')
+    const cached = localStorage.getItem('juristiv_payment_requests')
     if (cached) return JSON.parse(cached)
     const legacy = localStorage.getItem('payment_requests')
     if (legacy) return JSON.parse(legacy)
@@ -360,7 +360,7 @@ export async function submitPaymentRequest(
     const existing = JSON.parse(localStorage.getItem('payment_requests') || '[]')
     existing.push(paymentRecord)
     localStorage.setItem('payment_requests', JSON.stringify(existing))
-    localStorage.setItem('jurisai_payment_requests', JSON.stringify(existing))
+    localStorage.setItem('juristiv_payment_requests', JSON.stringify(existing))
 
     // Also save as user's payment_history
     localStorage.setItem(
@@ -422,9 +422,9 @@ export async function rejectPayment(paymentId: string, reason?: string): Promise
 
 export function getUserProfile(): Record<string, unknown> | null {
   try {
-    const stored = sessionStorage.getItem('jurisai_user') || sessionStorage.getItem('auth_user')
+    const stored = sessionStorage.getItem('juristiv_user') || sessionStorage.getItem('auth_user')
     if (stored) return JSON.parse(stored)
-    const localStored = localStorage.getItem('jurisai_user') || localStorage.getItem('auth_user')
+    const localStored = localStorage.getItem('juristiv_user') || localStorage.getItem('auth_user')
     if (localStored) return JSON.parse(localStored)
   } catch {}
   return null
@@ -441,9 +441,9 @@ export function updateUserSubscription(plan: string, expiresAt?: string): void {
       subscription_expires_at: expiresAt || new Date(Date.now() + 365 * 86400000).toISOString(),
     }
 
-    sessionStorage.setItem('jurisai_user', JSON.stringify(updated))
+    sessionStorage.setItem('juristiv_user', JSON.stringify(updated))
     sessionStorage.setItem('auth_user', JSON.stringify(updated))
-    localStorage.setItem('jurisai_user', JSON.stringify(updated))
+    localStorage.setItem('juristiv_user', JSON.stringify(updated))
     localStorage.setItem('auth_user', JSON.stringify(updated))
   } catch {}
 }
@@ -462,14 +462,14 @@ export async function getAnnouncements(): Promise<
     const result = await res.json()
     if (result.success && result.data) {
       try {
-        localStorage.setItem('jurisai_announcements', JSON.stringify(result.data))
+        localStorage.setItem('juristiv_announcements', JSON.stringify(result.data))
       } catch {}
       return result.data
     }
   } catch {}
 
   try {
-    const cached = localStorage.getItem('jurisai_announcements')
+    const cached = localStorage.getItem('juristiv_announcements')
     if (cached) return JSON.parse(cached)
   } catch {}
 

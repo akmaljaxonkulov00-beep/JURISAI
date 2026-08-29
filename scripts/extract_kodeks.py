@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""JURISAI: PDF kodekslardan moddalarni ajratib olish va hisoblash."""
+"""JURISTIV: PDF kodekslardan moddalarni ajratib olish va hisoblash."""
 import os
 import re
 import json

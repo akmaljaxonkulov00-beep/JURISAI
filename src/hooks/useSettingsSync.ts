@@ -35,7 +35,7 @@ interface SettingsState {
 function syncUserSessionWithPayments(payments: PaymentRequest[]) {
   try {
     const sessionData =
-      sessionStorage.getItem('jurisai_user') || sessionStorage.getItem('auth_user')
+      sessionStorage.getItem('juristiv_user') || sessionStorage.getItem('auth_user')
     if (!sessionData) return
     const user = JSON.parse(sessionData)
     if (!user?.email) return
@@ -66,9 +66,9 @@ function syncUserSessionWithPayments(payments: PaymentRequest[]) {
         subscription_expires_at: new Date(Date.now() + 365 * 86400000).toISOString(),
         balance: totalApprovedBalance,
       }
-      sessionStorage.setItem('jurisai_user', JSON.stringify(updatedUser))
+      sessionStorage.setItem('juristiv_user', JSON.stringify(updatedUser))
       sessionStorage.setItem('auth_user', JSON.stringify(updatedUser))
-      localStorage.setItem('jurisai_user', JSON.stringify(updatedUser))
+      localStorage.setItem('juristiv_user', JSON.stringify(updatedUser))
       localStorage.setItem('auth_user', JSON.stringify(updatedUser))
     }
   } catch {
@@ -185,7 +185,7 @@ export function useSettingsSync(): SettingsState {
     const ts = Date.now()
 
     for (const table of tables) {
-      const channelName = `jurisai-${table.name}-${ts}-${Math.random().toString(36).slice(2, 6)}`
+      const channelName = `juristiv-${table.name}-${ts}-${Math.random().toString(36).slice(2, 6)}`
       try {
         const channel = supabase
           .channel(channelName)

@@ -20,8 +20,8 @@ from datetime import datetime, timedelta
 from core.database import init_database, health_check as db_health_check, get_database_metrics
 from core.logging import get_logger, setup_logging, request_logger, performance_logger
 from core.error_handling import (
-    JurisAIException, 
-    jurisai_exception_handler, 
+    JuristivException, 
+    juristiv_exception_handler, 
     general_exception_handler,
     setup_error_handling
 )
@@ -30,7 +30,7 @@ from core.error_handling import (
 # from routers import irac_solver, scenario_generator, weakness_detection, template_engine, court_precedents, legal_dictionary
 
 # Application configuration
-APP_NAME = "JurisAI Legal Education Platform"
+APP_NAME = "Juristiv Legal Education Platform"
 APP_VERSION = "1.0.0"
 APP_DESCRIPTION = "Advanced legal education platform with AI-powered analysis tools"
 
@@ -154,7 +154,7 @@ app.add_middleware(
 
 app.add_middleware(
     TrustedHostMiddleware,
-    allowed_hosts=["localhost", "127.0.0.1", "*.jurisai.ai"]  # Configure based on your needs
+    allowed_hosts=["localhost", "127.0.0.1", "*.juristiv.ai"]  # Configure based on your needs
 )
 
 # Request logging middleware
@@ -210,7 +210,7 @@ async def log_requests(request: Request, call_next):
         app_state.active_connections -= 1
 
 # Exception handlers
-app.add_exception_handler(JurisAIException, jurisai_exception_handler)
+app.add_exception_handler(JuristivException, juristiv_exception_handler)
 app.add_exception_handler(Exception, general_exception_handler)
 
 # Root endpoint
@@ -320,7 +320,7 @@ async def get_metrics():
     
     except Exception as e:
         logger.error(f"Failed to get metrics: {e}")
-        raise JurisAIException(
+        raise JuristivException(
             message="Failed to retrieve metrics",
             error_code="METRICS_ERROR",
             details={"error": str(e)}
@@ -360,7 +360,7 @@ async def get_performance_stats():
     
     except Exception as e:
         logger.error(f"Failed to get performance stats: {e}")
-        raise JurisAIException(
+        raise JuristivException(
             message="Failed to retrieve performance statistics",
             error_code="PERFORMANCE_ERROR",
             details={"error": str(e)}
@@ -381,13 +381,13 @@ def custom_openapi():
     
     # Add custom information
     openapi_schema["info"]["x-logo"] = {
-        "url": "https://jurisai.ai/logo.png"
+        "url": "https://juristiv.ai/logo.png"
     }
     
     openapi_schema["info"]["contact"] = {
-        "name": "JurisAI Support",
-        "url": "https://jurisai.ai/support",
-        "email": "support@jurisai.ai"
+        "name": "Juristiv Support",
+        "url": "https://juristiv.ai/support",
+        "email": "support@juristiv.ai"
     }
     
     openapi_schema["info"]["license"] = {
@@ -423,7 +423,7 @@ async def debug_info():
             }
         }
     else:
-        raise JurisAIException(
+        raise JuristivException(
             message="Debug mode is not enabled",
             error_code="DEBUG_DISABLED"
         )

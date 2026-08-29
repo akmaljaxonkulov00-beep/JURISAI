@@ -13,7 +13,7 @@ import threading
 from contextlib import contextmanager
 
 # Database configuration
-DATABASE_URL = "sqlite:///./jurisai.db"
+DATABASE_URL = "sqlite:///./juristiv.db"
 
 # Create engine
 engine = create_engine(

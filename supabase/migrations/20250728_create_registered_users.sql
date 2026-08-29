@@ -1,5 +1,5 @@
 -- ============================================================================
--- JURISAI: REGISTERED_USERS TABLE
+-- JURISTIV: REGISTERED_USERS TABLE
 -- Migration: 20250728
 --
 -- This table stores user profiles synced from Firebase Auth for admin panel.

@@ -1,4 +1,4 @@
--- JurisAI Manual Payment - Supabase Database Setup (Fixed Version)
+-- Juristiv Manual Payment - Supabase Database Setup (Fixed Version)
 -- Bu SQL ni Supabase Dashboard → SQL Editor da bajaring
 
 -- 1. Users table (agar mavjud bo'lmasa)
@@ -218,7 +218,7 @@ $$ LANGUAGE plpgsql;
 -- 15. Success notification
 DO $$
 BEGIN
-  RAISE NOTICE 'JurisAI Payment Database Setup Complete! 🎉';
+  RAISE NOTICE 'Juristiv Payment Database Setup Complete! 🎉';
   RAISE NOTICE 'Tables: users, payments, subscription_history';
   RAISE NOTICE 'Storage: check-images bucket created';
   RAISE NOTICE 'RLS policies enabled';

@@ -8,7 +8,7 @@
  *      SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
  *
  * Ishga tushirish (PowerShell):
- *   cd C:\Users\ANUBIS~1\Desktop\JURISAI
+ *   cd C:\Users\ANUBIS~1\Desktop\JURISTIV
  *   npm install dotenv @supabase/supabase-js
  *   node scripts/import-legal-to-supabase.js "C:\Users\ANUBIS PC\Desktop\35 TA QONUNCHILIK"
  */

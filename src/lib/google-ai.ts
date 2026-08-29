@@ -1,4 +1,4 @@
-// Groq API Integration for JurisAI Legal Platform
+// Groq API Integration for Juristiv Legal Platform
 // Using fetch API instead of groq-sdk to avoid dependency issues
 
 // Initialize Groq with environment variable

@@ -414,7 +414,7 @@ export default function LawyerRegisterPage() {
               Advokat ro\'yxatdan o\'tishi
             </h1>
             <p className="text-gray-600 dark:text-zinc-400 mt-2">
-              JURISAI platformasiga professional advokat sifatida qo\'shiling
+              JURISTIV platformasiga professional advokat sifatida qo\'shiling
             </p>
           </div>
         </div>

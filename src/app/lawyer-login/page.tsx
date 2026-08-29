@@ -95,7 +95,7 @@ export default function LawyerLoginPage() {
             </div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-zinc-100">Advokat kirishi</h1>
             <p className="text-gray-600 dark:text-zinc-400 mt-2">
-              JURISAI advokat platformasiga kirish
+              JURISTIV advokat platformasiga kirish
             </p>
           </div>
         </div>

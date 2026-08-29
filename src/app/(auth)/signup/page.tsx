@@ -80,7 +80,7 @@ export default function SignUpPage() {
       <div className="text-center mb-8">
         <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Ro'yxatdan o'tish</h2>
         <p className="text-gray-600 dark:text-gray-400 dark:text-zinc-500">
-          JURISAI platformasiga qo'shilish uchun ma'lumotlaringizni kiriting
+          JURISTIV platformasiga qo'shilish uchun ma'lumotlaringizni kiriting
         </p>
       </div>
 

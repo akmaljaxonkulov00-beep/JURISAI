@@ -14,57 +14,57 @@ from fastapi.responses import JSONResponse
 from pydantic import ValidationError
 
 # Custom exceptions
-class JurisAIException(Exception):
-    """Base exception for JurisAI application"""
+class JuristivException(Exception):
+    """Base exception for Juristiv application"""
     
     def __init__(self, message: str, error_code: str = None, details: Dict[str, Any] = None):
         self.message = message
-        self.error_code = error_code or "JURISAI_ERROR"
+        self.error_code = error_code or "JURISTIV_ERROR"
         self.details = details or {}
         self.timestamp = datetime.utcnow()
         super().__init__(self.message)
 
-class DatabaseError(JurisAIException):
+class DatabaseError(JuristivException):
     """Database related errors"""
     
     def __init__(self, message: str, details: Dict[str, Any] = None):
         super().__init__(message, "DATABASE_ERROR", details)
 
-class ValidationError(JurisAIException):
+class ValidationError(JuristivException):
     """Validation related errors"""
     
     def __init__(self, message: str, field: str = None, details: Dict[str, Any] = None):
         super().__init__(message, "VALIDATION_ERROR", details)
         self.field = field
 
-class AuthenticationError(JurisAIException):
+class AuthenticationError(JuristivException):
     """Authentication related errors"""
     
     def __init__(self, message: str, details: Dict[str, Any] = None):
         super().__init__(message, "AUTHENTICATION_ERROR", details)
 
-class AuthorizationError(JurisAIException):
+class AuthorizationError(JuristivException):
     """Authorization related errors"""
     
     def __init__(self, message: str, resource: str = None, details: Dict[str, Any] = None):
         super().__init__(message, "AUTHORIZATION_ERROR", details)
         self.resource = resource
 
-class BusinessLogicError(JurisAIException):
+class BusinessLogicError(JuristivException):
     """Business logic related errors"""
     
     def __init__(self, message: str, business_rule: str = None, details: Dict[str, Any] = None):
         super().__init__(message, "BUSINESS_LOGIC_ERROR", details)
         self.business_rule = business_rule
 
-class ExternalServiceError(JurisAIException):
+class ExternalServiceError(JuristivException):
     """External service related errors"""
     
     def __init__(self, message: str, service_name: str = None, details: Dict[str, Any] = None):
         super().__init__(message, "EXTERNAL_SERVICE_ERROR", details)
         self.service_name = service_name
 
-class ConfigurationError(JurisAIException):
+class ConfigurationError(JuristivException):
     """Configuration related errors"""
     
     def __init__(self, message: str, config_key: str = None, details: Dict[str, Any] = None):
@@ -92,10 +92,10 @@ def handle_errors(
         def wrapper(*args, **kwargs):
             try:
                 return func(*args, **kwargs)
-            except JurisAIException as e:
+            except JuristivException as e:
                 if log_errors:
                     logger = logging.getLogger(func.__module__)
-                    logger.error(f"JurisAIException in {func.__name__}: {e.message}", extra={
+                    logger.error(f"JuristivException in {func.__name__}: {e.message}", extra={
                         "error_code": e.error_code,
                         "details": e.details,
                         "timestamp": e.timestamp.isoformat(),
@@ -120,7 +120,7 @@ def handle_errors(
                     })
                 
                 if reraise:
-                    raise JurisAIException(
+                    raise JuristivException(
                         message=str(e),
                         error_code=default_error_code,
                         details={
@@ -155,10 +155,10 @@ def handle_async_errors(
         async def wrapper(*args, **kwargs):
             try:
                 return await func(*args, **kwargs)
-            except JurisAIException as e:
+            except JuristivException as e:
                 if log_errors:
                     logger = logging.getLogger(func.__module__)
-                    logger.error(f"JurisAIException in {func.__name__}: {e.message}", extra={
+                    logger.error(f"JuristivException in {func.__name__}: {e.message}", extra={
                         "error_code": e.error_code,
                         "details": e.details,
                         "timestamp": e.timestamp.isoformat(),
@@ -183,7 +183,7 @@ def handle_async_errors(
                     })
                 
                 if reraise:
-                    raise JurisAIException(
+                    raise JuristivException(
                         message=str(e),
                         error_code=default_error_code,
                         details={
@@ -199,20 +199,20 @@ def handle_async_errors(
 
 # Error response formatter
 def format_error_response(
-    error: Union[JurisAIException, Exception],
+    error: Union[JuristivException, Exception],
     include_traceback: bool = False
 ) -> Dict[str, Any]:
     """
     Format error for API response
     
     Args:
-        error (Union[JurisAIException, Exception]): Exception to format
+        error (Union[JuristivException, Exception]): Exception to format
         include_traceback (bool): Whether to include traceback in response
         
     Returns:
         Dict[str, Any]: Formatted error response
     """
-    if isinstance(error, JurisAIException):
+    if isinstance(error, JuristivException):
         response = {
             "error": True,
             "error_code": error.error_code,
@@ -237,13 +237,13 @@ def format_error_response(
     return response
 
 # FastAPI exception handler
-async def jurisai_exception_handler(request: Request, exc: JurisAIException) -> JSONResponse:
+async def juristiv_exception_handler(request: Request, exc: JuristivException) -> JSONResponse:
     """
-    FastAPI exception handler for JurisAI exceptions
+    FastAPI exception handler for Juristiv exceptions
     
     Args:
         request (Request): FastAPI request object
-        exc (JurisAIException): JurisAI exception
+        exc (JuristivException): Juristiv exception
         
     Returns:
         JSONResponse: Formatted error response
@@ -283,7 +283,7 @@ async def general_exception_handler(request: Request, exc: Exception) -> JSONRes
         "traceback": traceback.format_exc()
     })
     
-    jurisai_exc = JurisAIException(
+    juristiv_exc = JuristivException(
         message="An unexpected error occurred",
         error_code="INTERNAL_SERVER_ERROR",
         details={
@@ -293,7 +293,7 @@ async def general_exception_handler(request: Request, exc: Exception) -> JSONRes
     
     return JSONResponse(
         status_code=500,
-        content=format_error_response(jurisai_exc)
+        content=format_error_response(juristiv_exc)
     )
 
 # Status code mapping
@@ -405,12 +405,12 @@ def retry_on_error(
     return decorator
 
 # Error reporting
-def report_error(error: Union[JurisAIException, Exception], context: Dict[str, Any] = None):
+def report_error(error: Union[JuristivException, Exception], context: Dict[str, Any] = None):
     """
     Report error for monitoring and analysis
     
     Args:
-        error (Union[JurisAIException, Exception]): Error to report
+        error (Union[JuristivException, Exception]): Error to report
         context (Dict[str, Any]): Additional context information
     """
     logger = logging.getLogger("error_reporting")
@@ -422,7 +422,7 @@ def report_error(error: Union[JurisAIException, Exception], context: Dict[str, A
         "context": context or {}
     }
     
-    if isinstance(error, JurisAIException):
+    if isinstance(error, JuristivException):
         error_data.update({
             "error_code": error.error_code,
             "details": error.details

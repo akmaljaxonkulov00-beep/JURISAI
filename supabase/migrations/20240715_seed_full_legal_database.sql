@@ -1,4 +1,4 @@
--- JURISAI: TO'LIQ QONUNLAR BAZASI (SEED DATA)
+-- JURISTIV: TO'LIQ QONUNLAR BAZASI (SEED DATA)
 -- O'zbekiston Respublikasi qonun kodekslari va moddalari
 
 -- Create codes table
@@ -181,7 +181,7 @@ CREATE TABLE IF NOT EXISTS site_settings (
 );
 
 INSERT INTO site_settings (id, announcement_banner, hero_title, hero_subtitle, contact_email, contact_phone)
-VALUES ('global', 'JURISAI - Huquqiy AI yordamchingiz!', 'Huquqiy masalalarni AI bilan yeching', 'O''zbekiston qonunchiligi bo''yicha professional AI yordamchi', 'support@jurisai.uz', '+998 90 123 45 67')
+VALUES ('global', 'JURISTIV - Huquqiy AI yordamchingiz!', 'Huquqiy masalalarni AI bilan yeching', 'O''zbekiston qonunchiligi bo''yicha professional AI yordamchi', 'support@juristiv.uz', '+998 90 123 45 67')
 ON CONFLICT (id) DO NOTHING;
 
 -- Create dashboard analytics view

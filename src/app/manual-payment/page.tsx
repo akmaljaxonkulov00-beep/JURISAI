@@ -38,7 +38,7 @@ function PaymentContent() {
   useEffect(() => {
     if (paymentStatus !== 'pending') return
     const user = JSON.parse(
-      sessionStorage.getItem('jurisai_user') || sessionStorage.getItem('auth_user') || '{}'
+      sessionStorage.getItem('juristiv_user') || sessionStorage.getItem('auth_user') || '{}'
     )
     if (!user?.id) return
 
@@ -58,7 +58,7 @@ function PaymentContent() {
           setCheckStatus('approved')
           // Lokaldagi foydalanuvchi sessiyasini premium qilamiz
           const stored =
-            sessionStorage.getItem('jurisai_user') || sessionStorage.getItem('auth_user')
+            sessionStorage.getItem('juristiv_user') || sessionStorage.getItem('auth_user')
           if (stored) {
             try {
               const u = JSON.parse(stored)
@@ -67,7 +67,7 @@ function PaymentContent() {
                 subscription_plan: latest.plan || u.subscription_plan || 'standart',
                 subscription_expires_at: new Date(Date.now() + 365 * 86400000).toISOString(),
               }
-              sessionStorage.setItem('jurisai_user', JSON.stringify(updated))
+              sessionStorage.setItem('juristiv_user', JSON.stringify(updated))
               sessionStorage.setItem('auth_user', JSON.stringify(updated))
               localStorage.setItem('auth_user', JSON.stringify(updated))
             } catch {}
@@ -171,7 +171,7 @@ function PaymentContent() {
 
     try {
       const user = JSON.parse(
-        sessionStorage.getItem('jurisai_user') || sessionStorage.getItem('auth_user') || '{}'
+        sessionStorage.getItem('juristiv_user') || sessionStorage.getItem('auth_user') || '{}'
       )
 
       // Step 1: Upload image to Supabase Storage via API

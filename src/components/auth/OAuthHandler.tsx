@@ -130,7 +130,7 @@ export default function OAuthHandler() {
           // admin Google orqali kirsa ham /admin ga boradi.
           const savedUser = await finalizeUserSession(sbUser)
           // Cookie'ni ham o'rnatamiz — middleware /admin himoyasi uchun
-          document.cookie = `jurisai_auth=1; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax`
+          document.cookie = `juristiv_auth=1; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax`
           syncSessionCookies().catch(() => {})
 
           // OAuth duplicate mavjud email/parol akkaunt bilan birlashtirildi —

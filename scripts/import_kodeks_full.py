@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-JURISAI: To'liq kodeks PDF parseri (v2).
+JURISTIV: To'liq kodeks PDF parseri (v2).
 - pdfplumber orqali char darajasida o'qish
 - Superscript sub-modda raqamlarini font o'lchamidan aniqlash:
   "103¹" -> base=103, sub=1 -> article_number="103-1"

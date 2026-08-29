@@ -2,7 +2,7 @@
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
- * JURISAI: LEGAL DATABASE SEEDER (via @supabase/supabase-js)
+ * JURISTIV: LEGAL DATABASE SEEDER (via @supabase/supabase-js)
  * ═══════════════════════════════════════════════════════════════════════════
  *
  * Usage:
@@ -145,7 +145,7 @@ function parseTxtFile(filePath) {
 // ── Main ─────────────────────────────────────────────────────────────────
 async function main() {
   console.log('══════════════════════════════════════════════════════════');
-  console.log('  JURISAI — Legal Database Seeder');
+  console.log('  JURISTIV — Legal Database Seeder');
   console.log('══════════════════════════════════════════════════════════\n');
 
   loadEnv();

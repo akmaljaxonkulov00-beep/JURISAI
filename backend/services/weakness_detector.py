@@ -12,7 +12,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 
 from core.logging import get_logger, performance_logger
-from core.error_handling import handle_errors, JurisAIException, BusinessLogicError
+from core.error_handling import handle_errors, JuristivException, BusinessLogicError
 from services.ai_service import AIService, AIRequest, AIModelType
 
 logger = get_logger(__name__)

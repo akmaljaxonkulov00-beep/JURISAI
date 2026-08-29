@@ -66,7 +66,7 @@ const Header: React.FC<HeaderProps> = ({ user, className }) => {
               <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-emerald-600 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-lg">J</span>
               </div>
-              <span className="text-xl font-bold text-gray-900 dark:text-white">JurisAI</span>
+              <span className="text-xl font-bold text-gray-900 dark:text-white">Juristiv</span>
             </Link>
           </div>
 

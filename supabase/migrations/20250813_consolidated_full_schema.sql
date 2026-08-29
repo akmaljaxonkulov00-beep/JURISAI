@@ -1,5 +1,5 @@
 -- ═══════════════════════════════════════════════════════════════════════════
--- JURISAI — TO'LIQ KONSOLIDATSIYALANGAN SXEMA (yagona migratsiya)
+-- JURISTIV — TO'LIQ KONSOLIDATSIYALANGAN SXEMA (yagona migratsiya)
 -- ═══════════════════════════════════════════════════════════════════════════
 -- Ushbu fayl 2024–2025 yillardagi barcha alohida migratsiyalarni birlashtiradi.
 -- Yangi (toza) Supabase loyihasida faqat SHU faylni run qilish kifoya.
@@ -689,7 +689,7 @@ INSERT INTO public.pricing_plans (id, name, price, features, case_limit, sort_or
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO public.site_settings (id, announcement_banner, hero_title, hero_subtitle, contact_email, payment_card_number, payment_details) VALUES
-  ('global', 'JURISAI - Huquqiy AI yordamchingiz!', 'Huquqiy masalalarni AI bilan yeching', 'O''zbekiston qonunchiligi bo''yicha professional AI yordamchi', 'support@jurisai.uz', '8600 1234 5678 9012', 'Click: *123# 45000 UZS / Payme: 8600 1234 5678 9012')
+  ('global', 'JURISTIV - Huquqiy AI yordamchingiz!', 'Huquqiy masalalarni AI bilan yeching', 'O''zbekiston qonunchiligi bo''yicha professional AI yordamchi', 'support@juristiv.uz', '8600 1234 5678 9012', 'Click: *123# 45000 UZS / Payme: 8600 1234 5678 9012')
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO public.categories (id, code_id, name, description, icon, color) VALUES

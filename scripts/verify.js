@@ -8,7 +8,7 @@
 const fs = require('fs')
 const path = require('path')
 
-console.log('🔍 JURISAI - Pre-Deployment Verification\n')
+console.log('🔍 JURISTIV - Pre-Deployment Verification\n')
 
 let hasErrors = false
 let hasWarnings = false
@@ -211,6 +211,6 @@ if (hasErrors) {
   process.exit(0)
 } else {
   success('\n✅ All checks PASSED - Ready for deployment!')
-  console.log('\n🚀 You can now deploy JURISAI!')
+  console.log('\n🚀 You can now deploy JURISTIV!')
   process.exit(0)
 }

@@ -145,7 +145,7 @@ export default function MobileNav() {
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-sm">J</span>
             </div>
-            <span className="font-bold text-gray-800 dark:text-white">JURISAI</span>
+            <span className="font-bold text-gray-800 dark:text-white">JURISTIV</span>
           </div>
           <div className="flex items-center gap-2">
             <button

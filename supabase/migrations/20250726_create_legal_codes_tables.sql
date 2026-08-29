@@ -1,5 +1,5 @@
 -- ============================================================================
--- JURISAI: LEGAL CODES & ARTICLES TABLES
+-- JURISTIV: LEGAL CODES & ARTICLES TABLES
 -- ============================================================================
 -- Run this migration in Supabase SQL Editor before using the seeder.
 -- This creates tables for storing Uzbekistan legal codes and their articles.

@@ -691,7 +691,7 @@ export default function DecisionTreeEngine() {
         `Ishonchlilik: ${statistics.confidence}%`,
         '',
         '---',
-        'Qarorlar daraxti - JurisAI',
+        'Qarorlar daraxti - Juristiv',
       ]
       const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' })
       const url = URL.createObjectURL(blob)
@@ -770,7 +770,7 @@ export default function DecisionTreeEngine() {
       drawWrapped('QARORLAR DARAXTI HISOBOTI', { size: 18, bold: true, color: blue })
       drawWrapped(`Ish: ${currentTreeName || decisionTree.label}`, { size: 13, bold: true })
       drawWrapped(
-        `Hisobot sanasi: ${new Date().toLocaleDateString('uz-UZ', { day: 'numeric', month: 'long', year: 'numeric' })}  •  JurisAI`,
+        `Hisobot sanasi: ${new Date().toLocaleDateString('uz-UZ', { day: 'numeric', month: 'long', year: 'numeric' })}  •  Juristiv`,
         { size: 9, color: gray }
       )
       y -= 8
@@ -922,7 +922,7 @@ export default function DecisionTreeEngine() {
       })
       y -= 14
       drawWrapped(
-        'JurisAI — Qarorlar daraxti hisoboti • Bu hujjat yuridik maslahat o\u2019rnini bosmaydi',
+        'Juristiv — Qarorlar daraxti hisoboti • Bu hujjat yuridik maslahat o\u2019rnini bosmaydi',
         {
           size: 8.5,
           color: gray,

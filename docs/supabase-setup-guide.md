@@ -1,7 +1,7 @@
-# Supabase Setup Guide for JurisAI Manual Payment
+# Supabase Setup Guide for Juristiv Manual Payment
 
 ## 📋 Overview
-Bu guide JurisAI Manual Payment tizimini Supabase bilan integratsiyalash uchun to'liq yo'riqnoma.
+Bu guide Juristiv Manual Payment tizimini Supabase bilan integratsiyalash uchun to'liq yo'riqnoma.
 
 ---
 
@@ -11,7 +11,7 @@ Bu guide JurisAI Manual Payment tizimini Supabase bilan integratsiyalash uchun t
 1. [Supabase](https://supabase.com) ga kirish
 2. "New Project" tugmasini bosish
 3. Project details:
-   - **Name:** `jurisai-payment`
+   - **Name:** `juristiv-payment`
    - **Database Password:** Murakkab parol yarating
    - **Region:** Eng yaqin regionni tanlang
 4. "Create new project" tugmasini bosish

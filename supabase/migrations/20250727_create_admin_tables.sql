@@ -1,5 +1,5 @@
 -- ============================================================================
--- JURISAI ADMIN PANEL UCHUN SUPABASE JADVALLARI
+-- JURISTIV ADMIN PANEL UCHUN SUPABASE JADVALLARI
 -- Migration: 20250727_create_admin_tables.sql
 -- 
 -- Quyidagi jadvallarni yaratadi:
@@ -74,10 +74,10 @@ CREATE TABLE IF NOT EXISTS site_settings (
   announcement_banner TEXT DEFAULT '',
   hero_title TEXT DEFAULT 'Huquqiy masalalarni AI bilan yeching',
   hero_subtitle TEXT DEFAULT 'O''zbekiston qonunchiligi bo''yicha professional AI yordamchi',
-  contact_email TEXT DEFAULT 'support@jurisai.uz',
+  contact_email TEXT DEFAULT 'support@juristiv.uz',
   contact_phone TEXT DEFAULT '+998 90 123 45 67',
-  telegram_link TEXT DEFAULT 'https://t.me/jurisai_bot',
-  legal_disclaimer TEXT DEFAULT 'JURISAI tomonidan berilgan ma''lumotlar faqat ma''lumot uchun.',
+  telegram_link TEXT DEFAULT 'https://t.me/juristiv_bot',
+  legal_disclaimer TEXT DEFAULT 'JURISTIV tomonidan berilgan ma''lumotlar faqat ma''lumot uchun.',
   system_prompt TEXT DEFAULT '',
   payment_card_number TEXT DEFAULT '',
   payment_details TEXT DEFAULT '',
@@ -86,7 +86,7 @@ CREATE TABLE IF NOT EXISTS site_settings (
 
 -- Default settings qatorini kiritish (faqat bitta, id='default')
 INSERT INTO site_settings (id, announcement_banner, hero_title, hero_subtitle)
-VALUES ('default', 'JURISAI - Huquqiy AI yordamchingiz!', 'Huquqiy masalalarni AI bilan yeching', 'O''zbekiston qonunchiligi bo''yicha professional AI yordamchi')
+VALUES ('default', 'JURISTIV - Huquqiy AI yordamchingiz!', 'Huquqiy masalalarni AI bilan yeching', 'O''zbekiston qonunchiligi bo''yicha professional AI yordamchi')
 ON CONFLICT (id) DO NOTHING;
 
 -- ── 6. PRICING PLANS ──────────────────────────────────────────────────────

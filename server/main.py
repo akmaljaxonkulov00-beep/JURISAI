@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-JurisAI Backend Server
+Juristiv Backend Server
 FastAPI server for AI-powered legal education platform
 """
 
@@ -237,14 +237,14 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
-    logger.info("JurisAI Backend Server Starting...")
+    logger.info("Juristiv Backend Server Starting...")
     
     # Create default user
     if "default_user" not in users_db:
         users_db["default_user"] = {
             "id": "default_user",
             "name": "Demo User",
-            "email": "demo@jurisai.uz",
+            "email": "demo@juristiv.uz",
             "password_hash": get_password_hash("demo123"),
             "role": "student",
             "created_at": datetime.now().isoformat()
@@ -253,10 +253,10 @@ async def lifespan(app: FastAPI):
     yield
     
     # Shutdown
-    logger.info("JurisAI Backend Server Shutting Down...")
+    logger.info("Juristiv Backend Server Shutting Down...")
 
 app = FastAPI(
-    title="JurisAI API",
+    title="Juristiv API",
     description="AI-powered legal education platform API",
     version="1.0.0",
     lifespan=lifespan
@@ -281,7 +281,7 @@ async def health_check():
     """Health check endpoint"""
     return create_response(
         data={"status": "healthy", "timestamp": datetime.now().isoformat()},
-        message="JurisAI API is running"
+        message="Juristiv API is running"
     )
 
 # Authentication endpoints
@@ -698,7 +698,7 @@ async def get_system_stats():
 async def root():
     """Root endpoint"""
     return {
-        "message": "JurisAI API Server",
+        "message": "Juristiv API Server",
         "version": "1.0.0",
         "status": "running",
         "docs": "/docs"

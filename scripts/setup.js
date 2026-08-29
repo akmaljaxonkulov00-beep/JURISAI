@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 
 /**
- * Setup script for JURISAI
+ * Setup script for JURISTIV
  * Initializes project for first-time use
  */
 
 const fs = require('fs')
 const { execSync } = require('child_process')
 
-console.log('🚀 JURISAI Setup Script\n')
+console.log('🚀 JURISTIV Setup Script\n')
 
 function run(command, description) {
   console.log(`\n📦 ${description}...`)

@@ -3,7 +3,7 @@
 // AI API'lariga userId/email yuborish uchun (limit hisobi to'g'ri ishlashi)
 //
 // ═══ ASOSIY MANBA: Supabase session storage (sb-<ref>-auth-token) ═══
-// `jurisai_user`/`auth_user`/`currentUser` localStorage keylari eski
+// `juristiv_user`/`auth_user`/`currentUser` localStorage keylari eski
 // akkauntdan qolib ketishi mumkin (logout ularni o'chirmagan holatlar) —
 // shuning uchun IDENTITY uchun SUPABASE SESSION yagona haqiqiy manba.
 // ═══════════════════════════════════════════════════════════════════════════
@@ -39,9 +39,9 @@ export function getClientUser(): { userId?: string; email?: string } {
   // 2) Fallback: eski saqlangan user ob'ektlari (session bo'lmaganda)
   try {
     const stored =
-      sessionStorage.getItem('jurisai_user') ||
+      sessionStorage.getItem('juristiv_user') ||
       sessionStorage.getItem('auth_user') ||
-      localStorage.getItem('jurisai_user') ||
+      localStorage.getItem('juristiv_user') ||
       localStorage.getItem('auth_user') ||
       localStorage.getItem('currentUser')
     if (stored) {

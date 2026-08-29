@@ -1,5 +1,5 @@
 /**
- * JURISAI LEGAL CODES SEEDER
+ * JURISTIV LEGAL CODES SEEDER
  * 
  * Usage: node scripts/seed-legal-codes.js
  * 
@@ -199,7 +199,7 @@ const LEGAL_CODES = [
 ];
 
 async function seed() {
-  console.log('🚀 JURISAI Legal Codes Seeder\n');
+  console.log('🚀 JURISTIV Legal Codes Seeder\n');
   console.log(`📡 Supabase: ${SUPABASE_URL}\n`);
 
   let insertedCategories = 0;

@@ -1,4 +1,4 @@
-# Multi-stage Docker build for JURISAI
+# Multi-stage Docker build for JURISTIV
 
 # Stage 1: Dependencies
 FROM node:18-alpine AS deps

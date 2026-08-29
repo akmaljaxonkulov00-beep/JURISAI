@@ -2,8 +2,8 @@ import { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "JURISAI - Huquqiy Ta'lim Platformasi",
-    short_name: 'JURISAI',
+    name: "JURISTIV - Huquqiy Ta'lim Platformasi",
+    short_name: 'JURISTIV',
     description:
       "O'zbekiston uchun zamonaviy huquqiy ta'lim platformasi. AI-powered legal analysis, document generation, va boshqalar.",
     start_url: '/',

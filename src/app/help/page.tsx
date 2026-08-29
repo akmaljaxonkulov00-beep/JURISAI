@@ -46,7 +46,7 @@ export default function Help() {
 
   const faqs: FAQ[] = [
     {
-      question: "JURISAI ga qanday ro'yxatdan o'taman?",
+      question: "JURISTIV ga qanday ro'yxatdan o'taman?",
       answer:
         "Bosh sahifadagi \"Ro'yxatdan o'tish\" tugmasini bosing, email va parolingizni kiriting. Google orqali ham tezda ro'yxatdan o'tishingiz mumkin.",
       category: 'getting-started',
@@ -241,7 +241,7 @@ export default function Help() {
               </div>
               <h3 className="font-semibold text-gray-800 dark:text-white mb-1">Email</h3>
               <p className="text-sm text-gray-500 dark:text-gray-400 dark:text-zinc-500">
-                {settings.contactEmail || 'support@jurisai.uz'}
+                {settings.contactEmail || 'support@juristiv.uz'}
               </p>
               <p className="text-xs text-gray-400 dark:text-gray-500 dark:text-zinc-500 mt-1">
                 24/7 qo\'llab-quvvatlash
@@ -269,7 +269,7 @@ export default function Help() {
               </div>
               <h3 className="font-semibold text-gray-800 dark:text-white mb-1">Telegram</h3>
               <p className="text-sm text-gray-500 dark:text-gray-400 dark:text-zinc-500">
-                {settings.telegramLink?.replace('https://t.me/', '@') ?? '@JurisAI_support'}
+                {settings.telegramLink?.replace('https://t.me/', '@') ?? '@Juristiv_support'}
               </p>
               <p className="text-xs text-gray-400 dark:text-gray-500 dark:text-zinc-500 mt-1">
                 Tezkor javob

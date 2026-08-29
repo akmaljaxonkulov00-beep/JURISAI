@@ -2,7 +2,7 @@
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
- * JURISAI LEGAL CODE TXT PARSER & SUPABASE SEEDER
+ * JURISTIV LEGAL CODE TXT PARSER & SUPABASE SEEDER
  * ═══════════════════════════════════════════════════════════════════════════
  *
  * 📋 USAGE:
@@ -380,7 +380,7 @@ async function upsertCodeToSupabase(code) {
 // ── Main ────────────────────────────────────────────────────────────────
 async function main() {
   console.log('══════════════════════════════════════════════════════════');
-  console.log('  JURISAI — Legal Code TXT Parser & Supabase Seeder');
+  console.log('  JURISTIV — Legal Code TXT Parser & Supabase Seeder');
   console.log('══════════════════════════════════════════════════════════\n');
 
   // Load env

@@ -154,7 +154,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const SYSTEM_BASE = `You are JurisAI — the leading expert AI Legal Assistant strictly specialized in the COMPLETE legislation of the Republic of Uzbekistan (O'zbekiston Respublikasi Qonunchiligi).
+    const SYSTEM_BASE = `You are Juristiv — the leading expert AI Legal Assistant strictly specialized in the COMPLETE legislation of the Republic of Uzbekistan (O'zbekiston Respublikasi Qonunchiligi).
 
 DOIMIY ISHTIROKCHILAR (constant participant names — always use these):
 - Prokuror: Akbar Toshmatov
@@ -336,7 +336,7 @@ ESLATMA: Faqat hozir gapirishi KERAK bo'lgan rollarni formatga kirit. Boshqa rol
   let simulationId = 'sim_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6)
   if (userId) {
     try {
-      const { data: sessionRow, error: sErr } = await supabase
+      const { data: sessionRows, error: sErr } = await supabase
         .from('court_sessions')
         .insert({
           user_id: userId,
@@ -346,7 +346,8 @@ ESLATMA: Faqat hozir gapirishi KERAK bo'lgan rollarni formatga kirit. Boshqa rol
           status: 'active',
         })
         .select('id')
-        .single()
+
+      const sessionRow = Array.isArray(sessionRows) ? sessionRows[0] : (sessionRows as any)
       if (!sErr && sessionRow?.id) simulationId = sessionRow.id
     } catch (e) {
       console.error('court session save error:', e)

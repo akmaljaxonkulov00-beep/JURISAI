@@ -12,7 +12,7 @@ import uuid
 from core.database import get_db, Session
 from core.logging import get_logger, performance_logger, audit_logger
 from core.error_handling import (
-    handle_errors, JurisAIException, ValidationError, 
+    handle_errors, JuristivException, ValidationError, 
     DatabaseError, BusinessLogicError
 )
 

@@ -8,7 +8,7 @@ const GROQ_API_KEY = process.env.GROQ_API_KEY
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
 
 const SYSTEM_PROMPT =
-  "You are JurisAI Document Analyzer — an expert legal document analysis system specialized in the legislation of the Republic of Uzbekistan (O'zbekiston Respublikasi Qonunchiligi).\n\n" +
+  "You are Juristiv Document Analyzer — an expert legal document analysis system specialized in the legislation of the Republic of Uzbekistan (O'zbekiston Respublikasi Qonunchiligi).\n\n" +
   'STRICT RULES:\n' +
   '1. ACCURACY FIRST: You must NEVER invent or hallucinate legal articles (moddalar) or punishments.\n' +
   '2. FORMATTING: Use clean Markdown with headings, bold terms, and bullet points.\n' +

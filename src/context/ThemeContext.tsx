@@ -18,7 +18,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     setMounted(true)
-    const stored = localStorage.getItem('jurisai-theme')
+    const stored = localStorage.getItem('juristiv-theme')
     if (stored === 'dark') {
       setDark(true)
       document.documentElement.classList.add('dark')
@@ -36,10 +36,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       const next = !prev
       if (next) {
         document.documentElement.classList.add('dark')
-        localStorage.setItem('jurisai-theme', 'dark')
+        localStorage.setItem('juristiv-theme', 'dark')
       } else {
         document.documentElement.classList.remove('dark')
-        localStorage.setItem('jurisai-theme', 'light')
+        localStorage.setItem('juristiv-theme', 'light')
       }
       return next
     })

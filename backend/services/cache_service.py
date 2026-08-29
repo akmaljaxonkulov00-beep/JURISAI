@@ -1,5 +1,5 @@
 """
-Cache Service - Advanced caching system for JurisAI platform
+Cache Service - Advanced caching system for Juristiv platform
 """
 
 import asyncio
@@ -16,7 +16,7 @@ import time
 from collections import OrderedDict
 
 from core.logging import get_logger, performance_logger
-from core.error_handling import handle_errors, JurisAIException
+from core.error_handling import handle_errors, JuristivException
 
 logger = get_logger(__name__)
 
@@ -109,7 +109,7 @@ class MemoryCache:
             
             # Check memory limit
             if size_bytes > self.max_memory_bytes:
-                raise JurisAIException(
+                raise JuristivException(
                     "Value too large for cache",
                     error_code="CACHE_VALUE_TOO_LARGE"
                 )

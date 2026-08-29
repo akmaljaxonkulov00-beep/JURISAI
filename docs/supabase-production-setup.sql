@@ -1,4 +1,4 @@
--- Supabase Production Setup for JurisAI Legal Platform
+-- Supabase Production Setup for Juristiv Legal Platform
 -- This SQL script sets up the database structure for production
 
 -- Enable necessary extensions
@@ -443,9 +443,9 @@ INSERT INTO legal_categories (name, description, document_type, document_count) 
 
 -- Insert default system settings
 INSERT INTO system_settings (key, value, type, description, is_public) VALUES
-('site_name', 'JurisAI', 'STRING', 'Sayt nomi', true),
+('site_name', 'Juristiv', 'STRING', 'Sayt nomi', true),
 ('site_description', 'Yuridik AI platformasi', 'STRING', 'Sayt tasnifi', true),
-('contact_email', 'info@jurisai.uz', 'STRING', 'Aloqa email', true),
+('contact_email', 'info@juristiv.uz', 'STRING', 'Aloqa email', true),
 ('maintenance_mode', 'false', 'BOOLEAN', 'Texnik xizmat rejimi', false),
 ('max_ai_requests_daily', '100', 'INTEGER', 'Kunlik AI so''rovlar limiti', false),
 ('enable_registration', 'true', 'BOOLEAN', 'Ro''yxatdan o''tish yoqilgan', false);

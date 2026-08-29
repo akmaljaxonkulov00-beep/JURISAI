@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     """Application settings"""
     
     # Application
-    APP_NAME: str = "JurisAI Legal Education Platform"
+    APP_NAME: str = "Juristiv Legal Education Platform"
     APP_VERSION: str = "1.0.0"
     DEBUG: bool = Field(default=False, env="DEBUG")
     ENVIRONMENT: str = Field(default="development", env="ENVIRONMENT")
@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     
     # Database
     DATABASE_URL: str = Field(
-        default="sqlite:///./jurisai.db",
+        default="sqlite:///./juristiv.db",
         env="DATABASE_URL"
     )
     DB_ECHO: bool = Field(default=False, env="DB_ECHO")
@@ -42,8 +42,8 @@ class Settings(BaseSettings):
     ALLOWED_ORIGINS: list[str] = Field(
         default=[
             "http://localhost:3000",
-            "https://jurisai.uz",
-            "https://www.jurisai.uz"
+            "https://juristiv.uz",
+            "https://www.juristiv.uz"
         ],
         env="ALLOWED_ORIGINS"
     )

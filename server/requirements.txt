@@ -1,4 +1,4 @@
-# JurisAI Backend Requirements - Minimal for testing
+# Juristiv Backend Requirements - Minimal for testing
 
 # Core Framework
 fastapi==0.104.1

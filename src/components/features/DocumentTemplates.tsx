@@ -242,7 +242,7 @@ export default function DocumentTemplates() {
 
         // Footer
         y -= 20
-        drawText(`JurisAI — ${template.name}`, { size: 8 })
+        drawText(`Juristiv — ${template.name}`, { size: 8 })
 
         const pdfBytes = await doc.save()
         const blob = new Blob([pdfBytes as unknown as BlobPart], { type: 'application/pdf' })

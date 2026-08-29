@@ -82,7 +82,7 @@ export default function LandingPage() {
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center">
               <Shield className="w-8 h-8 text-blue-600 mr-3" />
-              <span className="text-xl font-bold text-gray-900 dark:text-zinc-100">JURISAI</span>
+              <span className="text-xl font-bold text-gray-900 dark:text-zinc-100">JURISTIV</span>
             </div>
             <nav className="hidden md:flex space-x-8">
               <a
@@ -135,7 +135,7 @@ export default function LandingPage() {
               <span className="text-blue-600"> zamonaviy darajaga olib chiqing</span>
             </h1>
             <p className="text-xl text-gray-600 dark:text-zinc-400 mb-8 max-w-3xl mx-auto">
-              JURISAI - bu O\'zbekiston advokatlari uchun mo\'ljallangan zamonaviy platforma.
+              JURISTIV - bu O\'zbekiston advokatlari uchun mo\'ljallangan zamonaviy platforma.
               Mijozlar bazasini boshqaring, AI yordamida hujjatlarni tahliling va biznesingizni
               o\'stiring.
             </p>
@@ -162,7 +162,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 dark:text-zinc-100 mb-4">
-              Nima uchun JURISAI?
+              Nima uchun JURISTIV?
             </h2>
             <p className="text-xl text-gray-600 dark:text-zinc-400">
               Advokatlar uchun yaratilgan to\'liq funksional platforma
@@ -310,7 +310,7 @@ export default function LandingPage() {
             <div>
               <div className="flex items-center mb-4">
                 <Shield className="w-8 h-8 text-blue-400 mr-3" />
-                <span className="text-xl font-bold">JURISAI</span>
+                <span className="text-xl font-bold">JURISTIV</span>
               </div>
               <p className="text-gray-400 dark:text-zinc-500">
                 O\'zbekiston advokatlari uchun zamonaviy platforma
@@ -364,7 +364,7 @@ export default function LandingPage() {
               <ul className="space-y-2 text-gray-400 dark:text-zinc-500">
                 <li className="flex items-center">
                   <Mail className="w-4 h-4 mr-2" />
-                  info@jurisai.uz
+                  info@juristiv.uz
                 </li>
                 <li className="flex items-center">
                   <Phone className="w-4 h-4 mr-2" />
@@ -379,7 +379,7 @@ export default function LandingPage() {
           </div>
 
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400 dark:text-zinc-500">
-            <p>&copy; 2024 JURISAI. Barcha huquqlar himoyalangan.</p>
+            <p>&copy; 2024 JURISTIV. Barcha huquqlar himoyalangan.</p>
           </div>
         </div>
       </footer>

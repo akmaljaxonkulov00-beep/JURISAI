@@ -1,6 +1,6 @@
 /**
  * ═══════════════════════════════════════════════════════════════════════════
- * JURISAI — Authentication Service
+ * JURISTIV — Authentication Service
  *
  * NOW USING: Supabase Auth (previously Firebase Auth)
  * The API interface remains the same so NO importing component needs changes.
@@ -36,11 +36,11 @@ function checkIsAdmin(user: AuthUser): boolean {
 }
 
 export function setAdminEmail(email: string) {
-  localStorage.setItem('jurisai_admin_email', email)
+  localStorage.setItem('juristiv_admin_email', email)
 }
 
 export function getAdminEmail(): string | null {
-  return localStorage.getItem('jurisai_admin_email')
+  return localStorage.getItem('juristiv_admin_email')
 }
 
 export function ensureSuperAdmin(user: AuthUser): AuthUser {
@@ -260,11 +260,11 @@ function saveUserToLocal(user: AuthUser) {
     created_at: new Date().toISOString(),
     last_login: new Date().toISOString(),
   }
-  sessionStorage.setItem('jurisai_user', JSON.stringify(userWithMeta))
+  sessionStorage.setItem('juristiv_user', JSON.stringify(userWithMeta))
   sessionStorage.setItem('auth_user', JSON.stringify(userWithMeta))
   sessionStorage.setItem('auth_token', user.id)
   if (typeof document !== 'undefined') {
-    document.cookie = `jurisai_auth=1; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax`
+    document.cookie = `juristiv_auth=1; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax`
   }
 
   // Supabase session tokenlarini cookie'ga sinxronlaymiz — server-side
@@ -337,7 +337,7 @@ function clearUserFromLocal() {
   // Har ikkala storage'dan barcha identity keylarni tozalaymiz —
   // aks holda eski akkaunt ma'lumoti localStorage'da qolib, boshqa
   // akkaunt kirganda "egasi men" kabi chalkashliklar yuzaga keladi.
-  for (const key of ['jurisai_user', 'auth_user', 'currentUser', 'auth_token']) {
+  for (const key of ['juristiv_user', 'auth_user', 'currentUser', 'auth_token']) {
     sessionStorage.removeItem(key)
     localStorage.removeItem(key)
   }
@@ -502,7 +502,7 @@ export async function signOut(): Promise<void> {
     if (typeof window !== 'undefined') {
       clearUserFromLocal()
       // Clear cookie
-      document.cookie = 'jurisai_auth=; path=/; max-age=0; SameSite=Lax'
+      document.cookie = 'juristiv_auth=; path=/; max-age=0; SameSite=Lax'
       clearSessionCookies()
       window.location.href = '/signin'
     }
@@ -627,7 +627,7 @@ export async function changeEmail(
 
 export function getCurrentUser(): AuthUser | null {
   if (typeof window === 'undefined') return null
-  const stored = sessionStorage.getItem('jurisai_user') || sessionStorage.getItem('auth_user')
+  const stored = sessionStorage.getItem('juristiv_user') || sessionStorage.getItem('auth_user')
   if (stored) {
     try {
       return JSON.parse(stored)

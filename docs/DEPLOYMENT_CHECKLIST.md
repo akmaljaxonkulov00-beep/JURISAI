@@ -226,12 +226,12 @@ alembic downgrade -1
 
 ### Status Page
 - Setup: https://statuspage.io
-- Show: https://status.jurisai.uz
+- Show: https://status.juristiv.uz
 
 ### Documentation
-- User Guide: https://docs.jurisai.uz
-- API Docs: https://api.jurisai.uz/docs
-- Help Center: https://help.jurisai.uz
+- User Guide: https://docs.juristiv.uz
+- API Docs: https://api.juristiv.uz/docs
+- Help Center: https://help.juristiv.uz
 
 ## Success Criteria
 

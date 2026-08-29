@@ -13,7 +13,7 @@ from enum import Enum
 from pathlib import Path
 
 from core.logging import get_logger, performance_logger
-from core.error_handling import handle_errors, JurisAIException, BusinessLogicError
+from core.error_handling import handle_errors, JuristivException, BusinessLogicError
 from services.ai_service import AIService, AIRequest, AIModelType
 
 logger = get_logger(__name__)
@@ -448,7 +448,7 @@ _____________________
             
             # Check required fields
             if field.required and (value is None or value == ""):
-                raise JurisAIException(
+                raise JuristivException(
                     f"Required field '{field.name}' is missing",
                     error_code="REQUIRED_FIELD_MISSING"
                 )
@@ -462,7 +462,7 @@ _____________________
                 try:
                     float(value)
                 except (ValueError, TypeError):
-                    raise JurisAIException(
+                    raise JuristivException(
                         f"Field '{field.name}' must be a number",
                         error_code="INVALID_FIELD_TYPE"
                     )
@@ -470,19 +470,19 @@ _____________________
                 try:
                     datetime.strptime(value, "%Y-%m-%d")
                 except ValueError:
-                    raise JurisAIException(
+                    raise JuristivException(
                         f"Field '{field.name}' must be a valid date (YYYY-MM-DD)",
                         error_code="INVALID_FIELD_TYPE"
                     )
             elif field.field_type == "boolean":
                 if str(value).lower() not in ["true", "false", "1", "0", "yes", "no"]:
-                    raise JurisAIException(
+                    raise JuristivException(
                         f"Field '{field.name}' must be a boolean value",
                         error_code="INVALID_FIELD_TYPE"
                     )
             elif field.field_type == "choice":
                 if field.choices and value not in field.choices:
-                    raise JurisAIException(
+                    raise JuristivException(
                         f"Field '{field.name}' must be one of: {', '.join(field.choices)}",
                         error_code="INVALID_FIELD_CHOICE"
                     )
@@ -490,7 +490,7 @@ _____________________
             # Regex validation
             if field.validation_regex and value:
                 if not re.match(field.validation_regex, str(value)):
-                    raise JurisAIException(
+                    raise JuristivException(
                         f"Field '{field.name}' does not match required format",
                         error_code="INVALID_FIELD_FORMAT"
                     )

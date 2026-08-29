@@ -1,11 +1,11 @@
 import { Metadata } from 'next'
 
 export const siteConfig = {
-  name: 'JURISAI',
-  title: "JURISAI - O'zbekiston Yuridik AI Platformasi",
+  name: 'JURISTIV',
+  title: "JURISTIV - O'zbekiston Yuridik AI Platformasi",
   description:
     "O'zbekistonning eng rivojlangan yuridik AI yordamchisi. IRAC tahlili, hujjat generatsiyasi, qonunlar bazasi va professional maslahat.",
-  url: 'https://jurisai.uz',
+  url: 'https://juristiv.uz',
   ogImage: '/og-image.jpg',
   keywords: [
     'yuridik ai',
@@ -46,12 +46,12 @@ export const siteConfig = {
   ],
   authors: [
     {
-      name: 'JURISAI Team',
-      url: 'https://jurisai.uz',
+      name: 'JURISTIV Team',
+      url: 'https://juristiv.uz',
     },
   ],
-  creator: 'JURISAI',
-  publisher: 'JURISAI',
+  creator: 'JURISTIV',
+  publisher: 'JURISTIV',
   robots: 'index, follow',
   verification: {
     google: 'your-google-verification-code',
@@ -110,7 +110,7 @@ export function generateSEOMetadata({
       title: metaTitle,
       description: metaDescription,
       images: [metaImage],
-      creator: '@jurisai_uz',
+      creator: '@juristiv_uz',
     },
     verification: siteConfig.verification,
     alternates: {
@@ -128,8 +128,8 @@ export function generateSEOMetadata({
       'article:author': siteConfig.authors[0].name,
       'article:section': 'Technology',
       'article:tag': metaKeywords,
-      'twitter:site': '@jurisai_uz',
-      'twitter:creator': '@jurisai_uz',
+      'twitter:site': '@juristiv_uz',
+      'twitter:creator': '@juristiv_uz',
       'geo.region': 'UZ',
       'geo.placename': 'Uzbekistan',
       'geo.position': '41.3775;64.8912',
@@ -143,7 +143,7 @@ export const pageMetadata = {
   home: {
     title: 'Bosh Sahifa',
     description:
-      "JURISAI - O'zbekistonning yetakchi yuridik AI platformasi. IRAC tahlili, hujjat generatsiyasi, qonunlar bazasi va professional maslahat.",
+      "JURISTIV - O'zbekistonning yetakchi yuridik AI platformasi. IRAC tahlili, hujjat generatsiyasi, qonunlar bazasi va professional maslahat.",
     keywords: ['yuridik ai', 'huquqiy yordamchi', "o'zbekiston qonunlari", 'irac tahlili'],
   },
   dashboard: {
@@ -159,12 +159,12 @@ export const pageMetadata = {
   },
   signup: {
     title: "Ro'yxatdan o'tish",
-    description: "JURISAI platformasiga ro'yxatdan o'ting. 7 kun bepul sinov.",
+    description: "JURISTIV platformasiga ro'yxatdan o'ting. 7 kun bepul sinov.",
     keywords: ["ro'yxatdan o'tish", 'registratsiya', 'bepul sinov', 'account'],
   },
   signin: {
     title: 'Kirish',
-    description: 'JURISAI platformasiga kirish. Shaxsiy kabinetga kirish.',
+    description: 'JURISTIV platformasiga kirish. Shaxsiy kabinetga kirish.',
     keywords: ['kirish', 'login', 'auth', 'authentication'],
   },
   irac: {

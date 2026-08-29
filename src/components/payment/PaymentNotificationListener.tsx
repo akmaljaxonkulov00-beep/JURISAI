@@ -26,7 +26,7 @@ export function usePaymentNotifications() {
     // Get current user email from stored session
     let currentUserEmail = ''
     try {
-      const stored = sessionStorage.getItem('jurisai_user') || sessionStorage.getItem('auth_user')
+      const stored = sessionStorage.getItem('juristiv_user') || sessionStorage.getItem('auth_user')
       if (stored) {
         const user = JSON.parse(stored)
         currentUserEmail = user?.email || ''

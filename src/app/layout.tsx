@@ -23,7 +23,7 @@ const googleSans = Poppins({
 export const metadata: Metadata = generateSEOMetadata({
   title: 'Bosh Sahifa',
   description:
-    "JURISAI - O'zbekistonning yetakchi yuridik AI platformasi. IRAC tahlili, hujjat generatsiyasi, qonunlar bazasi va professional maslahat.",
+    "JURISTIV - O'zbekistonning yetakchi yuridik AI platformasi. IRAC tahlili, hujjat generatsiyasi, qonunlar bazasi va professional maslahat.",
   keywords: ['yuridik ai', 'huquqiy yordamchi', "o'zbekiston qonunlari", 'irac tahlili'],
 })
 

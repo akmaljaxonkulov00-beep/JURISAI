@@ -10,7 +10,7 @@ interface HeaderProps {
 }
 
 export default function Header({
-  title = 'JurisAI',
+  title = 'Juristiv',
   subtitle = "Huquqiy ta'lim platformasi",
   showSearch = true,
   showNotifications = true,

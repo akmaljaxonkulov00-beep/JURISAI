@@ -80,7 +80,7 @@ Qo'shimcha maslahat uchun advokat bilan maslahatlashingni tavsiya etaman.`
       } else {
         assistantContent = `Sizning savolingizga javoban:
 
-JurisAI platformasi O'zbekiston huquqiy tizimi bo'yicha zamonaviy ta'lim va tahlil vositalarini taklif etadi. Platformamiz orqali quyidagi xizmatlardan foydalanishingiz mumkin:
+Juristiv platformasi O'zbekiston huquqiy tizimi bo'yicha zamonaviy ta'lim va tahlil vositalarini taklif etadi. Platformamiz orqali quyidagi xizmatlardan foydalanishingiz mumkin:
 
 DOT **IRAC tahlili** - Huquqiy ishlarni xalqaro standartlar bo'yicha tahlil qiling
 DOT **AI yordamchi** - Huquqiy masalalarda sun'iy intellekt yordamini oling  

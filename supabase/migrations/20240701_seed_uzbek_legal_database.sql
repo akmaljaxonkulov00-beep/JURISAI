@@ -1,5 +1,5 @@
 -- ============================================================
--- JURISAI — Uzbekistan Legal Database Seed Script
+-- JURISTIV — Uzbekistan Legal Database Seed Script
 -- O'zbekiston Respublikasi Qonunchiligi asosiy kodifikatsiyalari
 -- ============================================================
 -- Run this in Supabase SQL Editor after migrations are applied.
