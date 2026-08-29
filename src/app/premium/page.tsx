@@ -200,17 +200,6 @@ export default function Premium() {
               Professional huquqchilar va talabalar uchun zamonaviy AI yordamchisi. Vaqtingizni
               tejang, samaradorlikni oshiring.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/manual-payment?plan=bepul&amount=0">
-                <Button
-                  size="lg"
-                  className="bg-white dark:bg-zinc-900 text-blue-600 hover:bg-gray-100 dark:bg-zinc-800/30"
-                >
-                  Bepul sinab ko'rish
-                  <ArrowRight className="w-5 h-5 ml-2" />
-                </Button>
-              </Link>
-            </div>
           </div>
         </div>
       </div>
@@ -459,24 +448,6 @@ export default function Premium() {
               </Card>
             ))}
           </div>
-        </div>
-        {/* CTA Section */}{' '}
-        <div className="bg-gradient-to-r from-blue-600 to-green-600 rounded-2xl p-8 md:p-12 text-center text-white">
-          <h2 className="text-2xl md:text-3xl font-bold mb-3 md:mb-4">
-            Huquqiy faoliyatingizni yangi bosqichga oshiring
-          </h2>
-          <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-            14 kunlik bepul sinov muddati bilan boshlang. Hech qanday majburiyat yo'q.
-          </p>
-          <Link href="/manual-payment?plan=standart&amount=45000">
-            <Button
-              size="lg"
-              className="bg-white dark:bg-zinc-900 text-blue-600 hover:bg-gray-100 dark:bg-zinc-800/30"
-            >
-              Standart rejani tanlash
-              <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
-          </Link>
         </div>
       </div>
     </div>
