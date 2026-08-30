@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/Badge'
 import { ArrowLeft, Crown, Check, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 import { useLanguage } from '@/context/LanguageContext'
+import FeatureInstructions from '@/components/ui/FeatureInstructions'
 
 interface SubscriptionPlan {
   id: string

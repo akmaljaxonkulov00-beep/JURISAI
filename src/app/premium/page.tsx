@@ -18,6 +18,7 @@ import {
 import Link from 'next/link'
 import { getPricingPlans, type PricingPlan } from '@/lib/settings-sync'
 import { usePricingRealtime } from '@/hooks/usePricingRealtime'
+import FeatureInstructions from '@/components/ui/FeatureInstructions'
 
 // Har bir funksiya bo'yicha tarif limitlari (Premium matritsasi uchun)
 const FEATURE_MATRIX: { key: string; label: string }[] = [

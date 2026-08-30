@@ -22,6 +22,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { useSiteSettings } from '@/hooks/useSiteSettings'
+import FeatureInstructions from '@/components/ui/FeatureInstructions'
 
 interface FAQ {
   question: string

@@ -23,6 +23,7 @@ import {
   TrendingUp,
   Play,
 } from 'lucide-react'
+import FeatureInstructions from '@/components/ui/FeatureInstructions'
 
 interface Msg {
   id: string
@@ -809,6 +810,40 @@ Eslatma: Tomonlarni tinglang, ularga kelishuvga erishishga yordam bering va nizo
             >
               <ArrowLeft size={16} /> Orqaga
             </button>
+            <FeatureInstructions
+              featureName="Virtual Sud"
+              steps={[
+                {
+                  title: 'Ishni tanlang',
+                  description:
+                    "Tayyor ish shablonlaridan birini tanlang yoki o'zingizning ishingizni kiriting.",
+                  icon: '📋',
+                },
+                {
+                  title: 'Rolni tanlang',
+                  description:
+                    'Sudya, prokuror, advokat yoki sudlanuvchi rolini tanlang. Siz tanlagan roldan foydalaning.',
+                  icon: '👤',
+                },
+                {
+                  title: 'Ovoz bilan gapiring',
+                  description:
+                    'Mikrofon tugmasini bosib ovozli gapiring. AI barcha rollar nomidan javob beradi.',
+                  icon: '🎙️',
+                },
+                {
+                  title: 'Hukm chiqaring',
+                  description:
+                    "Sud jarayoni tugagach, hukm chiqaring yoki AI tomonidan baholashni so'ring.",
+                  icon: '⚖️',
+                },
+              ]}
+              tips={[
+                "Har bir foydalanuvchi o'z roli bilan gaplashadi",
+                'AI boshqa rollar nomidan real javob beradi',
+                'Sessiya tugagach ball va tahlil olishingiz mumkin',
+              ]}
+            />
             <div
               style={{
                 background: '#EDE9FE',

@@ -26,6 +26,7 @@ import {
 import { api } from '@/services/api'
 import { AnalysisSkeleton } from '@/components/ui/AnalysisSkeleton'
 import { AnalysisError, getErrorMessage, getErrorContext } from '@/components/ui/AnalysisError'
+import FeatureInstructions from '@/components/ui/FeatureInstructions'
 
 interface ActivityRecord {
   id: string
