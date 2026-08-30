@@ -110,6 +110,32 @@ export default function Billing() {
   if (loading) {
     return (
       <div className="min-h-screen bg-page-custom flex items-center justify-center">
+        <FeatureInstructions
+          featureName="Tolov"
+          steps={[
+            {
+              title: 'Joriy tarifingizni tekshiring',
+              description:
+                'Sizning hozirgi tarifingiz, muddati va limitlaringiz haqida malumot oling.',
+              icon: '📋',
+            },
+            {
+              title: 'Tarifni yangilang',
+              description: 'Yangi tarifga otish uchun Premium sahifasiga oting.',
+              icon: '⬆️',
+            },
+            {
+              title: 'Tolovni amalga oshiring',
+              description: 'Karta orqali yoki naqd pul orqali tolovni amalga oshiring.',
+              icon: '💳',
+            },
+          ]}
+          tips={[
+            "Tolov muvaffaqiyatli amalga oshirilgandan so'ng tarif avtomatik yangilanadi",
+            "Qo'shimcha savollaringiz bo'lsa, qo'llab-quvvatlash xizmatiga murojaat qiling",
+          ]}
+        />
+
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-gray-500 dark:text-gray-400 dark:text-zinc-500">Yuklanmoqda...</p>
