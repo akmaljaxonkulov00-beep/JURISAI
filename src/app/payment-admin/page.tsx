@@ -275,7 +275,12 @@ export default function PaymentAdmin() {
           </div>
           <div className="flex items-center gap-2">
             <Badge className="bg-blue-100 text-blue-800">
-              {filteredPayments.filter(p => p.status === 'pending').length} kutilmoqda
+              {
+                (Array.isArray(filteredPayments) ? filteredPayments : []).filter(
+                  p => p.status === 'pending'
+                ).length
+              }{' '}
+              kutilmoqda
             </Badge>
           </div>
         </div>
@@ -308,21 +313,36 @@ export default function PaymentAdmin() {
                   onClick={() => setStatusFilter('pending')}
                   size="sm"
                 >
-                  Kutilmoqda ({payments.filter(p => p.status === 'pending').length})
+                  Kutilmoqda (
+                  {
+                    (Array.isArray(payments) ? payments : []).filter(p => p.status === 'pending')
+                      .length
+                  }
+                  )
                 </Button>
                 <Button
                   variant={statusFilter === 'approved' ? 'default' : 'outline'}
                   onClick={() => setStatusFilter('approved')}
                   size="sm"
                 >
-                  Tasdiqlangan ({payments.filter(p => p.status === 'approved').length})
+                  Tasdiqlangan (
+                  {
+                    (Array.isArray(payments) ? payments : []).filter(p => p.status === 'approved')
+                      .length
+                  }
+                  )
                 </Button>
                 <Button
                   variant={statusFilter === 'rejected' ? 'default' : 'outline'}
                   onClick={() => setStatusFilter('rejected')}
                   size="sm"
                 >
-                  Rad etilgan ({payments.filter(p => p.status === 'rejected').length})
+                  Rad etilgan (
+                  {
+                    (Array.isArray(payments) ? payments : []).filter(p => p.status === 'rejected')
+                      .length
+                  }
+                  )
                 </Button>
               </div>
             </div>

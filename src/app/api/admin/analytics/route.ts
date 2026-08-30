@@ -124,12 +124,12 @@ export async function GET(request: NextRequest) {
           // registered_users has data — use it directly
           result.users = users
           result.totalUsers = users.length
-          const newUsers = users.filter((u: UserRow) => {
+          const newUsers = (Array.isArray(users) ? users : []).filter((u: UserRow) => {
             const created = u.created_at || u.last_login
             return created && new Date(created) >= cutoff
           })
           result.newUsers = newUsers.length
-          const prevNewUsers = users.filter((u: UserRow) => {
+          const prevNewUsers = (Array.isArray(users) ? users : []).filter((u: UserRow) => {
             const created = u.created_at || u.last_login
             return created && new Date(created) >= prevCutoff && new Date(created) < cutoff
           })
@@ -137,7 +137,7 @@ export async function GET(request: NextRequest) {
             prevNewUsers.length > 0
               ? Math.round(((newUsers.length - prevNewUsers.length) / prevNewUsers.length) * 100)
               : 0
-          const premiumUsers = users.filter(
+          const premiumUsers = (Array.isArray(users) ? users : []).filter(
             (u: UserRow) => u.subscription_plan && u.subscription_plan !== 'free'
           )
           result.premiumUsers = premiumUsers.length
@@ -243,13 +243,17 @@ export async function GET(request: NextRequest) {
           .limit(50)
         if (!paymentsError && payments) {
           result.paymentRequests = payments
-          const approvedPayments = payments.filter((p: PaymentRow) => p.status === 'approved')
+          const approvedPayments = (Array.isArray(payments) ? payments : []).filter(
+            (p: PaymentRow) => p.status === 'approved'
+          )
           const totalRevenue = approvedPayments.reduce(
             (sum: number, p: PaymentRow) => sum + (p.amount || 0),
             0
           )
           result.totalRevenue = totalRevenue
-          result.pendingCount = payments.filter((p: PaymentRow) => p.status === 'pending').length
+          result.pendingCount = (Array.isArray(payments) ? payments : []).filter(
+            (p: PaymentRow) => p.status === 'pending'
+          ).length
           result.approvedCount = approvedPayments.length
         } else if (paymentsError) {
           result.paymentsError = paymentsError.message

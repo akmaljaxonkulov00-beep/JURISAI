@@ -2148,11 +2148,14 @@ export default function Community() {
                       <div className="flex items-center justify-between mb-3">
                         <h3 className="text-sm font-semibold text-gray-700 dark:text-zinc-300 flex items-center gap-2">
                           <Users className="w-4 h-4 text-blue-500" /> Guruh bildirishnomalari
-                          {groupNotifs.filter(n => !n.read).length > 0 && (
-                            <span className="px-1.5 py-0.5 bg-red-500 text-white rounded-full text-[10px] leading-none">
-                              {groupNotifs.filter(n => !n.read).length}
-                            </span>
-                          )}
+                          {Array.isArray(groupNotifs) &&
+                            groupNotifs.filter(n => !n.read).length > 0 && (
+                              <span className="px-1.5 py-0.5 bg-red-500 text-white rounded-full text-[10px] leading-none">
+                                {Array.isArray(groupNotifs)
+                                  ? groupNotifs.filter(n => !n.read).length
+                                  : 0}
+                              </span>
+                            )}
                         </h3>
                         {Array.isArray(groupNotifs) && groupNotifs.some(n => !n.read) && (
                           <button
@@ -2493,7 +2496,7 @@ export default function Community() {
   // ── Groups Tab ──────────────────────────────────────────────────────
   if (activeTab === 'groups') {
     // Postlarni daraxtga ajratamiz (asosiy xabarlar + ularning javoblari)
-    const topGroupPosts = groupPosts.filter(p => !p.parent_id)
+    const topGroupPosts = (Array.isArray(groupPosts) ? groupPosts : []).filter(p => !p.parent_id)
     const groupRepliesByParent: Record<string, GroupPost[]> = {}
     for (const p of groupPosts) {
       if (p.parent_id) {
@@ -3337,12 +3340,14 @@ export default function Community() {
                           className={`px-3 py-1.5 text-xs font-medium rounded-t-lg transition-colors flex items-center gap-1 ${roomTab === 'requests' ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-b-2 border-blue-500' : 'text-gray-500 dark:text-zinc-400 hover:text-gray-700 dark:hover:text-zinc-200'}`}
                         >
                           🔔 So'rovlar
-                          {groupRequests.filter((r: GroupRequest) => r.status === 'pending')
-                            .length > 0 && (
+                          {(Array.isArray(groupRequests) ? groupRequests : []).filter(
+                            (r: GroupRequest) => r.status === 'pending'
+                          ).length > 0 && (
                             <span className="px-1.5 py-0.5 bg-red-500 text-white rounded-full text-[9px] leading-none">
                               {
-                                groupRequests.filter((r: GroupRequest) => r.status === 'pending')
-                                  .length
+                                (Array.isArray(groupRequests) ? groupRequests : []).filter(
+                                  (r: GroupRequest) => r.status === 'pending'
+                                ).length
                               }
                             </span>
                           )}
@@ -3683,15 +3688,21 @@ export default function Community() {
                   <div className="border-t border-gray-200 dark:border-zinc-800 p-3 max-h-52 overflow-y-auto">
                     <p className="text-xs font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-1">
                       🔔 So'rovlar
-                      {groupRequests.filter((r: GroupRequest) => r.status === 'pending').length >
-                        0 && (
+                      {(Array.isArray(groupRequests) ? groupRequests : []).filter(
+                        (r: GroupRequest) => r.status === 'pending'
+                      ).length > 0 && (
                         <span className="px-1.5 py-0.5 bg-red-500 text-white rounded-full text-[9px] leading-none">
-                          {groupRequests.filter((r: GroupRequest) => r.status === 'pending').length}
+                          {
+                            (Array.isArray(groupRequests) ? groupRequests : []).filter(
+                              (r: GroupRequest) => r.status === 'pending'
+                            ).length
+                          }
                         </span>
                       )}
                     </p>
-                    {groupRequests.filter((r: GroupRequest) => r.status === 'pending').length ===
-                    0 ? (
+                    {(Array.isArray(groupRequests) ? groupRequests : []).filter(
+                      (r: GroupRequest) => r.status === 'pending'
+                    ).length === 0 ? (
                       <p className="text-[11px] text-gray-400 dark:text-zinc-500">
                         Yangi so'rovlar yo'q
                       </p>

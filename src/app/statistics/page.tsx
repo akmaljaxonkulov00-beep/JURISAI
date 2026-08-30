@@ -240,7 +240,7 @@ export default function Statistics() {
           } catch {
             // identity olinmasa — id orqali filtr ishlamaydi, hammasi qo'shiladi
           }
-          supabaseUsers = data.filter(u => u.id !== myId)
+          supabaseUsers = (Array.isArray(data) ? data : []).filter(u => u.id !== myId)
         }
       } catch {
         // Supabase mavjud emas — leaderboard faqat joriy foydalanuvchi bilan qoladi

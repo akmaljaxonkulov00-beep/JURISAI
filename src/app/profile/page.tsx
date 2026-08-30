@@ -170,7 +170,7 @@ function ProfileContent() {
       : ''
 
   // Filter this user's payment requests from sync data
-  const userPayments = sync.paymentRequests
+  const userPayments = (Array.isArray(sync.paymentRequests) ? sync.paymentRequests : [])
     .filter(p => p.userEmail === currentUserEmail || p.userId === currentUserEmail)
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 

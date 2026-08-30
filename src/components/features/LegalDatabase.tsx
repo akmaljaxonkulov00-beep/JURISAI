@@ -297,7 +297,9 @@ export default function LegalDatabase() {
     }
 
     // Faol bob + qidiruv filtrini birga qo'llaymiz
-    const filteredArticles = selectedCode.articles.filter(a => {
+    const filteredArticles = (
+      Array.isArray(selectedCode?.articles) ? selectedCode.articles : []
+    ).filter(a => {
       if (activeChapter && (a.category || 'Umumiy qoidalar').trim() !== activeChapter) {
         return false
       }

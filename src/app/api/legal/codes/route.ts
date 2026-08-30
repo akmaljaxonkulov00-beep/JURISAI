@@ -113,9 +113,9 @@ export async function GET(request: NextRequest) {
 
     // ── Response format ──
     const mappedCodes = (categories as CategoryRow[]).map(cat => {
-      const catArticles = (articles as unknown as ArticleRow[])
-        .filter(a => a.code_id === cat.code_id)
-        .sort((a, b) => {
+      const catArticles = (Array.isArray(articles) ? (articles as unknown as ArticleRow[]) : [])
+        .filter((a: any) => a.code_id === cat.code_id)
+        .sort((a: any, b: any) => {
           const na = parseInt(a.article_number, 10) || 0
           const nb = parseInt(b.article_number, 10) || 0
           return na - nb

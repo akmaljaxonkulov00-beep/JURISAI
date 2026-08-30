@@ -118,7 +118,9 @@ export default function NotificationBell() {
     return () => document.removeEventListener('mousedown', onClickOutside)
   }, [])
 
-  const unreadCount = notifications.filter(n => !n.read).length
+  const unreadCount = (Array.isArray(notifications) ? notifications : []).filter(
+    n => !n.read
+  ).length
 
   const markAllRead = async () => {
     const userId = getUserId()

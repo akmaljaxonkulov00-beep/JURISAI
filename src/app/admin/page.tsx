@@ -429,7 +429,9 @@ export default function AdminDashboard() {
         body: JSON.stringify({ userId }),
       })
     } catch {}
-    const updated = allUsers.filter((u: AdminUser) => u.id !== userId && u.uid !== userId)
+    const updated = (Array.isArray(allUsers) ? allUsers : []).filter(
+      (u: AdminUser) => u.id !== userId && u.uid !== userId
+    )
     setAllUsers(updated)
     localStorage.setItem('registered_users', JSON.stringify(updated))
   }
@@ -462,7 +464,9 @@ export default function AdminDashboard() {
 
   // ===== TOKEN TRACKING =====
   const getUserTokens = (userId: string): number => {
-    return tokenUsages.filter(t => t.userId === userId).reduce((sum, t) => sum + t.tokens, 0)
+    return (Array.isArray(tokenUsages) ? tokenUsages : [])
+      .filter(t => t.userId === userId)
+      .reduce((sum, t) => sum + t.tokens, 0)
   }
 
   const getUserTokensByPeriod = (userId: string, days: number): number => {
@@ -480,13 +484,15 @@ export default function AdminDashboard() {
     cutoff.setDate(cutoff.getDate() - reportDays)
 
     // Users registered in period
-    const newUsers = allUsers.filter((u: AdminUser) => {
+    const newUsers = (Array.isArray(allUsers) ? allUsers : []).filter((u: AdminUser) => {
       const created = u.created_at || u.last_login
       return created && new Date(created) >= cutoff
     })
 
     // Logins in period
-    const recentLogins = loginActivities.filter(l => new Date(l.date) >= cutoff)
+    const recentLogins = (Array.isArray(loginActivities) ? loginActivities : []).filter(
+      l => new Date(l.date) >= cutoff
+    )
 
     // Tokens used in period
     const tokensUsed = tokenUsages
@@ -494,7 +500,9 @@ export default function AdminDashboard() {
       .reduce((sum, t) => sum + t.tokens, 0)
 
     // Payments in period
-    const paymentsInPeriod = paymentRequests.filter(p => new Date(p.createdAt) >= cutoff)
+    const paymentsInPeriod = (Array.isArray(paymentRequests) ? paymentRequests : []).filter(
+      p => new Date(p.createdAt) >= cutoff
+    )
     const approvedPayments = paymentsInPeriod.filter(p => p.status === 'approved')
     const totalRevenue = approvedPayments.reduce((sum, p) => sum + p.amount, 0)
     const pendingPayments = paymentsInPeriod.filter(p => p.status === 'pending').length
@@ -506,7 +514,7 @@ export default function AdminDashboard() {
     // Calculate growth vs previous period
     const prevCutoff = new Date()
     prevCutoff.setDate(prevCutoff.getDate() - reportDays * 2)
-    const prevNewUsers = allUsers.filter((u: AdminUser) => {
+    const prevNewUsers = (Array.isArray(allUsers) ? allUsers : []).filter((u: AdminUser) => {
       const created = u.created_at || u.last_login
       return created && new Date(created) >= prevCutoff && new Date(created) < cutoff
     })
@@ -636,7 +644,9 @@ export default function AdminDashboard() {
     if (!editPlanData) return
     setEditPlanData({
       ...editPlanData,
-      features: editPlanData.features.filter((_, i) => i !== idx),
+      features: (Array.isArray(editPlanData.features) ? editPlanData.features : []).filter(
+        (_, i) => i !== idx
+      ),
     })
   }
 
@@ -884,7 +894,11 @@ export default function AdminDashboard() {
                     <div>
                       <p className="text-xs text-secondary">Kutilayotgan to\'lovlar</p>
                       <p className="text-2xl font-bold text-orange-600 mt-1">
-                        {paymentRequests.filter(p => p.status === 'pending').length}
+                        {
+                          (Array.isArray(paymentRequests) ? paymentRequests : []).filter(
+                            p => p.status === 'pending'
+                          ).length
+                        }
                       </p>
                     </div>
                     <CreditCard className="w-8 h-8 text-orange-500 opacity-60" />
@@ -897,7 +911,11 @@ export default function AdminDashboard() {
                     <div>
                       <p className="text-xs text-secondary">Tasdiqlangan to\'lovlar</p>
                       <p className="text-2xl font-bold text-green-600 mt-1">
-                        {paymentRequests.filter(p => p.status === 'approved').length}
+                        {
+                          (Array.isArray(paymentRequests) ? paymentRequests : []).filter(
+                            p => p.status === 'approved'
+                          ).length
+                        }
                       </p>
                     </div>
                     <CheckCircle className="w-8 h-8 text-green-500 opacity-60" />
@@ -911,7 +929,7 @@ export default function AdminDashboard() {
                       <p className="text-xs text-secondary">Premium foydalanuvchilar</p>
                       <p className="text-2xl font-bold text-purple-600 mt-1">
                         {
-                          allUsers.filter(
+                          (Array.isArray(allUsers) ? allUsers : []).filter(
                             (u: AdminUser) => u.subscription_plan && u.subscription_plan !== 'free'
                           ).length
                         }

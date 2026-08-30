@@ -38,7 +38,7 @@ export function usePaymentNotifications() {
     if (!currentUserEmail) return
 
     // Filter to only this user's payments
-    const userPayments = sync.paymentRequests.filter(
+    const userPayments = (Array.isArray(sync?.paymentRequests) ? sync.paymentRequests : []).filter(
       (p: { userEmail?: string; userId?: string }) =>
         p.userEmail === currentUserEmail || p.userId === currentUserEmail
     )

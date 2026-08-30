@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
     })
     if (usersError) throw usersError
 
-    const candidates = users.users.filter(
+    const candidates = (Array.isArray(users?.users) ? users.users : []).filter(
       u => u.email && u.email.toLowerCase() === email && u.id !== currentUserId
     )
     if (candidates.length === 0) {

@@ -63,7 +63,9 @@ export async function GET(request: NextRequest) {
     // ── Real XP: har bir AI so'rov 5 XP (usage_logs asosida) ──
     const totalXP = (usageData || []).reduce((sum: number) => sum + 5, 0)
     const level = Math.floor(totalXP / 200) + 1 // 200 XP per level
-    const completedCases = iracData.filter(item => item.status === 'COMPLETED').length || 0
+    const completedCases =
+      (Array.isArray(iracData) ? iracData : []).filter(item => item.status === 'COMPLETED')
+        .length || 0
     const totalCases = iracData.length || 0
 
     // Haftalik taraqqiyot (real — oxirgi 7 kun)

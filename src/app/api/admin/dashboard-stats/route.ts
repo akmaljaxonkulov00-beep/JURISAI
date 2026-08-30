@@ -101,7 +101,7 @@ export async function GET(request: NextRequest) {
           const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate())
           const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
 
-          result.active_users_today = authUsers.filter(
+          result.active_users_today = (Array.isArray(authUsers) ? authUsers : []).filter(
             (u: {
               last_sign_in_at?: string
               created_at?: string
@@ -113,7 +113,7 @@ export async function GET(request: NextRequest) {
           ).length
 
           // Count users registered this month
-          result.users_this_month = authUsers.filter(
+          result.users_this_month = (Array.isArray(authUsers) ? authUsers : []).filter(
             (u: {
               last_sign_in_at?: string
               created_at?: string
@@ -125,7 +125,7 @@ export async function GET(request: NextRequest) {
           ).length
 
           // Count premium users
-          result.premium_users = authUsers.filter(
+          result.premium_users = (Array.isArray(authUsers) ? authUsers : []).filter(
             (u: {
               last_sign_in_at?: string
               created_at?: string

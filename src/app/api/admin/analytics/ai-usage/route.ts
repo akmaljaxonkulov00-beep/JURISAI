@@ -74,7 +74,9 @@ export async function GET(request: NextRequest) {
     for (let i = 0; i < dayCount; i++) {
       const date = new Date(startDate.getTime() + i * 24 * 60 * 60 * 1000)
       const dateStr = date.toISOString().split('T')[0]
-      const dayLogs = logs.filter(l => String(l.created_at || '').startsWith(dateStr))
+      const dayLogs = (Array.isArray(logs) ? logs : []).filter(l =>
+        String(l.created_at || '').startsWith(dateStr)
+      )
       const byFeature: Record<string, number> = {}
       for (const l of dayLogs) {
         const f = String(l.action || 'unknown')
@@ -145,12 +147,24 @@ export async function GET(request: NextRequest) {
     const summary = {
       totalAIUsage: logs.length,
       totalRequests: logs.length,
-      todayAIUsage: logs.filter(l => String(l.created_at || '').startsWith(todayStr)).length,
-      todayRequests: logs.filter(l => String(l.created_at || '').startsWith(todayStr)).length,
-      weekAIUsage: logs.filter(l => new Date(l.created_at || 0) >= weekStart).length,
-      weekRequests: logs.filter(l => new Date(l.created_at || 0) >= weekStart).length,
-      monthAIUsage: logs.filter(l => new Date(l.created_at || 0) >= monthStart).length,
-      monthRequests: logs.filter(l => new Date(l.created_at || 0) >= monthStart).length,
+      todayAIUsage: (Array.isArray(logs) ? logs : []).filter(l =>
+        String(l.created_at || '').startsWith(todayStr)
+      ).length,
+      todayRequests: (Array.isArray(logs) ? logs : []).filter(l =>
+        String(l.created_at || '').startsWith(todayStr)
+      ).length,
+      weekAIUsage: (Array.isArray(logs) ? logs : []).filter(
+        l => new Date(l.created_at || 0) >= weekStart
+      ).length,
+      weekRequests: (Array.isArray(logs) ? logs : []).filter(
+        l => new Date(l.created_at || 0) >= weekStart
+      ).length,
+      monthAIUsage: (Array.isArray(logs) ? logs : []).filter(
+        l => new Date(l.created_at || 0) >= monthStart
+      ).length,
+      monthRequests: (Array.isArray(logs) ? logs : []).filter(
+        l => new Date(l.created_at || 0) >= monthStart
+      ).length,
     }
 
     return NextResponse.json({

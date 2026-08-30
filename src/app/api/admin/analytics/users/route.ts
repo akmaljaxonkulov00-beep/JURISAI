@@ -76,7 +76,9 @@ export async function GET(request: NextRequest) {
       const dateStr = date.toISOString().split('T')[0]
       userGrowth.push({
         date: dateStr,
-        newUsers: users.filter(u => String(u.created_at || '').startsWith(dateStr)).length,
+        newUsers: (Array.isArray(users) ? users : []).filter(u =>
+          String(u.created_at || '').startsWith(dateStr)
+        ).length,
       })
     }
 
@@ -110,12 +112,18 @@ export async function GET(request: NextRequest) {
 
     const summary = {
       totalUsers: users.length,
-      activeUsers: users.filter(
+      activeUsers: (Array.isArray(users) ? users : []).filter(
         u => u.subscription_expires_at && new Date(String(u.subscription_expires_at)) > now
       ).length,
-      todayUsers: users.filter(u => String(u.created_at || '').startsWith(todayStr)).length,
-      weekUsers: users.filter(u => new Date(u.created_at || 0) >= weekStart).length,
-      monthUsers: users.filter(u => new Date(u.created_at || 0) >= monthStart).length,
+      todayUsers: (Array.isArray(users) ? users : []).filter(u =>
+        String(u.created_at || '').startsWith(todayStr)
+      ).length,
+      weekUsers: (Array.isArray(users) ? users : []).filter(
+        u => new Date(u.created_at || 0) >= weekStart
+      ).length,
+      monthUsers: (Array.isArray(users) ? users : []).filter(
+        u => new Date(u.created_at || 0) >= monthStart
+      ).length,
     }
 
     // ── Oxirgi ro'yxatdan o'tgan 10 ta (real) ──

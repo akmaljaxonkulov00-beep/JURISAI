@@ -76,7 +76,9 @@ export async function GET(request: NextRequest) {
     for (let i = 0; i < dayCount; i++) {
       const date = new Date(startDate.getTime() + i * 24 * 60 * 60 * 1000)
       const dateStr = date.toISOString().split('T')[0]
-      const dayPayments = approved.filter(p => String(p.created_at || '').startsWith(dateStr))
+      const dayPayments = (Array.isArray(approved) ? approved : []).filter(p =>
+        String(p.created_at || '').startsWith(dateStr)
+      )
       revenueData.push({
         date: dateStr,
         revenue: dayPayments.reduce((s, p) => s + (Number(p.amount) || 0), 0),

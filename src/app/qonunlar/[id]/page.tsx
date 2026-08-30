@@ -104,9 +104,9 @@ export default function CodeDetailPage() {
   const searchResults = useMemo(() => {
     if (!searchQuery.trim() || !code) return []
     const allResults = searchQuery.trim() ? searchCodes(searchQuery) : []
-    return (allResults ?? [])
-      .filter(r => r.code.id === codeId)
-      .map(r => r.article)
+    return (Array.isArray(allResults) ? allResults : [])
+      .filter((r: any) => r.code.id === codeId)
+      .map((r: any) => r.article)
       .slice(0, 30)
   }, [searchQuery, code, codeId, searchCodes])
 
