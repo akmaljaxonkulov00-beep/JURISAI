@@ -24,22 +24,21 @@ export default function FeatureInstructions({
   const [panelPos, setPanelPos] = useState<{
     top: number
     right: number
-  }>({ top: 0, right: 0 })
+  }>({ top: 80, right: 16 })
   const btnRef = useRef<HTMLButtonElement>(null)
 
   const updatePosition = useCallback(() => {
     if (btnRef.current) {
       const rect = btnRef.current.getBoundingClientRect()
       setPanelPos({
-        top: rect.bottom + 8,
-        right: window.innerWidth - rect.right,
+        top: rect.top,
+        right: window.innerWidth - rect.left + 8,
       })
     }
   }, [])
 
   useEffect(() => {
     if (!isOpen) return
-
     updatePosition()
 
     const handleClickOutside = (e: MouseEvent) => {
@@ -54,50 +53,40 @@ export default function FeatureInstructions({
       if (e.key === 'Escape') setIsOpen(false)
     }
 
-    const handleScroll = () => updatePosition()
-
     document.addEventListener('mousedown', handleClickOutside)
     document.addEventListener('keydown', handleEscape)
-    window.addEventListener('scroll', handleScroll, true)
-    window.addEventListener('resize', updatePosition)
-
     return () => {
       document.removeEventListener('mousedown', handleClickOutside)
       document.removeEventListener('keydown', handleEscape)
-      window.removeEventListener('scroll', handleScroll, true)
-      window.removeEventListener('resize', updatePosition)
     }
   }, [isOpen, updatePosition])
 
   return (
     <>
-      {/* ── (? tugma — always on the right, responsive) ── */}
-      <div className="flex justify-end w-full mb-2">
-        <button
-          ref={btnRef}
-          onClick={e => {
-            e.stopPropagation()
-            if (!isOpen) updatePosition()
-            setIsOpen(!isOpen)
-          }}
-          title={`${featureName} — Yordam`}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-800/40 border border-blue-200 dark:border-blue-700/50 rounded-full transition-all duration-200 hover:scale-105 shadow-sm cursor-pointer"
-        >
-          <HelpCircle size={14} />
-          <span className="hidden sm:inline">Yordam</span>
-        </button>
-      </div>
+      {/* ── Floating help button — always right side of viewport ── */}
+      <button
+        ref={btnRef}
+        onClick={e => {
+          e.stopPropagation()
+          if (!isOpen) updatePosition()
+          setIsOpen(!isOpen)
+        }}
+        title={`${featureName} — Yordam`}
+        className="fixed bottom-20 right-4 z-[9998] flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-blue-600 text-white shadow-lg hover:bg-blue-700 hover:shadow-xl transition-all duration-200 hover:scale-110 cursor-pointer print:hidden"
+      >
+        <HelpCircle size={20} />
+      </button>
 
-      {/* ── Yo'riqnoma paneli — fixed, always right-aligned ── */}
+      {/* ── Panel — opens to the LEFT of the button ── */}
       {isOpen && (
         <div
           id="feature-instructions-panel"
-          className="fixed z-[9999] bg-white dark:bg-zinc-900 rounded-xl shadow-2xl border border-gray-200 dark:border-zinc-700 overflow-hidden"
+          className="fixed z-[9999] bg-white dark:bg-zinc-900 rounded-xl shadow-2xl border border-gray-200 dark:border-zinc-700 overflow-hidden print:hidden"
           style={{
-            top: panelPos.top,
+            top: Math.max(16, Math.min(panelPos.top, window.innerHeight - 32)),
             right: panelPos.right,
-            maxHeight: '75vh',
             width: 'min(380px, calc(100vw - 1.5rem))',
+            maxHeight: 'calc(100vh - 32px)',
           }}
         >
           {/* Sarlavha */}
@@ -115,7 +104,7 @@ export default function FeatureInstructions({
           </div>
 
           {/* Scrollable content */}
-          <div className="overflow-y-auto" style={{ maxHeight: 'calc(75vh - 56px)' }}>
+          <div className="overflow-y-auto" style={{ maxHeight: 'calc(100vh - 96px)' }}>
             {/* Qadamlar */}
             <div className="p-4 space-y-3">
               {steps.map((step, i) => (
