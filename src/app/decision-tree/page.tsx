@@ -47,6 +47,36 @@ import { getDisplayNameFromCodeId } from '@/lib/utils/code-mapper'
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
 import FeatureInstructions from '@/components/ui/FeatureInstructions'
 
+const DECISION_TREE_INSTRUCTIONS = [
+  {
+    title: 'Holatni kiriting',
+    description: 'Huquqiy muammoning tavsifini batafsil yozing yoki tayyor namunani tanlang.',
+    icon: '📝',
+  },
+  {
+    title: 'AI tahlilini kuting',
+    description:
+      'AI sizning holatingiz asosida qarorlar daraxtini yaratadi — ehtimollik, muddat va xarajatlar bilan.',
+    icon: '🤖',
+  },
+  {
+    title: 'Strategiyani tanlang',
+    description: "Eng yaxshi yo'nalishni tanlab, har bir qaror tugunini batafsil ko'ring.",
+    icon: '🌳',
+  },
+  {
+    title: 'Natijani eksport qiling',
+    description: 'PDF formatida yuklab oling yoki davom eting.',
+    icon: '📄',
+  },
+]
+
+const DECISION_TREE_TIPS = [
+  'Murakkab ishlarda barcha variantlarni kiriting — AI har birini baholaydi',
+  "Ehtimollik va xarajat ma'lumotlarini ko'rsating — aniqroq natija olasiz",
+  'Tayyor namunalardan foydalaning — tezroq boshlaysiz',
+]
+
 // AI javobidagi daraxt tugunlari (any o'rniga)
 interface AiTreeNode {
   label?: string
@@ -1814,6 +1844,11 @@ export default function DecisionTreeEngine() {
 
   return (
     <div className="min-h-screen bg-[#f8faff] dark:bg-gray-950 mobile-safe-top">
+      <FeatureInstructions
+        featureName="Qarorlar Daraxti"
+        steps={DECISION_TREE_INSTRUCTIONS}
+        tips={DECISION_TREE_TIPS}
+      />
       <div className="flex flex-col md:flex-row">
         {/* Sidebar — yagona navigatsiya (desktop) */}
         <AppSidebar>
