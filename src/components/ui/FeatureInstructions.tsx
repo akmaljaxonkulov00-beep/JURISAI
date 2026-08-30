@@ -15,7 +15,11 @@ interface FeatureInstructionsProps {
   tips?: string[]
 }
 
-export default function FeatureInstructions({ featureName, steps, tips }: FeatureInstructionsProps) {
+export default function FeatureInstructions({
+  featureName,
+  steps,
+  tips,
+}: FeatureInstructionsProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [expandedStep, setExpandedStep] = useState<number | null>(null)
 

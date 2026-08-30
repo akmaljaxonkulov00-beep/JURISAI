@@ -22,6 +22,9 @@ export interface PricingPlan {
   price: number
   features: string[]
   caseLimit: number
+  discountPercent?: number
+  discountLabel?: string
+  limits?: Record<string, number>
 }
 
 export interface PaymentRequest {

@@ -23,6 +23,7 @@ import {
   Star,
   Zap,
 } from 'lucide-react'
+import FeatureInstructions from '@/components/ui/FeatureInstructions'
 
 interface Tool {
   id: string
@@ -952,6 +953,40 @@ Faqat O'zbekiston qonunchiligiga asoslangan javob bering. Har bir javobni tegish
                 <p className="text-xs sm:text-sm text-gray-600 dark:text-zinc-400">
                   Premium qismi - amaliyotchi yuristlar uchun
                 </p>
+                <FeatureInstructions
+                  featureName="Professional Vositalar"
+                  steps={[
+                    {
+                      title: 'Yuridik kalkulyator',
+                      description:
+                        'Davlat boji, zarar miqdori va kechikish penaltyasini O\u2019zbekiston qonunchiligi asosida hisoblang. Da\u2019vo summasini kiriting va "Hisoblash" tugmasini bosing.',
+                      icon: '🧮',
+                    },
+                    {
+                      title: 'Hujjatlar konstruktori',
+                      description:
+                        'Shartnomalar, da\u2019vo arizalari, ishonchnomalar va boshqa yuridik hujjatlarni shablonlar asosida yarating.',
+                      icon: '📄',
+                    },
+                    {
+                      title: 'Risk Assessment',
+                      description:
+                        'Shartnoma faylini yuklang va AI xavflarni tahlil qilsin. Qonuniy xavflar, muddatlar va tavsiyalar ko\u2019rsatiladi.',
+                      icon: '🛡️',
+                    },
+                    {
+                      title: 'Sud amaliyoti tahlili',
+                      description:
+                        'O\u2019zbekiston sudlaridagi pretsedentlarni qidirib, g\u2019alaba ehtimolini va o\u2019rtacha muddatni aniqlang.',
+                      icon: '📊',
+                    },
+                  ]}
+                  tips={[
+                    'Kalkulyator faqat O\u2019zbekiston qonunchiligi stavkalari bilan ishlaydi',
+                    'Hujjatlar konstruktori premium funksiya — premium tarif kerak',
+                    'Risk Assessment faqat matnli hujjatlarni tahlil qiladi (PDF hozircha emas)',
+                  ]}
+                />
               </div>
 
               <div className="flex items-center gap-2">

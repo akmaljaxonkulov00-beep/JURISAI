@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 /**
  * POST /api/professional-tools/legal-calculator
- * 
+ *
  * O'zbekiston Respublikasi qonunchiligiga asoslangan yuridik kalkulyator.
  * Davlat boji, zarar, jarima va muddatlarni hisoblaydi.
  */
@@ -55,32 +55,32 @@ function calculateDeadlines(startDate: string, caseType: string) {
     case 'civil':
       deadlines.push(
         { event: "Da'vo arizasi ko'rib chiqilishi", date: addDays(start, 2), days: 2 },
-        { event: "Javobgar dalillarni taqdim etish", date: addDays(start, 14), days: 14 },
-        { event: "Sud majlisi (birinchi)", date: addDays(start, 30), days: 30 },
-        { event: "Sud qarori qabul qilinishi", date: addDays(start, 60), days: 60 },
-        { event: "Apellyatsiya muddati", date: addDays(start, 90), days: 90 },
+        { event: 'Javobgar dalillarni taqdim etish', date: addDays(start, 14), days: 14 },
+        { event: 'Sud majlisi (birinchi)', date: addDays(start, 30), days: 30 },
+        { event: 'Sud qarori qabul qilinishi', date: addDays(start, 60), days: 60 },
+        { event: 'Apellyatsiya muddati', date: addDays(start, 90), days: 90 }
       )
       break
     case 'criminal':
       deadlines.push(
-        { event: "Ter gov tugallanishi", date: addDays(start, 45), days: 45 },
-        { event: "Ayblov xulosasi", date: addDays(start, 50), days: 50 },
-        { event: "Sudning birinchi majlisi", date: addDays(start, 60), days: 60 },
-        { event: "Sud qarori", date: addDays(start, 90), days: 90 },
+        { event: 'Ter gov tugallanishi', date: addDays(start, 45), days: 45 },
+        { event: 'Ayblov xulosasi', date: addDays(start, 50), days: 50 },
+        { event: 'Sudning birinchi majlisi', date: addDays(start, 60), days: 60 },
+        { event: 'Sud qarori', date: addDays(start, 90), days: 90 }
       )
       break
     case 'administrative':
       deadlines.push(
-        { event: "Xabarnoma yuborilishi", date: addDays(start, 3), days: 3 },
-        { event: "Javob taqdim etish", date: addDays(start, 10), days: 10 },
-        { event: "Sud majlisi", date: addDays(start, 30), days: 30 },
-        { event: "Qaror qabul qilinishi", date: addDays(start, 45), days: 45 },
+        { event: 'Xabarnoma yuborilishi', date: addDays(start, 3), days: 3 },
+        { event: 'Javob taqdim etish', date: addDays(start, 10), days: 10 },
+        { event: 'Sud majlisi', date: addDays(start, 30), days: 30 },
+        { event: 'Qaror qabul qilinishi', date: addDays(start, 45), days: 45 }
       )
       break
     default:
       deadlines.push(
         { event: "Ko'rib chiqish", date: addDays(start, 30), days: 30 },
-        { event: "Qaror", date: addDays(start, 60), days: 60 },
+        { event: 'Qaror', date: addDays(start, 60), days: 60 }
       )
   }
 
@@ -96,20 +96,26 @@ function addDays(date: Date, days: number): string {
 export async function POST(request: NextRequest) {
   try {
     const body: CalculatorRequest = await request.json()
-    const { case_type = 'civil', claim_amount = 0, contract_amount = 0, days_late = 0, start_date } = body
+    const {
+      case_type = 'civil',
+      claim_amount = 0,
+      contract_amount = 0,
+      days_late = 0,
+      start_date,
+    } = body
 
     // Davlat boji
     const stateFee = calculateStateFee(claim_amount || contract_amount)
 
     // Zarar va jarima
-    const damages = contract_amount > 0 && days_late > 0
-      ? calculateDamages(contract_amount, days_late)
-      : 0
+    const damages =
+      contract_amount > 0 && days_late > 0 ? calculateDamages(contract_amount, days_late) : 0
 
     // Foiz (CBR asosida)
-    const interest = contract_amount > 0 && days_late > 0
-      ? Math.round(contract_amount * CBR_RATE * (days_late / 365))
-      : 0
+    const interest =
+      contract_amount > 0 && days_late > 0
+        ? Math.round(contract_amount * CBR_RATE * (days_late / 365))
+        : 0
 
     // Jami
     const total = stateFee + damages
@@ -119,17 +125,25 @@ export async function POST(request: NextRequest) {
       { item: 'Davlat boji', amount: stateFee, description: "Da'vo summasi asosida" },
     ]
     if (damages > 0) {
-      breakdown.push({ item: 'Penya (jarima)', amount: damages - interest, description: 'Kechikish uchun' })
+      breakdown.push({
+        item: 'Penya (jarima)',
+        amount: damages - interest,
+        description: 'Kechikish uchun',
+      })
     }
     if (interest > 0) {
-      breakdown.push({ item: 'Foiz', amount: interest, description: `CBR stavkasi (${CBR_RATE * 100}%)` })
+      breakdown.push({
+        item: 'Foiz',
+        amount: interest,
+        description: `CBR stavkasi (${CBR_RATE * 100}%)`,
+      })
     }
 
     // Huquqiy asos
     const legalBasis = [
       "O'zbekiston Respublikasi FK 333-moddasi — Davlat boji",
       "O'zbekiston Respublikasi FK 355-moddasi — Jarimalar",
-      "MB stavkasi asosida foiz hisoblash",
+      'MB stavkasi asosida foiz hisoblash',
     ]
 
     // Muddatlar
@@ -148,9 +162,6 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error('Legal calculator error:', error)
-    return NextResponse.json(
-      { error: 'Hisoblashda xatolik yuz berdi' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Hisoblashda xatolik yuz berdi' }, { status: 500 })
   }
 }

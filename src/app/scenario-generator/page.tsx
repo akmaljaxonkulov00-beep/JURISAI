@@ -14,20 +14,21 @@ const SCENARIO_INSTRUCTIONS = [
     icon: '⚖️',
   },
   {
-    title: "Senariyni yarating",
-    description: "AI sizga real hayotdagi huquqiy holatlar asosida senariy yaratib beradi.",
+    title: 'Senariyni yarating',
+    description: 'AI sizga real hayotdagi huquqiy holatlar asosida senariy yaratib beradi.',
     icon: '🎭',
   },
   {
     title: "Yeching va o'rganing",
-    description: "Senariy yechimini toping, tegishli qonun moddalarini o'rganing va bilimlaringizni sinang.",
+    description:
+      "Senariy yechimini toping, tegishli qonun moddalarini o'rganing va bilimlaringizni sinang.",
     icon: '✅',
   },
 ]
 
 const SCENARIO_TIPS = [
   "Har xil turdagi senariylarni sinab ko'ring — bu turli yo'nalishlardagi bilimingizni oshiradi",
-  "Senariy tavsifini batafsil kiriting — AI shunga asosan aniqroq tahlil beradi",
+  'Senariy tavsifini batafsil kiriting — AI shunga asosan aniqroq tahlil beradi',
   "Yechim topganingizdan keyin, boshqa variantlarni ham ko'rib chiqing",
 ]
 
