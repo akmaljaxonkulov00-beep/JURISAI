@@ -74,7 +74,7 @@ export default function DocumentTemplates() {
 
   // Load templates from API with fallback to hardcoded data
   const loadTemplates = () => {
-    fetch('/api/templates')
+    fetch('/api/templates', { credentials: 'include' })
       .then(r => r.json())
       .then(data => {
         if (data.success && data.templates && data.templates.length > 0) {

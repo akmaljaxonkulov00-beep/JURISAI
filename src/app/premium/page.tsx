@@ -139,7 +139,10 @@ export default function Premium() {
 
     // Tarif limitlarini (pricing_plans.limits) yuklash
     try {
-      const res = await fetch('/api/settings/pricing', { cache: 'no-cache' })
+      const res = await fetch('/api/settings/pricing', {
+        cache: 'no-cache',
+        credentials: 'include',
+      })
       const result = await res.json()
       if (result.success && Array.isArray(result.data)) {
         const limits: Record<string, Record<string, number>> = {}

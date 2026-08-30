@@ -166,6 +166,7 @@ export default function UserProfileModal({
     setProcessingPayments(prev => new Set(prev).add(paymentId))
     try {
       const res = await fetch('/api/payments/approve', {
+        credentials: 'include',
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ paymentId }),
@@ -188,6 +189,7 @@ export default function UserProfileModal({
     setProcessingPayments(prev => new Set(prev).add(paymentId))
     try {
       const res = await fetch('/api/payments/reject', {
+        credentials: 'include',
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ paymentId, notes: rejectReason || '' }),

@@ -57,7 +57,7 @@ export default function AdminTemplateManager() {
 
   const loadTemplates = (isInitial = false) => {
     if (isInitial) setLoading(true)
-    fetch('/api/templates')
+    fetch('/api/templates', { credentials: 'include' })
       .then(r => r.json())
       .then(data => {
         if (data.success && data.templates) {

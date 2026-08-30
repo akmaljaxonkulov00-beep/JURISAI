@@ -522,7 +522,7 @@ export default function Community() {
   useEffect(() => {
     if (activeTab !== 'experts') return
     setExpertsLoading(true)
-    fetch('/api/community/experts')
+    fetch('/api/community/experts', { credentials: 'include' })
       .then(r => (r.ok ? r.json() : { data: [] }))
       .then(d => {
         setExperts(d.data || [])
@@ -581,7 +581,7 @@ export default function Community() {
   useEffect(() => {
     if (activeTab !== 'webinars') return
     setWebinarsLoading(true)
-    fetch('/api/community/webinars')
+    fetch('/api/community/webinars', { credentials: 'include' })
       .then(r => (r.ok ? r.json() : { data: [] }))
       .then(d => {
         setWebinars(d.data || [])

@@ -139,7 +139,7 @@ export default function UserManagement() {
 
   const fetchPlans = async () => {
     try {
-      const response = await fetch('/api/billing/plans')
+      const response = await fetch('/api/billing/plans', { credentials: 'include' })
       if (response.ok) {
         const data = await response.json()
         setPlans(data)

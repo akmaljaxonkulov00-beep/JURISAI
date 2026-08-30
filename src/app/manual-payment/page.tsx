@@ -182,6 +182,7 @@ function PaymentContent() {
         formData.append('userId', user.id || 'unknown')
 
         const uploadRes = await fetch('/api/upload', {
+          credentials: 'include',
           method: 'POST',
           body: formData,
         })
@@ -244,6 +245,7 @@ function PaymentContent() {
       // Try Supabase log — pass same ID so admin can look it up
       try {
         await fetch('/api/log/payment', {
+          credentials: 'include',
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

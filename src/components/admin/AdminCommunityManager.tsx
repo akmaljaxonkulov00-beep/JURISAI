@@ -163,7 +163,7 @@ export default function AdminCommunityManager() {
 
   const loadExperts = useCallback(async () => {
     try {
-      const r = await fetch('/api/community/experts')
+      const r = await fetch('/api/community/experts', { credentials: 'include' })
       const d = await r.json()
       setExperts(d.data || [])
     } catch {
@@ -173,7 +173,7 @@ export default function AdminCommunityManager() {
 
   const loadWebinars = useCallback(async () => {
     try {
-      const r = await fetch('/api/community/webinars')
+      const r = await fetch('/api/community/webinars', { credentials: 'include' })
       const d = await r.json()
       setWebinars(d.data || [])
     } catch {
@@ -183,7 +183,7 @@ export default function AdminCommunityManager() {
 
   const loadGroups = useCallback(async () => {
     try {
-      const r = await fetch('/api/community/groups')
+      const r = await fetch('/api/community/groups', { credentials: 'include' })
       const d = await r.json()
       setGroups(d.data || [])
     } catch {
@@ -193,7 +193,7 @@ export default function AdminCommunityManager() {
 
   const loadConsultations = useCallback(async () => {
     try {
-      const r = await fetch('/api/community/consultations')
+      const r = await fetch('/api/community/consultations', { credentials: 'include' })
       const d = await r.json()
       setConsultations(d.data || [])
     } catch {

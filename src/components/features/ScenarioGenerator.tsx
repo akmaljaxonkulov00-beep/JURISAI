@@ -107,7 +107,7 @@ export default function ScenarioGenerator() {
 
   const loadTemplates = async () => {
     try {
-      const res = await fetch('/api/scenario-generator/templates')
+      const res = await fetch('/api/scenario-generator/templates', { credentials: 'include' })
       const data = await res.json()
       if (data && Array.isArray(data.templates)) {
         const mapped = data.templates.map(
@@ -148,7 +148,7 @@ export default function ScenarioGenerator() {
   const loadScenarios = async () => {
     // 1) Supabase'dan REAL saqlangan senariylar (boshqa qurilmada ham ko'rinadi)
     try {
-      const res = await fetch('/api/scenario-generator/scenarios')
+      const res = await fetch('/api/scenario-generator/scenarios', { credentials: 'include' })
       if (res.ok) {
         const json = await res.json()
         if (Array.isArray(json.scenarios)) {

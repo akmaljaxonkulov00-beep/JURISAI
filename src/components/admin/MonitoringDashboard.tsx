@@ -55,7 +55,9 @@ export default function MonitoringDashboard() {
   const loadData = async (showLoading = true) => {
     if (showLoading) setLoading(true)
     try {
-      const res = await fetch(`/api/admin/analytics?days=${period}&type=all`)
+      const res = await fetch(`/api/admin/analytics?days=${period}&type=all`, {
+        credentials: 'include',
+      })
       const result = await res.json()
       if (result.success && result.data) {
         const d = result.data
