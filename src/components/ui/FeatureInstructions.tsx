@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { HelpCircle, X } from 'lucide-react'
 
 interface InstructionStep {
@@ -21,44 +21,80 @@ export default function FeatureInstructions({
   tips,
 }: FeatureInstructionsProps) {
   const [isOpen, setIsOpen] = useState(false)
-  const panelRef = useRef<HTMLDivElement>(null)
+  const [panelPos, setPanelPos] = useState<{ top: number; right: number }>({ top: 0, right: 0 })
   const btnRef = useRef<HTMLButtonElement>(null)
+
+  const updatePosition = useCallback(() => {
+    if (btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect()
+      setPanelPos({
+        top: rect.bottom + 8,
+        right: window.innerWidth - rect.right,
+      })
+    }
+  }, [])
 
   // Panel tashqarisiga bosilganda yopilishi
   useEffect(() => {
     if (!isOpen) return
-    const handler = (e: MouseEvent) => {
-      if (
-        panelRef.current &&
-        !panelRef.current.contains(e.target as Node) &&
-        btnRef.current &&
-        !btnRef.current.contains(e.target as Node)
-      ) {
+
+    updatePosition()
+
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as Node
+      const panel = document.getElementById('feature-instructions-panel')
+      if (btnRef.current && !btnRef.current.contains(target) && panel && !panel.contains(target)) {
         setIsOpen(false)
       }
     }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [isOpen])
+
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsOpen(false)
+    }
+
+    const handleScroll = () => {
+      updatePosition()
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    document.addEventListener('keydown', handleEscape)
+    window.addEventListener('scroll', handleScroll, true)
+    window.addEventListener('resize', updatePosition)
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('keydown', handleEscape)
+      window.removeEventListener('scroll', handleScroll, true)
+      window.removeEventListener('resize', updatePosition)
+    }
+  }, [isOpen, updatePosition])
 
   return (
-    <div className="relative inline-block">
+    <>
       {/* ── (? tugma — compact, responsive) ── */}
       <button
         ref={btnRef}
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={e => {
+          e.stopPropagation()
+          if (!isOpen) updatePosition()
+          setIsOpen(!isOpen)
+        }}
         title={`${featureName} — Yordam`}
-        className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-500 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-800/40 border border-blue-200 dark:border-blue-700/50 transition-all duration-200 hover:scale-110 shadow-sm"
+        className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-500 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-800/40 border border-blue-200 dark:border-blue-700/50 transition-all duration-200 hover:scale-110 shadow-sm cursor-pointer"
       >
         <HelpCircle size={16} className="sm:w-[18px] sm:h-[18px]" />
       </button>
 
-      {/* ── Yo'riqnoma paneli ── */}
+      {/* ── Yo'riqnoma paneli — fixed positioning to avoid overflow clipping ── */}
       {isOpen && (
         <div
-          ref={panelRef}
-          className="absolute right-0 sm:left-auto z-50 mt-2 w-[calc(100vw-2rem)] sm:w-80 max-w-80 bg-white dark:bg-zinc-900 rounded-xl shadow-2xl border border-gray-200 dark:border-zinc-700 overflow-hidden"
-          style={{ maxHeight: '70vh' }}
+          id="feature-instructions-panel"
+          className="fixed z-[9999] w-[calc(100vw-2rem)] sm:w-80 max-w-80 bg-white dark:bg-zinc-900 rounded-xl shadow-2xl border border-gray-200 dark:border-zinc-700 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150"
+          style={{
+            top: panelPos.top,
+            right: panelPos.right,
+            maxHeight: '70vh',
+          }}
         >
           {/* Sarlavha */}
           <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 border-b border-blue-100 dark:border-blue-800/30">
@@ -122,6 +158,6 @@ export default function FeatureInstructions({
           </div>
         </div>
       )}
-    </div>
+    </>
   )
 }
