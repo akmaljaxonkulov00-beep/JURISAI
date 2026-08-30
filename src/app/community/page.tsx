@@ -601,7 +601,9 @@ export default function Community() {
     setJoinedGroups(updated)
     localStorage.setItem('community_joined_groups', JSON.stringify(updated))
     setGroups(prev =>
-      prev.map(g => (g.id === groupId ? { ...g, member_count: (g.member_count || 0) + 1 } : g))
+      (Array.isArray(prev) ? prev : []).map(g =>
+        g.id === groupId ? { ...g, member_count: (g.member_count || 0) + 1 } : g
+      )
     )
     try {
       await fetch('/api/community/groups', {
@@ -687,7 +689,7 @@ export default function Community() {
       const d = await r.json()
       if (d.success && d.data) {
         setGroups(prev => {
-          const exists = prev.some(g => g.id === d.data.id)
+          const exists = (Array.isArray(prev) ? prev : []).some(g => g.id === d.data.id)
           return exists ? prev : [d.data, ...prev]
         })
         const updated = [...joinedGroups, d.data.id]

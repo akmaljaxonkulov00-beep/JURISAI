@@ -67,7 +67,7 @@ export default function UsageLimitIndicator({
     : status.features
 
   // Don't show if all features are unlimited
-  const hasLimits = allFeatures.some(f => f.limit !== -1)
+  const hasLimits = Array.isArray(allFeatures) && allFeatures.some(f => f.limit !== -1)
   if (!hasLimits) return null
 
   const content = (

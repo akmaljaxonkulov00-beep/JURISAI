@@ -205,7 +205,7 @@ function renderText(text: string): React.ReactNode {
       const contentLines = trimmed.split('\n').filter(l => l.trim())
       const bodyLines = contentLines.slice(1).filter(l => {
         const t = l.trim()
-        return t && !Object.keys(SECTION_STYLES).some(e => t.startsWith(e))
+        return t && !Object.keys(SECTION_STYLES || {}).some(e => t.startsWith(e))
       })
 
       return (

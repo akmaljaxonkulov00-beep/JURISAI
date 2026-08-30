@@ -115,7 +115,7 @@ export default function DocumentTemplates() {
         t =>
           t.name.toLowerCase().includes(q) ||
           t.description.toLowerCase().includes(q) ||
-          t.tags.some(tag => tag.includes(q))
+          (Array.isArray(t.tags) ? t.tags : []).some(tag => tag.includes(q))
       )
     }
     return list

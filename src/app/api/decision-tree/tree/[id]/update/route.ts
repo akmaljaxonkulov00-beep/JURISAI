@@ -130,7 +130,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
           new_confidence: confidence,
         },
         risk_assessment: {
-          new_risk_level: nextChildren.some(
+          new_risk_level: (Array.isArray(nextChildren) ? nextChildren : []).some(
             c => typeof c.probability === 'number' && c.probability <= 40
           )
             ? 'medium'

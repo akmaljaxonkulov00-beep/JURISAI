@@ -174,7 +174,7 @@ HAR BIR BO'LIM AJRATILGAN BO'LISHI SHART — ularni aralashtirma yoki birlashtir
       let match
       while ((match = pattern.exec(analysisText)) !== null) {
         const fullMatch = match[0].trim()
-        if (sources.some(s => s.article === fullMatch)) continue
+        if (Array.isArray(sources) && sources.some(s => s.article === fullMatch)) continue
 
         if (codeMap[match[1]?.toUpperCase()]) {
           sources.push({
@@ -202,7 +202,7 @@ HAR BIR BO'LIM AJRATILGAN BO'LISHI SHART — ularni aralashtirma yoki birlashtir
     if (articles && articles.length > 0) {
       for (const art of articles.slice(0, 5)) {
         const artRef = `${art.code_name}, ${art.article_number}-modda`
-        if (!sources.some(s => s.article.includes(art.article_number))) {
+        if (!Array.isArray(sources) || !sources.some(s => s.article.includes(art.article_number))) {
           sources.push({
             title: art.code_name,
             article: `${art.article_number}-modda — ${art.title || ''}`,
