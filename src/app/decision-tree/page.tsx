@@ -45,6 +45,7 @@ import { AnalysisSkeleton } from '@/components/ui/AnalysisSkeleton'
 import { AnalysisError, getErrorMessage } from '@/components/ui/AnalysisError'
 import { getDisplayNameFromCodeId } from '@/lib/utils/code-mapper'
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
+import FeatureInstructions from '@/components/ui/FeatureInstructions'
 
 // AI javobidagi daraxt tugunlari (any o'rniga)
 interface AiTreeNode {
