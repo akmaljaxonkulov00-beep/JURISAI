@@ -42,7 +42,6 @@ import {
 import { useCommunity, CommunityPost, CommunityComment } from '@/hooks/useCommunity'
 import AppSidebar from '@/components/layout/AppSidebar'
 import { getUserIdentityPayload } from '@/lib/client-user'
-import FeatureInstructions from '@/components/ui/FeatureInstructions'
 
 // ── Umumiy tiplar (any o'rniga) ────────────────────────────────────────
 interface GroupPost {
@@ -448,34 +447,6 @@ export default function Community() {
       >
         <Plus className="w-4 h-4" /> Yangi post
       </button>{' '}
-      <FeatureInstructions
-        featureName="Jamiyat"
-        steps={[
-          {
-            title: 'Post yozish',
-            description:
-              'Yangi post tugmasini bosing va mavzuingizni yozing. Savol, muhokama, keys yoki yangilik turini tanlang.',
-            icon: '✍️',
-          },
-          {
-            title: "Guruuhlarga qo'shilish",
-            description:
-              "Guruuhlar tabida maxfiy yoki ommaviy guruhlarni toping. Taklif kodi orqali maxfiy guruhlarga qo'shiling.",
-            icon: '👥',
-          },
-          {
-            title: 'Ekspertlardan maslahat olish',
-            description:
-              "Ekspertlar tabida huquqshunos ekspertlarni toping va maslahat yoki mentorlik uchun so'rov yuboring.",
-            icon: '🎓',
-          },
-        ]}
-        tips={[
-          "Postlaringizga teglar qo'shing — bu boshqalar uchun topishni osonlashtiradi",
-          "Ekspertlar bilan bog'lanish uchun maslahat so'rovini yuboring",
-          "Vebinarga ro'yxatdan o'ting — bepul ta'lim oling",
-        ]}
-      />
       <nav className="space-y-1">
         {[
           { id: 'feed', label: t('communityFeed'), icon: <MessageCircle className="w-4 h-4" /> },
@@ -1071,7 +1042,9 @@ export default function Community() {
         payload => {
           const np = payload?.new as GroupPost | undefined
           if (np?.id) {
-            setGroupPosts(prev => (prev.some(p => p.id === np.id) ? prev : [np, ...prev]))
+            setGroupPosts(prev =>
+              (Array.isArray(prev) ? prev : []).some(p => p.id === np.id) ? prev : [np, ...prev]
+            )
             if (!np.parent_id) {
               setGroups(prev =>
                 prev.map(g =>
@@ -1136,7 +1109,9 @@ export default function Community() {
         payload => {
           const np = payload?.new as GroupNotification | undefined
           if (np?.id) {
-            setGroupNotifs(prev => (prev.some(n => n.id === np.id) ? prev : [np, ...prev]))
+            setGroupNotifs(prev =>
+              (Array.isArray(prev) ? prev : []).some(n => n.id === np.id) ? prev : [np, ...prev]
+            )
           }
         }
       )
@@ -2177,7 +2152,7 @@ export default function Community() {
                             </span>
                           )}
                         </h3>
-                        {groupNotifs.some(n => !n.read) && (
+                        {Array.isArray(groupNotifs) && groupNotifs.some(n => !n.read) && (
                           <button
                             onClick={clearGroupNotifs}
                             className="text-xs text-blue-600 hover:underline"
@@ -2726,7 +2701,7 @@ export default function Community() {
                           <p className="text-sm font-semibold text-gray-900 dark:text-white">
                             Guruh bildirishnomalari
                           </p>
-                          {groupNotifs.some(n => !n.read) && (
+                          {Array.isArray(groupNotifs) && groupNotifs.some(n => !n.read) && (
                             <button
                               onClick={clearGroupNotifs}
                               className="text-[11px] text-blue-600 hover:underline"

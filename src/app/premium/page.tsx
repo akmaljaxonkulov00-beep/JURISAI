@@ -18,7 +18,6 @@ import {
 import Link from 'next/link'
 import { getPricingPlans, type PricingPlan } from '@/lib/settings-sync'
 import { usePricingRealtime } from '@/hooks/usePricingRealtime'
-import FeatureInstructions from '@/components/ui/FeatureInstructions'
 
 // Har bir funksiya bo'yicha tarif limitlari (Premium matritsasi uchun)
 const FEATURE_MATRIX: { key: string; label: string }[] = [
@@ -207,32 +206,6 @@ export default function Premium() {
 
       {/* Pricing Cards */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <FeatureInstructions
-          featureName="Premium"
-          steps={[
-            {
-              title: 'Tarifni tanlang',
-              description:
-                'Bepul, Standart yoki Pro tarifdan birini tanlang. Har bir tarifning limitlari va imkoniyatlari turlicha.',
-              icon: '🏷️',
-            },
-            {
-              title: 'Chegirmadan foydalaning',
-              description: 'Admin tomonidan belgilangan chegirmalar avtomatik qollaniladi.',
-              icon: '💰',
-            },
-            {
-              title: 'Limitlarni kuzating',
-              description:
-                "Dashboard sidebar'da qolgan limitlaringizni real-vaqtda kuzatib boring.",
-              icon: '📊',
-            },
-          ]}
-          tips={[
-            "Bepul tarifda ham 10 ta AI chat so'rovi mavjud",
-            "Premium tarifga o'tganingizdan so'ng barcha AI funksiyalar cheksiz bo'ladi",
-          ]}
-        />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 mb-12 md:mb-16">
           {plans.map((plan, index) => {
             const priceFormatted = plan.price.toLocaleString() + ' UZS'

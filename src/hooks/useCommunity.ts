@@ -523,7 +523,7 @@ export function useCommunity() {
         p =>
           p.content.toLowerCase().includes(q) ||
           p.author.name.toLowerCase().includes(q) ||
-          p.tags.some(t => t.toLowerCase().includes(q))
+          (Array.isArray(p.tags) ? p.tags : []).some(t => t.toLowerCase().includes(q))
       )
     }
 

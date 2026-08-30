@@ -26,7 +26,6 @@ import {
 import { api } from '@/services/api'
 import { AnalysisSkeleton } from '@/components/ui/AnalysisSkeleton'
 import { AnalysisError, getErrorMessage, getErrorContext } from '@/components/ui/AnalysisError'
-import FeatureInstructions from '@/components/ui/FeatureInstructions'
 
 interface ActivityRecord {
   id: string
@@ -534,32 +533,7 @@ export default function Statistics() {
               className="flex items-center gap-3 px-3 py-2 text-gray-600 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800 rounded-lg cursor-pointer mb-6 transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
-              <FeatureInstructions
-                featureName="Statistika"
-                steps={[
-                  {
-                    title: 'Faoliyatni kuzatish',
-                    description:
-                      'Har bir amaliyot (keys yechish, AI chat, hujjat yaratish) avtomatik ravishda XP ga aylanadi.',
-                    icon: '📊',
-                  },
-                  {
-                    title: 'Haftalik maqsad',
-                    description: 'Haftalik XP maqsadini bajarish orqali darajangizni oshiring.',
-                    icon: '🎯',
-                  },
-                  {
-                    title: 'Bilim darajasi',
-                    description: "Turli huquqiy yo'nalishlar boyicha bilim darajangizni kuzating.",
-                    icon: '📈',
-                  },
-                ]}
-                tips={[
-                  "Qo'lda yozuv qo'shish uchun Faoliyat tabini bosing",
-                  'Reyting boshqa foydalanuvchilar bilan solishtiradi',
-                  'Streak ni saqlab qoling - kunlik faollik muhim',
-                ]}
-              />
+
               <span>Orqaga</span>
             </button>
             <nav className="space-y-2">

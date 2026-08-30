@@ -22,7 +22,6 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { useSiteSettings } from '@/hooks/useSiteSettings'
-import FeatureInstructions from '@/components/ui/FeatureInstructions'
 
 interface FAQ {
   question: string
@@ -121,34 +120,6 @@ export default function Help() {
 
   return (
     <div className="min-h-screen bg-page-custom mobile-safe-top">
-      <FeatureInstructions
-        featureName="Yordam"
-        steps={[
-          {
-            title: "FAQ bo'limini tekshiring",
-            description:
-              "Ko'p beriladigan savol-javoblar bo'limida o'zingizga kerakli malumotni toping.",
-            icon: '❓',
-          },
-          {
-            title: 'Qidiruvdan foydalaning',
-            description: 'Qidiruv maydoniga kalit sozlar kiriting va tezda javob toping.',
-            icon: '🔍',
-          },
-          {
-            title: "Biz bilan bog'laning",
-            description:
-              "Agar javob topilmasa, Telegram yoki email orqali qo'llab-quvvatlash xizmatiga murojaat qiling.",
-            icon: '💬',
-          },
-        ]}
-        tips={[
-          "Saytning barcha sahifalari boyicha qo'llanma mavjud",
-          'Premium tarifga otish orqali barcha funksiyalar ochiladi',
-          "Telegram kanalimizga obuna bo'ling",
-        ]}
-      />
-
       {/* Header */}
       <div className="relative overflow-hidden bg-gradient-to-r from-blue-600 to-green-600 text-white">
         <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16">

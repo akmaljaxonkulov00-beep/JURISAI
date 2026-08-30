@@ -197,9 +197,9 @@ export default function NotificationBell() {
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-[calc(100vw-2rem)] sm:w-96 max-w-[400px] max-h-[480px] bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-gray-100 dark:border-zinc-800 z-50 overflow-hidden flex flex-col">
+        <div className="absolute right-0 mt-2 w-[calc(100vw-1.5rem)] sm:w-96 max-w-[400px] max-h-[500px] sm:max-h-[480px] bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-gray-100 dark:border-zinc-800 z-50 overflow-hidden flex flex-col">
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-zinc-800">
-            <h3 className="font-semibold text-sm text-gray-800 dark:text-white">
+            <h3 className="font-semibold text-sm text-gray-800 dark:text-white whitespace-nowrap">
               Bildirishnomalar
             </h3>
             <div className="flex items-center gap-1">
@@ -245,7 +245,7 @@ export default function NotificationBell() {
                   <div className={`mt-1 w-2 h-2 rounded-full flex-shrink-0 ${dotColor(n.type)}`} />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2 mb-0.5">
-                      <h4 className="font-medium text-[13px] text-gray-800 dark:text-white">
+                      <h4 className="font-medium text-[13px] text-gray-800 dark:text-white leading-snug">
                         {n.title}
                       </h4>
                       <span className="text-[10px] text-gray-400 flex-shrink-0 whitespace-nowrap">
@@ -259,7 +259,7 @@ export default function NotificationBell() {
                           : ''}
                       </span>
                     </div>
-                    <p className="text-[12px] text-gray-600 dark:text-zinc-400 leading-relaxed">
+                    <p className="text-[12px] text-gray-600 dark:text-zinc-400 leading-relaxed break-words">
                       {n.message}
                     </p>
                     {n.action_url && n.action_text && (
