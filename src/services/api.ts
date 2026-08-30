@@ -5,7 +5,7 @@ const getBaseUrl = () => {
   if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL
   if (process.env.NEXT_PUBLIC_SITE_URL) return process.env.NEXT_PUBLIC_SITE_URL
   if (typeof window !== 'undefined') return window.location.origin
-  return 'https://juristiv-dm4b-ten.vercel.app' // SSR fallback
+  return 'https://www.juristiv.uz' // SSR fallback
 }
 const API_BASE_URL = getBaseUrl()
 

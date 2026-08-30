@@ -12,7 +12,7 @@ const nextConfig: NextConfig = {
         headers: [
           {
             key: 'X-Domain',
-            value: 'juristiv.uz',
+            value: 'www.juristiv.uz',
           },
         ],
       },

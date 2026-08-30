@@ -215,7 +215,7 @@ export function isAllowedOrigin(origin: string): boolean {
   const allowedOrigins = [
     // Production faqat HTTPS — localhost faqat developmentda
     ...(!isProduction ? ['http://localhost:3000', 'http://localhost:3001'] : []),
-    'https://juristiv-dm4b-ten.vercel.app',
+    'https://www.juristiv.uz',
     'https://juristiv-rouge.vercel.app',
     'https://juristiv.uz',
     'https://www.juristiv.uz',

@@ -85,8 +85,8 @@ export async function POST(request: NextRequest) {
         },
       ],
       mode: 'subscription',
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_VERCEL_URL || 'https://juristiv-dm4b-ten.vercel.app'}/billing?success=true`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_VERCEL_URL || 'https://juristiv-dm4b-ten.vercel.app'}/billing?canceled=true`,
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_VERCEL_URL || 'https://www.juristiv.uz'}/billing?success=true`,
+      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_VERCEL_URL || 'https://www.juristiv.uz'}/billing?canceled=true`,
       metadata: {
         userId: user.id,
         planId: plan.id,
