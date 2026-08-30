@@ -33,6 +33,7 @@ import {
   Gavel,
   CheckCircle,
 } from 'lucide-react'
+import UsageLimitIndicator from '@/components/ai/UsageLimitIndicator'
 
 interface UserStats {
   xp: number
@@ -275,6 +276,10 @@ export default function Dashboard() {
             </div>
           </button>
         </div>
+      </div>
+      {/* Usage Limits */}
+      <div className="px-6 py-4 border-b border-gray-100 dark:border-zinc-800/50 dark:border-gray-700/50">
+        <UsageLimitIndicator compact={false} showCard={false} />
       </div>
       {/* XP and Stats */}
       <div className="px-6 py-4 border-b border-gray-100 dark:border-zinc-800/50 dark:border-gray-700/50">

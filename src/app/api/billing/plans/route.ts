@@ -36,19 +36,31 @@ export async function GET() {
         price?: number
         features?: unknown
         limits?: unknown
-      }) => ({
-        id: p.id,
-        name: p.name,
-        slug: p.id,
-        description: '',
-        price: Number(p.price) || 0,
-        currency: "so'm",
-        billingCycle: 'monthly',
-        features: Array.isArray(p.features) ? p.features : [],
-        limits: p.limits || {},
-        isActive: true,
-        isPublic: true,
-      })
+        discount_percent?: number
+        discount_label?: string
+      }) => {
+        const price = Number(p.price) || 0
+        const discountPercent = Number(p.discount_percent) || 0
+        const discountedPrice =
+          discountPercent > 0 ? Math.round(price * (1 - discountPercent / 100)) : price
+
+        return {
+          id: p.id,
+          name: p.name,
+          slug: p.id,
+          description: '',
+          price,
+          discountedPrice,
+          discountPercent,
+          discountLabel: p.discount_label || '',
+          currency: "so'm",
+          billingCycle: 'monthly',
+          features: Array.isArray(p.features) ? p.features : [],
+          limits: p.limits || {},
+          isActive: true,
+          isPublic: true,
+        }
+      }
     )
 
     return NextResponse.json({ success: true, data: plans })

@@ -115,6 +115,8 @@ interface PricingPlan {
   price: number
   features: string[]
   caseLimit: number
+  discountPercent?: number
+  discountLabel?: string
 }
 
 interface PaymentRequest {
@@ -198,6 +200,8 @@ export default function AdminDashboard() {
         'Asboblar, jamiyat, statistika — cheksiz',
       ],
       caseLimit: 5,
+      discountPercent: 0,
+      discountLabel: '',
     },
     {
       id: 'standart',
@@ -214,6 +218,8 @@ export default function AdminDashboard() {
         '20 ta senariy generator / oy',
       ],
       caseLimit: 50,
+      discountPercent: 0,
+      discountLabel: '',
     },
     {
       id: 'pro',
@@ -228,6 +234,8 @@ export default function AdminDashboard() {
         'Ekspert konsultatsiyasi',
       ],
       caseLimit: -1,
+      discountPercent: 0,
+      discountLabel: '',
     },
   ])
   const [editingPlan, setEditingPlan] = useState<string | null>(null)
@@ -1525,6 +1533,49 @@ export default function AdminDashboard() {
                             placeholder="Kunlik limit"
                             className="w-full text-sm"
                           />
+                          <div className="flex gap-2">
+                            <div className="flex-1">
+                              <label className="block text-xs text-gray-500 dark:text-zinc-400 mb-1">
+                                Chegirma (%)
+                              </label>
+                              <Input
+                                type="number"
+                                min={0}
+                                max={100}
+                                value={editPlanData?.discountPercent || 0}
+                                onChange={e =>
+                                  setEditPlanData(prev =>
+                                    prev
+                                      ? {
+                                          ...prev,
+                                          discountPercent: Math.min(
+                                            100,
+                                            Math.max(0, Number(e.target.value))
+                                          ),
+                                        }
+                                      : null
+                                  )
+                                }
+                                placeholder="0"
+                                className="w-full text-sm"
+                              />
+                            </div>
+                            <div className="flex-1">
+                              <label className="block text-xs text-gray-500 dark:text-zinc-400 mb-1">
+                                Chegirma yorlig'i
+                              </label>
+                              <Input
+                                value={editPlanData?.discountLabel || ''}
+                                onChange={e =>
+                                  setEditPlanData(prev =>
+                                    prev ? { ...prev, discountLabel: e.target.value } : null
+                                  )
+                                }
+                                placeholder="Masalan: Yangi yil"
+                                className="w-full text-sm"
+                              />
+                            </div>
+                          </div>
                           <div>
                             <p className="text-xs font-medium text-gray-600 dark:text-zinc-400 mb-1">
                               Xususiyatlar:
@@ -1578,9 +1629,33 @@ export default function AdminDashboard() {
                               <Settings size={14} />
                             </button>
                           </div>
-                          <p className="text-xl font-bold text-blue-600 mb-2">
-                            {plan.price.toLocaleString()} UZS
-                          </p>
+                          <div className="mb-2">
+                            {(plan as any).discountPercent > 0 ? (
+                              <div className="flex items-center gap-2">
+                                <p className="text-xl font-bold text-green-600">
+                                  {Math.round(
+                                    plan.price * (1 - ((plan as any).discountPercent || 0) / 100)
+                                  ).toLocaleString()}{' '}
+                                  UZS
+                                </p>
+                                <span className="text-sm text-gray-400 line-through">
+                                  {plan.price.toLocaleString()} UZS
+                                </span>
+                                <span className="text-xs font-bold text-white bg-red-500 px-2 py-0.5 rounded-full">
+                                  -{(plan as any).discountPercent}%
+                                </span>
+                              </div>
+                            ) : (
+                              <p className="text-xl font-bold text-blue-600">
+                                {plan.price.toLocaleString()} UZS
+                              </p>
+                            )}
+                            {(plan as any).discountLabel && (
+                              <p className="text-xs text-orange-500 font-medium mt-0.5">
+                                🏷️ {(plan as any).discountLabel}
+                              </p>
+                            )}
+                          </div>
                           <ul className="space-y-1">
                             {plan.features.map((f, idx) => (
                               <li

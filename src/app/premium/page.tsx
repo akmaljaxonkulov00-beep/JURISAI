@@ -229,14 +229,33 @@ export default function Premium() {
                     {plan.name}
                   </CardTitle>
                   <div className="mb-4">
-                    <div className="text-4xl font-bold text-gray-900 dark:text-white">
-                      {isFree ? '0 UZS' : priceFormatted}
-                      {!isFree && (
-                        <span className="text-lg text-gray-500 dark:text-zinc-400 font-normal">
-                          /oyiga
+                    {(plan.discountPercent ?? 0) > 0 && !isFree ? (
+                      <div>
+                        <div className="flex items-center justify-center gap-2">
+                          <span className="text-4xl font-bold text-green-600">
+                            {Math.round(
+                              plan.price * (1 - (plan.discountPercent ?? 0) / 100)
+                            ).toLocaleString()}{' '}
+                            UZS
+                          </span>
+                          <span className="text-lg text-gray-400 line-through">
+                            {plan.price.toLocaleString()}
+                          </span>
+                        </div>
+                        <span className="inline-flex items-center gap-1 text-xs font-bold text-white bg-red-500 px-3 py-1 rounded-full mt-2">
+                          🏷️ -{plan.discountPercent}% {plan.discountLabel || 'Chegirma'}
                         </span>
-                      )}
-                    </div>
+                      </div>
+                    ) : (
+                      <div className="text-4xl font-bold text-gray-900 dark:text-white">
+                        {isFree ? '0 UZS' : priceFormatted}
+                        {!isFree && (
+                          <span className="text-lg text-gray-500 dark:text-zinc-400 font-normal">
+                            /oyiga
+                          </span>
+                        )}
+                      </div>
+                    )}
                     {plan.caseLimit === -1 && (
                       <Badge className="mt-2 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300">
                         Cheksiz
@@ -253,7 +272,9 @@ export default function Premium() {
                       </li>
                     ))}
                   </ul>
-                  <Link href={`/manual-payment?plan=${plan.id}&amount=${plan.price}`}>
+                  <Link
+                    href={`/manual-payment?plan=${plan.id}&amount=${(plan.discountPercent ?? 0) > 0 ? Math.round(plan.price * (1 - (plan.discountPercent ?? 0) / 100)) : plan.price}`}
+                  >
                     <Button
                       className={`w-full ${isPopular ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-800 dark:bg-zinc-800 hover:bg-gray-700 dark:hover:bg-zinc-700'}`}
                       size="lg"

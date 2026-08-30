@@ -21,7 +21,7 @@ export async function GET() {
       return NextResponse.json({ success: false, error: error.message })
     }
 
-    // Transform snake_case to camelCase
+    // Transform snake_case to camelCase + calculate discounted price
     const plans = (data || []).map(
       (p: {
         id?: string
@@ -31,14 +31,26 @@ export async function GET() {
         case_limit?: number
         caseLimit?: number
         limits?: unknown
-      }) => ({
-        id: p.id,
-        name: p.name,
-        price: p.price,
-        features: p.features || [],
-        caseLimit: p.case_limit || p.caseLimit || -1,
-        limits: p.limits || {}, // tarif limitlari (har bir funksiya bo'yicha)
-      })
+        discount_percent?: number
+        discount_label?: string
+      }) => {
+        const price = Number(p.price) || 0
+        const discountPercent = Number(p.discount_percent) || 0
+        const discountedPrice =
+          discountPercent > 0 ? Math.round(price * (1 - discountPercent / 100)) : price
+
+        return {
+          id: p.id,
+          name: p.name,
+          price,
+          discountedPrice,
+          discountPercent,
+          discountLabel: p.discount_label || '',
+          features: p.features || [],
+          caseLimit: p.case_limit || p.caseLimit || -1,
+          limits: p.limits || {},
+        }
+      }
     )
 
     return NextResponse.json({ success: true, data: plans })

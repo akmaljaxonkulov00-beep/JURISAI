@@ -194,12 +194,38 @@ export default function Billing() {
                     <h3 className="text-2xl font-bold text-gray-800 dark:text-white">
                       {plan.name}
                     </h3>
-                    <p className="text-4xl font-bold text-blue-600 dark:text-blue-400 mt-2">
-                      {plan.price.toLocaleString('uz-UZ')}
-                      <span className="text-lg text-gray-500 dark:text-gray-400 dark:text-zinc-500 font-normal">
-                        /{plan.billingCycle === 'monthly' ? 'oy' : 'yil'}
-                      </span>
-                    </p>
+                    {(plan as any).discountPercent > 0 ? (
+                      <div className="mt-2">
+                        <p className="text-4xl font-bold text-green-600 dark:text-green-400">
+                          {Math.round(
+                            plan.price * (1 - ((plan as any).discountPercent || 0) / 100)
+                          ).toLocaleString('uz-UZ')}
+                          <span className="text-lg text-gray-500 dark:text-gray-400 font-normal">
+                            /{plan.billingCycle === 'monthly' ? 'oy' : 'yil'}
+                          </span>
+                        </p>
+                        <div className="flex items-center justify-center gap-2 mt-1">
+                          <span className="text-sm text-gray-400 line-through">
+                            {plan.price.toLocaleString('uz-UZ')} so'm
+                          </span>
+                          <span className="text-xs font-bold text-white bg-red-500 px-2 py-0.5 rounded-full">
+                            -{(plan as any).discountPercent}%
+                          </span>
+                        </div>
+                        {(plan as any).discountLabel && (
+                          <p className="text-xs text-orange-500 font-medium mt-1">
+                            🏷️ {(plan as any).discountLabel}
+                          </p>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="text-4xl font-bold text-blue-600 dark:text-blue-400 mt-2">
+                        {plan.price.toLocaleString('uz-UZ')}
+                        <span className="text-lg text-gray-500 dark:text-gray-400 font-normal">
+                          /{plan.billingCycle === 'monthly' ? 'oy' : 'yil'}
+                        </span>
+                      </p>
+                    )}
                     <p className="text-sm text-gray-500 dark:text-gray-400 dark:text-zinc-500 mt-1">
                       {plan.description}
                     </p>
