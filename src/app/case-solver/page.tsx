@@ -198,7 +198,7 @@ export default function CaseSolver() {
   const [useCustomCase, setUseCustomCase] = useState(false)
   const [customCaseText, setCustomCaseText] = useState('')
 
-  /* ── Admin aniqlash ── */
+  /* ── Admin aniqlash — server-side API orqali ── */
   useEffect(() => {
     const checkAdmin = async () => {
       try {
@@ -206,12 +206,15 @@ export default function CaseSolver() {
           data: { session },
         } = await supabase.auth.getSession()
         if (!session?.user?.id) return
-        const { data } = await supabase
-          .from('registered_users')
-          .select('role')
-          .eq('id', session.user.id)
-          .single()
-        if (data && ['ADMIN', 'SUPER_ADMIN'].includes(data.role?.toUpperCase())) {
+        const headers: Record<string, string> = {}
+        if (session.access_token) headers.Authorization = `Bearer ${session.access_token}`
+        const res = await fetch('/api/auth/user-role?userId=' + session.user.id, { headers })
+        const result = await res.json()
+        if (
+          result.success &&
+          result.data?.role &&
+          ['ADMIN', 'SUPER_ADMIN'].includes(result.data.role.toUpperCase())
+        ) {
           setIsAdmin(true)
         }
       } catch {}

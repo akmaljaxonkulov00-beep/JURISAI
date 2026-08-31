@@ -223,14 +223,16 @@ export default function Statistics() {
       ]
 
       // Try to fetch real users from Supabase public_profiles (faqat id + name — email RLS bilan himoyalangan)
+      // Agar view mavjud bo'lmasa — xatoni yutamiz, leaderboard faqat joriy user bilan qoladi
       let supabaseUsers: { id: string; name: string | null }[] = []
       try {
         const { supabase } = await import('@/lib/supabase-browser')
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from('public_profiles')
           .select('id, name')
           .order('name', { ascending: true })
           .limit(50)
+        if (error) throw error
         if (data && data.length > 0) {
           // Joriy foydalanuvchini chiqarib tashlash (takrorlanmaslik uchun)
           let myId = ''

@@ -71,13 +71,11 @@ export default function Billing() {
         setLoading(false)
         return
       }
-      const { supabase } = await import('@/lib/supabase-client')
-      const { data, error } = await supabase
-        .from('registered_users')
-        .select('subscription_plan, subscription_expires_at')
-        .eq('id', userId)
-        .maybeSingle()
-      if (error) throw error
+      const authHeaders = await (await import('@/lib/api-auth-client')).getAuthHeaders()
+      const res = await fetch('/api/auth/user-role?userId=' + userId, { headers: authHeaders })
+      const result = await res.json()
+      if (!result.success || !result.data) throw new Error('User data not found')
+      const data = result.data
 
       const planId = data?.subscription_plan || 'free'
       const expiresAt = data?.subscription_expires_at
