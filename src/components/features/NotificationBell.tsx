@@ -12,6 +12,19 @@ import { Bell, Check, CheckCheck, X, Trash2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase-client'
 import { getUserIdentityPayload } from '@/lib/client-user'
 
+/** Auth token olish — yagona ishonchli manba Supabase session */
+async function getAuthHeaders(): Promise<Record<string, string>> {
+  try {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+    if (session?.access_token) {
+      return { Authorization: `Bearer ${session.access_token}` }
+    }
+  } catch {}
+  return {}
+}
+
 interface AppNotification {
   id: string
   type: string
@@ -41,8 +54,10 @@ export default function NotificationBell() {
     if (!userId) return
     try {
       // Identity session'dan olinadi — userId param uzatilmaydi (IDOR himoyasi)
+      const authHeaders = await getAuthHeaders()
       const res = await fetch('/api/notifications', {
         cache: 'no-cache',
+        headers: { ...authHeaders },
       })
       const result = await res.json()
       if (result.success && Array.isArray(result.data)) {
@@ -127,10 +142,11 @@ export default function NotificationBell() {
     if (!userId) return
     setNotifications(prev => prev.map(n => ({ ...n, read: true })))
     try {
+      const authHeaders = await getAuthHeaders()
       await fetch('/api/notifications', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ markAll: true, userId }),
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
+        body: JSON.stringify({ markAll: true }),
       })
     } catch {}
   }
@@ -138,9 +154,10 @@ export default function NotificationBell() {
   const markRead = async (id: string) => {
     setNotifications(prev => prev.map(n => (n.id === id ? { ...n, read: true } : n)))
     try {
+      const authHeaders = await getAuthHeaders()
       await fetch('/api/notifications', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
         body: JSON.stringify({ id }),
       })
     } catch {}
@@ -149,9 +166,10 @@ export default function NotificationBell() {
   const deleteNotif = async (id: string) => {
     setNotifications(prev => prev.filter(n => n.id !== id))
     try {
+      const authHeaders = await getAuthHeaders()
       await fetch('/api/notifications', {
         method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
         body: JSON.stringify({ id }),
       })
     } catch {}
@@ -199,7 +217,7 @@ export default function NotificationBell() {
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-[calc(100vw-1.5rem)] sm:w-96 max-w-[400px] max-h-[500px] sm:max-h-[480px] bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-gray-100 dark:border-zinc-800 z-50 overflow-hidden flex flex-col">
+        <div className="absolute right-0 mt-2 w-[calc(100vw-2rem)] sm:w-96 max-w-[400px] max-h-[80vh] sm:max-h-[480px] bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-gray-100 dark:border-zinc-800 z-[9999] overflow-hidden flex flex-col">
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-zinc-800">
             <h3 className="font-semibold text-sm text-gray-800 dark:text-white whitespace-nowrap">
               Bildirishnomalar

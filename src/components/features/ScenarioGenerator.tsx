@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/Textarea'
 import { Select } from '@/components/ui/Select'
 import { Badge } from '@/components/ui/Badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs'
-import { useAuth } from '@/services/auth'
+import { useAuth } from '@/app/providers'
 import { getUserIdentityPayload } from '@/lib/client-user'
 
 interface Scenario {

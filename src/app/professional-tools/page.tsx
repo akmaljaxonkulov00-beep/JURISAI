@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { getAuthHeaders } from '@/lib/api-auth-client'
 import AppSidebar from '@/components/layout/AppSidebar'
 import { getUserIdentityPayload } from '@/lib/client-user'
 import DocumentTemplates from '@/components/features/DocumentTemplates'
@@ -184,7 +185,7 @@ export default function ProfessionalTools() {
       const text = await uploadedContract.text()
       const response = await fetch('/api/ai/document-analysis', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(await getAuthHeaders()) },
         body: JSON.stringify({
           documentText: text,
           documentType: 'contract',
@@ -233,7 +234,7 @@ export default function ProfessionalTools() {
     try {
       const response = await fetch('/api/ai/legal-chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(await getAuthHeaders()) },
         body: JSON.stringify({
           message: `Sud amaliyoti tahlili: "${searchQuery}".
 

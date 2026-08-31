@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { getAuthHeaders } from '@/lib/api-auth-client'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { getUserIdentityPayload } from '@/lib/client-user'
@@ -628,7 +629,7 @@ Eslatma: Tomonlarni tinglang, ularga kelishuvga erishishga yordam bering va nizo
     try {
       const res = await fetch('/api/court-simulator', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(await getAuthHeaders()) },
         body: JSON.stringify({
           action: 'start',
           caseDetails: getCasePrompt(),
@@ -677,7 +678,7 @@ Eslatma: Tomonlarni tinglang, ularga kelishuvga erishishga yordam bering va nizo
       try {
         const res = await fetch('/api/court-simulator', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...(await getAuthHeaders()) },
           body: JSON.stringify({
             action: 'submit_argument',
             simulationId: simId,
@@ -728,7 +729,7 @@ Eslatma: Tomonlarni tinglang, ularga kelishuvga erishishga yordam bering va nizo
     try {
       const res = await fetch('/api/court-simulator', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(await getAuthHeaders()) },
         body: JSON.stringify({
           action: 'get_verdict',
           simulationId: simId,

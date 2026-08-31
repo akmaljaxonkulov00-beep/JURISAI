@@ -27,20 +27,16 @@ class ApiService {
 
   /**
    * Supabase session'dan access_token olish.
-   * localStorage'dagi 'sb-*-auth-token' kalitidan session oladi.
+   * Yagona ishonchli manba — Supabase browser client getSession() API.
    */
-  private getAuthToken(): string | null {
+  private async getAuthToken(): Promise<string | null> {
     try {
       if (typeof window === 'undefined') return null
-      const keys = Object.keys(localStorage)
-      for (const key of keys) {
-        if (key.startsWith('sb-') && key.endsWith('-auth-token')) {
-          const raw = localStorage.getItem(key)
-          if (!raw) continue
-          const session = JSON.parse(raw)
-          if (session?.access_token) return session.access_token
-        }
-      }
+      const { supabase } = await import('@/lib/supabase-browser')
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+      if (session?.access_token) return session.access_token
     } catch {
       /* ignore */
     }
@@ -52,7 +48,7 @@ class ApiService {
       const url = `${this.baseURL}${endpoint}`
 
       // Auth token olish (Supabase session'dan)
-      const authToken = this.getAuthToken()
+      const authToken = await this.getAuthToken()
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
         ...((options.headers as Record<string, string>) || {}),

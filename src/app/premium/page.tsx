@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { getAuthHeaders } from '@/lib/api-auth-client'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
@@ -142,6 +143,7 @@ export default function Premium() {
       const res = await fetch('/api/settings/pricing', {
         cache: 'no-cache',
         credentials: 'include',
+        headers: { ...(await getAuthHeaders()) },
       })
       const result = await res.json()
       if (result.success && Array.isArray(result.data)) {

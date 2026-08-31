@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useMemo } from 'react'
+import { getAuthHeaders } from '@/lib/api-auth-client'
 import { useParams, useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
@@ -131,7 +132,7 @@ export default function CodeDetailPage() {
     try {
       const res = await fetch('/api/ai/legal-chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(await getAuthHeaders()) },
         body: JSON.stringify({
           message: `Quyidagi moddani sodda va tushunarli tilda izohlab bering: ${article.number}-modda. ${article.title}. Modda matni: ${article.content.substring(0, 1200)}`,
           ...getUserIdentityPayload(),

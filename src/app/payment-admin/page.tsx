@@ -3,9 +3,10 @@
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
+import { getAuthHeaders } from '@/lib/api-auth-client'
 import { Badge } from '@/components/ui/Badge'
 import { Input } from '@/components/ui/Input'
-import { useAuth } from '@/services/auth'
+import { useAuth } from '@/app/providers'
 import { isAdminRole } from '@/lib/roles'
 import { api } from '@/services/api'
 import {
@@ -144,9 +145,10 @@ export default function PaymentAdmin() {
     try {
       setActionLoading(true)
 
+      const adminHeaders = await getAuthHeaders()
       const res = await fetch('/api/payments/approve', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...adminHeaders },
         body: JSON.stringify({ paymentId }),
       })
       const result = await res.json()
@@ -182,9 +184,10 @@ export default function PaymentAdmin() {
     try {
       setActionLoading(true)
 
+      const adminHeaders = await getAuthHeaders()
       const res = await fetch('/api/payments/reject', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...adminHeaders },
         body: JSON.stringify({ paymentId, notes: notes || '' }),
       })
       const result = await res.json()

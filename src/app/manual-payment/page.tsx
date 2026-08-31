@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
+import { getAuthHeaders } from '@/lib/api-auth-client'
 import {
   ArrowLeft,
   CreditCard,
@@ -46,8 +47,10 @@ function PaymentContent() {
     const checkStatusNow = async () => {
       try {
         // Identity session'dan olinadi — userId param uzatilmaydi (IDOR himoyasi)
+        const authHeaders = await getAuthHeaders()
         const res = await fetch('/api/payments', {
           cache: 'no-cache',
+          headers: { ...authHeaders },
         })
         const result = await res.json()
         if (!result.success || cancelled) return
@@ -181,9 +184,11 @@ function PaymentContent() {
         formData.append('file', checkImage)
         formData.append('userId', user.id || 'unknown')
 
+        const uploadAuthHeaders = await getAuthHeaders()
         const uploadRes = await fetch('/api/upload', {
           credentials: 'include',
           method: 'POST',
+          headers: { ...uploadAuthHeaders },
           body: formData,
         })
         const uploadResult = await uploadRes.json()
@@ -244,10 +249,11 @@ function PaymentContent() {
 
       // Try Supabase log — pass same ID so admin can look it up
       try {
+        const logAuthHeaders = await getAuthHeaders()
         await fetch('/api/log/payment', {
           credentials: 'include',
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...logAuthHeaders },
           body: JSON.stringify({
             id: paymentRecord.id,
             userId: user.id || 'unknown',

@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import { getAuthHeaders } from '@/lib/api-auth-client'
 import { ArrowLeft } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import ScenarioGenerator from '@/components/features/ScenarioGenerator'

@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useMemo } from 'react'
+import { getAuthHeaders } from '@/lib/api-auth-client'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
 import { Badge } from '@/components/ui/Badge'
@@ -139,7 +140,7 @@ export default function QonunlarPage() {
     try {
       const res = await fetch('/api/ai/legal-chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(await getAuthHeaders()) },
         body: JSON.stringify({
           message: `Quyidagi moddani sodda va tushunarli tilda, huquqiy atamalarni odday qilib izohlab bering: ${article.number}-modda. ${article.title}. Modda matni: ${article.content.substring(0, 1200)}`,
           ...getUserIdentityPayload(),

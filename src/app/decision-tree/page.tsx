@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useRef, useEffect, useCallback } from 'react'
+import { getAuthHeaders } from '@/lib/api-auth-client'
 import { useRouter } from 'next/navigation'
 import {
   ArrowLeft,
@@ -391,7 +392,7 @@ export default function DecisionTreeEngine() {
     try {
       const res = await fetch('/api/decision-tree/generate', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(await getAuthHeaders()) },
         body: JSON.stringify({
           scenario: scenario.trim(),
           case_type: 'huquqiy',

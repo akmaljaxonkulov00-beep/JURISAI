@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { getAuthHeaders } from '@/lib/api-auth-client'
 import { useAuth } from '@/app/providers'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
@@ -48,7 +49,10 @@ export default function Billing() {
   // Tariflar — Supabase pricing_plans jadvalidan (real ma'lumot)
   const fetchPlans = async () => {
     try {
-      const res = await fetch('/api/billing/plans', { cache: 'no-cache' })
+      const res = await fetch('/api/billing/plans', {
+        cache: 'no-cache',
+        headers: { ...(await getAuthHeaders()) },
+      })
       const result = await res.json()
       if (result.success && Array.isArray(result.data) && result.data.length > 0) {
         setPlans(result.data)

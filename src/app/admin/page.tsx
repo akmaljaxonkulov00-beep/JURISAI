@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { getAuthHeaders } from '@/lib/api-auth-client'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/app/providers'
 import { isAdminRole } from '@/lib/roles'
@@ -366,7 +367,7 @@ export default function AdminDashboard() {
     try {
       await fetch('/api/admin/users', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(await getAuthHeaders()) },
         body: JSON.stringify({
           userId: userData.id || userData.uid || userData.email,
           email: userData.email,
@@ -425,7 +426,7 @@ export default function AdminDashboard() {
     try {
       await fetch('/api/admin/users', {
         method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(await getAuthHeaders()) },
         body: JSON.stringify({ userId }),
       })
     } catch {}
@@ -448,7 +449,7 @@ export default function AdminDashboard() {
     try {
       const res = await fetch('/api/admin/users/reset-password', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(await getAuthHeaders()) },
         body: JSON.stringify({ userId, email, password: newPass }),
       })
       const json = await res.json()

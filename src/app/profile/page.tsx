@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, Suspense, useEffect } from 'react'
+import { getAuthHeaders } from '@/lib/api-auth-client'
 import { useRouter } from 'next/navigation'
 import {
   ArrowLeft,
@@ -387,7 +388,7 @@ function ProfileContent() {
       // 1. Call the server to delete Supabase records
       const res = await fetch('/api/user/delete', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(await getAuthHeaders()) },
         body: JSON.stringify({
           userId: userData.id || userData.uid,
           email: userData.email,

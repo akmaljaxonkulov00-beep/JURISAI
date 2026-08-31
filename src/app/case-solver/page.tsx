@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { getAuthHeaders } from '@/lib/api-auth-client'
 import { useRouter } from 'next/navigation'
 import AppSidebar from '@/components/layout/AppSidebar'
 import {
@@ -272,7 +273,7 @@ export default function CaseSolver() {
       const text = caseText
       const res = await fetch('/api/ai/irac-analyze', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(await getAuthHeaders()) },
         body: JSON.stringify({ caseText: text }),
       })
       const data = await res.json()
@@ -352,7 +353,7 @@ FAQAT O'ZBEK LOTIN ALIFBOSIDA yozing. Kirill harflari ishlatilmaydi.`
 
       const res = await fetch('/api/ai/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(await getAuthHeaders()) },
         body: JSON.stringify({
           message: prompt,
           systemBase:
@@ -413,7 +414,7 @@ FAQAT O'ZBEK LOTIN ALIFBOSIDA yozing. Kirill harflari ishlatilmaydi.`
     try {
       const res = await fetch('/api/case-solver/save-analysis', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(await getAuthHeaders()) },
         body: JSON.stringify({
           case_title: currentCase.title,
           case_category: currentCase.category,

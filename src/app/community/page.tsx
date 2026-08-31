@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase-client'
+import { getAuthHeaders } from '@/lib/api-auth-client'
 import { useLanguage } from '@/context/LanguageContext'
 import {
   ArrowLeft,
@@ -42,6 +43,16 @@ import {
 import { useCommunity, CommunityPost, CommunityComment } from '@/hooks/useCommunity'
 import AppSidebar from '@/components/layout/AppSidebar'
 import { getUserIdentityPayload } from '@/lib/client-user'
+/** Auth headers for API calls */
+async function apiHeaders(): Promise<Record<string, string>> {
+  try {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+    if (session?.access_token) return { Authorization: 'Bearer ' + session.access_token }
+  } catch {}
+  return {}
+}
 
 // ── Umumiy tiplar (any o'rniga) ────────────────────────────────────────
 interface GroupPost {
@@ -522,13 +533,16 @@ export default function Community() {
   useEffect(() => {
     if (activeTab !== 'experts') return
     setExpertsLoading(true)
-    fetch('/api/community/experts', { credentials: 'include' })
-      .then(r => (r.ok ? r.json() : { data: [] }))
-      .then(d => {
-        setExperts(d.data || [])
-        setExpertsLoading(false)
-      })
-      .catch(() => setExpertsLoading(false))
+    ;(async () => {
+      const h = await apiHeaders()
+      fetch('/api/community/experts', { credentials: 'include', headers: h })
+        .then(r => (r.ok ? r.json() : { data: [] }))
+        .then(d => {
+          setExperts(d.data || [])
+          setExpertsLoading(false)
+        })
+        .catch(() => setExpertsLoading(false))
+    })()
   }, [activeTab])
 
   // Load groups from API (qidiruv + filtrlar bilan)
@@ -541,7 +555,8 @@ export default function Community() {
     if (groupSearch.trim()) params.set('search', groupSearch.trim())
     if (groupCategoryFilter !== 'all') params.set('category', groupCategoryFilter)
     if (groupPrivacyFilter !== 'all') params.set('privacy', groupPrivacyFilter)
-    fetch(`/api/community/groups?${params.toString()}`)
+    const h = await apiHeaders()
+    fetch(`/api/community/groups?${params.toString()}`, { headers: { ...h } })
       .then(r => (r.ok ? r.json() : { data: [] }))
       .then(d => {
         setGroups(d.data || [])
@@ -581,13 +596,16 @@ export default function Community() {
   useEffect(() => {
     if (activeTab !== 'webinars') return
     setWebinarsLoading(true)
-    fetch('/api/community/webinars', { credentials: 'include' })
-      .then(r => (r.ok ? r.json() : { data: [] }))
-      .then(d => {
-        setWebinars(d.data || [])
-        setWebinarsLoading(false)
-      })
-      .catch(() => setWebinarsLoading(false))
+    ;(async () => {
+      const h = await apiHeaders()
+      fetch('/api/community/webinars', { credentials: 'include', headers: h })
+        .then(r => (r.ok ? r.json() : { data: [] }))
+        .then(d => {
+          setWebinars(d.data || [])
+          setWebinarsLoading(false)
+        })
+        .catch(() => setWebinarsLoading(false))
+    })()
     try {
       const reg = localStorage.getItem('community_registered_webinars')
       if (reg) setRegisteredWebinars(JSON.parse(reg))
@@ -608,7 +626,7 @@ export default function Community() {
     try {
       await fetch('/api/community/groups', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(await apiHeaders()) },
         body: JSON.stringify({ id: groupId, delta: 1, userId: getUserIdentityPayload().userId }),
       })
     } catch {}
@@ -628,7 +646,7 @@ export default function Community() {
     try {
       await fetch('/api/community/groups', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(await apiHeaders()) },
         body: JSON.stringify({ id: groupId, delta: -1, userId: getUserIdentityPayload().userId }),
       })
     } catch {}
@@ -640,7 +658,7 @@ export default function Community() {
     try {
       const r = await fetch('/api/community/groups', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(await apiHeaders()) },
         body: JSON.stringify({
           name: newGroupName,
           description: newGroupDesc,
@@ -683,7 +701,7 @@ export default function Community() {
       const identity = getUserIdentityPayload()
       const r = await fetch('/api/community/groups/join', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(await apiHeaders()) },
         body: JSON.stringify({ code, userId: identity.userId, userName: identity.email }),
       })
       const d = await r.json()
@@ -812,7 +830,7 @@ export default function Community() {
     try {
       const r = await fetch('/api/community/groups/requests', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(await apiHeaders()) },
         body: JSON.stringify({
           groupId: openGroup.id,
           userId: identity.userId,
@@ -835,7 +853,7 @@ export default function Community() {
       const identity = getUserIdentityPayload()
       const r = await fetch('/api/community/groups/requests', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(await apiHeaders()) },
         body: JSON.stringify({ id: reqId, status, actorId: identity.userId || '' }),
       })
       const d = await r.json()
@@ -889,7 +907,7 @@ export default function Community() {
     try {
       const r = await fetch('/api/community/groups', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(await apiHeaders()) },
         body: JSON.stringify({
           id: openGroup.id,
           regenerate_code: true,
@@ -913,7 +931,7 @@ export default function Community() {
     try {
       const r = await fetch('/api/community/groups', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(await apiHeaders()) },
         body: JSON.stringify({
           id: openGroup.id,
           name,
@@ -941,7 +959,7 @@ export default function Community() {
     try {
       const r = await fetch('/api/community/groups', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(await apiHeaders()) },
         body: JSON.stringify({
           id: openGroup.id,
           is_private: !openGroup.is_private,
@@ -975,7 +993,7 @@ export default function Community() {
     try {
       const r = await fetch('/api/community/groups', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(await apiHeaders()) },
         body: JSON.stringify({
           id: openGroup.id,
           transfer_to: transferTarget,
@@ -1143,7 +1161,7 @@ export default function Community() {
     try {
       const r = await fetch('/api/community/groups/posts', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(await apiHeaders()) },
         body: JSON.stringify({ groupId: openGroup.id, userId, userName, content }),
       })
       const d = await r.json()
@@ -1178,7 +1196,7 @@ export default function Community() {
     try {
       await fetch('/api/community/groups/posts/reaction', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(await apiHeaders()) },
         body: JSON.stringify({ postId, userId: identity.userId, emoji }),
       })
     } catch {}
@@ -1203,7 +1221,7 @@ export default function Community() {
     try {
       const r = await fetch('/api/community/groups/posts', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(await apiHeaders()) },
         body: JSON.stringify({
           groupId: openGroup.id,
           userId,
@@ -1251,7 +1269,7 @@ export default function Community() {
     try {
       const r = await fetch('/api/community/groups/members', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(await apiHeaders()) },
         body: JSON.stringify({
           groupId: openGroup.id,
           userId,
@@ -1289,7 +1307,7 @@ export default function Community() {
     try {
       await fetch('/api/community/groups/notifications', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(await apiHeaders()) },
         body: JSON.stringify({ id }),
       })
     } catch {}
@@ -1309,7 +1327,7 @@ export default function Community() {
     try {
       await fetch('/api/community/groups/notifications', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(await apiHeaders()) },
         body: JSON.stringify({ all: true, userId: identity.userId }),
       })
     } catch {}
@@ -1337,7 +1355,7 @@ export default function Community() {
       } catch {}
       await fetch('/api/community/consultations', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(await apiHeaders()) },
         body: JSON.stringify({
           expertId: consultExpert.id,
           expertName: consultExpert.name,
@@ -1377,7 +1395,7 @@ export default function Community() {
     try {
       await fetch('/api/community/webinars', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(await apiHeaders()) },
         body: JSON.stringify({ id: webinarId, delta: 1 }),
       })
     } catch {}
