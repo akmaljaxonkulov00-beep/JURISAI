@@ -39,7 +39,7 @@ import {
   Mail,
   type LucideIcon,
 } from 'lucide-react'
-import { firebaseAuth, type AuthUser } from '@/services/supabase-auth'
+import { authService, type AuthUser } from '@/services/supabase-auth'
 import MonitoringDashboard from '@/components/admin/MonitoringDashboard'
 import AdminTemplateManager from '@/components/admin/AdminTemplateManager'
 import AdminCommunityManager from '@/components/admin/AdminCommunityManager'
@@ -313,8 +313,8 @@ export default function AdminDashboard() {
 
   // === LOGOUT — nuclear clear + hard redirect ===
   const handleLogout = async () => {
-    await firebaseAuth.signOut()
-    // firebaseAuth.signOut() now does: localStorage.clear(), sessionStorage.clear(), window.location.href = '/signin'
+    await authService.signOut()
+    // authService.signOut() now does: localStorage.clear(), sessionStorage.clear(), window.location.href = '/signin'
     setAdminUser(null)
     setUser(null)
   }
@@ -334,7 +334,7 @@ export default function AdminDashboard() {
     }
 
     try {
-      const result = await firebaseAuth.signIn(normalizedEmail, normalizedPass)
+      const result = await authService.signIn(normalizedEmail, normalizedPass)
       if (result.success && result.data) {
         if (isAdminRole(result.data.role)) {
           const adminData: AdminUser = {

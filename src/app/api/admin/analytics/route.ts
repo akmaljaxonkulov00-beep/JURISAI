@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
 import { requireAdmin } from '@/lib/server-auth'
+import { getSupabaseAdmin } from '@/lib/supabase-admin'
 
 // Supabase'dan keladigan xom qatorlar (any o'rniga)
 interface UserRow {
@@ -43,29 +43,12 @@ export async function GET(request: NextRequest) {
     const days = parseInt(searchParams.get('days') || '30')
     const type = searchParams.get('type') || 'all'
 
-    // Kalitlar faqat server environment variable'laridan — kodda hardcoded yo'q
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
-    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+    let supabase: ReturnType<typeof getSupabaseAdmin> | null = null
+    try {
+      supabase = getSupabaseAdmin()
+    } catch {}
 
-    let supabase: ReturnType<typeof createClient> | null = null
-
-    if (supabaseUrl && serviceKey) {
-      try {
-        supabase = createClient(supabaseUrl, serviceKey, {
-          auth: { autoRefreshToken: false, persistSession: false },
-        })
-      } catch {} // fall through to anon client
-    }
-
-    if (!supabase && supabaseUrl && anonKey) {
-      supabase = createClient(supabaseUrl, anonKey, {
-        auth: { autoRefreshToken: false, persistSession: false },
-      })
-    }
-
-    // If Supabase is not available at all, return fallback data
-    if (!supabase || !supabaseUrl) {
+    if (!supabase) {
       const fallback = {
         success: true,
         data: {
@@ -146,7 +129,7 @@ export async function GET(request: NextRequest) {
           // Fallback: auth.users via Supabase REST API
           // Requires SUPABASE_SERVICE_ROLE_KEY on the server
           try {
-            const suUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || supabaseUrl
+            const suUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
             const srKey = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
             if (srKey) {
               const authRes = await fetch(

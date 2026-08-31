@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { getSupabaseAuthClient } from '@/lib/supabase-auth-client'
+import { getSupabaseAdmin } from '@/lib/supabase-admin'
 
 /**
  * POST /api/auth/signup
@@ -18,17 +19,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Ism, email va parol kiritilishi shart' }, { status: 400 })
     }
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-
-    if (!supabaseUrl || !anonKey) {
-      return NextResponse.json({ error: 'Supabase sozlanmagan' }, { status: 500 })
-    }
-
-    const supabase = createClient(supabaseUrl, anonKey, {
-      auth: { autoRefreshToken: false, persistSession: false },
-    })
+    const supabase = getSupabaseAuthClient()
 
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -50,11 +41,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Emailni avtomatik tasdiqlash (service role key bilan)
-    if (serviceKey && !data.session) {
-      const admin = createClient(supabaseUrl, serviceKey, {
-        auth: { autoRefreshToken: false, persistSession: false },
-      })
-      await admin.auth.admin.updateUserById(data.user.id, { email_confirm: true }).catch(() => {})
+    if (!data.session) {
+      try {
+        const admin = getSupabaseAdmin()
+        await admin.auth.admin.updateUserById(data.user.id, { email_confirm: true }).catch(() => {})
+      } catch {}
     }
 
     return NextResponse.json(
@@ -62,7 +53,7 @@ export async function POST(request: NextRequest) {
         success: true,
         message: 'User created successfully',
         user: { id: data.user.id, email: data.user.email },
-        needsEmailConfirmation: !data.session && !serviceKey,
+        needsEmailConfirmation: !data.session,
       },
       { status: 201 }
     )

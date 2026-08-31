@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { getSupabaseAuthClient } from '@/lib/supabase-auth-client'
 
 /**
  * GET /api/auth/me
@@ -8,33 +8,19 @@ import { createClient } from '@supabase/supabase-js'
  */
 export async function GET(request: NextRequest) {
   try {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-    if (!supabaseUrl || !anonKey) {
-      return NextResponse.json({ error: 'Supabase sozlanmagan' }, { status: 500 })
-    }
-
     // Client token (Authorization header) orqali session aniqlanadi
     const authHeader = request.headers.get('authorization') || ''
     const accessToken = authHeader.replace(/^Bearer\s+/i, '')
 
-    const supabase = createClient(supabaseUrl, anonKey, {
-      auth: { autoRefreshToken: false, persistSession: false },
-    })
+    const supabase = getSupabaseAuthClient()
 
     let user = null
     if (accessToken) {
       const { data } = await supabase.auth.getUser(accessToken)
       user = data?.user || null
     } else {
-      // Cookie asosidagi session — server tomonida Supabase cookie'larini
-      // o'qish uchun client yaratamiz
-      const cookieClient = createClient(supabaseUrl, anonKey, {
-        auth: { autoRefreshToken: false, persistSession: false },
-        global: { headers: { cookie: request.headers.get('cookie') || '' } },
-      })
-      const { data } = await cookieClient.auth.getSession()
+      // Cookie asosidagi session
+      const { data } = await supabase.auth.getSession()
       user = data?.session?.user || null
     }
 

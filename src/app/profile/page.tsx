@@ -40,7 +40,7 @@ import { useTheme } from '@/context/ThemeContext'
 import { useLanguage } from '@/context/LanguageContext'
 import { useSearchParams } from 'next/navigation'
 import { useSettingsSync } from '@/hooks/useSettingsSync'
-import { firebaseAuth } from '@/services/supabase-auth'
+import { authService } from '@/services/supabase-auth'
 import { supabase } from '@/lib/supabase-browser'
 
 interface UserProfile {
@@ -79,7 +79,7 @@ function ProfileContent() {
   const [profile, setProfile] = useState<UserProfile>(() => {
     if (typeof window !== 'undefined') {
       // Haqiqiy Supabase session user birinchi navbatda (yangi tab/refresh ham to'g'ri)
-      const realUser = firebaseAuth.getCurrentUser()
+      const realUser = authService.getCurrentUser()
       const storedUser =
         realUser ||
         (() => {
@@ -235,7 +235,7 @@ function ProfileContent() {
 
       // ── Email o'zgargan bo'lsa — Supabase orqali yangilaymiz ──
       if (profile.email && editedProfile.email !== profile.email) {
-        const emailResult = await firebaseAuth.changeEmail(editedProfile.email)
+        const emailResult = await authService.changeEmail(editedProfile.email)
         if (!emailResult.success) {
           setSaveError(emailResult.error || "Emailni o'zgartirishda xatolik")
           setSaveLoading(false)
@@ -250,7 +250,7 @@ function ProfileContent() {
       }
 
       // ── Profil ma'lumotlari Supabase'ga sinxronlanadi (auth + registered_users) ──
-      const result = await firebaseAuth.updateProfile({
+      const result = await authService.updateProfile({
         name: fullName,
         phone: editedProfile.phone || undefined,
         email: editedProfile.email,
@@ -298,7 +298,7 @@ function ProfileContent() {
       localStorage.setItem('profile_image', dataUrl)
 
       // ── Supabase Storage'ga yuklash (avatars bucket) ──
-      const current = firebaseAuth.getCurrentUser()
+      const current = authService.getCurrentUser()
       const userId = current?.id || ''
       const ext = file.name.split('.').pop() || 'jpg'
       const fileName = `${userId || 'user'}-${Date.now()}.${ext}`
@@ -311,7 +311,7 @@ function ProfileContent() {
           const avatarUrl = urlData?.publicUrl || dataUrl
           setProfileImage(avatarUrl)
           localStorage.setItem('profile_image', avatarUrl)
-          await firebaseAuth.updateProfile({ avatar: avatarUrl }).catch(() => {})
+          await authService.updateProfile({ avatar: avatarUrl }).catch(() => {})
         } else {
           // Bucket yo'q bo'lsa — lokal saqlash davom etadi
           setAvatarError("Rasm saqlandi (server yuklash hozircha o'chirilgan)")
@@ -346,7 +346,7 @@ function ProfileContent() {
     }
     // Haqiqiy Supabase parol o'zgarishi — joriy parol talab qilinmaydi
     // (foydalanuvchi tizimga kirgan, session mavjud)
-    const result = await firebaseAuth.changePassword(passwordData.newPass)
+    const result = await authService.changePassword(passwordData.newPass)
     if (!result.success) {
       setPasswordError(result.error || "Parolni o'zgartirishda xatolik")
       return
@@ -399,8 +399,8 @@ function ProfileContent() {
 
       // 2. Sign out from Firebase if available
       try {
-        const { firebaseAuth } = await import('@/services/supabase-auth')
-        await firebaseAuth.signOut()
+        const { authService } = await import('@/services/supabase-auth')
+        await authService.signOut()
       } catch {}
 
       if (result.success) {

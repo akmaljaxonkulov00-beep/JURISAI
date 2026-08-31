@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
 import { requireAdmin } from '@/lib/server-auth'
+import { getSupabaseAdmin } from '@/lib/supabase-admin'
 import { logAdminAction } from '@/lib/admin-audit'
 
 /**
@@ -36,15 +36,12 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-    if (!supabaseUrl || !serviceKey) {
+    let supabase
+    try {
+      supabase = getSupabaseAdmin()
+    } catch {
       return NextResponse.json({ success: false, error: 'Supabase sozlanmagan' }, { status: 500 })
     }
-
-    const supabase = createClient(supabaseUrl, serviceKey, {
-      auth: { autoRefreshToken: false, persistSession: false },
-    })
 
     const { data, error } = await supabase.auth.admin.updateUserById(userId, {
       password,

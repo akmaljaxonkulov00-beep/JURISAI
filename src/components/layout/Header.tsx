@@ -36,8 +36,8 @@ const Header: React.FC<HeaderProps> = ({ user, className }) => {
 
   const handleLogout = async () => {
     try {
-      const { firebaseAuth } = await import('@/services/supabase-auth')
-      await firebaseAuth.signOut()
+      const { authService } = await import('@/services/supabase-auth')
+      await authService.signOut()
     } catch {
       // Nuclear clear fallback
       localStorage.clear()

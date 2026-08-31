@@ -17,7 +17,7 @@ import {
   BarChart3,
   LogOut,
 } from 'lucide-react'
-import { firebaseAuth } from '@/services/supabase-auth'
+import { authService } from '@/services/supabase-auth'
 
 interface SidebarProps {
   currentPage?: string
@@ -118,7 +118,7 @@ export default function Sidebar({ currentPage = 'home' }: SidebarProps) {
         {/* Logout Button */}
         <button
           onClick={async () => {
-            await firebaseAuth.signOut()
+            await authService.signOut()
           }}
           className="mt-4 w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600"
         >

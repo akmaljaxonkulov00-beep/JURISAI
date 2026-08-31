@@ -3,7 +3,7 @@
 import { ReactNode, createContext, useContext, useState, useEffect } from 'react'
 import { ThemeProvider } from '@/context/ThemeContext'
 import { LanguageProvider } from '@/context/LanguageContext'
-import { firebaseAuth } from '@/services/supabase-auth'
+import { authService } from '@/services/supabase-auth'
 import type { AuthUser } from '@/services/supabase-auth'
 import { isAdminRole } from '@/lib/roles'
 
@@ -40,7 +40,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Subscribe to Firebase auth state changes
-    const unsubscribe = firebaseAuth.onAuthChange(authUser => {
+    const unsubscribe = authService.onAuthChange(authUser => {
       setUser(authUser)
       setIsLoading(false)
     })
@@ -51,7 +51,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string) => {
     setIsLoading(true)
     try {
-      const result = await firebaseAuth.signIn(email, password)
+      const result = await authService.signIn(email, password)
       if (result.success && result.data) {
         setUser(result.data)
         return { success: true }
@@ -67,7 +67,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
   const register = async (userData: { name: string; email: string; password: string }) => {
     setIsLoading(true)
     try {
-      const result = await firebaseAuth.signUp(userData.email, userData.password, userData.name)
+      const result = await authService.signUp(userData.email, userData.password, userData.name)
       if (result.success) {
         if (result.needsEmailConfirmation) {
           // Session yaratilmagan — fake-login qilmaymiz
@@ -87,7 +87,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const logout = async () => {
-    await firebaseAuth.signOut()
+    await authService.signOut()
     setUser(null)
   }
 
@@ -98,7 +98,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
         return { success: false, error: 'Foydalanuvchi tizimga kirmagan' }
       }
 
-      const result = await firebaseAuth.updateProfile(updates)
+      const result = await authService.updateProfile(updates)
       if (result.success) {
         // Update local state
         const updatedUser = { ...user, ...updates }

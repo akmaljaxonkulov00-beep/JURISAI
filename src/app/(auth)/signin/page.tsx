@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { firebaseAuth } from '@/services/supabase-auth'
+import { authService } from '@/services/supabase-auth'
 import { isAdminRole } from '@/lib/roles'
 import { useAuth } from '@/app/providers'
 import { useRealtimeStats } from '@/hooks/useRealtimeStats'
@@ -654,7 +654,7 @@ function SignInContent() {
     if (!hasOAuthFlow) return
 
     // Rol DB'dan aniqlangan holda yo'naltiramiz (hardcoded email yo'q)
-    firebaseAuth
+    authService
       .handleRedirectResult()
       .then(result => {
         if (result.success && result.data) {
@@ -685,7 +685,7 @@ function SignInContent() {
     setIsSubmitting(true)
     try {
       if (mode === 'login') {
-        const result = await firebaseAuth.signIn(email, password)
+        const result = await authService.signIn(email, password)
         if (result.success) {
           if (rememberMe) localStorage.setItem('rememberedEmail', email)
           else localStorage.removeItem('rememberedEmail')
@@ -700,7 +700,7 @@ function SignInContent() {
           setIsSubmitting(false)
           return
         }
-        const result = await firebaseAuth.signUp(email, password, name)
+        const result = await authService.signUp(email, password, name)
         if (result.success) {
           // Email tasdiqlash talab qilinsa — dashboardga fake-login qilmaymiz
           if (result.needsEmailConfirmation) {
@@ -730,7 +730,7 @@ function SignInContent() {
     setIsGoogleLoading(true)
     setError('')
     try {
-      const result = await firebaseAuth.signInWithGoogle()
+      const result = await authService.signInWithGoogle()
       if (result.success && result.data) {
         const role = result.data.role
         router.push(isAdminRole(role) ? '/admin' : '/dashboard')
@@ -751,7 +751,7 @@ function SignInContent() {
     }
     setIsSubmitting(true)
     try {
-      const r = await firebaseAuth.resetPassword(email)
+      const r = await authService.resetPassword(email)
       if (r.success) setSuccessMsg("Parolni tiklash bo'yicha email yuborildi!")
       else setError(r.error || 'Parolni tiklashda xatolik')
     } catch {

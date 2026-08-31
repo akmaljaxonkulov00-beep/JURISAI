@@ -10,14 +10,14 @@
  * into this single file. Import from @/services/auth everywhere:
  *
  *   import { useAuth } from '@/services/auth';
- *   import { firebaseAuth } from '@/services/auth';
+ *   import { authService } from '@/services/auth';
  *
  * ═══════════════════════════════════════════════════════════════════════════
  */
 
 // Re-export everything from supabase-auth (the primary auth implementation)
 export {
-  firebaseAuth,
+  authService,
   signIn,
   signUp,
   signInWithGoogle,

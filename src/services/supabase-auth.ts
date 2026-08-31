@@ -708,7 +708,7 @@ export function onAuthChange(callback: (user: AuthUser | null) => void): () => v
   return () => subscription.unsubscribe()
 }
 
-export const firebaseAuth = {
+export const authService = {
   signIn,
   signUp,
   signInWithGoogle,
@@ -724,5 +724,4 @@ export const firebaseAuth = {
   finalizeUserSession,
 }
 
-/** @deprecated Use authService instead — firebaseAuth is a legacy name (Supabase, not Firebase) */
-export const authService = firebaseAuth
+/** @deprecated Use authService — this was previously named firebaseAuth (Supabase, not Firebase) */

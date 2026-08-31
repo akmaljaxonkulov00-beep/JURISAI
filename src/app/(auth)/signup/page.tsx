@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import Link from 'next/link'
-import { firebaseAuth } from '@/services/supabase-auth'
+import { authService } from '@/services/supabase-auth'
 
 // Form validation schema
 const signUpSchema = z
@@ -43,7 +43,7 @@ export default function SignUpPage() {
     setSuccess(null)
 
     try {
-      const result = await firebaseAuth.signUp(data.email, data.password, data.name)
+      const result = await authService.signUp(data.email, data.password, data.name)
 
       if (result.success) {
         // Email tasdiqlash talab qilinadi — session yaratilmagan, shuning

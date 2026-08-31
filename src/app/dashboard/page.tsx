@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/Badge'
 import { Progress } from '@/components/ui/Progress'
 import { useAuth } from '@/app/providers'
 import { api } from '@/services/api'
-import { firebaseAuth } from '@/services/supabase-auth'
+import { authService } from '@/services/supabase-auth'
 import AIChatFloatingWidget from '@/components/ai/AIChatFloatingWidget'
 import NotificationBell from '@/components/features/NotificationBell'
 import OnboardingTour from '@/components/OnboardingTour'
@@ -93,8 +93,8 @@ export default function Dashboard() {
   }, [user])
 
   const handleLogout = async () => {
-    await firebaseAuth.signOut()
-    // firebaseAuth.signOut() does nuclear clear + hard redirect to /signin
+    await authService.signOut()
+    // authService.signOut() does nuclear clear + hard redirect to /signin
   }
 
   const handleNavigation = (href: string) => {

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
 import { requireUser } from '@/lib/server-auth'
+import { getSupabaseAdmin } from '@/lib/supabase-admin'
 
 /**
  * POST /api/auth/link-identity
@@ -31,18 +31,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'email va userId kerak' }, { status: 400 })
     }
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-    if (!supabaseUrl || !serviceKey) {
+    let supabase
+    try {
+      supabase = getSupabaseAdmin()
+    } catch {
       return NextResponse.json(
         { success: false, error: 'Supabase not configured' },
         { status: 500 }
       )
     }
-
-    const supabase = createClient(supabaseUrl, serviceKey, {
-      auth: { autoRefreshToken: false, persistSession: false },
-    })
 
     // ── 1) Shu email bilan boshqa auth user bormi? ──
     const { data: users, error: usersError } = await supabase.auth.admin.listUsers({

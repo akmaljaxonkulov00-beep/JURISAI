@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { getSupabaseAuthClient } from '@/lib/supabase-auth-client'
 import { normalizeRole } from '@/lib/roles'
 import { requireUser } from '@/lib/server-auth'
 
@@ -40,19 +40,16 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 })
     }
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-
-    if (!supabaseUrl || !serviceKey) {
+    let supabase
+    try {
+      const { getSupabaseAdmin } = await import('@/lib/supabase-admin')
+      supabase = getSupabaseAdmin()
+    } catch {
       return NextResponse.json(
         { success: false, error: 'Supabase not configured' },
         { status: 500 }
       )
     }
-
-    const supabase = createClient(supabaseUrl, serviceKey, {
-      auth: { autoRefreshToken: false, persistSession: false },
-    })
 
     // 1) userId bo'yicha qidirish (registered_users.id == Supabase auth user id)
     let query = supabase
