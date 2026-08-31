@@ -1,29 +1,9 @@
 'use client'
 
-// ═══════════════════════════════════════════════════════════════════════════
-// NotificationBell — Bildirishnoma qo'ng'irog'i (dashboardda)
-// To'lov holati (tasdiqlangan/rad etilgan) va boshqa tizim xabarlari
-// real vaqtda ko'rinadi. 30 soniyada bir yangilanadi.
-// ═══════════════════════════════════════════════════════════════════════════
-
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { Bell, Check, CheckCheck, X, Trash2 } from 'lucide-react'
+import { Bell, CheckCheck, X, Trash2, ChevronRight, ExternalLink } from 'lucide-react'
 import { supabase } from '@/lib/supabase-client'
-import { getUserIdentityPayload } from '@/lib/client-user'
-
-/** Auth token olish — yagona ishonchli manba Supabase session */
-async function getAuthHeaders(): Promise<Record<string, string>> {
-  try {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession()
-    if (session?.access_token) {
-      return { Authorization: `Bearer ${session.access_token}` }
-    }
-  } catch {}
-  return {}
-}
 
 interface AppNotification {
   id: string
@@ -37,109 +17,104 @@ interface AppNotification {
   created_at: string
 }
 
+async function getAuthHeaders(): Promise<Record<string, string>> {
+  try {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+    if (session?.access_token) return { Authorization: `Bearer ${session.access_token}` }
+  } catch {}
+  return {}
+}
+
 export default function NotificationBell() {
   const router = useRouter()
   const [notifications, setNotifications] = useState<AppNotification[]>([])
   const [open, setOpen] = useState(false)
+  const [selectedNotif, setSelectedNotif] = useState<AppNotification | null>(null)
   const [loading, setLoading] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
-  const getUserId = useCallback((): string => {
-    // Supabase session asosiy manba — eski akkaunt ma'lumoti bilan aralashmaydi
-    return getUserIdentityPayload().userId || ''
-  }, [])
-
   const loadNotifications = useCallback(async () => {
-    const userId = getUserId()
-    if (!userId) return
     try {
-      // Identity session'dan olinadi — userId param uzatilmaydi (IDOR himoyasi)
       const authHeaders = await getAuthHeaders()
-      const res = await fetch('/api/notifications', {
-        cache: 'no-cache',
-        headers: { ...authHeaders },
-      })
+      const res = await fetch('/api/notifications', { cache: 'no-cache', headers: authHeaders })
       const result = await res.json()
       if (result.success && Array.isArray(result.data)) {
         setNotifications(result.data)
       }
     } catch {}
-  }, [getUserId])
+  }, [])
 
   useEffect(() => {
     loadNotifications()
 
-    // ── Supabase Realtime — darhol yangilanish ──
-    // 1) user_notifications jadvali (INSERT/UPDATE/DELETE)
-    // 2) payment_requests (status o'zgarishi) — tasdiqlash/rad etish oniy aks etadi
-    const userId = getUserId()
-    const channels: ReturnType<typeof supabase.channel>[] = []
+    // Realtime subscription
+    const userId = (async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+      return session?.user?.id || ''
+    })()
 
-    const subscribe = () => {
-      if (!userId) return
-      const ts = Date.now()
-      const ch1 = supabase
-        .channel(`notif-user-${userId}-${ts}`)
+    let channel: ReturnType<typeof supabase.channel> | null = null
+
+    userId.then(id => {
+      if (!id) return
+      channel = supabase
+        .channel(`notif-${id}-${Date.now()}`)
         .on(
           'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'user_notifications',
-            filter: `user_id=eq.${userId}`,
-          },
+          { event: '*', schema: 'public', table: 'user_notifications', filter: `user_id=eq.${id}` },
           () => loadNotifications()
         )
-        .subscribe()
-      channels.push(ch1)
-
-      const ch2 = supabase
-        .channel(`notif-pay-${userId}-${ts}`)
         .on(
           'postgres_changes',
           {
             event: 'UPDATE',
             schema: 'public',
             table: 'payment_requests',
-            filter: `user_id=eq.${userId}`,
+            filter: `user_id=eq.${id}`,
           },
           () => loadNotifications()
         )
         .subscribe()
-      channels.push(ch2)
-    }
+    })
 
-    subscribe()
-
-    // ── Fallback poll (30s) — Realtime uzilgan yoki jadval hali mavjud bo'lmasa ──
     const timer = setInterval(loadNotifications, 30000)
-
     return () => {
       clearInterval(timer)
-      if (channels.length) {
-        for (const ch of channels) supabase.removeChannel(ch)
-      }
+      if (channel) supabase.removeChannel(channel)
     }
-  }, [loadNotifications, getUserId])
+  }, [loadNotifications])
 
-  // Tashqariga bosilganda yopish
+  // Outside click
   useEffect(() => {
-    const onClickOutside = (e: MouseEvent) => {
+    const handler = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setOpen(false)
+        setSelectedNotif(null)
       }
     }
-    document.addEventListener('mousedown', onClickOutside)
-    return () => document.removeEventListener('mousedown', onClickOutside)
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
   }, [])
 
-  const unreadCount = (Array.isArray(notifications) ? notifications : []).filter(
-    n => !n.read
-  ).length
+  // ESC to close
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setOpen(false)
+        setSelectedNotif(null)
+      }
+    }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [])
+
+  const unreadCount = notifications.filter(n => !n.read).length
 
   const markAllRead = async () => {
-    const userId = getUserId()
-    if (!userId) return
     setNotifications(prev => prev.map(n => ({ ...n, read: true })))
     try {
       const authHeaders = await getAuthHeaders()
@@ -165,6 +140,7 @@ export default function NotificationBell() {
 
   const deleteNotif = async (id: string) => {
     setNotifications(prev => prev.filter(n => n.id !== id))
+    if (selectedNotif?.id === id) setSelectedNotif(null)
     try {
       const authHeaders = await getAuthHeaders()
       await fetch('/api/notifications', {
@@ -178,13 +154,13 @@ export default function NotificationBell() {
   const typeColor = (type: string) => {
     switch (type) {
       case 'success':
-        return 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400'
+        return 'bg-green-100 dark:bg-green-900/30 text-green-600'
       case 'error':
-        return 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400'
+        return 'bg-red-100 dark:bg-red-900/30 text-red-600'
       case 'warning':
-        return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400'
+        return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600'
       default:
-        return 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+        return 'bg-blue-100 dark:bg-blue-900/30 text-blue-600'
     }
   }
 
@@ -201,12 +177,22 @@ export default function NotificationBell() {
     }
   }
 
+  const formatTime = (ts: string) => {
+    if (!ts) return ''
+    return new Date(ts).toLocaleDateString('uz-UZ', {
+      day: 'numeric',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
+  }
+
   return (
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setOpen(o => !o)}
         className="relative p-2 rounded-xl text-gray-600 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
-        title="Bildirishnomalar"
+        aria-label="Bildirishnomalar"
       >
         <Bell className="w-5 h-5" />
         {unreadCount > 0 && (
@@ -217,9 +203,10 @@ export default function NotificationBell() {
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-[calc(100vw-2rem)] sm:w-96 max-w-[400px] max-h-[80vh] sm:max-h-[480px] bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-gray-100 dark:border-zinc-800 z-[9999] overflow-hidden flex flex-col">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-zinc-800">
-            <h3 className="font-semibold text-sm text-gray-800 dark:text-white whitespace-nowrap">
+        <div className="absolute right-0 mt-2 w-[calc(100vw-2rem)] sm:w-96 max-w-[400px] max-h-[80vh] sm:max-h-[500px] bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-gray-100 dark:border-zinc-800 z-[9999] overflow-hidden flex flex-col">
+          {/* Header */}
+          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-zinc-800 flex-shrink-0">
+            <h3 className="font-semibold text-sm text-gray-800 dark:text-white">
               Bildirishnomalar
             </h3>
             <div className="flex items-center gap-1">
@@ -233,7 +220,10 @@ export default function NotificationBell() {
                 </button>
               )}
               <button
-                onClick={() => setOpen(false)}
+                onClick={() => {
+                  setOpen(false)
+                  setSelectedNotif(null)
+                }}
                 className="p-1.5 text-gray-400 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg"
               >
                 <X className="w-4 h-4" />
@@ -241,84 +231,113 @@ export default function NotificationBell() {
             </div>
           </div>
 
-          <div className="overflow-y-auto flex-1">
-            {loading && notifications.length === 0 ? (
-              <div className="text-center py-10 text-sm text-gray-400">Yuklanmoqda...</div>
-            ) : notifications.length === 0 ? (
-              <div className="text-center py-10">
-                <Bell className="w-10 h-10 text-gray-300 dark:text-zinc-700 mx-auto mb-3" />
-                <p className="text-sm text-gray-500 dark:text-zinc-400">Bildirishnomalar yo'q</p>
-              </div>
-            ) : (
-              notifications.slice(0, 15).map(n => (
-                <div
-                  key={n.id}
-                  className={`px-4 py-3 border-b border-gray-50 dark:border-zinc-800/50 flex gap-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition-colors ${
-                    !n.read ? 'bg-blue-50/40 dark:bg-blue-900/10' : ''
-                  }`}
-                  onClick={() => {
-                    markRead(n.id)
-                    if (n.action_url) router.push(n.action_url)
-                    setOpen(false)
-                  }}
+          {/* Content */}
+          <div className="overflow-y-auto flex-1 overscroll-contain">
+            {selectedNotif ? (
+              /* Detail view */
+              <div className="p-4">
+                <button
+                  onClick={() => setSelectedNotif(null)}
+                  className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 mb-3"
                 >
-                  <div className={`mt-1 w-2 h-2 rounded-full flex-shrink-0 ${dotColor(n.type)}`} />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-2 mb-0.5">
-                      <h4 className="font-medium text-[13px] text-gray-800 dark:text-white leading-snug">
-                        {n.title}
-                      </h4>
-                      <span className="text-[10px] text-gray-400 flex-shrink-0 whitespace-nowrap">
-                        {n.created_at
-                          ? new Date(n.created_at).toLocaleDateString('uz-UZ', {
-                              day: 'numeric',
-                              month: 'short',
-                              hour: '2-digit',
-                              minute: '2-digit',
-                            })
-                          : ''}
-                      </span>
-                    </div>
-                    <p className="text-[12px] text-gray-600 dark:text-zinc-400 leading-relaxed break-words">
-                      {n.message}
-                    </p>
-                    {n.action_url && n.action_text && (
+                  ← Orqaga
+                </button>
+                <div
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium mb-3 ${typeColor(selectedNotif.type)}`}
+                >
+                  <span className={`w-2 h-2 rounded-full ${dotColor(selectedNotif.type)}`} />
+                  {selectedNotif.category || selectedNotif.type}
+                </div>
+                <h4 className="font-semibold text-sm text-gray-900 dark:text-white mb-2 leading-snug">
+                  {selectedNotif.title}
+                </h4>
+                <p className="text-[13px] text-gray-600 dark:text-zinc-300 leading-relaxed whitespace-pre-wrap break-words">
+                  {selectedNotif.message}
+                </p>
+                <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100 dark:border-zinc-800">
+                  <span className="text-xs text-gray-400">
+                    {formatTime(selectedNotif.created_at)}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    {selectedNotif.action_url && (
                       <button
-                        className={`inline-block mt-1.5 px-2.5 py-1 text-[11px] font-medium rounded-lg ${typeColor(n.type)} hover:opacity-80 transition-opacity`}
-                        onClick={e => {
-                          e.stopPropagation()
-                          markRead(n.id)
-                          router.push(n.action_url!)
+                        onClick={() => {
+                          markRead(selectedNotif.id)
+                          router.push(selectedNotif.action_url!)
                           setOpen(false)
+                          setSelectedNotif(null)
                         }}
+                        className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                       >
-                        {n.action_text}
+                        {selectedNotif.action_text || "Ko'rish"}{' '}
+                        <ExternalLink className="w-3 h-3" />
                       </button>
                     )}
+                    <button
+                      onClick={() => deleteNotif(selectedNotif.id)}
+                      className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
+                      title="O'chirish"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
                   </div>
-                  <button
-                    onClick={e => {
-                      e.stopPropagation()
-                      deleteNotif(n.id)
-                    }}
-                    className="self-start p-1 text-gray-300 hover:text-red-500 rounded hover:bg-red-50 dark:hover:bg-red-900/20"
-                    title="O'chirish"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                  </button>
                 </div>
-              ))
+              </div>
+            ) : (
+              /* List view */
+              <>
+                {loading && notifications.length === 0 ? (
+                  <div className="text-center py-10 text-sm text-gray-400">Yuklanmoqda...</div>
+                ) : notifications.length === 0 ? (
+                  <div className="text-center py-10">
+                    <Bell className="w-10 h-10 text-gray-300 dark:text-zinc-700 mx-auto mb-3" />
+                    <p className="text-sm text-gray-500 dark:text-zinc-400">
+                      Bildirishnomalar yo'q
+                    </p>
+                  </div>
+                ) : (
+                  notifications.slice(0, 15).map(n => (
+                    <div
+                      key={n.id}
+                      className={`px-4 py-3 border-b border-gray-50 dark:border-zinc-800/50 flex items-start gap-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition-colors ${!n.read ? 'bg-blue-50/40 dark:bg-blue-900/10' : ''}`}
+                      onClick={() => {
+                        markRead(n.id)
+                        setSelectedNotif(n)
+                      }}
+                    >
+                      <div
+                        className={`mt-1.5 w-2 h-2 rounded-full flex-shrink-0 ${dotColor(n.type)}`}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2">
+                          <h4 className="font-medium text-[13px] text-gray-800 dark:text-white leading-snug line-clamp-2">
+                            {n.title}
+                          </h4>
+                          <ChevronRight className="w-3.5 h-3.5 text-gray-300 dark:text-zinc-600 flex-shrink-0 mt-0.5" />
+                        </div>
+                        <p className="text-[12px] text-gray-500 dark:text-zinc-400 leading-relaxed line-clamp-2 mt-0.5">
+                          {n.message}
+                        </p>
+                        <span className="text-[10px] text-gray-400 mt-1 block">
+                          {formatTime(n.created_at)}
+                        </span>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </>
             )}
           </div>
 
-          {notifications.length > 0 && (
-            <div className="px-4 py-2 border-t border-gray-100 dark:border-zinc-800 text-center">
+          {/* Footer */}
+          {notifications.length > 0 && !selectedNotif && (
+            <div className="px-4 py-2.5 border-t border-gray-100 dark:border-zinc-800 text-center flex-shrink-0">
               <button
                 onClick={() => {
                   setOpen(false)
                   router.push('/settings')
                 }}
-                className="text-xs text-blue-600 hover:underline"
+                className="text-xs text-blue-600 hover:text-blue-700 font-medium"
               >
                 Barcha bildirishnomalar
               </button>
