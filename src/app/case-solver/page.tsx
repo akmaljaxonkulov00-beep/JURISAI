@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { getAuthHeaders } from '@/lib/api-auth-client'
 import { useRouter } from 'next/navigation'
 import AppSidebar from '@/components/layout/AppSidebar'
+import FeatureInstructions from '@/components/ui/FeatureInstructions'
 import {
   ArrowLeft,
   Target,
@@ -1297,6 +1298,42 @@ FAQAT O'ZBEK LOTIN ALIFBOSIDA yozing. Kirill harflari ishlatilmaydi.`
             )}
 
             {/* ═══════════════ IRAC TUSHUNTIRMASI ═══════════════ */}
+            <FeatureInstructions
+              featureName="Kazus Yechish"
+              steps={[
+                {
+                  title: 'Kazusni tanlang',
+                  description:
+                    "Tayyor kazuslar ro'yxatidan birini tanlang yoki 'O'zim yozaman' tugmasini bosib o'z kazusingizni kiriting.",
+                  icon: '📋',
+                },
+                {
+                  title: 'IRAC usulida tahlil qiling',
+                  description:
+                    "Issue (masala), Rule (qoida), Application (qo'llash), Conclusion (xulosa) bo'limlarini to'ldiring.",
+                  icon: '⚖️',
+                },
+                {
+                  title: 'Yuboring',
+                  description:
+                    'Tahlilingizni AI ga yuboring — AI sizning javobingizni baholaydi va tegishli moddalar bilan tushuntiradi.',
+                  icon: '🤖',
+                },
+                {
+                  title: 'Natijani k2019ring',
+                  description:
+                    "AI baho, tegishli qonun moddalari va maslahatlar — bularni o'rganing.",
+                  icon: '📊',
+                },
+              ]}
+              tips={[
+                'IRAC — huquqiy tahlilning xalqaro usuli',
+                'Issue: qaysi huquqiy muammo bor?',
+                "Rule: qaysi qonun/modda qo'llaniladi?",
+                "Application: qonun ana shu holatga qanday qo'llaniladi?",
+                'Conclusion: yakuniy huquqiy xulosa',
+              ]}
+            />
             {!currentCase && !result && !evaluation && (
               <div className="mt-6 grid grid-cols-1 sm:grid-cols-4 gap-3">
                 {SECTIONS.map(s => {

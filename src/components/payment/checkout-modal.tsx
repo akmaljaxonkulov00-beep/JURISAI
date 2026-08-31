@@ -18,8 +18,8 @@ export default function CheckoutModal({
   isOpen,
   onClose,
   plan,
-  cardNumber = '8600 1234 5678 9012',
-  paymentDetails = 'Click: *123# 45000 UZS / Payme: 8600 1234 5678 9012',
+  cardNumber,
+  paymentDetails,
   onSuccess,
   onError,
 }: CheckoutModalProps) {
@@ -164,9 +164,11 @@ export default function CheckoutModal({
             </div>
             <p className="text-xs text-gray-500 dark:text-zinc-400 mb-1">Karta raqami:</p>
             <p className="text-sm font-mono font-bold text-gray-900 dark:text-white">
-              {cardNumber}
+              {cardNumber || 'Karta raqami admin tomonidan belgilanmagan'}
             </p>
-            <p className="text-xs text-gray-500 dark:text-zinc-400 mt-2">{paymentDetails}</p>
+            <p className="text-xs text-gray-500 dark:text-zinc-400 mt-2">
+              {paymentDetails || "To'lov ma'lumotlari hali belgilanmagan"}
+            </p>
           </div>
 
           {/* Status messages */}

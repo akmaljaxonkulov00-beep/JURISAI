@@ -99,10 +99,10 @@ function PaymentContent() {
   }
 
   // Get dynamic card info from admin settings
-  const cardNumber = adminSettings?.paymentCardNumber || '8600 1234 5678 9012'
-  const paymentDetails =
-    adminSettings?.paymentDetails ||
-    `Click: *123# ${amount.toLocaleString()} UZS / Payme: 8600 1234 5678 9012`
+  const cardNumber = adminSettings?.paymentCardNumber
+  const paymentDetails = adminSettings?.paymentDetails
+    ? adminSettings.paymentDetails.replace('{amount}', amount.toLocaleString())
+    : undefined
 
   useEffect(() => {
     const plan = searchParams.get('plan') || 'standart'
@@ -438,7 +438,7 @@ function PaymentContent() {
                 <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
                   <h4 className="font-medium text-gray-800 dark:text-white mb-2">Click / Payme</h4>
                   <p className="font-mono text-sm text-gray-600 dark:text-gray-400 dark:text-zinc-500">
-                    {cardNumber}
+                    {cardNumber || 'Karta raqami hali belgilanmagan'}
                   </p>
                   <p className="text-xs text-gray-500 dark:text-zinc-500 mt-1">
                     Click: *123# {amount.toLocaleString()} UZS
@@ -447,7 +447,7 @@ function PaymentContent() {
                 <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
                   <h4 className="font-medium text-gray-800 dark:text-white mb-2">Bank karta</h4>
                   <p className="font-mono text-sm text-gray-600 dark:text-gray-400 dark:text-zinc-500">
-                    {cardNumber}
+                    {cardNumber || 'Karta raqami hali belgilanmagan'}
                   </p>
                   <p className="text-xs text-gray-500 dark:text-zinc-500 mt-1">
                     Humo, Uzcard, Visa

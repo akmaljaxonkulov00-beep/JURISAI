@@ -8,7 +8,7 @@ RETURNS BOOLEAN AS $$
 BEGIN
   RETURN EXISTS (
     SELECT 1 FROM public.registered_users
-    WHERE id = auth.uid()
+    WHERE id::text = auth.uid()::text
     AND role IN ('ADMIN', 'SUPER_ADMIN', 'admin')
   );
 EXCEPTION WHEN OTHERS THEN
@@ -43,21 +43,21 @@ ALTER TABLE public.registered_users ENABLE ROW LEVEL SECURITY;
 -- SELECT: egasi o'zini ko'radi yoki admin hammasini ko'radi
 CREATE POLICY registered_users_select_owner ON public.registered_users
   FOR SELECT USING (
-    id = auth.uid()
+    id::text = auth.uid()::text
     OR public.is_admin()
   );
 
 -- INSERT: service_role orqali (API routes) ishlaydi; client faqat o'zini qo'sha oladi
 CREATE POLICY registered_users_insert_own ON public.registered_users
   FOR INSERT WITH CHECK (
-    id = auth.uid()
+    id::text = auth.uid()::text
     OR public.is_admin()
   );
 
 -- UPDATE: egasi o'zini yangilaydi yoki admin
 CREATE POLICY registered_users_update_owner ON public.registered_users
   FOR UPDATE USING (
-    id = auth.uid()
+    id::text = auth.uid()::text
     OR public.is_admin()
   );
 
@@ -75,10 +75,10 @@ END $$;
 ALTER TABLE public.usage_logs ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY usage_logs_select_own ON public.usage_logs
-  FOR SELECT USING (user_id = auth.uid() OR public.is_admin());
+  FOR SELECT USING (user_id::text = auth.uid()::text OR public.is_admin());
 
 CREATE POLICY usage_logs_insert_own ON public.usage_logs
-  FOR INSERT WITH CHECK (user_id = auth.uid() OR public.is_admin());
+  FOR INSERT WITH CHECK (user_id::text = auth.uid()::text OR public.is_admin());
 
 -- 5) payment_requests — user faqat o'zini ko'radi
 DO $$ BEGIN
@@ -90,10 +90,10 @@ END $$;
 ALTER TABLE public.payment_requests ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY payment_requests_select_own ON public.payment_requests
-  FOR SELECT USING (user_id = auth.uid() OR public.is_admin());
+  FOR SELECT USING (user_id::text = auth.uid()::text OR public.is_admin());
 
 CREATE POLICY payment_requests_insert_own ON public.payment_requests
-  FOR INSERT WITH CHECK (user_id = auth.uid());
+  FOR INSERT WITH CHECK (user_id::text = auth.uid()::text);
 
 CREATE POLICY payment_requests_update_admin ON public.payment_requests
   FOR UPDATE USING (public.is_admin());
@@ -110,16 +110,16 @@ END $$;
 ALTER TABLE public.user_notifications ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY user_notifications_select_own ON public.user_notifications
-  FOR SELECT USING (user_id = auth.uid() OR public.is_admin());
+  FOR SELECT USING (user_id::text = auth.uid()::text OR public.is_admin());
 
 CREATE POLICY user_notifications_insert_admin ON public.user_notifications
   FOR INSERT WITH CHECK (public.is_admin());
 
 CREATE POLICY user_notifications_update_own ON public.user_notifications
-  FOR UPDATE USING (user_id = auth.uid() OR public.is_admin());
+  FOR UPDATE USING (user_id::text = auth.uid()::text OR public.is_admin());
 
 CREATE POLICY user_notifications_delete_own ON public.user_notifications
-  FOR DELETE USING (user_id = auth.uid() OR public.is_admin());
+  FOR DELETE USING (user_id::text = auth.uid()::text OR public.is_admin());
 
 -- 7) notification_read_status
 DO $$ BEGIN
@@ -130,7 +130,7 @@ END $$;
 ALTER TABLE public.notification_read_status ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY notification_read_status_own ON public.notification_read_status
-  FOR ALL USING (user_id = auth.uid());
+  FOR ALL USING (user_id::text = auth.uid()::text);
 
 -- 8) site_settings — hamma o'qiy oladi, faqat admin yozadi
 DO $$ BEGIN
@@ -201,7 +201,7 @@ CREATE POLICY community_group_members_read ON public.community_group_members
   FOR SELECT USING (true);
 
 CREATE POLICY community_group_members_write ON public.community_group_members
-  FOR ALL USING (public.is_admin() OR user_id = auth.uid());
+  FOR ALL USING (public.is_admin() OR user_id::text = auth.uid()::text);
 
 -- 13) community_group_posts
 DO $$ BEGIN
@@ -216,7 +216,7 @@ CREATE POLICY community_group_posts_read ON public.community_group_posts
   FOR SELECT USING (true);
 
 CREATE POLICY community_group_posts_write ON public.community_group_posts
-  FOR ALL USING (public.is_admin() OR user_id = auth.uid());
+  FOR ALL USING (public.is_admin() OR user_id::text = auth.uid()::text);
 
 -- 14) categories va articles — hamma o'qiy oladi, admin yozadi
 DO $$ BEGIN
