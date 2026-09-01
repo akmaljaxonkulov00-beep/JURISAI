@@ -780,14 +780,14 @@ Eslatma: Tomonlarni tinglang, ularga kelishuvga erishishga yordam bering va nizo
   // ════════════════════════════════════════════════════════
   if (page === 'select')
     return (
-      <div className="mobile-safe-top" style={{ minHeight: '100vh', background: '#F8FAFF' }}>
+      <div className="mobile-safe-top min-h-screen bg-gray-50 dark:bg-gray-950">
         <div className="flex-col md:flex-row" style={{ display: 'flex' }}>
           <aside
             className="hidden lg:block"
             style={{
               width: 240,
-              background: '#fff',
-              borderRight: '1px solid #F1F5F9',
+              background: 'var(--card-bg)',
+              borderRight: '1px solid var(--card-border)',
               minHeight: '100vh',
               padding: '24px 16px',
               flexShrink: 0,
@@ -924,10 +924,16 @@ Eslatma: Tomonlarni tinglang, ularga kelishuvga erishishga yordam bering va nizo
           </aside>
 
           <div className="p-6 md:p-10" style={{ flex: 1 }}>
-            <h1 style={{ fontSize: 26, fontWeight: 800, color: '#111827', margin: '0 0 6px' }}>
+            <h1
+              className="text-gray-900 dark:text-white"
+              style={{ fontSize: 26, fontWeight: 800, margin: '0 0 6px' }}
+            >
               Virtual Sud Simulyatori
             </h1>
-            <p style={{ fontSize: 14, color: '#6B7280', margin: '0 0 32px' }}>
+            <p
+              className="text-gray-500 dark:text-zinc-400"
+              style={{ fontSize: 14, margin: '0 0 32px' }}
+            >
               Simulyatsiya turi, roli va ishni tanlang — AI bilan interaktiv huquqiy amaliyot
             </p>
 
@@ -986,11 +992,17 @@ Eslatma: Tomonlarni tinglang, ularga kelishuvga erishishga yordam bering va nizo
                       {icons[st.id]}
                     </div>
                     <p
-                      style={{ fontWeight: 700, fontSize: 15, color: '#111827', margin: '0 0 2px' }}
+                      className="text-gray-900 dark:text-white"
+                      style={{ fontWeight: 700, fontSize: 15, margin: '0 0 2px' }}
                     >
                       {st.title}
                     </p>
-                    <p style={{ fontSize: 12, color: '#6B7280', margin: 0 }}>{st.desc}</p>
+                    <p
+                      className="text-gray-500 dark:text-zinc-400"
+                      style={{ fontSize: 12, margin: 0 }}
+                    >
+                      {st.desc}
+                    </p>
                   </button>
                 )
               })}

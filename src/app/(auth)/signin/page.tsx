@@ -268,7 +268,10 @@ interface EcosystemNode {
   pulseDelay: number
 }
 
-const ECOSYSTEM_NODES: EcosystemNode[] = [
+// ── HEXAGON: 6 nodes at 60° intervals, radius 170px ──
+// Positions calculated via: x = R * sin(i*60°), y = -R * cos(i*60°)
+const HEX_RADIUS = 170
+const HEX_NODES = [
   {
     id: 'court',
     icon: <ScaleIcon className="w-4.5 h-4.5" />,
@@ -276,12 +279,6 @@ const ECOSYSTEM_NODES: EcosystemNode[] = [
     description: 'Sud jarayonlarini simulyatsiya qilish',
     accent: '#06b6d4',
     depth: 5,
-    x: 0,
-    y: -168,
-    floatAmp: 9,
-    floatDur: 5.5,
-    floatDelay: 0.2,
-    pulseDelay: 0,
   },
   {
     id: 'gavel',
@@ -290,12 +287,6 @@ const ECOSYSTEM_NODES: EcosystemNode[] = [
     description: "O'zR qonunchiligi asosida AI yordamchi",
     accent: '#6366f1',
     depth: 4,
-    x: 146,
-    y: -84,
-    floatAmp: 7,
-    floatDur: 6.2,
-    floatDelay: 0.7,
-    pulseDelay: 0.5,
   },
   {
     id: 'documents',
@@ -304,12 +295,6 @@ const ECOSYSTEM_NODES: EcosystemNode[] = [
     description: "Da'vo va shartnomalarni avtomatik yaratish",
     accent: '#f59e0b',
     depth: 3,
-    x: 146,
-    y: 84,
-    floatAmp: 8,
-    floatDur: 5.8,
-    floatDelay: 1.2,
-    pulseDelay: 1.0,
   },
   {
     id: 'laws',
@@ -318,12 +303,6 @@ const ECOSYSTEM_NODES: EcosystemNode[] = [
     description: 'Kodekslar va normativ hujjatlar bazasi',
     accent: '#10b981',
     depth: 6,
-    x: 0,
-    y: 168,
-    floatAmp: 6,
-    floatDur: 6.8,
-    floatDelay: 1.7,
-    pulseDelay: 1.5,
   },
   {
     id: 'search',
@@ -332,12 +311,6 @@ const ECOSYSTEM_NODES: EcosystemNode[] = [
     description: "Sun'iy intellekt bilan semantik qidiruv",
     accent: '#8b5cf6',
     depth: 4,
-    x: -146,
-    y: 84,
-    floatAmp: 10,
-    floatDur: 5.3,
-    floatDelay: 2.2,
-    pulseDelay: 2.0,
   },
   {
     id: 'analytics',
@@ -346,29 +319,28 @@ const ECOSYSTEM_NODES: EcosystemNode[] = [
     description: 'Huquqiy tahlil va bashoratli tavsiyalar',
     accent: '#ef4444',
     depth: 5,
-    x: -146,
-    y: -84,
-    floatAmp: 5,
-    floatDur: 7.0,
-    floatDelay: 0.5,
-    pulseDelay: 0.3,
   },
-]
+].map((n, i) => {
+  const angle = (i * 60 - 90) * (Math.PI / 180) // Start from top, clockwise
+  return {
+    ...n,
+    x: Math.round(HEX_RADIUS * Math.sin(angle)),
+    y: Math.round(-HEX_RADIUS * Math.cos(angle)),
+    floatDur: 5.5 + i * 0.3,
+    floatDelay: i * 0.3,
+    pulseDelay: i * 0.25,
+  }
+})
 
-// SVG curved Bezier connections — center to each node + hex ring
-const NODE_CONNECTIONS: [number, number, string][] = [
-  [0, 0, 'M0,0 C15,-95 0,-145 0,-168'],
-  [0, 1, 'M0,0 C60,-30 100,-50 146,-84'],
-  [0, 2, 'M0,0 C60,30 100,50 146,84'],
-  [0, 3, 'M0,0 C40,100 40,140 0,168'],
-  [0, 4, 'M0,0 C-60,30 -100,50 -146,84'],
-  [0, 5, 'M0,0 C-60,-30 -100,-50 -146,-84'],
-  [1, 2, 'M146,-84 C160,-20 160,20 146,84'],
-  [2, 3, 'M146,84 C80,140 60,150 0,168'],
-  [3, 4, 'M0,168 C-80,140 -60,150 -146,84'],
-  [4, 5, 'M-146,84 C-160,20 -160,-20 -146,-84'],
-  [5, 1, 'M-146,-84 C-80,-140 -60,-150 146,-84'],
-  [1, 0, 'M146,-84 C80,-140 60,-150 0,-168'],
+// Generate SVG connection lines: center-to-node + ring edges (all straight)
+const HEX_CONNECTIONS: string[] = [
+  // Center to each node
+  ...HEX_NODES.map(n => `M0,0 L${n.x},${n.y}`),
+  // Ring: node[i] to node[i+1]
+  ...HEX_NODES.map((n, i) => {
+    const next = HEX_NODES[(i + 1) % HEX_NODES.length]
+    return `M${n.x},${n.y} L${next.x},${next.y}`
+  }),
 ]
 
 function FloatingScene({
@@ -398,7 +370,7 @@ function FloatingScene({
       />
 
       <div className="relative w-[460px] h-[480px]">
-        {/* SVG curved neon connection lines */}
+        {/* SVG connection lines — all straight, mathematically correct */}
         <svg
           className="absolute inset-0 w-full h-full pointer-events-none"
           viewBox="-230 -240 460 480"
@@ -411,38 +383,36 @@ function FloatingScene({
               <stop offset="100%" stopColor="rgba(99,102,241,0.08)" />
             </linearGradient>
           </defs>
-          {NODE_CONNECTIONS.map(([fi, ti], idx) => {
-            const isCenter = fi === 0 || ti === 0
-            const node = ECOSYSTEM_NODES[Math.max(fi, ti)]
+          {HEX_CONNECTIONS.map((d, idx) => {
+            const isCenterLine = idx < 6
             return (
               <motion.path
                 key={idx}
-                d={NODE_CONNECTIONS[idx][2]}
-                stroke={isCenter ? 'rgba(99,102,241,0.10)' : 'rgba(99,102,241,0.05)'}
-                strokeWidth={isCenter ? 1 : 0.4}
+                d={d}
+                stroke={isCenterLine ? 'rgba(99,102,241,0.10)' : 'rgba(99,102,241,0.05)'}
+                strokeWidth={isCenterLine ? 1 : 0.6}
                 fill="none"
                 strokeLinecap="round"
                 initial={{ pathLength: 0, opacity: 0 }}
                 animate={{ pathLength: 1, opacity: 1 }}
-                transition={{ duration: 2, delay: 0.3 + idx * 0.04, ease: 'easeInOut' }}
+                transition={{ duration: 1.5, delay: 0.3 + idx * 0.03, ease: 'easeInOut' }}
               />
             )
           })}
-          {/* Pulse dots along connections */}
-          {ECOSYSTEM_NODES.map((node, i) => (
+          {/* Pulse dots traveling from center to each node */}
+          {HEX_NODES.map((node, i) => (
             <motion.circle
               key={`dot-${i}`}
               r={1.8}
               fill={node.accent}
-              filter="url(#glow)"
               initial={{ opacity: 0 }}
               animate={{
                 opacity: [0, 0.7, 0],
-                cx: [node.x * 0.15, node.x * 0.85],
-                cy: [node.y * 0.15, node.y * 0.85],
+                cx: [0, node.x * 0.85],
+                cy: [0, node.y * 0.85],
               }}
               transition={{
-                duration: 3,
+                duration: 2.5,
                 delay: node.pulseDelay,
                 repeat: Infinity,
                 ease: 'easeInOut',
@@ -451,10 +421,10 @@ function FloatingScene({
           ))}
         </svg>
 
-        {/* Ecosystem Cards — hexagonal layout */}
-        {ECOSYSTEM_NODES.map((node, i) => {
-          const cardW = 168,
-            cardH = 80
+        {/* Ecosystem Cards — symmetric hexagonal layout */}
+        {HEX_NODES.map((node, i) => {
+          const cardW = 160
+          const cardH = 80
           return (
             <motion.div
               key={node.id}
@@ -464,23 +434,22 @@ function FloatingScene({
                 top: `calc(50% + ${node.y}px - ${cardH / 2}px)`,
                 width: cardW,
               }}
-              initial={{ opacity: 0, scale: 0.7, y: node.y + 30 }}
+              initial={{ opacity: 0, scale: 0.7 }}
               animate={{
                 opacity: 1,
                 scale: 1,
-                y: 0,
-                transition: { delay: 0.3 + i * 0.12, duration: 0.6, ease: 'easeOut' },
+                transition: { delay: 0.3 + i * 0.1, duration: 0.5, ease: 'easeOut' },
               }}
             >
               <FloatingCard depth={node.depth} index={i} mouseX={mouseX} mouseY={mouseY}>
                 <button
                   onClick={() => {
                     const rm: Record<string, string> = {
-                      court: '/case-solver',
-                      gavel: '/dashboard',
+                      court: '/virtual-court',
+                      gavel: '/ai-assistant',
                       documents: '/document-generator',
-                      laws: '/qonunlar',
-                      search: '/qonunlar',
+                      laws: '/legal-database-new',
+                      search: '/legal-database-new',
                       analytics: '/statistics',
                     }
                     onNavigate(rm[node.id] || '/')
