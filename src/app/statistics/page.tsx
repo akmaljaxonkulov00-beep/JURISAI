@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase-browser'
 import { getAuthHeaders } from '@/lib/api-auth-client'
@@ -133,26 +133,39 @@ export default function Statistics() {
   const [activeView, setActiveView] = useState<'overview' | 'xp' | 'activity'>('overview')
   const [showXpInfo, setShowXpInfo] = useState(false)
 
-  const loadStats = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const days = timeFilter === 'week' ? 7 : timeFilter === 'month' ? 30 : 9999
-      const authHeaders = await getAuthHeaders()
-      const res = await fetch(`/api/user/stats?days=${days}`, {
-        headers: authHeaders,
-        cache: 'no-cache',
-      })
-      if (!res.ok) throw new Error('Failed to load stats')
-      const data = await res.json()
-      if (data.error) throw new Error(data.error)
-      setStats(data)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Xatolik')
-    } finally {
-      setLoading(false)
-    }
-  }, [timeFilter])
+  // Cache stats for each time filter to avoid refetching
+  const statsCacheRef = useRef<Record<string, StatsData>>({})
+
+  const loadStats = useCallback(
+    async (forceRefresh = false) => {
+      const cacheKey = timeFilter
+      if (!forceRefresh && statsCacheRef.current[cacheKey]) {
+        setStats(statsCacheRef.current[cacheKey])
+        setLoading(false)
+        return
+      }
+      setLoading(true)
+      setError(null)
+      try {
+        const days = timeFilter === 'week' ? 7 : timeFilter === 'month' ? 30 : 9999
+        const authHeaders = await getAuthHeaders()
+        const res = await fetch(`/api/user/stats?days=${days}`, {
+          headers: authHeaders,
+          cache: 'no-cache',
+        })
+        if (!res.ok) throw new Error('Failed to load stats')
+        const data = await res.json()
+        if (data.error) throw new Error(data.error)
+        setStats(data)
+        statsCacheRef.current[cacheKey] = data
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Xatolik')
+      } finally {
+        setLoading(false)
+      }
+    },
+    [timeFilter]
+  )
 
   useEffect(() => {
     loadStats()
@@ -224,7 +237,7 @@ export default function Statistics() {
           </h2>
           <p className="text-sm text-gray-500 dark:text-zinc-400 mb-4">{error}</p>
           <button
-            onClick={loadStats}
+            onClick={() => loadStats(true)}
             className="px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 transition-colors flex items-center gap-2 mx-auto"
           >
             <RefreshCw className="w-4 h-4" /> Qayta urinish

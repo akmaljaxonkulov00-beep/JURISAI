@@ -15,45 +15,45 @@ interface StatCard {
 export default function StatisticsCards() {
   const stats: StatCard[] = [
     {
-      title: 'XP',
-      value: '2450',
-      subtitle: 'XP',
+      title: 'Daraja',
+      value: '12',
+      subtitle: 'Daraja',
       progress: 75,
       color: 'blue',
       icon: <TrendingUp className="w-5 h-5 text-blue-600" />,
-      trend: '+12%',
+      trend: '+2',
     },
     {
-      title: "To'g'ri javoblar",
-      value: '87%',
-      subtitle: "To'g'ri javoblar",
+      title: 'Umumiy XP',
+      value: '2450',
+      subtitle: 'XP ballari',
       progress: 87,
       color: 'green',
       icon: <Users className="w-5 h-5 text-green-600" />,
-      trend: '+8%',
+      trend: '+12%',
     },
     {
-      title: 'Ketma-ket kunlar',
-      value: '42',
-      subtitle: 'Ketma-ket kunlar',
+      title: 'Holati',
+      value: 'Faol',
+      subtitle: 'Hozirgi holat',
       progress: 60,
       color: 'orange',
       icon: <Clock className="w-5 h-5 text-orange-600" />,
-      trend: '15 kun',
+      trend: '42 kun',
     },
     {
-      title: 'Sertifikatlar',
-      value: '12',
-      subtitle: 'Sertifikatlar',
+      title: "O'qish zanjiri",
+      value: '42',
+      subtitle: 'Ketma-ket kunlar',
       progress: 40,
       color: 'purple',
       icon: <Award className="w-5 h-5 text-purple-600" />,
-      trend: '+3',
+      trend: 'Rekord',
     },
     {
-      title: 'Reyting',
+      title: 'Yutuqlar',
       value: '156',
-      subtitle: 'Reyting',
+      subtitle: 'Sertifikatlar',
       progress: 92,
       color: 'pink',
       icon: <Trophy className="w-5 h-5 text-pink-600" />,
@@ -65,38 +65,38 @@ export default function StatisticsCards() {
     switch (color) {
       case 'blue':
         return {
-          bg: 'bg-blue-100',
-          text: 'text-blue-600',
-          progress: 'bg-blue-600',
-          trend: 'text-green-600',
+          bg: 'bg-blue-100 dark:bg-blue-900/30',
+          text: 'text-blue-600 dark:text-blue-400',
+          progress: 'bg-blue-600 dark:bg-blue-500',
+          trend: 'text-green-600 dark:text-green-400',
         }
       case 'green':
         return {
-          bg: 'bg-green-100',
-          text: 'text-green-600',
-          progress: 'bg-green-600',
-          trend: 'text-green-600',
+          bg: 'bg-green-100 dark:bg-green-900/30',
+          text: 'text-green-600 dark:text-green-400',
+          progress: 'bg-green-600 dark:bg-green-500',
+          trend: 'text-green-600 dark:text-green-400',
         }
       case 'orange':
         return {
-          bg: 'bg-orange-100',
-          text: 'text-orange-600',
-          progress: 'bg-orange-600',
-          trend: 'text-orange-600',
+          bg: 'bg-orange-100 dark:bg-orange-900/30',
+          text: 'text-orange-600 dark:text-orange-400',
+          progress: 'bg-orange-600 dark:bg-orange-500',
+          trend: 'text-orange-600 dark:text-orange-400',
         }
       case 'purple':
         return {
-          bg: 'bg-purple-100',
-          text: 'text-purple-600',
-          progress: 'bg-purple-600',
-          trend: 'text-purple-600',
+          bg: 'bg-purple-100 dark:bg-purple-900/30',
+          text: 'text-purple-600 dark:text-purple-400',
+          progress: 'bg-purple-600 dark:bg-purple-500',
+          trend: 'text-purple-600 dark:text-purple-400',
         }
       case 'pink':
         return {
-          bg: 'bg-pink-100',
-          text: 'text-pink-600',
-          progress: 'bg-pink-600',
-          trend: 'text-pink-600',
+          bg: 'bg-pink-100 dark:bg-pink-900/30',
+          text: 'text-pink-600 dark:text-pink-400',
+          progress: 'bg-pink-600 dark:bg-pink-500',
+          trend: 'text-pink-600 dark:text-pink-400',
         }
       default:
         return {
@@ -109,31 +109,44 @@ export default function StatisticsCards() {
   }
 
   return (
-    <div className="grid grid-cols-5 gap-4">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
       {stats.map((stat, index) => {
         const colors = getColorClasses(stat.color)
 
         return (
-          <div key={index} className="bg-white dark:bg-zinc-900 rounded-2xl p-4 shadow-sm">
-            <div className="flex items-center justify-between mb-3">
-              <div className={`w-10 h-10 ${colors.bg} rounded-lg flex items-center justify-center`}>
+          <div
+            key={index}
+            className="bg-white dark:bg-zinc-900 rounded-2xl p-3 sm:p-4 shadow-sm border border-gray-100 dark:border-zinc-800 min-w-0 overflow-hidden"
+          >
+            <div className="flex items-center justify-between mb-2 sm:mb-3">
+              <div
+                className={`w-8 h-8 sm:w-10 sm:h-10 ${colors.bg} rounded-lg flex items-center justify-center flex-shrink-0`}
+              >
                 {stat.icon}
               </div>
               {stat.trend && (
-                <span className={`text-xs font-medium ${colors.trend}`}>{stat.trend}</span>
+                <span
+                  className={`text-[10px] sm:text-xs font-medium ${colors.trend} whitespace-nowrap ml-1`}
+                >
+                  {stat.trend}
+                </span>
               )}
             </div>
 
-            <h3 className="text-2xl font-bold text-gray-800 dark:text-zinc-200 mb-1">
-              {stat.value}
-            </h3>
-            <p className="text-sm text-gray-600 dark:text-zinc-400">{stat.subtitle}</p>
+            <div className="min-w-0">
+              <h3 className="text-lg sm:text-2xl font-bold text-gray-800 dark:text-zinc-200 mb-0.5 truncate">
+                {stat.value}
+              </h3>
+              <p className="text-[10px] sm:text-xs text-gray-600 dark:text-zinc-400 truncate">
+                {stat.subtitle}
+              </p>
+            </div>
 
-            <div className="mt-3 bg-gray-200 rounded-full h-1">
+            <div className="mt-2 sm:mt-3 bg-gray-200 dark:bg-zinc-700 rounded-full h-1 sm:h-1.5 overflow-hidden">
               <div
-                className={`${colors.progress} h-1 rounded-full transition-all duration-300`}
+                className={`${colors.progress} h-full rounded-full transition-all duration-300`}
                 style={{ width: `${stat.progress}%` }}
-              ></div>
+              />
             </div>
           </div>
         )

@@ -1,6 +1,7 @@
 'use client'
 
-import { Search, Bell, Globe, User } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Search, Bell, Globe, User, Scale } from 'lucide-react'
 
 interface HeaderProps {
   title?: string
@@ -15,14 +16,55 @@ export default function Header({
   showSearch = true,
   showNotifications = true,
 }: HeaderProps) {
+  const [logoUrl, setLogoUrl] = useState<string | null>(null)
+  const [logoLoading, setLogoLoading] = useState(true)
+
+  useEffect(() => {
+    // Load logo from admin settings
+    const loadLogo = async () => {
+      try {
+        const res = await fetch('/api/settings/logo', { cache: 'no-cache' })
+        if (res.ok) {
+          const data = await res.json()
+          if (data.logoUrl) {
+            setLogoUrl(data.logoUrl)
+          }
+        }
+      } catch {
+        // Use default logo
+      } finally {
+        setLogoLoading(false)
+      }
+    }
+    loadLogo()
+  }, [])
+
   return (
     <header className="bg-white dark:bg-zinc-900 px-4 sm:px-6 lg:px-8 py-4 border-b border-gray-100 dark:border-zinc-800">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div className="flex-shrink-0">
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-zinc-100">
-            {title}
-          </h1>
-          <p className="text-xs sm:text-sm text-gray-600 dark:text-zinc-400">{subtitle}</p>
+        {/* Logo + Title */}
+        <div className="flex items-center gap-3 flex-shrink-0">
+          {/* Dynamic Logo */}
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl overflow-hidden flex items-center justify-center bg-gradient-to-br from-blue-600 to-indigo-600 shadow-lg flex-shrink-0">
+            {logoLoading ? (
+              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : logoUrl ? (
+              <img
+                src={logoUrl}
+                alt="JURISTIV Logo"
+                className="w-full h-full object-contain p-1"
+                onError={() => setLogoUrl(null)}
+              />
+            ) : (
+              <Scale className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+            )}
+          </div>
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-zinc-100">
+              {title}
+            </h1>
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-zinc-400">{subtitle}</p>
+          </div>
         </div>
 
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
@@ -49,7 +91,7 @@ export default function Header({
             {showNotifications && (
               <button className="relative p-2 text-gray-600 dark:text-zinc-400 hover:bg-gray-50 dark:hover:bg-zinc-800 rounded-lg transition-colors">
                 <Bell className="w-4 h-4 sm:w-5 sm:h-5" />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-50 dark:bg-red-900/20 rounded-full"></span>
+                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
               </button>
             )}
 

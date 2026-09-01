@@ -123,12 +123,10 @@ function BrainIcon({ className = '' }: { className?: string }) {
       stroke="currentColor"
       strokeWidth="1.5"
     >
-      <path d="M12 4a4 4 0 014 4c0 2-2 3-2 3s-2-1-2-3a4 4 0 014-4z" />
-      <path d="M6 16c0-2 2-3 2-3s2 1 2 3a4 4 0 01-4 4 4 4 0 01-4-4z" />
-      <path d="M18 16c0-2 2-3 2-3s2 1 2 3a4 4 0 01-4 4 4 4 0 01-4-4z" />
-      <circle cx="12" cy="5" r="2" fill="currentColor" opacity="0.4" />
-      <circle cx="7" cy="18" r="2" fill="currentColor" opacity="0.4" />
-      <circle cx="17" cy="18" r="2" fill="currentColor" opacity="0.4" />
+      <path d="M12 2a7 7 0 00-7 7c0 2.5 1.5 4.5 3 6v3a1 1 0 001 1h6a1 1 0 001-1v-3c1.5-1.5 3-3.5 3-6a7 7 0 00-7-7z" />
+      <path d="M10 21h4" />
+      <path d="M12 2v3" />
+      <circle cx="12" cy="9" r="2" fill="currentColor" opacity="0.3" />
     </svg>
   )
 }
@@ -554,7 +552,7 @@ function FloatingScene({
             {/* Inner reflections */}
             <div className="absolute top-2 left-3 w-4 h-3 rounded-full bg-white/20 blur-sm rotate-[-30deg]" />
             <div className="absolute bottom-2 right-3 w-2 h-1 rounded-full bg-white/10 blur-sm" />
-            {/* Legal AI icon */}
+            {/* Legal AI icon — scales of justice */}
             <svg
               viewBox="0 0 28 28"
               className="w-7 h-7 relative z-10"
@@ -562,15 +560,13 @@ function FloatingScene({
               stroke="rgba(255,255,255,0.85)"
               strokeWidth="1.5"
             >
-              <path d="M14 4a3 3 0 013 3c0 1.5-1.5 2.25-1.5 2.25S14 8.5 14 7a3 3 0 013-3z" />
-              <path d="M8 16a3 3 0 013 3c0 1.5-1.5 2.25-1.5 2.25S8 20.5 8 19a3 3 0 013-3z" />
-              <path d="M20 16a3 3 0 013 3c0 1.5-1.5 2.25-1.5 2.25S20 20.5 20 19a3 3 0 013-3z" />
-              <circle cx="14" cy="5.5" r="1.5" fill="rgba(255,255,255,0.3)" />
-              <circle cx="9.5" cy="18" r="1.5" fill="rgba(255,255,255,0.3)" />
-              <circle cx="18.5" cy="18" r="1.5" fill="rgba(255,255,255,0.3)" />
-              <line x1="14" y1="9" x2="14" y2="14" strokeWidth="1" opacity="0.4" />
-              <line x1="11" y1="17" x2="13.5" y2="14.5" strokeWidth="1" opacity="0.4" />
-              <line x1="17" y1="17" x2="14.5" y2="14.5" strokeWidth="1" opacity="0.4" />
+              <path d="M14 3v22" />
+              <path d="M10 6h8" />
+              <path d="M7 10l7-2 7 2" />
+              <path d="M6 10v3c0 2 3.5 3.5 8 3.5s8-1.5 8-3.5v-3" />
+              <path d="M6 10l-1.5 5a.5.5 0 00.5.5h1c1.5 0 2.5-.5 2.5-1V11" />
+              <path d="M22 10l1.5 5a.5.5 0 01-.5.5h-1c-1.5 0-2.5-.5-2.5-1V11" />
+              <path d="M10 25h8" />
             </svg>
           </div>
           {/* Pulse ring */}
@@ -945,12 +941,13 @@ function SignInContent() {
                 stroke="currentColor"
                 strokeWidth="1.5"
               >
-                <path d="M14 4a3 3 0 013 3c0 1.5-1.5 2.25-1.5 2.25S14 8.5 14 7a3 3 0 013-3z" />
-                <path d="M8 16a3 3 0 013 3c0 1.5-1.5 2.25-1.5 2.25S8 20.5 8 19a3 3 0 013-3z" />
-                <path d="M20 16a3 3 0 013 3c0 1.5-1.5 2.25-1.5 2.25S20 20.5 20 19a3 3 0 013-3z" />
-                <circle cx="14" cy="5.5" r="1.5" fill="rgba(255,255,255,0.3)" />
-                <circle cx="9.5" cy="18" r="1.5" fill="rgba(255,255,255,0.3)" />
-                <circle cx="18.5" cy="18" r="1.5" fill="rgba(255,255,255,0.3)" />
+                <path d="M14 3v22" />
+                <path d="M10 6h8" />
+                <path d="M7 10l7-2 7 2" />
+                <path d="M6 10v3c0 2 3.5 3.5 8 3.5s8-1.5 8-3.5v-3" />
+                <path d="M6 10l-1.5 5a.5.5 0 00.5.5h1c1.5 0 2.5-.5 2.5-1V11" />
+                <path d="M22 10l1.5 5a.5.5 0 01-.5.5h-1c-1.5 0-2.5-.5-2.5-1V11" />
+                <path d="M10 25h8" />
               </svg>
             </motion.div>
             <motion.h1
