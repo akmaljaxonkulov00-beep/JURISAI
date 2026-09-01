@@ -35,39 +35,27 @@ function ServiceIcon({ d, color }: { d: string; color: string }) {
 const SERVICES = [
   {
     title: 'AI Huquqiy Agent',
-    desc: "O'zingiz uchun AI asosida huquqiy yordamchi",
+    desc: "O'zingiz uchun AI asosida huquqiy yordamchi.",
     color: '#7C3AED',
     d: 'M12 2a7 7 0 00-7 7c0 2.5 1.5 4.5 3 6v3a1 1 0 001 1h6a1 1 0 001-1v-3c1.5-1.5 3-3.5 3-6a7 7 0 00-7-7z M10 21h4 M12 2v3',
   },
   {
     title: 'AI Hujjat Generator',
-    desc: "Shartnomalar, da'vo va boshqa hujjatlarni avtomatik yaratish",
+    desc: "Shartnomalar, da'vo va boshqa hujjatlarni avtomatik yaratish.",
     color: '#2563EB',
     d: 'M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z M14 2v6h6 M16 13H8 M16 17H8 M10 9H9',
   },
   {
     title: 'Qonunchilik Bazasi',
-    desc: "O'zbekiston qonunlari va kodekslariga tezkor kirish",
+    desc: "O'zbekiston qonunlari va kodekslariga tezkor kirish.",
     color: '#0D9488',
     d: 'M4 19.5A2.5 2.5 0 016.5 17H20 M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z M12 2v16',
   },
   {
-    title: 'Virtual Sud AI',
-    desc: 'Sud jarayonlarini simulyatsiya qiling va tahlil qiling',
-    color: '#D97706',
-    d: 'M12 2v20 M3 12h18 M6 6l3 3 M18 6l-3 3 M7 10v3c0 2 3.5 3.5 8 3.5s8-1.5 8-3.5v-3 M7 10l-2 5h1.5c1.5 0 2.5-.5 2.5-1V11 M23 10l2 5h-1.5c-1.5 0-2.5-.5-2.5-1V11',
-  },
-  {
     title: 'AI Analitika',
-    desc: "Huquqiy tahlil va statistik ma'lumotlar",
+    desc: "Huquqiy tahlil va statistik ma'lumotlar.",
     color: '#4F46E5',
     d: 'M3 3v18h18 M7 16l4-8 4 4 4-6 M7 16l1.5 1.5 M11 8l1.5 1.5 M15 12l1.5 1.5 M19 6l1.5 1.5',
-  },
-  {
-    title: 'Smart Huquqiy Qidiruv',
-    desc: "Tezkor va aniq huquqiy ma'lumotlar izlash",
-    color: '#DC2626',
-    d: 'M11 3a8 8 0 100 16 8 8 0 000-16z M21 21l-4.35-4.35 M11 3a8 8 0 010 16 M11 7v4l3 2',
   },
 ]
 
@@ -230,21 +218,112 @@ function SignInContent() {
           LEFT PANEL
           ═══════════════════════════════════════════════════════════════════ */}
       <div className="hidden lg:flex relative min-h-screen overflow-hidden bg-[#0A0E27]">
-        {/* Hero illustration — tayyor rasm (public/images/hero-illustration.png) */}
-        <div className="absolute right-0 top-0 bottom-0 w-[55%] pointer-events-none">
-          <img
-            src="/images/hero-illustration.png"
-            alt="JURISTIV AI Huquqiy Platforma"
-            className="w-full h-full object-cover object-right opacity-80"
-            onError={e => {
-              // Fallback: gradient shimmer agar rasm topilmasa
-              const target = e.currentTarget as HTMLImageElement
-              target.style.display = 'none'
-              const parent = target.parentElement
-              if (parent) {
-                parent.innerHTML =
-                  '<div class="w-full h-full" style="background: radial-gradient(ellipse at 60% 50%, rgba(79,127,255,0.12) 0%, rgba(124,58,237,0.06) 40%, transparent 70%)"></div>'
-              }
+        {/* Background visual — CSS/SVG composition */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          {/* Gradient glow backdrop */}
+          <div
+            className="absolute inset-0"
+            style={{
+              background:
+                'radial-gradient(ellipse at 65% 45%, rgba(79,127,255,0.10) 0%, rgba(124,58,237,0.05) 35%, transparent 65%)',
+            }}
+          />
+
+          {/* Scales of Justice — large SVG */}
+          <svg
+            viewBox="0 0 400 500"
+            className="absolute right-[5%] top-1/2 -translate-y-1/2 w-[340px] lg:w-[380px] opacity-[0.12]"
+            fill="none"
+            stroke="#4F7FFF"
+            strokeWidth="1.2"
+          >
+            {/* Central pillar */}
+            <line x1="200" y1="60" x2="200" y2="420" />
+            {/* Top crossbar */}
+            <line x1="100" y1="100" x2="300" y2="100" />
+            {/* Left chain */}
+            <line x1="100" y1="100" x2="80" y2="180" />
+            <line x1="100" y1="100" x2="120" y2="180" />
+            {/* Left pan */}
+            <ellipse cx="100" cy="200" rx="60" ry="15" />
+            {/* Right chain */}
+            <line x1="300" y1="100" x2="280" y2="160" />
+            <line x1="300" y1="100" x2="320" y2="160" />
+            {/* Right pan */}
+            <ellipse cx="300" cy="180" rx="60" ry="15" />
+            {/* Base */}
+            <path d="M150 420 Q200 400 250 420" />
+            <line x1="140" y1="425" x2="260" y2="425" />
+          </svg>
+
+          {/* AI hexagon */}
+          <svg
+            viewBox="0 0 120 120"
+            className="absolute right-[35%] top-[38%] w-[90px] opacity-[0.15]"
+          >
+            <polygon
+              points="60,5 110,30 110,90 60,115 10,90 10,30"
+              fill="rgba(79,127,255,0.08)"
+              stroke="#4F7FFF"
+              strokeWidth="1"
+            />
+            <text
+              x="60"
+              y="68"
+              textAnchor="middle"
+              fill="#4F7FFF"
+              fontSize="28"
+              fontWeight="700"
+              fontFamily="system-ui"
+            >
+              AI
+            </text>
+          </svg>
+
+          {/* Circular glow ring */}
+          <div
+            className="absolute right-[20%] top-[35%] w-[200px] h-[200px] rounded-full border border-indigo-500/10"
+            style={{
+              boxShadow: '0 0 60px rgba(79,127,255,0.06), inset 0 0 60px rgba(79,127,255,0.03)',
+            }}
+          />
+          <div className="absolute right-[18%] top-[33%] w-[240px] h-[240px] rounded-full border border-indigo-500/5" />
+
+          {/* Gavel silhouette */}
+          <svg
+            viewBox="0 0 80 80"
+            className="absolute right-[12%] bottom-[15%] w-[60px] opacity-[0.08]"
+            fill="none"
+            stroke="#4F7FFF"
+            strokeWidth="1.5"
+          >
+            <rect x="25" y="10" width="30" height="16" rx="3" transform="rotate(-30 40 18)" />
+            <line x1="40" y1="26" x2="40" y2="70" />
+            <line x1="25" y1="70" x2="55" y2="70" />
+          </svg>
+
+          {/* Books silhouette */}
+          <svg
+            viewBox="0 0 120 60"
+            className="absolute right-[8%] bottom-[8%] w-[100px] opacity-[0.07]"
+            fill="none"
+            stroke="#4F7FFF"
+            strokeWidth="1"
+          >
+            <rect x="5" y="10" width="50" height="40" rx="2" />
+            <rect x="10" y="5" width="50" height="40" rx="2" />
+            <rect x="15" y="0" width="50" height="40" rx="2" />
+            <line x1="25" y1="15" x2="55" y2="15" />
+            <line x1="25" y1="22" x2="50" y2="22" />
+          </svg>
+
+          {/* Subtle dot grid */}
+          <div
+            className="absolute inset-0 opacity-[0.03]"
+            style={{
+              backgroundImage:
+                'radial-gradient(circle, rgba(255,255,255,0.5) 1px, transparent 1px)',
+              backgroundSize: '24px 24px',
             }}
           />
         </div>
@@ -296,18 +375,14 @@ function SignInContent() {
             </p>
           </div>
 
-          {/* Services — 2 columns × 3 rows */}
-          <div className="grid grid-cols-2 gap-x-6 gap-y-4 mb-auto">
+          {/* Services — single vertical column */}
+          <div className="flex flex-col gap-4 mb-auto max-w-[280px]">
             {SERVICES.map(s => (
-              <div key={s.title} className="flex items-start gap-2.5">
+              <div key={s.title} className="flex items-start gap-3">
                 <ServiceIcon d={s.d} color={s.color} />
                 <div className="min-w-0">
-                  <h3 className="text-[11px] font-semibold text-white/90 leading-tight">
-                    {s.title}
-                  </h3>
-                  <p className="text-[9px] text-white/40 mt-0.5 leading-relaxed line-clamp-2">
-                    {s.desc}
-                  </p>
+                  <h3 className="text-xs font-semibold text-white/90 leading-tight">{s.title}</h3>
+                  <p className="text-[11px] text-white/45 mt-0.5 leading-relaxed">{s.desc}</p>
                 </div>
               </div>
             ))}
