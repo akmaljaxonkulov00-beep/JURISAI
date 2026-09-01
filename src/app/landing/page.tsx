@@ -1,239 +1,332 @@
 'use client'
 
-import React, { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
-import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
-import { Badge } from '@/components/ui/Badge'
+import React from 'react'
+import Link from 'next/link'
 import {
-  Shield,
-  Users,
+  Scale,
+  Brain,
   FileText,
-  MessageSquare,
-  TrendingUp,
+  Search,
+  BarChart3,
+  BookOpen,
+  Shield,
+  Zap,
+  Users,
   CheckCircle,
   ArrowRight,
-  Award,
-  Briefcase,
-  BookOpen,
+  Star,
   Gavel,
-  Scale,
-  Heart,
-  BarChart3,
-  Clock,
-  MapPin,
-  Phone,
-  Mail,
-  Search,
-  PlayCircle,
+  ChevronRight,
 } from 'lucide-react'
-import Link from 'next/link'
+
+const SERVICES = [
+  {
+    icon: Scale,
+    title: 'Virtual Sud AI',
+    description:
+      'Sud jarayonlarini real vaqtda simulyatsiya qiling. AI sudya, prokuror va advokat rollarini bajaradi.',
+    color: 'from-cyan-500 to-blue-600',
+    bgColor: 'bg-cyan-50 dark:bg-cyan-900/20',
+    textColor: 'text-cyan-600',
+    href: '/virtual-court',
+  },
+  {
+    icon: Brain,
+    title: 'AI Huquqiy Agent',
+    description:
+      "O'zbekiston qonunchiligi asosida AI yordamchi. Har qanday huquqiy savolga professional javob.",
+    color: 'from-indigo-500 to-purple-600',
+    bgColor: 'bg-indigo-50 dark:bg-indigo-900/20',
+    textColor: 'text-indigo-600',
+    href: '/ai-assistant',
+  },
+  {
+    icon: BarChart3,
+    title: 'AI Analitika',
+    description:
+      'Huquqiy tahlil va bashoratli tavsiyalar. Sud amaliyotini statistik tahlil qiling.',
+    color: 'from-red-500 to-orange-600',
+    bgColor: 'bg-red-50 dark:bg-red-900/20',
+    textColor: 'text-red-600',
+    href: '/statistics',
+  },
+  {
+    icon: Search,
+    title: 'Smart Huquqiy Qidiruv',
+    description: "Sun'iy intellekt bilan semantik qidiruv. Kodekslar va moddalarni tezda toping.",
+    color: 'from-violet-500 to-purple-600',
+    bgColor: 'bg-violet-50 dark:bg-violet-900/20',
+    textColor: 'text-violet-600',
+    href: '/legal-database-new',
+  },
+  {
+    icon: FileText,
+    title: 'AI Hujjat Generator',
+    description: "Da'vo arizalari, shartnomalar va boshqa huquqiy hujjatlarni avtomatik yarating.",
+    color: 'from-amber-500 to-orange-600',
+    bgColor: 'bg-amber-50 dark:bg-amber-900/20',
+    textColor: 'text-amber-600',
+    href: '/document-generator',
+  },
+  {
+    icon: BookOpen,
+    title: "O'zbekiston Qonunchiligi",
+    description: 'Konstitutsiya, kodekslar va normativ hujjatlar bazasi. Doimiy yangilanadi.',
+    color: 'from-emerald-500 to-green-600',
+    bgColor: 'bg-emerald-50 dark:bg-emerald-900/20',
+    textColor: 'text-emerald-600',
+    href: '/legal-database-new',
+  },
+]
+
+const STATS = [
+  { value: '10,000+', label: 'Faol foydalanuvchilar' },
+  { value: '5,000+', label: 'Huquqiy hujjatlar' },
+  { value: '95%', label: 'Aniqlik darajasi' },
+  { value: '24/7', label: 'AI yordami' },
+]
+
+const ADVANTAGES = [
+  "O'zbekiston qonunchiligiga to'liq moslashtirilgan",
+  "Sun'iy intellekt bilan chuqur tahlil",
+  'Real vaqtda sud simulyatsiyasi',
+  'Professional hujjat generatsiya',
+  'Barcha kodekslar va moddalar bazasi',
+  'Mobil va desktop qurilmalarda ishlaydi',
+]
 
 export default function LandingPage() {
-  const [email, setEmail] = useState('')
-
-  const features = [
-    {
-      icon: Shield,
-      title: 'Xavfsiz huquqiy yordam',
-      description: 'Professional advokatlar tomonidan yuqori sifatli huquqiy xizmatlar',
-    },
-    {
-      icon: Users,
-      title: 'Mijozlar bazasi',
-      description: "O'z mijozlaringizni boshqaring va ular bilan aloqada bo'ling",
-    },
-    {
-      icon: FileText,
-      title: 'AI hujjatlar tahlili',
-      description: "Sun'iy intellekt yordamida chuqur hujjatlar tahlili",
-    },
-    {
-      icon: MessageSquare,
-      title: "So'rovlar boshqaruvi",
-      description: "Mijoz so'rovlarini tez va samarali boshqaring",
-    },
-    {
-      icon: TrendingUp,
-      title: 'Statistika va analitika',
-      description: "Biznesingiz o'sishini kuzatib boring",
-    },
-    {
-      icon: Gavel,
-      title: 'Yuridik maslahatlar',
-      description: "O'zbekiston qonunchiligi bo'yicha to'liq maslahatlar",
-    },
-  ]
-
-  const lawyerBenefits = [
-    'Mijozlar bazasini boshqarish',
-    'AI yordamida hujjatlar tahlili',
-    "So'rovlar tez qabul qilish",
-    'Daromadni kuzatish',
-    'Professional tasvir',
-    '24/7 kirish imkoniyati',
-  ]
-
   return (
-    <div className="min-h-screen bg-white dark:bg-zinc-900 mobile-safe-top">
-      {/* Header */}
-      <header className="bg-white dark:bg-zinc-900 border-b border-gray-200 dark:border-zinc-800">
+    <div className="min-h-screen bg-white dark:bg-gray-950">
+      {/* ═══ HEADER ═══ */}
+      <header className="sticky top-0 z-50 bg-white/80 dark:bg-gray-950/80 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-800/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center">
-              <Shield className="w-8 h-8 text-blue-600 mr-3" />
-              <span className="text-xl font-bold text-gray-900 dark:text-zinc-100">JURISTIV</span>
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center shadow-lg">
+                <Scale className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">
+                JURIST<span className="text-indigo-500">IV</span>
+              </span>
             </div>
-            <nav className="hidden md:flex space-x-8">
+            <nav className="hidden md:flex items-center gap-8">
               <a
-                href="#features"
-                className="text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100"
+                href="#services"
+                className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
               >
-                Imkoniyatlar
+                Xizmatlar
               </a>
               <a
-                href="#lawyers"
-                className="text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100"
+                href="#advantages"
+                className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
               >
-                Advokatlar
+                Afzalliklar
               </a>
               <a
-                href="#testimonials"
-                className="text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100"
+                href="#stats"
+                className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
               >
-                Fikrlar
-              </a>
-              <a
-                href="#pricing"
-                className="text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100"
-              >
-                Narxlar
+                Statistika
               </a>
             </nav>
-            <div className="flex space-x-4">
-              <Link href="/lawyer-login">
-                <Button variant="outline">Kirish</Button>
+            <div className="flex items-center gap-3">
+              <Link
+                href="/signin"
+                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
+              >
+                Kirish
               </Link>
-              <Link href="/lawyer-register">
-                <Button>Ro\'yxatdan o\'tish</Button>
+              <Link
+                href="/signin?mode=register"
+                className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg shadow-blue-500/25"
+              >
+                Bepul boshlang
               </Link>
             </div>
           </div>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center">
-            <Badge className="mb-4 bg-blue-100 text-blue-800">
-              <Gavel className="w-4 h-4 mr-2" />
-              Professional Advokatlar Platformasi
-            </Badge>
-            <h1 className="text-4xl md:text-6xl font-bold text-gray-900 dark:text-zinc-100 mb-6">
-              Advokatlik faoliyatingizni
-              <span className="text-blue-600"> zamonaviy darajaga olib chiqing</span>
+      {/* ═══ HERO ═══ */}
+      <section className="relative overflow-hidden">
+        {/* Background gradient */}
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-950 dark:via-gray-900 dark:to-indigo-950/30" />
+        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-400/10 dark:bg-blue-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
+        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-indigo-400/10 dark:bg-indigo-500/5 rounded-full blur-3xl translate-y-1/3 -translate-x-1/4" />
+
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-24 sm:pt-28 sm:pb-32">
+          <div className="text-center max-w-4xl mx-auto">
+            {/* Badge */}
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 dark:bg-blue-900/30 border border-blue-200/50 dark:border-blue-800/50 mb-8">
+              <Zap className="w-4 h-4 text-blue-600" />
+              <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
+                O'zbekistonning birinchi AI huquqiy platformasi
+              </span>
+            </div>
+
+            {/* Heading */}
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white leading-tight mb-6">
+              Huquqiy yordamni{' '}
+              <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                yangi darajaga
+              </span>{' '}
+              olib chiqing
             </h1>
-            <p className="text-xl text-gray-600 dark:text-zinc-400 mb-8 max-w-3xl mx-auto">
-              JURISTIV - bu O\'zbekiston advokatlari uchun mo\'ljallangan zamonaviy platforma.
-              Mijozlar bazasini boshqaring, AI yordamida hujjatlarni tahliling va biznesingizni
-              o\'stiring.
+
+            {/* Subheading */}
+            <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed">
+              Sun'iy intellekt yordamida huquqiy tahlil, sud simulyatsiyasi, hujjat generatsiya va
+              O'zbekiston qonunchiligi bo'yicha professional maslahat — hammasi bir platformada.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/lawyer-register">
-                <Button size="lg" className="text-lg px-8 py-3">
-                  <Briefcase className="w-5 h-5 mr-2" />
-                  Bepul boshlang
-                </Button>
+
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Link
+                href="/signin?mode=register"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 text-base font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all shadow-xl shadow-blue-500/25 hover:shadow-blue-500/40"
+              >
+                Bepul boshlang
+                <ArrowRight className="w-5 h-5" />
               </Link>
-              <Link href="#features">
-                <Button size="lg" variant="outline" className="text-lg px-8 py-3">
-                  <PlayCircle className="w-5 h-5 mr-2" />
-                  Batafsil
-                </Button>
+              <Link
+                href="/signin"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 text-base font-semibold text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all"
+              >
+                Demo kirish
               </Link>
+            </div>
+
+            {/* Trust badges */}
+            <div className="flex flex-wrap items-center justify-center gap-6 mt-12 text-sm text-gray-500 dark:text-gray-400">
+              <div className="flex items-center gap-1.5">
+                <Shield className="w-4 h-4 text-emerald-500" />
+                <span>Xavfsiz platforma</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <CheckCircle className="w-4 h-4 text-emerald-500" />
+                <span>Bepul sinov muddati</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Star className="w-4 h-4 text-amber-500" />
+                <span>4.9/5 reyting</span>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section id="features" className="py-20 bg-gray-50 dark:bg-zinc-800/50">
+      {/* ═══ STATS ═══ */}
+      <section
+        id="stats"
+        className="py-16 bg-gray-50 dark:bg-gray-900/50 border-y border-gray-200/50 dark:border-gray-800/50"
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-zinc-100 mb-4">
-              Nima uchun JURISTIV?
-            </h2>
-            <p className="text-xl text-gray-600 dark:text-zinc-400">
-              Advokatlar uchun yaratilgan to\'liq funksional platforma
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {features.map((feature, index) => (
-              <Card key={index} className="text-center">
-                <CardContent className="p-8">
-                  <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <feature.icon className="w-8 h-8 text-blue-600" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-zinc-100 mb-2">
-                    {feature.title}
-                  </h3>
-                  <p className="text-gray-600 dark:text-zinc-400">{feature.description}</p>
-                </CardContent>
-              </Card>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            {STATS.map((stat, i) => (
+              <div key={i} className="text-center">
+                <div className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-1">
+                  {stat.value}
+                </div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">{stat.label}</div>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Lawyer Benefits Section */}
-      <section id="lawyers" className="py-20">
+      {/* ═══ SERVICES ═══ */}
+      <section id="services" className="py-20 sm:py-28">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+              AI bilan ta'minlangan xizmatlar
+            </h2>
+            <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+              Zamonaviy sun'iy intellekt texnologiyalari orqali huquqiy xizmatlarni yangi bosqichga
+              olib chiqing
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {SERVICES.map((service, i) => (
+              <Link
+                key={i}
+                href={service.href}
+                className="group relative bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-200/50 dark:border-gray-800/50 hover:border-gray-300 dark:hover:border-gray-700 transition-all duration-300 hover:shadow-xl hover:shadow-gray-200/50 dark:hover:shadow-gray-900/50 hover:-translate-y-1"
+              >
+                <div
+                  className={`w-12 h-12 rounded-xl ${service.bgColor} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}
+                >
+                  <service.icon className={`w-6 h-6 ${service.textColor}`} />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                  {service.title}
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed mb-4">
+                  {service.description}
+                </p>
+                <div className="flex items-center gap-1 text-sm font-medium text-blue-600 dark:text-blue-400 group-hover:gap-2 transition-all">
+                  Batafsil
+                  <ChevronRight className="w-4 h-4" />
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ ADVANTAGES ═══ */}
+      <section id="advantages" className="py-20 sm:py-28 bg-gray-50 dark:bg-gray-900/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-3xl font-bold text-gray-900 dark:text-zinc-100 mb-6">
-                Advokatlar uchun imkoniyatlar
+              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-6">
+                Nima uchun JURISTIV?
               </h2>
-              <p className="text-xl text-gray-600 dark:text-zinc-400 mb-8">
-                Bizning platforma advokatlar uchun barcha kerakli vositalarni taqdim etadi
+              <p className="text-lg text-gray-600 dark:text-gray-400 mb-8">
+                Bizning platforma O'zbekiston qonunchiligi to'liq moslashtirilgan va professional
+                huquqshunoslar uchun yaratilgan.
               </p>
-
               <div className="space-y-4">
-                {lawyerBenefits.map((benefit, index) => (
-                  <div key={index} className="flex items-center">
-                    <CheckCircle className="w-6 h-6 text-green-500 mr-3" />
-                    <span className="text-gray-700 dark:text-zinc-300">{benefit}</span>
+                {ADVANTAGES.map((adv, i) => (
+                  <div key={i} className="flex items-start gap-3">
+                    <CheckCircle className="w-5 h-5 text-emerald-500 mt-0.5 flex-shrink-0" />
+                    <span className="text-gray-700 dark:text-gray-300">{adv}</span>
                   </div>
                 ))}
               </div>
-
-              <div className="mt-8">
-                <Link href="/lawyer-register">
-                  <Button size="lg">
-                    <Award className="w-5 h-5 mr-2" />
-                    Advokat sifatida ro\'yxatdan o\'tish
-                  </Button>
-                </Link>
-              </div>
+              <Link
+                href="/signin?mode=register"
+                className="inline-flex items-center gap-2 mt-8 px-6 py-3 text-base font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg shadow-blue-500/25"
+              >
+                Hoziroq boshlang
+                <ArrowRight className="w-5 h-5" />
+              </Link>
             </div>
 
-            <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-8 text-white">
-              <div className="text-center">
-                <BarChart3 className="w-16 h-16 mx-auto mb-4" />
-                <h3 className="text-2xl font-bold mb-4">Statistikalar va analitika</h3>
-                <p className="mb-6">
-                  O\'z ish faoliyatingizni raqamlarda ko\'ring va biznes qarorlarini ma\'lumotlar
-                  asosida qabul qiling
+            <div className="relative">
+              <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-8 text-white shadow-2xl shadow-blue-500/20">
+                <div className="flex items-center gap-3 mb-6">
+                  <Gavel className="w-8 h-8" />
+                  <h3 className="text-xl font-bold">Virtual Sud Simulyatsiyasi</h3>
+                </div>
+                <p className="text-blue-100 mb-6 leading-relaxed">
+                  Real sud jarayonini AI bilan simulyatsiya qiling. Sudya, prokuror va advokat
+                  rollarida tajriba orting.
                 </p>
-                <div className="grid grid-cols-2 gap-4 text-center">
-                  <div>
-                    <div className="text-3xl font-bold">95%</div>
-                    <div className="text-sm opacity-90">Mijozlar qoniqishi</div>
+                <div className="grid grid-cols-3 gap-4 text-center">
+                  <div className="bg-white/10 rounded-xl p-3">
+                    <div className="text-2xl font-bold">4</div>
+                    <div className="text-xs text-blue-200">Sud rollari</div>
                   </div>
-                  <div>
-                    <div className="text-3xl font-bold">24/7</div>
-                    <div className="text-sm opacity-90">Kirish imkoniyati</div>
+                  <div className="bg-white/10 rounded-xl p-3">
+                    <div className="text-2xl font-bold">AI</div>
+                    <div className="text-xs text-blue-200">Javoblar</div>
+                  </div>
+                  <div className="bg-white/10 rounded-xl p-3">
+                    <div className="text-2xl font-bold">Real</div>
+                    <div className="text-xs text-blue-200">Vaqt</div>
                   </div>
                 </div>
               </div>
@@ -242,144 +335,119 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Testimonials Section */}
-      <section id="testimonials" className="py-20 bg-gray-50 dark:bg-zinc-800/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-zinc-100 mb-4">
-              Advokatlarimiz nima deydi
-            </h2>
-            <p className="text-xl text-gray-600 dark:text-zinc-400">
-              Platformamizdan foydalanayotgan professional advokatlar fikrlari
-            </p>
-          </div>
-
-          <div className="max-w-xl mx-auto text-center">
-            <div className="w-16 h-16 bg-blue-50 dark:bg-blue-900/20 rounded-full flex items-center justify-center mx-auto mb-5">
-              <MessageSquare className="w-7 h-7 text-blue-500" />
-            </div>
-            <p className="text-gray-600 dark:text-zinc-400 mb-3">
-              Haqiqiy foydalanuvchilar fikrlari tez orada qo\'shiladi.
-            </p>
-            <p className="text-sm text-gray-500 dark:text-zinc-500">
-              Jamiyat bo\'limidagi muhokamalar asosida real fikr-mulohazalar shu yerda
-              ko\'rsatiladi.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-20 bg-blue-600">
+      {/* ═══ CTA ═══ */}
+      <section className="py-20 sm:py-28">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold text-white mb-4">
-            Advokatlik faoliyatingizni yangi darajaga olib chiqing
-          </h2>
-          <p className="text-xl text-blue-100 mb-8">
-            Bugun ro\'yxatdan o\'ting va professional imkoniyatlardan foydalaning
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/lawyer-register">
-              <Button
-                size="lg"
-                variant="outline"
-                className="text-lg px-8 py-3 bg-white dark:bg-zinc-900 text-blue-600 border-white hover:bg-blue-50 dark:bg-blue-900/20"
+          <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-3xl p-10 sm:p-14 text-white shadow-2xl shadow-blue-500/20">
+            <h2 className="text-3xl sm:text-4xl font-bold mb-4">Bugun boshlang — bepul</h2>
+            <p className="text-lg text-blue-100 mb-8 max-w-xl mx-auto">
+              Barcha AI xizmatlarini 14 kun davomida bepul sinab ko'ring. Kredit karta talab
+              qilinmaydi.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Link
+                href="/signin?mode=register"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 text-base font-semibold text-blue-600 bg-white rounded-xl hover:bg-blue-50 transition-all shadow-lg"
               >
-                <Briefcase className="w-5 h-5 mr-2" />
-                Ro\'yxatdan o\'tish
-              </Button>
-            </Link>
-            <Link href="/lawyer-login">
-              <Button
-                size="lg"
-                variant="outline"
-                className="text-lg px-8 py-3 bg-transparent text-white border-white hover:bg-blue-700"
+                Ro'yxatdan o'tish
+                <ArrowRight className="w-5 h-5" />
+              </Link>
+              <Link
+                href="/signin"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 text-base font-semibold text-white border border-white/30 rounded-xl hover:bg-white/10 transition-all"
               >
-                <ArrowRight className="w-5 h-5 mr-2" />
                 Kirish
-              </Button>
-            </Link>
+              </Link>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12">
+      {/* ═══ FOOTER ═══ */}
+      <footer className="bg-gray-900 text-gray-400 py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
             <div>
-              <div className="flex items-center mb-4">
-                <Shield className="w-8 h-8 text-blue-400 mr-3" />
-                <span className="text-xl font-bold">JURISTIV</span>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center">
+                  <Scale className="w-4 h-4 text-white" />
+                </div>
+                <span className="text-lg font-bold text-white">
+                  JURIST<span className="text-indigo-400">IV</span>
+                </span>
               </div>
-              <p className="text-gray-400 dark:text-zinc-500">
-                O\'zbekiston advokatlari uchun zamonaviy platforma
+              <p className="text-sm leading-relaxed">
+                O'zbekistonning yetakchi AI huquqiy platformasi. Professional huquqiy xizmatlar
+                sun'iy intellekt bilan.
               </p>
             </div>
-
             <div>
-              <h3 className="font-semibold mb-4">Platforma</h3>
-              <ul className="space-y-2 text-gray-400 dark:text-zinc-500">
+              <h3 className="text-sm font-semibold text-white mb-4 uppercase tracking-wider">
+                Xizmatlar
+              </h3>
+              <ul className="space-y-2 text-sm">
                 <li>
-                  <a href="#features" className="hover:text-white">
-                    Imkoniyatlar
+                  <a href="/virtual-court" className="hover:text-white transition-colors">
+                    Virtual Sud AI
                   </a>
                 </li>
                 <li>
-                  <a href="#lawyers" className="hover:text-white">
-                    Advokatlar
+                  <a href="/ai-assistant" className="hover:text-white transition-colors">
+                    AI Huquqiy Agent
                   </a>
                 </li>
                 <li>
-                  <a href="#pricing" className="hover:text-white">
-                    Narxlar
+                  <a href="/document-generator" className="hover:text-white transition-colors">
+                    Hujjat Generator
+                  </a>
+                </li>
+                <li>
+                  <a href="/legal-database-new" className="hover:text-white transition-colors">
+                    Qonunlar Bazasi
                   </a>
                 </li>
               </ul>
             </div>
-
             <div>
-              <h3 className="font-semibold mb-4">Huquqiy</h3>
-              <ul className="space-y-2 text-gray-400 dark:text-zinc-500">
+              <h3 className="text-sm font-semibold text-white mb-4 uppercase tracking-wider">
+                Platforma
+              </h3>
+              <ul className="space-y-2 text-sm">
                 <li>
-                  <a href="#" className="hover:text-white">
-                    Foydalanish shartlari
+                  <a href="/irac" className="hover:text-white transition-colors">
+                    IRAC Tahlili
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-white">
-                    Maxfiylik siyosati
+                  <a href="/decision-tree" className="hover:text-white transition-colors">
+                    Qarorlar Daraxti
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-white">
-                    Qonunlar
+                  <a href="/statistics" className="hover:text-white transition-colors">
+                    Statistika
+                  </a>
+                </li>
+                <li>
+                  <a href="/premium" className="hover:text-white transition-colors">
+                    Premium
                   </a>
                 </li>
               </ul>
             </div>
-
             <div>
-              <h3 className="font-semibold mb-4">Aloqa</h3>
-              <ul className="space-y-2 text-gray-400 dark:text-zinc-500">
-                <li className="flex items-center">
-                  <Mail className="w-4 h-4 mr-2" />
-                  info@juristiv.uz
-                </li>
-                <li className="flex items-center">
-                  <Phone className="w-4 h-4 mr-2" />
-                  +998 90 123 45 67
-                </li>
-                <li className="flex items-center">
-                  <MapPin className="w-4 h-4 mr-2" />
-                  Toshkent, O\'zbekiston
-                </li>
+              <h3 className="text-sm font-semibold text-white mb-4 uppercase tracking-wider">
+                Aloqa
+              </h3>
+              <ul className="space-y-2 text-sm">
+                <li>info@juristiv.uz</li>
+                <li>+998 90 123 45 67</li>
+                <li>Toshkent, O'zbekiston</li>
               </ul>
             </div>
           </div>
-
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400 dark:text-zinc-500">
-            <p>&copy; 2024 JURISTIV. Barcha huquqlar himoyalangan.</p>
+          <div className="border-t border-gray-800 pt-8 text-center text-sm">
+            <p>&copy; {new Date().getFullYear()} JURISTIV. Barcha huquqlar himoyalangan.</p>
           </div>
         </div>
       </footer>
