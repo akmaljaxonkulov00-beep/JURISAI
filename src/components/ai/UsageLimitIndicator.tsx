@@ -28,6 +28,8 @@ export default function UsageLimitIndicator({
     getFeatureUsage,
     getRemainingText,
     getFeatureLabel,
+    getPeriodText,
+    getPeriodEndText,
     isLimitReached,
   } = useUsageLimits()
   const prevLimitRef = useRef<Set<string>>(new Set())
@@ -128,6 +130,10 @@ export default function UsageLimitIndicator({
                   {getRemainingText(f.feature)}
                 </span>
               </div>
+            </div>
+            <div className="flex items-center justify-between text-[10px] text-gray-400 dark:text-zinc-500">
+              <span>{getPeriodText(f.feature)}</span>
+              {isAtLimit && <span>{getPeriodEndText(f.feature)}</span>}
             </div>
             {/* Progress bar */}
             <div className="w-full h-1.5 bg-gray-100 dark:bg-zinc-800 rounded-full overflow-hidden">

@@ -2,12 +2,16 @@
 
 import { useState, useEffect, useCallback } from 'react'
 
+export type PeriodType = 'daily' | 'weekly' | 'monthly'
+
 export interface FeatureUsage {
   feature: string
   label: string
   used: number
   limit: number // -1 = unlimited
   remaining: number // -1 = unlimited
+  periodType: PeriodType
+  periodEnd: string
 }
 
 export interface UsageStatus {
@@ -90,6 +94,60 @@ export function useUsageLimits() {
     [getFeatureUsage]
   )
 
+  const getPeriodText = useCallback(
+    (feature: string): string => {
+      const f = getFeatureUsage(feature)
+      if (!f) return ''
+      if (f.limit === -1) return ''
+      if (f.periodType === 'daily') return 'kunlik'
+      if (f.periodType === 'weekly') return 'haftalik'
+      return 'oylik'
+    },
+    [getFeatureUsage]
+  )
+
+  const getPeriodEndText = useCallback(
+    (feature: string): string => {
+      const f = getFeatureUsage(feature)
+      if (!f || f.limit === -1 || !f.periodEnd) return ''
+      const d = new Date(f.periodEnd)
+      const now = new Date()
+      if (f.periodType === 'daily') {
+        return d.getDate() === now.getDate() + 1
+          ? 'Ertaga yangilanadi'
+          : `${d.toLocaleDateString('uz-UZ')} da yangilanadi`
+      }
+      if (f.periodType === 'weekly') {
+        const days = [
+          'Dushanba',
+          'Seshanba',
+          'Chorshanba',
+          'Payshanba',
+          'Juma',
+          'Shanba',
+          'Yakshanba',
+        ]
+        return `${days[(d.getDay() + 6) % 7]} kuni yangilanadi`
+      }
+      const months = [
+        'yanvar',
+        'fevral',
+        'mart',
+        'aprel',
+        'may',
+        'iyun',
+        'iyul',
+        'avgust',
+        'sentabr',
+        'oktabr',
+        'noyabr',
+        'dekabr',
+      ]
+      return `${d.getDate()}-${months[d.getMonth()]} kuni yangilanadi`
+    },
+    [getFeatureUsage]
+  )
+
   const getFeatureLabel = useCallback((feature: string): string => {
     return FEATURE_LABELS[feature] || feature
   }, [])
@@ -103,5 +161,7 @@ export function useUsageLimits() {
     isLimitReached,
     getRemainingText,
     getFeatureLabel,
+    getPeriodText,
+    getPeriodEndText,
   }
 }

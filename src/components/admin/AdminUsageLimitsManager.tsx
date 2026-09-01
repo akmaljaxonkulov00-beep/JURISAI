@@ -25,7 +25,7 @@ interface PlanLimits {
   id: string
   name: string
   price: number
-  limits: Record<string, number>
+  limits: Record<string, number | { value: number; period_type: string }>
 }
 
 interface UserOverride {
@@ -87,8 +87,47 @@ export default function AdminUsageLimitsManager() {
 
   const setPlanLimit = (planId: string, feature: string, value: number) => {
     setPlans(prev =>
-      prev.map(p => (p.id === planId ? { ...p, limits: { ...p.limits, [feature]: value } } : p))
+      prev.map(p => {
+        if (p.id !== planId) return p
+        const existing = p.limits?.[feature]
+        const periodType =
+          typeof existing === 'object' && existing !== null && 'period_type' in existing
+            ? ((existing as Record<string, unknown>).period_type as string)
+            : 'monthly'
+        return { ...p, limits: { ...p.limits, [feature]: { value, period_type: periodType } } }
+      })
     )
+  }
+
+  const setPlanPeriod = (planId: string, feature: string, periodType: string) => {
+    setPlans(prev =>
+      prev.map(p => {
+        if (p.id !== planId) return p
+        const existing = p.limits?.[feature]
+        const value =
+          typeof existing === 'object' && existing !== null && 'value' in existing
+            ? ((existing as Record<string, unknown>).value as number)
+            : typeof existing === 'number'
+              ? existing
+              : -1
+        return { ...p, limits: { ...p.limits, [feature]: { value, period_type: periodType } } }
+      })
+    )
+  }
+
+  const getLimitValue = (limits: Record<string, unknown>, feature: string): number => {
+    const raw = limits?.[feature]
+    if (typeof raw === 'number') return raw
+    if (typeof raw === 'object' && raw !== null && 'value' in raw)
+      return (raw as Record<string, unknown>).value as number
+    return -1
+  }
+
+  const getPeriodType = (limits: Record<string, unknown>, feature: string): string => {
+    const raw = limits?.[feature]
+    if (typeof raw === 'object' && raw !== null && 'period_type' in raw)
+      return (raw as Record<string, unknown>).period_type as string
+    return 'monthly'
   }
 
   const savePlans = async () => {
@@ -203,7 +242,9 @@ export default function AdminUsageLimitsManager() {
         <div className="px-4 py-3 border-b border-gray-100 dark:border-zinc-800">
           <h4 className="text-sm font-semibold text-gray-800 dark:text-white">
             Tarif limitlari (oylik) —{' '}
-            <span className="text-gray-400 font-normal">-1 = Cheksiz</span>
+            <span className="text-gray-400 font-normal">
+              -1 = Cheksiz | Davr turini ham o'zgartirish mumkin
+            </span>
           </h4>
         </div>
         <div className="overflow-x-auto">
@@ -229,17 +270,35 @@ export default function AdminUsageLimitsManager() {
                   <td className="px-4 py-2 font-medium text-gray-700 dark:text-zinc-300">
                     {f.label}
                   </td>
-                  {plans.map(p => (
-                    <td key={p.id} className="px-3 py-2 text-center">
-                      <input
-                        type="number"
-                        value={p.limits?.[f.key] ?? -1}
-                        onChange={e => setPlanLimit(p.id, f.key, parseInt(e.target.value) || -1)}
-                        className="w-20 text-center text-xs rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-700 dark:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-blue-500 px-1 py-1"
-                        title={`${p.name} — ${f.label}`}
-                      />
-                    </td>
-                  ))}
+                  {plans.map(p => {
+                    const limitVal = getLimitValue(p.limits || {}, f.key)
+                    const periodType = getPeriodType(p.limits || {}, f.key)
+                    return (
+                      <td key={p.id} className="px-3 py-2 text-center">
+                        <div className="flex flex-col items-center gap-1">
+                          <input
+                            type="number"
+                            value={limitVal}
+                            onChange={e =>
+                              setPlanLimit(p.id, f.key, parseInt(e.target.value) || -1)
+                            }
+                            className="w-20 text-center text-xs rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-700 dark:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-blue-500 px-1 py-1"
+                            title={`${p.name} — ${f.label}`}
+                          />
+                          <select
+                            value={periodType}
+                            onChange={e => setPlanPeriod(p.id, f.key, e.target.value)}
+                            className="w-20 text-[10px] text-center rounded border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800 text-gray-500 dark:text-zinc-400 focus:outline-none px-1 py-0.5"
+                            title="Davr turini tanlash"
+                          >
+                            <option value="daily">Kunlik</option>
+                            <option value="weekly">Haftalik</option>
+                            <option value="monthly">Oylik</option>
+                          </select>
+                        </div>
+                      </td>
+                    )
+                  })}
                 </tr>
               ))}
             </tbody>

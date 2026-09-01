@@ -151,6 +151,8 @@ async function getFairUseLimit(feature: string): Promise<number | null> {
   return typeof def === 'number' && def > 0 ? def : null
 }
 
+export type PeriodType = 'daily' | 'weekly' | 'monthly'
+
 export interface UsageResult {
   allowed: boolean
   feature: string
@@ -160,6 +162,8 @@ export interface UsageResult {
   plan: string
   source: 'override' | 'plan' | 'default' | 'fair_use'
   reason?: string
+  periodType: PeriodType
+  periodEnd: string // ISO date string — limit qachon yangilanishi
 }
 
 interface CheckOptions {
@@ -219,12 +223,72 @@ export async function getUserPlan(userId?: string, email?: string): Promise<stri
  * Foydalanuvchi uchun samarali limitni aniqlaydi:
  * per-user override > tarif limiti > default limit
  */
+/**
+ * Joriy davr boshlanish sanasini hisoblaydi
+ */
+function getPeriodStart(periodType: PeriodType): Date {
+  const now = new Date()
+  if (periodType === 'daily') {
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0)
+  }
+  if (periodType === 'weekly') {
+    const day = now.getDay() // 0=Sun
+    const diff = day === 0 ? 6 : day - 1 // Monday = 0
+    const monday = new Date(now)
+    monday.setDate(now.getDate() - diff)
+    return new Date(monday.getFullYear(), monday.getMonth(), monday.getDate(), 0, 0, 0, 0)
+  }
+  // monthly (default)
+  return new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0)
+}
+
+/**
+ * Joriy davr tugash sanasini hisoblaydi (keyingi davr boshlanishidan 1 ms oldin)
+ */
+function getPeriodEnd(periodType: PeriodType): Date {
+  const start = getPeriodStart(periodType)
+  const end = new Date(start)
+  if (periodType === 'daily') {
+    end.setDate(end.getDate() + 1)
+  } else if (periodType === 'weekly') {
+    end.setDate(end.getDate() + 7)
+  } else {
+    end.setMonth(end.getMonth() + 1)
+  }
+  end.setTime(end.getTime() - 1)
+  return end
+}
+
+/**
+ * Pricing_plans.limits JSONB dan limit va period_type ni ajratadi.
+ * Format: { feature_key: number } yoki { feature_key: { value: number, period_type: string } }
+ */
+function parsePlanLimit(
+  limitsObj: Record<string, unknown>,
+  feature: string
+): { limit: number; periodType: PeriodType } | null {
+  const raw = limitsObj[feature]
+  if (raw == null) return null
+  if (typeof raw === 'number') return { limit: raw, periodType: 'monthly' }
+  if (typeof raw === 'object' && raw !== null) {
+    const obj = raw as Record<string, unknown>
+    const value =
+      typeof obj.value === 'number' ? obj.value : typeof obj.limit === 'number' ? obj.limit : null
+    const pt = typeof obj.period_type === 'string' ? obj.period_type : 'monthly'
+    if (value != null) {
+      const periodType: PeriodType = pt === 'daily' || pt === 'weekly' ? pt : 'monthly'
+      return { limit: value, periodType }
+    }
+  }
+  return null
+}
+
 export async function getEffectiveLimit(
   userId: string | undefined,
   plan: string,
   feature: string
-): Promise<{ limit: number; source: 'override' | 'plan' | 'default' }> {
-  // 1. Per-user override
+): Promise<{ limit: number; source: 'override' | 'plan' | 'default'; periodType: PeriodType }> {
+  // 1. Per-user override (always monthly)
   if (userId) {
     try {
       const supabase = await getSupabaseAdminLazy()
@@ -236,13 +300,13 @@ export async function getEffectiveLimit(
           .eq('feature', feature)
           .maybeSingle()
         if (!error && data && data.monthly_limit != null) {
-          return { limit: data.monthly_limit, source: 'override' }
+          return { limit: data.monthly_limit, source: 'override', periodType: 'monthly' }
         }
       }
     } catch {}
   }
 
-  // 2. Tarif limiti (pricing_plans.limits JSONB)
+  // 2. Tarif limiti (pricing_plans.limits JSONB) — supports {value, period_type}
   try {
     const supabase = await getSupabaseAdminLazy()
     if (supabase) {
@@ -252,39 +316,38 @@ export async function getEffectiveLimit(
         .eq('id', plan)
         .maybeSingle()
       if (!error && data && data.limits) {
-        const val = data.limits[feature]
-        if (typeof val === 'number') return { limit: val, source: 'plan' }
+        const parsed = parsePlanLimit(data.limits, feature)
+        if (parsed) return { ...parsed, source: 'plan' }
       }
     }
   } catch {}
 
-  // 3. Default
+  // 3. Default (always monthly)
   const def = DEFAULT_LIMITS[plan] || DEFAULT_LIMITS.free
   const limit = typeof def[feature] === 'number' ? def[feature] : -1
-  return { limit, source: 'default' }
+  return { limit, source: 'default', periodType: 'monthly' }
 }
 
 /**
- * Shu oy ichida foydalanuvchi shu funksiyani necha marta ishlatganini sanaydi
+ * Davr turiga qarab foydalanuvchining ishlatish sonini sanaydi
  */
-async function countMonthlyUsage(
+async function countUsage(
   userId: string | undefined,
   email: string | undefined,
-  feature: string
+  feature: string,
+  periodType: PeriodType = 'monthly'
 ): Promise<number> {
   try {
     const supabase = await getSupabaseAdminLazy()
     if (!supabase) return 0
 
-    const monthStart = new Date()
-    monthStart.setDate(1)
-    monthStart.setHours(0, 0, 0, 0)
+    const periodStart = getPeriodStart(periodType)
 
     let query = supabase
       .from('usage_logs')
       .select('id', { count: 'exact', head: true })
       .eq('action', feature)
-      .gte('created_at', monthStart.toISOString())
+      .gte('created_at', periodStart.toISOString())
 
     if (userId) query = query.eq('user_id', userId)
     else if (email) query = query.eq('email', email)
@@ -323,7 +386,9 @@ export async function checkAndIncrement(opts: CheckOptions): Promise<UsageResult
     }
   }
 
-  const used = await countMonthlyUsage(userId, email, feature)
+  const periodType = eff.periodType
+  const periodEnd = getPeriodEnd(periodType)
+  const used = await countUsage(userId, email, feature, periodType)
 
   const remaining = limit === -1 ? -1 : Math.max(0, limit - used)
 
@@ -337,6 +402,8 @@ export async function checkAndIncrement(opts: CheckOptions): Promise<UsageResult
       plan,
       source,
       reason: 'limit_reached',
+      periodType,
+      periodEnd: periodEnd.toISOString(),
     }
   }
 
@@ -350,12 +417,11 @@ export async function checkAndIncrement(opts: CheckOptions): Promise<UsageResult
         name: '',
         tokens: Math.max(1, Math.round(tokens || 1)),
         action: feature,
-        metadata: { ...metadata, plan, limit, limit_source: source },
+        metadata: { ...metadata, plan, limit, limit_source: source, period_type: periodType },
         created_at: new Date().toISOString(),
       }
       const { error: insErr } = await supabase.from('usage_logs').insert(logRow)
       if (insErr) {
-        // Eski baza: metadata ustuni bo'lmasa — metadatasiz qayta urinamiz
         const baseRow = { ...logRow }
         delete (baseRow as any).metadata
         await supabase.from('usage_logs').insert(baseRow)
@@ -371,20 +437,64 @@ export async function checkAndIncrement(opts: CheckOptions): Promise<UsageResult
     remaining: remaining === -1 ? -1 : remaining - 1,
     plan,
     source,
+    periodType,
+    periodEnd: periodEnd.toISOString(),
   }
 }
 
 /**
  * Limit tugaganda foydalanuvchiga ko'rsatiladigan matn
  */
+export function formatPeriodEnd(periodEnd: string, periodType: PeriodType): string {
+  const d = new Date(periodEnd)
+  const now = new Date()
+  if (periodType === 'daily') {
+    if (d.getDate() === now.getDate() + 1) return 'Ertaga yangilanadi'
+    return `${d.toLocaleDateString('uz-UZ')} da yangilanadi`
+  }
+  if (periodType === 'weekly') {
+    const dayNames = [
+      'Dushanba',
+      'Seshanba',
+      'Chorshanba',
+      'Payshanba',
+      'Juma',
+      'Shanba',
+      'Yakshanba',
+    ]
+    const target = new Date(d)
+    target.setDate(target.getDate() + 1) // Monday after period end
+    const dayName = dayNames[(target.getDay() + 6) % 7]
+    return `${dayName} kuni yangilanadi`
+  }
+  // monthly
+  const monthNames = [
+    'yanvar',
+    'fevral',
+    'mart',
+    'aprel',
+    'may',
+    'iyun',
+    'iyul',
+    'avgust',
+    'sentabr',
+    'oktabr',
+    'noyabr',
+    'dekabr',
+  ]
+  return `${d.getDate()}-${monthNames[d.getMonth()]} kuni 00:00 da yangilanadi`
+}
+
 export function usageMessage(r: UsageResult): string {
   const label = FEATURES[r.feature] || r.feature
   if (r.limit === -1) return `${label} — cheksiz`
   if (r.source === 'fair_use') {
-    return `${label} uchun adolatli ishlatish chegarasi tugadi (${r.used}/${r.limit} oy). Chegara keyingi oyning 1-sanasida qayta tiklanadi.`
+    const periodText = r.periodType === 'daily' ? 'kun' : r.periodType === 'weekly' ? 'hafta' : 'oy'
+    return `${label} uchun adolatli ishlatish chegarasi tugadi (${r.used}/${r.limit} ${periodText}). ${formatPeriodEnd(r.periodEnd, r.periodType)}`
   }
   const planName = r.plan === 'pro' ? 'Pro' : r.plan === 'standart' ? 'Standart' : 'Bepul'
-  return `${planName} tarifida ${label} limiti tugadi (${r.used}/${r.limit} oy). Limitni oshirish uchun Premium'ga o'ting.`
+  const periodText = r.periodType === 'daily' ? 'kun' : r.periodType === 'weekly' ? 'hafta' : 'oy'
+  return `${planName} tarifida ${label} limiti tugadi (${r.used}/${r.limit} ${periodText}). ${formatPeriodEnd(r.periodEnd, r.periodType)}. Limitni oshirish uchun Premium'ga o'ting.`
 }
 
 /**
@@ -395,20 +505,54 @@ export async function getUsageStatus(
   email?: string
 ): Promise<{
   plan: string
-  features: Record<string, { used: number; limit: number; remaining: number; label: string }>
+  features: Record<
+    string,
+    {
+      used: number
+      limit: number
+      remaining: number
+      label: string
+      periodType: PeriodType
+      periodEnd: string
+    }
+  >
 }> {
   const plan = await getUserPlan(userId, email)
-  const result: Record<string, { used: number; limit: number; remaining: number; label: string }> =
-    {}
+  const result: Record<
+    string,
+    {
+      used: number
+      limit: number
+      remaining: number
+      label: string
+      periodType: PeriodType
+      periodEnd: string
+    }
+  > = {}
 
   for (const [feature, label] of Object.entries(FEATURES)) {
-    const { limit } = await getEffectiveLimit(userId, plan, feature)
-    const used = await countMonthlyUsage(userId, email, feature)
+    const eff = await getEffectiveLimit(userId, plan, feature)
+    let limit = eff.limit
+    let source: UsageResult['source'] = eff.source
+
+    if (limit === -1 && source === 'plan' && plan === 'pro') {
+      const fair = await getFairUseLimit(feature)
+      if (fair != null) {
+        limit = fair
+        source = 'fair_use'
+      }
+    }
+
+    const used = await countUsage(userId, email, feature, eff.periodType)
+    const periodEnd = getPeriodEnd(eff.periodType)
+
     result[feature] = {
       label,
       used,
       limit,
       remaining: limit === -1 ? -1 : Math.max(0, limit - used),
+      periodType: eff.periodType,
+      periodEnd: periodEnd.toISOString(),
     }
   }
 
