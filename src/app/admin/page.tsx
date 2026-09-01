@@ -108,6 +108,7 @@ interface SiteSettings {
   systemPrompt: string
   paymentCardNumber: string
   paymentDetails: string
+  logoUrl?: string
 }
 
 interface PricingPlan {
@@ -1726,6 +1727,46 @@ export default function AdminDashboard() {
         {/* ===== SETTINGS ===== */}
         {activeTab === 'settings' && (
           <div className="space-y-6">
+            {/* Logo Upload */}
+            <Card className="card-default rounded-2xl">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-gray-800 dark:text-white">
+                  <Shield className="w-5 h-5 text-blue-500" />
+                  Logotip
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center gap-6">
+                  <div className="w-20 h-20 rounded-xl border-2 border-dashed border-gray-300 dark:border-zinc-600 flex items-center justify-center overflow-hidden bg-gray-50 dark:bg-zinc-800">
+                    {siteSettings.logoUrl ? (
+                      <img
+                        src={siteSettings.logoUrl}
+                        alt="Logo"
+                        className="w-full h-full object-contain p-2"
+                      />
+                    ) : (
+                      <Shield className="w-8 h-8 text-gray-400" />
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm text-gray-600 dark:text-zinc-400 mb-2">
+                      Logo URL kiriting (rasim havolasi)
+                    </p>
+                    <Input
+                      value={siteSettings.logoUrl || ''}
+                      onChange={e =>
+                        setSiteSettings(prev => ({ ...prev, logoUrl: e.target.value }))
+                      }
+                      placeholder="https://example.com/logo.png"
+                      className="w-full text-sm"
+                    />
+                    <p className="text-xs text-gray-400 dark:text-zinc-500 mt-1">
+                      PNG, JPG yoki SVG formatdagi rasm URL manzili
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
             {/* Site settings */}
             <Card className="card-default rounded-2xl">
               <CardHeader>

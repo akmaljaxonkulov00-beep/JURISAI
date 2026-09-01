@@ -1866,9 +1866,10 @@ Eslatma: Tomonlarni tinglang, ularga kelishuvga erishishga yordam bering va nizo
         padding: 24,
       }}
     >
+      {' '}
       <div
+        className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800"
         style={{
-          background: '#fff',
           borderRadius: 22,
           boxShadow: '0 8px 40px rgba(0,0,0,0.1)',
           maxWidth: 560,
