@@ -1,6 +1,8 @@
 'use client'
 
 import { useLanguage } from '@/context/LanguageContext'
+import ContactSection from '@/components/landing/ContactSection'
+import SiteLogo from '@/components/SiteLogo'
 
 import React, { useMemo } from 'react'
 import Link from 'next/link'
@@ -105,14 +107,7 @@ export default function LandingPage() {
       <header className="sticky top-0 z-50 bg-white/80 dark:bg-gray-950/80 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-800/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center shadow-lg">
-                <Scale className="w-5 h-5 text-white" />
-              </div>
-              <span className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">
-                JURIST<span className="text-indigo-500">IV</span>
-              </span>
-            </div>
+            <SiteLogo size="sm" />
             <nav className="hidden md:flex items-center gap-8">
               <a
                 href="#services"
@@ -349,18 +344,16 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ═══ CONTACT ═══ */}
+      <ContactSection />
+
       {/* ═══ FOOTER ═══ */}
       <footer className="bg-gray-900 text-gray-400 py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
             <div>
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center">
-                  <Scale className="w-4 h-4 text-white" />
-                </div>
-                <span className="text-lg font-bold text-white">
-                  JURIST<span className="text-indigo-400">IV</span>
-                </span>
+              <div className="mb-4">
+                <SiteLogo size="sm" className="[&_span]:text-white" />
               </div>
               <p className="text-sm leading-relaxed">{t('landingFooterDesc2')}</p>
             </div>

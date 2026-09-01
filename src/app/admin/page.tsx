@@ -46,6 +46,7 @@ import AdminCommunityManager from '@/components/admin/AdminCommunityManager'
 import AdminLegalManager from '@/components/admin/AdminLegalManager'
 import AdminUsageLimitsManager from '@/components/admin/AdminUsageLimitsManager'
 import AdminCostMonitor from '@/components/admin/AdminCostMonitor'
+import ContactSettingsCard from '@/components/admin/ContactSettingsCard'
 import { useAdminRealtime } from '@/hooks/useAdminRealtime'
 import {
   saveSiteSettings,
@@ -1834,6 +1835,9 @@ export default function AdminDashboard() {
                 {settingsSaved && <p className="text-sm text-green-600">Sozlamalar saqlandi! ✅</p>}
               </CardContent>
             </Card>
+
+            {/* Contact & Social Links Settings */}
+            <ContactSettingsCard />
 
             {/* Logout section */}
             <Card className="card-default rounded-2xl border-red-200 dark:border-red-900">

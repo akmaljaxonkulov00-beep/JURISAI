@@ -2,8 +2,9 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import SiteLogo from '@/components/SiteLogo'
+import ContactSection from '@/components/landing/ContactSection'
 import {
-  Scale,
   Brain,
   FileText,
   Search,
@@ -18,6 +19,7 @@ import {
   CheckCircle,
   Menu,
   X,
+  Scale,
 } from 'lucide-react'
 
 const FEATURES = [
@@ -90,13 +92,8 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <Link href="/" className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center shadow-lg">
-                <Scale className="w-5 h-5 text-white" />
-              </div>
-              <span className="text-xl font-bold text-gray-900 dark:text-white">
-                JURIST<span className="text-indigo-500">IV</span>
-              </span>
+            <Link href="/">
+              <SiteLogo size="sm" />
             </Link>
 
             {/* Desktop Nav */}
@@ -351,14 +348,16 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Contact Section */}
+      <ContactSection />
+
       {/* Footer */}
       <footer className="bg-gray-900 dark:bg-gray-950 text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
             <div>
-              <div className="flex items-center gap-2 mb-4">
-                <Scale className="w-6 h-6 text-blue-400" />
-                <span className="text-lg font-bold">JURISTIV</span>
+              <div className="mb-4">
+                <SiteLogo size="sm" className="[&_span]:text-white" />
               </div>
               <p className="text-sm text-gray-400">
                 O'zbekistonning yetakchi AI huquqiy platformasi
