@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback, Suspense } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { authService } from '@/services/supabase-auth'
 import { isAdminRole } from '@/lib/roles'
@@ -12,87 +12,7 @@ import { motion, useSpring, useTransform, useMotionValue, type MotionValue } fro
 import type { PlatformStats } from '@/hooks/useRealtimeStats'
 
 // ═══════════════════════════════════════════════════════════════════════════
-// PREMIUM 3D GLASS CARD
-// ═══════════════════════════════════════════════════════════════════════════
-
-function FloatingCard({
-  children,
-  depth = 0,
-  index = 0,
-  mouseX,
-  mouseY,
-  className = '',
-}: {
-  children: React.ReactNode
-  depth?: number
-  index?: number
-  mouseX: MotionValue<number>
-  mouseY: MotionValue<number>
-  className?: string
-}) {
-  const rotateX = useTransform(mouseY, [0, 1], [depth * 2.5, -depth * 2.5])
-  const rotateY = useTransform(mouseX, [0, 1], [-depth * 2.5, depth * 2.5])
-  const springRotateX = useSpring(rotateX, { stiffness: 55, damping: 16 })
-  const springRotateY = useSpring(rotateY, { stiffness: 55, damping: 16 })
-
-  const floatDur = 6 + index * 1.5
-  const floatDel = index * 0.8
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 40, scale: 0.9 }}
-      animate={{
-        opacity: 1,
-        y: [0, -10 - index * 2, 0],
-        scale: [1, 1.01, 1],
-        transition: {
-          opacity: { duration: 0.7, delay: 0.2 + index * 0.12 },
-          y: { duration: floatDur, delay: floatDel, repeat: Infinity, ease: 'easeInOut' },
-          scale: { duration: floatDur * 0.6, delay: floatDel, repeat: Infinity, ease: 'easeInOut' },
-        },
-      }}
-      style={{
-        rotateX: springRotateX,
-        rotateY: springRotateY,
-        perspective: 1000,
-        transformStyle: 'preserve-3d',
-      }}
-      whileHover={{
-        scale: 1.07,
-        z: 45,
-        transition: { type: 'spring', stiffness: 250, damping: 12 },
-      }}
-      className={`relative group cursor-default ${className}`}
-    >
-      <div
-        className="relative rounded-2xl p-4 backdrop-blur-xl border border-white/[0.12] shadow-2xl overflow-hidden"
-        style={{
-          background:
-            'linear-gradient(145deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.03) 100%)',
-          boxShadow:
-            '0 8px 40px rgba(0,0,0,0.2), 0 2px 8px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.18)',
-        }}
-      >
-        {/* Gradient border glow on hover */}
-        <div
-          className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
-          style={{
-            background:
-              'linear-gradient(135deg, rgba(59,130,246,0.08), rgba(99,102,241,0.05), transparent)',
-          }}
-        />
-        {/* Hover glow ring */}
-        <div className="absolute -inset-[2px] bg-gradient-to-r from-blue-500/10 to-indigo-500/10 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
-        {/* Bottom reflection */}
-        <div className="absolute bottom-0 left-4 right-4 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-        <div className="relative z-10">{children}</div>
-      </div>
-    </motion.div>
-  )
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// ICON COMPONENTS (Premium Legal-themed SVG icons)
+// ICONS (Premium Legal-themed SVG)
 // ═══════════════════════════════════════════════════════════════════════════
 
 function ScaleIcon({ className = '' }: { className?: string }) {
@@ -201,29 +121,103 @@ function ChartIcon({ className = '' }: { className?: string }) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// PARTICLE FIELD — Tiny glowing dots in background
+// HEXAGONAL LAYOUT — 6 cards at exact 60° intervals, radius 200px
 // ═══════════════════════════════════════════════════════════════════════════
 
-function ParticleField() {
+const HEX_RADIUS = 200
+const HEX_NODES = [
+  {
+    id: 'court',
+    icon: <ScaleIcon className="w-5 h-5" />,
+    title: 'Virtual Sud AI',
+    desc: 'Sud jarayonlarini simulyatsiya qilish',
+    accent: '#06b6d4',
+    route: '/virtual-court',
+  },
+  {
+    id: 'brain',
+    icon: <BrainIcon className="w-5 h-5" />,
+    title: 'AI Huquqiy Agent',
+    desc: "O'zR qonunchiligi asosida AI yordamchi",
+    accent: '#6366f1',
+    route: '/ai-assistant',
+  },
+  {
+    id: 'docs',
+    icon: <FileTextIcon className="w-5 h-5" />,
+    title: 'AI Hujjat Generator',
+    desc: "Da'vo va shartnomalarni avtomatik yaratish",
+    accent: '#f59e0b',
+    route: '/document-generator',
+  },
+  {
+    id: 'laws',
+    icon: <BookIcon className="w-5 h-5" />,
+    title: "O'zbekiston Qonunchiligi",
+    desc: 'Kodekslar va normativ hujjatlar bazasi',
+    accent: '#10b981',
+    route: '/legal-database-new',
+  },
+  {
+    id: 'search',
+    icon: <SearchIcon className="w-5 h-5" />,
+    title: 'Smart Huquqiy Qidiruv',
+    desc: "Sun'iy intellekt bilan semantik qidiruv",
+    accent: '#8b5cf6',
+    route: '/legal-database-new',
+  },
+  {
+    id: 'analytics',
+    icon: <ChartIcon className="w-5 h-5" />,
+    title: 'AI Analitika',
+    desc: 'Huquqiy tahlil va bashoratli tavsiyalar',
+    accent: '#ef4444',
+    route: '/statistics',
+  },
+].map((n, i) => {
+  const angle = (i * 60 - 90) * (Math.PI / 180) // 12 o'clock, clockwise
+  return {
+    ...n,
+    x: Math.round(HEX_RADIUS * Math.sin(angle)),
+    y: Math.round(-HEX_RADIUS * Math.cos(angle)),
+  }
+})
+
+// SVG paths: center→node + ring edges
+const HEX_LINES: string[] = [
+  ...HEX_NODES.map(n => `M0,0 L${n.x},${n.y}`),
+  ...HEX_NODES.map((n, i) => {
+    const next = HEX_NODES[(i + 1) % HEX_NODES.length]
+    return `M${n.x},${n.y} L${next.x},${next.y}`
+  }),
+]
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PARTICLE FIELD — Parallax mouse-reactive dots
+// ═══════════════════════════════════════════════════════════════════════════
+
+function ParticleField({
+  mouseX,
+  mouseY,
+}: {
+  mouseX: MotionValue<number>
+  mouseY: MotionValue<number>
+}) {
   const particles = useRef(
-    [...Array(35)].map((_, i) => ({
+    [...Array(40)].map((_, i) => ({
       id: i,
       left: `${5 + Math.random() * 90}%`,
       top: `${5 + Math.random() * 90}%`,
       size: 1.5 + Math.random() * 2.5,
-      duration: 6 + Math.random() * 10,
+      duration: 8 + Math.random() * 12,
       delay: Math.random() * 6,
-      driftX: (Math.random() - 0.5) * 50,
-      driftY: (Math.random() - 0.5) * 50,
-      opacity: 0.08 + Math.random() * 0.25,
+      parallaxFactor: 0.3 + Math.random() * 0.7,
+      opacity: 0.06 + Math.random() * 0.2,
     }))
   ).current
 
   return (
-    <div
-      className="absolute inset-0 overflow-hidden pointer-events-none"
-      style={{ perspective: '1200px' }}
-    >
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
       {particles.map(p => (
         <motion.div
           key={p.id}
@@ -233,14 +227,14 @@ function ParticleField() {
             top: p.top,
             width: p.size,
             height: p.size,
-            background: 'radial-gradient(circle, rgba(147,197,253,0.6), transparent)',
-            boxShadow: `0 0 ${p.size * 3}px rgba(147,197,253,0.15)`,
+            background: 'radial-gradient(circle, rgba(147,197,253,0.7), transparent)',
+            boxShadow: `0 0 ${p.size * 4}px rgba(147,197,253,0.2)`,
+            x: useTransform(mouseX, [0, 1], [-p.parallaxFactor * 15, p.parallaxFactor * 15]),
+            y: useTransform(mouseY, [0, 1], [-p.parallaxFactor * 15, p.parallaxFactor * 15]),
           }}
           animate={{
-            y: [0, p.driftY, 0],
-            x: [0, p.driftX, 0],
-            opacity: [p.opacity * 0.3, p.opacity, p.opacity * 0.3],
-            scale: [0.6, 1.3, 0.6],
+            opacity: [p.opacity * 0.2, p.opacity, p.opacity * 0.2],
+            scale: [0.5, 1.4, 0.5],
           }}
           transition={{ duration: p.duration, repeat: Infinity, delay: p.delay, ease: 'easeInOut' }}
         />
@@ -250,170 +244,257 @@ function ParticleField() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// FLOATING SCENE — Premium 3D Legal Ecosystem
+// FLOATING ECO-CARD — Glassmorphism with stagger + hover
 // ═══════════════════════════════════════════════════════════════════════════
 
-interface EcosystemNode {
-  id: string
-  icon: React.ReactNode
-  title: string
-  description: string
-  accent: string
-  depth: number
-  x: number
-  y: number
-  floatAmp: number
-  floatDur: number
-  floatDelay: number
-  pulseDelay: number
+function EcoCard({
+  node,
+  index,
+  mouseX,
+  mouseY,
+  onNavigate,
+}: {
+  node: (typeof HEX_NODES)[number]
+  index: number
+  mouseX: MotionValue<number>
+  mouseY: MotionValue<number>
+  onNavigate: (href: string) => void
+}) {
+  const rotateX = useSpring(useTransform(mouseY, [0, 1], [4, -4]), { stiffness: 60, damping: 16 })
+  const rotateY = useSpring(useTransform(mouseX, [0, 1], [-4, 4]), { stiffness: 60, damping: 16 })
+
+  return (
+    <motion.div
+      className="absolute"
+      style={{
+        left: `calc(50% + ${node.x}px - 76px)`,
+        top: `calc(50% + ${node.y}px - 38px)`,
+        width: 152,
+        rotateX,
+        rotateY,
+        perspective: 1000,
+        transformStyle: 'preserve-3d',
+      }}
+      initial={{ opacity: 0, scale: 0.5, y: 30 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      transition={{
+        delay: 0.4 + index * 0.12,
+        duration: 0.6,
+        ease: [0.16, 1, 0.3, 1],
+      }}
+      whileHover={{
+        scale: 1.06,
+        z: 40,
+        transition: { type: 'spring', stiffness: 300, damping: 15 },
+      }}
+    >
+      <button onClick={() => onNavigate(node.route)} className="w-full text-left group">
+        <div
+          className="relative rounded-2xl p-3.5 backdrop-blur-xl border border-white/[0.12] shadow-2xl overflow-hidden transition-all duration-500 group-hover:shadow-[0_8px_40px_rgba(0,0,0,0.3)]"
+          style={{
+            background:
+              'linear-gradient(145deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.03) 100%)',
+            boxShadow: '0 4px 24px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.15)',
+          }}
+        >
+          {/* Hover glow */}
+          <div
+            className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+            style={{
+              background: `linear-gradient(135deg, ${node.accent}15, ${node.accent}08, transparent)`,
+            }}
+          />
+          {/* Bottom reflection */}
+          <div className="absolute bottom-0 left-3 right-3 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+
+          <div className="relative z-10 flex items-start gap-2.5">
+            <motion.div
+              className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+              style={{
+                background: `linear-gradient(135deg, ${node.accent}50, ${node.accent}20)`,
+                color: node.accent,
+                boxShadow: `0 2px 12px ${node.accent}25`,
+              }}
+              whileHover={{ rotate: [0, -8, 8, 0], transition: { duration: 0.4 } }}
+            >
+              {node.icon}
+            </motion.div>
+            <div className="min-w-0 flex-1">
+              <h3 className="text-[11px] font-semibold text-white/90 leading-tight">
+                {node.title}
+              </h3>
+              <p className="text-[9px] text-white/40 mt-0.5 leading-relaxed line-clamp-2">
+                {node.desc}
+              </p>
+            </div>
+          </div>
+        </div>
+      </button>
+    </motion.div>
+  )
 }
 
-// ── HEXAGON: 6 nodes at 60° intervals, radius 170px ──
-// Positions calculated via: x = R * sin(i*60°), y = -R * cos(i*60°)
-const HEX_RADIUS = 170
-const HEX_NODES = [
-  {
-    id: 'court',
-    icon: <ScaleIcon className="w-4.5 h-4.5" />,
-    title: 'Virtual Sud AI',
-    description: 'Sud jarayonlarini simulyatsiya qilish',
-    accent: '#06b6d4',
-    depth: 5,
-  },
-  {
-    id: 'gavel',
-    icon: <BrainIcon className="w-4.5 h-4.5" />,
-    title: 'AI Huquqiy Agent',
-    description: "O'zR qonunchiligi asosida AI yordamchi",
-    accent: '#6366f1',
-    depth: 4,
-  },
-  {
-    id: 'documents',
-    icon: <FileTextIcon className="w-4.5 h-4.5" />,
-    title: 'AI Hujjat Generator',
-    description: "Da'vo va shartnomalarni avtomatik yaratish",
-    accent: '#f59e0b',
-    depth: 3,
-  },
-  {
-    id: 'laws',
-    icon: <BookIcon className="w-4.5 h-4.5" />,
-    title: "O'zbekiston Qonunchiligi",
-    description: 'Kodekslar va normativ hujjatlar bazasi',
-    accent: '#10b981',
-    depth: 6,
-  },
-  {
-    id: 'search',
-    icon: <SearchIcon className="w-4.5 h-4.5" />,
-    title: 'Smart Huquqiy Qidiruv',
-    description: "Sun'iy intellekt bilan semantik qidiruv",
-    accent: '#8b5cf6',
-    depth: 4,
-  },
-  {
-    id: 'analytics',
-    icon: <ChartIcon className="w-4.5 h-4.5" />,
-    title: 'AI Analitika',
-    description: 'Huquqiy tahlil va bashoratli tavsiyalar',
-    accent: '#ef4444',
-    depth: 5,
-  },
-].map((n, i) => {
-  const angle = (i * 60 - 90) * (Math.PI / 180) // Start from top, clockwise
-  return {
-    ...n,
-    x: Math.round(HEX_RADIUS * Math.sin(angle)),
-    y: Math.round(-HEX_RADIUS * Math.cos(angle)),
-    floatDur: 5.5 + i * 0.3,
-    floatDelay: i * 0.3,
-    pulseDelay: i * 0.25,
-  }
-})
+// ═══════════════════════════════════════════════════════════════════════════
+// CENTER ORB — Hero element with breathing + slow rotation
+// ═══════════════════════════════════════════════════════════════════════════
 
-// Generate SVG connection lines: center-to-node + ring edges (all straight)
-const HEX_CONNECTIONS: string[] = [
-  // Center to each node
-  ...HEX_NODES.map(n => `M0,0 L${n.x},${n.y}`),
-  // Ring: node[i] to node[i+1]
-  ...HEX_NODES.map((n, i) => {
-    const next = HEX_NODES[(i + 1) % HEX_NODES.length]
-    return `M${n.x},${n.y} L${next.x},${next.y}`
-  }),
-]
+function CenterOrb({
+  mouseX,
+  mouseY,
+}: {
+  mouseX: MotionValue<number>
+  mouseY: MotionValue<number>
+}) {
+  const rotateX = useSpring(useTransform(mouseY, [0, 1], [5, -5]), { stiffness: 70, damping: 16 })
+  const rotateY = useSpring(useTransform(mouseX, [0, 1], [-5, 5]), { stiffness: 70, damping: 16 })
+
+  return (
+    <motion.div
+      className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10"
+      initial={{ scale: 0, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      transition={{ delay: 0.3, type: 'spring', stiffness: 180, damping: 14 }}
+      style={{ rotateX, rotateY, perspective: 1000, transformStyle: 'preserve-3d' }}
+    >
+      {/* Outer glow — breathing */}
+      <motion.div
+        className="absolute rounded-full blur-3xl pointer-events-none"
+        style={{ width: 160, height: 160, left: -32, top: -32 }}
+        animate={{
+          background: [
+            'radial-gradient(circle, rgba(99,102,241,0.15) 0%, rgba(59,130,246,0.06) 40%, transparent 70%)',
+            'radial-gradient(circle, rgba(99,102,241,0.22) 0%, rgba(59,130,246,0.10) 40%, transparent 70%)',
+            'radial-gradient(circle, rgba(99,102,241,0.15) 0%, rgba(59,130,246,0.06) 40%, transparent 70%)',
+          ],
+          scale: [1, 1.1, 1],
+          opacity: [0.6, 1, 0.6],
+        }}
+        transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut' }}
+      />
+
+      {/* Crystal orb */}
+      <motion.div
+        className="relative rounded-2xl backdrop-blur-xl border border-white/15 shadow-2xl flex items-center justify-center overflow-hidden"
+        style={{
+          width: 100,
+          height: 100,
+          background:
+            'linear-gradient(145deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.03) 50%, rgba(99,102,241,0.10) 100%)',
+          boxShadow:
+            '0 0 40px rgba(99,102,241,0.12), 0 12px 48px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.25)',
+        }}
+        animate={{ rotate: [0, 360] }}
+        transition={{ duration: 30, repeat: Infinity, ease: 'linear' }}
+      >
+        {/* Inner reflections */}
+        <div className="absolute top-2.5 left-3.5 w-5 h-3.5 rounded-full bg-white/25 blur-sm rotate-[-30deg]" />
+        <div className="absolute bottom-2.5 right-3.5 w-3 h-1.5 rounded-full bg-white/15 blur-sm" />
+
+        {/* Scales of justice icon */}
+        <svg
+          viewBox="0 0 32 32"
+          className="w-8 h-8 relative z-10"
+          fill="none"
+          stroke="rgba(255,255,255,0.9)"
+          strokeWidth="1.5"
+          style={{ filter: 'drop-shadow(0 0 8px rgba(99,102,241,0.3))' }}
+        >
+          <path d="M16 4v24" />
+          <path d="M12 7h8" />
+          <path d="M8 12l8-2.5 8 2.5" />
+          <path d="M7 12v3.5c0 2.2 4 3.5 9 3.5s9-1.3 9-3.5V12" />
+          <path d="M7 12l-2 6a.5.5 0 00.5.5h1.5c1.7 0 3-.6 3-1.2V13" />
+          <path d="M25 12l2 6a.5.5 0 01-.5.5h-1.5c-1.7 0-3-.6-3-1.2V13" />
+          <path d="M12 28h8" />
+        </svg>
+      </motion.div>
+
+      {/* Pulse rings */}
+      <motion.div
+        className="absolute rounded-full border border-indigo-400/20 pointer-events-none"
+        style={{ width: 120, height: 120, left: -10, top: -10 }}
+        animate={{ scale: [1, 1.15, 1], opacity: [0.5, 0, 0.5] }}
+        transition={{ duration: 3, repeat: Infinity, ease: 'easeOut' }}
+      />
+      <motion.div
+        className="absolute rounded-full border border-blue-400/12 pointer-events-none"
+        style={{ width: 140, height: 140, left: -20, top: -20 }}
+        animate={{ scale: [1, 1.12, 1], opacity: [0.3, 0, 0.3] }}
+        transition={{ duration: 3.8, repeat: Infinity, ease: 'easeOut', delay: 0.6 }}
+      />
+    </motion.div>
+  )
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// FLOATING SCENE — Full hexagonal ecosystem
+// ═══════════════════════════════════════════════════════════════════════════
 
 function FloatingScene({
   mouseX,
   mouseY,
   onNavigate,
-  stats,
-  statsLoading,
 }: {
   mouseX: MotionValue<number>
   mouseY: MotionValue<number>
   onNavigate: (href: string) => void
-  stats: PlatformStats
-  statsLoading: boolean
 }) {
   return (
     <div className="relative w-full h-full flex items-center justify-center">
       {/* Central ambient glow */}
       <motion.div
-        className="absolute w-[400px] h-[400px] rounded-full blur-3xl pointer-events-none"
+        className="absolute w-[450px] h-[450px] rounded-full blur-3xl pointer-events-none"
         style={{
           background:
             'radial-gradient(circle, rgba(99,102,241,0.08) 0%, rgba(59,130,246,0.04) 35%, transparent 65%)',
         }}
-        animate={{ scale: [1, 1.06, 1], opacity: [0.4, 0.7, 0.4] }}
-        transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+        animate={{ scale: [1, 1.06, 1], opacity: [0.3, 0.6, 0.3] }}
+        transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
       />
 
-      <div className="relative w-[460px] h-[480px]">
-        {/* SVG connection lines — all straight, mathematically correct */}
+      <div
+        className="relative"
+        style={{ width: HEX_RADIUS * 2 + 160, height: HEX_RADIUS * 2 + 160 }}
+      >
+        {/* SVG connection lines — stroke-dasharray animation */}
         <svg
           className="absolute inset-0 w-full h-full pointer-events-none"
-          viewBox="-230 -240 460 480"
+          viewBox={`${-HEX_RADIUS - 80} ${-HEX_RADIUS - 80} ${(HEX_RADIUS + 80) * 2} ${(HEX_RADIUS + 80) * 2}`}
           style={{ overflow: 'visible' }}
         >
-          <defs>
-            <linearGradient id="neonLine" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="rgba(99,102,241,0.08)" />
-              <stop offset="50%" stopColor="rgba(59,130,246,0.12)" />
-              <stop offset="100%" stopColor="rgba(99,102,241,0.08)" />
-            </linearGradient>
-          </defs>
-          {HEX_CONNECTIONS.map((d, idx) => {
+          {HEX_LINES.map((d, idx) => {
             const isCenterLine = idx < 6
             return (
               <motion.path
                 key={idx}
                 d={d}
-                stroke={isCenterLine ? 'rgba(99,102,241,0.10)' : 'rgba(99,102,241,0.05)'}
-                strokeWidth={isCenterLine ? 1 : 0.6}
+                stroke={isCenterLine ? 'rgba(99,102,241,0.12)' : 'rgba(99,102,241,0.06)'}
+                strokeWidth={isCenterLine ? 1.2 : 0.7}
                 fill="none"
                 strokeLinecap="round"
                 initial={{ pathLength: 0, opacity: 0 }}
                 animate={{ pathLength: 1, opacity: 1 }}
-                transition={{ duration: 1.5, delay: 0.3 + idx * 0.03, ease: 'easeInOut' }}
+                transition={{ duration: 1.8, delay: 0.2 + idx * 0.04, ease: 'easeInOut' }}
               />
             )
           })}
-          {/* Pulse dots traveling from center to each node */}
+
+          {/* Energy dots traveling from center to nodes */}
           {HEX_NODES.map((node, i) => (
             <motion.circle
-              key={`dot-${i}`}
-              r={1.8}
+              key={`energy-${i}`}
+              r={2}
               fill={node.accent}
+              filter={`drop-shadow(0 0 4px ${node.accent})`}
               initial={{ opacity: 0 }}
               animate={{
-                opacity: [0, 0.7, 0],
-                cx: [0, node.x * 0.85],
-                cy: [0, node.y * 0.85],
+                opacity: [0, 0.8, 0],
+                cx: [0, node.x * 0.9],
+                cy: [0, node.y * 0.9],
               }}
               transition={{
-                duration: 2.5,
-                delay: node.pulseDelay,
+                duration: 2.2,
+                delay: 0.5 + i * 0.3,
                 repeat: Infinity,
                 ease: 'easeInOut',
               }}
@@ -421,137 +502,20 @@ function FloatingScene({
           ))}
         </svg>
 
-        {/* Ecosystem Cards — symmetric hexagonal layout */}
-        {HEX_NODES.map((node, i) => {
-          const cardW = 160
-          const cardH = 80
-          return (
-            <motion.div
-              key={node.id}
-              className="absolute"
-              style={{
-                left: `calc(50% + ${node.x}px - ${cardW / 2}px)`,
-                top: `calc(50% + ${node.y}px - ${cardH / 2}px)`,
-                width: cardW,
-              }}
-              initial={{ opacity: 0, scale: 0.7 }}
-              animate={{
-                opacity: 1,
-                scale: 1,
-                transition: { delay: 0.3 + i * 0.1, duration: 0.5, ease: 'easeOut' },
-              }}
-            >
-              <FloatingCard depth={node.depth} index={i} mouseX={mouseX} mouseY={mouseY}>
-                <button
-                  onClick={() => {
-                    const rm: Record<string, string> = {
-                      court: '/virtual-court',
-                      gavel: '/ai-assistant',
-                      documents: '/document-generator',
-                      laws: '/legal-database-new',
-                      search: '/legal-database-new',
-                      analytics: '/statistics',
-                    }
-                    onNavigate(rm[node.id] || '/')
-                  }}
-                  className="w-full text-left block"
-                >
-                  <div className="flex items-start gap-2.5">
-                    <div
-                      className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 shadow-lg"
-                      style={{
-                        background: `linear-gradient(135deg, ${node.accent}55, ${node.accent}22)`,
-                        color: node.accent,
-                      }}
-                    >
-                      {node.icon}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <h3 className="text-[11px] font-semibold text-white/90 leading-tight">
-                        {node.title}
-                      </h3>
-                      <p className="text-[9px] text-white/40 mt-0.5 leading-relaxed line-clamp-2">
-                        {node.description}
-                      </p>
-                    </div>
-                  </div>
-                </button>
-              </FloatingCard>
-            </motion.div>
-          )
-        })}
+        {/* Hexagonal cards */}
+        {HEX_NODES.map((node, i) => (
+          <EcoCard
+            key={node.id}
+            node={node}
+            index={i}
+            mouseX={mouseX}
+            mouseY={mouseY}
+            onNavigate={onNavigate}
+          />
+        ))}
 
-        {/* Center — Crystal Glass Orb with Legal AI */}
-        <motion.div
-          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
-          initial={{ scale: 0, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ delay: 0.4, type: 'spring', stiffness: 200, damping: 16 }}
-          style={{
-            rotateX: useSpring(useTransform(mouseY, [0, 1], [4, -4]), { stiffness: 70 }),
-            rotateY: useSpring(useTransform(mouseX, [0, 1], [-4, 4]), { stiffness: 70 }),
-          }}
-        >
-          {/* Outer glow */}
-          <motion.div
-            className="absolute rounded-full blur-2xl pointer-events-none"
-            style={{
-              width: 130,
-              height: 130,
-              left: -27,
-              top: -27,
-              background:
-                'radial-gradient(circle, rgba(99,102,241,0.12) 0%, rgba(59,130,246,0.06) 40%, transparent 70%)',
-            }}
-            animate={{ scale: [1, 1.08, 1], opacity: [0.5, 0.9, 0.5] }}
-            transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut' }}
-          />
-          {/* Crystal orb */}
-          <div
-            className="relative rounded-2xl backdrop-blur-xl border border-white/15 shadow-2xl flex items-center justify-center overflow-hidden"
-            style={{
-              width: 76,
-              height: 76,
-              background:
-                'linear-gradient(145deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.02) 50%, rgba(99,102,241,0.08) 100%)',
-              boxShadow:
-                '0 0 30px rgba(99,102,241,0.08), 0 8px 40px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.2)',
-            }}
-          >
-            {/* Inner reflections */}
-            <div className="absolute top-2 left-3 w-4 h-3 rounded-full bg-white/20 blur-sm rotate-[-30deg]" />
-            <div className="absolute bottom-2 right-3 w-2 h-1 rounded-full bg-white/10 blur-sm" />
-            {/* Legal AI icon — scales of justice */}
-            <svg
-              viewBox="0 0 28 28"
-              className="w-7 h-7 relative z-10"
-              fill="none"
-              stroke="rgba(255,255,255,0.85)"
-              strokeWidth="1.5"
-            >
-              <path d="M14 3v22" />
-              <path d="M10 6h8" />
-              <path d="M7 10l7-2 7 2" />
-              <path d="M6 10v3c0 2 3.5 3.5 8 3.5s8-1.5 8-3.5v-3" />
-              <path d="M6 10l-1.5 5a.5.5 0 00.5.5h1c1.5 0 2.5-.5 2.5-1V11" />
-              <path d="M22 10l1.5 5a.5.5 0 01-.5.5h-1c-1.5 0-2.5-.5-2.5-1V11" />
-              <path d="M10 25h8" />
-            </svg>
-          </div>
-          {/* Pulse ring */}
-          <motion.div
-            className="absolute rounded-full border border-indigo-400/15 pointer-events-none"
-            style={{ width: 96, height: 96, left: -10, top: -10 }}
-            animate={{ scale: [1, 1.12, 1], opacity: [0.4, 0, 0.4] }}
-            transition={{ duration: 3, repeat: Infinity, ease: 'easeOut', delay: 0.5 }}
-          />
-          <motion.div
-            className="absolute rounded-full border border-blue-400/10 pointer-events-none"
-            style={{ width: 110, height: 110, left: -17, top: -17 }}
-            animate={{ scale: [1, 1.1, 1], opacity: [0.2, 0, 0.2] }}
-            transition={{ duration: 3.5, repeat: Infinity, ease: 'easeOut', delay: 1 }}
-          />
-        </motion.div>
+        {/* Center orb */}
+        <CenterOrb mouseX={mouseX} mouseY={mouseY} />
       </div>
     </div>
   )
@@ -569,7 +533,6 @@ function SignInContent() {
 
   const mouseX = useMotionValue(0.5)
   const mouseY = useMotionValue(0.5)
-  const lastMousePos = useRef({ x: 0, y: 0, time: 0 })
 
   const initialMode = searchParams?.get('mode') === 'register' ? 'register' : 'login'
   const [mode, setMode] = useState<'login' | 'register'>(initialMode)
@@ -586,22 +549,16 @@ function SignInContent() {
   const handleMouseMove = useCallback(
     (e: React.MouseEvent) => {
       const rect = e.currentTarget.getBoundingClientRect()
-      const x = (e.clientX - rect.left) / rect.width
-      const y = (e.clientY - rect.top) / rect.height
-      mouseX.set(x)
-      mouseY.set(y)
-      lastMousePos.current = { x: e.clientX, y: e.clientY, time: Date.now() }
+      mouseX.set((e.clientX - rect.left) / rect.width)
+      mouseY.set((e.clientY - rect.top) / rect.height)
     },
     [mouseX, mouseY]
   )
 
-  // Check for OAuth error from URL params (e.g. /signin?error=...)
+  // OAuth error params
   useEffect(() => {
     const errParam = searchParams?.get('error')
-    if (errParam) {
-      setError(decodeURIComponent(errParam))
-    }
-    // Google akkaunti mavjud email/parol akkaunt bilan birlashtirilganda
+    if (errParam) setError(decodeURIComponent(errParam))
     const linked = searchParams?.get('linked')
     if (linked === '1') {
       setSuccessMsg(
@@ -610,15 +567,12 @@ function SignInContent() {
     }
   }, [searchParams])
 
-  // Process OAuth callbacks ONLY (e.g. Google login returning ?code=xxx)
-  // NEVER auto-redirect on existing session — users must actively log in each time.
+  // Process OAuth callbacks
   useEffect(() => {
     const hasCode = searchParams?.get('code')
     const hasError = searchParams?.get('error')
-    const hasOAuthFlow = hasCode || hasError
-    if (!hasOAuthFlow) return
+    if (!hasCode && !hasError) return
 
-    // Rol DB'dan aniqlangan holda yo'naltiramiz (hardcoded email yo'q)
     authService
       .handleRedirectResult()
       .then(result => {
@@ -631,10 +585,6 @@ function SignInContent() {
       })
       .catch(() => {})
   }, [router, searchParams])
-
-  // ── Auto-redirect REMOVED per user request ──
-  // Users MUST always see the signin page and actively log in.
-  // No auto-redirect to dashboard even if session exists.
 
   useEffect(() => {
     const remembered = localStorage.getItem('rememberedEmail')
@@ -667,15 +617,12 @@ function SignInContent() {
         }
         const result = await authService.signUp(email, password, name)
         if (result.success) {
-          // Email tasdiqlash talab qilinsa — dashboardga fake-login qilmaymiz
           if (result.needsEmailConfirmation) {
             setSuccessMsg(
-              "Ro'yxatdan o'tish muvaffaqiyatli! Tasdiqlash xati emailingizga yuborildi. Iltimos, emailingizni tekshiring va hisobingizni tasdiqlang."
+              "Ro'yxatdan o'tish muvaffaqiyatli! Tasdiqlash xati emailingizga yuborildi. Iltimos, emailingizni tekshiring."
             )
             setMode('login')
-            setTimeout(() => {
-              setSuccessMsg('')
-            }, 8000)
+            setTimeout(() => setSuccessMsg(''), 8000)
           } else {
             setSuccessMsg("Ro'yxatdan o'tish muvaffaqiyatli!")
             setTimeout(() => router.push('/dashboard'), 1500)
@@ -734,13 +681,14 @@ function SignInContent() {
     )
   }
 
-  // Always show the signin form — users MUST actively log in every time.
-  // No auto-hide even if user already has a session.
-
   return (
-    <div className="min-h-screen lg:grid lg:grid-cols-2" onMouseMove={handleMouseMove}>
+    <div
+      className="min-h-screen lg:grid lg:grid-cols-2"
+      onMouseMove={handleMouseMove}
+      style={{ ['--hex-radius' as string]: `${HEX_RADIUS}px` }}
+    >
       {/* ═══════════════════════════════════════════════════════════════════
-          LEFT PANEL — DARK NAVY PREMIUM LEGALTECH ECOSYSTEM
+          LEFT PANEL — ANIMATED ECOSYSTEM (hidden on mobile)
           ═══════════════════════════════════════════════════════════════════ */}
       <div
         className="hidden lg:block relative min-h-screen overflow-hidden"
@@ -757,53 +705,33 @@ function SignInContent() {
               'radial-gradient(ellipse at 40% 30%, rgba(99,102,241,0.08) 0%, transparent 50%), radial-gradient(ellipse at 60% 70%, rgba(59,130,246,0.09) 0%, transparent 50%)',
               'radial-gradient(ellipse at 30% 25%, rgba(99,102,241,0.10) 0%, transparent 50%), radial-gradient(ellipse at 70% 75%, rgba(59,130,246,0.07) 0%, transparent 50%)',
             ],
-            transition: { duration: 12, repeat: Infinity, ease: 'easeInOut' },
+            transition: { duration: 15, repeat: Infinity, ease: 'easeInOut' },
           }}
         />
 
         {/* Subtle grid */}
-        <motion.div
-          className="absolute inset-0 opacity-[0.025]"
+        <div
+          className="absolute inset-0 opacity-[0.02]"
           style={{
             backgroundImage:
               'linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px)',
             backgroundSize: '60px 60px',
           }}
-          animate={{ backgroundPosition: ['0px 0px', '20px 10px'] }}
-          transition={{ duration: 30, repeat: Infinity, ease: 'linear' }}
-        />
-
-        {/* Secondary grid for depth */}
-        <motion.div
-          className="absolute inset-0 opacity-[0.012]"
-          style={{
-            backgroundImage:
-              'linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px)',
-            backgroundSize: '120px 120px',
-          }}
-          animate={{ backgroundPosition: ['0px 0px', '-20px -10px'] }}
-          transition={{ duration: 40, repeat: Infinity, ease: 'linear' }}
         />
 
         {/* Particles */}
-        <ParticleField />
+        <ParticleField mouseX={mouseX} mouseY={mouseY} />
 
         {/* Floating scene */}
         <div className="absolute inset-0">
-          <FloatingScene
-            mouseX={mouseX}
-            mouseY={mouseY}
-            onNavigate={h => router.push(h)}
-            stats={liveStats}
-            statsLoading={statsLoading}
-          />
+          <FloatingScene mouseX={mouseX} mouseY={mouseY} onNavigate={h => router.push(h)} />
         </div>
 
-        {/* Header — JURISTIV */}
+        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.6 }}
+          transition={{ delay: 0.15, duration: 0.5 }}
           className="absolute z-20 top-8 left-0 right-0 text-center pointer-events-none"
         >
           <h1 className="text-3xl font-bold text-white/90 tracking-tight">
@@ -814,76 +742,36 @@ function SignInContent() {
           </p>
         </motion.div>
 
-        {/* Bottom stats bar — no loading "..." texts */}
+        {/* Bottom stats */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8, duration: 0.6 }}
+          transition={{ delay: 0.7, duration: 0.5 }}
           className="absolute z-20 bottom-6 left-0 right-0 flex items-center justify-center gap-8"
         >
-          <div className="text-center">
-            <div className="text-base font-bold text-white/90">
-              {statsLoading ? (
-                '—'
-              ) : (
-                <AnimatedCounter
-                  value={liveStats.total_users}
-                  suffix="+"
-                  compact
-                  stiffness={90}
-                  damping={20}
-                />
-              )}
+          {[
+            { label: 'Foydalanuvchilar', value: liveStats.total_users, suffix: '+' },
+            { label: 'Kodekslar', value: liveStats.total_codes },
+            { label: "AI So'rov", value: liveStats.total_ai_requests, suffix: '+' },
+            { label: 'Hujjatlar', value: liveStats.total_documents, suffix: '+' },
+          ].map((s, i) => (
+            <div key={s.label} className="text-center">
+              <div className="text-base font-bold text-white/90">
+                {statsLoading ? (
+                  '—'
+                ) : (
+                  <AnimatedCounter
+                    value={s.value}
+                    suffix={s.suffix}
+                    compact
+                    stiffness={90}
+                    damping={20}
+                  />
+                )}
+              </div>
+              <div className="text-blue-200/40 text-[9px] tracking-wider uppercase">{s.label}</div>
             </div>
-            <div className="text-blue-200/40 text-[9px] tracking-wider uppercase">
-              Foydalanuvchilar
-            </div>
-          </div>
-          <div className="w-px h-6 bg-white/6" />
-          <div className="text-center">
-            <div className="text-base font-bold text-white/90">
-              {statsLoading ? (
-                '—'
-              ) : (
-                <AnimatedCounter value={liveStats.total_codes} stiffness={90} damping={20} />
-              )}
-            </div>
-            <div className="text-blue-200/40 text-[9px] tracking-wider uppercase">Kodekslar</div>
-          </div>
-          <div className="w-px h-6 bg-white/6" />
-          <div className="text-center">
-            <div className="text-base font-bold text-white/90">
-              {statsLoading ? (
-                '—'
-              ) : (
-                <AnimatedCounter
-                  value={liveStats.total_ai_requests}
-                  suffix="+"
-                  compact
-                  stiffness={90}
-                  damping={20}
-                />
-              )}
-            </div>
-            <div className="text-blue-200/40 text-[9px] tracking-wider uppercase">AI So'rov</div>
-          </div>
-          <div className="w-px h-6 bg-white/6" />
-          <div className="text-center">
-            <div className="text-base font-bold text-white/90">
-              {statsLoading ? (
-                '—'
-              ) : (
-                <AnimatedCounter
-                  value={liveStats.total_documents}
-                  suffix="+"
-                  compact
-                  stiffness={90}
-                  damping={20}
-                />
-              )}
-            </div>
-            <div className="text-blue-200/40 text-[9px] tracking-wider uppercase">Hujjatlar</div>
-          </div>
+          ))}
         </motion.div>
       </div>
 
@@ -896,13 +784,13 @@ function SignInContent() {
       >
         <div className="w-full max-w-md mx-auto">
           {/* Mobile Logo */}
-          <div className="lg:hidden text-center mb-6">
-            <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ type: 'spring', stiffness: 200, damping: 15 }}
-              className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-blue-500 shadow-lg mb-3"
-            >
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+            className="lg:hidden text-center mb-6"
+          >
+            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-blue-500 shadow-lg mb-3">
               <svg
                 viewBox="0 0 28 28"
                 className="w-7 h-7 text-white"
@@ -918,24 +806,12 @@ function SignInContent() {
                 <path d="M22 10l1.5 5a.5.5 0 01-.5.5h-1c-1.5 0-2.5-.5-2.5-1V11" />
                 <path d="M10 25h8" />
               </svg>
-            </motion.div>
-            <motion.h1
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.15, duration: 0.4 }}
-              className="text-2xl font-bold text-gray-900 dark:text-white"
-            >
-              JURISTIV
-            </motion.h1>
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.3, duration: 0.4 }}
-              className="text-xs text-gray-500 dark:text-zinc-400 mt-0.5"
-            >
+            </div>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">JURISTIV</h1>
+            <p className="text-xs text-gray-500 dark:text-zinc-400 mt-0.5">
               Huquqiy AI Platformasi
-            </motion.p>
-          </div>
+            </p>
+          </motion.div>
 
           {/* Premium Glass Form Card */}
           <div className="relative">
@@ -957,7 +833,7 @@ function SignInContent() {
                     setError('')
                     setSuccessMsg('')
                   }}
-                  className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${mode === 'login' ? 'bg-white dark:bg-zinc-700 text-indigo-600 dark:text-indigo-300 shadow-sm' : 'text-gray-500 dark:text-zinc-400 hover:text-gray-700 dark:hover:text-zinc-200'}`}
+                  className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 ${mode === 'login' ? 'bg-white dark:bg-zinc-700 text-indigo-600 dark:text-indigo-300 shadow-sm' : 'text-gray-500 dark:text-zinc-400 hover:text-gray-700 dark:hover:text-zinc-200'}`}
                 >
                   <svg
                     className="w-3.5 h-3.5 inline mr-1.5"
@@ -976,7 +852,7 @@ function SignInContent() {
                     setError('')
                     setSuccessMsg('')
                   }}
-                  className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${mode === 'register' ? 'bg-white dark:bg-zinc-700 text-indigo-600 dark:text-indigo-300 shadow-sm' : 'text-gray-500 dark:text-zinc-400 hover:text-gray-700 dark:hover:text-zinc-200'}`}
+                  className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 ${mode === 'register' ? 'bg-white dark:bg-zinc-700 text-indigo-600 dark:text-indigo-300 shadow-sm' : 'text-gray-500 dark:text-zinc-400 hover:text-gray-700 dark:hover:text-zinc-200'}`}
                 >
                   <svg
                     className="w-3.5 h-3.5 inline mr-1.5"
@@ -1035,7 +911,11 @@ function SignInContent() {
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 {mode === 'register' && (
-                  <div>
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                  >
                     <label className="block text-xs font-medium text-gray-700 dark:text-zinc-300 mb-1.5">
                       Ismingiz
                     </label>
@@ -1044,9 +924,9 @@ function SignInContent() {
                       value={name}
                       onChange={e => setName(e.target.value)}
                       placeholder="Ismingizni kiriting"
-                      className="w-full px-3.5 py-2.5 text-sm rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-shadow"
+                      className="w-full px-3.5 py-2.5 text-sm rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 transition-all duration-300"
                     />
-                  </div>
+                  </motion.div>
                 )}
                 <div>
                   <label className="block text-xs font-medium text-gray-700 dark:text-zinc-300 mb-1.5">
@@ -1058,7 +938,7 @@ function SignInContent() {
                     onChange={e => setEmail(e.target.value)}
                     placeholder="email@example.com"
                     required
-                    className="w-full px-3.5 py-2.5 text-sm rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-shadow"
+                    className="w-full px-3.5 py-2.5 text-sm rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 transition-all duration-300"
                   />
                 </div>
                 <div>
@@ -1073,12 +953,12 @@ function SignInContent() {
                       placeholder="••••••••"
                       required
                       minLength={6}
-                      className="w-full px-3.5 py-2.5 text-sm rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-shadow pr-9"
+                      className="w-full px-3.5 py-2.5 text-sm rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 transition-all duration-300 pr-9"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-zinc-300 p-0.5"
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-zinc-300 p-0.5 transition-colors"
                     >
                       {showPassword ? (
                         <svg
@@ -1122,7 +1002,7 @@ function SignInContent() {
                     <button
                       type="button"
                       onClick={handleForgotPassword}
-                      className="text-xs text-indigo-600 hover:text-indigo-700 font-medium"
+                      className="text-xs text-indigo-600 hover:text-indigo-700 font-medium transition-colors"
                     >
                       Parolni unutdingizmi?
                     </button>
@@ -1133,8 +1013,8 @@ function SignInContent() {
                   type="submit"
                   disabled={isSubmitting}
                   whileHover={{ scale: 1.01 }}
-                  whileTap={{ scale: 0.99 }}
-                  className="w-full py-2.5 rounded-lg text-sm font-semibold text-white shadow-lg transition-all disabled:opacity-60"
+                  whileTap={{ scale: 0.98 }}
+                  className="w-full py-2.5 rounded-lg text-sm font-semibold text-white shadow-lg transition-all duration-300 disabled:opacity-60 hover:shadow-xl"
                   style={{
                     background: 'linear-gradient(135deg, #4f46e5, #6366f1)',
                     boxShadow: '0 4px 15px rgba(99,102,241,0.3)',
@@ -1168,8 +1048,8 @@ function SignInContent() {
                   onClick={handleGoogleLogin}
                   disabled={isGoogleLoading}
                   whileHover={{ scale: 1.01 }}
-                  whileTap={{ scale: 0.99 }}
-                  className="w-full mt-4 py-2.5 rounded-lg text-sm font-medium border border-gray-300 dark:border-zinc-700 text-gray-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 transition-all flex items-center justify-center gap-2.5 disabled:opacity-60"
+                  whileTap={{ scale: 0.98 }}
+                  className="w-full mt-4 py-2.5 rounded-lg text-sm font-medium border border-gray-300 dark:border-zinc-700 text-gray-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 transition-all duration-300 flex items-center justify-center gap-2.5 disabled:opacity-60"
                 >
                   {isGoogleLoading ? (
                     <span className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
@@ -1202,7 +1082,7 @@ function SignInContent() {
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.6 }}
+            transition={{ delay: 0.5 }}
             className="text-center text-[10px] text-gray-400 dark:text-zinc-500 mt-4 leading-relaxed"
           >
             Davom etish orqali siz{' '}
