@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import { getAuthHeaders } from '@/lib/api-auth-client'
 import { useRouter } from 'next/navigation'
+import { useLimitModal } from '@/hooks/useLimitModal'
+import LimitExceededModal from '@/components/ai/LimitExceededModal'
 import AppSidebar from '@/components/layout/AppSidebar'
 import FeatureInstructions from '@/components/ui/FeatureInstructions'
 import {
@@ -168,6 +170,7 @@ export default function CaseSolver() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
+  const { modalProps, checkLimitError } = useLimitModal()
 
   // ── Foydalanuvchi yechishi uchun ──
   const [userAnswers, setUserAnswers] = useState<Record<string, string>>({
@@ -283,7 +286,7 @@ export default function CaseSolver() {
       const data = await res.json()
       if (!res.ok) {
         if (res.status === 429 && data.error === 'limit_reached') {
-          setError(data.message || "AI limiti tugadi. Keyinroq urinib ko'ring.")
+          checkLimitError(data)
         } else if (res.status === 401) {
           setError('Tizimga kirishingiz kerak.')
         } else {
@@ -526,6 +529,7 @@ FAQAT O'ZBEK LOTIN ALIFBOSIDA yozing. Kirill harflari ishlatilmaydi.`
 
   return (
     <div className="min-h-screen bg-[#f8faff] dark:bg-gray-950 mobile-safe-top">
+      <LimitExceededModal {...modalProps} onUpgrade={() => router.push('/pricing')} />
       <div className="flex flex-col md:flex-row">
         <AppSidebar>
           <div className="space-y-1">

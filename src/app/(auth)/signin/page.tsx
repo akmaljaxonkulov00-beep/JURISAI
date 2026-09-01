@@ -230,218 +230,27 @@ function SignInContent() {
           LEFT PANEL
           ═══════════════════════════════════════════════════════════════════ */}
       <div className="hidden lg:flex relative min-h-screen overflow-hidden bg-[#0A0E27]">
-        {/* Hero illustration background */}
-        <div className="absolute inset-0">
-          {/* Dark courthouse image overlay */}
-          <div
-            className="absolute inset-0 opacity-30"
-            style={{
-              backgroundImage:
-                "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 600'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%231a1f3a'/%3E%3Cstop offset='1' stop-color='%230A0E27'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect fill='url(%23g)' width='800' height='600'/%3E%3Crect x='350' y='100' width='100' height='400' fill='%231a2040' opacity='0.5' rx='4'/%3E%3Crect x='300' y='80' width='200' height='30' fill='%231a2040' opacity='0.4' rx='4'/%3E%3Crect x='280' y='70' width='240' height='15' fill='%231a2040' opacity='0.3' rx='4'/%3E%3Crect x='500' y='150' width='80' height='350' fill='%231a2040' opacity='0.4' rx='4'/%3E%3Crect x='220' y='150' width='80' height='350' fill='%231a2040' opacity='0.4' rx='4'/%3E%3Crect x='150' y='200' width='500' height='8' fill='%231a2040' opacity='0.2' rx='4'/%3E%3Crect x='150' y='380' width='500' height='8' fill='%231a2040' opacity='0.2' rx='4'/%3E%3C/svg%3E\")",
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
+        {/* Hero illustration — tayyor rasm (public/images/hero-illustration.png) */}
+        <div className="absolute right-0 top-0 bottom-0 w-[55%] pointer-events-none">
+          <img
+            src="/images/hero-illustration.png"
+            alt="JURISTIV AI Huquqiy Platforma"
+            className="w-full h-full object-cover object-right opacity-80"
+            onError={e => {
+              // Fallback: gradient shimmer agar rasm topilmasa
+              const target = e.currentTarget as HTMLImageElement
+              target.style.display = 'none'
+              const parent = target.parentElement
+              if (parent) {
+                parent.innerHTML =
+                  '<div class="w-full h-full" style="background: radial-gradient(ellipse at 60% 50%, rgba(79,127,255,0.12) 0%, rgba(124,58,237,0.06) 40%, transparent 70%)"></div>'
+              }
             }}
           />
-          {/* Glowing scales illustration */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="relative" style={{ width: 320, height: 380 }}>
-              {/* Glow ring */}
-              <div
-                className="absolute rounded-full"
-                style={{
-                  width: 280,
-                  height: 280,
-                  left: 20,
-                  top: 50,
-                  background:
-                    'radial-gradient(circle, rgba(79,127,255,0.15) 0%, rgba(79,127,255,0.05) 40%, transparent 70%)',
-                  border: '1px solid rgba(79,127,255,0.1)',
-                }}
-              />
-              {/* Scales SVG */}
-              <svg
-                viewBox="0 0 200 240"
-                className="absolute inset-0 w-full h-full"
-                style={{ filter: 'drop-shadow(0 0 20px rgba(79,127,255,0.3))' }}
-              >
-                <defs>
-                  <linearGradient id="scaleGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                    <stop offset="0%" stopColor="#4F7FFF" stopOpacity="0.9" />
-                    <stop offset="100%" stopColor="#7C3AED" stopOpacity="0.7" />
-                  </linearGradient>
-                </defs>
-                {/* Central pillar */}
-                <rect x="96" y="30" width="8" height="160" rx="4" fill="url(#scaleGrad)" />
-                {/* Top beam */}
-                <rect x="40" y="45" width="120" height="4" rx="2" fill="url(#scaleGrad)" />
-                {/* Left pan chains */}
-                <line
-                  x1="50"
-                  y1="49"
-                  x2="35"
-                  y2="90"
-                  stroke="#4F7FFF"
-                  strokeWidth="1.5"
-                  opacity="0.7"
-                />
-                <line
-                  x1="50"
-                  y1="49"
-                  x2="65"
-                  y2="90"
-                  stroke="#4F7FFF"
-                  strokeWidth="1.5"
-                  opacity="0.7"
-                />
-                {/* Left pan */}
-                <ellipse
-                  cx="50"
-                  cy="95"
-                  rx="25"
-                  ry="8"
-                  fill="none"
-                  stroke="#4F7FFF"
-                  strokeWidth="2"
-                  opacity="0.8"
-                />
-                <ellipse cx="50" cy="95" rx="25" ry="8" fill="rgba(79,127,255,0.1)" />
-                {/* Right pan chains */}
-                <line
-                  x1="150"
-                  y1="49"
-                  x2="135"
-                  y2="110"
-                  stroke="#7C3AED"
-                  strokeWidth="1.5"
-                  opacity="0.7"
-                />
-                <line
-                  x1="150"
-                  y1="49"
-                  x2="165"
-                  y2="110"
-                  stroke="#7C3AED"
-                  strokeWidth="1.5"
-                  opacity="0.7"
-                />
-                {/* Right pan */}
-                <ellipse
-                  cx="150"
-                  cy="115"
-                  rx="25"
-                  ry="8"
-                  fill="none"
-                  stroke="#7C3AED"
-                  strokeWidth="2"
-                  opacity="0.8"
-                />
-                <ellipse cx="150" cy="115" rx="25" ry="8" fill="rgba(124,58,237,0.1)" />
-                {/* Base */}
-                <rect x="70" y="190" width="60" height="6" rx="3" fill="url(#scaleGrad)" />
-                <rect
-                  x="80"
-                  y="196"
-                  width="40"
-                  height="4"
-                  rx="2"
-                  fill="url(#scaleGrad)"
-                  opacity="0.7"
-                />
-              </svg>
-              {/* Floating particles */}
-              {[...Array(8)].map((_, i) => (
-                <div
-                  key={i}
-                  className="absolute rounded-full"
-                  style={{
-                    width: 3 + Math.random() * 3,
-                    height: 3 + Math.random() * 3,
-                    background: i % 2 === 0 ? '#4F7FFF' : '#7C3AED',
-                    left: `${20 + Math.random() * 60}%`,
-                    top: `${20 + Math.random() * 60}%`,
-                    opacity: 0.4 + Math.random() * 0.3,
-                    boxShadow: `0 0 ${6 + Math.random() * 6}px ${i % 2 === 0 ? 'rgba(79,127,255,0.5)' : 'rgba(124,58,237,0.5)'}`,
-                    animation: `float ${3 + Math.random() * 4}s ease-in-out infinite`,
-                    animationDelay: `${Math.random() * 3}s`,
-                  }}
-                />
-              ))}
-            </div>
-          </div>
-          {/* Gavel silhouette */}
-          <div className="absolute bottom-32 right-16 opacity-20">
-            <svg
-              viewBox="0 0 60 80"
-              className="w-16 h-20"
-              fill="none"
-              stroke="#4F7FFF"
-              strokeWidth="1.5"
-            >
-              <rect x="25" y="10" width="10" height="50" rx="3" />
-              <rect x="15" y="5" width="30" height="12" rx="4" />
-              <rect x="10" y="60" width="40" height="8" rx="3" />
-            </svg>
-          </div>
-          {/* Books */}
-          <div className="absolute bottom-8 right-8 opacity-25">
-            <svg viewBox="0 0 120 70" className="w-28">
-              <rect
-                x="5"
-                y="10"
-                width="110"
-                height="20"
-                rx="2"
-                fill="#1a2040"
-                stroke="#4F7FFF"
-                strokeWidth="0.5"
-              />
-              <text
-                x="60"
-                y="24"
-                textAnchor="middle"
-                fill="#D4AF37"
-                fontSize="7"
-                fontFamily="serif"
-                fontWeight="bold"
-              >
-                LAW
-              </text>
-              <rect
-                x="10"
-                y="32"
-                width="100"
-                height="18"
-                rx="2"
-                fill="#1a2040"
-                stroke="#7C3AED"
-                strokeWidth="0.5"
-              />
-              <text
-                x="60"
-                y="44"
-                textAnchor="middle"
-                fill="#C0C0C0"
-                fontSize="5"
-                fontFamily="serif"
-              >
-                THE SIGN OF JUSTICE
-              </text>
-              <rect
-                x="15"
-                y="52"
-                width="90"
-                height="14"
-                rx="2"
-                fill="#1a2040"
-                stroke="#4F7FFF"
-                strokeWidth="0.3"
-              />
-            </svg>
-          </div>
         </div>
 
-        {/* Content overlay */}
-        <div className="relative z-10 flex flex-col h-full w-full p-8 lg:p-10">
+        {/* Content — rasmdan mustaqil, chap tomonda */}
+        <div className="relative z-10 flex flex-col h-full w-full p-8 lg:p-10 max-w-[55%]">
           {/* Logo */}
           <div className="flex items-center gap-3 mb-10">
             <div
@@ -562,7 +371,7 @@ function SignInContent() {
       {/* ═══════════════════════════════════════════════════════════════════
           RIGHT PANEL — LOGIN / REGISTER FORM
           ═══════════════════════════════════════════════════════════════════ */}
-      <div className="signin-right-panel min-h-screen flex items-center justify-center p-4 sm:p-6 lg:p-8">
+      <div className="signin-right-panel min-h-screen flex items-center justify-center p-4 sm:p-6 lg:p-8 relative">
         <style>{`
           @media (prefers-color-scheme: light) {
             .signin-right-panel { background: #F7F8FC; }
@@ -575,6 +384,37 @@ function SignInContent() {
             50% { transform: translateY(-8px); }
           }
         `}</style>
+
+        {/* Dark mode toggle */}
+        <button
+          onClick={() => {
+            const isDark = document.documentElement.classList.contains('dark')
+            document.documentElement.classList.toggle('dark', !isDark)
+            localStorage.setItem('theme', isDark ? 'light' : 'dark')
+          }}
+          className="absolute top-4 right-4 p-2 rounded-xl bg-white/80 dark:bg-zinc-800/80 backdrop-blur border border-gray-200 dark:border-zinc-700 text-gray-500 dark:text-zinc-400 hover:text-gray-700 dark:hover:text-zinc-200 transition-all shadow-sm"
+          title="Mavzuni o'zgartirish"
+        >
+          <svg
+            className="w-4 h-4 dark:hidden"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+          </svg>
+          <svg
+            className="w-4 h-4 hidden dark:block"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <circle cx="12" cy="12" r="5" />
+            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+          </svg>
+        </button>
 
         <div className="w-full max-w-[400px] mx-auto">
           {/* Mobile Logo */}

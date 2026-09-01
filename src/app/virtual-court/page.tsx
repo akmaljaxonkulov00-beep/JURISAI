@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { getAuthHeaders } from '@/lib/api-auth-client'
 import { useRouter } from 'next/navigation'
+import { useLimitModal } from '@/hooks/useLimitModal'
+import LimitExceededModal from '@/components/ai/LimitExceededModal'
 import { supabase } from '@/lib/supabase'
 import { getUserIdentityPayload } from '@/lib/client-user'
 import {
@@ -181,6 +183,7 @@ export default function VirtualCourt() {
   const [listening, setListening] = useState(false)
   const [simId, setSimId] = useState('')
   const [results, setResults] = useState<SimResult | null>(null)
+  const { modalProps, checkLimitError } = useLimitModal()
   const [totalXp, setTotalXp] = useState(0)
   const [userName, setUserName] = useState('')
   const bottomRef = useRef<HTMLDivElement>(null)
@@ -639,6 +642,13 @@ Eslatma: Tomonlarni tinglang, ularga kelishuvga erishishga yordam bering va nizo
         }),
       })
       const data = await res.json()
+      if (!res.ok) {
+        if (res.status === 429 && data.error === 'limit_reached') {
+          checkLimitError(data)
+          return
+        }
+        throw new Error(data.message || data.error || 'Xatolik')
+      }
       setSimId(data.simulation_id || 'vc_' + Date.now())
       const roles = data.roles || []
       if (roles.length > 0) {
@@ -781,6 +791,7 @@ Eslatma: Tomonlarni tinglang, ularga kelishuvga erishishga yordam bering va nizo
   if (page === 'select')
     return (
       <div className="mobile-safe-top min-h-screen bg-gray-50 dark:bg-gray-950">
+        <LimitExceededModal {...modalProps} onUpgrade={() => router.push('/pricing')} />
         <div className="flex-col md:flex-row" style={{ display: 'flex' }}>
           <aside
             className="hidden lg:block"
