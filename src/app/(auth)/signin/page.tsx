@@ -478,28 +478,6 @@ function FloatingScene({
               />
             )
           })}
-
-          {/* Energy dots traveling from center to nodes */}
-          {HEX_NODES.map((node, i) => (
-            <motion.circle
-              key={`energy-${i}`}
-              r={2}
-              fill={node.accent}
-              filter={`drop-shadow(0 0 4px ${node.accent})`}
-              initial={{ opacity: 0 }}
-              animate={{
-                opacity: [0, 0.8, 0],
-                cx: [0, node.x * 0.9],
-                cy: [0, node.y * 0.9],
-              }}
-              transition={{
-                duration: 2.2,
-                delay: 0.5 + i * 0.3,
-                repeat: Infinity,
-                ease: 'easeInOut',
-              }}
-            />
-          ))}
         </svg>
 
         {/* Hexagonal cards */}
@@ -545,6 +523,17 @@ function SignInContent() {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false)
   const [successMsg, setSuccessMsg] = useState('')
   const [rememberMe, setRememberMe] = useState(false)
+  const [logoUrl, setLogoUrl] = useState<string | null>(null)
+
+  // Load logo from admin settings
+  useEffect(() => {
+    fetch('/api/settings/logo', { cache: 'no-cache' })
+      .then(r => (r.ok ? r.json() : null))
+      .then(data => {
+        if (data?.logoUrl) setLogoUrl(data.logoUrl)
+      })
+      .catch(() => {})
+  }, [])
 
   const handleMouseMove = useCallback(
     (e: React.MouseEvent) => {
@@ -722,66 +711,96 @@ function SignInContent() {
         {/* Particles */}
         <ParticleField mouseX={mouseX} mouseY={mouseY} />
 
-        {/* Floating scene */}
-        <div className="absolute inset-0">
-          <FloatingScene mouseX={mouseX} mouseY={mouseY} onNavigate={h => router.push(h)} />
+        {/* Main content — 3 balanced zones */}
+        <div className="relative z-10 h-full flex flex-col items-center justify-between py-12 px-4">
+          {/* Top zone: Logo (absolute positioned above) */}
+          <div className="flex-shrink-0 h-16" />
+
+          {/* Center zone: Diagram */}
+          <div className="flex-1 flex items-center justify-center w-full min-h-0">
+            <FloatingScene mouseX={mouseX} mouseY={mouseY} onNavigate={h => router.push(h)} />
+          </div>
+
+          {/* Bottom zone: Stats */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7, duration: 0.5 }}
+            className="flex-shrink-0 flex items-center justify-center gap-8"
+          >
+            {[
+              { label: 'Foydalanuvchilar', value: liveStats.total_users, suffix: '+' },
+              { label: 'Kodekslar', value: liveStats.total_codes, suffix: '' },
+              { label: "AI So'rov", value: liveStats.total_ai_requests, suffix: '+' },
+              { label: 'Hujjatlar', value: liveStats.total_documents, suffix: '+' },
+            ]
+              .filter(s => s.value > 0)
+              .map(s => (
+                <div key={s.label} className="text-center">
+                  <div className="text-base font-bold text-white/90">
+                    {statsLoading ? (
+                      '—'
+                    ) : (
+                      <AnimatedCounter
+                        value={s.value}
+                        suffix={s.suffix}
+                        compact
+                        stiffness={90}
+                        damping={20}
+                      />
+                    )}
+                  </div>
+                  <div className="text-blue-200/40 text-[9px] tracking-wider uppercase">
+                    {s.label}
+                  </div>
+                </div>
+              ))}
+          </motion.div>
         </div>
 
-        {/* Header */}
+        {/* Header — Logo */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15, duration: 0.5 }}
           className="absolute z-20 top-8 left-0 right-0 text-center pointer-events-none"
         >
-          <h1 className="text-3xl font-bold text-white/90 tracking-tight">
-            JURIST<span className="text-indigo-400">IV</span>
-          </h1>
-          <p className="text-blue-200/40 text-xs mt-0.5 font-light tracking-[0.2em] uppercase">
-            Huquqiy AI Platformasi
-          </p>
-        </motion.div>
-
-        {/* Bottom stats */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.7, duration: 0.5 }}
-          className="absolute z-20 bottom-6 left-0 right-0 flex items-center justify-center gap-8"
-        >
-          {[
-            { label: 'Foydalanuvchilar', value: liveStats.total_users, suffix: '+' },
-            { label: 'Kodekslar', value: liveStats.total_codes },
-            { label: "AI So'rov", value: liveStats.total_ai_requests, suffix: '+' },
-            { label: 'Hujjatlar', value: liveStats.total_documents, suffix: '+' },
-          ].map((s, i) => (
-            <div key={s.label} className="text-center">
-              <div className="text-base font-bold text-white/90">
-                {statsLoading ? (
-                  '—'
-                ) : (
-                  <AnimatedCounter
-                    value={s.value}
-                    suffix={s.suffix}
-                    compact
-                    stiffness={90}
-                    damping={20}
-                  />
-                )}
-              </div>
-              <div className="text-blue-200/40 text-[9px] tracking-wider uppercase">{s.label}</div>
-            </div>
-          ))}
+          {logoUrl ? (
+            <img
+              src={logoUrl}
+              alt="JURISTIV Logo"
+              className="h-10 mx-auto object-contain"
+              onError={() => setLogoUrl(null)}
+            />
+          ) : (
+            <>
+              <h1 className="text-3xl font-bold text-white/90 tracking-tight">
+                JURIST<span className="text-indigo-400">IV</span>
+              </h1>
+              <p className="text-blue-200/40 text-xs mt-0.5 font-light tracking-[0.2em] uppercase">
+                Huquqiy AI Platformasi
+              </p>
+            </>
+          )}
         </motion.div>
       </div>
 
       {/* ═══════════════════════════════════════════════════════════════════
           RIGHT PANEL — LOGIN / REGISTER FORM
           ═══════════════════════════════════════════════════════════════════ */}
-      <div
-        className="min-h-screen flex items-center justify-center p-4 sm:p-6 lg:p-8"
-        style={{ background: 'linear-gradient(135deg, #f8fafc, #ffffff, #f1f5f9)' }}
-      >
+      <div className="signin-right-panel min-h-screen flex items-center justify-center p-4 sm:p-6 lg:p-8">
+        <style>{`
+        @media (prefers-color-scheme: light) {
+          .signin-right-panel {
+            background: linear-gradient(135deg, #f8fafc, #ffffff, #f1f5f9);
+          }
+        }
+        @media (prefers-color-scheme: dark) {
+          .signin-right-panel {
+            background: linear-gradient(135deg, #0c0f1a, #111827, #0f172a);
+          }
+        }
+      `}</style>
         <div className="w-full max-w-md mx-auto">
           {/* Mobile Logo */}
           <motion.div
@@ -790,27 +809,38 @@ function SignInContent() {
             transition={{ type: 'spring', stiffness: 200, damping: 15 }}
             className="lg:hidden text-center mb-6"
           >
-            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-blue-500 shadow-lg mb-3">
-              <svg
-                viewBox="0 0 28 28"
-                className="w-7 h-7 text-white"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-              >
-                <path d="M14 3v22" />
-                <path d="M10 6h8" />
-                <path d="M7 10l7-2 7 2" />
-                <path d="M6 10v3c0 2 3.5 3.5 8 3.5s8-1.5 8-3.5v-3" />
-                <path d="M6 10l-1.5 5a.5.5 0 00.5.5h1c1.5 0 2.5-.5 2.5-1V11" />
-                <path d="M22 10l1.5 5a.5.5 0 01-.5.5h-1c-1.5 0-2.5-.5-2.5-1V11" />
-                <path d="M10 25h8" />
-              </svg>
-            </div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">JURISTIV</h1>
-            <p className="text-xs text-gray-500 dark:text-zinc-400 mt-0.5">
-              Huquqiy AI Platformasi
-            </p>
+            {logoUrl ? (
+              <img
+                src={logoUrl}
+                alt="JURISTIV Logo"
+                className="h-12 mx-auto object-contain mb-3"
+                onError={() => setLogoUrl(null)}
+              />
+            ) : (
+              <>
+                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-blue-500 shadow-lg mb-3">
+                  <svg
+                    viewBox="0 0 28 28"
+                    className="w-7 h-7 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                  >
+                    <path d="M14 3v22" />
+                    <path d="M10 6h8" />
+                    <path d="M7 10l7-2 7 2" />
+                    <path d="M6 10v3c0 2 3.5 3.5 8 3.5s8-1.5 8-3.5v-3" />
+                    <path d="M6 10l-1.5 5a.5.5 0 00.5.5h1c1.5 0 2.5-.5 2.5-1V11" />
+                    <path d="M22 10l1.5 5a.5.5 0 01-.5.5h-1c-1.5 0-2.5-.5-2.5-1V11" />
+                    <path d="M10 25h8" />
+                  </svg>
+                </div>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">JURISTIV</h1>
+                <p className="text-xs text-gray-500 dark:text-zinc-400 mt-0.5">
+                  Huquqiy AI Platformasi
+                </p>
+              </>
+            )}
           </motion.div>
 
           {/* Premium Glass Form Card */}
@@ -824,7 +854,7 @@ function SignInContent() {
               animate={{ opacity: [0.4, 0.8, 0.4] }}
               transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
             />
-            <div className="relative p-6 sm:p-7 rounded-2xl bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border border-gray-200/60 dark:border-zinc-700/60 shadow-xl">
+            <div className="relative p-6 sm:p-7 rounded-2xl bg-white/80 dark:bg-zinc-900/90 backdrop-blur-xl border border-gray-200/60 dark:border-zinc-700/60 shadow-xl dark:shadow-2xl dark:shadow-black/30">
               {/* Mode Toggle */}
               <div className="flex mb-5 bg-gray-100 dark:bg-zinc-800 rounded-lg p-0.5">
                 <button
@@ -1086,13 +1116,21 @@ function SignInContent() {
             className="text-center text-[10px] text-gray-400 dark:text-zinc-500 mt-4 leading-relaxed"
           >
             Davom etish orqali siz{' '}
-            <a href="/terms" className="text-indigo-500 hover:text-indigo-600 underline">
+            <button
+              type="button"
+              onClick={() => router.push('/terms')}
+              className="text-indigo-500 hover:text-indigo-600 underline"
+            >
               Xizmat ko'rsatish shartlari
-            </a>{' '}
+            </button>{' '}
             va{' '}
-            <a href="/privacy" className="text-indigo-500 hover:text-indigo-600 underline">
+            <button
+              type="button"
+              onClick={() => router.push('/privacy')}
+              className="text-indigo-500 hover:text-indigo-600 underline"
+            >
               Maxfiylik siyosati
-            </a>{' '}
+            </button>{' '}
             bilan rozilik bildirasiz
           </motion.p>
         </div>
