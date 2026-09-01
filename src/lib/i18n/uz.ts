@@ -339,5 +339,77 @@ export const uz = {
   hundredNumber: 'Yuz',
   thousandNumber: 'Ming',
   millionNumber: 'Million',
-  billionNumber: 'Milliard',
+
+  // Dashboard extras
+  dashboardNewUser: 'Yangi boshlovchi',
+  dashboardTagline: 'Huquqiy bilimlaringizni rivojlantirishni davom ettiring',
+  dashboardUser: 'Foydalanuvchi',
+  landingHeroDesc:
+    "Sun'iy intellekt yordamida huquqiy tahlil, konsultatsiya va hujjatlar tayyorlash",
+  landingGetStarted: 'Boshlash',
+  landingLogin: 'Kirish',
+  landingServices: 'Xizmatlar',
+  landingVirtualCourt: 'Virtual Sud AI',
+  landingLegalAgent: 'AI Huquqiy Agent',
+  landingAnalytics: 'AI Analitika',
+  landingSmartSearch: 'Smart Huquqiy Qidiruv',
+  landingDocGenerator: 'AI Hujjat Generator',
+  landingLawDatabase: 'Ozbekiston Qonunchiligi',
+  landingAdvantages: 'Afzalliklar',
+  landingStats: 'Statistika',
+  landingCTA: 'Hoziroq boshlang',
+  landingFooterDesc: 'Ozbekiston huquqiy tizimi uchun sun intellekt platformasi',
+
+  // Landing page extras
+  landingBadge: "O'zbekistonning birinchi AI huquqiy platformasi",
+  landingTitle1: 'Huquqiy yordamni',
+  landingTitle2: 'yangi darajaga',
+  landingTitle3: 'olib chiqing',
+  landingFreeTrial: 'Bepul boshlang',
+  landingDemo: 'Demo kirish',
+  landingSafePlatform: 'Xavfsiz platforma',
+  landingFreeTrial2: 'Bepul sinov muddati',
+  landingRating: '4.9/5 reyting',
+  landingStatsUsers: 'Faol foydalanuvchilar',
+  landingStatsDocs: 'Huquqiy hujjatlar',
+  landingStatsAccuracy: 'Aniqlik darajasi',
+  landingStatsSupport: 'AI yordami',
+  landingServicesTitle: "AI bilan ta'minlangan xizmatlar",
+  landingServicesDesc:
+    "Zamonaviy sun'iy intellekt texnologiyalari orqali huquqiy xizmatlarni yangi bosqichga olib chiqing",
+  landingLearnMore: 'Batafsil',
+  landingWhyTitle: 'Nima uchun JURISTIV?',
+  landingWhyDesc:
+    "Bizning platforma O'zbekiston qonunchiligi to'liq moslashtirilgan va professional huquqshunoslar uchun yaratilgan.",
+  landingVirtualCourtTitle: 'Virtual Sud Simulyatsiyasi',
+  landingVirtualCourtDesc:
+    'Real sud jarayonini AI bilan simulyatsiya qiling. Sudya, prokuror va advokat rollarida tajriba orting.',
+  landingCourtRoles: 'Sud rollari',
+  landingCourtAI: 'AI Javoblar',
+  landingCourtReal: 'Real Vaqt',
+  landingCTATitle: "Bugun boshlang ' bepul",
+  landingCTADesc:
+    "Barcha AI xizmatlarini 14 kun davomida bepul sinab ko'ring. Kredit karta talab qilinmaydi.",
+  landingRegister: "Ro'yxatdan o'tish",
+  landingFooterDesc2:
+    "O'zbekistonning yetakchi AI huquqiy platformasi. Professional huquqiy xizmatlar sun'iy intellekt bilan.",
+  landingPlatform: 'Platforma',
+  landingContact: 'Aloqa',
+  landingLegalAgentDesc:
+    'Ozbekiston qonunchiligi asosida AI yordamchi. Har qanday huquqiy savolga professional javob.',
+  landingAnalyticsDesc:
+    'Huquqiy tahlil va bashoratli tavsiyalar. Sud amaliyotini statistik tahlil qiling.',
+  landingSmartSearchDesc:
+    'Suniy intellekt bilan semantik qidiruv. Kodekslar va moddalarni tezda toping.',
+  landingDocGeneratorDesc:
+    'Daʻvo arizalari, shartnomalar va boshqa huquqiy hujjatlarni avtomatik yarating.',
+  landingLawDatabaseDesc:
+    'Konstitutsiya, kodekslar va normativ hujjatlar bazasi. Doimiy yangilanadi.',
+  landingAdv1: 'Oʻzbekiston qonunchiligiga toʻliq moslashtirilgan',
+  landingAdv2: 'Sunʻiy intellekt bilan chuqur tahlil',
+  landingAdv3: 'Real vaqtda sud simulyatsiyasi',
+  landingAdv4: 'Professional hujjat generatsiya',
+  landingAdv5: 'Barcha kodekslar va moddalar bazasi',
+  landingAdv6: 'Mobil va desktop qurilmalarda ishlaydi',
+  landingAllRights: 'Huquqlar himoyalangan',
 }

@@ -339,5 +339,71 @@ export const ru = {
   hundredNumber: 'Сто',
   thousandNumber: 'Тысяча',
   millionNumber: 'Миллион',
+  // Dashboard extras
+  dashboardNewUser: 'Новичок',
+  dashboardUser: 'Пользователь',
+  dashboardTagline: 'Продолжайте развивать свои юридические знания',
+  // Landing page
+  landingBadge: 'Первая AI юридическая платформа Узбекистана',
+  landingTitle1: 'Выведите юридическую помощь на',
+  landingTitle2: 'новый уровень',
+  landingTitle3: '',
+  landingFreeTrial: 'Начать бесплатно',
+  landingDemo: 'Демо вход',
+  landingLogin: 'Войти',
+  landingSafePlatform: 'Безопасная платформа',
+  landingFreeTrial2: 'Бесплатный пробный период',
+  landingRating: '4.9/5 рейтинг',
+  landingHeroDesc:
+    'Юридический анализ, консультации и подготовка документов с помощью искусственного интеллекта',
+  landingStatsUsers: 'Активных пользователей',
+  landingStatsDocs: 'Юридических документов',
+  landingStatsAccuracy: 'Точность',
+  landingStatsSupport: 'AI поддержка',
+  landingServicesTitle: 'Сервисы на основе AI',
+  landingServicesDesc:
+    'Выведите юридические услуги на новый уровень с помощью современных AI технологий',
+  landingLearnMore: 'Подробнее',
+  landingWhyTitle: 'Почему JURISTIV?',
+  landingWhyDesc:
+    'Наша платформа полностью адаптирована к законодательству Узбекистана и создана для профессиональных юристов.',
+  landingVirtualCourtTitle: 'Симуляция виртуального суда',
+  landingVirtualCourtDesc:
+    'Симулируйте судебные процессы в реальном времени. AI выполняет роли судьи, прокурора и адвоката.',
+  landingLegalAgent: 'AI Юридический Агент',
+  landingLegalAgentDesc:
+    'AI-помощник на основе законодательства Узбекистана. Профессиональные ответы на любые юридические вопросы.',
+  landingAnalytics: 'AI Аналитика',
+  landingAnalyticsDesc:
+    'Юридический анализ и прогностические рекомендации. Статистический анализ судебной практики.',
+  landingSmartSearch: 'Умный поиск законов',
+  landingSmartSearchDesc:
+    'Семантический поиск с помощью искусственного интеллекта. Быстро находите кодексы и статьи.',
+  landingDocGenerator: 'AI Генератор документов',
+  landingDocGeneratorDesc:
+    'Автоматическое составление исков, договоров и других юридических документов.',
+  landingLawDatabase: 'Законодательство Узбекистана',
+  landingLawDatabaseDesc:
+    'База данных Конституции, кодексов и нормативных документов. Регулярно обновляется.',
+  landingCourtRoles: 'Судебные роли',
+  landingCourtAI: 'AI ответы',
+  landingCourtReal: 'Реальное время',
+  landingCTA: 'Начать сейчас',
+  landingCTATitle: 'Начните сегодня бесплатно',
+  landingCTADesc: 'Попробуйте все AI сервисы бесплатно в течение 14 дней. Без банковской карты.',
+  landingRegister: 'Зарегистрироваться',
+  landingFooterDesc2:
+    'Ведущая AI юридическая платформа Узбекистана. Профессиональные юридические услуги на основе ИИ.',
+  landingPlatform: 'Платформа',
+  landingContact: 'Контакты',
+  landingAdvantages: 'Преимущества',
+  landingStats: 'Статистика',
+  landingAdv1: 'Полностью адаптировано к законодательству Узбекистана',
+  landingAdv2: 'Глубокий анализ с помощью искусственного интеллекта',
+  landingAdv3: 'Симуляция суда в реальном времени',
+  landingAdv4: 'Профессиональная генерация документов',
+  landingAdv5: 'Полная база кодексов и статей',
+  landingAdv6: 'Работает на мобильных и десктопных устройствах',
+  landingAllRights: 'Все права защищены',
   billionNumber: 'Миллиард',
 }

@@ -1,6 +1,8 @@
 'use client'
 
-import React from 'react'
+import { useLanguage } from '@/context/LanguageContext'
+
+import React, { useMemo } from 'react'
 import Link from 'next/link'
 import {
   Scale,
@@ -11,7 +13,6 @@ import {
   BookOpen,
   Shield,
   Zap,
-  Users,
   CheckCircle,
   ArrowRight,
   Star,
@@ -19,83 +20,85 @@ import {
   ChevronRight,
 } from 'lucide-react'
 
-const SERVICES = [
-  {
-    icon: Scale,
-    title: 'Virtual Sud AI',
-    description:
-      'Sud jarayonlarini real vaqtda simulyatsiya qiling. AI sudya, prokuror va advokat rollarini bajaradi.',
-    color: 'from-cyan-500 to-blue-600',
-    bgColor: 'bg-cyan-50 dark:bg-cyan-900/20',
-    textColor: 'text-cyan-600',
-    href: '/virtual-court',
-  },
-  {
-    icon: Brain,
-    title: 'AI Huquqiy Agent',
-    description:
-      "O'zbekiston qonunchiligi asosida AI yordamchi. Har qanday huquqiy savolga professional javob.",
-    color: 'from-indigo-500 to-purple-600',
-    bgColor: 'bg-indigo-50 dark:bg-indigo-900/20',
-    textColor: 'text-indigo-600',
-    href: '/ai-assistant',
-  },
-  {
-    icon: BarChart3,
-    title: 'AI Analitika',
-    description:
-      'Huquqiy tahlil va bashoratli tavsiyalar. Sud amaliyotini statistik tahlil qiling.',
-    color: 'from-red-500 to-orange-600',
-    bgColor: 'bg-red-50 dark:bg-red-900/20',
-    textColor: 'text-red-600',
-    href: '/statistics',
-  },
-  {
-    icon: Search,
-    title: 'Smart Huquqiy Qidiruv',
-    description: "Sun'iy intellekt bilan semantik qidiruv. Kodekslar va moddalarni tezda toping.",
-    color: 'from-violet-500 to-purple-600',
-    bgColor: 'bg-violet-50 dark:bg-violet-900/20',
-    textColor: 'text-violet-600',
-    href: '/legal-database-new',
-  },
-  {
-    icon: FileText,
-    title: 'AI Hujjat Generator',
-    description: "Da'vo arizalari, shartnomalar va boshqa huquqiy hujjatlarni avtomatik yarating.",
-    color: 'from-amber-500 to-orange-600',
-    bgColor: 'bg-amber-50 dark:bg-amber-900/20',
-    textColor: 'text-amber-600',
-    href: '/document-generator',
-  },
-  {
-    icon: BookOpen,
-    title: "O'zbekiston Qonunchiligi",
-    description: 'Konstitutsiya, kodekslar va normativ hujjatlar bazasi. Doimiy yangilanadi.',
-    color: 'from-emerald-500 to-green-600',
-    bgColor: 'bg-emerald-50 dark:bg-emerald-900/20',
-    textColor: 'text-emerald-600',
-    href: '/legal-database-new',
-  },
-]
-
-const STATS = [
-  { value: '10,000+', label: 'Faol foydalanuvchilar' },
-  { value: '5,000+', label: 'Huquqiy hujjatlar' },
-  { value: '95%', label: 'Aniqlik darajasi' },
-  { value: '24/7', label: 'AI yordami' },
-]
-
-const ADVANTAGES = [
-  "O'zbekiston qonunchiligiga to'liq moslashtirilgan",
-  "Sun'iy intellekt bilan chuqur tahlil",
-  'Real vaqtda sud simulyatsiyasi',
-  'Professional hujjat generatsiya',
-  'Barcha kodekslar va moddalar bazasi',
-  'Mobil va desktop qurilmalarda ishlaydi',
-]
-
 export default function LandingPage() {
+  const { t } = useLanguage()
+
+  const SERVICES = useMemo(
+    () => [
+      {
+        icon: Scale,
+        title: t('landingVirtualCourt'),
+        description: t('landingVirtualCourtDesc'),
+        bgColor: 'bg-cyan-50 dark:bg-cyan-900/20',
+        textColor: 'text-cyan-600',
+        href: '/virtual-court',
+      },
+      {
+        icon: Brain,
+        title: t('landingLegalAgent'),
+        description: t('landingLegalAgentDesc'),
+        bgColor: 'bg-indigo-50 dark:bg-indigo-900/20',
+        textColor: 'text-indigo-600',
+        href: '/ai-assistant',
+      },
+      {
+        icon: BarChart3,
+        title: t('landingAnalytics'),
+        description: t('landingAnalyticsDesc'),
+        bgColor: 'bg-red-50 dark:bg-red-900/20',
+        textColor: 'text-red-600',
+        href: '/statistics',
+      },
+      {
+        icon: Search,
+        title: t('landingSmartSearch'),
+        description: t('landingSmartSearchDesc'),
+        bgColor: 'bg-violet-50 dark:bg-violet-900/20',
+        textColor: 'text-violet-600',
+        href: '/legal-database-new',
+      },
+      {
+        icon: FileText,
+        title: t('landingDocGenerator'),
+        description: t('landingDocGeneratorDesc'),
+        bgColor: 'bg-amber-50 dark:bg-amber-900/20',
+        textColor: 'text-amber-600',
+        href: '/document-generator',
+      },
+      {
+        icon: BookOpen,
+        title: t('landingLawDatabase'),
+        description: t('landingLawDatabaseDesc'),
+        bgColor: 'bg-emerald-50 dark:bg-emerald-900/20',
+        textColor: 'text-emerald-600',
+        href: '/legal-database-new',
+      },
+    ],
+    [t]
+  )
+
+  const STATS = useMemo(
+    () => [
+      { value: '10,000+', label: t('landingStatsUsers') },
+      { value: '5,000+', label: t('landingStatsDocs') },
+      { value: '95%', label: t('landingStatsAccuracy') },
+      { value: '24/7', label: t('landingStatsSupport') },
+    ],
+    [t]
+  )
+
+  const ADVANTAGES = useMemo(
+    () => [
+      t('landingAdv1'),
+      t('landingAdv2'),
+      t('landingAdv3'),
+      t('landingAdv4'),
+      t('landingAdv5'),
+      t('landingAdv6'),
+    ],
+    [t]
+  )
+
   return (
     <div className="min-h-screen bg-white dark:bg-gray-950">
       {/* ═══ HEADER ═══ */}
@@ -115,19 +118,19 @@ export default function LandingPage() {
                 href="#services"
                 className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
               >
-                Xizmatlar
+                {t('landingServices')}
               </a>
               <a
                 href="#advantages"
                 className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
               >
-                Afzalliklar
+                {t('landingAdvantages')}
               </a>
               <a
                 href="#stats"
                 className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
               >
-                Statistika
+                {t('landingStats')}
               </a>
             </nav>
             <div className="flex items-center gap-3">
@@ -135,13 +138,13 @@ export default function LandingPage() {
                 href="/signin"
                 className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
               >
-                Kirish
+                {t('landingLogin')}
               </Link>
               <Link
                 href="/signin?mode=register"
                 className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg shadow-blue-500/25"
               >
-                Bepul boshlang
+                {t('landingFreeTrial')}
               </Link>
             </div>
           </div>
@@ -150,66 +153,59 @@ export default function LandingPage() {
 
       {/* ═══ HERO ═══ */}
       <section className="relative overflow-hidden">
-        {/* Background gradient */}
         <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-950 dark:via-gray-900 dark:to-indigo-950/30" />
         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-400/10 dark:bg-blue-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
         <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-indigo-400/10 dark:bg-indigo-500/5 rounded-full blur-3xl translate-y-1/3 -translate-x-1/4" />
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-24 sm:pt-28 sm:pb-32">
           <div className="text-center max-w-4xl mx-auto">
-            {/* Badge */}
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 dark:bg-blue-900/30 border border-blue-200/50 dark:border-blue-800/50 mb-8">
               <Zap className="w-4 h-4 text-blue-600" />
               <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
-                O'zbekistonning birinchi AI huquqiy platformasi
+                {t('landingBadge')}
               </span>
             </div>
 
-            {/* Heading */}
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white leading-tight mb-6">
-              Huquqiy yordamni{' '}
+              {t('landingTitle1')}{' '}
               <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                yangi darajaga
+                {t('landingTitle2')}
               </span>{' '}
-              olib chiqing
+              {t('landingTitle3')}
             </h1>
 
-            {/* Subheading */}
             <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed">
-              Sun'iy intellekt yordamida huquqiy tahlil, sud simulyatsiyasi, hujjat generatsiya va
-              O'zbekiston qonunchiligi bo'yicha professional maslahat — hammasi bir platformada.
+              {t('landingHeroDesc')}
             </p>
 
-            {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link
                 href="/signin?mode=register"
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 text-base font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all shadow-xl shadow-blue-500/25 hover:shadow-blue-500/40"
               >
-                Bepul boshlang
+                {t('landingFreeTrial')}
                 <ArrowRight className="w-5 h-5" />
               </Link>
               <Link
                 href="/signin"
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 text-base font-semibold text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all"
               >
-                Demo kirish
+                {t('landingDemo')}
               </Link>
             </div>
 
-            {/* Trust badges */}
             <div className="flex flex-wrap items-center justify-center gap-6 mt-12 text-sm text-gray-500 dark:text-gray-400">
               <div className="flex items-center gap-1.5">
                 <Shield className="w-4 h-4 text-emerald-500" />
-                <span>Xavfsiz platforma</span>
+                <span>{t('landingSafePlatform')}</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <CheckCircle className="w-4 h-4 text-emerald-500" />
-                <span>Bepul sinov muddati</span>
+                <span>{t('landingFreeTrial2')}</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <Star className="w-4 h-4 text-amber-500" />
-                <span>4.9/5 reyting</span>
+                <span>{t('landingRating')}</span>
               </div>
             </div>
           </div>
@@ -240,11 +236,10 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              AI bilan ta'minlangan xizmatlar
+              {t('landingServicesTitle')}
             </h2>
             <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-              Zamonaviy sun'iy intellekt texnologiyalari orqali huquqiy xizmatlarni yangi bosqichga
-              olib chiqing
+              {t('landingServicesDesc')}
             </p>
           </div>
 
@@ -267,7 +262,7 @@ export default function LandingPage() {
                   {service.description}
                 </p>
                 <div className="flex items-center gap-1 text-sm font-medium text-blue-600 dark:text-blue-400 group-hover:gap-2 transition-all">
-                  Batafsil
+                  {t('landingLearnMore')}
                   <ChevronRight className="w-4 h-4" />
                 </div>
               </Link>
@@ -282,12 +277,9 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
               <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-6">
-                Nima uchun JURISTIV?
+                {t('landingWhyTitle')}
               </h2>
-              <p className="text-lg text-gray-600 dark:text-gray-400 mb-8">
-                Bizning platforma O'zbekiston qonunchiligi to'liq moslashtirilgan va professional
-                huquqshunoslar uchun yaratilgan.
-              </p>
+              <p className="text-lg text-gray-600 dark:text-gray-400 mb-8">{t('landingWhyDesc')}</p>
               <div className="space-y-4">
                 {ADVANTAGES.map((adv, i) => (
                   <div key={i} className="flex items-start gap-3">
@@ -300,7 +292,7 @@ export default function LandingPage() {
                 href="/signin?mode=register"
                 className="inline-flex items-center gap-2 mt-8 px-6 py-3 text-base font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg shadow-blue-500/25"
               >
-                Hoziroq boshlang
+                {t('landingCTA')}
                 <ArrowRight className="w-5 h-5" />
               </Link>
             </div>
@@ -309,24 +301,21 @@ export default function LandingPage() {
               <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-8 text-white shadow-2xl shadow-blue-500/20">
                 <div className="flex items-center gap-3 mb-6">
                   <Gavel className="w-8 h-8" />
-                  <h3 className="text-xl font-bold">Virtual Sud Simulyatsiyasi</h3>
+                  <h3 className="text-xl font-bold">{t('landingVirtualCourtTitle')}</h3>
                 </div>
-                <p className="text-blue-100 mb-6 leading-relaxed">
-                  Real sud jarayonini AI bilan simulyatsiya qiling. Sudya, prokuror va advokat
-                  rollarida tajriba orting.
-                </p>
+                <p className="text-blue-100 mb-6 leading-relaxed">{t('landingVirtualCourtDesc')}</p>
                 <div className="grid grid-cols-3 gap-4 text-center">
                   <div className="bg-white/10 rounded-xl p-3">
                     <div className="text-2xl font-bold">4</div>
-                    <div className="text-xs text-blue-200">Sud rollari</div>
+                    <div className="text-xs text-blue-200">{t('landingCourtRoles')}</div>
                   </div>
                   <div className="bg-white/10 rounded-xl p-3">
                     <div className="text-2xl font-bold">AI</div>
-                    <div className="text-xs text-blue-200">Javoblar</div>
+                    <div className="text-xs text-blue-200">{t('landingCourtAI')}</div>
                   </div>
                   <div className="bg-white/10 rounded-xl p-3">
                     <div className="text-2xl font-bold">Real</div>
-                    <div className="text-xs text-blue-200">Vaqt</div>
+                    <div className="text-xs text-blue-200">{t('landingCourtReal')}</div>
                   </div>
                 </div>
               </div>
@@ -339,24 +328,21 @@ export default function LandingPage() {
       <section className="py-20 sm:py-28">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-3xl p-10 sm:p-14 text-white shadow-2xl shadow-blue-500/20">
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4">Bugun boshlang — bepul</h2>
-            <p className="text-lg text-blue-100 mb-8 max-w-xl mx-auto">
-              Barcha AI xizmatlarini 14 kun davomida bepul sinab ko'ring. Kredit karta talab
-              qilinmaydi.
-            </p>
+            <h2 className="text-3xl sm:text-4xl font-bold mb-4">{t('landingCTATitle')}</h2>
+            <p className="text-lg text-blue-100 mb-8 max-w-xl mx-auto">{t('landingCTADesc')}</p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link
                 href="/signin?mode=register"
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 text-base font-semibold text-blue-600 bg-white rounded-xl hover:bg-blue-50 transition-all shadow-lg"
               >
-                Ro'yxatdan o'tish
+                {t('landingRegister')}
                 <ArrowRight className="w-5 h-5" />
               </Link>
               <Link
                 href="/signin"
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 text-base font-semibold text-white border border-white/30 rounded-xl hover:bg-white/10 transition-all"
               >
-                Kirish
+                {t('landingLogin')}
               </Link>
             </div>
           </div>
@@ -376,41 +362,38 @@ export default function LandingPage() {
                   JURIST<span className="text-indigo-400">IV</span>
                 </span>
               </div>
-              <p className="text-sm leading-relaxed">
-                O'zbekistonning yetakchi AI huquqiy platformasi. Professional huquqiy xizmatlar
-                sun'iy intellekt bilan.
-              </p>
+              <p className="text-sm leading-relaxed">{t('landingFooterDesc2')}</p>
             </div>
             <div>
               <h3 className="text-sm font-semibold text-white mb-4 uppercase tracking-wider">
-                Xizmatlar
+                {t('landingServices')}
               </h3>
               <ul className="space-y-2 text-sm">
                 <li>
                   <a href="/virtual-court" className="hover:text-white transition-colors">
-                    Virtual Sud AI
+                    {t('landingVirtualCourt')}
                   </a>
                 </li>
                 <li>
                   <a href="/ai-assistant" className="hover:text-white transition-colors">
-                    AI Huquqiy Agent
+                    {t('landingLegalAgent')}
                   </a>
                 </li>
                 <li>
                   <a href="/document-generator" className="hover:text-white transition-colors">
-                    Hujjat Generator
+                    {t('landingDocGenerator')}
                   </a>
                 </li>
                 <li>
                   <a href="/legal-database-new" className="hover:text-white transition-colors">
-                    Qonunlar Bazasi
+                    {t('landingLawDatabase')}
                   </a>
                 </li>
               </ul>
             </div>
             <div>
               <h3 className="text-sm font-semibold text-white mb-4 uppercase tracking-wider">
-                Platforma
+                {t('landingPlatform')}
               </h3>
               <ul className="space-y-2 text-sm">
                 <li>
@@ -425,7 +408,7 @@ export default function LandingPage() {
                 </li>
                 <li>
                   <a href="/statistics" className="hover:text-white transition-colors">
-                    Statistika
+                    {t('landingStats')}
                   </a>
                 </li>
                 <li>
@@ -437,17 +420,19 @@ export default function LandingPage() {
             </div>
             <div>
               <h3 className="text-sm font-semibold text-white mb-4 uppercase tracking-wider">
-                Aloqa
+                {t('landingContact')}
               </h3>
               <ul className="space-y-2 text-sm">
                 <li>info@juristiv.uz</li>
                 <li>+998 90 123 45 67</li>
-                <li>Toshkent, O'zbekiston</li>
+                <li>Toshkent, O&apos;zbekiston</li>
               </ul>
             </div>
           </div>
           <div className="border-t border-gray-800 pt-8 text-center text-sm">
-            <p>&copy; {new Date().getFullYear()} JURISTIV. Barcha huquqlar himoyalangan.</p>
+            <p>
+              &copy; {new Date().getFullYear()} JURISTIV. {t('landingAllRights')}
+            </p>
           </div>
         </div>
       </footer>

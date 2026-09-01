@@ -137,7 +137,7 @@ export default function Dashboard() {
             completedCases: (d.completedCases as number) || 0,
             totalCases: (d.totalCases as number) || (d.completedCases as number) || 0,
             weeklyProgress: (d.weeklyProgress as number) || 0,
-            rank: (d.rank as string) || 'Yangi boshlovchi',
+            rank: (d.rank as string) || t('dashboardNewUser'),
             achievements: Array.isArray(d.achievements)
               ? (d.achievements as UserStats['achievements'])
               : [],
@@ -160,7 +160,7 @@ export default function Dashboard() {
           completedCases: 0,
           totalCases: 0,
           weeklyProgress: 0,
-          rank: 'Yangi boshlovchi',
+          rank: t('dashboardNewUser'),
           achievements: [],
           recentActivity: [],
         }
@@ -257,10 +257,10 @@ export default function Dashboard() {
             </div>
             <div className="flex-1">
               <h3 className="font-bold text-gray-900 dark:text-white text-lg group-hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-                {user?.name || 'User'}
+                {user?.name || t('dashboardRank')}
               </h3>
               <p className="text-sm text-gray-500 dark:text-gray-400 dark:text-zinc-500">
-                {userStats?.rank || 'Huquqshunos'}
+                {userStats?.rank || t('dashboardRank')}
               </p>
               <div className="flex items-center mt-2">
                 <div className="flex-1 bg-gray-100 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
@@ -287,17 +287,17 @@ export default function Dashboard() {
           <div className="text-center p-3 bg-blue-50 dark:bg-blue-900/20/50 rounded-xl hover:bg-blue-50 dark:bg-blue-900/20 transition-colors">
             <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
               {userStats?.xp || 0}
-            </div>
+            </div>{' '}
             <div className="text-xs text-gray-500 dark:text-gray-400 dark:text-zinc-500 mt-1">
-              Total XP
+              {t('dashboardTotalXP')}
             </div>
           </div>
           <div className="text-center p-3 bg-emerald-50/50 rounded-xl hover:bg-emerald-50 transition-colors">
             <div className="text-2xl font-bold text-emerald-600">
               {userStats?.weeklyProgress || 0}%
-            </div>
+            </div>{' '}
             <div className="text-xs text-gray-500 dark:text-gray-400 dark:text-zinc-500 mt-1">
-              Haftalik maqsad
+              {t('dashboardWeeklyGoal')}
             </div>
           </div>
         </div>
@@ -377,11 +377,9 @@ export default function Dashboard() {
         <div className="relative flex flex-col sm:flex-row justify-between items-start">
           <div className="w-full">
             <h1 className="text-2xl sm:text-3xl font-bold mb-2">
-              {t('dashboardWelcome')}, {user?.name || 'Foydalanuvchi'}!
+              {t('dashboardWelcome')}, {user?.name || t('dashboardUser')}!
             </h1>
-            <p className="text-blue-100/80 text-sm sm:text-lg">
-              Huquqiy bilimlaringizni rivojlantirishni davom ettiring
-            </p>
+            <p className="text-blue-100/80 text-sm sm:text-lg">{t('dashboardTagline')}</p>
             <div className="mt-6 flex flex-wrap gap-4 sm:gap-8">
               <div className="text-center">
                 <div className="text-xl sm:text-3xl font-bold">
@@ -421,7 +419,7 @@ export default function Dashboard() {
                   {userStats?.level || 1}
                 </p>
                 <p className="text-xs text-gray-400 dark:text-gray-500 dark:text-zinc-500 mt-1">
-                  {userStats?.rank || 'Beginner'}
+                  {userStats?.rank || t('dashboardRank')}
                 </p>
               </div>
               <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/30 rounded-xl flex items-center justify-center glow-blue">
