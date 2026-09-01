@@ -17,7 +17,30 @@ const sizeMap = {
 
 export default function SiteLogo({ size = 'md', className = '', showText = true }: SiteLogoProps) {
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
+  const [logoDarkUrl, setLogoDarkUrl] = useState<string | null>(null)
+  const [faviconUrl, setFaviconUrl] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [isDark, setIsDark] = useState(false)
+
+  useEffect(() => {
+    // Detect dark mode
+    const mq = window.matchMedia('(prefers-color-scheme: dark)')
+    setIsDark(mq.matches)
+    const handler = (e: MediaQueryListEvent) => setIsDark(e.matches)
+    mq.addEventListener('change', handler)
+
+    // Also check for dark class on html (for manual theme toggle)
+    const observer = new MutationObserver(() => {
+      const dark = document.documentElement.classList.contains('dark')
+      setIsDark(dark)
+    })
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
+
+    return () => {
+      mq.removeEventListener('change', handler)
+      observer.disconnect()
+    }
+  }, [])
 
   useEffect(() => {
     const loadLogo = async () => {
@@ -25,9 +48,9 @@ export default function SiteLogo({ size = 'md', className = '', showText = true 
         const res = await fetch('/api/settings/logo', { cache: 'no-cache' })
         if (res.ok) {
           const data = await res.json()
-          if (data.logoUrl) {
-            setLogoUrl(data.logoUrl)
-          }
+          if (data.logoUrl) setLogoUrl(data.logoUrl)
+          if (data.logoDarkUrl) setLogoDarkUrl(data.logoDarkUrl)
+          if (data.faviconUrl) setFaviconUrl(data.faviconUrl)
         }
       } catch {
         // Use fallback
@@ -38,6 +61,25 @@ export default function SiteLogo({ size = 'md', className = '', showText = true 
     loadLogo()
   }, [])
 
+  // Inject favicon into <head>
+  useEffect(() => {
+    if (!faviconUrl) return
+
+    // Remove old dynamic favicon
+    const old = document.getElementById('dynamic-favicon')
+    if (old) old.remove()
+
+    const link = document.createElement('link')
+    link.id = 'dynamic-favicon'
+    link.rel = 'icon'
+    link.type = faviconUrl.startsWith('data:image/svg') ? 'image/svg+xml' : 'image/png'
+    link.href = faviconUrl
+    document.head.appendChild(link)
+  }, [faviconUrl])
+
+  // Pick correct logo for current theme
+  const activeLogo = isDark ? logoDarkUrl || logoUrl : logoUrl
+
   const s = sizeMap[size]
 
   return (
@@ -47,12 +89,16 @@ export default function SiteLogo({ size = 'md', className = '', showText = true 
       >
         {loading ? (
           <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-        ) : logoUrl ? (
+        ) : activeLogo ? (
           <img
-            src={logoUrl}
+            src={activeLogo}
             alt="JURISTIV Logo"
             className="w-full h-full object-contain p-1"
-            onError={() => setLogoUrl(null)}
+            onError={() => {
+              // Fallback to icon
+              setLogoUrl(null)
+              setLogoDarkUrl(null)
+            }}
           />
         ) : (
           <Scale className={`${s.icon} text-white`} />

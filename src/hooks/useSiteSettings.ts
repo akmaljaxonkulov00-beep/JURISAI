@@ -33,14 +33,31 @@ export function useSiteSettings(): SiteSettings {
   const [settings, setSettings] = useState<SiteSettings>(DEFAULT_SETTINGS)
 
   useEffect(() => {
-    // Read from the public key that admin writes to
-    try {
-      const stored = localStorage.getItem('siteSettings')
-      if (stored) {
-        const parsed = JSON.parse(stored)
-        setSettings({ ...DEFAULT_SETTINGS, ...parsed })
+    const loadSettings = async () => {
+      try {
+        const res = await fetch('/api/settings/public', { cache: 'no-cache' })
+        if (res.ok) {
+          const data = await res.json()
+          if (data.success && data.data) {
+            setSettings({ ...DEFAULT_SETTINGS, ...data.data })
+          }
+        }
+      } catch {
+        // Use defaults
       }
-    } catch {}
+
+      // Also check localStorage as fallback (admin might have saved there)
+      try {
+        const stored = localStorage.getItem('siteSettings')
+        if (stored) {
+          const parsed = JSON.parse(stored)
+          setSettings(prev => ({ ...prev, ...parsed }))
+        }
+      } catch {
+        // Ignore
+      }
+    }
+    loadSettings()
   }, [])
 
   return settings

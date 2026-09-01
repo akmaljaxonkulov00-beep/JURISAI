@@ -12,7 +12,10 @@ const DEFAULTS = {
   contactHeading: "JURISTIV hamjamiyatiga qo'shiling",
   contactDescription:
     "Eng so'nggi yangiliklar, platforma yangilanishlari, foydali huquqiy materiallar va e'lonlardan xabardor bo'lib boring.",
-  socialLinks: [] as Array<{
+  socialLinks: [
+    { platform: 'telegram', url: 'https://t.me/juristiv', enabled: true },
+    { platform: 'instagram', url: 'https://instagram.com/juristiv', enabled: true },
+  ] as Array<{
     platform: string
     url: string
     enabled: boolean
@@ -49,7 +52,10 @@ export async function GET() {
       ])
 
     if (!data || data.length === 0) {
-      return NextResponse.json({ success: true, data: DEFAULTS })
+      return NextResponse.json({
+        success: true,
+        data: { ...DEFAULTS, socialLinks: DEFAULTS.socialLinks },
+      })
     }
 
     const settings: Record<string, string> = {}
