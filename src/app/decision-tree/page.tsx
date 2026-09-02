@@ -216,25 +216,16 @@ export default function DecisionTreeEngine() {
     children: [],
   })
 
-  // ── Load saved trees from localStorage + Supabase ─────────────
+  // ── Load saved trees from Supabase (DB is source of truth) ─────────
   useEffect(() => {
-    let local: SavedTree[] = []
-    try {
-      const stored = localStorage.getItem('decision_trees')
-      if (stored) local = JSON.parse(stored) as SavedTree[]
-    } catch {}
-
-    // Supabase'dan foydalanuvchi daraxtlarini yuklash va birlashtirish
-    // (boshqa qurilmada saqlangan daraxtlar ham ko'rinadi)
     ;(async () => {
-      let supabaseTrees: SavedTree[] = []
       try {
         const { data, error } = await supabase
           .from('decision_trees')
           .select('*')
           .order('updated_at', { ascending: false })
         if (!error && data && Array.isArray(data)) {
-          supabaseTrees = data.map(
+          const trees = data.map(
             (t: {
               id?: string
               name?: string
@@ -254,23 +245,13 @@ export default function DecisionTreeEngine() {
               updatedAt: t.updated_at || '',
             })
           )
+          setSavedTrees(trees.slice(0, 20))
+        } else {
+          setSavedTrees([])
         }
       } catch {
-        /* jadval mavjud emas yoki ruxsat yo'q — localStorage'da qoladi */
+        setSavedTrees([])
       }
-
-      // Birlashtirish: Supabase versiyasi ustun (eng so'nggi updatedAt)
-      const merged = [...supabaseTrees]
-      for (const l of local) {
-        const dup = merged.find(m => (m.dbId && m.dbId === l.dbId) || m.name === l.name)
-        if (!dup) {
-          merged.push(l)
-        } else if (new Date(l.updatedAt) > new Date(dup.updatedAt)) {
-          Object.assign(dup, { ...l, dbId: dup.dbId })
-        }
-      }
-      merged.sort((a, b) => +new Date(b.updatedAt) - +new Date(a.updatedAt))
-      setSavedTrees(merged.slice(0, 20))
     })()
   }, [])
 
@@ -992,53 +973,52 @@ export default function DecisionTreeEngine() {
     return count
   }
 
-  // ── Save current tree (localStorage + Supabase) ───────────────
+  // ── Save current tree to Supabase (DB is source of truth) ─────
   const saveTree = async () => {
     const name = currentTreeName || decisionTree.label || 'Nomsiz daraxt'
     const now = new Date().toISOString()
     const existing = savedTrees.find(s => s.name === name)
-    const saved: SavedTree = {
-      id: existing?.id || Date.now().toString(),
-      dbId: existing?.dbId,
+    const { data: udata } = await supabase.auth.getUser()
+    if (!udata?.user) {
+      setError('Tizimga kirishingiz kerak.')
+      return
+    }
+
+    const payload = {
       name,
-      caseType: 'huquqiy',
+      case_type: 'huquqiy',
       scenario: decisionTree.label,
       tree: decisionTree,
-      createdAt: existing?.createdAt || now,
-      updatedAt: now,
+      updated_at: now,
+      user_id: udata.user.id,
     }
-    const updated = [saved, ...savedTrees.filter(s => s.name !== name)].slice(0, 20)
-    setSavedTrees(updated)
-    localStorage.setItem('decision_trees', JSON.stringify(updated))
 
-    // Supabase'ga sinxronlash (session mavjud bo'lsa) — boshqa qurilmada davom ettirish uchun
     try {
-      const { data: udata } = await supabase.auth.getUser()
-      if (!udata?.user) return
-      const payload = {
-        name: saved.name,
-        case_type: saved.caseType,
-        scenario: saved.scenario,
-        tree: saved.tree,
-        updated_at: now,
-      }
-      if (saved.dbId) {
-        await supabase.from('decision_trees').update(payload).eq('id', saved.dbId)
+      let dbId = existing?.dbId
+      if (dbId) {
+        await supabase.from('decision_trees').update(payload).eq('id', dbId)
       } else {
         const { data: inserted } = await supabase
           .from('decision_trees')
-          .insert({ ...payload, user_id: udata.user.id, created_at: saved.createdAt })
+          .insert({ ...payload, created_at: now })
           .select('id')
           .single()
-        if (inserted?.id) {
-          saved.dbId = inserted.id
-          const updated2 = [saved, ...updated.filter(s => s.name !== name)]
-          setSavedTrees(updated2)
-          localStorage.setItem('decision_trees', JSON.stringify(updated2))
-        }
+        if (inserted?.id) dbId = inserted.id
       }
-    } catch {
-      /* oflayn — localStorage'da qoladi, keyingi saqlashda sinxronlanadi */
+      const saved: SavedTree = {
+        id: dbId || Date.now().toString(),
+        dbId: dbId || undefined,
+        name,
+        caseType: 'huquqiy',
+        scenario: decisionTree.label,
+        tree: decisionTree,
+        createdAt: existing?.createdAt || now,
+        updatedAt: now,
+      }
+      const updated = [saved, ...savedTrees.filter(s => s.name !== name)].slice(0, 20)
+      setSavedTrees(updated)
+    } catch (err) {
+      setError('Saqlashda xatolik: ' + (err instanceof Error ? err.message : ''))
     }
   }
 
@@ -1053,19 +1033,15 @@ export default function DecisionTreeEngine() {
     setError(null)
   }
 
-  // ── Delete a saved tree (localStorage + Supabase) ─────────────
+  // ── Delete a saved tree (DB only) ──────────────────────────────
   const deleteSavedTree = async (id: string) => {
     const target = savedTrees.find(s => s.id === id)
-    const updated = savedTrees.filter(s => s.id !== id)
-    setSavedTrees(updated)
-    localStorage.setItem('decision_trees', JSON.stringify(updated))
     if (target?.dbId) {
       try {
         await supabase.from('decision_trees').delete().eq('id', target.dbId)
-      } catch {
-        /* o'chirish xatosi — localStorage'da o'chirilgan */
-      }
+      } catch {}
     }
+    setSavedTrees(prev => prev.filter(s => s.id !== id))
   }
 
   // ── Yordamchi funksiyalar: metrikalar va statistika ────────────
