@@ -45,8 +45,20 @@ const SOCIAL_ICONS: Record<string, { icon: string; color: string; bg: string }> 
   },
 }
 
+const DEFAULT_CONTACT_SETTINGS: ContactSettings = {
+  contactSectionEnabled: true,
+  contactLabel: "Biz bilan bog'lanish",
+  contactHeading: "JURISTIV hamjamiyatiga qo'shiling",
+  contactDescription:
+    "Eng so'nggi yangiliklar, platforma yangilanishlari, foydali huquqiy materiallar va e'lonlardan xabardor bo'lib boring.",
+  socialLinks: [
+    { platform: 'telegram', url: 'https://t.me/juristiv', enabled: true },
+    { platform: 'instagram', url: 'https://instagram.com/juristiv', enabled: true },
+  ],
+}
+
 export default function ContactSection() {
-  const [settings, setSettings] = useState<ContactSettings | null>(null)
+  const [settings, setSettings] = useState<ContactSettings>(DEFAULT_CONTACT_SETTINGS)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -56,11 +68,23 @@ export default function ContactSection() {
         if (res.ok) {
           const data = await res.json()
           if (data.success && data.data) {
-            setSettings(data.data)
+            const loaded = data.data as ContactSettings
+            // Merge: use DB values but keep defaults for empty fields
+            setSettings({
+              contactSectionEnabled: loaded.contactSectionEnabled,
+              contactLabel: loaded.contactLabel || DEFAULT_CONTACT_SETTINGS.contactLabel,
+              contactHeading: loaded.contactHeading || DEFAULT_CONTACT_SETTINGS.contactHeading,
+              contactDescription:
+                loaded.contactDescription || DEFAULT_CONTACT_SETTINGS.contactDescription,
+              socialLinks:
+                loaded.socialLinks && loaded.socialLinks.length > 0
+                  ? loaded.socialLinks
+                  : DEFAULT_CONTACT_SETTINGS.socialLinks,
+            })
           }
         }
       } catch {
-        // Silent fail
+        // Use defaults on error
       } finally {
         setLoading(false)
       }
@@ -68,14 +92,14 @@ export default function ContactSection() {
     loadSettings()
   }, [])
 
-  // Don't render if loading, disabled, or no social links
-  if (loading || !settings || !settings.contactSectionEnabled) {
+  // Don't render if loading or explicitly disabled by admin
+  if (loading || !settings.contactSectionEnabled) {
     return null
   }
 
-  if (settings.socialLinks.length === 0) {
-    return null
-  }
+  // Always show — if no social links from DB, use defaults
+  const socialLinksToShow =
+    settings.socialLinks.length > 0 ? settings.socialLinks : DEFAULT_CONTACT_SETTINGS.socialLinks
 
   return (
     <section className="py-16 sm:py-20">
@@ -97,7 +121,7 @@ export default function ContactSection() {
 
             {/* Social Links */}
             <div className="flex flex-wrap gap-3 justify-start lg:justify-end">
-              {settings.socialLinks.map(link => {
+              {socialLinksToShow.map(link => {
                 const social = SOCIAL_ICONS[link.platform]
                 if (!social) return null
 

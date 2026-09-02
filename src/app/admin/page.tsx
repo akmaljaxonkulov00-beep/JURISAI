@@ -273,13 +273,8 @@ export default function AdminDashboard() {
   const [settingsSaved, setSettingsSaved] = useState(false)
 
   useEffect(() => {
-    // Load legacy data from localStorage (settings, pricing cache)
-    try {
-      const stored = localStorage.getItem('admin_site_settings')
-      if (stored) setSiteSettings(JSON.parse(stored))
-      const storedPlans = localStorage.getItem('admin_pricing_plans')
-      if (storedPlans) setPricingPlans(JSON.parse(storedPlans))
-    } catch {}
+    // NOTE: Settings and pricing plans should ONLY come from database.
+    // localStorage fallback removed to prevent stale data overriding DB.
 
     // Wire real-time data to local state (initial load + continuous updates)
     setPaymentRequests(realtime.paymentRequests)
@@ -384,44 +379,51 @@ export default function AdminDashboard() {
     } catch {}
   }
 
-  const updateUserRole = (userId: string, newRole: string) => {
-    const updated = allUsers.map((u: AdminUser) => {
-      if (u.id === userId || u.uid === userId) {
-        const newData = { ...u, role: newRole }
-        syncUserToSupabase(newData)
-        return newData
-      }
-      return u
-    })
-    setAllUsers(updated)
-    localStorage.setItem('registered_users', JSON.stringify(updated))
+  const updateUserRole = async (userId: string, newRole: string) => {
+    try {
+      await fetch('/api/admin/users', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', ...(await getAuthHeaders()) },
+        body: JSON.stringify({
+          userId,
+          action: 'changeRole',
+          data: { role: newRole },
+        }),
+      })
+    } catch {}
+    realtime.refreshUsers()
   }
 
-  const updateUserSubscription = (userId: string, plan: string) => {
-    const updated = allUsers.map((u: AdminUser) => {
-      if (u.id === userId || u.uid === userId) {
-        const expiresAt = plan !== 'free' ? new Date(Date.now() + 365 * 86400000).toISOString() : ''
-        const newData = { ...u, subscription_plan: plan, subscription_expires_at: expiresAt }
-        syncUserToSupabase(newData)
-        return newData
-      }
-      return u
-    })
-    setAllUsers(updated)
-    localStorage.setItem('registered_users', JSON.stringify(updated))
+  const updateUserSubscription = async (userId: string, plan: string) => {
+    const expiresAt = plan !== 'free' ? new Date(Date.now() + 365 * 86400000).toISOString() : ''
+    try {
+      await fetch('/api/admin/users', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', ...(await getAuthHeaders()) },
+        body: JSON.stringify({
+          userId,
+          action: 'changeSubscription',
+          data: { planId: plan, expiresAt },
+        }),
+      })
+    } catch {}
+    // Refresh users from DB after update
+    realtime.refreshUsers()
   }
 
-  const toggleUserBlock = (userId: string) => {
-    const updated = allUsers.map((u: AdminUser) => {
-      if (u.id === userId || u.uid === userId) {
-        const newData = { ...u, blocked: !u.blocked }
-        syncUserToSupabase(newData)
-        return newData
-      }
-      return u
-    })
-    setAllUsers(updated)
-    localStorage.setItem('registered_users', JSON.stringify(updated))
+  const toggleUserBlock = async (userId: string) => {
+    const user = allUsers.find((u: AdminUser) => u.id === userId || u.uid === userId)
+    try {
+      await fetch('/api/admin/users', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', ...(await getAuthHeaders()) },
+        body: JSON.stringify({
+          userId,
+          action: user?.blocked ? 'unblock' : 'block',
+        }),
+      })
+    } catch {}
+    realtime.refreshUsers()
   }
 
   const deleteUser = async (userId: string) => {
@@ -433,11 +435,7 @@ export default function AdminDashboard() {
         body: JSON.stringify({ userId }),
       })
     } catch {}
-    const updated = (Array.isArray(allUsers) ? allUsers : []).filter(
-      (u: AdminUser) => u.id !== userId && u.uid !== userId
-    )
-    setAllUsers(updated)
-    localStorage.setItem('registered_users', JSON.stringify(updated))
+    realtime.refreshUsers()
   }
 
   const resetUserPassword = async (userId: string, email?: string) => {

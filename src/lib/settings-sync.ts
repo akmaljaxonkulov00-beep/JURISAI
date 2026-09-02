@@ -45,21 +45,7 @@ export interface PaymentRequest {
 // =========================================================================
 
 export async function getPublicSettings(): Promise<SiteSettings | null> {
-  // 0. Optimistic cache read — return cached immediately, refresh in bg
-  let cachedData: SiteSettings | null = null
-  try {
-    const cached = localStorage.getItem('juristiv_settings')
-    if (cached) cachedData = JSON.parse(cached) as SiteSettings
-  } catch {}
-  if (!cachedData) {
-    try {
-      const legacy =
-        localStorage.getItem('admin_site_settings') || localStorage.getItem('siteSettings')
-      if (legacy) cachedData = JSON.parse(legacy) as SiteSettings
-    } catch {}
-  }
-
-  // 1. Try Supabase (fresh data)
+  // Fetch from Supabase API (single source of truth)
   try {
     const res = await fetch('/api/settings/public', {
       cache: 'no-cache',
@@ -67,24 +53,15 @@ export async function getPublicSettings(): Promise<SiteSettings | null> {
     })
     const result = await res.json()
     if (result.success && result.data) {
-      const freshData = result.data as SiteSettings
-      try {
-        localStorage.setItem('juristiv_settings', JSON.stringify(freshData))
-        localStorage.setItem('admin_site_settings', JSON.stringify(freshData))
-        localStorage.setItem('siteSettings', JSON.stringify(freshData))
-      } catch {}
-      return freshData
+      return result.data as SiteSettings
     }
   } catch {}
-
-  // 2. Fresh data failed — return cached data
-  if (cachedData) return cachedData
 
   return null
 }
 
 export async function saveSiteSettings(settings: SiteSettings): Promise<boolean> {
-  // 1. Save to Supabase (PRIMARY)
+  // Save to Supabase (PRIMARY — only source of truth)
   try {
     const res = await fetch('/api/admin/settings', {
       method: 'POST',
@@ -99,12 +76,8 @@ export async function saveSiteSettings(settings: SiteSettings): Promise<boolean>
     console.warn('[SettingsSync] Supabase save error:', err)
   }
 
-  // 2. Save to localStorage cache (SECONDARY)
-  try {
-    localStorage.setItem('juristiv_settings', JSON.stringify(settings))
-    localStorage.setItem('admin_site_settings', JSON.stringify(settings))
-    localStorage.setItem('siteSettings', JSON.stringify(settings))
-  } catch {}
+  // NOTE: localStorage removed — DB is the single source of truth.
+  // Prevents stale data overriding DB values on refresh.
 
   return true
 }
@@ -116,33 +89,18 @@ export async function saveSiteSettings(settings: SiteSettings): Promise<boolean>
 const PRICING_STORAGE_KEY = 'juristiv_pricing_plans'
 
 export async function getPricingPlans(): Promise<PricingPlan[]> {
-  // Try Supabase first
+  // Fetch from Supabase (single source of truth)
   try {
     const res = await fetch('/api/settings/pricing', {
       cache: 'no-cache',
     })
     const result = await res.json()
     if (result.success && result.data && result.data.length > 0) {
-      try {
-        localStorage.setItem(PRICING_STORAGE_KEY, JSON.stringify(result.data))
-      } catch {}
       return result.data
     }
   } catch {}
 
-  // Fallback to localStorage
-  try {
-    const cached = localStorage.getItem(PRICING_STORAGE_KEY)
-    if (cached) return JSON.parse(cached)
-  } catch {}
-
-  // Fallback to legacy
-  try {
-    const legacy = localStorage.getItem('admin_pricing_plans')
-    if (legacy) return JSON.parse(legacy)
-  } catch {}
-
-  // Default
+  // Default — only when DB is completely empty
   return [
     {
       id: 'free',
@@ -193,7 +151,7 @@ export async function getPricingPlans(): Promise<PricingPlan[]> {
 }
 
 export async function savePricingPlans(plans: PricingPlan[]): Promise<boolean> {
-  // Save to Supabase
+  // Save to Supabase (only source of truth)
   try {
     const res = await fetch('/api/admin/pricing', {
       method: 'POST',
@@ -208,11 +166,7 @@ export async function savePricingPlans(plans: PricingPlan[]): Promise<boolean> {
     console.warn('[SettingsSync] Pricing save error:', err)
   }
 
-  // Save to localStorage
-  try {
-    localStorage.setItem(PRICING_STORAGE_KEY, JSON.stringify(plans))
-    localStorage.setItem('admin_pricing_plans', JSON.stringify(plans))
-  } catch {}
+  // NOTE: localStorage removed — DB is the single source of truth.
 
   return true
 }
@@ -296,7 +250,7 @@ export async function getPaymentRequests(): Promise<PaymentRequest[]> {
           | undefined)
 
     if (result.success && rawPayments) {
-      const mapped = rawPayments.map(p => ({
+      return rawPayments.map(p => ({
         id: p.id || '',
         userId: p.user_id || p.userId || p.userEmail || '',
         userEmail: p.user_email || p.userEmail || '',
@@ -308,21 +262,10 @@ export async function getPaymentRequests(): Promise<PaymentRequest[]> {
         createdAt: p.created_at || p.createdAt || '',
         rejectReason: p.reject_reason || p.rejectReason || '',
       }))
-      try {
-        localStorage.setItem('juristiv_payment_requests', JSON.stringify(mapped))
-      } catch {}
-      return mapped
     }
   } catch {}
 
-  // Fallback to localStorage
-  try {
-    const cached = localStorage.getItem('juristiv_payment_requests')
-    if (cached) return JSON.parse(cached)
-    const legacy = localStorage.getItem('payment_requests')
-    if (legacy) return JSON.parse(legacy)
-  } catch {}
-
+  // No localStorage fallback — DB is the single source of truth
   return []
 }
 
@@ -336,7 +279,7 @@ export async function submitPaymentRequest(
     createdAt: new Date().toISOString(),
   }
 
-  // Save to Supabase (PRIMARY)
+  // Save to Supabase (only source of truth)
   try {
     const res = await fetch('/api/log/payment', {
       method: 'POST',
@@ -358,25 +301,7 @@ export async function submitPaymentRequest(
     console.warn('[SettingsSync] Payment submit error:', err)
   }
 
-  // Save to localStorage
-  try {
-    const existing = JSON.parse(localStorage.getItem('payment_requests') || '[]')
-    existing.push(paymentRecord)
-    localStorage.setItem('payment_requests', JSON.stringify(existing))
-    localStorage.setItem('juristiv_payment_requests', JSON.stringify(existing))
-
-    // Also save as user's payment_history
-    localStorage.setItem(
-      'payment_history',
-      JSON.stringify({
-        status: 'pending',
-        amount: payment.amount,
-        plan: payment.plan,
-        date: new Date().toLocaleDateString('uz-UZ'),
-        receiptImage: payment.receiptImage,
-      })
-    )
-  } catch {}
+  // NOTE: localStorage removed — DB is the single source of truth.
 
   return { success: true, id }
 }
@@ -464,16 +389,8 @@ export async function getAnnouncements(): Promise<
     })
     const result = await res.json()
     if (result.success && result.data) {
-      try {
-        localStorage.setItem('juristiv_announcements', JSON.stringify(result.data))
-      } catch {}
       return result.data
     }
-  } catch {}
-
-  try {
-    const cached = localStorage.getItem('juristiv_announcements')
-    if (cached) return JSON.parse(cached)
   } catch {}
 
   return []

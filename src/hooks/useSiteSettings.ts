@@ -43,18 +43,7 @@ export function useSiteSettings(): SiteSettings {
           }
         }
       } catch {
-        // Use defaults
-      }
-
-      // Also check localStorage as fallback (admin might have saved there)
-      try {
-        const stored = localStorage.getItem('siteSettings')
-        if (stored) {
-          const parsed = JSON.parse(stored)
-          setSettings(prev => ({ ...prev, ...parsed }))
-        }
-      } catch {
-        // Ignore
+        // Use defaults — no localStorage fallback to prevent stale data
       }
     }
     loadSettings()
@@ -65,13 +54,7 @@ export function useSiteSettings(): SiteSettings {
 
 // Helper to get individual setting values in components
 export function getSetting(key: keyof SiteSettings): string {
-  if (typeof window === 'undefined') return DEFAULT_SETTINGS[key] || ''
-  try {
-    const stored = localStorage.getItem('siteSettings')
-    if (stored) {
-      const parsed = JSON.parse(stored)
-      return parsed[key] || DEFAULT_SETTINGS[key] || ''
-    }
-  } catch {}
+  // NOTE: This is a synchronous helper that only returns defaults.
+  // Components should use the useSiteSettings hook for DB-backed values.
   return DEFAULT_SETTINGS[key] || ''
 }
