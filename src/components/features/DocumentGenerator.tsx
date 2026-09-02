@@ -19,8 +19,8 @@ interface DocumentTemplate {
 }
 
 interface DocumentField {
-  id: string
   name: string
+  label: string
   type: 'text' | 'textarea' | 'date' | 'select' | 'number'
   required: boolean
   options?: string[]
@@ -82,19 +82,40 @@ export default function DocumentGenerator() {
     setActiveTab('generator')
   }
 
-  const handleFieldChange = (fieldId: string, value: string) => {
+  const handleFieldChange = (fieldName: string, value: string) => {
     setFormData(prev => ({
       ...prev,
-      [fieldId]: value,
+      [fieldName]: value,
     }))
+  }
+
+  // Local document generation using template body_template
+  const generateLocalDocument = (
+    template: DocumentTemplate,
+    data: Record<string, string>
+  ): string => {
+    const bodyTemplate = (template as unknown as { body_template?: string }).body_template
+    if (!bodyTemplate) {
+      // Fallback: simple field listing
+      return template.fields
+        .map(f => `${f.label || f.name}: ${data[f.name] || '________________'}`)
+        .join('\n\n')
+    }
+    // Replace {field_name} placeholders with actual values
+    let content = bodyTemplate
+    for (const field of template.fields) {
+      const value = data[field.name] || '________________'
+      content = content.replace(new RegExp(`\{${field.name}\}`, 'g'), value)
+    }
+    return content
   }
 
   const handleGenerateDocument = async () => {
     if (!selectedTemplate) return
 
     const missingFields = selectedTemplate.fields
-      .filter(field => field.required && !formData[field.id])
-      .map(field => field.name)
+      .filter(field => field.required && !formData[field.name])
+      .map(field => field.label || field.name)
 
     if (missingFields.length > 0) {
       setError(`Quyidagi maydonlarni to'ldiring: ${missingFields.join(', ')}`)
@@ -105,31 +126,10 @@ export default function DocumentGenerator() {
     setError(null)
 
     try {
-      const details = selectedTemplate.fields
-        .map(field => `${field.name}: ${formData[field.id] || 'belgilanmagan'}`)
-        .join('\n')
+      // Generate document locally using template body_template (no AI needed)
+      const content = generateLocalDocument(selectedTemplate, formData)
 
-      // Hujjat server API orqali yaratiladi (Groq chaqiruvi client'da emas,
-      // serverda — API key xavfsiz va limitlar tekshiriladi)
-      const response = await fetch('/api/ai/document-generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          templateId: selectedTemplate.id,
-          templateName: selectedTemplate.name,
-          documentData: details,
-          outputFormat: 'text',
-        }),
-      })
-
-      if (!response.ok) {
-        const err = await response.json().catch(() => null)
-        throw new Error(err?.message || err?.error || 'Hujjat yaratishda xatolik yuz berdi')
-      }
-
-      const data = await response.json()
-      const content = data.document || ''
-      if (!content) {
+      if (!content || content.trim().length === 0) {
         throw new Error("Hujjat bo'sh qaytdi, qayta urinib ko'ring")
       }
 
@@ -179,9 +179,9 @@ export default function DocumentGenerator() {
         const lines = document.content.split('\n')
         const parsedData: Record<string, string> = {}
         template.fields.forEach(field => {
-          const fieldLine = lines.find(line => line.startsWith(`${field.name}:`))
+          const fieldLine = lines.find(line => line.startsWith(`${field.label || field.name}:`))
           if (fieldLine) {
-            parsedData[field.id] = fieldLine.replace(`${field.name}:`, '').trim()
+            parsedData[field.name] = fieldLine.replace(`${field.label || field.name}:`, '').trim()
           }
         })
         setFormData(parsedData)
@@ -213,9 +213,16 @@ export default function DocumentGenerator() {
                 <p className="text-sm text-gray-500 dark:text-gray-400 dark:text-zinc-500 mb-3">
                   {template.description}
                 </p>
-                <Badge className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300">
-                  {template.category}
-                </Badge>
+                <div className="flex flex-wrap gap-1.5 mt-2">
+                  <Badge className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300">
+                    {template.category}
+                  </Badge>
+                  {(template as unknown as { legal_basis?: string }).legal_basis && (
+                    <Badge className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300">
+                      {(template as unknown as { legal_basis: string }).legal_basis}
+                    </Badge>
+                  )}
+                </div>
                 <div className="mt-3 text-sm text-gray-400 dark:text-gray-500 dark:text-zinc-500">
                   {template.fields.length} maydon
                 </div>
@@ -260,16 +267,17 @@ export default function DocumentGenerator() {
           </CardHeader>
           <CardContent className="space-y-4">
             {selectedTemplate.fields.map(field => (
-              <div key={field.id}>
+              <div key={field.name}>
                 <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 dark:text-zinc-500 mb-2">
-                  {field.name} {field.required && <span className="text-red-500">*</span>}
+                  {field.label || field.name}{' '}
+                  {field.required && <span className="text-red-500">*</span>}
                 </label>
 
                 {field.type === 'text' && (
                   <Input
                     placeholder={field.placeholder}
-                    value={formData[field.id] || ''}
-                    onChange={e => handleFieldChange(field.id, e.target.value)}
+                    value={formData[field.name] || ''}
+                    onChange={e => handleFieldChange(field.name, e.target.value)}
                     required={field.required}
                   />
                 )}
@@ -277,8 +285,8 @@ export default function DocumentGenerator() {
                 {field.type === 'textarea' && (
                   <textarea
                     placeholder={field.placeholder}
-                    value={formData[field.id] || ''}
-                    onChange={e => handleFieldChange(field.id, e.target.value)}
+                    value={formData[field.name] || ''}
+                    onChange={e => handleFieldChange(field.name, e.target.value)}
                     required={field.required}
                     rows={4}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -288,8 +296,8 @@ export default function DocumentGenerator() {
                 {field.type === 'date' && (
                   <Input
                     type="date"
-                    value={formData[field.id] || ''}
-                    onChange={e => handleFieldChange(field.id, e.target.value)}
+                    value={formData[field.name] || ''}
+                    onChange={e => handleFieldChange(field.name, e.target.value)}
                     required={field.required}
                   />
                 )}
@@ -298,16 +306,16 @@ export default function DocumentGenerator() {
                   <Input
                     type="number"
                     placeholder={field.placeholder}
-                    value={formData[field.id] || ''}
-                    onChange={e => handleFieldChange(field.id, e.target.value)}
+                    value={formData[field.name] || ''}
+                    onChange={e => handleFieldChange(field.name, e.target.value)}
                     required={field.required}
                   />
                 )}
 
                 {field.type === 'select' && field.options && (
                   <Select
-                    value={formData[field.id] || ''}
-                    onChange={e => handleFieldChange(field.id, e.target.value)}
+                    value={formData[field.name] || ''}
+                    onChange={e => handleFieldChange(field.name, e.target.value)}
                     options={field.options.map(option => ({ value: option, label: option }))}
                   />
                 )}

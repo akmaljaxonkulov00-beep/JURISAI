@@ -1,3 +1,427 @@
 {
-  "templates": []
+  "templates": [
+    {
+      "id": "davvo_ariza",
+      "name": "Da'vo arizasi",
+      "category": "sud",
+      "description": "Fuqarolik ishlari bo'yicha da'vo arizasi — O'zbekiston Respublikasi Fuqarolik protsessual kodeksiga muvofiq",
+      "legal_basis": "FPK 135-moddasi",
+      "source": "O'zbekiston Respublikasi Fuqarolik protsessual kodeksi",
+      "fields": [
+        {
+          "name": "sud_nomi",
+          "label": "Sud nomi",
+          "type": "text",
+          "required": true,
+          "placeholder": "Masalan: Toshkent shahar Mirzo Ulug'bek tumanlararo fuqarolik ishlari bo'yicha sudi"
+        },
+        {
+          "name": "ariza_beruvchi_fio",
+          "label": "Ariza beruvchi (F.I.SH.)",
+          "type": "text",
+          "required": true,
+          "placeholder": "To'liq ism familiya sharifingiz"
+        },
+        {
+          "name": "ariza_beruvchi_manzil",
+          "label": "Ariza beruvchi manzili",
+          "type": "text",
+          "required": true,
+          "placeholder": "Yashash manzilingiz"
+        },
+        {
+          "name": "ariza_beruvchi_telefon",
+          "label": "Telefon raqami",
+          "type": "tel",
+          "required": true,
+          "placeholder": "+998 XX XXX XX XX"
+        },
+        {
+          "name": "davolangan_fio",
+          "label": "Da'vogar (F.I.SH.)",
+          "type": "text",
+          "required": true,
+          "placeholder": "Da'vo qilingan shaxsning to'liq ismi"
+        },
+        {
+          "name": "davolangan_manzil",
+          "label": "Da'vogar manzili",
+          "type": "text",
+          "required": true,
+          "placeholder": "Da'vogarning manzili"
+        },
+        {
+          "name": "da'vo_mazmuni",
+          "label": "Da'vo mazmuni",
+          "type": "textarea",
+          "required": true,
+          "placeholder": "Qanday huquq buzilganini va nimani talab qilayotganingizni batafsil yozing"
+        },
+        {
+          "name": "da'vo_summasi",
+          "label": "Da'vo summasi (so'mda)",
+          "type": "number",
+          "required": false,
+          "placeholder": "Agar pul da'vo qilsangiz"
+        },
+        {
+          "name": "dalillar",
+          "label": "Dalillar",
+          "type": "textarea",
+          "required": false,
+          "placeholder": "Qaysi hujjatlar dalil sifatida ko'rsatiladi"
+        }
+      ],
+      "body_template": "MUHIM HUJJAT — DA'VO ARIZASI\n\n{sud_nomi}\n\nAriza beruvchi: {ariza_beruvchi_fio}\nManzil: {ariza_beruvchi_manzil}\nTelefon: {ariza_beruvchi_telefon}\n\nDa'vogar: {davolangan_fio}\nManzil: {davolangan_manzil}\n\nDA'VO ARIZASI\n\n{da'vo_mazmuni}\n\nDa'vo summasi: {da'vo_summasi} so'm\n\nDalillar: {dalillar}\n\nFPK 135-moddasi asosida da'vo arizasini ko'rib chiqishni so'rayman.\n\nImzo: ________________\nSana: ________________"
+    },
+    {
+      "id": "shartnoma",
+      "name": "Xizmat ko'rsatish shartnomasi",
+      "category": "shartnoma",
+      "description": "Xizmat ko'rsatish to'g'risidagi shartnoma — O'zbekiston Respublikasi Fuqarolik kodeksiga muvofiq",
+      "legal_basis": "FK 365-moddasi",
+      "source": "O'zbekiston Respublikasi Fuqarolik kodeksi",
+      "fields": [
+        {
+          "name": "shartnoma_raqami",
+          "label": "Shartnoma raqami",
+          "type": "text",
+          "required": true,
+          "placeholder": "№ 001/2025"
+        },
+        {
+          "name": "shartnoma_sanasi",
+          "label": "Shartnoma sanasi",
+          "type": "date",
+          "required": true,
+          "placeholder": ""
+        },
+        {
+          "name": "tomon1_fio",
+          "label": "Birinchi tomon (F.I.SH.)",
+          "type": "text",
+          "required": true,
+          "placeholder": "Xizmat ko'rsatuvchi"
+        },
+        {
+          "name": "tomon1_manzil",
+          "label": "Birinchi tomon manzili",
+          "type": "text",
+          "required": true,
+          "placeholder": ""
+        },
+        {
+          "name": "tomon2_fio",
+          "label": "Ikkinchi tomon (F.I.SH.)",
+          "type": "text",
+          "required": true,
+          "placeholder": "Xizmat oluvchi"
+        },
+        {
+          "name": "tomon2_manzil",
+          "label": "Ikkinchi tomon manzili",
+          "type": "text",
+          "required": true,
+          "placeholder": ""
+        },
+        {
+          "name": "xizmat_turi",
+          "label": "Xizmat turi",
+          "type": "text",
+          "required": true,
+          "placeholder": "Qanday xizmat ko'rsatiladi"
+        },
+        {
+          "name": "summa",
+          "label": "Xizmat narxi (so'mda)",
+          "type": "number",
+          "required": true,
+          "placeholder": "500000"
+        },
+        {
+          "name": "muddat",
+          "label": "Bajarilish muddati",
+          "type": "text",
+          "required": true,
+          "placeholder": "30 kun ichida"
+        },
+        {
+          "name": "shartlar",
+          "label": "Qo'shimcha shartlar",
+          "type": "textarea",
+          "required": false,
+          "placeholder": "Qo'shimcha shartlar bo'lsa yozing"
+        }
+      ],
+      "body_template": "XIZMAT KO'RSATISH SHARTNOMASI\n\nShartnoma raqami: {shartnoma_raqami}\nSana: {shartnoma_sanasi}\n\n1. TOMONLAR\n1.1. Xizmat ko'rsatuvchi: {tomon1_fio}\n    Manzil: {tomon1_manzil}\n1.2. Xizmat oluvchi: {tomon2_fio}\n    Manzil: {tomon2_manzil}\n\n2. SHARTNOMA PREDMETI\n2.1. Xizmat ko'rsatuvchi quyidagi xizmatni ko'rsatadi: {xizmat_turi}\n\n3. NARX VA TO'LOV\n3.1. Xizmat narxi: {summa} so'm\n3.2. To'lov muddati: {muddat}\n\n4. MAJJURIY JAVOBGARLIK\n4.1. Tomonlar FK 365-moddasi talablariga muvofiq javobgarlikni qabul qilishadi.\n\n{shartlar}\n\nImzo (Xizmat ko'rsatuvchi): ________________\nImzo (Xizmat oluvchi): ________________\nSana: ________________"
+    },
+    {
+      "id": "ariza_ishga_qabul",
+      "name": "Ishga qabul qilish buyrug'i",
+      "category": "mehnat",
+      "description": "Mehnat kodeksiga muvofiq ishga qabul qilish buyrug'i namunasi",
+      "legal_basis": "MK 52-moddasi",
+      "source": "O'zbekiston Respublikasi Mehnat kodeksi",
+      "fields": [
+        {
+          "name": "tashkilot_nomi",
+          "label": "Tashkilot nomi",
+          "type": "text",
+          "required": true,
+          "placeholder": "MCHJ yoki korxona nomi"
+        },
+        {
+          "name": "buyruq_raqami",
+          "label": "Buyruq raqami",
+          "type": "text",
+          "required": true,
+          "placeholder": "№ 45"
+        },
+        {
+          "name": "buyruq_sanasi",
+          "label": "Buyruq sanasi",
+          "type": "date",
+          "required": true,
+          "placeholder": ""
+        },
+        {
+          "name": "xodim_fio",
+          "label": "Xodim F.I.SH.",
+          "type": "text",
+          "required": true,
+          "placeholder": "Ishga qabul qilinayotgan shaxs"
+        },
+        {
+          "name": "lavozim",
+          "label": "Lavozim",
+          "type": "text",
+          "required": true,
+          "placeholder": "Kasbi yoki lavozimi"
+        },
+        {
+          "name": "bo'lim",
+          "label": "Bo'lim/Tsex",
+          "type": "text",
+          "required": false,
+          "placeholder": "Qaysi bo'limda ishlaydi"
+        },
+        {
+          "name": "ish_boshlash_sanasi",
+          "label": "Ish boshlash sanasi",
+          "type": "date",
+          "required": true,
+          "placeholder": ""
+        },
+        {
+          "name": "ish_vaqti",
+          "label": "Ish vaqti",
+          "type": "text",
+          "required": false,
+          "placeholder": "Dushanba-Juma, 09:00-18:00"
+        },
+        {
+          "name": "sinov_muddati",
+          "label": "Sinov muddati",
+          "type": "text",
+          "required": false,
+          "placeholder": "3 oy"
+        }
+      ],
+      "body_template": "{tashkilot_nomi}\n\nBUYRUQ\n\nBuyruq raqami: {buyruq_raqami}\nSana: {buyruq_sanasi}\n\nISHGA QABUL QILISH TO'G'RISIDA\n\n{bo'lim} bo'limiga {lavozim} lavozimiga ishga qabul qilish to'g'risida:\n\n1. {xodim_fio} ni {ish_boshlash_sanasi} dan boshlab {lavozim} lavozimiga ishga qabul qilsin.\n\n2. Ish vaqti: {ish_vaqti}\n\n3. Sinov muddati: {sinov_muddati}\n\nMK 52-moddasiga asosan.\n\nBuyruq beruvchi: ________________\nXodim bilan tanishdi: ________________"
+    },
+    {
+      "id": "ariza_notarial",
+      "name": "Ishonchnomani bekor qilish arizasi",
+      "category": "notarial",
+      "description": "Notarial ishonchnomani bekor qilish to'g'risida ariza",
+      "legal_basis": "O'zbekiston Respublikasi Notariat to'g'risidagi qonun",
+      "source": "O'zbekiston Respublikasi Notariat to'g'risidagi qonuni",
+      "fields": [
+        {
+          "name": "notariat_nomi",
+          "label": "Notariat idorasi nomi",
+          "type": "text",
+          "required": true,
+          "placeholder": "Toshkent shahar notariat idorasi"
+        },
+        {
+          "name": "ariza_beruvchi_fio",
+          "label": "Ariza beruvchi (F.I.SH.)",
+          "type": "text",
+          "required": true,
+          "placeholder": ""
+        },
+        {
+          "name": "ariza_beruvchi_passport",
+          "label": "Passport ma'lumotlari",
+          "type": "text",
+          "required": true,
+          "placeholder": "AA 1234567"
+        },
+        {
+          "name": "ariza_beruvchi_manzil",
+          "label": "Manzil",
+          "type": "text",
+          "required": true,
+          "placeholder": ""
+        },
+        {
+          "name": "ishonchnoma_sanasi",
+          "label": "Ishonchnoma berilgan sana",
+          "type": "date",
+          "required": true,
+          "placeholder": ""
+        },
+        {
+          "name": "ishonchnoma_raqami",
+          "label": "Ishonchnoma raqami",
+          "type": "text",
+          "required": true,
+          "placeholder": ""
+        },
+        {
+          "name": "bekor_sababi",
+          "label": "Bekor qilish sababi",
+          "type": "textarea",
+          "required": true,
+          "placeholder": "Ishonchnoma nima uchun bekor qilinmoqda"
+        }
+      ],
+      "body_template": "{notariat_nomi}\n\nARIZA\n\nIshonchnomani bekor qilish to'g'risida\n\nMen, {ariza_beruvchi_fio}, pasport: {ariza_beruvchi_passport}, manzil: {ariza_beruvchi_manzil},\n\n{ishonchnoma_sanasi} sanasida berilgan {ishonchnoma_raqami} raqamli ishonchnomamni quyidagi sababga ko'ra bekor qilishni so'rayman:\n\n{bekor_sababi}\n\nIltimos, yuqoridagi ishonchnomani notariat idorasi reestridan chiqarib tashlasin.\n\nImzo: ________________\nSana: ________________"
+    },
+    {
+      "id": "meros_ariza",
+      "name": "Meros huquqi bo'yicha ariza",
+      "category": "meros",
+      "description": "Merosni qabul qilish to'g'risida notariat idorasiga beriladigan ariza",
+      "legal_basis": "FK 1212-moddasi",
+      "source": "O'zbekiston Respublikasi Fuqarolik kodeksi",
+      "fields": [
+        {
+          "name": "notariat_nomi",
+          "label": "Notariat idorasi nomi",
+          "type": "text",
+          "required": true,
+          "placeholder": ""
+        },
+        {
+          "name": "ariza_beruvchi_fio",
+          "label": "Merosxo'r (F.I.SH.)",
+          "type": "text",
+          "required": true,
+          "placeholder": ""
+        },
+        {
+          "name": "ariza_beruvchi_passport",
+          "label": "Passport",
+          "type": "text",
+          "required": true,
+          "placeholder": ""
+        },
+        {
+          "name": "meros_qoldiruvchi_fio",
+          "label": "Meros qoldiruvchi (F.I.SH.)",
+          "type": "text",
+          "required": true,
+          "placeholder": "Vafot etgan shaxsning ismi"
+        },
+        {
+          "name": "meros_qoldiruvchi_vafot_sanasi",
+          "label": "Vafot sanasi",
+          "type": "date",
+          "required": true,
+          "placeholder": ""
+        },
+        {
+          "name": "o'lim_noma_raqami",
+          "label": "O'lim noma raqami",
+          "type": "text",
+          "required": true,
+          "placeholder": ""
+        },
+        {
+          "name": "meros_turi",
+          "label": "Meros turi",
+          "type": "text",
+          "required": true,
+          "placeholder": "Vasiyatnoma asosida yoki qonun asosida"
+        },
+        {
+          "name": "meros_molini_tavsiflash",
+          "label": "Meros mulkini tavsiflash",
+          "type": "textarea",
+          "required": true,
+          "placeholder": "Qanday mulk meros qoldirilgan"
+        }
+      ],
+      "body_template": "{notariat_nomi}\n\nARIZA\n\nMerosni qabul qilish to'g'risida\n\nMen, {ariza_beruvchi_fio}, passport: {ariza_beruvchi_passport},\n\nFK 1212-moddasiga asosan merosxo'r sifatida merosni qabul qilish to'g'risida ariza beraman.\n\nMeros qoldiruvchi: {meros_qoldiruvchi_fio}\nVafot sanasi: {meros_qoldiruvchi_vafot_sanasi}\nO'lim noma raqami: {o'lim_noma_raqami}\nMeros turi: {meros_turi}\n\nMeros mulki:\n{meros_molini_tavsiflash}\n\nIltimos, meros ishini ochishni va meros sertifikatini berishni so'rayman.\n\nImzo: ________________\nSana: ________________"
+    },
+    {
+      "id": "da'vo_arizasi_talabnoma",
+      "name": "Talabnoma (pretenziya)",
+      "category": "shartnoma",
+      "description": "Moliyaviy talabnoma — to'lovni amalga oshirish to'g'risida",
+      "legal_basis": "FK 353-moddasi",
+      "source": "O'zbekiston Respublikasi Fuqarolik kodeksi",
+      "fields": [
+        {
+          "name": "talab_etchi_fio",
+          "label": "Talab etuvchi (F.I.SH.)",
+          "type": "text",
+          "required": true,
+          "placeholder": ""
+        },
+        {
+          "name": "talab_etchi_manzil",
+          "label": "Manzil",
+          "type": "text",
+          "required": true,
+          "placeholder": ""
+        },
+        {
+          "name": "qarzdor_fio",
+          "label": "Qarzdor (F.I.SH./Tashkilot)",
+          "type": "text",
+          "required": true,
+          "placeholder": ""
+        },
+        {
+          "name": "qarzdor_manzil",
+          "label": "Qarzdor manzili",
+          "type": "text",
+          "required": true,
+          "placeholder": ""
+        },
+        {
+          "name": "qarz_mazmuni",
+          "label": "Qarz mazmuni",
+          "type": "textarea",
+          "required": true,
+          "placeholder": "Qanday sababga ko'ra qarz paydo bo'lgan"
+        },
+        {
+          "name": "qarz_summasi",
+          "label": "Qarz summasi (so'm)",
+          "type": "number",
+          "required": true,
+          "placeholder": ""
+        },
+        {
+          "name": "qarz_muddati",
+          "label": "Qarz muddati",
+          "type": "date",
+          "required": true,
+          "placeholder": ""
+        },
+        {
+          "name": "qarzdor_muddati",
+          "label": "To'lov muddati (necha kun ichida)",
+          "type": "number",
+          "required": true,
+          "placeholder": "10"
+        }
+      ],
+      "body_template": "TALABNOMA (PRETENZIYA)\n\nSana: ________________\n\nTalab etuvchi: {talab_etchi_fio}\nManzil: {talab_etchi_manzil}\n\nQarzdor: {qarzdor_fio}\nManzil: {qarzdor_manzil}\n\nQARZ TO'LASH TO'G'RISIDA TALABNOMA\n\n{qarz_mazmuni}\n\nFK 353-moddasiga asosan sizdan quyidagini talab qilaman:\n\nQarz summasi: {qarz_summasi} so'm\nQarz muddati: {qarz_muddati}\n\nYuqoridagi qarzni {qarzdor_muddati} kun ichida to'lashni so'rayman.\n\nBelgilangan muddatda to'lanmagan taqdirda, sudga murojaat qilishga majbur bo'laman.\n\nImzo: {talab_etchi_fio}\nSana: ________________"
+    }
+  ]
 }
