@@ -63,6 +63,7 @@ export async function GET() {
       settings[row.key] = row.value || ''
     })
 
+    // Return ALL platforms with their saved state (admin needs to see all)
     const socialLinks = [
       {
         platform: 'telegram',
@@ -89,7 +90,7 @@ export async function GET() {
         url: settings.social_website || '',
         enabled: settings.social_website_enabled === 'true',
       },
-    ].filter(link => link.enabled && link.url)
+    ]
 
     return NextResponse.json({
       success: true,

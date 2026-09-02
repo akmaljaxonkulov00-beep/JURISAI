@@ -95,15 +95,12 @@ export default function ContactSection() {
   // Don't render if loading or explicitly disabled by admin
   if (loading || !settings.contactSectionEnabled) {
     return null
-  } // Only use defaults when DB has absolutely no contact settings (first-time setup)
-  // If admin explicitly saved with empty links, show nothing (admin deleted them)
-  const hasDBSettings = settings.contactLabel !== '' || settings.contactHeading !== ''
-  const socialLinksToShow =
-    hasDBSettings && settings.socialLinks.length === 0
-      ? [] // Admin explicitly removed all links — respect that
-      : settings.socialLinks.length > 0
-        ? settings.socialLinks
-        : DEFAULT_CONTACT_SETTINGS.socialLinks // First-time: no DB data yet
+  }
+
+  // Filter: only show links that are enabled AND have a URL
+  const socialLinksToShow = settings.socialLinks.filter(
+    link => link.enabled && link.url && link.url.trim() !== ''
+  )
 
   return (
     <section className="py-16 sm:py-20">
