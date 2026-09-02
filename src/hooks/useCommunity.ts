@@ -53,11 +53,7 @@ export interface CommunityNotification {
   createdAt: string
 }
 
-// ── LocalStorage Keys ─────────────────────────────────────────────────
-
-const LS_POSTS = 'community_posts'
-const LS_NOTIFICATIONS = 'community_notifications'
-const LS_CURRENT_USER = 'community_current_user'
+// ── Auth ──────────────────────────────────────────────────────────────
 
 // ── Default Current User ───────────────────────────────────────────────
 
@@ -73,10 +69,7 @@ function getCurrentUser(): CommunityUser {
     }
   }
   try {
-    const stored =
-      localStorage.getItem(LS_CURRENT_USER) ||
-      sessionStorage.getItem('juristiv_user') ||
-      localStorage.getItem('auth_user')
+    const stored = localStorage.getItem('auth_user') || sessionStorage.getItem('juristiv_user')
     if (stored) {
       const u = JSON.parse(stored)
       if (u && u.id) {
@@ -128,32 +121,9 @@ export function useCommunity() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // ── Load / Save ───────────────────────────────────────────────────
+  // ── Posts are loaded from DB API (loadFromApi) ──
 
-  const loadFromStorage = useCallback(() => {
-    try {
-      const stored = localStorage.getItem(LS_POSTS)
-      if (stored) {
-        const parsed = JSON.parse(stored)
-        if (Array.isArray(parsed)) {
-          setPosts(parsed)
-          return
-        }
-      }
-      setPosts([])
-    } catch (err) {
-      console.error('Error loading posts:', err)
-      setError("Ma'lumotlar yuklanmadi")
-    }
-  }, [])
-
-  const savePosts = useCallback((updatedPosts: CommunityPost[]) => {
-    try {
-      localStorage.setItem(LS_POSTS, JSON.stringify(updatedPosts))
-    } catch (err) {
-      console.error('Error saving posts:', err)
-    }
-  }, [])
+  // NOTE: Posts are DB-backed. localStorage removed as primary source.
 
   // ── API'dan yuklash (Supabase — barcha qurilmalar uchun yagona manba) ──
   const loadFromApi = useCallback(async () => {
@@ -161,15 +131,10 @@ export function useCommunity() {
       const res = await fetch('/api/community/posts', { cache: 'no-cache' })
       const data = await res.json()
       if (data?.success && Array.isArray(data.data)) {
-        if (data.data.length > 0) {
-          setPosts(data.data)
-          try {
-            localStorage.setItem(LS_POSTS, JSON.stringify(data.data))
-          } catch {}
-        }
+        setPosts(data.data)
       }
     } catch {
-      /* offline — localStorage'da qoladi */
+      // API failed — keep existing state
     }
   }, [])
 
@@ -197,8 +162,8 @@ export function useCommunity() {
   }, [])
 
   useEffect(() => {
-    loadFromStorage()
     loadFromApi()
+    setLoading(false)
 
     // Supabase Realtime — yangi post boshqa qurilmada yozilganda darhol ko'rinadi
     const channel = supabase
@@ -208,16 +173,10 @@ export function useCommunity() {
       })
       .subscribe()
 
-    try {
-      const stored = localStorage.getItem(LS_NOTIFICATIONS)
-      if (stored) setNotifications(JSON.parse(stored))
-    } catch {}
-    setLoading(false)
-
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [loadFromStorage, loadFromApi])
+  }, [loadFromApi])
 
   // Re-sync current user on mount
   useEffect(() => {
@@ -245,18 +204,19 @@ export function useCommunity() {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       }
-      const updated = [newPost, ...posts]
-      setPosts(updated)
-      savePosts(updated)
-      // Try API (Supabase-ready)
+      // Optimistic UI update
+      setPosts(prev => [newPost, ...prev])
+      // Save to DB
       fetch('/api/community/posts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content, category, tags, author: user }),
-      }).catch(() => {})
+      })
+        .then(() => loadFromApi())
+        .catch(() => {})
       return newPost
     },
-    [posts, savePosts]
+    [posts, loadFromApi]
   )
 
   const updatePost = useCallback(
@@ -274,22 +234,18 @@ export function useCommunity() {
         return p
       })
       setPosts(updated)
-      savePosts(updated)
-      const target = updated.find(p => p.id === postId)
-      if (target) syncPost(target)
+      syncPost(updated.find(p => p.id === postId)!)?.catch(() => {})
     },
-    [posts, savePosts, syncPost]
+    [posts, syncPost]
   )
 
   const deletePost = useCallback(
     (postId: string) => {
-      const updated = posts.filter(p => p.id !== postId)
-      setPosts(updated)
-      savePosts(updated)
+      setPosts(prev => prev.filter(p => p.id !== postId))
       // Try API (Supabase-ready)
       fetch(`/api/community/posts?id=${postId}`, { method: 'DELETE' }).catch(() => {})
     },
-    [posts, savePosts]
+    [posts]
   )
 
   // ── Like / Dislike ────────────────────────────────────────────────
@@ -327,11 +283,11 @@ export function useCommunity() {
         }
       })
       setPosts(updated)
-      savePosts(updated)
+      // DB-backed — no localStorage save
       const target = updated.find(p => p.id === postId)
       if (target) syncPost(target)
     },
-    [posts, savePosts, syncPost]
+    [posts, syncPost]
   )
 
   const toggleDislike = useCallback(
@@ -366,11 +322,11 @@ export function useCommunity() {
         }
       })
       setPosts(updated)
-      savePosts(updated)
+      // DB-backed — no localStorage save
       const target = updated.find(p => p.id === postId)
       if (target) syncPost(target)
     },
-    [posts, savePosts, syncPost]
+    [posts, syncPost]
   )
 
   // ── Comments ──────────────────────────────────────────────────────
@@ -406,7 +362,7 @@ export function useCommunity() {
       })
 
       setPosts(updated)
-      savePosts(updated)
+      // DB-backed — no localStorage save
       addNotification('comment', `${user.name} postingizga izoh qoldirdi`, user.name, postId)
       // API'ga yuborish: izoh jadvali + post.comments JSONB
       fetch('/api/community/comments', {
@@ -417,7 +373,7 @@ export function useCommunity() {
       const target = updated.find(p => p.id === postId)
       if (target) syncPost(target)
     },
-    [posts, savePosts, syncPost]
+    [posts, syncPost]
   )
 
   const deleteComment = useCallback(
@@ -431,14 +387,14 @@ export function useCommunity() {
         return { ...p, comments: removeRecursive(p.comments) }
       })
       setPosts(updated)
-      savePosts(updated)
+      // DB-backed — no localStorage save
       fetch(`/api/community/comments?id=${commentId}&postId=${postId}`, { method: 'DELETE' }).catch(
         () => {}
       )
       const target = updated.find(p => p.id === postId)
       if (target) syncPost(target)
     },
-    [posts, savePosts, syncPost]
+    [posts, syncPost]
   )
 
   // ── Views ─────────────────────────────────────────────────────────
@@ -447,11 +403,11 @@ export function useCommunity() {
     (postId: string) => {
       const updated = posts.map(p => (p.id === postId ? { ...p, views: p.views + 1 } : p))
       setPosts(updated)
-      savePosts(updated)
+      // DB-backed — no localStorage save
       const target = updated.find(p => p.id === postId)
       if (target) syncPost(target)
     },
-    [posts, savePosts, syncPost]
+    [posts, syncPost]
   )
 
   // ── Notifications ─────────────────────────────────────────────────
@@ -471,32 +427,17 @@ export function useCommunity() {
       read: false,
       createdAt: new Date().toISOString(),
     }
-    // Use functional updater to avoid stale closure
-    setNotifications(prev => {
-      const updated = [notif, ...prev]
-      try {
-        localStorage.setItem(LS_NOTIFICATIONS, JSON.stringify(updated))
-      } catch {}
-      return updated
-    })
+    // Community notifications are in-memory for the current session.
+    // DB-backed notifications use the /api/notifications endpoint.
+    setNotifications(prev => [notif, ...prev])
   }
 
-  const markNotificationRead = useCallback(
-    (notifId: string) => {
-      const updated = notifications.map(n => (n.id === notifId ? { ...n, read: true } : n))
-      setNotifications(updated)
-      try {
-        localStorage.setItem(LS_NOTIFICATIONS, JSON.stringify(updated))
-      } catch {}
-    },
-    [notifications]
-  )
+  const markNotificationRead = useCallback((notifId: string) => {
+    setNotifications(prev => prev.map(n => (n.id === notifId ? { ...n, read: true } : n)))
+  }, [])
 
   const clearNotifications = useCallback(() => {
     setNotifications([])
-    try {
-      localStorage.removeItem(LS_NOTIFICATIONS)
-    } catch {}
   }, [])
 
   const unreadCount = useMemo(() => notifications.filter(n => !n.read).length, [notifications])
@@ -553,11 +494,10 @@ export function useCommunity() {
 
   const refresh = useCallback(() => {
     if (!paused) {
-      loadFromStorage()
       loadFromApi()
       setCurrentUser(getCurrentUser())
     }
-  }, [loadFromStorage, loadFromApi, paused])
+  }, [loadFromApi, paused])
 
   // Auto-refresh every 30 seconds (paused when user is typing/submitting)
   useEffect(() => {

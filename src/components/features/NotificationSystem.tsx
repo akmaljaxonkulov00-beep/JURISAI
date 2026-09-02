@@ -1,11 +1,9 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
-import { Input } from '@/components/ui/Input'
-import { Select } from '@/components/ui/Select'
 import {
   Bell,
   BellOff,
@@ -25,11 +23,12 @@ interface Notification {
   type: 'info' | 'success' | 'warning' | 'error'
   title: string
   message: string
-  timestamp: string
+  timestamp?: string
+  created_at?: string
   read: boolean
   category: 'system' | 'payment' | 'legal' | 'profile' | 'ai'
-  actionUrl?: string
-  actionText?: string
+  action_url?: string
+  action_text?: string
 }
 
 interface NotificationSettings {
@@ -54,87 +53,130 @@ export default function NotificationSystem() {
     profile: false,
     ai: true,
   })
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<string>('all')
+  const [actionLoading, setActionLoading] = useState<string | null>(null)
+  const mountedRef = useRef(true)
 
-  useEffect(() => {
-    loadNotifications()
-    loadSettings()
-  }, [])
-
-  const loadSettings = () => {
-    try {
-      const stored = localStorage.getItem('notification_settings')
-      if (stored) {
-        setSettings(JSON.parse(stored))
-      }
-    } catch (error) {
-      console.error('Error loading settings:', error)
-    }
-  }
-
-  const loadNotifications = async () => {
+  // ── Load notifications from DB API ─────────────────────────────────
+  const loadNotifications = useCallback(async () => {
     try {
       setLoading(true)
-      // Load from localStorage
-      const stored = localStorage.getItem('user_notifications')
-      if (stored) {
-        const parsedNotifications = JSON.parse(stored)
-        setNotifications(parsedNotifications)
-      } else {
-        // Create initial welcome notification
-        const welcomeNotification: Notification = {
-          id: 'welcome_' + Date.now(),
-          type: 'success',
-          title: 'Xush kelibsiz!',
-          message:
-            "Juristiv platformasiga xush kelibsiz. Bu yerda sizning barcha bildirishnomalaringiz ko'rsatiladi.",
-          timestamp: new Date().toISOString(),
-          read: false,
-          category: 'system',
-        }
-        setNotifications([welcomeNotification])
-        localStorage.setItem('user_notifications', JSON.stringify([welcomeNotification]))
+      const res = await fetch('/api/notifications?limit=50', { cache: 'no-cache' })
+      if (!res.ok) {
+        if (!mountedRef.current) return
+        setNotifications([])
+        return
       }
-    } catch (error) {
-      console.error('Error loading notifications:', error)
-      setNotifications([])
+      const data = await res.json()
+      if (data.success && Array.isArray(data.data)) {
+        if (!mountedRef.current) return
+        setNotifications(
+          data.data.map((n: Record<string, unknown>) => ({
+            id: String(n.id || ''),
+            type: (n.type as Notification['type']) || 'info',
+            title: String(n.title || ''),
+            message: String(n.message || ''),
+            created_at: String(n.created_at || n.timestamp || ''),
+            read: Boolean(n.read),
+            category: (n.category as Notification['category']) || 'system',
+            action_url: n.action_url ? String(n.action_url) : undefined,
+            action_text: n.action_text ? String(n.action_text) : undefined,
+          }))
+        )
+      }
+    } catch {
+      if (mountedRef.current) setNotifications([])
     } finally {
-      setLoading(false)
+      if (mountedRef.current) setLoading(false)
     }
-  }
+  }, [])
 
+  useEffect(() => {
+    mountedRef.current = true
+    loadNotifications()
+    return () => {
+      mountedRef.current = false
+    }
+  }, [loadNotifications])
+
+  // ── Mark single as read ────────────────────────────────────────────
   const markAsRead = async (notificationId: string) => {
-    const updatedNotifications = notifications.map(n =>
-      n.id === notificationId ? { ...n, read: true } : n
-    )
-    setNotifications(updatedNotifications)
-    localStorage.setItem('user_notifications', JSON.stringify(updatedNotifications))
-  }
-
-  const markAllAsRead = async () => {
-    const updatedNotifications = notifications.map(n => ({ ...n, read: true }))
-    setNotifications(updatedNotifications)
-    localStorage.setItem('user_notifications', JSON.stringify(updatedNotifications))
-  }
-
-  const deleteNotification = async (notificationId: string) => {
-    const updatedNotifications = notifications.filter(n => n.id !== notificationId)
-    setNotifications(updatedNotifications)
-    localStorage.setItem('user_notifications', JSON.stringify(updatedNotifications))
-  }
-
-  const updateSettings = async (newSettings: NotificationSettings) => {
+    setActionLoading(notificationId)
     try {
-      setSettings(newSettings)
-      // Save to localStorage
-      localStorage.setItem('notification_settings', JSON.stringify(newSettings))
-      console.log('Notification settings saved:', newSettings)
-    } catch (error) {
-      console.error('Error saving settings:', error)
+      const res = await fetch('/api/notifications', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: notificationId }),
+      })
+      if (res.ok) {
+        setNotifications(prev =>
+          prev.map(n => (n.id === notificationId ? { ...n, read: true } : n))
+        )
+      }
+    } catch {
+      // Optimistic UI already applied
+    } finally {
+      setActionLoading(null)
     }
   }
 
+  // ── Mark all as read ───────────────────────────────────────────────
+  const markAllAsRead = async () => {
+    setActionLoading('all')
+    try {
+      const res = await fetch('/api/notifications', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ markAll: true }),
+      })
+      if (res.ok) {
+        setNotifications(prev => prev.map(n => ({ ...n, read: true })))
+      }
+    } catch {
+      // Optimistic
+    } finally {
+      setActionLoading(null)
+    }
+  }
+
+  // ── Delete notification ────────────────────────────────────────────
+  const deleteNotification = async (notificationId: string) => {
+    setActionLoading(notificationId)
+    try {
+      const res = await fetch('/api/notifications', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: notificationId }),
+      })
+      if (res.ok) {
+        setNotifications(prev => prev.filter(n => n.id !== notificationId))
+      }
+    } catch {
+      // Optimistic
+    } finally {
+      setActionLoading(null)
+    }
+  }
+
+  // ── Settings (kept in localStorage as browser preference) ──────────
+  // Notification preferences are browser-specific, not user-specific,
+  // so localStorage is acceptable here.
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('notification_settings')
+      if (stored) setSettings(JSON.parse(stored))
+    } catch {}
+  }, [])
+
+  const updateSettings = (newSettings: NotificationSettings) => {
+    setSettings(newSettings)
+    try {
+      localStorage.setItem('notification_settings', JSON.stringify(newSettings))
+    } catch {}
+  }
+
+  // ── Helpers ────────────────────────────────────────────────────────
   const getIcon = (type: string) => {
     switch (type) {
       case 'success':
@@ -210,7 +252,7 @@ export default function NotificationSystem() {
             className={`flex-1 flex items-center justify-center space-x-2 px-4 py-2 rounded-md transition-colors ${
               activeTab === 'notifications'
                 ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-sm'
-                : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100'
+                : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-zinc-100'
             }`}
           >
             <Bell className="w-4 h-4" />
@@ -226,7 +268,7 @@ export default function NotificationSystem() {
             className={`flex-1 flex items-center justify-center space-x-2 px-4 py-2 rounded-md transition-colors ${
               activeTab === 'settings'
                 ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-sm'
-                : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:text-zinc-100'
+                : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-zinc-100'
             }`}
           >
             <Settings className="w-4 h-4" />
@@ -243,7 +285,7 @@ export default function NotificationSystem() {
               <select
                 value={filter}
                 onChange={e => setFilter(e.target.value)}
-                className="px-3 py-2 border border-gray-300 dark:border-zinc-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-3 py-2 border border-gray-300 dark:border-zinc-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-zinc-800 text-gray-800 dark:text-zinc-200 text-sm"
               >
                 <option value="all">Barchasi ({notifications.length})</option>
                 <option value="unread">O'qilmagan ({unreadCount})</option>
@@ -261,10 +303,10 @@ export default function NotificationSystem() {
                 variant="outline"
                 size="sm"
                 onClick={markAllAsRead}
-                disabled={unreadCount === 0}
+                disabled={unreadCount === 0 || actionLoading === 'all'}
               >
                 <Check className="w-4 h-4 mr-1" />
-                Barchasini o'qildi deb belgilash
+                {actionLoading === 'all' ? 'Saqlanmoqda...' : "Barchasini o'qildi"}
               </Button>
             </div>
           </div>
@@ -291,50 +333,50 @@ export default function NotificationSystem() {
                 >
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between">
-                      <div className="flex items-start space-x-3 flex-1">
-                        <div className="mt-1">{getIcon(notification.type)}</div>
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-2 mb-1">
+                      <div className="flex items-start space-x-3 flex-1 min-w-0">
+                        <div className="mt-1 flex-shrink-0">{getIcon(notification.type)}</div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center space-x-2 mb-1 flex-wrap">
                             <h3
-                              className={`font-semibold ${!notification.read ? 'text-gray-900 dark:text-zinc-100' : 'text-gray-700 dark:text-zinc-300'}`}
+                              className={`font-semibold text-sm ${!notification.read ? 'text-gray-900 dark:text-zinc-100' : 'text-gray-700 dark:text-zinc-300'}`}
                             >
                               {notification.title}
                             </h3>
                             {!notification.read && (
-                              <Badge variant="secondary" className="text-xs">
+                              <Badge variant="secondary" className="text-xs flex-shrink-0">
                                 Yangi
                               </Badge>
                             )}
-                            <div className="flex items-center space-x-1 text-gray-500 dark:text-zinc-500">
-                              {getCategoryIcon(notification.category)}
-                              <span className="text-xs">
-                                {new Date(notification.timestamp).toLocaleDateString('uz-UZ')}
-                              </span>
-                            </div>
                           </div>
-                          <p className="text-gray-700 dark:text-zinc-300 mb-2">
+                          <p className="text-sm text-gray-700 dark:text-zinc-300 mb-2 whitespace-pre-wrap break-words">
                             {notification.message}
                           </p>
-                          {notification.actionUrl && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                // Navigate to action URL
-                                console.log('Navigate to:', notification.actionUrl)
-                              }}
+                          <div className="flex items-center space-x-2 text-gray-500 dark:text-zinc-500">
+                            {getCategoryIcon(notification.category)}
+                            <span className="text-xs">
+                              {new Date(
+                                notification.created_at || notification.timestamp || ''
+                              ).toLocaleDateString('uz-UZ')}
+                            </span>
+                          </div>
+                          {notification.action_url && (
+                            <a
+                              href={notification.action_url}
+                              className="inline-block mt-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline"
                             >
-                              {notification.actionText}
-                            </Button>
+                              {notification.action_text || "Ko'rish"} →
+                            </a>
                           )}
                         </div>
                       </div>
-                      <div className="flex items-center space-x-2 ml-4">
+                      <div className="flex items-center space-x-1 ml-4 flex-shrink-0">
                         {!notification.read && (
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => markAsRead(notification.id)}
+                            disabled={actionLoading === notification.id}
+                            title="O'qildi deb belgilash"
                           >
                             <Check className="w-4 h-4" />
                           </Button>
@@ -343,6 +385,9 @@ export default function NotificationSystem() {
                           variant="ghost"
                           size="sm"
                           onClick={() => deleteNotification(notification.id)}
+                          disabled={actionLoading === notification.id}
+                          title="O'chirish"
+                          className="text-gray-400 hover:text-red-500"
                         >
                           <X className="w-4 h-4" />
                         </Button>
@@ -376,7 +421,7 @@ export default function NotificationSystem() {
                       onChange={e => updateSettings({ ...settings, email: e.target.checked })}
                       className="w-4 h-4 text-blue-600 rounded"
                     />
-                    <span>Email bildirishnomalarni yoqish</span>
+                    <span className="text-sm">Email bildirishnomalarni yoqish</span>
                   </label>
                 </div>
               </div>
@@ -394,7 +439,7 @@ export default function NotificationSystem() {
                       onChange={e => updateSettings({ ...settings, push: e.target.checked })}
                       className="w-4 h-4 text-blue-600 rounded"
                     />
-                    <span>Push bildirishnomalarni yoqish</span>
+                    <span className="text-sm">Push bildirishnomalarni yoqish</span>
                   </label>
                 </div>
               </div>
@@ -426,11 +471,14 @@ export default function NotificationSystem() {
                     icon: <MessageSquare className="w-4 h-4" />,
                   },
                 ].map(({ key, label, icon }) => (
-                  <label key={key} className="flex items-center space-x-3 p-3 border rounded-lg">
+                  <label
+                    key={key}
+                    className="flex items-center space-x-3 p-3 border border-gray-200 dark:border-zinc-700 rounded-lg cursor-pointer"
+                  >
                     <div className="text-gray-600 dark:text-zinc-400">{icon}</div>
                     <div className="flex-1">
-                      <div className="font-medium">{label}</div>
-                      <div className="text-sm text-gray-500 dark:text-zinc-500">
+                      <div className="font-medium text-sm">{label}</div>
+                      <div className="text-xs text-gray-500 dark:text-zinc-500">
                         {settings[key as keyof NotificationSettings] ? 'Yoqilgan' : "O'chirilgan"}
                       </div>
                     </div>
@@ -443,10 +491,6 @@ export default function NotificationSystem() {
                   </label>
                 ))}
               </div>
-            </div>
-
-            <div className="pt-4 border-t">
-              <Button onClick={() => updateSettings(settings)}>Sozlamalarni saqlash</Button>
             </div>
           </CardContent>
         </Card>

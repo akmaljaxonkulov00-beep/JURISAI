@@ -170,10 +170,6 @@ export function useAdminRealtime(): AdminRealtimeState {
         prevPaymentIdsRef.current = currentIds
 
         setPaymentRequests(mapped)
-        // Cache to localStorage for offline backup
-        try {
-          localStorage.setItem('admin_payment_requests', JSON.stringify(mapped))
-        } catch {}
       }
 
       // ── Users ──
@@ -194,29 +190,9 @@ export function useAdminRealtime(): AdminRealtimeState {
           provider: u.provider || u.app_metadata?.provider || 'email',
         }))
         setAllUsers(mappedUsers)
-        try {
-          localStorage.setItem('admin_users', JSON.stringify(mappedUsers))
-        } catch {}
       } else {
-        // Fallback: load registered users from localStorage (set during Firebase login)
-        try {
-          const stored = localStorage.getItem('registered_users')
-          if (stored && stored !== 'undefined') {
-            const parsed = JSON.parse(stored)
-            if (Array.isArray(parsed) && parsed.length > 0) {
-              setAllUsers(parsed)
-            }
-          } else {
-            // Try admin_users cache
-            const cached = localStorage.getItem('admin_users')
-            if (cached && cached !== 'undefined') {
-              const parsed = JSON.parse(cached)
-              if (Array.isArray(parsed) && parsed.length > 0) {
-                setAllUsers(parsed)
-              }
-            }
-          }
-        } catch {}
+        // No users from API — set empty (DB is source of truth)
+        setAllUsers([])
       }
 
       // ── Login activities ──
@@ -276,14 +252,8 @@ export function useAdminRealtime(): AdminRealtimeState {
       } catch {}
 
       setLastSynced(new Date())
-    } catch (err) {
-      // Fallback: load from localStorage cache
-      try {
-        const cachedPayments = localStorage.getItem('admin_payment_requests')
-        if (cachedPayments) setPaymentRequests(JSON.parse(cachedPayments))
-        const cachedUsers = localStorage.getItem('admin_users')
-        if (cachedUsers) setAllUsers(JSON.parse(cachedUsers))
-      } catch {}
+    } catch {
+      // API failed — keep existing state (DB is source of truth, no localStorage fallback)
     } finally {
       if (mountedRef.current) setLoading(false)
     }

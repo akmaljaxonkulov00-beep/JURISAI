@@ -95,11 +95,15 @@ export default function ContactSection() {
   // Don't render if loading or explicitly disabled by admin
   if (loading || !settings.contactSectionEnabled) {
     return null
-  }
-
-  // Always show — if no social links from DB, use defaults
+  } // Only use defaults when DB has absolutely no contact settings (first-time setup)
+  // If admin explicitly saved with empty links, show nothing (admin deleted them)
+  const hasDBSettings = settings.contactLabel !== '' || settings.contactHeading !== ''
   const socialLinksToShow =
-    settings.socialLinks.length > 0 ? settings.socialLinks : DEFAULT_CONTACT_SETTINGS.socialLinks
+    hasDBSettings && settings.socialLinks.length === 0
+      ? [] // Admin explicitly removed all links — respect that
+      : settings.socialLinks.length > 0
+        ? settings.socialLinks
+        : DEFAULT_CONTACT_SETTINGS.socialLinks // First-time: no DB data yet
 
   return (
     <section className="py-16 sm:py-20">
@@ -121,28 +125,38 @@ export default function ContactSection() {
 
             {/* Social Links */}
             <div className="flex flex-wrap gap-3 justify-start lg:justify-end">
-              {socialLinksToShow.map(link => {
-                const social = SOCIAL_ICONS[link.platform]
-                if (!social) return null
+              {socialLinksToShow.length === 0 ? (
+                <p className="text-sm text-gray-400 dark:text-zinc-500 italic">
+                  Ijtimoiy tarmoqlar havolalari hali qo'shilmagan
+                </p>
+              ) : (
+                socialLinksToShow.map(link => {
+                  const social = SOCIAL_ICONS[link.platform]
+                  if (!social) return null
 
-                return (
-                  <a
-                    key={link.platform}
-                    href={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={`inline-flex items-center gap-2.5 px-5 py-3 rounded-xl ${social.bg} border border-transparent hover:border-gray-200 dark:hover:border-gray-700 transition-all duration-200 group`}
-                  >
-                    <svg className="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill={social.color}>
-                      <path d={social.icon} />
-                    </svg>
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300 capitalize">
-                      {link.platform}
-                    </span>
-                    <ExternalLink className="w-3.5 h-3.5 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </a>
-                )
-              })}
+                  return (
+                    <a
+                      key={link.platform}
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`inline-flex items-center gap-2.5 px-5 py-3 rounded-xl ${social.bg} border border-transparent hover:border-gray-200 dark:hover:border-gray-700 transition-all duration-200 group`}
+                    >
+                      <svg
+                        className="w-5 h-5 flex-shrink-0"
+                        viewBox="0 0 24 24"
+                        fill={social.color}
+                      >
+                        <path d={social.icon} />
+                      </svg>
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300 capitalize">
+                        {link.platform}
+                      </span>
+                      <ExternalLink className="w-3.5 h-3.5 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </a>
+                  )
+                })
+              )}
             </div>
           </div>
         </div>

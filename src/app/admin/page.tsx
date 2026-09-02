@@ -560,26 +560,9 @@ export default function AdminDashboard() {
                 subscription_expires_at: new Date(Date.now() + 365 * 86400000).toISOString(),
                 balance: currentBalance + (p.amount || 0),
               }
-              sessionStorage.setItem('juristiv_user', JSON.stringify(updatedUser))
-              sessionStorage.setItem('auth_user', JSON.stringify(updatedUser))
-              localStorage.setItem('juristiv_user', JSON.stringify(updatedUser))
-              localStorage.setItem('auth_user', JSON.stringify(updatedUser))
+              // Session updated via Supabase auth — no localStorage override
             }
           }
-        } catch {}
-        // Save payment_history for user's profile
-        try {
-          localStorage.setItem(
-            'payment_history',
-            JSON.stringify({
-              status: 'approved',
-              amount: p.amount,
-              plan: plan,
-              date: new Date().toLocaleDateString('uz-UZ'),
-              userId: p.userId,
-              userEmail: p.userEmail,
-            })
-          )
         } catch {}
         return { ...p, status: 'approved' as const }
       }
@@ -590,11 +573,8 @@ export default function AdminDashboard() {
     // Sync to Supabase (PRIMARY)
     await syncApprovePayment(paymentId)
 
-    // Update localStorage cache
-    try {
-      localStorage.setItem('payment_requests', JSON.stringify(updated))
-      localStorage.setItem('juristiv_payment_requests', JSON.stringify(updated))
-    } catch {}
+    // DB is source of truth — refresh from API
+    realtime.refreshPayments()
   }
 
   const rejectPayment = async (paymentId: string) => {
@@ -607,11 +587,8 @@ export default function AdminDashboard() {
     // Sync to Supabase (PRIMARY)
     await syncRejectPayment(paymentId)
 
-    // Update localStorage cache
-    try {
-      localStorage.setItem('payment_requests', JSON.stringify(updated))
-      localStorage.setItem('juristiv_payment_requests', JSON.stringify(updated))
-    } catch {}
+    // DB is source of truth — refresh from API
+    realtime.refreshPayments()
   }
 
   // ===== PRICING MANAGEMENT =====
