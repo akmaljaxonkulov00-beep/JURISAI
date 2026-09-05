@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { getAuthHeaders } from '@/lib/api-auth-client'
 import { useRouter } from 'next/navigation'
 import { useLimitModal } from '@/hooks/useLimitModal'
@@ -198,6 +198,9 @@ export default function CaseSolver() {
   const [allCases, setAllCases] = useState<IracCase[]>([])
   const [showAllCases, setShowAllCases] = useState(false)
 
+  // ── Session ichida bir xil kazus qayta chiqmasligi uchun ──
+  const seenCaseIdsRef = useRef<Set<string>>(new Set())
+
   // ── Foydalanuvchi o'zi kazus yozishi uchun (Mode 1: AI yechishi) ──
   const [useCustomCase, setUseCustomCase] = useState(false)
   const [customCaseText, setCustomCaseText] = useState('')
@@ -255,11 +258,30 @@ export default function CaseSolver() {
       setError('Kazuslar topilmadi. Boshqa kategoriya yoki qiyinlik darajasini tanlang.')
       return
     }
-    const randomIndex = Math.floor(Math.random() * cases.length)
-    setCurrentCase(cases[randomIndex])
+
+    // Session ichida takrorlanmaslik: ko'rilgan kazuslarni chiqarib tashlaymiz.
+    // Pool tugagach (barcha kazuslar ko'rilgan bo'lsa) cycle qayta boshlanadi.
+    const unseen = cases.filter(c => !seenCaseIdsRef.current.has(c.id))
+    const pool = unseen.length > 0 ? unseen : cases
+    if (unseen.length === 0) seenCaseIdsRef.current.clear() // yangi cycle
+
+    const randomIndex = Math.floor(Math.random() * pool.length)
+    const picked = pool[randomIndex]
+    seenCaseIdsRef.current.add(picked.id)
+
+    setCurrentCase(picked)
     setResult(null)
     setError(null)
     setSaved(false)
+  }
+
+  /* ── Ro'yxatdan qo'lda tanlangan kazus ham historyga yoziladi ── */
+  const selectCase = (c: IracCase) => {
+    seenCaseIdsRef.current.add(c.id)
+    setCurrentCase(c)
+    setResult(null)
+    setEvaluation(null)
+    setUserAnswers({ issue: '', rule: '', application: '', conclusion: '' })
   }
 
   /* ── AI tahlil (AI yechishi rejimi) ── */
@@ -522,6 +544,11 @@ FAQAT O'ZBEK LOTIN ALIFBOSIDA yozing. Kirill harflari ishlatilmaydi.`
     setCustomCaseText('')
     setUserAnswers({ issue: '', rule: '', application: '', conclusion: '' })
   }
+
+  /* ── Kategoriya/filtr o'zgarganda history tozalanadi (yangi pool) ── */
+  useEffect(() => {
+    seenCaseIdsRef.current.clear()
+  }, [category, difficulty])
 
   /* ═══════════════════════════════════════════════════════════════════════
      RENDER
@@ -915,17 +942,7 @@ FAQAT O'ZBEK LOTIN ALIFBOSIDA yozing. Kirill harflari ishlatilmaydi.`
                         {cases.map(c => (
                           <button
                             key={c.id}
-                            onClick={() => {
-                              setCurrentCase(c)
-                              setResult(null)
-                              setEvaluation(null)
-                              setUserAnswers({
-                                issue: '',
-                                rule: '',
-                                application: '',
-                                conclusion: '',
-                              })
-                            }}
+                            onClick={() => selectCase(c)}
                             className="p-4 text-left border border-gray-200 dark:border-zinc-700 rounded-xl hover:border-blue-300 dark:hover:border-blue-700 hover:bg-blue-50/50 dark:hover:bg-blue-950/20 transition-all"
                           >
                             <div className="flex items-start justify-between mb-2">

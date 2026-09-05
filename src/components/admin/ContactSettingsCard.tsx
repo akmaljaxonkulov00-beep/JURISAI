@@ -48,6 +48,19 @@ export default function ContactSettingsCard() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [saveError, setSaveError] = useState('')
+
+  /** URL to'g'riligini tekshiradi — faqat http/https */
+  const isValidUrl = (url: string): boolean => {
+    const trimmed = url.trim()
+    if (!trimmed) return true // bo'sh — valid (link o'chirilgan)
+    try {
+      const parsed = new URL(trimmed)
+      return parsed.protocol === 'http:' || parsed.protocol === 'https:'
+    } catch {
+      return false
+    }
+  }
 
   useEffect(() => {
     const loadSettings = async () => {
@@ -86,6 +99,24 @@ export default function ContactSettingsCard() {
   }
 
   const handleSave = async () => {
+    setSaveError('')
+
+    // ── URL validation: enabled link bo'lsa URL majburiy va to'g'ri bo'lsin ──
+    for (const link of settings.socialLinks) {
+      if (link.enabled && !link.url?.trim()) {
+        setSaveError(
+          `${PLATFORM_LABELS[link.platform]?.label || link.platform} yoqilgan, lekin URL kiritilmagan`
+        )
+        return
+      }
+      if (link.url && !isValidUrl(link.url)) {
+        setSaveError(
+          `${PLATFORM_LABELS[link.platform]?.label || link.platform} uchun URL noto'g'ri — https:// bilan boshlanuvchi manzil kiriting`
+        )
+        return
+      }
+    }
+
     setSaving(true)
     setSaved(false)
     try {
@@ -94,12 +125,15 @@ export default function ContactSettingsCard() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(settings),
       })
-      if (res.ok) {
+      const data = await res.json().catch(() => ({}))
+      if (res.ok && data.success !== false) {
         setSaved(true)
         setTimeout(() => setSaved(false), 3000)
+      } else {
+        setSaveError(data.error || "Saqlashda xatolik yuz berdi. Qayta urinib ko'ring.")
       }
     } catch {
-      // Error
+      setSaveError("Server bilan bog'lanishda xatolik. Qayta urinib ko'ring.")
     } finally {
       setSaving(false)
     }
@@ -247,6 +281,7 @@ export default function ContactSettingsCard() {
               Kontakt sozlamalari saqlandi! ✅
             </p>
           )}
+          {saveError && <p className="text-sm text-red-500 dark:text-red-400">⚠ {saveError}</p>}
         </div>
       </CardContent>
     </Card>

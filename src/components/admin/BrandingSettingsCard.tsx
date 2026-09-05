@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
+import { getAuthHeaders } from '@/lib/api-auth-client'
 import { Save, Upload, Trash2, Image, Sun, Moon, Globe, Eye } from 'lucide-react'
 
 interface BrandingData {
@@ -152,7 +153,7 @@ export default function BrandingSettingsCard() {
       const base64 = await fileToBase64(file)
       const res = await fetch('/api/settings/logo', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(await getAuthHeaders()) },
         body: JSON.stringify({
           imageData: base64,
           imageType: file.type,
@@ -182,11 +183,16 @@ export default function BrandingSettingsCard() {
   const handleDelete = async (key: string) => {
     setDeletingKey(key)
     try {
-      const res = await fetch(`/api/settings/logo?key=${key}`, { method: 'DELETE' })
+      const res = await fetch(`/api/settings/logo?key=${key}`, {
+        method: 'DELETE',
+        headers: { ...(await getAuthHeaders()) },
+      })
       if (res.ok) {
         setBranding(prev => ({ ...prev, [key]: null }))
         setSaved(true)
         setTimeout(() => setSaved(false), 3000)
+      } else {
+        setError("O'chirishda xatolik — admin huquqi kerak")
       }
     } catch {
       setError("O'chirishda xatolik")

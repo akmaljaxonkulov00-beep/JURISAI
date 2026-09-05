@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { requireAdmin } from '@/lib/server-auth'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 const supabaseKey =
@@ -52,8 +53,12 @@ export async function GET() {
 }
 
 // POST — upload/save logo URL (base64 data URL or URL string)
+// FAQAT ADMIN: logoni faqat admin o'zgartira oladi (security)
 export async function POST(request: NextRequest) {
   try {
+    const auth = await requireAdmin(request)
+    if (!auth.ok) return auth.response
+
     const body = await request.json()
     const { logoUrl, logoDarkUrl, faviconUrl, imageData, imageType, imageKey } = body
 
@@ -118,8 +123,12 @@ export async function POST(request: NextRequest) {
 }
 
 // DELETE — remove logo(s)
+// FAQAT ADMIN: logoni faqat admin o'chira oladi
 export async function DELETE(request: NextRequest) {
   try {
+    const auth = await requireAdmin(request)
+    if (!auth.ok) return auth.response
+
     const supabase = getSupabase()
     if (!supabase) {
       return NextResponse.json({ error: 'Supabase not configured' }, { status: 500 })

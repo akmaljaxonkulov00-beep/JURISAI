@@ -436,6 +436,42 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ success: false, error: updateError.message }, { status: 500 })
     }
 
+    // ── auth.users metadata ni ham yangilash (tarif/rol sinxron qoladi) ──
+    // Muammo root cause: registered_users o'zgaradi, lekin auth.users
+    // raw_user_meta_data dagi eski qiymat saqlanadi. Har bir login/auth
+    // UPDATE da trigger eski qiymatni qayta yozadi. Buni oldini olish uchun
+    // ikkala manba bir vaqtda yangilanadi (best-effort).
+    try {
+      const { createClient } = await import('@supabase/supabase-js')
+      const suUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+      const srKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+      if (
+        suUrl &&
+        srKey &&
+        (updatePayload.subscription_plan !== undefined ||
+          updatePayload.role !== undefined ||
+          updatePayload.blocked !== undefined)
+      ) {
+        const adminClient = createClient(suUrl, srKey, {
+          auth: { autoRefreshToken: false, persistSession: false },
+        })
+        const metaUpdate: Record<string, unknown> = {}
+        if (updatePayload.subscription_plan !== undefined) {
+          metaUpdate.subscription_plan = updatePayload.subscription_plan
+          metaUpdate.subscription_expires_at = updatePayload.subscription_expires_at || null
+        }
+        if (updatePayload.role !== undefined) {
+          metaUpdate.role = updatePayload.role
+        }
+        if (updatePayload.blocked !== undefined) {
+          metaUpdate.banned = updatePayload.blocked ? true : null
+        }
+        await adminClient.auth.admin.updateUserById(userId, { user_metadata: metaUpdate })
+      }
+    } catch {
+      // Best-effort — registered_users allaqachon yangilandi
+    }
+
     // Sezgir amal bo'lsa — audit log
     if (auditedAction) {
       await logAdminAction({

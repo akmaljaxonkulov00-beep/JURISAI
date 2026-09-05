@@ -348,6 +348,12 @@ export async function rejectPayment(paymentId: string, reason?: string): Promise
 // 4. USER PROFILE / SUBSCRIPTION — Foydalanuvchi profili va obuna
 // =========================================================================
 
+// NOTE: Tarifning yagona manbasi — registered_users (database).
+// Tarif localStorage/sessionStorage orqali override QILINMAYDI.
+// Eski `updateUserSubscription` (localStorage yozuvchi) olib tashlandi —
+// admin o'zgartirishi DB'da saqlanadi, user esa keyingi fetch/login da
+// yangi qiymatni oladi.
+
 export function getUserProfile(): Record<string, unknown> | null {
   try {
     const stored = sessionStorage.getItem('juristiv_user') || sessionStorage.getItem('auth_user')
@@ -356,24 +362,6 @@ export function getUserProfile(): Record<string, unknown> | null {
     if (localStored) return JSON.parse(localStored)
   } catch {}
   return null
-}
-
-export function updateUserSubscription(plan: string, expiresAt?: string): void {
-  try {
-    const user = getUserProfile()
-    if (!user) return
-
-    const updated = {
-      ...user,
-      subscription_plan: plan,
-      subscription_expires_at: expiresAt || new Date(Date.now() + 365 * 86400000).toISOString(),
-    }
-
-    sessionStorage.setItem('juristiv_user', JSON.stringify(updated))
-    sessionStorage.setItem('auth_user', JSON.stringify(updated))
-    localStorage.setItem('juristiv_user', JSON.stringify(updated))
-    localStorage.setItem('auth_user', JSON.stringify(updated))
-  } catch {}
 }
 
 // =========================================================================

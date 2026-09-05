@@ -188,29 +188,10 @@ function ProfileContent() {
     ? new Date(latestPayment.createdAt).toLocaleDateString('uz-UZ')
     : ''
 
-  // Update subscription plan reactively from latest approved payment
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem('auth_user')
-      if (!stored) return
-      const user = JSON.parse(stored)
-      const approvedPaid = userPayments.filter(p => p.status === 'approved' && p.amount > 0)
-      if (approvedPaid.length > 0) {
-        const plan = approvedPaid[0].plan || 'standart'
-        if (user.subscription_plan !== plan) {
-          user.subscription_plan = plan
-          const updatedProfile = {
-            ...profile,
-            subscription: plan === 'pro' ? ('Pro' as const) : ('Free' as const),
-          }
-          setProfile(updatedProfile)
-          setEditedProfile(updatedProfile)
-          localStorage.setItem('auth_user', JSON.stringify(user))
-          localStorage.setItem('juristiv_user', JSON.stringify(user))
-        }
-      }
-    } catch {}
-  }, [sync.paymentRequests])
+  // NOTE: Tarif (subscription_plan) localStorage orqali override QILINMAYDI.
+  // Yagona manba — registered_users. Admin o'zgartirsa user keyingi
+  // refetch/login da yangi tarifni oladi (resolveUserRole → /api/auth/user-role).
+  // To'lovlar faqat display uchun ishlatiladi (balans, holat).
 
   const [saveError, setSaveError] = useState<string | null>(null)
   const [saveLoading, setSaveLoading] = useState(false)
@@ -230,7 +211,8 @@ function ProfileContent() {
         status: editedProfile.status,
         specialization: editedProfile.specialization,
         language: editedProfile.language,
-        subscription_plan: editedProfile.subscription.toLowerCase(),
+        // NOTE: subscription_plan user tomonidan o'zgartirilmaydi —
+        // u faqat admin tomonidan boshqariladi (registered_users)
       }
 
       // ── Email o'zgargan bo'lsa — Supabase orqali yangilaymiz ──

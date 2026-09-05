@@ -2,6 +2,21 @@ import { NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
 import { getErrorMessage } from '@/lib/errors'
 
+// site_settings — YAGONA key-value jadval (20260905 migration).
+// Public GET: sayt sozlamalarini key/value formatdan o'qiydi.
+const SETTINGS_KEYS = [
+  'announcement_banner',
+  'hero_title',
+  'hero_subtitle',
+  'contact_email',
+  'contact_phone',
+  'telegram_link',
+  'legal_disclaimer',
+  'system_prompt',
+  'payment_card_number',
+  'payment_details',
+]
+
 export async function GET() {
   try {
     let supabase
@@ -13,33 +28,34 @@ export async function GET() {
 
     const { data, error } = await supabase
       .from('site_settings')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .single()
+      .select('key, value')
+      .in('key', SETTINGS_KEYS)
 
-    if (error && error.code !== 'PGRST116') {
+    if (error) {
       console.error('[Settings Public] Error:', error)
     }
 
-    // Transform snake_case to camelCase for frontend
+    const settings: Record<string, string> = {}
     if (data) {
-      const transformed: Record<string, unknown> = {
-        announcementBanner: data.announcement_banner || '',
-        heroTitle: data.hero_title || '',
-        heroSubtitle: data.hero_subtitle || '',
-        contactEmail: data.contact_email || '',
-        contactPhone: data.contact_phone || '',
-        telegramLink: data.telegram_link || '',
-        legalDisclaimer: data.legal_disclaimer || '',
-        systemPrompt: data.system_prompt || '',
-        paymentCardNumber: data.payment_card_number || '',
-        paymentDetails: data.payment_details || '',
-      }
-      return NextResponse.json({ success: true, data: transformed })
+      data.forEach(row => {
+        settings[row.key] = row.value || ''
+      })
     }
 
-    return NextResponse.json({ success: true, data: null })
+    const transformed = {
+      announcementBanner: settings.announcement_banner || '',
+      heroTitle: settings.hero_title || '',
+      heroSubtitle: settings.hero_subtitle || '',
+      contactEmail: settings.contact_email || '',
+      contactPhone: settings.contact_phone || '',
+      telegramLink: settings.telegram_link || '',
+      legalDisclaimer: settings.legal_disclaimer || '',
+      systemPrompt: settings.system_prompt || '',
+      paymentCardNumber: settings.payment_card_number || '',
+      paymentDetails: settings.payment_details || '',
+    }
+
+    return NextResponse.json({ success: true, data: transformed })
   } catch (error) {
     return NextResponse.json({ success: false, error: getErrorMessage(error) }, { status: 500 })
   }

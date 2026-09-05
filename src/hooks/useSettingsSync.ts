@@ -13,7 +13,6 @@ import {
   getPaymentRequests,
   getAnnouncements,
   refreshAllSettings,
-  updateUserSubscription,
   type SiteSettings,
   type PricingPlan,
   type PaymentRequest,
@@ -29,51 +28,6 @@ interface SettingsState {
   loading: boolean
   lastSynced: Date | null
   refresh: () => Promise<void>
-}
-
-// ── Sync user session with latest payment/subscription data ──
-function syncUserSessionWithPayments(payments: PaymentRequest[]) {
-  try {
-    const sessionData =
-      sessionStorage.getItem('juristiv_user') || sessionStorage.getItem('auth_user')
-    if (!sessionData) return
-    const user = JSON.parse(sessionData)
-    if (!user?.email) return
-
-    const userPayments = payments.filter(
-      p =>
-        p.status === 'approved' &&
-        (p.userEmail === user.email || p.userId === user.id || p.userId === user.email)
-    )
-    if (userPayments.length === 0) return
-
-    const latestApproved = userPayments.sort(
-      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    )[0]
-
-    const totalApprovedBalance = userPayments.reduce((sum, p) => sum + (p.amount || 0), 0)
-    const previousBalance = Number(user.balance || 0)
-
-    if (
-      totalApprovedBalance > previousBalance ||
-      !user.subscription_plan ||
-      user.subscription_plan === 'free'
-    ) {
-      const plan = latestApproved.plan === 'pro' ? 'pro' : 'standart'
-      const updatedUser = {
-        ...user,
-        subscription_plan: plan,
-        subscription_expires_at: new Date(Date.now() + 365 * 86400000).toISOString(),
-        balance: totalApprovedBalance,
-      }
-      sessionStorage.setItem('juristiv_user', JSON.stringify(updatedUser))
-      sessionStorage.setItem('auth_user', JSON.stringify(updatedUser))
-      localStorage.setItem('juristiv_user', JSON.stringify(updatedUser))
-      localStorage.setItem('auth_user', JSON.stringify(updatedUser))
-    }
-  } catch {
-    /* silent */
-  }
 }
 
 type Announcement = { message: string; type: 'info' | 'warning' | 'success'; active: boolean }
@@ -119,8 +73,9 @@ export function useSettingsSync(): SettingsState {
       if (s.status === 'fulfilled' && s.value) setSettings(s.value)
       if (p.status === 'fulfilled') setPricingPlans(p.value)
       if (pr.status === 'fulfilled') {
+        // NOTE: paymentRequests faqat display uchun — tarif/localStorage override
+        // YO'Q. Tarif yagona manba: registered_users (admin o'zgartirganda DB).
         setPaymentRequests(pr.value)
-        syncUserSessionWithPayments(pr.value)
       }
       if (a.status === 'fulfilled') setAnnouncements(a.value)
       setLastSynced(new Date())
@@ -153,7 +108,6 @@ export function useSettingsSync(): SettingsState {
         case 'payments': {
           const payments = data as PaymentRequest[]
           setPaymentRequests(payments)
-          syncUserSessionWithPayments(payments)
           break
         }
         case 'announcements':

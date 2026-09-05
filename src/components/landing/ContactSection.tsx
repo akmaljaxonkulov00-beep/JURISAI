@@ -51,9 +51,14 @@ const DEFAULT_CONTACT_SETTINGS: ContactSettings = {
   contactHeading: "JURISTIV hamjamiyatiga qo'shiling",
   contactDescription:
     "Eng so'nggi yangiliklar, platforma yangilanishlari, foydali huquqiy materiallar va e'lonlardan xabardor bo'lib boring.",
+  // Ijtimoiy tarmoqlar DEFAULT BO'SH — faqat admin kiritgan URL lar chiqadi.
+  // Bu yerda yo'q/taxminiy URL ishlatilmaydi (admin o'chirgan link qaytib chiqmaydi).
   socialLinks: [
-    { platform: 'telegram', url: 'https://t.me/juristiv', enabled: true },
-    { platform: 'instagram', url: 'https://instagram.com/juristiv', enabled: true },
+    { platform: 'telegram', url: '', enabled: false },
+    { platform: 'instagram', url: '', enabled: false },
+    { platform: 'youtube', url: '', enabled: false },
+    { platform: 'linkedin', url: '', enabled: false },
+    { platform: 'website', url: '', enabled: false },
   ],
 }
 
@@ -69,17 +74,21 @@ export default function ContactSection() {
           const data = await res.json()
           if (data.success && data.data) {
             const loaded = data.data as ContactSettings
-            // Merge: use DB values but keep defaults for empty fields
+            // DB — single source of truth. Matn uchun faqat null/undefined da
+            // fallback, ijtimoiy tarmoqlar uchun esa FAQAT API null qaytarganda
+            // (birinchi setup) default ishlatiladi.
+            // MUHIM: admin bo'sh/disabled qilgan linklar default bilan
+            // qayta tiklanmaydi.
             setSettings({
               contactSectionEnabled: loaded.contactSectionEnabled,
-              contactLabel: loaded.contactLabel || DEFAULT_CONTACT_SETTINGS.contactLabel,
-              contactHeading: loaded.contactHeading || DEFAULT_CONTACT_SETTINGS.contactHeading,
+              contactLabel: loaded.contactLabel ?? DEFAULT_CONTACT_SETTINGS.contactLabel,
+              contactHeading: loaded.contactHeading ?? DEFAULT_CONTACT_SETTINGS.contactHeading,
               contactDescription:
-                loaded.contactDescription || DEFAULT_CONTACT_SETTINGS.contactDescription,
+                loaded.contactDescription ?? DEFAULT_CONTACT_SETTINGS.contactDescription,
               socialLinks:
-                loaded.socialLinks && loaded.socialLinks.length > 0
-                  ? loaded.socialLinks
-                  : DEFAULT_CONTACT_SETTINGS.socialLinks,
+                loaded.socialLinks == null
+                  ? DEFAULT_CONTACT_SETTINGS.socialLinks
+                  : loaded.socialLinks,
             })
           }
         }
@@ -92,8 +101,9 @@ export default function ContactSection() {
     loadSettings()
   }, [])
 
-  // Don't render if loading or explicitly disabled by admin
-  if (loading || !settings.contactSectionEnabled) {
+  // Darhol render (default holatda) — yuklanish tugagach DB qiymatlari qo'llanadi.
+  // Admin sectionni o'chirgan bo'lsa (contactSectionEnabled=false) yo'qoladi.
+  if (!settings.contactSectionEnabled) {
     return null
   }
 

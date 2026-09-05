@@ -5,7 +5,8 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 const supabaseKey =
   process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 
-// Fallback defaults
+// Fallback defaults — ijtimoiy tarmoqlar DEFAULT BO'SH (admin kiritadi).
+// Yo'q/taxminiy URL ishlatilmaydi: admin saqlagan qiymat single source of truth.
 const DEFAULTS = {
   contactSectionEnabled: true,
   contactLabel: "Biz bilan bog'lanish",
@@ -13,8 +14,11 @@ const DEFAULTS = {
   contactDescription:
     "Eng so'nggi yangiliklar, platforma yangilanishlari, foydali huquqiy materiallar va e'lonlardan xabardor bo'lib boring.",
   socialLinks: [
-    { platform: 'telegram', url: 'https://t.me/juristiv', enabled: true },
-    { platform: 'instagram', url: 'https://instagram.com/juristiv', enabled: true },
+    { platform: 'telegram', url: '', enabled: false },
+    { platform: 'instagram', url: '', enabled: false },
+    { platform: 'youtube', url: '', enabled: false },
+    { platform: 'linkedin', url: '', enabled: false },
+    { platform: 'website', url: '', enabled: false },
   ] as Array<{
     platform: string
     url: string
@@ -52,6 +56,7 @@ export async function GET() {
       ])
 
     if (!data || data.length === 0) {
+      // Birinchi setup — matn default, linklar esa BO'SH (yolg'on URL yo'q)
       return NextResponse.json({
         success: true,
         data: { ...DEFAULTS, socialLinks: DEFAULTS.socialLinks },

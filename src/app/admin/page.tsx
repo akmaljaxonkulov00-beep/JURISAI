@@ -309,6 +309,63 @@ export default function AdminDashboard() {
     realtime.newPaymentsCount,
   ])
 
+  // === DB'dan saqlangan sozlamalar va narxlarni YUKLASH ===
+  // (Aks holda admin panel doim hardcoded defaultlarni ko'rsatadi va
+  // admin "saqlamadi" deb o'ylaydi. DB — yagona manba.)
+  useEffect(() => {
+    let cancelled = false
+    const load = async () => {
+      try {
+        const [settingsRes, pricingRes] = await Promise.allSettled([
+          fetch('/api/settings/public', { cache: 'no-cache' }),
+          fetch('/api/settings/pricing', { cache: 'no-cache' }),
+        ])
+        if (cancelled) return
+        if (settingsRes.status === 'fulfilled' && settingsRes.value.ok) {
+          const json = await settingsRes.value.json()
+          if (json.success && json.data) {
+            const d = json.data as Partial<SiteSettings>
+            setSiteSettings(prev => ({
+              ...prev,
+              announcementBanner: d.announcementBanner || prev.announcementBanner,
+              heroTitle: d.heroTitle || prev.heroTitle,
+              heroSubtitle: d.heroSubtitle || prev.heroSubtitle,
+              contactEmail: d.contactEmail || prev.contactEmail,
+              contactPhone: d.contactPhone || prev.contactPhone,
+              telegramLink: d.telegramLink || prev.telegramLink,
+              legalDisclaimer: d.legalDisclaimer || prev.legalDisclaimer,
+              systemPrompt: d.systemPrompt || prev.systemPrompt,
+              paymentCardNumber: d.paymentCardNumber || prev.paymentCardNumber,
+              paymentDetails: d.paymentDetails || prev.paymentDetails,
+            }))
+          }
+        }
+        if (pricingRes.status === 'fulfilled' && pricingRes.value.ok) {
+          const json = await pricingRes.value.json()
+          if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+            setPricingPlans(
+              json.data.map((p: Record<string, unknown>) => ({
+                id: String(p.id),
+                name: String(p.name || ''),
+                price: Number(p.price) || 0,
+                features: Array.isArray(p.features) ? (p.features as string[]) : [],
+                caseLimit: Number(p.caseLimit ?? p.case_limit ?? -1),
+                discountPercent: Number(p.discountPercent ?? p.discount_percent ?? 0),
+                discountLabel: String(p.discountLabel ?? p.discount_label ?? ''),
+              }))
+            )
+          }
+        }
+      } catch {
+        // silent — defaultlar ishlatiladi
+      }
+    }
+    load()
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
   // === LOGOUT — nuclear clear + hard redirect ===
   const handleLogout = async () => {
     await authService.signOut()
@@ -381,7 +438,7 @@ export default function AdminDashboard() {
 
   const updateUserRole = async (userId: string, newRole: string) => {
     try {
-      await fetch('/api/admin/users', {
+      const res = await fetch('/api/admin/users', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', ...(await getAuthHeaders()) },
         body: JSON.stringify({
@@ -390,14 +447,20 @@ export default function AdminDashboard() {
           data: { role: newRole },
         }),
       })
-    } catch {}
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok || json.success === false) {
+        alert(json.error || "Rozini o'zgartirishda xatolik")
+      }
+    } catch {
+      alert("Server bilan bog'lanishda xatolik")
+    }
     realtime.refreshUsers()
   }
 
   const updateUserSubscription = async (userId: string, plan: string) => {
     const expiresAt = plan !== 'free' ? new Date(Date.now() + 365 * 86400000).toISOString() : ''
     try {
-      await fetch('/api/admin/users', {
+      const res = await fetch('/api/admin/users', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', ...(await getAuthHeaders()) },
         body: JSON.stringify({
@@ -406,7 +469,13 @@ export default function AdminDashboard() {
           data: { planId: plan, expiresAt },
         }),
       })
-    } catch {}
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok || json.success === false) {
+        alert(json.error || "Tarifni o'zgartirishda xatolik")
+      }
+    } catch {
+      alert("Server bilan bog'lanishda xatolik")
+    }
     // Refresh users from DB after update
     realtime.refreshUsers()
   }

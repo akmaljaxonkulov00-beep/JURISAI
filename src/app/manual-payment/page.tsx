@@ -59,22 +59,9 @@ function PaymentContent() {
         const latest = reqs[0]
         if (latest.status === 'approved') {
           setCheckStatus('approved')
-          // Lokaldagi foydalanuvchi sessiyasini premium qilamiz
-          const stored =
-            sessionStorage.getItem('juristiv_user') || sessionStorage.getItem('auth_user')
-          if (stored) {
-            try {
-              const u = JSON.parse(stored)
-              const updated = {
-                ...u,
-                subscription_plan: latest.plan || u.subscription_plan || 'standart',
-                subscription_expires_at: new Date(Date.now() + 365 * 86400000).toISOString(),
-              }
-              sessionStorage.setItem('juristiv_user', JSON.stringify(updated))
-              sessionStorage.setItem('auth_user', JSON.stringify(updated))
-              localStorage.setItem('auth_user', JSON.stringify(updated))
-            } catch {}
-          }
+          // NOTE: Tarif localStorage orqali override QILINMAYDI — yagona
+          // manba registered_users. To'lov tasdiqlanganda admin uni plan
+          // yangilash orqali tasdiqlaydi, user keyingi fetch/login da oladi.
         } else if (latest.status === 'rejected') {
           setCheckStatus('rejected')
         }
@@ -226,26 +213,8 @@ function PaymentContent() {
         createdAt: new Date().toISOString(),
       }
 
-      // Save to localStorage for immediate admin pickup
-      try {
-        const existing = JSON.parse(localStorage.getItem('payment_requests') || '[]')
-        existing.push(paymentRecord)
-        localStorage.setItem('payment_requests', JSON.stringify(existing))
-      } catch {}
-
-      // Also save as user's payment_history
-      try {
-        localStorage.setItem(
-          'payment_history',
-          JSON.stringify({
-            status: 'pending',
-            amount,
-            plan: planName.toLowerCase(),
-            date: new Date().toLocaleDateString('uz-UZ'),
-            receiptImage: receiptUrl,
-          })
-        )
-      } catch {}
+      // NOTE: localStorage backup saqlanmaydi — DB yagona manba.
+      // To'lov quyidagi /api/log/payment orqali database'ga yoziladi.
 
       // Try Supabase log — pass same ID so admin can look it up
       try {

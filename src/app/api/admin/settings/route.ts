@@ -3,6 +3,34 @@ import { getSupabaseAdmin } from '@/lib/supabase-admin'
 import { requireAdmin } from '@/lib/server-auth'
 import { logAdminAction } from '@/lib/admin-audit'
 
+// site_settings — YAGONA key-value jadval (20260905 migration).
+// Admin GET/POST: sayt sozlamalarini key/value formatda o'qiydi/yozadi.
+const SETTINGS_KEYS = [
+  'announcement_banner',
+  'hero_title',
+  'hero_subtitle',
+  'contact_email',
+  'contact_phone',
+  'telegram_link',
+  'legal_disclaimer',
+  'system_prompt',
+  'payment_card_number',
+  'payment_details',
+]
+
+const keyMap: Record<string, string> = {
+  announcementBanner: 'announcement_banner',
+  heroTitle: 'hero_title',
+  heroSubtitle: 'hero_subtitle',
+  contactEmail: 'contact_email',
+  contactPhone: 'contact_phone',
+  telegramLink: 'telegram_link',
+  legalDisclaimer: 'legal_disclaimer',
+  systemPrompt: 'system_prompt',
+  paymentCardNumber: 'payment_card_number',
+  paymentDetails: 'payment_details',
+}
+
 export async function GET(request: NextRequest) {
   try {
     const auth = await requireAdmin(request)
@@ -17,16 +45,34 @@ export async function GET(request: NextRequest) {
 
     const { data, error } = await supabase
       .from('site_settings')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .single()
+      .select('key, value')
+      .in('key', SETTINGS_KEYS)
 
-    if (error && error.code !== 'PGRST116') {
+    if (error) {
       console.error('Settings load error:', error)
     }
 
-    return NextResponse.json({ success: true, data: data || null })
+    const settings: Record<string, string> = {}
+    if (data) {
+      data.forEach(row => {
+        settings[row.key] = row.value || ''
+      })
+    }
+
+    const result = {
+      announcementBanner: settings.announcement_banner || '',
+      heroTitle: settings.hero_title || '',
+      heroSubtitle: settings.hero_subtitle || '',
+      contactEmail: settings.contact_email || '',
+      contactPhone: settings.contact_phone || '',
+      telegramLink: settings.telegram_link || '',
+      legalDisclaimer: settings.legal_disclaimer || '',
+      systemPrompt: settings.system_prompt || '',
+      paymentCardNumber: settings.payment_card_number || '',
+      paymentDetails: settings.payment_details || '',
+    }
+
+    return NextResponse.json({ success: true, data: result })
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Xatolik'
     return NextResponse.json({ success: false, error: message }, { status: 500 })
@@ -52,31 +98,26 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Supabase not configured' })
     }
 
-    // Convert camelCase keys to snake_case for Supabase table
-    const snakeCaseSettings: Record<string, unknown> = {
-      id: 'global',
-      updated_at: new Date().toISOString(),
-    }
-
-    const keyMap: Record<string, string> = {
-      announcementBanner: 'announcement_banner',
-      heroTitle: 'hero_title',
-      heroSubtitle: 'hero_subtitle',
-      contactEmail: 'contact_email',
-      contactPhone: 'contact_phone',
-      telegramLink: 'telegram_link',
-      legalDisclaimer: 'legal_disclaimer',
-      systemPrompt: 'system_prompt',
-      paymentCardNumber: 'payment_card_number',
-      paymentDetails: 'payment_details',
-    }
-
+    // camelCase → snake_case key'larga o'girib key-value upsert
+    const upserts: Array<{ key: string; value: string; updated_at: string }> = []
     for (const [camelKey, value] of Object.entries(settings)) {
       const snakeKey = keyMap[camelKey] || camelKey
-      snakeCaseSettings[snakeKey] = value
+      if (!SETTINGS_KEYS.includes(snakeKey)) continue
+      upserts.push({
+        key: snakeKey,
+        value: value == null ? '' : String(value),
+        updated_at: new Date().toISOString(),
+      })
     }
 
-    const { error } = await supabase.from('site_settings').upsert(snakeCaseSettings)
+    if (upserts.length === 0) {
+      return NextResponse.json(
+        { success: false, error: 'No valid settings to save' },
+        { status: 400 }
+      )
+    }
+
+    const { error } = await supabase.from('site_settings').upsert(upserts, { onConflict: 'key' })
 
     if (error) {
       await logAdminAction({

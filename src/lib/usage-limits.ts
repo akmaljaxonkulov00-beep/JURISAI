@@ -131,19 +131,26 @@ export const FAIR_USE_LIMITS: Record<string, number> = {
   scenario: 200,
 }
 
-/** site_settings.fair_use_limits dan chegarani o'qiydi (kolonna yo'q bo'lsa default) */
+/** site_settings (key-value) dan chegarani o'qiydi */
 async function getFairUseLimit(feature: string): Promise<number | null> {
   try {
     const supabase = await getSupabaseAdminLazy()
     if (supabase) {
       const { data, error } = await supabase
         .from('site_settings')
-        .select('fair_use_limits')
-        .eq('id', 'global')
+        .select('value')
+        .eq('key', 'fair_use_limits')
         .maybeSingle()
-      if (!error && data && data.fair_use_limits && typeof data.fair_use_limits === 'object') {
-        const val = (data.fair_use_limits as Record<string, unknown>)[feature]
-        if (typeof val === 'number' && val > 0) return val
+      if (!error && data && data.value) {
+        try {
+          const parsed = typeof data.value === 'string' ? JSON.parse(data.value) : data.value
+          if (parsed && typeof parsed === 'object') {
+            const val = (parsed as Record<string, unknown>)[feature]
+            if (typeof val === 'number' && val > 0) return val
+          }
+        } catch {
+          /* noto'g'ri JSON — default ishlatiladi */
+        }
       }
     }
   } catch {}

@@ -1,13 +1,27 @@
 -- ═══════════════════════════════════════════════════════════════════════════
 -- MIGRATION: IRAC kazuslar qo'shish (10+ ta har bir kategoriya)
--- + Contact section default social links enabled
 -- ═══════════════════════════════════════════════════════════════════════════
 
--- ── 1. Contact section default social links — ENABLED with example URLs ──
-UPDATE public.site_settings SET value = 'true' WHERE key = 'social_telegram_enabled';
-UPDATE public.site_settings SET value = 'https://t.me/juristiv' WHERE key = 'social_telegram' AND (value = '' OR value IS NULL);
-UPDATE public.site_settings SET value = 'true' WHERE key = 'social_instagram_enabled';
-UPDATE public.site_settings SET value = 'https://instagram.com/juristiv' WHERE key = 'social_instagram' AND (value = '' OR value IS NULL);
+-- ── 1. Contact section — ijtimoiy tarmoqlar DEFAULT YO'Q (admin kiritadi) ──
+-- Admin haqiqiy URL kiritmaguncha landing page'da social button chiqmaydi.
+-- (Yolg'on/taxminiy t.me/juristiv kabi linklar ishlatilmaydi.)
+INSERT INTO public.site_settings (key, value) VALUES
+  ('social_telegram', ''),
+  ('social_telegram_enabled', 'false'),
+  ('social_instagram', ''),
+  ('social_instagram_enabled', 'false'),
+  ('social_youtube', ''),
+  ('social_youtube_enabled', 'false'),
+  ('social_linkedin', ''),
+  ('social_linkedin_enabled', 'false'),
+  ('social_website', ''),
+  ('social_website_enabled', 'false')
+ON CONFLICT (key) DO NOTHING;
+
+UPDATE public.site_settings SET value = '' WHERE key = 'social_telegram' AND value = 'https://t.me/juristiv';
+UPDATE public.site_settings SET value = '' WHERE key = 'social_instagram' AND value = 'https://instagram.com/juristiv';
+UPDATE public.site_settings SET value = 'false' WHERE key = 'social_telegram_enabled';
+UPDATE public.site_settings SET value = 'false' WHERE key = 'social_instagram_enabled';
 
 -- ── 2. IRAC Cases — Jinoyat huquqi (10 ta) ──────────────────────────────
 INSERT INTO public.irac_cases (title, description, category, difficulty, law_references) VALUES
