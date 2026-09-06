@@ -19,7 +19,84 @@
 --      yolg'on linklar landing page'da chiqishi mumkin. Tozalanadi —
 --      ijtimoiy tarmoqlar DB'da faqat admin haqiqiy URL kiritsagina
 --      ko'rinadi.
--- ═══════════════════════════════════════════════════════════════════════════
+-- ═════════════════════════════════════════════════════════════════════════
+-- ── 0. site_settings SCHEMA UNIFIKATSIYASI (ENG MUHIM — BIRINCHI ISHLAYDI) ──
+--
+-- MUAMMO: Bazada IKKITA mos kelmaydigan schema bor edi:
+--   A) ESKI: bitta qator, kolonnalar bilan (id, announcement_banner, ...)
+--      → /api/settings/public, /api/admin/settings ishlatadi
+--   B) YANGI: key-value (key TEXT PRIMARY KEY, value TEXT)
+--      → /api/settings/contact, /api/settings/logo ishlatadi
+--
+-- `CREATE TABLE IF NOT EXISTS` eski jadval borligi sababli YANGI schemani
+-- yaratmagan → contact/logo API larning barcha SELECT/UPSERT'lari
+-- "column key does not exist" xatosi bilan YO'QOLGAN. Shu sababli:
+--   - Logo saqlanmasdi
+--   - Contact/social linklar saqlanmasdi
+--   - Admin panel default (hardcoded) qiymatlarni ko'rsatardi
+--
+-- YECHIM: jadvalni yagona key-value schemaga o'tkazamiz va eski kolonna
+-- qiymatlarini key sifatida ko'chiramiz. (Idempotent — `key` ustuni bor bo'lsa
+-- o'tkazib yuboradi.) Bu blok AVVAL ishlashi shart, chunki quyidagi
+-- UPDATE'lar `key`/`value` ustunlariga tayanadi.
+-- ═════════════════════════════════════════════════════════════════════════
+DO $$
+DECLARE
+  has_key_col BOOLEAN;
+  legacy_row RECORD;
+BEGIN
+  SELECT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'site_settings' AND column_name = 'key'
+  ) INTO has_key_col;
+
+  IF NOT has_key_col THEN
+    -- Eski single-row jadvalni backup sifatida saqlaymiz
+    DROP TABLE IF EXISTS public.site_settings_legacy_backup;
+    ALTER TABLE public.site_settings RENAME TO site_settings_legacy_backup;
+
+    -- Yangi key-value jadval
+    CREATE TABLE public.site_settings (
+      key TEXT PRIMARY KEY,
+      value TEXT,
+      updated_at TIMESTAMPTZ DEFAULT NOW()
+    );
+
+    -- Eski kolonna qiymatlarini key/value sifatida ko'chiramiz
+    FOR legacy_row IN EXECUTE 'SELECT to_jsonb(t) AS j FROM public.site_settings_legacy_backup t'
+    LOOP
+      INSERT INTO public.site_settings (key, value)
+      SELECT k, legacy_row.j ->> k
+      FROM unnest(ARRAY[
+        'announcement_banner', 'hero_title', 'hero_subtitle',
+        'contact_email', 'contact_phone', 'telegram_link',
+        'legal_disclaimer', 'system_prompt',
+        'payment_card_number', 'payment_details',
+        'fair_use_limits'
+      ]) AS k
+      WHERE (legacy_row.j ->> k) IS NOT NULL
+        AND (legacy_row.j ->> k) <> ''
+      ON CONFLICT (key) DO NOTHING;
+    END LOOP;
+  END IF;
+END $$;
+
+-- RLS: hamma o'qiydi, faqat admin yozadi
+ALTER TABLE public.site_settings ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS site_settings_select_all ON public.site_settings;
+DROP POLICY IF EXISTS site_settings_insert_admin ON public.site_settings;
+DROP POLICY IF EXISTS site_settings_update_admin ON public.site_settings;
+DROP POLICY IF EXISTS site_settings_delete_admin ON public.site_settings;
+DROP POLICY IF EXISTS site_settings_read ON public.site_settings;
+DROP POLICY IF EXISTS site_settings_write ON public.site_settings;
+DROP POLICY IF EXISTS site_settings_admin_all ON public.site_settings;
+DROP POLICY IF EXISTS "Public read access" ON public.site_settings;
+DROP POLICY IF EXISTS "Admin all access" ON public.site_settings;
+
+CREATE POLICY site_settings_select_all ON public.site_settings
+  FOR SELECT USING (true);
+CREATE POLICY site_settings_write ON public.site_settings
+  FOR ALL USING (public.is_admin()) WITH CHECK (public.is_admin());
 
 -- ── 1. auth.users → registered_users UPDATE sync trigger — NULLIF guard ──
 CREATE OR REPLACE FUNCTION sync_auth_user_update_to_registered()
@@ -128,6 +205,7 @@ CREATE TRIGGER on_auth_user_updated
 
 -- ── 3. Fake/yo'q ijtimoiy tarmoq URL larini tozalash ──
 -- Admin haqiqiy URL kiritmaguncha landing'da button ko'rinmaydi
+-- (0-blok key-value schema'ni kafolatlagan — key/value ustunlari mavjud)
 UPDATE public.site_settings SET value = '' WHERE key IN ('social_telegram', 'social_instagram');
 UPDATE public.site_settings SET value = 'false' WHERE key IN ('social_telegram_enabled', 'social_instagram_enabled');
 
@@ -141,83 +219,7 @@ UPDATE public.registered_users
 SET subscription_plan = 'standart'
 WHERE LOWER(subscription_plan) = 'standart';
 
--- ═════════════════════════════════════════════════════════════════════════
--- ── 5. site_settings SCHEMA UNIFIKATSIYASI (ENG MUHIM TUZATISH) ──────────
---
--- MUAMMO: Bazada IKKITA mos kelmaydigan schema bor edi:
---   A) ESKI: bitta qator, kolonnalar bilan (id, announcement_banner, ...)
---      → /api/settings/public, /api/admin/settings ishlatadi
---   B) YANGI: key-value (key TEXT PRIMARY KEY, value TEXT)
---      → /api/settings/contact, /api/settings/logo ishlatadi
---
--- `CREATE TABLE IF NOT EXISTS` eski jadval borligi sababli YANGI schemani
--- yaratmagan → contact/logo API larning barcha SELECT/UPSERT'lari
--- "column key does not exist" xatosi bilan YO'QOLGAN. Shu sababli:
---   - Logo saqlanmasdi
---   - Contact/social linklar saqlanmasdi
---   - Admin panel default (hardcoded) qiymatlarni ko'rsatardi
---
--- YECHIM: jadvalni yagona key-value schemaga o'tkazamiz va eski kolonna
--- qiymatlarini key sifatida ko'chiramiz. Barcha API route'lar ham
--- key-value formatga o'tkaziladi (kod tomonida).
--- ═════════════════════════════════════════════════════════════════════════
-DO $$
-DECLARE
-  has_key_col BOOLEAN;
-  legacy_row RECORD;
-BEGIN
-  SELECT EXISTS (
-    SELECT 1 FROM information_schema.columns
-    WHERE table_schema = 'public' AND table_name = 'site_settings' AND column_name = 'key'
-  ) INTO has_key_col;
-
-  IF NOT has_key_col THEN
-    -- Eski single-row jadvalni backup sifatida saqlaymiz
-    DROP TABLE IF EXISTS public.site_settings_legacy_backup;
-    ALTER TABLE public.site_settings RENAME TO site_settings_legacy_backup;
-
-    -- Yangi key-value jadval
-    CREATE TABLE public.site_settings (
-      key TEXT PRIMARY KEY,
-      value TEXT,
-      updated_at TIMESTAMPTZ DEFAULT NOW()
-    );
-
-    -- Eski kolonna qiymatlarini key/value sifatida ko'chiramiz
-    FOR legacy_row IN EXECUTE 'SELECT to_jsonb(t) AS j FROM public.site_settings_legacy_backup t'
-    LOOP
-      INSERT INTO public.site_settings (key, value)
-      SELECT k, legacy_row.j ->> k
-      FROM unnest(ARRAY[
-        'announcement_banner', 'hero_title', 'hero_subtitle',
-        'contact_email', 'contact_phone', 'telegram_link',
-        'legal_disclaimer', 'system_prompt',
-        'payment_card_number', 'payment_details',
-        'fair_use_limits'
-      ]) AS k
-      WHERE (legacy_row.j ->> k) IS NOT NULL
-        AND (legacy_row.j ->> k) <> ''
-      ON CONFLICT (key) DO NOTHING;
-    END LOOP;
-  END IF;
-END $$;
-
--- RLS: hamma o'qiydi, faqat admin yozadi
-ALTER TABLE public.site_settings ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS site_settings_select_all ON public.site_settings;
-DROP POLICY IF EXISTS site_settings_insert_admin ON public.site_settings;
-DROP POLICY IF EXISTS site_settings_update_admin ON public.site_settings;
-DROP POLICY IF EXISTS site_settings_delete_admin ON public.site_settings;
-DROP POLICY IF EXISTS site_settings_read ON public.site_settings;
-DROP POLICY IF EXISTS site_settings_write ON public.site_settings;
-DROP POLICY IF EXISTS site_settings_admin_all ON public.site_settings;
-DROP POLICY IF EXISTS "Public read access" ON public.site_settings;
-DROP POLICY IF EXISTS "Admin all access" ON public.site_settings;
-
-CREATE POLICY site_settings_select_all ON public.site_settings
-  FOR SELECT USING (true);
-CREATE POLICY site_settings_write ON public.site_settings
-  FOR ALL USING (public.is_admin()) WITH CHECK (public.is_admin());
+-- ── 5. (0-blok avval bajarilgan — schema unifikatsiyasi + RLS yuqorida) ──
 
 -- ── 6. Kontakt/logo default key'lari mavjudligini kafolatlash ──
 INSERT INTO public.site_settings (key, value) VALUES

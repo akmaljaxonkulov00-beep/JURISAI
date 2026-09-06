@@ -5,23 +5,36 @@
 -- ── 1. Contact section — ijtimoiy tarmoqlar DEFAULT YO'Q (admin kiritadi) ──
 -- Admin haqiqiy URL kiritmaguncha landing page'da social button chiqmaydi.
 -- (Yolg'on/taxminiy t.me/juristiv kabi linklar ishlatilmaydi.)
-INSERT INTO public.site_settings (key, value) VALUES
-  ('social_telegram', ''),
-  ('social_telegram_enabled', 'false'),
-  ('social_instagram', ''),
-  ('social_instagram_enabled', 'false'),
-  ('social_youtube', ''),
-  ('social_youtube_enabled', 'false'),
-  ('social_linkedin', ''),
-  ('social_linkedin_enabled', 'false'),
-  ('social_website', ''),
-  ('social_website_enabled', 'false')
-ON CONFLICT (key) DO NOTHING;
+--
+-- MUHIM: site_settings eski single-row schema'da bo'lsa (key ustuni yo'q),
+-- bu blok o'tkazib yuboriladi — avval 20260906_fix_site_settings_schema.sql
+-- (yoki 20260905 ning 0-bloki) run qilinishi kerak. IRAC seed'lar esa
+-- schema'dan mustaqil ishlaydi va har holatda yoziladi.
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'site_settings' AND column_name = 'key'
+  ) THEN
+    INSERT INTO public.site_settings (key, value) VALUES
+      ('social_telegram', ''),
+      ('social_telegram_enabled', 'false'),
+      ('social_instagram', ''),
+      ('social_instagram_enabled', 'false'),
+      ('social_youtube', ''),
+      ('social_youtube_enabled', 'false'),
+      ('social_linkedin', ''),
+      ('social_linkedin_enabled', 'false'),
+      ('social_website', ''),
+      ('social_website_enabled', 'false')
+    ON CONFLICT (key) DO NOTHING;
 
-UPDATE public.site_settings SET value = '' WHERE key = 'social_telegram' AND value = 'https://t.me/juristiv';
-UPDATE public.site_settings SET value = '' WHERE key = 'social_instagram' AND value = 'https://instagram.com/juristiv';
-UPDATE public.site_settings SET value = 'false' WHERE key = 'social_telegram_enabled';
-UPDATE public.site_settings SET value = 'false' WHERE key = 'social_instagram_enabled';
+    UPDATE public.site_settings SET value = '' WHERE key = 'social_telegram' AND value = 'https://t.me/juristiv';
+    UPDATE public.site_settings SET value = '' WHERE key = 'social_instagram' AND value = 'https://instagram.com/juristiv';
+    UPDATE public.site_settings SET value = 'false' WHERE key = 'social_telegram_enabled';
+    UPDATE public.site_settings SET value = 'false' WHERE key = 'social_instagram_enabled';
+  END IF;
+END $$;
 
 -- ── 2. IRAC Cases — Jinoyat huquqi (10 ta) ──────────────────────────────
 INSERT INTO public.irac_cases (title, description, category, difficulty, law_references) VALUES
