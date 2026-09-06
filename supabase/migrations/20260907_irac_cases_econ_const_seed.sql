@@ -6,7 +6,7 @@
 -- Idempotent: kategoriyalarda kazus allaqachon mavjud bo'lsa, qayta kiritilmaydi.
 -- ═══════════════════════════════════════════════════════════════════════════
 
-DO $$
+DO $seed$
 BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM public.irac_cases
@@ -36,4 +36,4 @@ BEGIN
   ($$S$$Atrof-muhitga oid huquqlar: Qulay tabiiy muhitga ega bo'lish huquqi$$S$$, $$S$$Aholi turar joy massivida yashovchi fuqarolar yaqin atrofda noqonuniy ravishda qurilayotgan, havoni ifloslantiruvchi zavod qurilishini to'xtatish va yashil hududni saqlab qolish talabi bilan jamoaviy konstitutsiyaviy da'vo qo'zg'atdilar.$$S$$, 'konstitutsiyaviy', 'medium', ARRAY[$$S$$O'zbekiston Respublikasi Konstitutsiyasi 49-moddasi (Qulay atrof-muhitga, uning holati to'g'risida ishonchli axborotga ega bo'lish huquqi)$$S$$]),
   ($$S$$Xalqaro tijorat arbitraji qarorlarini tan olish va ijroga qaratish$$S$$, $$S$$London xalqaro arbitraj sudi (LCIA) O'zbekiston kompaniyasidan xorijiy kompaniya foydasiga 2 mln dollar undirish haqida qaror qabul qilgan. Xorijiy kompaniya Toshkent shahar sudiga ushbu qarorni ijroga qaratish to'g'risida ariza kiritgan. O'zbekiston kompaniyasi esa jamoat tartibiga zidligini vaj qilmoqda.$$S$$, 'iqtisodiy', 'hard', ARRAY[$$S$$1958-yilgi Nyu-York Konvensiyasi$$S$$, $$S$$O'zbekiston Respublikasi 'Xalqaro tijorat arbitraji to'g'risida'gi Qonuni 51, 52-moddalari$$S$$]);
   END IF;
-END $$;
+END $seed$;
