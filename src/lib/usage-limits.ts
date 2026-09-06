@@ -27,20 +27,30 @@ import type { SupabaseClient } from '@supabase/supabase-js'
  * boshqa foydalanuvchining limitini ishlatish yoki soxta token bilan chetlab
  * o'tish mumkin bo'lardi.
  */
+import { getRequestToken } from '@/lib/server-auth'
+import type { NextRequest } from 'next/server'
+
 interface IdentityRequest {
   headers?: { get?: (name: string) => string | null }
-  cookies?: { get?: (name: string) => { value?: string } | undefined }
+  cookies?: {
+    get?: (name: string) => { value?: string } | undefined
+    getAll?: () => Array<{ name: string; value: string }>
+  }
 }
 
 export async function getIdentityFromRequest(
-  request: IdentityRequest
+  request: IdentityRequest | NextRequest
 ): Promise<{ userId?: string; email?: string }> {
-  let token: string | undefined
-  const authHeader = request?.headers?.get?.('authorization')
-  if (authHeader && authHeader.startsWith('Bearer ')) {
-    token = authHeader.slice('Bearer '.length).trim()
+  let token: string | null = null
+  if (typeof (request as NextRequest)?.cookies?.getAll === 'function') {
+    token = getRequestToken(request as NextRequest)
   } else {
-    token = request?.cookies?.get?.('sb-access-token')?.value
+    const authHeader = request?.headers?.get?.('authorization')
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.slice('Bearer '.length).trim()
+    } else {
+      token = request?.cookies?.get?.('sb-access-token')?.value || null
+    }
   }
 
   if (!token) return {}

@@ -120,53 +120,45 @@ export default function Dashboard() {
     try {
       setLoading(true)
 
-      // 1) Avval localStorage'dan o'qi (tezroq ko'rinish uchun)
-      const storedStats = localStorage.getItem('user_stats')
-      if (storedStats) {
-        setUserStats(JSON.parse(storedStats))
-      }
-
-      // 2) API'dan real ma'lumot olishga harakat qil
+      // 1) API'dan real ma'lumot olish (Database + Usage logs)
       try {
-        const apiStats = await api.getUserStats()
-        if (apiStats?.data) {
-          const d = apiStats.data as Record<string, unknown>
+        const { getAuthHeaders } = await import('@/lib/api-auth-client')
+        const authHeaders = await getAuthHeaders()
+        const res = await fetch('/api/user/stats', {
+          headers: { ...authHeaders },
+          cache: 'no-cache',
+        })
+        if (res.ok) {
+          const d = await res.json()
           const realStats: UserStats = {
-            xp: (d.xp as number) || 0,
-            level: (d.level as number) || 1,
-            completedCases: (d.completedCases as number) || 0,
-            totalCases: (d.totalCases as number) || (d.completedCases as number) || 0,
-            weeklyProgress: (d.weeklyProgress as number) || 0,
-            rank: (d.rank as string) || t('dashboardNewUser'),
-            achievements: Array.isArray(d.achievements)
-              ? (d.achievements as UserStats['achievements'])
-              : [],
-            recentActivity: Array.isArray(d.recentActivity)
-              ? (d.recentActivity as UserStats['recentActivity'])
-              : [],
+            xp: typeof d.xp === 'number' ? d.xp : 0,
+            level: typeof d.level === 'number' ? d.level : 1,
+            completedCases: typeof d.completedIracCases === 'number' ? d.completedIracCases : 0,
+            totalCases: typeof d.totalIracCases === 'number' ? d.totalIracCases : 0,
+            weeklyProgress: typeof d.weeklyProgress === 'number' ? d.weeklyProgress : 0,
+            rank: d.rank || t('dashboardNewUser'),
+            achievements: Array.isArray(d.achievements) ? d.achievements : [],
+            recentActivity: Array.isArray(d.recentActivity) ? d.recentActivity : [],
           }
           setUserStats(realStats)
-          localStorage.setItem('user_stats', JSON.stringify(realStats))
+          return
         }
-      } catch {
-        // API mavjud emas — localStorage'dagi ma'lumot bilan davom et
+      } catch (err) {
+        console.warn('Stats fetch error:', err)
       }
 
-      // Agar hech narsa yo'q bo'lsa — bo'sh stats
-      if (!localStorage.getItem('user_stats')) {
-        const defaultStats: UserStats = {
-          xp: 0,
-          level: 1,
-          completedCases: 0,
-          totalCases: 0,
-          weeklyProgress: 0,
-          rank: t('dashboardNewUser'),
-          achievements: [],
-          recentActivity: [],
-        }
-        setUserStats(defaultStats)
-        localStorage.setItem('user_stats', JSON.stringify(defaultStats))
+      // 2) Fallback to empty default if no stats yet
+      const defaultStats: UserStats = {
+        xp: 0,
+        level: 1,
+        completedCases: 0,
+        totalCases: 0,
+        weeklyProgress: 0,
+        rank: t('dashboardNewUser'),
+        achievements: [],
+        recentActivity: [],
       }
+      setUserStats(defaultStats)
     } catch (error) {
       console.error('Dashboard stats error:', error)
     } finally {

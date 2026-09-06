@@ -1,17 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { getSupabaseAdmin } from '@/lib/supabase-admin'
+import { supabase as defaultClient } from '@/lib/supabase'
 import { requireAdmin } from '@/lib/server-auth'
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-const supabaseKey =
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 
 const ALLOWED_TYPES = ['image/png', 'image/svg+xml', 'image/jpeg', 'image/webp']
 const MAX_SIZE = 2 * 1024 * 1024 // 2MB
 
 function getSupabase() {
-  if (!supabaseUrl || !supabaseKey || supabaseKey.includes('REPLACE_WITH')) return null
-  return createClient(supabaseUrl, supabaseKey)
+  try {
+    return getSupabaseAdmin()
+  } catch {
+    return defaultClient
+  }
 }
 
 // GET — retrieve current logos (light, dark, favicon)

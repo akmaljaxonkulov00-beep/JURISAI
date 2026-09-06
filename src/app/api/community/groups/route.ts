@@ -361,7 +361,6 @@ export async function DELETE(request: NextRequest) {
 
     const { searchParams } = new URL(request.url)
     const id = searchParams.get('id')
-    const adminMode = searchParams.get('admin') === '1'
 
     if (!id) {
       return NextResponse.json(
@@ -375,27 +374,45 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Supabase sozlanmagan' }, { status: 500 })
     }
 
-    // ── Ruxsat: admin=1 query flag'i o'rniga server-side requireAdmin ──
-    if (adminMode) {
-      const adm = await requireAdmin(request)
-      if (!adm.ok) return adm.response
-    } else {
-      const userId = auth.user.id
-      const { data: existing } = await supabase
-        .from('community_groups')
-        .select('created_by')
-        .eq('id', id)
-        .single()
-      if (!existing || existing.created_by?.toString() !== userId) {
-        return NextResponse.json(
-          { success: false, error: "Guruhni faqat yaratuvchisi o'chira oladi" },
-          { status: 403 }
-        )
-      }
+    const userId = auth.user.id
+
+    // Check if user is platform admin
+    const { data: userRow } = await supabase
+      .from('registered_users')
+      .select('role')
+      .eq('id', userId)
+      .maybeSingle()
+    const isPlatformAdmin = ['ADMIN', 'SUPER_ADMIN', 'admin', 'super_admin'].includes(
+      userRow?.role || ''
+    )
+
+    const { data: existing } = await supabase
+      .from('community_groups')
+      .select('created_by')
+      .eq('id', id)
+      .maybeSingle()
+
+    if (!existing) {
+      return NextResponse.json({ success: false, error: 'Guruh topilmadi' }, { status: 404 })
     }
 
-    const { error } = await supabase.from('community_groups').delete().eq('id', id)
+    const isCreator =
+      existing.created_by?.toString() === userId || existing.created_by === auth.user.email
 
+    if (!isPlatformAdmin && !isCreator) {
+      return NextResponse.json(
+        { success: false, error: "Guruhni faqat yaratuvchisi yoki administrator o'chira oladi" },
+        { status: 403 }
+      )
+    }
+
+    // Clean up group members and posts if needed
+    try {
+      await supabase.from('community_group_members').delete().eq('group_id', id)
+      await supabase.from('community_group_posts').delete().eq('group_id', id)
+    } catch {}
+
+    const { error } = await supabase.from('community_groups').delete().eq('id', id)
     if (error) throw error
 
     return NextResponse.json({ success: true })

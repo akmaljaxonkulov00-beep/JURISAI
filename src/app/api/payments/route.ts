@@ -16,17 +16,18 @@ export async function GET(request: NextRequest) {
     }
 
     const userId = auth.user.id
+    const userEmail = auth.user.email
     const { searchParams } = new URL(request.url)
     const status = searchParams.get('status')
 
     // Foydalanuvchi faqat O'Z cheklarini ko'radi (session identity)
-    const reqQuery = supabase
+    let reqQuery = supabase
       .from('payment_requests')
       .select('*')
       .order('created_at', { ascending: false })
       .eq('user_id', userId)
 
-    if (status) reqQuery.eq('status', status)
+    if (status) reqQuery = reqQuery.eq('status', status)
 
     const { data: userRequests, error: reqError } = await reqQuery
     if (reqError) throw reqError

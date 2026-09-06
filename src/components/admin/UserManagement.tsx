@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/app/providers'
 import { supabase } from '@/lib/supabase-browser'
+import { getAuthHeaders } from '@/lib/api-auth-client'
 import UserProfileModal from './UserProfileModal'
 import { ArrowUpDown, RefreshCw } from 'lucide-react'
 
@@ -116,7 +117,10 @@ export default function UserManagement() {
         page: page.toString(),
         limit: '10',
       })
-      const response = await fetch(`/api/admin/users?${params}`)
+      const authHeaders = await getAuthHeaders()
+      const response = await fetch(`/api/admin/users?${params}`, {
+        headers: { ...authHeaders },
+      })
       if (response.ok) {
         const data = await response.json()
         let sorted = data.users || []
@@ -139,7 +143,10 @@ export default function UserManagement() {
 
   const fetchPlans = async () => {
     try {
-      const response = await fetch('/api/billing/plans', { credentials: 'include' })
+      const authHeaders = await getAuthHeaders()
+      const response = await fetch('/api/billing/plans', {
+        headers: { ...authHeaders },
+      })
       if (response.ok) {
         const data = await response.json()
         setPlans(data)
@@ -152,9 +159,10 @@ export default function UserManagement() {
   const handleBlockUser = async (userId: string) => {
     setActionLoading(userId)
     try {
+      const authHeaders = await getAuthHeaders()
       const response = await fetch('/api/admin/users', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
         body: JSON.stringify({ userId, action: 'block' }),
       })
       if (response.ok) {
@@ -173,9 +181,10 @@ export default function UserManagement() {
   const handleUnblockUser = async (userId: string) => {
     setActionLoading(userId)
     try {
+      const authHeaders = await getAuthHeaders()
       const response = await fetch('/api/admin/users', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
         body: JSON.stringify({ userId, action: 'unblock' }),
       })
       if (response.ok) {
@@ -194,9 +203,10 @@ export default function UserManagement() {
   const handleChangeSubscription = async (userId: string, planId: string) => {
     setActionLoading(userId)
     try {
+      const authHeaders = await getAuthHeaders()
       const response = await fetch('/api/admin/users', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
         body: JSON.stringify({ userId, action: 'changeSubscription', data: { planId } }),
       })
       if (response.ok) {

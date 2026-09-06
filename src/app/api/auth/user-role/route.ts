@@ -20,23 +20,17 @@ export async function GET(request: NextRequest) {
     const auth = await requireUser(request)
     if (!auth.ok) return auth.response
 
-    const email = request.nextUrl.searchParams.get('email')
-    const userId = request.nextUrl.searchParams.get('userId')
+    const targetUserId = request.nextUrl.searchParams.get('userId') || auth.user.id
+    const targetEmail = (request.nextUrl.searchParams.get('email') || auth.user.email)
+      .toLowerCase()
+      .trim()
 
-    if (!email && !userId) {
-      return NextResponse.json(
-        { success: false, error: 'email yoki userId kerak' },
-        { status: 400 }
-      )
-    }
-
-    // ── Session tekshiruvi: so'ralayotgan ma'lumot session userga tegishli bo'lishi shart ──
-    const reqEmail = (email || '').toLowerCase().trim()
+    // ── Session tekshiruvi: faqat o'z profilingizni so'rashingiz mumkin ──
     const sessionEmail = auth.user.email.toLowerCase().trim()
-    if (reqEmail && reqEmail !== sessionEmail) {
+    if (targetEmail && sessionEmail && targetEmail !== sessionEmail) {
       return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 })
     }
-    if (userId && userId !== auth.user.id) {
+    if (targetUserId && targetUserId !== auth.user.id) {
       return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 })
     }
 
@@ -56,10 +50,10 @@ export async function GET(request: NextRequest) {
       .from('registered_users')
       .select('id, email, name, role, subscription_plan, subscription_expires_at')
 
-    if (userId) {
-      query = query.eq('id', userId)
+    if (targetUserId) {
+      query = query.eq('id', targetUserId)
     } else {
-      query = query.eq('email', reqEmail)
+      query = query.eq('email', targetEmail)
     }
 
     const { data, error } = await query.maybeSingle()
@@ -71,11 +65,11 @@ export async function GET(request: NextRequest) {
 
     // 2) userId topilmasa — email bo'yicha fallback (id bog'lanishi buzilgan holatlar)
     let row = data
-    if (!row && userId && email) {
+    if (!row && targetEmail) {
       const fallback = await supabase
         .from('registered_users')
         .select('id, email, name, role, subscription_plan, subscription_expires_at')
-        .eq('email', (email || '').toLowerCase())
+        .eq('email', targetEmail)
         .maybeSingle()
       if (!fallback.error) row = fallback.data
     }

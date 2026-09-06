@@ -1,7 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
+import { getSupabaseAdmin } from '@/lib/supabase-admin'
 import { requireAdmin } from '@/lib/server-auth'
 import { logAdminAction } from '@/lib/admin-audit'
+
+function getAdminDb() {
+  try {
+    return getSupabaseAdmin()
+  } catch {
+    return supabase
+  }
+}
 
 const ALLOWED_ROLES = new Set(['USER', 'ADMIN', 'SUPER_ADMIN'])
 
@@ -71,8 +80,10 @@ export async function GET(request: NextRequest) {
       aiUsageCount: u.ai_usage_count || 0,
     })
 
+    const db = getAdminDb()
+
     // ── Try 1: registered_users table (admin migration) ──
-    let query = supabase.from('registered_users').select('*', { count: 'exact' })
+    let query = db.from('registered_users').select('*', { count: 'exact' })
 
     if (search) {
       query = query.or(`name.ilike.%${search}%,email.ilike.%${search}%`)
@@ -93,7 +104,7 @@ export async function GET(request: NextRequest) {
 
     // ── Try 2: users table (legacy) ──
     if (error || !users || users.length === 0) {
-      let q2 = supabase.from('users').select('*', { count: 'exact' })
+      let q2 = db.from('users').select('*', { count: 'exact' })
       if (search) q2 = q2.or(`name.ilike.%${search}%,email.ilike.%${search}%`)
       if (roleParam && roleParam !== 'all') q2 = q2.eq('role', roleParam)
       const r2 = await q2.order('created_at', { ascending: false }).range(skip, skip + limit - 1)
@@ -243,9 +254,11 @@ export async function PATCH(request: NextRequest) {
     const auth = await requireAdmin(request)
     if (!auth.ok) return auth.response
 
+    const db = getAdminDb()
+
     // Amaldagi adminning DB roli (requireAdmin ADMIN deb qaytaradi, lekin SUPER_ADMIN
     // ekanini alohida tekshiramiz — rolni o'zgartirish imtiyozi uchun)
-    const { data: actorRow } = await supabase
+    const { data: actorRow } = await db
       .from('registered_users')
       .select('role')
       .eq('id', auth.user.id)
@@ -261,7 +274,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Maqsad foydalanuvchini topamiz (ho'zirgi rol va email uchun)
-    const { data: target } = await supabase
+    const { data: target } = await db
       .from('registered_users')
       .select('id, role, email, name')
       .eq('id', userId)
@@ -417,7 +430,7 @@ export async function PATCH(request: NextRequest) {
       // NOTE: email bu yerda YO'Q — auth.users tomonidan boshqariladi
     }
 
-    const { error: updateError } = await supabase
+    const { error: updateError } = await db
       .from('registered_users')
       .update(updatePayload)
       .eq('id', userId)

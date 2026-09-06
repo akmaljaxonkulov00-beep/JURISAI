@@ -27,11 +27,48 @@ export interface SessionUser {
  * (Tokenlarni cookie'ga `src/lib/session-cookies.ts` sinxronlaydi.)
  */
 export function getRequestToken(request: NextRequest): string | null {
-  const authHeader = request.headers.get('authorization')
+  const authHeader = request?.headers?.get?.('authorization')
   if (authHeader && authHeader.startsWith('Bearer ')) {
     return authHeader.slice('Bearer '.length).trim()
   }
-  return request.cookies.get('sb-access-token')?.value || null
+
+  // 1. Direct sb-access-token cookie
+  const directCookie = request?.cookies?.get?.('sb-access-token')?.value
+  if (directCookie) {
+    try {
+      return decodeURIComponent(directCookie).trim()
+    } catch {
+      return directCookie.trim()
+    }
+  }
+
+  // 2. Standard Supabase SSR / browser cookie: sb-*-auth-token or supabase-auth-token
+  if (typeof request?.cookies?.getAll === 'function') {
+    const allCookies = request.cookies.getAll() || []
+    for (const c of allCookies) {
+      if (c.name && c.name.startsWith('sb-') && c.name.endsWith('-auth-token')) {
+        try {
+          const decoded = decodeURIComponent(c.value)
+          const parsed = JSON.parse(decoded)
+          if (parsed?.access_token) return String(parsed.access_token).trim()
+          if (Array.isArray(parsed) && parsed[0]) return String(parsed[0]).trim()
+        } catch {
+          if (c.value) return c.value.trim()
+        }
+      }
+      if (c.name === 'supabase-auth-token') {
+        try {
+          const decoded = decodeURIComponent(c.value)
+          const parsed = JSON.parse(decoded)
+          if (parsed?.access_token) return String(parsed.access_token).trim()
+        } catch {
+          if (c.value) return c.value.trim()
+        }
+      }
+    }
+  }
+
+  return null
 }
 
 /**

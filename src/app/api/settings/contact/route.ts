@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { getSupabaseAdmin } from '@/lib/supabase-admin'
+import { supabase as defaultClient } from '@/lib/supabase'
+import { requireAdmin } from '@/lib/server-auth'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-const supabaseKey =
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+function getDb() {
+  try {
+    return getSupabaseAdmin()
+  } catch {
+    return defaultClient
+  }
+}
 
 // Fallback defaults — ijtimoiy tarmoqlar DEFAULT BO'SH (admin kiritadi).
 // Yo'q/taxminiy URL ishlatilmaydi: admin saqlagan qiymat single source of truth.
@@ -29,11 +35,7 @@ const DEFAULTS = {
 // GET — public contact settings
 export async function GET() {
   try {
-    if (!supabaseUrl || !supabaseKey || supabaseKey.includes('REPLACE_WITH')) {
-      return NextResponse.json({ success: true, data: DEFAULTS })
-    }
-
-    const supabase = createClient(supabaseUrl, supabaseKey)
+    const supabase = getDb()
 
     const { data } = await supabase
       .from('site_settings')
@@ -56,7 +58,6 @@ export async function GET() {
       ])
 
     if (!data || data.length === 0) {
-      // Birinchi setup — matn default, linklar esa BO'SH (yolg'on URL yo'q)
       return NextResponse.json({
         success: true,
         data: { ...DEFAULTS, socialLinks: DEFAULTS.socialLinks },
@@ -68,7 +69,6 @@ export async function GET() {
       settings[row.key] = row.value || ''
     })
 
-    // Return ALL platforms with their saved state (admin needs to see all)
     const socialLinks = [
       {
         platform: 'telegram',
@@ -115,18 +115,14 @@ export async function GET() {
 // POST — admin update contact settings
 export async function POST(request: NextRequest) {
   try {
+    const auth = await requireAdmin(request)
+    if (!auth.ok) return auth.response
+
     const body = await request.json()
     const { contactSectionEnabled, contactLabel, contactHeading, contactDescription, socialLinks } =
       body
 
-    if (!supabaseUrl || !supabaseKey || supabaseKey.includes('REPLACE_WITH')) {
-      return NextResponse.json(
-        { success: false, error: 'Supabase not configured' },
-        { status: 500 }
-      )
-    }
-
-    const supabase = createClient(supabaseUrl, supabaseKey)
+    const supabase = getDb()
 
     // Build upsert data
     const upserts = [
@@ -157,7 +153,8 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true })
-  } catch {
-    return NextResponse.json({ success: false, error: 'Failed to save' }, { status: 500 })
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Failed to save'
+    return NextResponse.json({ success: false, error: message }, { status: 500 })
   }
 }

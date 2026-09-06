@@ -115,8 +115,14 @@ async function resolveUserRole(user: AuthUser): Promise<AuthUser> {
     const params = new URLSearchParams()
     if (user.email) params.set('email', user.email)
     if (user.id && user.id !== 'super-admin') params.set('userId', user.id)
+    let authHeaders: Record<string, string> = {}
+    try {
+      const { getAuthHeaders } = await import('@/lib/api-auth-client')
+      authHeaders = await getAuthHeaders()
+    } catch {}
     const res = await fetch('/api/auth/user-role?' + params.toString(), {
       cache: 'no-cache',
+      headers: { ...authHeaders },
     })
     if (!res.ok) throw new Error('user-role API failed: ' + res.status)
     return res.json()

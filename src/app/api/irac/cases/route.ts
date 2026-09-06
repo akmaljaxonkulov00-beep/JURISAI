@@ -1,5 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
+import { SEED_IRAC_CASES } from '@/lib/cases/seed-cases'
+
+function normalizeCategory(cat: string): string {
+  const c = cat.toLowerCase().replace(/['`’]/g, '')
+  if (c === 'mamuriy' || c === 'administrative') return 'mamuriy'
+  if (c === 'iqtisodiy' || c === 'tijorat' || c === 'commercial' || c === 'economic')
+    return 'iqtisodiy'
+  if (c === 'jinoyat' || c === 'criminal') return 'jinoyat'
+  if (c === 'fuqarolik' || c === 'civil') return 'fuqarolik'
+  if (c === 'mehnat' || c === 'labor') return 'mehnat'
+  if (c === 'oila' || c === 'family') return 'oila'
+  if (c === 'konstitutsiyaviy' || c === 'constitutional') return 'konstitutsiyaviy'
+  return c
+}
 
 /**
  * GET /api/irac/cases
@@ -16,7 +30,8 @@ export async function GET(req: NextRequest) {
     let query = sb.from('irac_cases').select('*').eq('is_active', true)
 
     if (category && category !== 'all') {
-      query = query.eq('category', category)
+      const normCat = normalizeCategory(category)
+      query = query.or(`category.ilike.%${normCat}%,category.ilike.%${category}%`)
     }
     if (difficulty && difficulty !== 'all') {
       query = query.eq('difficulty', difficulty)
@@ -24,23 +39,53 @@ export async function GET(req: NextRequest) {
 
     const { data, error } = await query
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
+    let resultCases = data || []
+
+    // If DB has no cases or table is empty, use SEED_IRAC_CASES
+    if (error || resultCases.length === 0) {
+      let filtered = SEED_IRAC_CASES
+      if (category && category !== 'all') {
+        const normCat = normalizeCategory(category)
+        filtered = filtered.filter(c => normalizeCategory(c.category) === normCat)
+      }
+      if (difficulty && difficulty !== 'all') {
+        filtered = filtered.filter(c => c.difficulty.toLowerCase() === difficulty.toLowerCase())
+      }
+      resultCases = filtered.map(c => ({
+        id: c.id,
+        title: c.title,
+        description: c.description,
+        category: c.category,
+        difficulty: c.difficulty,
+        law_references: c.law_references,
+        is_active: true,
+      }))
     }
 
-    if (!data || data.length === 0) {
+    if (resultCases.length === 0) {
       return NextResponse.json({ cases: [], message: 'Kazuslar topilmadi' })
     }
 
     // Tasodifiy tanlash — Fisher-Yates shuffle
-    const shuffled = [...data].sort(() => Math.random() - 0.5)
+    const shuffled = [...resultCases].sort(() => Math.random() - 0.5)
 
     return NextResponse.json({
       cases: shuffled,
-      total: data.length,
+      total: resultCases.length,
     })
   } catch {
-    return NextResponse.json({ error: 'Server xatosi' }, { status: 500 })
+    // Fallback on catch
+    let filtered = SEED_IRAC_CASES
+    if (category && category !== 'all') {
+      filtered = filtered.filter(c => c.category.toLowerCase() === category.toLowerCase())
+    }
+    if (difficulty && difficulty !== 'all') {
+      filtered = filtered.filter(c => c.difficulty.toLowerCase() === difficulty.toLowerCase())
+    }
+    return NextResponse.json({
+      cases: [...filtered].sort(() => Math.random() - 0.5),
+      total: filtered.length,
+    })
   }
 }
 
