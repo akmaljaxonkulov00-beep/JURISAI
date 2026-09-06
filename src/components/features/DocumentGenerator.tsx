@@ -6,8 +6,9 @@ import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
-import { FileText, ArrowLeft, Download, Edit3, Plus, Clock, FileDown } from 'lucide-react'
+import { FileText, ArrowLeft, Download, Edit3, Plus, Clock, FileDown, X } from 'lucide-react'
 import { generateLegalPdf, downloadPdfBlob } from '@/lib/pdf-generator'
+import { getAuthHeaders } from '@/lib/api-auth-client'
 
 import documentTemplatesData from '@/data/document-templates.json'
 
@@ -87,21 +88,83 @@ export default function DocumentGenerator() {
     }
   }
 
-  const loadGeneratedDocuments = () => {
+  // DB dan hujjatlar tarixini yuklash (authoritative source = database).
+  // localStorage faqat offline/kechikish paytida cache sifatida ishlatiladi.
+  const loadGeneratedDocuments = async () => {
+    try {
+      const res = await fetch('/api/documents', { cache: 'no-cache', credentials: 'include' })
+      if (res.ok) {
+        const data = await res.json()
+        if (data.success && Array.isArray(data.documents)) {
+          setGeneratedDocuments(data.documents as GeneratedDocument[])
+          try {
+            localStorage.setItem('generated_documents', JSON.stringify(data.documents))
+          } catch {}
+          return
+        }
+      }
+    } catch (error) {
+      console.error('Error loading documents from DB:', error)
+    }
+
+    // DB ulanishda muammo bo'lsa — lokal cache ko'rsatiladi (vaqtinchalik)
     try {
       const stored = localStorage.getItem('generated_documents')
       if (stored) {
         setGeneratedDocuments(JSON.parse(stored))
       }
+    } catch {}
+  }
+
+  // Hujjatni database'ga saqlash (refresh/logout'dan keyin ham qoladi)
+  const saveDocument = async (document: GeneratedDocument): Promise<boolean> => {
+    try {
+      const res = await fetch('/api/documents', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(await getAuthHeaders()),
+        },
+        body: JSON.stringify({
+          title: document.title,
+          content: document.content,
+          template_id: document.template_id,
+          status: document.status,
+        }),
+      })
+      const data = await res.json()
+      if (res.ok && data.success) {
+        const saved = (data.document || document) as GeneratedDocument
+        const updated = [saved, ...generatedDocuments]
+        setGeneratedDocuments(updated)
+        try {
+          localStorage.setItem('generated_documents', JSON.stringify(updated))
+        } catch {}
+        return true
+      }
+      console.error('Save document error:', data.error)
+      return false
     } catch (error) {
-      console.error('Error loading documents:', error)
+      console.error('Error saving document:', error)
+      return false
     }
   }
 
-  const saveDocument = (document: GeneratedDocument) => {
-    const updated = [document, ...generatedDocuments]
-    setGeneratedDocuments(updated)
-    localStorage.setItem('generated_documents', JSON.stringify(updated))
+  const handleDeleteDocument = async (documentId: string) => {
+    try {
+      const res = await fetch(`/api/documents?id=${encodeURIComponent(documentId)}`, {
+        method: 'DELETE',
+        credentials: 'include',
+        headers: { ...(await getAuthHeaders()) },
+      })
+      if (res.ok) {
+        setGeneratedDocuments(prev => prev.filter(d => d.id !== documentId))
+        if (currentDocument?.id === documentId) setCurrentDocument(null)
+      }
+    } catch (error) {
+      console.error('Error deleting document:', error)
+    }
   }
 
   const handleTemplateSelect = (template: DocumentTemplate) => {
@@ -170,7 +233,19 @@ export default function DocumentGenerator() {
         status: 'completed',
       }
 
-      saveDocument(newDocument)
+      const saved = await saveDocument(newDocument)
+      if (!saved) {
+        // DB saqlash muvaffaqiyatsiz — hujjat yo'qolmasligi uchun lokal saqlanadi,
+        // lekin foydalanuvchiga aniq xabar ko'rsatiladi
+        const updated = [newDocument, ...generatedDocuments]
+        setGeneratedDocuments(updated)
+        try {
+          localStorage.setItem('generated_documents', JSON.stringify(updated))
+        } catch {}
+        setError(
+          "Hujjat yaratildi, lekin serverga saqlashda xatolik — tarixda faqat lokal ko'rinadi"
+        )
+      }
       setCurrentDocument(newDocument)
       setFormData({})
       setActiveTab('history')
@@ -483,6 +558,13 @@ export default function DocumentGenerator() {
                     onClick={() => handleEditDocument(currentDocument)}
                   >
                     <Edit3 className="w-4 h-4 mr-2" /> Tahrirlash
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="border-gray-400 text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800"
+                    onClick={() => handleDeleteDocument(currentDocument.id)}
+                  >
+                    <X className="w-4 h-4 mr-2" /> O'chirish
                   </Button>
                 </div>
               </div>

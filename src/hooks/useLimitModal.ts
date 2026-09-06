@@ -34,7 +34,7 @@ const FEATURE_LABELS: Record<string, string> = {
  *   checkLimitError(data) // modal ochiladi
  * }
  *
- * return <LimitExceededModal {...modalProps} onUpgrade={() => router.push('/pricing')} />
+ * return <LimitExceededModal {...modalProps} onUpgrade={() => router.push('/premium')} />
  * ```
  */
 export function useLimitModal() {

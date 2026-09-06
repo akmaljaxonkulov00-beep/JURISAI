@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
 import { supabase as defaultClient } from '@/lib/supabase'
 import { requireAdmin } from '@/lib/server-auth'
+import { getSiteSettings, upsertSiteSettings } from '@/lib/site-settings-db'
 
 function getDb() {
   try {
@@ -37,37 +38,29 @@ export async function GET() {
   try {
     const supabase = getDb()
 
-    const { data } = await supabase
-      .from('site_settings')
-      .select('key, value')
-      .in('key', [
-        'contact_section_enabled',
-        'contact_label',
-        'contact_heading',
-        'contact_description',
-        'social_telegram',
-        'social_telegram_enabled',
-        'social_instagram',
-        'social_instagram_enabled',
-        'social_youtube',
-        'social_youtube_enabled',
-        'social_linkedin',
-        'social_linkedin_enabled',
-        'social_website',
-        'social_website_enabled',
-      ])
+    const settings = await getSiteSettings(supabase, [
+      'contact_section_enabled',
+      'contact_label',
+      'contact_heading',
+      'contact_description',
+      'social_telegram',
+      'social_telegram_enabled',
+      'social_instagram',
+      'social_instagram_enabled',
+      'social_youtube',
+      'social_youtube_enabled',
+      'social_linkedin',
+      'social_linkedin_enabled',
+      'social_website',
+      'social_website_enabled',
+    ])
 
-    if (!data || data.length === 0) {
+    if (Object.keys(settings).length === 0) {
       return NextResponse.json({
         success: true,
         data: { ...DEFAULTS, socialLinks: DEFAULTS.socialLinks },
       })
     }
-
-    const settings: Record<string, string> = {}
-    data.forEach(row => {
-      settings[row.key] = row.value || ''
-    })
 
     const socialLinks = [
       {
@@ -145,14 +138,14 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    const { error } = await supabase.from('site_settings').upsert(upserts, { onConflict: 'key' })
+    const result = await upsertSiteSettings(supabase, upserts)
 
-    if (error) {
-      console.error('[Contact Settings] Save error:', error.message)
-      return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+    if (result.error) {
+      console.error('[Contact Settings] Save error:', result.error)
+      return NextResponse.json({ success: false, error: result.error }, { status: 500 })
     }
 
-    return NextResponse.json({ success: true })
+    return NextResponse.json({ success: true, skipped: result.skipped || [] })
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Failed to save'
     return NextResponse.json({ success: false, error: message }, { status: 500 })

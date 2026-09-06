@@ -43,6 +43,10 @@ interface IracResult {
   conclusion: string
   sources: Array<{ title: string; article: string; url: string }>
   confidence: number
+  score?: number
+  feedback?: string
+  strengths?: string[]
+  weaknesses?: string[]
 }
 
 interface IracCase {
@@ -199,8 +203,28 @@ export default function CaseSolver() {
   const [allCases, setAllCases] = useState<IracCase[]>([])
   const [showAllCases, setShowAllCases] = useState(false)
 
-  // ── Session ichida bir xil kazus qayta chiqmasligi uchun ──
+  // ── Tasodifiy kazus tarixi: session + localStorage (keyingi tashrifda ham
+  //    oldin ko'rilgan kazuslar qayta taklif qilinmaydi, spec talabi) ──
   const seenCaseIdsRef = useRef<Set<string>>(new Set())
+
+  const persistSeenCaseIds = useCallback(() => {
+    try {
+      localStorage.setItem('kazus_seen_ids', JSON.stringify([...seenCaseIdsRef.current]))
+    } catch {}
+  }, [])
+
+  // localStorage'dan oldingi tashrif tarixini tiklash
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('kazus_seen_ids')
+      if (stored) {
+        const parsed = JSON.parse(stored)
+        if (Array.isArray(parsed)) {
+          seenCaseIdsRef.current = new Set(parsed.map(String))
+        }
+      }
+    } catch {}
+  }, [])
 
   // ── Foydalanuvchi o'zi kazus yozishi uchun (Mode 1: AI yechishi) ──
   const [useCustomCase, setUseCustomCase] = useState(false)
@@ -269,6 +293,7 @@ export default function CaseSolver() {
     const randomIndex = Math.floor(Math.random() * pool.length)
     const picked = pool[randomIndex]
     seenCaseIdsRef.current.add(picked.id)
+    persistSeenCaseIds()
 
     setCurrentCase(picked)
     setResult(null)
@@ -279,6 +304,7 @@ export default function CaseSolver() {
   /* ── Ro'yxatdan qo'lda tanlangan kazus ham historyga yoziladi ── */
   const selectCase = (c: IracCase) => {
     seenCaseIdsRef.current.add(c.id)
+    persistSeenCaseIds()
     setCurrentCase(c)
     setResult(null)
     setEvaluation(null)
@@ -376,9 +402,13 @@ JSON formatda javob bering:
   "conclusion": "To'g'ri xulosa...",
   "sources": [{"title": "Kodeks nomi", "article": "modda raqami"}],
   "confidence": 85,
-  "feedback": "Umumiy baholash..."
+  "score": 72,
+  "feedback": "Foydalanuvchi javobining umumiy bahosi — kuchli va zaif tomonlarini qisqacha tavsiflang",
+  "strengths": ["Kuchli tomon 1", "Kuchli tomon 2"],
+  "weaknesses": ["Zaif tomon 1", "Zaif tomon 2"]
 }
 
+score 0-100 oralig'ida butun son bo'lsin. strength/weakness har biri 2-4 ta bo'lsin.
 FAQAT O'ZBEK LOTIN ALIFBOSIDA yozing. Kirill harflari ishlatilmaydi.`
 
       const res = await fetch('/api/ai/chat', {
@@ -408,7 +438,18 @@ FAQAT O'ZBEK LOTIN ALIFBOSIDA yozing. Kirill harflari ishlatilmaydi.`
             application: parsed.application || '',
             conclusion: parsed.conclusion || '',
             sources: Array.isArray(parsed.sources) ? parsed.sources : [],
-            confidence: typeof parsed.confidence === 'number' ? parsed.confidence : 0,
+            confidence:
+              typeof parsed.confidence === 'number'
+                ? parsed.confidence
+                : typeof parsed.score === 'number'
+                  ? parsed.score
+                  : 0,
+            score: typeof parsed.score === 'number' ? parsed.score : undefined,
+            feedback: parsed.feedback ? String(parsed.feedback) : undefined,
+            strengths: Array.isArray(parsed.strengths) ? parsed.strengths.map(String) : undefined,
+            weaknesses: Array.isArray(parsed.weaknesses)
+              ? parsed.weaknesses.map(String)
+              : undefined,
           })
         } catch {
           // JSON parse xatosi — matnni to'g'ridan-to'g'ri ko'rsatish
@@ -546,10 +587,10 @@ FAQAT O'ZBEK LOTIN ALIFBOSIDA yozing. Kirill harflari ishlatilmaydi.`
     setUserAnswers({ issue: '', rule: '', application: '', conclusion: '' })
   }
 
-  /* ── Kategoriya/filtr o'zgarganda history tozalanadi (yangi pool) ── */
-  useEffect(() => {
-    seenCaseIdsRef.current.clear()
-  }, [category, difficulty])
+  /* ── Tasodifiy kazus tarixi filtr o'zgarishida TOZALANMAYDI ──
+     localStorage'dagi ko'rilgan kazuslar tarixi saqlanib turadi, shunda
+     oldin ko'rilgan kazuslar qayta taklif qilinmaydi (spec talabi).
+     Pool tugagach pickRandomCase'ning o'zi yangi cycle boshlaydi. */
 
   /* ═══════════════════════════════════════════════════════════════════════
      RENDER
@@ -557,7 +598,7 @@ FAQAT O'ZBEK LOTIN ALIFBOSIDA yozing. Kirill harflari ishlatilmaydi.`
 
   return (
     <div className="min-h-screen bg-[#f8faff] dark:bg-gray-950 mobile-safe-top">
-      <LimitExceededModal {...modalProps} onUpgrade={() => router.push('/pricing')} />
+      <LimitExceededModal {...modalProps} onUpgrade={() => router.push('/premium')} />
       <div className="flex flex-col md:flex-row">
         <AppSidebar>
           <div className="space-y-1">
@@ -1254,6 +1295,80 @@ FAQAT O'ZBEK LOTIN ALIFBOSIDA yozing. Kirill harflari ishlatilmaydi.`
                     Yangi kazus
                   </button>
                 </div>
+
+                {/* ═══ UMUMIY BAHO KARTASI (score + feedback) ═══ */}
+                {(evaluation.score != null ||
+                  evaluation.feedback ||
+                  evaluation.strengths ||
+                  evaluation.weaknesses) && (
+                  <div className="bg-white dark:bg-zinc-900 rounded-2xl p-4 sm:p-5 shadow-sm border border-amber-200 dark:border-amber-900">
+                    <div className="flex items-center justify-between flex-wrap gap-3 mb-3">
+                      <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
+                        <Award className="w-5 h-5" />
+                        <h3 className="font-semibold">Umumiy ball</h3>
+                      </div>
+                      <div className="text-3xl font-bold text-gray-800 dark:text-zinc-100">
+                        {evaluation.score ?? evaluation.confidence}
+                        <span className="text-base font-medium text-gray-400 ml-1">/ 100</span>
+                      </div>
+                    </div>
+                    <div className="w-full h-2.5 bg-gray-100 dark:bg-zinc-800 rounded-full overflow-hidden mb-4">
+                      <div
+                        className="h-full rounded-full transition-all duration-700"
+                        style={{
+                          width: `${Math.min(100, Math.max(0, evaluation.score ?? evaluation.confidence))}%`,
+                          background:
+                            (evaluation.score ?? evaluation.confidence) >= 70
+                              ? 'linear-gradient(90deg, #22c55e, #16a34a)'
+                              : (evaluation.score ?? evaluation.confidence) >= 40
+                                ? 'linear-gradient(90deg, #f59e0b, #f97316)'
+                                : 'linear-gradient(90deg, #ef4444, #dc2626)',
+                        }}
+                      />
+                    </div>
+                    {evaluation.feedback && (
+                      <p className="text-sm text-gray-700 dark:text-zinc-300 leading-relaxed mb-3">
+                        {evaluation.feedback}
+                      </p>
+                    )}
+                    {evaluation.strengths && evaluation.strengths.length > 0 && (
+                      <div className="mb-2">
+                        <p className="text-xs font-semibold text-green-600 dark:text-green-400 mb-1">
+                          Kuchli tomonlar
+                        </p>
+                        <ul className="space-y-1">
+                          {evaluation.strengths.map((s, i) => (
+                            <li
+                              key={i}
+                              className="text-sm text-gray-600 dark:text-zinc-400 flex items-start gap-2"
+                            >
+                              <CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                              {s}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {evaluation.weaknesses && evaluation.weaknesses.length > 0 && (
+                      <div>
+                        <p className="text-xs font-semibold text-amber-600 dark:text-amber-400 mb-1">
+                          Yaxshilash kerak
+                        </p>
+                        <ul className="space-y-1">
+                          {evaluation.weaknesses.map((s, i) => (
+                            <li
+                              key={i}
+                              className="text-sm text-gray-600 dark:text-zinc-400 flex items-start gap-2"
+                            >
+                              <AlertCircle className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
+                              {s}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Foydalanuvchi javoblari vs AI bahosi */}
                 {SECTIONS.map(s => {

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
 import { supabase as defaultClient } from '@/lib/supabase'
 import { requireAdmin } from '@/lib/server-auth'
+import { getLogoSettings, hasKeyColumn, upsertSiteSettings } from '@/lib/site-settings-db'
 
 const ALLOWED_TYPES = ['image/png', 'image/svg+xml', 'image/jpeg', 'image/webp']
 const MAX_SIZE = 2 * 1024 * 1024 // 2MB
@@ -26,22 +27,12 @@ export async function GET() {
       })
     }
 
-    const { data } = await supabase
-      .from('site_settings')
-      .select('key, value')
-      .in('key', ['logo_url', 'logo_dark_url', 'favicon_url'])
-
-    const settings: Record<string, string> = {}
-    if (data) {
-      data.forEach(row => {
-        settings[row.key] = row.value || ''
-      })
-    }
+    const settings = await getLogoSettings(supabase)
 
     return NextResponse.json({
-      logoUrl: settings.logo_url || null,
-      logoDarkUrl: settings.logo_dark_url || null,
-      faviconUrl: settings.favicon_url || null,
+      logoUrl: settings.logoUrl,
+      logoDarkUrl: settings.logoDarkUrl,
+      faviconUrl: settings.faviconUrl,
     })
   } catch {
     return NextResponse.json({
@@ -85,12 +76,10 @@ export async function POST(request: NextRequest) {
 
       // Store as data URL
       const dataUrl = `data:${imageType};base64,${imageData}`
-      const { error } = await supabase
-        .from('site_settings')
-        .upsert({ key: imageKey, value: dataUrl }, { onConflict: 'key' })
+      const result = await upsertSiteSettings(supabase, [{ key: imageKey, value: dataUrl }])
 
-      if (error) {
-        return NextResponse.json({ error: error.message }, { status: 500 })
+      if (result.error) {
+        return NextResponse.json({ error: result.error }, { status: 500 })
       }
 
       return NextResponse.json({ success: true, [imageKey]: dataUrl })
@@ -110,15 +99,17 @@ export async function POST(request: NextRequest) {
     }
 
     if (upserts.length > 0) {
-      const { error } = await supabase.from('site_settings').upsert(upserts, { onConflict: 'key' })
-      if (error) {
-        return NextResponse.json({ error: error.message }, { status: 500 })
+      const result = await upsertSiteSettings(supabase, upserts)
+      if (result.error) {
+        return NextResponse.json({ error: result.error }, { status: 500 })
       }
     }
 
     return NextResponse.json({ success: true })
-  } catch {
-    return NextResponse.json({ error: 'Failed to save logo' }, { status: 500 })
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Failed to save logo'
+    console.error('[Logo] Save error:', message)
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
 
@@ -137,13 +128,16 @@ export async function DELETE(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const key = searchParams.get('key') // 'logo_url' | 'logo_dark_url' | 'favicon_url' | null (all)
 
-    if (key) {
-      await supabase.from('site_settings').delete().eq('key', key)
-    } else {
-      await supabase
-        .from('site_settings')
-        .delete()
-        .in('key', ['logo_url', 'logo_dark_url', 'favicon_url'])
+    // Eski sxemada logo kolonnasi yo'q — o'chirish no-op (xato emas)
+    if (await hasKeyColumn(supabase)) {
+      if (key) {
+        await supabase.from('site_settings').delete().eq('key', key)
+      } else {
+        await supabase
+          .from('site_settings')
+          .delete()
+          .in('key', ['logo_url', 'logo_dark_url', 'favicon_url'])
+      }
     }
 
     return NextResponse.json({ success: true })

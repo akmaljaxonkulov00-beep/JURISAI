@@ -17,7 +17,8 @@ export default function PrivacyPage() {
 
             <div className="prose prose-lg max-w-none">
               <p className="text-gray-600 dark:text-zinc-400 mb-6">
-                Oxirgi yangilanish: {new Date().toLocaleDateString('uz-UZ')}
+                Oxirgi yangilanish:{' '}
+                {new Date().toLocaleDateString('uz-UZ', { timeZone: 'Asia/Tashkent' })}
               </p>
 
               <h2 className="text-2xl font-semibold text-gray-900 dark:text-zinc-100 mt-8 mb-4">

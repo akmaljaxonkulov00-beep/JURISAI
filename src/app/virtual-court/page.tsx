@@ -534,7 +534,7 @@ export default function VirtualCourtPage() {
   if (viewState === 'select') {
     return (
       <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-blue-600 selection:text-white">
-        <LimitExceededModal {...modalProps} onUpgrade={() => router.push('/pricing')} />
+        <LimitExceededModal {...modalProps} onUpgrade={() => router.push('/premium')} />
 
         {/* Top Navigation */}
         <header className="border-b border-slate-800/80 bg-slate-900/60 backdrop-blur-md sticky top-0 z-30 px-4 lg:px-8 py-3.5 flex items-center justify-between">
@@ -930,7 +930,7 @@ export default function VirtualCourtPage() {
   if (viewState === 'session' && sessionState && selectedScenario) {
     return (
       <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col overflow-hidden relative selection:bg-blue-600 selection:text-white">
-        <LimitExceededModal {...modalProps} onUpgrade={() => router.push('/pricing')} />
+        <LimitExceededModal {...modalProps} onUpgrade={() => router.push('/premium')} />
 
         {/* IMMERSIVE COURTROOM POV BACKGROUND */}
         <div

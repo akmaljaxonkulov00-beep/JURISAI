@@ -37,6 +37,10 @@ BEGIN
 END $$;
 
 -- ── 2. IRAC Cases — Jinoyat huquqi (10 ta) ──────────────────────────────
+-- Takroriy seed'lar xavfini bartaraf qilish uchun title bo'yicha UNIQUE indeks:
+-- ON CONFLICT DO NOTHING shu indeks asosida qayta run'larda dublikat yaratmaydi.
+CREATE UNIQUE INDEX IF NOT EXISTS idx_irac_cases_title ON public.irac_cases(title);
+
 INSERT INTO public.irac_cases (title, description, category, difficulty, law_references) VALUES
 ('O''g''irlik — JK 169-modda', 'Sudlanuvchi A.A. Karimov supermarketdan 10 million so''m naqd pulni o''g''irlab ketdi. U 2 kundan keyin qo''lga olindi va aybini tan oldi. Jinoyat ishi ochildi. Sudlanuvchining oldida o''g''irlikning og''irlik darajasini aniqlash masalasi turadi.', 'jinoyat', 'easy', ARRAY['JK 169-modda', 'JK 47-modda']),
 ('Firibgarlik — JK 168-modda', 'B.T. Omonov "Invest Group" firibgarlik guruhiga 100 million so''m pul o''tkazdi. Guruh a''zolari pulni qaytarmay, yo''qolib ketdi. Firibgarlik jinoyatida ayblanmoqda. Omonov pullarini qaytarishni talab qilmoqda.', 'jinoyat', 'medium', ARRAY['JK 168-modda', 'JK 28-modda']),
