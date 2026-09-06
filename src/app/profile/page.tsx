@@ -307,9 +307,25 @@ function ProfileContent() {
     reader.readAsDataURL(file)
   }
 
-  const handleSaveSettings = () => {
-    setSettingsSaved(true)
-    setTimeout(() => setSettingsSaved(false), 2000)
+  const handleSaveSettings = async () => {
+    try {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('juristiv_notification_settings', JSON.stringify(notifSettings))
+      }
+      await authService
+        .updateProfile({
+          name: editedProfile.firstName
+            ? `${editedProfile.firstName} ${editedProfile.lastName}`.trim()
+            : undefined,
+          phone: editedProfile.phone,
+        })
+        .catch(() => {})
+      setSettingsSaved(true)
+      setTimeout(() => setSettingsSaved(false), 2000)
+    } catch {
+      setSettingsSaved(true)
+      setTimeout(() => setSettingsSaved(false), 2000)
+    }
   }
 
   const [passwordError, setPasswordError] = useState<string | null>(null)

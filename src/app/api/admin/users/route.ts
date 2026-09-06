@@ -273,18 +273,29 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'User ID is required' }, { status: 400 })
     }
 
-    // Maqsad foydalanuvchini topamiz (ho'zirgi rol va email uchun)
-    const { data: target } = await db
+    // Maqsad foydalanuvchini topamiz (id yoki email orqali)
+    let target = null
+    const { data: byId } = await db
       .from('registered_users')
       .select('id, role, email, name')
       .eq('id', userId)
       .maybeSingle()
+    target = byId
+    if (!target) {
+      const { data: byEmail } = await db
+        .from('registered_users')
+        .select('id, role, email, name')
+        .eq('email', String(userId).toLowerCase().trim())
+        .maybeSingle()
+      target = byEmail
+    }
     if (!target) {
       return NextResponse.json(
         { success: false, error: 'Foydalanuvchi topilmadi' },
         { status: 404 }
       )
     }
+    const targetUserId = target.id
     const targetRole = String(target.role || 'USER').toUpperCase()
 
     // ── Imtiyoz qoidalari ──
@@ -433,7 +444,7 @@ export async function PATCH(request: NextRequest) {
     const { error: updateError } = await db
       .from('registered_users')
       .update(updatePayload)
-      .eq('id', userId)
+      .eq('id', targetUserId)
 
     if (updateError) {
       console.error('[Admin Users] Update error:', updateError)
@@ -441,7 +452,7 @@ export async function PATCH(request: NextRequest) {
         admin: auth.user,
         action: auditedAction || 'user_update',
         targetType: 'user',
-        targetId: userId,
+        targetId: targetUserId,
         targetEmail: target.email || '',
         details: { ...auditDetails, error: updateError.message },
         success: false,
@@ -450,10 +461,6 @@ export async function PATCH(request: NextRequest) {
     }
 
     // ── auth.users metadata ni ham yangilash (tarif/rol sinxron qoladi) ──
-    // Muammo root cause: registered_users o'zgaradi, lekin auth.users
-    // raw_user_meta_data dagi eski qiymat saqlanadi. Har bir login/auth
-    // UPDATE da trigger eski qiymatni qayta yozadi. Buni oldini olish uchun
-    // ikkala manba bir vaqtda yangilanadi (best-effort).
     try {
       const { createClient } = await import('@supabase/supabase-js')
       const suUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -479,7 +486,7 @@ export async function PATCH(request: NextRequest) {
         if (updatePayload.blocked !== undefined) {
           metaUpdate.banned = updatePayload.blocked ? true : null
         }
-        await adminClient.auth.admin.updateUserById(userId, { user_metadata: metaUpdate })
+        await adminClient.auth.admin.updateUserById(targetUserId, { user_metadata: metaUpdate })
       }
     } catch {
       // Best-effort — registered_users allaqachon yangilandi
@@ -491,7 +498,7 @@ export async function PATCH(request: NextRequest) {
         admin: auth.user,
         action: auditedAction,
         targetType: 'user',
-        targetId: userId,
+        targetId: targetUserId,
         targetEmail: target.email || '',
         details: auditDetails,
         success: true,
@@ -528,20 +535,33 @@ export async function DELETE(request: NextRequest) {
       )
     }
 
-    const { data: target } = await supabase
+    const db = getAdminDb()
+    let target = null
+    const { data: byId } = await db
       .from('registered_users')
       .select('id, role, email')
       .eq('id', userId)
       .maybeSingle()
+    target = byId
+    if (!target) {
+      const { data: byEmail } = await db
+        .from('registered_users')
+        .select('id, role, email')
+        .eq('email', String(userId).toLowerCase().trim())
+        .maybeSingle()
+      target = byEmail
+    }
+
     if (!target) {
       return NextResponse.json(
         { success: false, error: 'Foydalanuvchi topilmadi' },
         { status: 404 }
       )
     }
+    const targetUserId = target.id
     const targetRole = String(target.role || 'USER').toUpperCase()
 
-    const { data: actorRow } = await supabase
+    const { data: actorRow } = await db
       .from('registered_users')
       .select('role')
       .eq('id', auth.user.id)
@@ -558,7 +578,7 @@ export async function DELETE(request: NextRequest) {
 
     // Oxirgi SUPER_ADMIN o'chirilmaydi
     if (targetRole === 'SUPER_ADMIN') {
-      const { count: superCount } = await supabase
+      const { count: superCount } = await db
         .from('registered_users')
         .select('id', { count: 'exact', head: true })
         .eq('role', 'SUPER_ADMIN')
@@ -571,13 +591,13 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Profil yozuvini o'chirish
-    const { error } = await supabase.from('registered_users').delete().eq('id', userId)
+    const { error } = await db.from('registered_users').delete().eq('id', targetUserId)
     if (error) {
       await logAdminAction({
         admin: auth.user,
         action: 'user_delete',
         targetType: 'user',
-        targetId: userId,
+        targetId: targetUserId,
         targetEmail: target.email || '',
         details: { error: error.message },
         success: false,
@@ -594,7 +614,7 @@ export async function DELETE(request: NextRequest) {
         const adminClient = createClient(suUrl, srKey, {
           auth: { autoRefreshToken: false, persistSession: false },
         })
-        await adminClient.auth.admin.deleteUser(userId)
+        await adminClient.auth.admin.deleteUser(targetUserId)
       }
     } catch {
       // Auth o'chirish best-effort — profil yozuvi allaqachon o'chirildi
@@ -604,7 +624,7 @@ export async function DELETE(request: NextRequest) {
       admin: auth.user,
       action: 'user_delete',
       targetType: 'user',
-      targetId: userId,
+      targetId: targetUserId,
       targetEmail: target.email || '',
       details: { role: targetRole },
       success: true,

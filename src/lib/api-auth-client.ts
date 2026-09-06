@@ -13,6 +13,22 @@ export async function getAuthHeaders(): Promise<Record<string, string>> {
     if (session?.access_token) {
       return { Authorization: `Bearer ${session.access_token}` }
     }
+
+    // Fallback: search localStorage directly
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i)
+      if (key && key.startsWith('sb-') && key.endsWith('-auth-token')) {
+        const raw = localStorage.getItem(key)
+        if (raw) {
+          try {
+            const parsed = JSON.parse(raw)
+            if (parsed?.access_token) {
+              return { Authorization: `Bearer ${parsed.access_token}` }
+            }
+          } catch {}
+        }
+      }
+    }
   } catch {
     /* session o'qib bo'lmadi */
   }

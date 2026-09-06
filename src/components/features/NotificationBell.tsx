@@ -335,7 +335,7 @@ export default function NotificationBell() {
               <button
                 onClick={() => {
                   setOpen(false)
-                  router.push('/settings')
+                  router.push('/profile?tab=settings&subtab=notifications')
                 }}
                 className="text-xs text-blue-600 hover:text-blue-700 font-medium"
               >

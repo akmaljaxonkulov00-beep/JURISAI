@@ -375,16 +375,24 @@ export async function DELETE(request: NextRequest) {
     }
 
     const userId = auth.user.id
+    const userEmail = auth.user.email?.toLowerCase().trim() || ''
 
-    // Check if user is platform admin
-    const { data: userRow } = await supabase
+    // Check if user is platform admin (by id or email)
+    let { data: userRow } = await supabase
       .from('registered_users')
       .select('role')
       .eq('id', userId)
       .maybeSingle()
-    const isPlatformAdmin = ['ADMIN', 'SUPER_ADMIN', 'admin', 'super_admin'].includes(
-      userRow?.role || ''
-    )
+    if (!userRow && userEmail) {
+      const byEmail = await supabase
+        .from('registered_users')
+        .select('role')
+        .eq('email', userEmail)
+        .maybeSingle()
+      userRow = byEmail.data
+    }
+    const { isAdminRole } = await import('@/lib/roles')
+    const isPlatformAdmin = isAdminRole(userRow?.role)
 
     const { data: existing } = await supabase
       .from('community_groups')
@@ -396,8 +404,25 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Guruh topilmadi' }, { status: 404 })
     }
 
-    const isCreator =
-      existing.created_by?.toString() === userId || existing.created_by === auth.user.email
+    const createdByStr = String(existing.created_by || '').toLowerCase()
+    let isCreator =
+      createdByStr === userId.toLowerCase() || (userEmail && createdByStr === userEmail)
+
+    // Check group membership role
+    if (!isCreator && !isPlatformAdmin) {
+      const { data: member } = await supabase
+        .from('community_group_members')
+        .select('role')
+        .eq('group_id', id)
+        .eq('user_id', userId)
+        .maybeSingle()
+      if (
+        member &&
+        ['creator', 'admin', 'moderator', 'owner'].includes(String(member.role).toLowerCase())
+      ) {
+        isCreator = true
+      }
+    }
 
     if (!isPlatformAdmin && !isCreator) {
       return NextResponse.json(

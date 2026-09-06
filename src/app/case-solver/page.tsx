@@ -133,12 +133,13 @@ const COLOR_STYLES: Record<string, { header: string; border: string; text: strin
 
 const CATEGORIES = [
   { value: 'all', label: 'Barchasi' },
-  { value: 'jinoyat', label: 'Jinoyat' },
-  { value: 'fuqarolik', label: 'Fuqarolik' },
-  { value: 'mehnat', label: 'Mehnat' },
-  { value: 'oila', label: 'Oila' },
-  { value: 'mamuriy', label: "Ma'muriy" },
-  { value: 'tijorat', label: 'Tijorat' },
+  { value: 'fuqarolik', label: 'Fuqarolik huquqi' },
+  { value: 'jinoyat', label: 'Jinoyat huquqi' },
+  { value: 'mamuriy', label: "Ma'muriy huquq" },
+  { value: 'mehnat', label: 'Mehnat huquqi' },
+  { value: 'oila', label: 'Oila huquqi' },
+  { value: 'iqtisodiy', label: 'Iqtisodiy / Biznes huquqi' },
+  { value: 'konstitutsiyaviy', label: 'Konstitutsiyaviy huquq' },
 ]
 
 const DIFFICULTIES = [

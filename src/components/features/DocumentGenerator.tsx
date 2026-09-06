@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
-import { FileText, ArrowLeft, Download, Edit3, Plus, Clock } from 'lucide-react'
+import { FileText, ArrowLeft, Download, Edit3, Plus, Clock, FileDown } from 'lucide-react'
+import { generateLegalPdf, downloadPdfBlob } from '@/lib/pdf-generator'
 
 import documentTemplatesData from '@/data/document-templates.json'
 
@@ -43,6 +44,7 @@ export default function DocumentGenerator() {
   const [formData, setFormData] = useState<Record<string, string>>({})
   const [generatedDocuments, setGeneratedDocuments] = useState<GeneratedDocument[]>([])
   const [loading, setLoading] = useState(false)
+  const [downloadingPdf, setDownloadingPdf] = useState(false)
   const [currentDocument, setCurrentDocument] = useState<GeneratedDocument | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -51,7 +53,33 @@ export default function DocumentGenerator() {
     loadGeneratedDocuments()
   }, [])
 
-  const loadTemplates = () => {
+  const loadTemplates = async () => {
+    try {
+      const res = await fetch('/api/templates')
+      if (res.ok) {
+        const data = await res.json()
+        if (data.templates && Array.isArray(data.templates) && data.templates.length > 0) {
+          // Format DB templates to UI structure if needed
+          const mapped = data.templates.map((t: any) => ({
+            id: t.id || t.slug,
+            name: t.name,
+            description: t.description || '',
+            category: t.category || 'Umumiy',
+            body_template: t.content || '',
+            fields: Array.isArray(t.fields)
+              ? t.fields
+              : [
+                  { name: 'full_name', label: 'F.I.SH.', type: 'text', required: true },
+                  { name: 'details', label: 'Tafsilotlar', type: 'textarea', required: true },
+                ],
+          }))
+          setTemplates(mapped)
+          return
+        }
+      }
+    } catch {}
+
+    // Fallback to official templates data
     try {
       setTemplates(documentTemplatesData.templates as DocumentTemplate[])
     } catch (error) {
@@ -151,6 +179,23 @@ export default function DocumentGenerator() {
       setError(err instanceof Error ? err.message : 'Hujjat yaratishda xatolik yuz berdi')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleDownloadPdf = async (document: GeneratedDocument) => {
+    setDownloadingPdf(true)
+    try {
+      const bytes = await generateLegalPdf({
+        title: document.title,
+        content: document.content,
+        date: new Date(document.created_at).toLocaleDateString('uz-UZ'),
+      })
+      downloadPdfBlob(bytes, `${document.title.replace(/\s+/g, '_')}.pdf`)
+    } catch (error) {
+      console.error('Error downloading PDF:', error)
+      alert('PDF yaratishda xatolik yuz berdi')
+    } finally {
+      setDownloadingPdf(false)
     }
   }
 
@@ -415,13 +460,22 @@ export default function DocumentGenerator() {
                 <h3 className="font-semibold text-gray-800 dark:text-white">
                   {currentDocument.title}
                 </h3>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    variant="outline"
+                    className="border-red-600 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                    onClick={() => handleDownloadPdf(currentDocument)}
+                    disabled={downloadingPdf}
+                  >
+                    <FileDown className="w-4 h-4 mr-2" />
+                    {downloadingPdf ? 'PDF tayyorlanmoqda...' : 'PDF yuklab olish'}
+                  </Button>
                   <Button
                     variant="outline"
                     className="border-blue-600 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20"
                     onClick={() => handleDownloadDocument(currentDocument)}
                   >
-                    <Download className="w-4 h-4 mr-2" /> Yuklab olish
+                    <Download className="w-4 h-4 mr-2" /> TXT
                   </Button>
                   <Button
                     variant="outline"

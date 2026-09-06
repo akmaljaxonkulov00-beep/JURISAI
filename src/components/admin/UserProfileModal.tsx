@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { getErrorMessage } from '@/lib/errors'
+import { getAuthHeaders } from '@/lib/api-auth-client'
 import {
   X,
   CreditCard,
@@ -104,7 +105,13 @@ export default function UserProfileModal({
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch(`/api/admin/users/details?userId=${encodeURIComponent(userId || '')}`)
+      const authHeaders = await getAuthHeaders()
+      const res = await fetch(
+        `/api/admin/users/details?userId=${encodeURIComponent(userId || '')}`,
+        {
+          headers: { ...authHeaders },
+        }
+      )
       if (!res.ok) throw new Error("Ma'lumotlarni yuklashda xatolik")
       const data = await res.json()
       setDetails(data)
@@ -165,10 +172,11 @@ export default function UserProfileModal({
   const handleApprove = async (paymentId: string) => {
     setProcessingPayments(prev => new Set(prev).add(paymentId))
     try {
+      const authHeaders = await getAuthHeaders()
       const res = await fetch('/api/payments/approve', {
         credentials: 'include',
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
         body: JSON.stringify({ paymentId }),
       })
       const result = await res.json().catch(() => ({}))
@@ -188,10 +196,11 @@ export default function UserProfileModal({
   const handleReject = async (paymentId: string) => {
     setProcessingPayments(prev => new Set(prev).add(paymentId))
     try {
+      const authHeaders = await getAuthHeaders()
       const res = await fetch('/api/payments/reject', {
         credentials: 'include',
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
         body: JSON.stringify({ paymentId, notes: rejectReason || '' }),
       })
       const result = await res.json().catch(() => ({}))

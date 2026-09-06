@@ -2,10 +2,10 @@
 // Barcha yo'llar real mavjud endpoint'larga ishora qiladi (audit 2025-08-17).
 
 const getBaseUrl = () => {
+  if (typeof window !== 'undefined') return ''
   if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL
   if (process.env.NEXT_PUBLIC_SITE_URL) return process.env.NEXT_PUBLIC_SITE_URL
-  if (typeof window !== 'undefined') return window.location.origin
-  return 'https://www.juristiv.uz' // SSR fallback
+  return ''
 }
 const API_BASE_URL = getBaseUrl()
 

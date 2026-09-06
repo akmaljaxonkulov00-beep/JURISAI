@@ -3,6 +3,8 @@
 // Admin panelidagi har qanday o'zgarish foydalanuvchiga avtomatik aks etadi
 // ═══════════════════════════════════════════════════════════════════════════
 
+import { getAuthHeaders } from '@/lib/api-auth-client'
+
 export interface SiteSettings {
   announcementBanner: string
   heroTitle: string
@@ -63,23 +65,22 @@ export async function getPublicSettings(): Promise<SiteSettings | null> {
 export async function saveSiteSettings(settings: SiteSettings): Promise<boolean> {
   // Save to Supabase (PRIMARY — only source of truth)
   try {
+    const authHeaders = await getAuthHeaders()
     const res = await fetch('/api/admin/settings', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...authHeaders },
       body: JSON.stringify({ settings }),
     })
     const result = await res.json()
     if (!result.success) {
       console.warn('[SettingsSync] Supabase save failed:', result.error)
+      return false
     }
+    return true
   } catch (err) {
     console.warn('[SettingsSync] Supabase save error:', err)
+    return false
   }
-
-  // NOTE: localStorage removed — DB is the single source of truth.
-  // Prevents stale data overriding DB values on refresh.
-
-  return true
 }
 
 // =========================================================================
@@ -153,22 +154,22 @@ export async function getPricingPlans(): Promise<PricingPlan[]> {
 export async function savePricingPlans(plans: PricingPlan[]): Promise<boolean> {
   // Save to Supabase (only source of truth)
   try {
+    const authHeaders = await getAuthHeaders()
     const res = await fetch('/api/admin/pricing', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...authHeaders },
       body: JSON.stringify({ plans }),
     })
     const result = await res.json()
     if (!result.success) {
       console.warn('[SettingsSync] Pricing save failed:', result.error)
+      return false
     }
+    return true
   } catch (err) {
     console.warn('[SettingsSync] Pricing save error:', err)
+    return false
   }
-
-  // NOTE: localStorage removed — DB is the single source of truth.
-
-  return true
 }
 
 // =========================================================================
@@ -192,10 +193,12 @@ export async function getPaymentRequests(): Promise<PaymentRequest[]> {
 
     // Admin bo'lmasa — faqat o'z to'lovlarini olish (admin API 403 qaytaradi)
     const endpoint = isAdmin ? '/api/admin/analytics?type=payments' : '/api/payments'
+    const authHeaders = await getAuthHeaders()
 
     const res = await fetch(endpoint, {
       cache: 'no-cache',
       credentials: 'include',
+      headers: { ...authHeaders },
     })
 
     // 403/401 bo'lsa — bo'sh ro'yxat qaytarish (cheksiz loop oldini olish)
@@ -272,45 +275,39 @@ export async function getPaymentRequests(): Promise<PaymentRequest[]> {
 export async function submitPaymentRequest(
   payment: Omit<PaymentRequest, 'id' | 'createdAt'>
 ): Promise<{ success: boolean; id?: string; error?: string }> {
+  const authHeaders = await getAuthHeaders()
   const id = 'pay_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8)
-  const paymentRecord: PaymentRequest = {
-    ...payment,
-    id,
-    createdAt: new Date().toISOString(),
-  }
 
-  // Save to Supabase (only source of truth)
+  // Save to Supabase
   try {
-    const res = await fetch('/api/log/payment', {
+    const res = await fetch('/api/payments', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...authHeaders },
       body: JSON.stringify({
-        userId: payment.userId,
-        userEmail: payment.userEmail,
+        planId: payment.plan,
         userName: payment.userName,
-        plan: payment.plan,
-        amount: payment.amount,
+        checkImage: payment.receiptImage,
         receiptImage: payment.receiptImage,
       }),
     })
     const result = await res.json()
     if (!result.success) {
       console.warn('[SettingsSync] Payment submit failed:', result.error)
+      return { success: false, error: result.error || 'Toʻlov yuborishda xatolik' }
     }
+    return { success: true, id: result.data?.id || id }
   } catch (err) {
     console.warn('[SettingsSync] Payment submit error:', err)
+    return { success: false, error: 'Server bilan aloqa xatosi' }
   }
-
-  // NOTE: localStorage removed — DB is the single source of truth.
-
-  return { success: true, id }
 }
 
 export async function approvePayment(paymentId: string): Promise<boolean> {
   try {
+    const authHeaders = await getAuthHeaders()
     const res = await fetch('/api/payments/manage', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...authHeaders },
       body: JSON.stringify({ paymentId, action: 'approve' }),
     })
     const result = await res.json()
@@ -327,9 +324,10 @@ export async function approvePayment(paymentId: string): Promise<boolean> {
 
 export async function rejectPayment(paymentId: string, reason?: string): Promise<boolean> {
   try {
+    const authHeaders = await getAuthHeaders()
     const res = await fetch('/api/payments/manage', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...authHeaders },
       body: JSON.stringify({ paymentId, action: 'reject', reason }),
     })
     const result = await res.json()

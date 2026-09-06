@@ -45,6 +45,8 @@ export function getRequestToken(request: NextRequest): string | null {
   // 2. Standard Supabase SSR / browser cookie: sb-*-auth-token or supabase-auth-token
   if (typeof request?.cookies?.getAll === 'function') {
     const allCookies = request.cookies.getAll() || []
+
+    // Check direct non-chunked or single-chunk
     for (const c of allCookies) {
       if (c.name && c.name.startsWith('sb-') && c.name.endsWith('-auth-token')) {
         try {
@@ -65,6 +67,29 @@ export function getRequestToken(request: NextRequest): string | null {
           if (c.value) return c.value.trim()
         }
       }
+    }
+
+    // Check chunked cookies (e.g. sb-xxx-auth-token.0, sb-xxx-auth-token.1)
+    const chunkGroups: Record<string, Array<{ index: number; value: string }>> = {}
+    for (const c of allCookies) {
+      const match = c.name.match(/^(sb-.+-auth-token)\.(\d+)$/)
+      if (match) {
+        const base = match[1]
+        const idx = parseInt(match[2], 10)
+        if (!chunkGroups[base]) chunkGroups[base] = []
+        chunkGroups[base].push({ index: idx, value: c.value })
+      }
+    }
+
+    for (const base of Object.keys(chunkGroups)) {
+      try {
+        const sorted = chunkGroups[base].sort((a, b) => a.index - b.index)
+        const combined = sorted.map(s => s.value).join('')
+        const decoded = decodeURIComponent(combined)
+        const parsed = JSON.parse(decoded)
+        if (parsed?.access_token) return String(parsed.access_token).trim()
+        if (Array.isArray(parsed) && parsed[0]) return String(parsed[0]).trim()
+      } catch {}
     }
   }
 
@@ -121,11 +146,24 @@ export async function requireAdmin(request: NextRequest): Promise<AdminResult> {
 
   try {
     const admin = getSupabaseAdmin()
-    const { data, error } = await admin
+    let { data, error } = await admin
       .from('registered_users')
       .select('role')
       .eq('id', auth.user.id)
       .maybeSingle()
+
+    // Fallback: check by email if id row not found
+    if (!data && auth.user.email) {
+      const byEmail = await admin
+        .from('registered_users')
+        .select('role')
+        .eq('email', auth.user.email.toLowerCase().trim())
+        .maybeSingle()
+      if (byEmail.data) {
+        data = byEmail.data
+        error = null
+      }
+    }
 
     const role = normalizeRole(data?.role)
     if (error || !isAdminRole(role)) {

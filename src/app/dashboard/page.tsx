@@ -40,10 +40,12 @@ interface UserStats {
   level: number
   completedCases: number
   totalCases: number
+  weeklyProgress: number
+  weeklyXP?: number
+  streak?: number
+  rank: string
   achievements: Achievement[]
   recentActivity: Activity[]
-  weeklyProgress: number
-  rank: string
 }
 
 interface Achievement {
@@ -76,13 +78,10 @@ export default function Dashboard() {
   // Auth guard — tizimga kirmagan foydalanuvchini signin sahifasiga yo'naltirish
   useEffect(() => {
     if (!isLoading && !user) {
-      // replace — back button da qayta signIn ga qaytmaslik uchun
       router.push('/signin')
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, isLoading])
+  }, [user, isLoading, router])
 
-  // ⚠️ ALL hooks MUST be before any early return — React Rules of Hooks
   useEffect(() => {
     if (typeof window !== 'undefined') {
       setProfileImage(localStorage.getItem('profile_image'))
@@ -94,7 +93,6 @@ export default function Dashboard() {
 
   const handleLogout = async () => {
     await authService.signOut()
-    // authService.signOut() does nuclear clear + hard redirect to /signin
   }
 
   const handleNavigation = (href: string) => {
@@ -136,6 +134,8 @@ export default function Dashboard() {
             completedCases: typeof d.completedIracCases === 'number' ? d.completedIracCases : 0,
             totalCases: typeof d.totalIracCases === 'number' ? d.totalIracCases : 0,
             weeklyProgress: typeof d.weeklyProgress === 'number' ? d.weeklyProgress : 0,
+            weeklyXP: typeof d.weeklyXP === 'number' ? d.weeklyXP : 0,
+            streak: typeof d.streak === 'number' ? d.streak : 0,
             rank: d.rank || t('dashboardNewUser'),
             achievements: Array.isArray(d.achievements) ? d.achievements : [],
             recentActivity: Array.isArray(d.recentActivity) ? d.recentActivity : [],
@@ -154,6 +154,8 @@ export default function Dashboard() {
         completedCases: 0,
         totalCases: 0,
         weeklyProgress: 0,
+        weeklyXP: 0,
+        streak: 0,
         rank: t('dashboardNewUser'),
         achievements: [],
         recentActivity: [],
@@ -430,7 +432,7 @@ export default function Dashboard() {
                   {userStats?.xp || 0}
                 </p>
                 <p className="text-xs text-gray-400 dark:text-gray-500 dark:text-zinc-500 mt-1">
-                  +250 {t('dashboardXpThisWeek')}
+                  +{userStats?.weeklyXP || 0} {t('dashboardXpThisWeek')}
                 </p>
               </div>
               <div className="w-12 h-12 bg-orange-50 dark:bg-orange-900/30 rounded-xl flex items-center justify-center">
@@ -446,13 +448,15 @@ export default function Dashboard() {
               <div>
                 <p className="text-xs text-secondary font-medium mb-1">{t('status')}</p>
                 <p className="text-3xl font-bold text-emerald-600">
-                  {Math.round(
-                    ((userStats?.completedCases || 0) / (userStats?.totalCases || 1)) * 100
-                  )}
+                  {userStats && userStats.totalCases > 0
+                    ? Math.round(((userStats.completedCases || 0) / userStats.totalCases) * 100)
+                    : 0}
                   %
                 </p>
                 <p className="text-xs text-gray-400 dark:text-gray-500 dark:text-zinc-500 mt-1">
-                  {t('dashboardAboveAverage')}
+                  {userStats && userStats.completedCases > 0
+                    ? t('dashboardAboveAverage')
+                    : 'Boshlanmagan'}
                 </p>
               </div>
               <div className="w-12 h-12 bg-emerald-50 dark:bg-emerald-900/30 rounded-xl flex items-center justify-center">
@@ -467,7 +471,7 @@ export default function Dashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-secondary font-medium mb-1">{t('dashboardStreak')}</p>
-                <p className="text-3xl font-bold text-orange-600">7</p>
+                <p className="text-3xl font-bold text-orange-600">{userStats?.streak || 0}</p>
                 <p className="text-xs text-gray-400 dark:text-gray-500 dark:text-zinc-500 mt-1">
                   {t('dashboardDaysRow')}
                 </p>
@@ -490,38 +494,45 @@ export default function Dashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-5">
-            <div className="space-y-3">
-              {userStats?.recentActivity?.map((activity, idx) => (
-                <div
-                  key={activity.id}
-                  className="stagger-enter flex items-start space-x-4 p-4 rounded-xl hover:bg-gray-50 dark:bg-zinc-800/50/80 dark:hover:bg-gray-800/30 transition-all duration-200 card-hover"
-                  style={{ animationDelay: `${idx * 80}ms` }}
-                >
-                  <div className="w-10 h-10 bg-gradient-to-br from-blue-50 to-green-50 rounded-xl flex items-center justify-center text-lg font-medium text-blue-600">
-                    {getActivityIcon(activity.type)}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-semibold text-gray-900 dark:text-white text-sm truncate">
-                        {activity.title}
-                      </h4>
-                      <Badge className="bg-emerald-50 text-emerald-700 border-0 text-xs font-medium ml-2 flex-shrink-0">
-                        +{activity.xp} XP
-                      </Badge>
+            {userStats?.recentActivity && userStats.recentActivity.length > 0 ? (
+              <div className="space-y-3">
+                {userStats.recentActivity.map((activity, idx) => (
+                  <div
+                    key={activity.id}
+                    className="stagger-enter flex items-start space-x-4 p-4 rounded-xl hover:bg-gray-50 dark:bg-zinc-800/50/80 dark:hover:bg-gray-800/30 transition-all duration-200 card-hover"
+                    style={{ animationDelay: `${idx * 80}ms` }}
+                  >
+                    <div className="w-10 h-10 bg-gradient-to-br from-blue-50 to-green-50 rounded-xl flex items-center justify-center text-lg font-medium text-blue-600">
+                      {getActivityIcon(activity.type)}
                     </div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 dark:text-zinc-500 mt-0.5">
-                      {activity.description}
-                    </p>
-                    <span className="text-xs text-gray-400 dark:text-gray-500 dark:text-zinc-500 mt-1 block">
-                      {new Date(activity.timestamp).toLocaleDateString('uz-UZ', {
-                        day: 'numeric',
-                        month: 'long',
-                      })}
-                    </span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-semibold text-gray-900 dark:text-white text-sm truncate">
+                          {activity.title}
+                        </h4>
+                        <Badge className="bg-emerald-50 text-emerald-700 border-0 text-xs font-medium ml-2 flex-shrink-0">
+                          +{activity.xp} XP
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 dark:text-zinc-500 mt-0.5">
+                        {activity.description}
+                      </p>
+                      <span className="text-xs text-gray-400 dark:text-gray-500 dark:text-zinc-500 mt-1 block">
+                        {new Date(activity.timestamp).toLocaleDateString('uz-UZ', {
+                          day: 'numeric',
+                          month: 'long',
+                        })}
+                      </span>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-10 text-gray-400 dark:text-zinc-500 text-sm">
+                Hozircha so&apos;nggi faoliyat yo&apos;q. Kazus yechish yoki AI bilan ishlash orqali
+                boshlang!
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -534,43 +545,49 @@ export default function Dashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-5">
-            <div className="space-y-3">
-              {userStats?.achievements?.map(achievement => (
-                <div
-                  key={achievement.id}
-                  className={`p-3.5 rounded-xl border transition-all hover:shadow-sm dark:shadow-gray-900/50 ${getRarityColor(achievement.rarity)}`}
-                >
-                  <div className="flex items-start space-x-3">
-                    <div className="w-9 h-9 rounded-lg bg-white/60 flex items-center justify-center text-lg">
-                      {achievement.icon}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-semibold text-sm text-gray-900 dark:text-white">
-                        {achievement.title}
-                      </h4>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-zinc-500 mt-0.5 line-clamp-2">
-                        {achievement.description}
-                      </p>
-                      <div className="mt-1.5">
-                        <span
-                          className={`inline-block px-2 py-0.5 rounded-md text-[10px] font-medium uppercase tracking-wider ${
-                            achievement.rarity === 'common'
-                              ? 'bg-gray-200 text-gray-600 dark:text-zinc-400'
-                              : achievement.rarity === 'rare'
-                                ? 'bg-blue-200 text-blue-700'
-                                : achievement.rarity === 'epic'
+            {userStats?.achievements && userStats.achievements.length > 0 ? (
+              <div className="space-y-3">
+                {userStats.achievements.map(achievement => (
+                  <div
+                    key={achievement.id}
+                    className={`p-3.5 rounded-xl border transition-all hover:shadow-sm dark:shadow-gray-900/50 ${getRarityColor(achievement.rarity)}`}
+                  >
+                    <div className="flex items-start space-x-3">
+                      <div className="w-9 h-9 rounded-lg bg-white/60 flex items-center justify-center text-lg">
+                        {achievement.icon}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-semibold text-sm text-gray-900 dark:text-white">
+                          {achievement.title}
+                        </h4>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-zinc-500 mt-0.5 line-clamp-2">
+                          {achievement.description}
+                        </p>
+                        <div className="mt-1.5">
+                          <span
+                            className={`inline-block px-2 py-0.5 rounded-md text-[10px] font-medium uppercase tracking-wider ${
+                              achievement.rarity === 'common'
+                                ? 'bg-gray-200 text-gray-600 dark:text-zinc-400'
+                                : achievement.rarity === 'rare'
                                   ? 'bg-blue-200 text-blue-700'
-                                  : 'bg-amber-200 text-amber-700'
-                          }`}
-                        >
-                          {achievement.rarity}
-                        </span>
+                                  : achievement.rarity === 'epic'
+                                    ? 'bg-blue-200 text-blue-700'
+                                    : 'bg-amber-200 text-amber-700'
+                            }`}
+                          >
+                            {achievement.rarity}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-10 text-gray-400 dark:text-zinc-500 text-sm">
+                Yutuqlarni ochish uchun huquqiy vazifalarni bajaring!
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
