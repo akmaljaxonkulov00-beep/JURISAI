@@ -37,6 +37,7 @@ import {
   FileText,
   BookOpen,
   Mail,
+  Scale,
   type LucideIcon,
 } from 'lucide-react'
 import { authService, type AuthUser } from '@/services/supabase-auth'
@@ -44,6 +45,7 @@ import MonitoringDashboard from '@/components/admin/MonitoringDashboard'
 import AdminTemplateManager from '@/components/admin/AdminTemplateManager'
 import AdminCommunityManager from '@/components/admin/AdminCommunityManager'
 import AdminLegalManager from '@/components/admin/AdminLegalManager'
+import AdminCourtScenarioManager from '@/components/admin/AdminCourtScenarioManager'
 import AdminUsageLimitsManager from '@/components/admin/AdminUsageLimitsManager'
 import AdminCostMonitor from '@/components/admin/AdminCostMonitor'
 import ContactSettingsCard from '@/components/admin/ContactSettingsCard'
@@ -161,6 +163,7 @@ type TabType =
   | 'pricing'
   | 'usage_limits'
   | 'legal'
+  | 'court_scenarios'
   | 'community'
   | 'templates'
   | 'settings'
@@ -757,6 +760,7 @@ export default function AdminDashboard() {
     { id: 'pricing', label: 'Narxlar', icon: DollarSign },
     { id: 'usage_limits', label: 'Limitlar', icon: Activity },
     { id: 'legal', label: 'Qonunlar', icon: BookOpen },
+    { id: 'court_scenarios', label: 'Virtual Sud', icon: Scale },
     {
       id: 'community',
       label: 'Jamiyat',
@@ -1759,6 +1763,8 @@ export default function AdminDashboard() {
         )}
 
         {/* ===== COMMUNITY (Jamiyat) ===== */}
+        {activeTab === 'court_scenarios' && <AdminCourtScenarioManager />}
+
         {activeTab === 'community' && (
           <Card className="card-default rounded-2xl">
             <CardContent className="p-5">

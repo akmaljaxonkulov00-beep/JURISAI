@@ -1,18 +1,17 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { getAuthHeaders } from '@/lib/api-auth-client'
 import { useRouter } from 'next/navigation'
 import { useLimitModal } from '@/hooks/useLimitModal'
 import LimitExceededModal from '@/components/ai/LimitExceededModal'
 import { supabase } from '@/lib/supabase'
-import { getUserIdentityPayload } from '@/lib/client-user'
 import {
-  ArrowLeft,
   Gavel,
   Scale,
   Users,
   Mic,
+  MicOff,
   Send,
   Clock,
   AlertTriangle,
@@ -20,625 +19,224 @@ import {
   MessageCircle,
   Star,
   CheckCircle,
-  Target,
+  AlertCircle,
   Search,
   Award,
   TrendingUp,
   Play,
+  ArrowRight,
+  RefreshCw,
+  FolderOpen,
+  Volume2,
+  ChevronRight,
+  Shield,
+  BookOpen,
+  X,
+  History,
+  RotateCcw,
+  Sparkles,
 } from 'lucide-react'
-import FeatureInstructions from '@/components/ui/FeatureInstructions'
+import type {
+  CourtRole,
+  CourtScenario,
+  CourtSessionState,
+  CourtStage,
+  EvidenceItem,
+  ParticipantPersona,
+  ProcedureType,
+  ScoringResult,
+  SessionEvent,
+} from '@/lib/court/court-types'
 
-interface Msg {
-  id: string
-  speaker: string
-  role: 'user' | 'judge' | 'ai'
-  text: string
-  timestamp: Date
-  type: 'statement' | 'objection' | 'evidence' | 'question' | 'ruling'
-}
-
-// Minimal SpeechRecognition tipi (webkit-prefixed brauzerlar uchun)
+// SpeechRecognition tipi
 interface SpeechRecognitionLike {
   lang: string
   continuous: boolean
   interimResults: boolean
-  onresult:
-    | ((e: {
-        resultIndex: number
-        results: ArrayLike<{ isFinal: boolean; 0: { transcript: string } }>
-      }) => void)
-    | null
+  onresult: ((e: any) => void) | null
   onend: (() => void) | null
-  onerror: ((e: { error?: string }) => void) | null
+  onerror: ((e: any) => void) | null
   start: () => void
   stop: () => void
-  __vuCleanup?: () => void
 }
 
-interface SimResult {
-  legalAccuracy: number
-  ethics: number
-  confidence: number
-  etiquette: number
-  argument: number
-  evidence: number
-  totalScore: number
-  xpEarned: number
-  achievements: string[]
-}
-
-// ── Simulation types ──
-const SIM_TYPES = [
-  {
-    id: 'court',
-    title: 'Sud Jarayoni',
-    desc: 'Sudya, advokat yoki prokuror rolida ishtirok eting',
-    color: '#2563EB',
-    bg: '#DBEAFE',
-    cases: [
-      {
-        id: 'theft',
-        title: "O'g'irlik ishi",
-        desc: "Supermarketdan 450 000 so'mlik tovar o'g'irlash.",
-        law: 'JK 169-modda',
-        level: "Boshlang'ich",
-      },
-      {
-        id: 'contract',
-        title: 'Shartnoma buzilishi',
-        desc: "Qurilish shartnomasi bajarilmagan, 50 mln so'm zarar.",
-        law: 'FK 345, 395-moddalar',
-        level: "O'rta",
-      },
-      {
-        id: 'labor',
-        title: 'Mehnat nizosi',
-        desc: "Xodim noqonuniy ishdan bo'shatilgan.",
-        law: 'MK 100, 161-moddalar',
-        level: "O'rta",
-      },
-      {
-        id: 'divorce',
-        title: 'Ajrashish ishi',
-        desc: 'Er-xotin ajrashmoqda, mulk va bola taqsimoti.',
-        law: 'OK 39, 41-moddalar',
-        level: 'Murakkab',
-      },
-    ],
-    roles: [
-      { id: 'advokat', title: 'Advokat', sub: 'Himoyachi', icon: 'scale' },
-      { id: 'prokuror', title: 'Prokuror', sub: 'Ayblovchi', icon: 'gavel' },
-      { id: 'sudya', title: 'Sudya', sub: 'Hakam', icon: 'users' },
-    ],
-  },
-  {
-    id: 'negotiation',
-    title: 'Muzokara',
-    desc: 'AI mijoz bilan muzokara qiling va kelishuvga erishing',
-    color: '#059669',
-    bg: '#D1FAE5',
-    cases: [
-      {
-        id: 'contract_dispute',
-        title: 'Shartnoma kelishmovchiligi',
-        desc: 'Mijoz shartnoma shartlariga rozi emas.',
-        law: 'FK 354-modda',
-        level: "O'rta",
-      },
-      {
-        id: 'debt_settlement',
-        title: 'Qarz kelishuvi',
-        desc: "Qarzdor bilan to'lov muddatini kelishish.",
-        law: 'FK 260-modda',
-        level: "Boshlang'ich",
-      },
-    ],
-    roles: [
-      { id: 'consultant', title: 'Maslahatchi', sub: 'Huquqiy maslahat', icon: 'scale' },
-      { id: 'mediator', title: 'Mediator', sub: 'Tomonlar kelishuvi', icon: 'users' },
-    ],
-  },
-  {
-    id: 'investigation',
-    title: 'Tergov',
-    desc: "Guvohlarni so'roq qiling va dalillarni tahlil qiling",
-    color: '#7C3AED',
-    bg: '#EDE9FE',
-    cases: [
-      {
-        id: 'burglary',
-        title: "O'g'irlik tergovi",
-        desc: "Kvartira o'g'irlangan, guvohlar so'roq qilinadi.",
-        law: 'JK 169-modda',
-        level: "O'rta",
-      },
-      {
-        id: 'fraud',
-        title: 'Firibgarlik ishi',
-        desc: "Bank hisobidan pul o'g'irlangan, dalillar tahlili.",
-        law: 'JK 168-modda',
-        level: 'Murakkab',
-      },
-    ],
-    roles: [
-      { id: 'detective', title: 'Detektiv', sub: 'Jinoyatni ochish', icon: 'search' },
-      { id: 'investigator', title: 'Tergovchi', sub: 'Dalillar tahlili', icon: 'scale' },
-    ],
-  },
-]
-
-export default function VirtualCourt() {
+export default function VirtualCourtPage() {
   const router = useRouter()
-  const [page, setPage] = useState<'select' | 'session' | 'verdict'>('select')
-  const [simType, setSimType] = useState(SIM_TYPES[0])
-  const [role, setRole] = useState(SIM_TYPES[0].roles[0])
-  const [caseItem, setCase] = useState(SIM_TYPES[0].cases[0])
-  const [msgs, setMsgs] = useState<Msg[]>([])
-  const [input, setInput] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [time, setTime] = useState(600)
-  const [score, setScore] = useState({ etiquette: 100, argument: 0, evidence: 0 })
-  const [stressLevel, setStressLevel] = useState(0)
-  const [speechReady, setSpeechReady] = useState(false)
-  const [listening, setListening] = useState(false)
-  const [simId, setSimId] = useState('')
-  const [results, setResults] = useState<SimResult | null>(null)
   const { modalProps, checkLimitError } = useLimitModal()
-  const [totalXp, setTotalXp] = useState(0)
-  const [userName, setUserName] = useState('')
-  const bottomRef = useRef<HTMLDivElement>(null)
-  const inputRef = useRef<HTMLTextAreaElement>(null)
-  const recognitionRef = useRef<SpeechRecognitionLike | null>(null)
-  const listeningRef = useRef(false)
-  const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const voiceModeRef = useRef(false) // Track if user was using voice
 
-  // Load user info from Supabase
+  // ── Navigation & Page State ──
+  const [viewState, setViewState] = useState<'select' | 'session' | 'verdict'>('select')
+  const [loading, setLoading] = useState(false)
+  const [loadingText, setLoadingText] = useState('Yuklanmoqda...')
+  const [errorBanner, setErrorBanner] = useState<string | null>(null)
+
+  // ── Scenarios & User Selection ──
+  const [scenarios, setScenarios] = useState<CourtScenario[]>([])
+  const [selectedScenario, setSelectedScenario] = useState<CourtScenario | null>(null)
+  const [selectedRole, setSelectedRole] = useState<CourtRole>('ADVOKAT')
+  const [selectedProcedure, setSelectedProcedure] = useState<ProcedureType>('trial')
+  const [categoryFilter, setCategoryFilter] = useState('all')
+  const [searchQuery, setSearchQuery] = useState('')
+
+  // ── Active Session State ──
+  const [simulationId, setSimulationId] = useState<string>('')
+  const [sessionState, setSessionState] = useState<CourtSessionState | null>(null)
+  const [messages, setMessages] = useState<
+    Array<{ id: string; speaker: string; role: string; text: string; time: string }>
+  >([])
+  const [inputMessage, setInputMessage] = useState('')
+  const [userName, setUserName] = useState('Foydalanuvchi')
+  const [timeRemaining, setTimeRemaining] = useState(600) // 10 minutes
+  const [activeSpeaker, setActiveSpeaker] = useState<string | null>(null)
+
+  // ── Modals & Drawers ──
+  const [mobileTab, setMobileTab] = useState<'court' | 'participants' | 'evidence'>('court')
+  const [showEvidenceModal, setShowEvidenceModal] = useState(false)
+  const [selectedEvidenceForView, setSelectedEvidenceForView] = useState<EvidenceItem | null>(null)
+  const [showHistoryModal, setShowHistoryModal] = useState(false)
+  const [historyList, setHistoryList] = useState<any[]>([])
+  const [loadingHistory, setLoadingHistory] = useState(false)
+  const [scoringResults, setScoringResults] = useState<ScoringResult | null>(null)
+
+  // ── Voice / STT ──
+  const [isListening, setIsListening] = useState(false)
+  const [sttSupported, setSttSupported] = useState(false)
+  const recognitionRef = useRef<SpeechRecognitionLike | null>(null)
+  const chatScrollRef = useRef<HTMLDivElement>(null)
+
+  // ── Load User & Initial Data ──
   useEffect(() => {
-    const loadUser = async () => {
+    const initUser = async () => {
       try {
         const { data } = await supabase.auth.getSession()
         const user = data?.session?.user
         if (user) {
-          const name =
-            user.user_metadata?.full_name ||
-            user.user_metadata?.name ||
-            user.email?.split('@')[0] ||
-            ''
-          if (name) setUserName(name)
+          const name = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Foydalanuvchi'
+          setUserName(name)
         }
       } catch {}
     }
-    loadUser()
+    initUser()
+
+    if (typeof window !== 'undefined') {
+      const hasSTT = 'SpeechRecognition' in window || 'webkitSpeechRecognition' in window
+      setSttSupported(hasSTT)
+    }
+
+    loadScenarios()
   }, [])
 
-  // Load XP from localStorage
+  // Auto scroll chat to bottom
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem('virtual_court_xp')
-      if (saved) setTotalXp(parseInt(saved))
-    } catch {}
-  }, [])
+    chatScrollRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages, loading])
 
+  // Timer countdown
   useEffect(() => {
-    if (typeof window === 'undefined') return
-    const stt = 'SpeechRecognition' in window || 'webkitSpeechRecognition' in window
-    setSpeechReady(stt)
-  }, [])
-
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [msgs, loading])
-
-  useEffect(() => {
-    if (page !== 'session') return
-    if (time <= 0) {
-      endSession()
-      return
-    }
-    const t = setTimeout(() => setTime(p => p - 1), 1000)
-    return () => clearTimeout(t)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, time])
-
-  const fmt = (s: number) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`
-
-  // ── STT (Speech-to-Text) — faqat foydalanuvchi ovozi ──
-  const SILENCE_TIMEOUT_MS = 3000
-  const startMic = async () => {
-    const w = window as unknown as {
-      SpeechRecognition?: new () => SpeechRecognitionLike
-      webkitSpeechRecognition?: new () => SpeechRecognitionLike
-    }
-    const SR = w.SpeechRecognition || w.webkitSpeechRecognition
-    if (!SR) {
-      alert('Ovozli kiritish faqat Chrome yoki Edge brauzerida ishlaydi.')
-      return
-    }
-    const r = new SR()
-    recognitionRef.current = r
-    r.lang = 'uz-UZ'
-    r.continuous = true
-    r.interimResults = true
-    voiceModeRef.current = true
-    listeningRef.current = true
-    setListening(true)
-
-    // fullTranscript — barcha final natijalarni yig'ib boradi
-    let fullTranscript = ''
-
-    r.onresult = e => {
-      if (silenceTimerRef.current) {
-        clearTimeout(silenceTimerRef.current)
-        silenceTimerRef.current = null
-      }
-
-      // currentFinal — shu batchdagi barcha yangi final transkriptlar
-      let currentFinal = ''
-      for (let i = e.resultIndex; i < e.results.length; i++) {
-        const t = e.results[i][0].transcript
-        if (e.results[i].isFinal) {
-          // Final natijalarni yig'amiz (bir nechta bo'lishi mumkin)
-          currentFinal += (currentFinal ? ' ' : '') + t
-        } else {
-          // Interim natijani to'liq matn bilan ko'rsatamiz
-          const display = fullTranscript + (fullTranscript && t ? ' ' : '') + t
-          setInput(display.charAt(0).toUpperCase() + display.slice(1))
+    if (viewState !== 'session' || timeRemaining <= 0) return
+    const timer = setInterval(() => {
+      setTimeRemaining(prev => {
+        if (prev <= 1) {
+          handleFinishSession()
+          return 0
         }
-      }
+        return prev - 1
+      })
+    }, 1000)
+    return () => clearInterval(timer)
+  }, [viewState, timeRemaining])
 
-      // Agar yangi final natijalar bo'lsa, ularni to'liq transkriptga qo'shamiz
-      if (currentFinal) {
-        fullTranscript += (fullTranscript ? ' ' : '') + currentFinal
-        setInput(fullTranscript.charAt(0).toUpperCase() + fullTranscript.slice(1))
-
-        // Jimlik taymerini qayta ishga tushirish
-        silenceTimerRef.current = setTimeout(() => {
-          // 3 soniya jimlikdan keyin ovoz yozishni to'xtatamiz
-          // va to'plangan matn inputda qoladi
-          listeningRef.current = false
-          try {
-            r.stop()
-          } catch {}
-          setListening(false)
-        }, SILENCE_TIMEOUT_MS)
-      }
-    }
-
-    r.onend = () => {
-      if (listeningRef.current) {
-        try {
-          r.start()
-        } catch {}
-      } else {
-        setListening(false)
-      }
-    }
-
-    r.onerror = e => {
-      if (e.error === 'no-speech') {
-        if (listeningRef.current)
-          setTimeout(() => {
-            try {
-              r.start()
-            } catch {}
-          }, 500)
-        return
-      }
-      setListening(false)
-      const msg: Record<string, string> = {
-        'not-allowed': "Mikrofon ruxsati yo'q.",
-        'audio-capture': 'Mikrofon topilmadi.',
-      }
-      if (e.error && msg[e.error]) alert(msg[e.error])
-    }
-    // Start real audio level visualization via getUserMedia + AnalyserNode
-    let audioCtx: AudioContext | null = null
-    let analyser: AnalyserNode | null = null
-    let source: MediaStreamAudioSourceNode | null = null
-    let stream: MediaStream | null = null
-    let animFrame: number = 0
-
-    try {
-      stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-      audioCtx = new (
-        window.AudioContext ||
-        (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
-      )()
-      analyser = audioCtx.createAnalyser()
-      analyser.fftSize = 256
-      source = audioCtx.createMediaStreamSource(stream)
-      source.connect(analyser)
-
-      const dataArray = new Uint8Array(analyser.frequencyBinCount)
-      const updateLevel = () => {
-        if (!analyser || !listeningRef.current) return
-        analyser.getByteFrequencyData(dataArray)
-        const avg = Array.from(dataArray).reduce((a, b) => a + b, 0) / dataArray.length
-        const level = Math.min(100, Math.round(avg * 1.5))
-        setAudioLevel(level)
-        animFrame = requestAnimationFrame(updateLevel)
-      }
-      updateLevel()
-    } catch {
-      /* Audio viz fallback — CSS bars still show */
-    }
-
-    r.start()
-
-    // Store cleanup
-    const cleanup = () => {
-      if (animFrame) cancelAnimationFrame(animFrame)
-      if (stream) stream.getTracks().forEach(t => t.stop())
-      if (audioCtx) audioCtx.close().catch(() => {})
-    }
-    ;(r as SpeechRecognitionLike).__vuCleanup = cleanup
-  }
-  const stopMic = () => {
-    listeningRef.current = false
-    if (silenceTimerRef.current) {
-      clearTimeout(silenceTimerRef.current)
-      silenceTimerRef.current = null
-    }
-    setListening(false)
-    setAudioLevel(0)
-    const r = recognitionRef.current
-    if (r) {
-      try {
-        if (r.__vuCleanup) r.__vuCleanup()
-      } catch {}
-      try {
-        r.stop()
-      } catch {}
-    }
+  const formatTime = (seconds: number) => {
+    const m = Math.floor(seconds / 60)
+    const s = seconds % 60
+    return `${m}:${s.toString().padStart(2, '0')}`
   }
 
-  const [participants, setParticipants] = useState<
-    { role: string; title: string; icon: string; isUser: boolean; active: boolean }[]
-  >([])
-  const [audioLevel, setAudioLevel] = useState(0)
-
-  const addMsg = (text: string, role: Msg['role'], speaker: string, type: Msg['type']) => {
-    setMsgs(p => [
-      ...p,
-      {
-        id: Date.now().toString() + Math.random(),
-        speaker,
-        role,
-        text,
-        timestamp: new Date(),
-        type,
-      },
-    ])
-  }
-
-  // ── Get court participants based on sim type and chosen role ──
-  const getParticipants = () => {
-    const allRoles = [
-      { role: 'SUDYA', title: 'Sudya', icon: '⚖️' },
-      { role: 'KOTIBA', title: 'Kotiba', icon: '📋' },
-    ]
-    if (simType.id === 'court') {
-      return [
-        ...allRoles,
-        { role: 'PROKUROR', title: 'Prokuror', icon: '⚡' },
-        { role: 'ADVOKAT', title: 'Advokat', icon: '🛡️' },
-        { role: 'SUDLANUVCHI', title: 'Sudlanuvchi', icon: '👤' },
-      ].map(r => ({
-        ...r,
-        isUser: r.role === role.id.toUpperCase(),
-        active: false,
-      }))
-    }
-    if (simType.id === 'negotiation') {
-      return [
-        ...allRoles,
-        { role: "DA'VOGAR", title: "Da'vogar", icon: '📄' },
-        { role: 'JAVOBGAR', title: 'Javobgar', icon: '📑' },
-      ].map(r => ({
-        ...r,
-        isUser: r.role === role.id.toUpperCase(),
-        active: false,
-      }))
-    }
-    return allRoles.map(r => ({ ...r, isUser: false, active: false }))
-  }
-
-  // ── Get case description for API ──
-  const getCasePrompt = () => {
-    return `${caseItem.title}: ${caseItem.desc} Qonun: ${caseItem.law}. Simulyatsiya: ${simType.title}. Foydalanuvchi roli: ${role.title} (${role.sub}).`
-  }
-
-  // ── Role-specific briefing — har bir rolga o'ziga kerakli ma'lumot ──
-  const getRoleBriefing = () => {
-    const roleUpper = role.id.toUpperCase()
-    const briefings: Record<string, string> = {
-      SUDYA: `SIZNING ROLINGIZ: SUDBYA\n\nVazifangiz:\n• Sud majlisini boshqarish\n• Protsessual qoidalarga rioya etilishini nazorat qilish\n• Tomonlarning argumentlarini tinglash\n• Dalillarni baholash\n• Yakuniy qaror (hukm) chiqarish\n\nIsh haqida ma'lumot:\n• ${caseItem.title}\n• ${caseItem.desc}\n• Qonun: ${caseItem.law}\n\nSiz mustaqil sudya sifatida ish yuritishingiz kerak. Tomonlarni o'zingiz aniqlang va ismlarni o'zingiz qo'ying.\n\nEslatma: Sud majlisini oching, taraflarni tanishtiring, so'z bering va jarayonni boshqaring.`,
-      PROKUROR: `SIZNING ROLINGIZ: PROKUROR
-
-Vazifangiz:
-• Ayblovni asoslash
-• Dalillarni taqdim etish
-• Sudlanuvchining aybini isbotlash
-• Jazo chorasini talab qilish
-
-Ish haqida ma'lumot:
-• ${caseItem.title}
-• ${caseItem.desc}
-• Qonun: ${caseItem.law}
-
-Sizning pozitsiyangiz:
-• Sudlanuvchi aybdor deb hisoblang
-• Mavjud dalillar sudlanuvchining aybini tasdiqlaydi
-• Jinoyat kodeksining tegishli moddasi bo'yicha jazo talab qiling
-
-Eslatma: Ayblov xulosasini taqdim eting, dalillarni keltiring va davlat ayblovini asoslang.`,
-      ADVOKAT: `SIZNING ROLINGIZ: ADVOKAT (Himoyachi)
-
-Vazifangiz:
-• Sudlanuvchining huquqlarini himoya qilish
-• Dalillarni shubha ostiga olish
-• Sudlanuvchining aybsizligini isbotlashga harakat qilish
-• Yengilroq jazo talab qilish yoki oqlash
-
-Ish haqida ma'lumot:
-• ${caseItem.title}
-• ${caseItem.desc}
-• Qonun: ${caseItem.law}
-
-Sizning pozitsiyangiz:
-• Sudlanuvchi himoyasiga muhtoj
-• Dalillarni sinchiklab tekshirish kerak
-• Protsessual qoidalarga rioya qilinishini kuzating
-
-Eslatma: Himoya nutqini tayyorlang, dalillarni tahlil qiling va sudlanuvchi manfaatlarini himoya qiling.`,
-      SUDLANUVCHI: `SIZNING ROLINGIZ: SUDLANUVCHI
-
-Huquqlaringiz:
-• Aybingizga iqror bo'lish yoki rad etish huquqi
-• O'z fikringizni bildirish huquqi
-• Oxirgi so'z huquqi
-• Himoyadan foydalanish huquqi
-
-Ish haqida ma'lumot:
-• ${caseItem.title}
-• ${caseItem.desc}
-• Qonun: ${caseItem.law}
-
-Eslatma: Siz ayblanayotgan modda bo'yicha javob berishingiz kerak. Rostini ayting, savollarga javob bering va o'z pozitsiyangizni himoya qiling. Yolg'on guvohlik berish javobgarlikka tortiladi.`,
-      "DA'VOGAR": `SIZNING ROLINGIZ: DA'VOGAR
-
-Vazifangiz:
-• O'z talablaringizni asoslash
-• Dalillarni taqdim etish
-• Javobgarning javobgarligini isbotlash
-
-Ish haqida ma'lumot:
-• ${caseItem.title}
-• ${caseItem.desc}
-• Qonun: ${caseItem.law}
-
-Eslatma: Da'vo arizasini asoslang, dalillarni keltiring va talablaringizni himoya qiling.`,
-      JAVOBGAR: `SIZNING ROLINGIZ: JAVOBGAR
-
-Vazifangiz:
-• Da'voga qarshi pozitsiya bildirish
-• O'z dalillaringizni taqdim etish
-• Da'vogar talablarini rad etish yoki qisman tan olish
-
-Ish haqida ma'lumot:
-• ${caseItem.title}
-• ${caseItem.desc}
-• Qonun: ${caseItem.law}
-
-Eslatma: Da'voga javob bering, qarshi dalillar keltiring va o'z pozitsiyangizni himoya qiling.`,
-      DETECTIVE: `SIZNING ROLINGIZ: DETEXTIV
-
-Vazifangiz:
-• Jinoyatni ochish
-• Dalillarni to'plash
-• Gumonlanuvchini aniqlash
-
-Ish haqida ma'lumot:
-• ${caseItem.title}
-• ${caseItem.desc}
-• Qonun: ${caseItem.law}
-
-Eslatma: Jinoyatni oching, guvohlarni so'roq qiling va dalillarni tahlil qiling.`,
-      INVESTIGATOR: `SIZNING ROLINGIZ: TERGOVCHI
-
-Vazifangiz:
-• Tergov harakatlarini olib borish
-• Dalillarni sinchiklab tekshirish
-• Jinoyatning to'liq manzarasini tiklash
-
-Ish haqida ma'lumot:
-• ${caseItem.title}
-• ${caseItem.desc}
-• Qonun: ${caseItem.law}
-
-Eslatma: Tergovni olib boring, dalillarni tahlil qiling va jinoyatni to'liq oching.`,
-      MASLAHATCHI: `SIZNING ROLINGIZ: HUQUQIY MASLAHATCHI
-
-Vazifangiz:
-• Mijozga huquqiy maslahat berish
-• Shartnoma shartlarini tahlil qilish
-• Kelishuvga erishishga yordam berish
-
-Ish haqida ma'lumot:
-• ${caseItem.title}
-• ${caseItem.desc}
-• Qonun: ${caseItem.law}
-
-Eslatma: Mijoz bilan muzokara qiling, huquqiy maslahat bering va kelishuvga erishing.`,
-      MEDIATOR: `SIZNING ROLINGIZ: MEDIATOR
-
-Vazifangiz:
-• Tomonlar o'rtasida kelishuvga erishish
-• Muzokaralarni boshqarish
-• O'zaro manfaatli yechim topish
-
-Ish haqida ma'lumot:
-• ${caseItem.title}
-• ${caseItem.desc}
-• Qonun: ${caseItem.law}
-
-Eslatma: Tomonlarni tinglang, ularga kelishuvga erishishga yordam bering va nizoni hal qiling.`,
-    }
-    return briefings[roleUpper] || `Sizning rolingiz: ${role.title}. Ish: ${caseItem.title}.`
-  }
-
-  // ── Show AI roles SEQUENTIALLY (one by one with delay) ──
-  const addMultiRoleMessages = async (
-    rolesData: { speaker: string; role: string; text: string }[]
-  ) => {
-    const titleMap: Record<string, string> = {
-      SUDYA: 'Sudya',
-      PROKUROR: 'Prokuror',
-      ADVOKAT: 'Advokat',
-      SUDLANUVCHI: 'Sudlanuvchi',
-      KOTIBA: 'Kotiba',
-      "DA'VOGAR": "Da'vogar",
-      JAVOBGAR: 'Javobgar',
-    }
-
-    // Show each role one at a time with a delay
-    for (let i = 0; i < rolesData.length; i++) {
-      const r = rolesData[i]
-      const normalizedRole = r.role === role.id.toUpperCase() ? 'user' : 'judge'
-      addMsg(r.text, normalizedRole as Msg['role'], titleMap[r.role] || r.role, 'ruling')
-
-      // Update active participant
-      setParticipants(prev => prev.map(p => ({ ...p, active: p.role === r.role })))
-
-      // Delay between roles (2 seconds, except for last one)
-      if (i < rolesData.length - 1) {
-        await new Promise(resolve => setTimeout(resolve, 2000))
-      }
-    }
-  }
-
-  // ── Start ──
-  const startSession = async () => {
-    setPage('session')
-    setMsgs([])
-    setScore({ etiquette: 100, argument: 0, evidence: 0 })
-    setStressLevel(0)
-    setTime(simType.id === 'court' ? 600 : 300)
+  // ── API: Load Scenarios ──
+  const loadScenarios = async () => {
     setLoading(true)
-    setParticipants(getParticipants())
-    // Show role briefing as first message
-    addMsg(getRoleBriefing(), 'judge', '📋 Brifing', 'ruling')
+    setLoadingText('Sud ishlari bazasi yuklanmoqda...')
+    try {
+      const res = await fetch('/api/court-simulator', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...(await getAuthHeaders()) },
+        body: JSON.stringify({ action: 'list_scenarios' }),
+      })
+      const data = await res.json()
+      if (data.success && Array.isArray(data.scenarios)) {
+        setScenarios(data.scenarios)
+        if (data.scenarios.length > 0 && !selectedScenario) {
+          setSelectedScenario(data.scenarios[0])
+        }
+      }
+    } catch {
+      setErrorBanner('Ssenariylarni yuklashda xatolik yuz berdi')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // ── API: Load History ──
+  const loadHistory = async () => {
+    setLoadingHistory(true)
+    try {
+      const res = await fetch('/api/court-simulator', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...(await getAuthHeaders()) },
+        body: JSON.stringify({ action: 'list_history' }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        setHistoryList(data.history || [])
+      }
+    } catch {}
+    setLoadingHistory(false)
+  }
+
+  // ── Sequential Message Appender ──
+  const appendMessagesSequentially = async (
+    speakers: Array<{ speaker: string; role: string; message: string }>
+  ) => {
+    for (let i = 0; i < speakers.length; i++) {
+      const s = speakers[i]
+      setActiveSpeaker(s.speaker)
+      setMessages(prev => [
+        ...prev,
+        {
+          id: 'msg_' + Date.now() + Math.random(),
+          speaker: s.speaker,
+          role: s.role,
+          text: s.message,
+          time: new Date().toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' }),
+        },
+      ])
+      if (i < speakers.length - 1) {
+        await new Promise(r => setTimeout(r, 1200))
+      }
+    }
+    setActiveSpeaker(null)
+  }
+
+  // ── API: Start Session ──
+  const handleStartSession = async (scenarioToStart?: CourtScenario) => {
+    const sc = scenarioToStart || selectedScenario
+    if (!sc) return
+
+    setLoading(true)
+    setLoadingText('Sud zali tayyorlanmoqda va ishtirokchilar chaqirilmoqda...')
+    setErrorBanner(null)
+    setMessages([])
+    setTimeRemaining(sc.procedure_type === 'trial' ? 720 : 480)
+
     try {
       const res = await fetch('/api/court-simulator', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...(await getAuthHeaders()) },
         body: JSON.stringify({
           action: 'start',
-          caseDetails: getCasePrompt(),
-          userRole: role.id.toUpperCase(),
-          userName: userName || role.title,
-          ...getUserIdentityPayload(),
+          scenarioId: sc.id,
+          userRole: selectedRole,
+          userName,
         }),
       })
       const data = await res.json()
@@ -647,1501 +245,1333 @@ Eslatma: Tomonlarni tinglang, ularga kelishuvga erishishga yordam bering va nizo
           checkLimitError(data)
           return
         }
-        throw new Error(data.message || data.error || 'Xatolik')
+        throw new Error(data.message || data.error || 'Simulyatsiyani boshlashda xatolik')
       }
-      setSimId(data.simulation_id || 'vc_' + Date.now())
-      const roles = data.roles || []
-      if (roles.length > 0) {
-        await addMultiRoleMessages(roles)
+
+      setSimulationId(data.simulation_id)
+      setSessionState(data.session)
+      setSelectedScenario(data.scenario)
+      setViewState('session')
+
+      if (data.aiResponse?.speakers) {
+        await appendMessagesSequentially(data.aiResponse.speakers)
       }
-    } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'Tarmoq xatoligi'
-      addMsg(
-        'Xatolik yuz berdi: ' +
-          errorMsg +
-          ". Iltimos, internet ulanishini tekshirib, qayta urinib ko'ring.",
-        'judge',
-        'AI',
-        'ruling'
-      )
+    } catch (err: any) {
+      setErrorBanner(err.message || 'Tarmoq xatoligi')
     } finally {
       setLoading(false)
     }
   }
 
-  // ── Submit ──
-  const submit = useCallback(
-    async (override?: string, type: Msg['type'] = 'statement') => {
-      const txt = (override ?? input).trim()
-      if (!txt || loading) return
-      addMsg(txt, 'user', role.title, type)
-      setInput('')
-      setScore(s => ({
-        ...s,
-        argument: Math.min(100, s.argument + 12),
-        evidence: type === 'evidence' ? Math.min(100, s.evidence + 15) : s.evidence,
-      }))
-      // Reduce stress
-      setStressLevel(s => Math.max(0, s - 5))
-      setLoading(true)
+  // ── API: Send User Action / Statement ──
+  const handleSendUserAction = async (
+    overrideText?: string,
+    actionType:
+      | 'speak'
+      | 'question'
+      | 'present_evidence'
+      | 'object'
+      | 'ruling'
+      | 'conclude'
+      | 'settle' = 'speak',
+    evidenceId?: string
+  ) => {
+    const textToSend = (overrideText ?? inputMessage).trim()
+    if (!textToSend || loading || !simulationId) return
 
-      try {
-        const res = await fetch('/api/court-simulator', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', ...(await getAuthHeaders()) },
-          body: JSON.stringify({
-            action: 'submit_argument',
-            simulationId: simId,
-            argument: `${role.title} (${type}): ${txt}`,
-            userRole: role.id.toUpperCase(),
-            userName: userName || role.title,
-            ...getUserIdentityPayload(),
-          }),
-        })
-        const data = await res.json()
-        const roles = data.roles || []
-        if (roles.length > 0) {
-          await addMultiRoleMessages(roles)
-          const allText = roles.map((r: { text?: string }) => r.text).join(' ')
-          if (allText.toLowerCase().includes('xato') || allText.toLowerCase().includes("e'tiroz")) {
-            setStressLevel(s => Math.min(100, s + 15))
-          }
-        }
-      } catch (err) {
-        const errorMsg = err instanceof Error ? err.message : 'Tarmoq xatoligi'
-        addMsg('Xatolik: ' + errorMsg, 'judge', 'AI', 'ruling')
-      } finally {
-        setLoading(false)
-        // Voice loop: if was using voice, restart mic after AI responds
-        if (voiceModeRef.current && !override) {
-          setTimeout(() => {
-            if (!loading && !listening) {
-              startMic()
-            }
-          }, 500)
-        }
-      }
-    },
-    [input, loading, role, simId, simType, msgs, userName, listening, startMic]
-  )
-
-  // ── End ──
-  const endSession = async () => {
+    setInputMessage('')
     setLoading(true)
-    const total = Math.round((score.etiquette + score.argument + score.evidence) / 3)
-    const xpGain = Math.round(total * 1.5 + Math.max(0, 100 - stressLevel) * 0.5)
-    const newXp = totalXp + xpGain
-    setTotalXp(newXp)
-    try {
-      localStorage.setItem('virtual_court_xp', String(newXp))
-    } catch {}
+    setLoadingText('AI ishtirokchilari fikrlamoqda...')
+    setErrorBanner(null)
+
+    // Append user message immediately
+    const userRoleTitle =
+      selectedRole === 'SUDYA'
+        ? 'Sud Raisi (Siz)'
+        : selectedRole === 'PROKUROR'
+          ? 'Davlat Ayblovchisi (Siz)'
+          : 'Himoyachi Advokat (Siz)'
+
+    setMessages(prev => [
+      ...prev,
+      {
+        id: 'msg_user_' + Date.now(),
+        speaker: userRoleTitle,
+        role: selectedRole,
+        text: textToSend,
+        time: new Date().toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' }),
+      },
+    ])
 
     try {
       const res = await fetch('/api/court-simulator', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...(await getAuthHeaders()) },
         body: JSON.stringify({
-          action: 'get_verdict',
-          simulationId: simId,
-          userRole: role.id.toUpperCase(),
-          ...getUserIdentityPayload(),
+          action: 'user_action',
+          simulationId,
+          userName,
+          userAction: {
+            type: actionType,
+            role: selectedRole,
+            text: textToSend,
+            evidenceId,
+          },
         }),
       })
+
       const data = await res.json()
-      const roles = data.roles || []
-      if (roles.length > 0) {
-        await addMultiRoleMessages(roles)
+      if (!res.ok) throw new Error(data.error || 'Harakatni yuborishda xatolik')
+
+      if (data.session) {
+        setSessionState(data.session)
       }
-    } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'Tarmoq xatoligi'
-      console.error('Verdict error:', errorMsg)
+
+      if (!data.validation?.valid && data.validation?.reason) {
+        setErrorBanner(`Protsessual ogohlantirish: ${data.validation.reason}`)
+      }
+
+      if (data.aiResponse?.speakers) {
+        await appendMessagesSequentially(data.aiResponse.speakers)
+      }
+    } catch (err: any) {
+      setErrorBanner(err.message || 'Xatolik yuz berdi')
     } finally {
       setLoading(false)
     }
-
-    let achievements: string[] = []
-    if (total >= 80) achievements = ['Yuridik aniqlik', 'Professional', 'Mukammal nutq']
-    else if (total >= 60) achievements = ['Yaxshi urinish', 'Bilimli']
-    else if (total >= 40) achievements = ['Qatnashchi']
-    else achievements = ['Yangi boshlovchi']
-    if (stressLevel < 30) achievements.push('Sovuq qonli')
-    if (score.evidence >= 70) achievements.push('Dalil ustasi')
-    if (score.argument >= 70) achievements.push('Argument ustasi')
-    if (xpGain >= 100) achievements.push('XP rekordi')
-
-    setResults({
-      legalAccuracy: Math.min(100, total + 5),
-      ethics: Math.min(100, Math.round((score.etiquette + (100 - stressLevel)) / 2)),
-      confidence: Math.min(100, Math.round(total * 0.8 + 20)),
-      etiquette: score.etiquette,
-      argument: score.argument,
-      evidence: score.evidence,
-      totalScore: total,
-      xpEarned: xpGain,
-      achievements: [...new Set(achievements)],
-    })
-    setTimeout(() => setPage('verdict'), 1500)
   }
 
-  const total = Math.round((score.etiquette + score.argument + score.evidence) / 3)
+  // ── API: Transition Next Stage (Server Validated) ──
+  const handleNextStage = async () => {
+    if (!simulationId || loading) return
+    setLoading(true)
+    setLoadingText('Keyingi protsessual bosqichga o‘tilmoqda...')
+    setErrorBanner(null)
 
-  // ════════════════════════════════════════════════════════
-  // SELECTION SCREEN
-  // ════════════════════════════════════════════════════════
-  if (page === 'select')
+    try {
+      const res = await fetch('/api/court-simulator', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...(await getAuthHeaders()) },
+        body: JSON.stringify({
+          action: 'next_stage',
+          simulationId,
+          userName,
+        }),
+      })
+
+      const data = await res.json()
+      if (!data.success) {
+        if (data.error === 'transition_blocked') {
+          setErrorBanner(`Bosqichni o‘zgartirish rad etildi: ${data.message}`)
+          return
+        }
+        throw new Error(data.error || 'Bosqichni o‘zgartirishda xatolik')
+      }
+
+      if (data.isFinal) {
+        handleFinishSession()
+        return
+      }
+
+      if (data.session) {
+        setSessionState(data.session)
+      }
+
+      if (data.aiResponse?.speakers) {
+        await appendMessagesSequentially(data.aiResponse.speakers)
+      }
+    } catch (err: any) {
+      setErrorBanner(err.message || 'Bosqichga o‘tishda xatolik')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // ── API: Finish Session & Score ──
+  const handleFinishSession = async () => {
+    if (!simulationId) return
+    setLoading(true)
+    setLoadingText('Sud yakunlanmoqda va baholash hisoboti tuzilmoqda...')
+    try {
+      const res = await fetch('/api/court-simulator', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...(await getAuthHeaders()) },
+        body: JSON.stringify({
+          action: 'finish_session',
+          simulationId,
+        }),
+      })
+      const data = await res.json()
+      if (data.success && data.scoring) {
+        setScoringResults(data.scoring)
+        setViewState('verdict')
+      }
+    } catch (err: any) {
+      setErrorBanner('Yakunlashda xatolik yuz berdi')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // ── API: Judge Admit/Reject Evidence ──
+  const handleJudgeEvidenceDecision = async (evidenceId: string, decision: 'admit' | 'reject') => {
+    if (!simulationId || selectedRole !== 'SUDYA') return
+    try {
+      const res = await fetch('/api/court-simulator', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...(await getAuthHeaders()) },
+        body: JSON.stringify({
+          action: 'admit_evidence',
+          simulationId,
+          evidenceId,
+          decision,
+          reason:
+            decision === 'admit'
+              ? 'Dalil maqbul va ishga aloqador'
+              : 'Dalil maqbul emas deb topildi',
+        }),
+      })
+      const data = await res.json()
+      if (data.success && sessionState) {
+        setSessionState(prev => {
+          if (!prev) return null
+          return {
+            ...prev,
+            evidence_state: prev.evidence_state.map(e =>
+              e.id === evidenceId
+                ? { ...e, status: decision === 'admit' ? 'admitted' : 'rejected' }
+                : e
+            ),
+          }
+        })
+      }
+    } catch {}
+  }
+
+  // ── Voice Input (STT) ──
+  const toggleSpeech = () => {
+    if (isListening) {
+      recognitionRef.current?.stop()
+      setIsListening(false)
+      return
+    }
+
+    const w = window as any
+    const SR = w.SpeechRecognition || w.webkitSpeechRecognition
+    if (!SR) {
+      alert(
+        "Brauzeringiz ovozli kiritishni qo'llab-quvvatlamaydi (Chrome yoki Edge tavsiya etiladi)."
+      )
+      return
+    }
+
+    const rec = new SR()
+    recognitionRef.current = rec
+    rec.lang = 'uz-UZ'
+    rec.continuous = false
+    rec.interimResults = true
+
+    rec.onresult = (e: any) => {
+      let transcript = ''
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        transcript += e.results[i][0].transcript
+      }
+      setInputMessage(transcript)
+    }
+
+    rec.onend = () => {
+      setIsListening(false)
+    }
+
+    rec.onerror = () => {
+      setIsListening(false)
+    }
+
+    rec.start()
+    setIsListening(true)
+  }
+
+  // ── Role POV Background Selector ──
+  const courtroomBackground = useMemo(() => {
+    switch (selectedRole) {
+      case 'SUDYA':
+        return '/images/courtroom/judge_pov.jpg'
+      case 'PROKUROR':
+        return '/images/courtroom/prosecutor_pov.jpg'
+      case 'ADVOKAT':
+      default:
+        return '/images/courtroom/lawyer_pov.jpg'
+    }
+  }, [selectedRole])
+
+  // Filtered cases in selection screen
+  const filteredCases = useMemo(() => {
+    return scenarios.filter(c => {
+      const matchCategory = categoryFilter === 'all' || c.category === categoryFilter
+      const matchProcedure =
+        selectedProcedure === 'trial'
+          ? c.procedure_type === 'trial'
+          : c.procedure_type === selectedProcedure
+      const matchSearch =
+        c.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        c.description.toLowerCase().includes(searchQuery.toLowerCase())
+      return matchCategory && matchProcedure && matchSearch
+    })
+  }, [scenarios, categoryFilter, selectedProcedure, searchQuery])
+
+  // Current stage object
+  const currentStageObj: CourtStage | undefined = useMemo(() => {
+    if (!selectedScenario || !sessionState) return undefined
     return (
-      <div className="mobile-safe-top min-h-screen bg-gray-50 dark:bg-gray-950">
-        <LimitExceededModal {...modalProps} onUpgrade={() => router.push('/pricing')} />
-        <div className="flex-col md:flex-row" style={{ display: 'flex' }}>
-          <aside
-            className="hidden lg:block"
-            style={{
-              width: 240,
-              background: 'var(--card-bg)',
-              borderRight: '1px solid var(--card-border)',
-              minHeight: '100vh',
-              padding: '24px 16px',
-              flexShrink: 0,
-            }}
-          >
-            <button
-              onClick={() => router.push('/dashboard')}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                color: '#6B7280',
-                textDecoration: 'none',
-                fontSize: 14,
-                marginBottom: 24,
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                padding: 0,
-              }}
-            >
-              <ArrowLeft size={16} /> Orqaga
-            </button>
-            <FeatureInstructions
-              featureName="Virtual Sud"
-              steps={[
-                {
-                  title: 'Ishni tanlang',
-                  description:
-                    "Tayyor ish shablonlaridan birini tanlang yoki o'zingizning ishingizni kiriting.",
-                  icon: '📋',
-                },
-                {
-                  title: 'Rolni tanlang',
-                  description:
-                    'Sudya, prokuror, advokat yoki sudlanuvchi rolini tanlang. Siz tanlagan roldan foydalaning.',
-                  icon: '👤',
-                },
-                {
-                  title: 'Ovoz bilan gapiring',
-                  description:
-                    'Mikrofon tugmasini bosib ovozli gapiring. AI barcha rollar nomidan javob beradi.',
-                  icon: '🎙️',
-                },
-                {
-                  title: 'Hukm chiqaring',
-                  description:
-                    "Sud jarayoni tugagach, hukm chiqaring yoki AI tomonidan baholashni so'ring.",
-                  icon: '⚖️',
-                },
-              ]}
-              tips={[
-                "Har bir foydalanuvchi o'z roli bilan gaplashadi",
-                'AI boshqa rollar nomidan real javob beradi',
-                'Sessiya tugagach ball va tahlil olishingiz mumkin',
-              ]}
-            />
-            <div
-              style={{
-                background: '#EDE9FE',
-                borderRadius: 12,
-                padding: 14,
-                border: '1px solid #DDD6FE',
-              }}
-            >
-              <p style={{ fontWeight: 700, color: '#6D28D9', fontSize: 14, margin: '0 0 4px' }}>
-                Virtual Sud
-              </p>
-              <p style={{ fontSize: 12, color: '#7C3AED', margin: 0 }}>
-                AI bilan ovozli simulyatsiya
-              </p>
-            </div>
-            <div
-              style={{
-                marginTop: 16,
-                padding: '14px 12px',
-                background: '#FFFBEB',
-                borderRadius: 12,
-                border: '1px solid #FDE68A',
-                textAlign: 'center',
-              }}
-            >
-              {/* Display total XP */}
-              <p style={{ fontSize: 10, color: '#92400E', margin: '0 0 4px' }}>Umumiy XP</p>
-              <p style={{ fontSize: 22, fontWeight: 800, color: '#F59E0B', margin: 0 }}>
-                {totalXp}
-              </p>
-            </div>
-            {speechReady && (
-              <div
-                style={{
-                  marginTop: 16,
-                  background: '#F0FDF4',
-                  borderRadius: 12,
-                  padding: 12,
-                  border: '1px solid #BBF7D0',
-                }}
-              >
-                <p
-                  style={{
-                    fontSize: 12,
-                    color: '#15803D',
-                    fontWeight: 600,
-                    margin: '0 0 6px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 4,
-                  }}
-                >
-                  <Mic size={14} /> Mikrofon
-                </p>
-                <p style={{ fontSize: 11, color: '#16A34A', margin: 0 }}>
-                  Mikrofon orqali gapirishingiz mumkin (Chrome/Edge). Ovozli kiritish uchun pastdagi
-                  mikrofon belgisini bosing.
-                </p>
-              </div>
-            )}
-            <div
-              style={{
-                marginTop: 16,
-                background: '#FEF2F2',
-                borderRadius: 12,
-                padding: 12,
-                border: '1px solid #FECACA',
-              }}
-            >
-              <p style={{ fontSize: 12, color: '#991B1B', fontWeight: 600, margin: '0 0 4px' }}>
-                XP tizimi
-              </p>
-              <p style={{ fontSize: 11, color: '#B91C1C', margin: 0 }}>
-                Har bir simulyatsiya uchun XP olasiz. Yutuqlar to'plang!
-              </p>
-            </div>
-          </aside>
-
-          <div className="p-6 md:p-10" style={{ flex: 1 }}>
-            <h1
-              className="text-gray-900 dark:text-white"
-              style={{ fontSize: 26, fontWeight: 800, margin: '0 0 6px' }}
-            >
-              Virtual Sud Simulyatori
-            </h1>
-            <p
-              className="text-gray-500 dark:text-zinc-400"
-              style={{ fontSize: 14, margin: '0 0 32px' }}
-            >
-              Simulyatsiya turi, roli va ishni tanlang — AI bilan interaktiv huquqiy amaliyot
-            </p>
-
-            <style>{`@media(min-width:768px){.vc-grid-types{grid-template-columns:repeat(3,1fr)!important}.vc-grid-roles{grid-template-columns:repeat(3,1fr)!important}.vc-grid-cases{grid-template-columns:repeat(2,1fr)!important}}@media(max-width:639px){.vc-grid-types{grid-template-columns:1fr!important}.vc-grid-roles{grid-template-columns:1fr!important}.vc-grid-cases{grid-template-columns:1fr!important}}`}</style>
-
-            {/* 1. Sim type */}
-            <h2 style={{ fontSize: 15, fontWeight: 700, color: '#374151', margin: '0 0 12px' }}>
-              1. Simulyatsiya turini tanlang
-            </h2>
-            <div
-              className="vc-grid-types"
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(2,1fr)',
-                gap: 12,
-                marginBottom: 28,
-              }}
-            >
-              {SIM_TYPES.map(st => {
-                const isActive = simType.id === st.id
-                const icons: Record<string, React.ReactNode> = {
-                  court: <Gavel size={20} />,
-                  negotiation: <MessageCircle size={20} />,
-                  investigation: <Search size={20} />,
-                }
-                return (
-                  <button
-                    key={st.id}
-                    onClick={() => {
-                      setSimType(st)
-                      setRole(st.roles[0])
-                      setCase(st.cases[0])
-                    }}
-                    style={{
-                      padding: 18,
-                      borderRadius: 14,
-                      border: `2px solid ${isActive ? st.color : '#E5E7EB'}`,
-                      background: isActive ? st.bg : '#fff',
-                      cursor: 'pointer',
-                      textAlign: 'left',
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: 40,
-                        height: 40,
-                        background: st.bg,
-                        borderRadius: 10,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: st.color,
-                        marginBottom: 8,
-                      }}
-                    >
-                      {icons[st.id]}
-                    </div>
-                    <p
-                      className="text-gray-900 dark:text-white"
-                      style={{ fontWeight: 700, fontSize: 15, margin: '0 0 2px' }}
-                    >
-                      {st.title}
-                    </p>
-                    <p
-                      className="text-gray-500 dark:text-zinc-400"
-                      style={{ fontSize: 12, margin: 0 }}
-                    >
-                      {st.desc}
-                    </p>
-                  </button>
-                )
-              })}
-            </div>
-
-            {/* 2. Role */}
-            <h2 style={{ fontSize: 15, fontWeight: 700, color: '#374151', margin: '0 0 12px' }}>
-              2. Rolingizni tanlang
-            </h2>
-            <div
-              className="vc-grid-roles"
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(2,1fr)',
-                gap: 12,
-                marginBottom: 28,
-              }}
-            >
-              {simType.roles.map(r => {
-                const isActive = role.id === r.id
-                const roleIcons: Record<string, React.ReactNode> = {
-                  advokat: <Scale size={20} />,
-                  prokuror: <Gavel size={20} />,
-                  sudya: <Users size={20} />,
-                  consultant: <Scale size={20} />,
-                  mediator: <Users size={20} />,
-                  detective: <Search size={20} />,
-                  investigator: <Scale size={20} />,
-                }
-                return (
-                  <button
-                    key={r.id}
-                    onClick={() => setRole(r)}
-                    style={{
-                      padding: 14,
-                      borderRadius: 14,
-                      border: `2px solid ${isActive ? simType.color : '#E5E7EB'}`,
-                      background: isActive ? simType.bg : '#fff',
-                      cursor: 'pointer',
-                      textAlign: 'left',
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: 36,
-                        height: 36,
-                        background: simType.bg,
-                        borderRadius: 10,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: simType.color,
-                        marginBottom: 6,
-                      }}
-                    >
-                      {roleIcons[r.id] || <Users size={18} />}
-                    </div>
-                    <p
-                      style={{ fontWeight: 700, fontSize: 14, color: '#111827', margin: '0 0 2px' }}
-                    >
-                      {r.title}
-                    </p>
-                    <p style={{ fontSize: 11, color: '#6B7280', margin: 0 }}>{r.sub}</p>
-                  </button>
-                )
-              })}
-            </div>
-
-            {/* 3. Case */}
-            <h2 style={{ fontSize: 15, fontWeight: 700, color: '#374151', margin: '0 0 12px' }}>
-              3. Ishni tanlang
-            </h2>
-            <div
-              className="vc-grid-cases"
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(2,1fr)',
-                gap: 12,
-                marginBottom: 32,
-              }}
-            >
-              {simType.cases.map(c => (
-                <button
-                  key={c.id}
-                  onClick={() => setCase(c)}
-                  style={{
-                    padding: 16,
-                    borderRadius: 14,
-                    border: `2px solid ${caseItem.id === c.id ? '#2563EB' : '#E5E7EB'}`,
-                    background: caseItem.id === c.id ? '#EFF6FF' : '#fff',
-                    cursor: 'pointer',
-                    textAlign: 'left',
-                  }}
-                >
-                  <div
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      marginBottom: 5,
-                    }}
-                  >
-                    <p style={{ fontWeight: 700, fontSize: 14, color: '#111827', margin: 0 }}>
-                      {c.title}
-                    </p>
-                    <span
-                      style={{
-                        fontSize: 10,
-                        background: simType.bg,
-                        color: simType.color,
-                        padding: '2px 8px',
-                        borderRadius: 20,
-                      }}
-                    >
-                      {c.level}
-                    </span>
-                  </div>
-                  <p style={{ fontSize: 12, color: '#6B7280', margin: '0 0 8px' }}>{c.desc}</p>
-                  <span
-                    style={{
-                      fontSize: 11,
-                      background: '#DBEAFE',
-                      color: '#1D4ED8',
-                      padding: '2px 8px',
-                      borderRadius: 20,
-                    }}
-                  >
-                    {c.law}
-                  </span>
-                </button>
-              ))}
-            </div>
-
-            {/* Features section from simulator */}
-            <div
-              style={{
-                background: '#fff',
-                borderRadius: 16,
-                padding: 20,
-                border: '1px solid #E5E7EB',
-                marginBottom: 32,
-              }}
-            >
-              <p style={{ fontWeight: 700, fontSize: 14, color: '#374151', margin: '0 0 16px' }}>
-                Xususiyatlar
-              </p>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 12 }}>
-                {[
-                  {
-                    icon: <Users size={16} color="#2563EB" />,
-                    title: 'AI Personajlar',
-                    desc: 'Real AI javoblar',
-                  },
-                  {
-                    icon: <Clock size={16} color="#059669" />,
-                    title: 'Vaqt chegarasi',
-                    desc: '5-10 daqiqa',
-                  },
-                  {
-                    icon: <AlertTriangle size={16} color="#D97706" />,
-                    title: 'Stress metr',
-                    desc: 'Hissiy intellekt',
-                  },
-                  {
-                    icon: <Award size={16} color="#7C3AED" />,
-                    title: 'XP va yutuqlar',
-                    desc: 'Har bir session uchun',
-                  },
-                  {
-                    icon: <Mic size={16} color="#0891B2" />,
-                    title: 'Ovozli kiritish',
-                    desc: 'uz-UZ tilida',
-                  },
-                  {
-                    icon: <Star size={16} color="#DC2626" />,
-                    title: 'Baholash',
-                    desc: '3 mezonda',
-                  },
-                ].map((f, i) => (
-                  <div
-                    key={i}
-                    style={{
-                      display: 'flex',
-                      gap: 10,
-                      alignItems: 'center',
-                      background: '#F9FAFB',
-                      borderRadius: 10,
-                      padding: '10px 12px',
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: 32,
-                        height: 32,
-                        background: '#fff',
-                        borderRadius: 8,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
-                      }}
-                    >
-                      {f.icon}
-                    </div>
-                    <div>
-                      <p style={{ fontWeight: 600, fontSize: 12, color: '#111827', margin: 0 }}>
-                        {f.title}
-                      </p>
-                      <p style={{ fontSize: 11, color: '#6B7280', margin: 0 }}>{f.desc}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <button
-              onClick={startSession}
-              style={{
-                padding: '13px 36px',
-                background: simType.color,
-                color: '#fff',
-                border: 'none',
-                borderRadius: 12,
-                fontSize: 15,
-                fontWeight: 700,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                minHeight: 48,
-              }}
-            >
-              <Play size={18} /> Simulyatsiyani boshlash
-            </button>
-          </div>
-        </div>
-      </div>
+      selectedScenario.stages.find(s => s.id === sessionState.current_stage) ||
+      selectedScenario.stages[0]
     )
+  }, [selectedScenario, sessionState])
 
-  // ════════════════════════════════════════════════════════
-  // SESSION SCREEN
-  // ════════════════════════════════════════════════════════
-  if (page === 'session')
+  // ═════════════════════════════════════════════════════════════════════════
+  // RENDER: SELECTION SCREEN
+  // ═════════════════════════════════════════════════════════════════════════
+  if (viewState === 'select') {
     return (
-      <div
-        style={{
-          minHeight: '100vh',
-          background: '#0F172A',
-          color: '#F8FAFC',
-          display: 'flex',
-          flexDirection: 'column',
-        }}
-      >
-        {/* Header */}
-        <header
-          style={{
-            background: 'rgba(0,0,0,0.6)',
-            borderBottom: '1px solid rgba(255,255,255,0.1)',
-            padding: '12px 24px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
-            gap: 8,
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            <button
-              onClick={() => setPage('select')}
-              style={{
-                padding: 8,
-                background: 'rgba(255,255,255,0.1)',
-                border: 'none',
-                borderRadius: 10,
-                color: '#fff',
-                cursor: 'pointer',
-              }}
-            >
-              <ArrowLeft size={16} />
-            </button>
+      <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-blue-600 selection:text-white">
+        <LimitExceededModal {...modalProps} onUpgrade={() => router.push('/pricing')} />
+
+        {/* Top Navigation */}
+        <header className="border-b border-slate-800/80 bg-slate-900/60 backdrop-blur-md sticky top-0 z-30 px-4 lg:px-8 py-3.5 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-500/20">
+              <Gavel className="w-5 h-5 text-white" />
+            </div>
             <div>
-              <p style={{ fontWeight: 700, fontSize: 15, margin: 0 }}>
-                {simType.title}: {caseItem.title}
-              </p>
-              <p style={{ fontSize: 12, color: '#94A3B8', margin: 0 }}>
-                {role.title} · {role.sub}
+              <h1 className="text-lg font-bold text-white tracking-tight flex items-center gap-2">
+                JURISTIV{' '}
+                <span className="text-xs px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 font-semibold border border-blue-500/30">
+                  Virtual Sud
+                </span>
+              </h1>
+              <p className="text-xs text-slate-400">
+                Interaktiv Sud Simulyatsiyasi • O‘zbekiston Qonunchiligi
               </p>
             </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-            {/* Stress Meter */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 4,
-                padding: '5px 10px',
-                background: stressLevel > 60 ? 'rgba(239,68,68,0.2)' : 'rgba(255,255,255,0.08)',
-                borderRadius: 20,
-                border: '1px solid rgba(255,255,255,0.15)',
-              }}
-            >
-              <AlertTriangle size={12} color={stressLevel > 60 ? '#F87171' : '#FBBF24'} />
-              <span style={{ fontSize: 12, color: stressLevel > 60 ? '#F87171' : '#FBBF24' }}>
-                Stress: {stressLevel}%
-              </span>
-            </div>
-            {/* Timer */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-                padding: '6px 14px',
-                background: time < 60 ? 'rgba(239,68,68,0.2)' : 'rgba(255,255,255,0.08)',
-                borderRadius: 20,
-                border: '1px solid rgba(255,255,255,0.15)',
-              }}
-            >
-              <Clock size={14} color={time < 60 ? '#F87171' : '#94A3B8'} />
-              <span
-                style={{ fontWeight: 700, fontSize: 14, color: time < 60 ? '#F87171' : '#fff' }}
-              >
-                {fmt(time)}
-              </span>
-            </div>
+
+          <div className="flex items-center gap-3">
             <button
-              onClick={endSession}
-              style={{
-                padding: '7px 16px',
-                background: 'rgba(239,68,68,0.7)',
-                border: '1px solid #EF4444',
-                borderRadius: 10,
-                color: '#fff',
-                fontSize: 13,
-                fontWeight: 600,
-                cursor: 'pointer',
+              onClick={() => {
+                setShowHistoryModal(true)
+                loadHistory()
               }}
+              className="px-3.5 py-1.5 text-xs font-medium rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700/60 transition flex items-center gap-1.5"
             >
-              Tugatish
+              <History size={15} className="text-blue-400" />
+              <span>Mening Sudlarim</span>
             </button>
           </div>
         </header>
 
-        <div style={{ flex: 1, display: 'flex', overflow: 'hidden', flexDirection: 'row' }}>
-          {/* Score panel */}
-          <aside
-            className="hidden md:block"
-            style={{
-              width: 180,
-              background: 'rgba(0,0,0,0.4)',
-              borderRight: '1px solid rgba(255,255,255,0.07)',
-              padding: 14,
-              flexShrink: 0,
-            }}
-          >
-            <p
-              style={{
-                fontSize: 10,
-                fontWeight: 600,
-                color: '#64748B',
-                textTransform: 'uppercase',
-                letterSpacing: '0.08em',
-                margin: '0 0 10px',
-              }}
-            >
-              Baholash
-            </p>
-            {[
-              { l: 'Etika', v: score.etiquette, c: '#22C55E' },
-              { l: 'Argument', v: score.argument, c: '#3B82F6' },
-              { l: 'Dalillar', v: score.evidence, c: '#A855F7' },
-            ].map(b => (
-              <div key={b.l} style={{ marginBottom: 10 }}>
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    fontSize: 11,
-                    marginBottom: 3,
-                  }}
-                >
-                  <span style={{ color: '#CBD5E1' }}>{b.l}</span>
-                  <span style={{ fontWeight: 700, color: b.c }}>{b.v}%</span>
-                </div>
-                <div style={{ height: 4, background: 'rgba(255,255,255,0.1)', borderRadius: 2 }}>
-                  <div
-                    style={{
-                      height: 4,
-                      width: `${b.v}%`,
-                      background: b.c,
-                      borderRadius: 2,
-                      transition: 'width 0.4s',
-                    }}
+        {/* Main Content */}
+        <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
+          {/* STEP 1: CHOOSE PROCEDURE TYPE */}
+          <section>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-base font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-blue-600 text-xs flex items-center justify-center font-bold">
+                    1
+                  </span>
+                  Simulyatsiya Turi
+                </h2>
+                <p className="text-xs text-slate-400">Kerakli huquqiy amaliyot formatini tanlang</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {[
+                {
+                  id: 'trial' as ProcedureType,
+                  title: 'Sud Jarayoni',
+                  sub: 'JPK / FPK bo‘yicha to‘liq sud majlisi',
+                  icon: Gavel,
+                  gradient: 'from-blue-600/30 to-indigo-600/10 border-blue-500/40',
+                  activeBorder: 'border-blue-500 bg-blue-950/40 shadow-lg shadow-blue-600/20',
+                },
+                {
+                  id: 'negotiation' as ProcedureType,
+                  title: 'Muzokara (Mediation)',
+                  sub: 'Shartnomaviy va biznes nizolarini hal etish',
+                  icon: Scale,
+                  gradient: 'from-emerald-600/30 to-teal-600/10 border-emerald-500/40',
+                  activeBorder:
+                    'border-emerald-500 bg-emerald-950/40 shadow-lg shadow-emerald-600/20',
+                },
+                {
+                  id: 'investigation' as ProcedureType,
+                  title: 'Tergov Harakatlari',
+                  sub: 'Guvohlarni so‘roq qilish va dalillarni tahlil qilish',
+                  icon: Search,
+                  gradient: 'from-purple-600/30 to-violet-600/10 border-purple-500/40',
+                  activeBorder: 'border-purple-500 bg-purple-950/40 shadow-lg shadow-purple-600/20',
+                },
+              ].map(p => {
+                const Icon = p.icon
+                const isSelected = selectedProcedure === p.id
+                return (
+                  <button
+                    key={p.id}
+                    onClick={() => setSelectedProcedure(p.id)}
+                    className={`p-5 rounded-2xl border text-left transition-all relative overflow-hidden flex flex-col justify-between ${
+                      isSelected
+                        ? p.activeBorder
+                        : 'border-slate-800 bg-slate-900/40 hover:border-slate-700 hover:bg-slate-900/80'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="w-10 h-10 rounded-xl bg-slate-800/80 flex items-center justify-center text-blue-400">
+                        <Icon size={20} />
+                      </div>
+                      {isSelected && (
+                        <span className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs">
+                          ✓
+                        </span>
+                      )}
+                    </div>
+                    <div>
+                      <h3 className="text-base font-bold text-white">{p.title}</h3>
+                      <p className="text-xs text-slate-400 mt-1">{p.sub}</p>
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          </section>
+
+          {/* STEP 2: CHOOSE USER ROLE */}
+          <section>
+            <div className="mb-4">
+              <h2 className="text-base font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                <span className="w-6 h-6 rounded-full bg-blue-600 text-xs flex items-center justify-center font-bold">
+                  2
+                </span>
+                Ishtirok Etadigan Rolingiz
+              </h2>
+              <p className="text-xs text-slate-400">
+                Siz tanlagan rol sizning boshqaruvingizda bo‘ladi, qolgan barcha ishtirokchilar AI
+                tomonidan boshqariladi
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {[
+                {
+                  id: 'ADVOKAT' as CourtRole,
+                  title: 'Advokat (Himoyachi)',
+                  desc: 'Mijoz huquqlarini himoya qilish, dalillarga e’tiroz bildirish va oqlov/yengillik so‘rash',
+                  icon: Shield,
+                  color: 'text-amber-400',
+                  border: 'border-amber-500/50 bg-amber-950/20 shadow-amber-500/10',
+                },
+                {
+                  id: 'PROKUROR' as CourtRole,
+                  title: 'Prokuror (Ayblovchi)',
+                  desc: 'Davlat ayblovini qo‘llab-quvvatlash, dalillarni isbotlash va qat’iy jazo talab qilish',
+                  icon: Gavel,
+                  color: 'text-rose-400',
+                  border: 'border-rose-500/50 bg-rose-950/20 shadow-rose-500/10',
+                },
+                {
+                  id: 'SUDYA' as CourtRole,
+                  title: 'Sud Raisi (Sudya)',
+                  desc: 'Majlisni boshqarish, iltimosnomalarni hal etish, dalillarni qabul qilish va Hukm chiqarish',
+                  icon: Scale,
+                  color: 'text-blue-400',
+                  border: 'border-blue-500/50 bg-blue-950/20 shadow-blue-500/10',
+                },
+              ].map(r => {
+                const Icon = r.icon
+                const isSelected = selectedRole === r.id
+                return (
+                  <button
+                    key={r.id}
+                    onClick={() => setSelectedRole(r.id)}
+                    className={`p-5 rounded-2xl border text-left transition-all flex flex-col justify-between ${
+                      isSelected
+                        ? `border-2 ${r.border} shadow-lg`
+                        : 'border-slate-800 bg-slate-900/40 hover:border-slate-700'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <div
+                        className={`w-10 h-10 rounded-xl bg-slate-800/80 flex items-center justify-center ${r.color}`}
+                      >
+                        <Icon size={20} />
+                      </div>
+                      {isSelected && (
+                        <span className="text-xs px-2.5 py-1 rounded-full bg-blue-600 text-white font-semibold">
+                          Tanlandi
+                        </span>
+                      )}
+                    </div>
+                    <div>
+                      <h3 className="text-base font-bold text-white">{r.title}</h3>
+                      <p className="text-xs text-slate-400 mt-1 leading-relaxed">{r.desc}</p>
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          </section>
+
+          {/* STEP 3: CHOOSE SCENARIO / CASE */}
+          <section className="space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h2 className="text-base font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-blue-600 text-xs flex items-center justify-center font-bold">
+                    3
+                  </span>
+                  Ishni Tanlang (Case Selection)
+                </h2>
+                <p className="text-xs text-slate-400">
+                  O‘quv amaliyoti uchun realistik sud ishlari
+                </p>
+              </div>
+
+              {/* Filters */}
+              <div className="flex items-center gap-2 flex-wrap">
+                <div className="relative">
+                  <Search size={15} className="absolute left-3 top-2.5 text-slate-400" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={e => setSearchQuery(e.target.value)}
+                    placeholder="Qidiruv..."
+                    className="pl-9 pr-3 py-1.5 text-xs rounded-lg bg-slate-900 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
                   />
                 </div>
-              </div>
-            ))}
-            {/* Stress bar */}
-            <p
-              style={{
-                fontSize: 10,
-                fontWeight: 600,
-                color: '#64748B',
-                textTransform: 'uppercase',
-                letterSpacing: '0.08em',
-                margin: '12px 0 10px',
-              }}
-            >
-              Stress
-            </p>
-            <div style={{ marginBottom: 10 }}>
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  fontSize: 11,
-                  marginBottom: 3,
-                }}
-              >
-                <span style={{ color: '#CBD5E1' }}>Daraja</span>
-                <span style={{ fontWeight: 700, color: stressLevel > 60 ? '#EF4444' : '#FBBF24' }}>
-                  {stressLevel}%
-                </span>
-              </div>
-              <div style={{ height: 4, background: 'rgba(255,255,255,0.1)', borderRadius: 2 }}>
-                <div
-                  style={{
-                    height: 4,
-                    width: `${stressLevel}%`,
-                    background: stressLevel > 60 ? '#EF4444' : '#FBBF24',
-                    borderRadius: 2,
-                    transition: 'width 0.4s',
-                  }}
-                />
+                <select
+                  value={categoryFilter}
+                  onChange={e => setCategoryFilter(e.target.value)}
+                  className="px-3 py-1.5 text-xs rounded-lg bg-slate-900 border border-slate-800 text-slate-200 focus:outline-none focus:border-blue-500"
+                >
+                  <option value="all">Barcha sohalar</option>
+                  <option value="criminal">Jinoyat ishlari</option>
+                  <option value="civil">Fuqarolik ishlari</option>
+                  <option value="labor">Mehnat nizolari</option>
+                  <option value="family">Oila nizolari</option>
+                  <option value="economic">Iqtisodiy / Biznes</option>
+                </select>
               </div>
             </div>
-            {/* Total */}
-            <div
-              style={{
-                marginTop: 12,
-                padding: 12,
-                background: 'rgba(124,58,237,0.15)',
-                borderRadius: 12,
-                border: '1px solid rgba(124,58,237,0.3)',
-                textAlign: 'center',
-              }}
-            >
-              <p style={{ fontSize: 10, color: '#A78BFA', margin: '0 0 2px' }}>Umumiy</p>
-              <p style={{ fontSize: 24, fontWeight: 800, color: '#fff', margin: 0 }}>{total}</p>
-            </div>
-          </aside>
 
-          {/* Participants panel */}
-          <aside
-            className="hidden sm:block"
-            style={{
-              width: 130,
-              background: 'rgba(0,0,0,0.3)',
-              borderRight: '1px solid rgba(255,255,255,0.07)',
-              padding: '14px 10px',
-              flexShrink: 0,
-              overflowY: 'auto',
-            }}
-          >
-            <p
-              style={{
-                fontSize: 9,
-                fontWeight: 600,
-                color: '#64748B',
-                textTransform: 'uppercase',
-                letterSpacing: '0.08em',
-                margin: '0 0 10px',
-                textAlign: 'center',
-              }}
-            >
-              Qatnashchilar
-            </p>
-            {participants.map(p => {
-              const colors: Record<string, string> = {
-                SUDYA: '#A78BFA',
-                PROKUROR: '#F87171',
-                ADVOKAT: '#60A5FA',
-                SUDLANUVCHI: '#FBBF24',
-                KOTIBA: '#34D399',
-                "DA'VOGAR": '#818CF8',
-                JAVOBGAR: '#FB923C',
-              }
+            {/* Cases Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredCases.map(sc => {
+                const isSelected = selectedScenario?.id === sc.id
+                return (
+                  <div
+                    key={sc.id}
+                    onClick={() => setSelectedScenario(sc)}
+                    className={`p-5 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between ${
+                      isSelected
+                        ? 'border-blue-500 bg-blue-950/20 shadow-lg shadow-blue-500/10'
+                        : 'border-slate-800/80 bg-slate-900/40 hover:border-slate-700 hover:bg-slate-900/80'
+                    }`}
+                  >
+                    <div>
+                      <div className="flex items-center justify-between gap-2 mb-2">
+                        <span className="text-[11px] px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 uppercase font-semibold">
+                          {sc.category}
+                        </span>
+                        <span
+                          className={`text-[11px] px-2 py-0.5 rounded-md font-semibold ${
+                            sc.difficulty === 'easy'
+                              ? 'bg-emerald-950/60 text-emerald-400 border border-emerald-800/60'
+                              : sc.difficulty === 'medium'
+                                ? 'bg-amber-950/60 text-amber-400 border border-amber-800/60'
+                                : 'bg-rose-950/60 text-rose-400 border border-rose-800/60'
+                          }`}
+                        >
+                          {sc.difficulty === 'easy'
+                            ? "Boshlang'ich"
+                            : sc.difficulty === 'medium'
+                              ? "O'rta"
+                              : 'Murakkab'}
+                        </span>
+                      </div>
+                      <h3 className="text-base font-bold text-white line-clamp-1">{sc.title}</h3>
+                      <p className="text-xs text-slate-400 mt-2 line-clamp-3 leading-relaxed">
+                        {sc.description || sc.facts}
+                      </p>
+                    </div>
+
+                    <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
+                      <span>👥 {sc.participants?.length || 4} ishtirokchi</span>
+                      <span>📂 {sc.evidence?.length || 2} ta dalil</span>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+
+            {filteredCases.length === 0 && (
+              <div className="text-center py-12 text-slate-500 bg-slate-900/30 rounded-2xl border border-slate-800/60">
+                <Scale className="mx-auto mb-2 opacity-50" size={32} />
+                <p className="text-sm">Ushbu filtr bo‘yicha sud ishlari topilmadi.</p>
+              </div>
+            )}
+          </section>
+
+          {/* START BUTTON BANNER */}
+          {selectedScenario && (
+            <div className="p-6 rounded-3xl bg-gradient-to-r from-blue-900/50 via-slate-900 to-indigo-950/50 border border-blue-500/30 flex flex-col md:flex-row items-center justify-between gap-4 shadow-xl">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <Sparkles size={16} className="text-blue-400" />
+                  <span className="text-xs font-semibold text-blue-400 uppercase tracking-wider">
+                    Simulyatsiya Boshlashga Tayyor
+                  </span>
+                </div>
+                <h3 className="text-lg font-bold text-white">
+                  {selectedScenario.title} • <span className="text-blue-400">{selectedRole}</span>{' '}
+                  sifatida
+                </h3>
+                <p className="text-xs text-slate-300 mt-1">
+                  AI qatnashchilari to‘liq protsessual qonunlar asosida ish yuritadi.
+                </p>
+              </div>
+
+              <button
+                onClick={() => handleStartSession()}
+                disabled={loading}
+                className="w-full md:w-auto px-8 py-3.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-sm shadow-lg shadow-blue-500/25 transition-all flex items-center justify-center gap-2"
+              >
+                {loading ? (
+                  <>
+                    <RefreshCw size={18} className="animate-spin" /> {loadingText}
+                  </>
+                ) : (
+                  <>
+                    <Play size={18} /> Sud Majlisini Boshlash
+                  </>
+                )}
+              </button>
+            </div>
+          )}
+        </main>
+
+        {/* HISTORY MODAL */}
+        {showHistoryModal && (
+          <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="bg-slate-900 border border-slate-800 w-full max-w-2xl rounded-2xl shadow-2xl flex flex-col max-h-[85vh]">
+              <div className="p-5 border-b border-slate-800 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <History className="text-blue-400" size={20} />
+                  <h3 className="text-base font-bold text-white">O‘tgan Sud Sessiyalari Tarixi</h3>
+                </div>
+                <button
+                  onClick={() => setShowHistoryModal(false)}
+                  className="text-slate-400 hover:text-white"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+              <div className="p-5 overflow-y-auto space-y-3 flex-1">
+                {loadingHistory ? (
+                  <div className="text-center py-8 text-slate-400">
+                    <RefreshCw size={24} className="animate-spin mx-auto mb-2" />
+                    Yuklanmoqda...
+                  </div>
+                ) : historyList.length === 0 ? (
+                  <div className="text-center py-8 text-slate-500">
+                    Hali yakunlangan simulyatsiyalar yo‘q.
+                  </div>
+                ) : (
+                  historyList.map(h => (
+                    <div
+                      key={h.id}
+                      className="p-4 rounded-xl bg-slate-950/60 border border-slate-800 flex items-center justify-between"
+                    >
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-xs font-semibold px-2 py-0.5 rounded bg-blue-900/60 text-blue-300">
+                            {h.user_role}
+                          </span>
+                          <span className="text-xs text-slate-400">
+                            {new Date(h.created_at).toLocaleDateString('uz-UZ')}
+                          </span>
+                        </div>
+                        <h4 className="text-sm font-bold text-white">{h.title}</h4>
+                        <p className="text-xs text-slate-400 mt-0.5">
+                          Holat: {h.outcome || h.status}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-base font-bold text-emerald-400">
+                          {h.score || 0} ball
+                        </div>
+                        <span className="text-[10px] text-slate-500">
+                          {h.status === 'completed' ? 'Yakunlangan' : 'Jarayonda'}
+                        </span>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  // ═════════════════════════════════════════════════════════════════════════
+  // RENDER: SESSION IMMERSIVE COURTROOM SCREEN
+  // ═════════════════════════════════════════════════════════════════════════
+  if (viewState === 'session' && sessionState && selectedScenario) {
+    return (
+      <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col overflow-hidden relative selection:bg-blue-600 selection:text-white">
+        <LimitExceededModal {...modalProps} onUpgrade={() => router.push('/pricing')} />
+
+        {/* IMMERSIVE COURTROOM POV BACKGROUND */}
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat pointer-events-none transition-all duration-700 opacity-25"
+          style={{ backgroundImage: `url('${courtroomBackground}')` }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/80 to-slate-950/90 pointer-events-none" />
+
+        {/* ── TOP BAR: HUD & STAGE STEPPER ── */}
+        <header className="relative z-20 border-b border-slate-800/80 bg-slate-900/80 backdrop-blur-md px-4 lg:px-6 py-2.5 flex flex-col gap-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setViewState('select')}
+                className="text-xs text-slate-400 hover:text-white px-2 py-1 rounded bg-slate-800/60 transition"
+              >
+                ← Chiqish
+              </button>
+              <div>
+                <h2 className="text-sm font-bold text-white line-clamp-1">
+                  {selectedScenario.title}
+                </h2>
+                <div className="flex items-center gap-2 text-[11px] text-slate-400">
+                  <span className="text-blue-400 font-semibold">{selectedRole} sifatida</span>
+                  <span>•</span>
+                  <span>{selectedScenario.category}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Timer & Finish Button */}
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-800/80 border border-slate-700/60 text-xs font-mono text-amber-400">
+                <Clock size={14} />
+                <span>{formatTime(timeRemaining)}</span>
+              </div>
+              <button
+                onClick={handleFinishSession}
+                className="px-3 py-1 rounded-lg bg-rose-600/20 text-rose-300 border border-rose-500/30 hover:bg-rose-600/30 text-xs font-medium transition"
+              >
+                Sudni Yakunlash
+              </button>
+            </div>
+          </div>
+
+          {/* STAGE STEPPER PROGRESS */}
+          <div className="overflow-x-auto pb-1 flex items-center gap-1.5 scrollbar-none">
+            {selectedScenario.stages.map((st, idx) => {
+              const isCurrent = st.id === sessionState.current_stage
+              const isPast = st.order < (currentStageObj?.order || 1)
               return (
                 <div
-                  key={p.role}
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: 2,
-                    padding: '8px 4px',
-                    marginBottom: 4,
-                    borderRadius: 10,
-                    background: p.isUser
-                      ? 'rgba(37,99,235,0.25)'
-                      : p.active
-                        ? 'rgba(255,255,255,0.08)'
-                        : 'transparent',
-                    border: p.isUser
-                      ? '1px solid rgba(37,99,235,0.5)'
-                      : p.active
-                        ? '1px solid rgba(255,255,255,0.15)'
-                        : '1px solid transparent',
-                  }}
+                  key={st.id}
+                  className={`flex-shrink-0 px-2.5 py-1 rounded-md text-[11px] font-medium transition-all flex items-center gap-1.5 ${
+                    isCurrent
+                      ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20 font-bold'
+                      : isPast
+                        ? 'bg-slate-800 text-slate-400 line-through opacity-70'
+                        : 'bg-slate-900/60 text-slate-500'
+                  }`}
                 >
-                  <span style={{ fontSize: 18 }}>{p.icon}</span>
-                  <span
-                    style={{
-                      fontSize: 9,
-                      fontWeight: p.isUser ? 700 : 500,
-                      color: p.active
-                        ? colors[p.role] || '#CBD5E1'
-                        : p.isUser
-                          ? '#93C5FD'
-                          : '#64748B',
-                      textAlign: 'center',
-                    }}
-                  >
-                    {p.title}
-                  </span>
-                  {p.isUser && (
-                    <span
-                      style={{
-                        fontSize: 7,
-                        background: '#2563EB',
-                        color: '#fff',
-                        padding: '1px 6px',
-                        borderRadius: 8,
-                      }}
-                    >
-                      Siz
-                    </span>
-                  )}
+                  <span>{idx + 1}.</span>
+                  <span>{st.title}</span>
                 </div>
               )
             })}
-          </aside>
+          </div>
+        </header>
 
-          {/* Chat area */}
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-            <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px' }}>
-              <div
-                style={{
-                  maxWidth: 760,
-                  margin: '0 auto',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 10,
-                }}
-              >
-                {msgs.map(m => {
-                  const isUser = m.role === 'user'
-                  const bg: Record<string, string> = {
-                    ruling: 'rgba(124,58,237,0.12)',
-                    objection: 'rgba(239,68,68,0.12)',
-                    evidence: 'rgba(168,85,247,0.12)',
-                    question: 'rgba(59,130,246,0.12)',
-                    statement: 'rgba(255,255,255,0.05)',
-                  }
-                  const bd: Record<string, string> = {
-                    ruling: 'rgba(124,58,237,0.35)',
-                    objection: 'rgba(239,68,68,0.35)',
-                    evidence: 'rgba(168,85,247,0.35)',
-                    question: 'rgba(59,130,246,0.35)',
-                    statement: 'rgba(255,255,255,0.1)',
-                  }
+        {/* ERROR / FEEDBACK BANNER */}
+        {errorBanner && (
+          <div className="relative z-20 px-4 py-2 bg-amber-950/80 border-b border-amber-800/80 text-amber-200 text-xs flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <AlertTriangle size={15} className="text-amber-400" />
+              <span>{errorBanner}</span>
+            </div>
+            <button
+              onClick={() => setErrorBanner(null)}
+              className="text-amber-400 hover:text-white"
+            >
+              <X size={14} />
+            </button>
+          </div>
+        )}
+
+        {/* ── MOBILE TABS SWITCHER (MOBILE ONLY) ── */}
+        <div className="md:hidden relative z-20 flex border-b border-slate-800 bg-slate-900/90 text-xs">
+          <button
+            onClick={() => setMobileTab('court')}
+            className={`flex-1 py-2 font-medium text-center border-b-2 ${
+              mobileTab === 'court'
+                ? 'border-blue-500 text-blue-400'
+                : 'border-transparent text-slate-400'
+            }`}
+          >
+            🏛️ Sud Zali
+          </button>
+          <button
+            onClick={() => setMobileTab('participants')}
+            className={`flex-1 py-2 font-medium text-center border-b-2 ${
+              mobileTab === 'participants'
+                ? 'border-blue-500 text-blue-400'
+                : 'border-transparent text-slate-400'
+            }`}
+          >
+            👥 Ishtirokchilar
+          </button>
+          <button
+            onClick={() => setMobileTab('evidence')}
+            className={`flex-1 py-2 font-medium text-center border-b-2 ${
+              mobileTab === 'evidence'
+                ? 'border-blue-500 text-blue-400'
+                : 'border-transparent text-slate-400'
+            }`}
+          >
+            📂 Dalillar ({sessionState.evidence_state.length})
+          </button>
+        </div>
+
+        {/* ── 3-COLUMN MAIN LAYOUT ── */}
+        <div className="flex-1 relative z-10 flex overflow-hidden">
+          {/* LEFT PANEL: PARTICIPANTS (DESKTOP) */}
+          <aside
+            className={`w-72 border-r border-slate-800/80 bg-slate-950/80 backdrop-blur-sm p-4 overflow-y-auto flex-col justify-between ${
+              mobileTab === 'participants'
+                ? 'flex w-full absolute inset-0 z-30 bg-slate-950'
+                : 'hidden md:flex'
+            }`}
+          >
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <Users size={14} className="text-blue-400" /> Ishtirokchilar
+                </h3>
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">
+                  {sessionState.participant_state.length} kishi
+                </span>
+              </div>
+
+              <div className="space-y-2">
+                {sessionState.participant_state.map(p => {
+                  const isSpeaking = activeSpeaker === p.name || activeSpeaker === p.title
                   return (
                     <div
-                      key={m.id}
-                      style={{
-                        display: 'flex',
-                        justifyContent: isUser ? 'flex-end' : 'flex-start',
-                      }}
+                      key={p.id}
+                      className={`p-3 rounded-xl border transition-all ${
+                        p.isUser
+                          ? 'bg-blue-950/30 border-blue-500/40 shadow-sm'
+                          : isSpeaking
+                            ? 'bg-amber-950/30 border-amber-500/50 animate-pulse'
+                            : 'bg-slate-900/40 border-slate-800/60'
+                      }`}
                     >
-                      <div
-                        style={{
-                          maxWidth: '78%',
-                          padding: '11px 15px',
-                          borderRadius: isUser ? '14px 14px 3px 14px' : '3px 14px 14px 14px',
-                          background: isUser ? 'rgba(37,99,235,0.4)' : bg[m.type] || bg.statement,
-                          border: `1px solid ${isUser ? 'rgba(37,99,235,0.5)' : bd[m.type] || bd.statement}`,
-                        }}
-                      >
-                        <p
-                          style={{
-                            fontSize: 11,
-                            color: '#94A3B8',
-                            margin: '0 0 4px',
-                            fontWeight: 600,
-                          }}
-                        >
-                          {m.speaker}
-                        </p>
-                        <p
-                          style={{
-                            fontSize: 14,
-                            lineHeight: 1.6,
-                            margin: 0,
-                            whiteSpace: 'pre-wrap',
-                          }}
-                        >
-                          {m.text}
-                        </p>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                          <span>{p.avatarIcon || '👤'}</span> {p.name}
+                        </span>
+                        {p.isUser ? (
+                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-600 text-white">
+                            SIZ
+                          </span>
+                        ) : (
+                          <span className="text-[9px] font-medium px-1.5 py-0.5 rounded bg-slate-800 text-slate-400">
+                            AI
+                          </span>
+                        )}
                       </div>
+                      <div className="text-[11px] text-slate-400">{p.title}</div>
+                      {isSpeaking && (
+                        <div className="text-[10px] text-amber-400 mt-1 flex items-center gap-1 font-medium">
+                          <Volume2 size={12} className="animate-bounce" /> Gapirmoqda...
+                        </div>
+                      )}
                     </div>
                   )
                 })}
-                {loading && (
-                  <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-                    <div
-                      style={{
-                        padding: '12px 16px',
-                        background: 'rgba(124,58,237,0.12)',
-                        border: '1px solid rgba(124,58,237,0.3)',
-                        borderRadius: '3px 14px 14px 14px',
-                        display: 'flex',
-                        gap: 5,
-                      }}
-                    >
-                      {[0, 150, 300].map(d => (
-                        <div
-                          key={d}
-                          style={{
-                            width: 8,
-                            height: 8,
-                            background: '#A78BFA',
-                            borderRadius: '50%',
-                            animation: `bob 1s ${d}ms infinite`,
-                          }}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                )}
-                <div ref={bottomRef} />
               </div>
             </div>
 
-            {/* Input */}
-            <div
-              style={{
-                borderTop: '1px solid rgba(255,255,255,0.08)',
-                background: 'rgba(0,0,0,0.4)',
-                padding: '14px 24px',
-              }}
-            >
-              <div style={{ maxWidth: 760, margin: '0 auto' }}>
-                <div style={{ display: 'flex', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
-                  {[
-                    {
-                      icon: <AlertTriangle size={12} />,
-                      label: "E'tiroz",
-                      txt: "E'tiroz bildiraman! Bu dalil qonunga zid.",
-                      type: 'objection' as const,
-                    },
-                    {
-                      icon: <FileText size={12} />,
-                      label: 'Dalil',
-                      txt: 'Hujjatli dalil taqdim etaman.',
-                      type: 'evidence' as const,
-                    },
-                    {
-                      icon: <MessageCircle size={12} />,
-                      label: 'Savol',
-                      txt: 'Aniq savol: voqeani tushuntirib bering.',
-                      type: 'question' as const,
-                    },
-                  ].map((a, i) => (
-                    <button
-                      key={i}
-                      onClick={() => submit(a.txt, a.type)}
-                      disabled={loading}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 5,
-                        padding: '6px 13px',
-                        background: 'rgba(255,255,255,0.07)',
-                        border: '1px solid rgba(255,255,255,0.13)',
-                        borderRadius: 20,
-                        color: '#CBD5E1',
-                        fontSize: 12,
-                        cursor: loading ? 'not-allowed' : 'pointer',
-                      }}
+            {/* User Info Box */}
+            <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 text-xs text-slate-400 mt-4">
+              <div className="text-[11px] font-semibold text-slate-300 mb-1">Tartib Qoidasi:</div>
+              <p className="text-[10px] leading-relaxed">
+                Sudda so‘z berilganda yoki protsessual navbatingiz kelganda harakat qiling. Noo‘rin
+                e’tirozlar ballingizni kamaytiradi.
+              </p>
+            </div>
+          </aside>
+
+          {/* CENTER PANEL: COURTROOM STREAM & CONVERSATION */}
+          <main
+            className={`flex-1 flex flex-col justify-between overflow-hidden ${
+              mobileTab === 'court' ? 'flex' : 'hidden md:flex'
+            }`}
+          >
+            {/* CURRENT STAGE INFO HEADER */}
+            {currentStageObj && (
+              <div className="p-3 bg-slate-900/60 border-b border-slate-800/80 flex items-center justify-between gap-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-blue-500 animate-ping" />
+                  <span className="text-xs font-bold text-blue-400">
+                    Hozirgi Bosqich: {currentStageObj.title}
+                  </span>
+                  <span className="text-[11px] text-slate-400 hidden lg:inline">
+                    ({currentStageObj.legalName})
+                  </span>
+                </div>
+
+                <button
+                  onClick={handleNextStage}
+                  disabled={loading}
+                  className="px-3 py-1 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium transition flex items-center gap-1 shadow-sm"
+                >
+                  <span>Keyingi Bosqich</span>
+                  <ArrowRight size={13} />
+                </button>
+              </div>
+            )}
+
+            {/* MESSAGES FEED */}
+            <div className="flex-1 p-4 overflow-y-auto space-y-4">
+              {messages.map(m => {
+                const isUser = m.role === selectedRole
+                return (
+                  <div
+                    key={m.id}
+                    className={`flex flex-col ${isUser ? 'items-end' : 'items-start'} max-w-2xl ${
+                      isUser ? 'ml-auto' : 'mr-auto'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 mb-1 px-1 text-[11px] text-slate-400">
+                      <span className="font-semibold text-slate-300">{m.speaker}</span>
+                      <span>•</span>
+                      <span>{m.time}</span>
+                    </div>
+                    <div
+                      className={`p-4 rounded-2xl text-sm leading-relaxed ${
+                        isUser
+                          ? 'bg-blue-600 text-white rounded-tr-none shadow-md shadow-blue-600/20'
+                          : 'bg-slate-900/90 border border-slate-800/80 text-slate-200 rounded-tl-none backdrop-blur-md shadow-lg'
+                      }`}
                     >
-                      {a.icon} {a.label}
+                      {m.text}
+                    </div>
+                  </div>
+                )
+              })}
+
+              {loading && (
+                <div className="flex items-center gap-2 text-xs text-blue-400 bg-slate-900/80 px-4 py-2.5 rounded-full w-fit border border-slate-800">
+                  <RefreshCw size={14} className="animate-spin" />
+                  <span>{loadingText}</span>
+                </div>
+              )}
+              <div ref={chatScrollRef} />
+            </div>
+
+            {/* ── BOTTOM USER ACTION & INPUT BAR ── */}
+            <div className="p-4 border-t border-slate-800/80 bg-slate-900/90 backdrop-blur-md space-y-3">
+              {/* STAGE CONTEXTUAL ACTION BUTTONS */}
+              {currentStageObj && (
+                <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+                  <span className="text-[11px] font-semibold text-slate-400 flex-shrink-0">
+                    Harakatlar:
+                  </span>
+                  {currentStageObj.availableActions.map(act => (
+                    <button
+                      key={act.id}
+                      disabled={loading}
+                      onClick={() => {
+                        if (act.actionType === 'present_evidence') {
+                          setShowEvidenceModal(true)
+                        } else {
+                          handleSendUserAction(act.description, act.actionType)
+                        }
+                      }}
+                      className="flex-shrink-0 px-2.5 py-1 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition"
+                    >
+                      {act.label}
                     </button>
                   ))}
-                </div>
-
-                {listening && (
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 8,
-                      padding: '7px 14px',
-                      background: 'rgba(239,68,68,0.15)',
-                      border: '1px solid rgba(239,68,68,0.4)',
-                      borderRadius: 10,
-                      marginBottom: 10,
-                    }}
-                  >
-                    {/* Voice visualization bars — real VU meter via audioLevel */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 2, height: 24 }}>
-                      {Array.from({ length: 7 }).map((_, i) => {
-                        // Har bir bar uchun individual balandlik — audioLevel asosida
-                        const center = (audioLevel / 100) * 20
-                        const spread = (audioLevel / 100) * 8
-                        const barH = Math.max(
-                          3,
-                          Math.min(
-                            22,
-                            center + spread * Math.sin((i * Math.PI) / 3 + Date.now() / 300)
-                          )
-                        )
-                        const opacity = Math.max(0.3, audioLevel / 100 + 0.2)
-                        return (
-                          <div
-                            key={i}
-                            style={{
-                              width: 4,
-                              height: barH,
-                              background:
-                                audioLevel > 60
-                                  ? '#EF4444'
-                                  : audioLevel > 30
-                                    ? '#FBBF24'
-                                    : '#60A5FA',
-                              borderRadius: 3,
-                              opacity,
-                              transition: 'height 0.08s ease, opacity 0.15s ease',
-                              boxShadow: `0 0 ${audioLevel > 50 ? '4px' : '1px'} ${audioLevel > 60 ? 'rgba(239,68,68,0.5)' : 'rgba(96,165,250,0.3)'}`,
-                            }}
-                          />
-                        )
-                      })}
-                    </div>
-                    <span style={{ fontSize: 13, color: '#FCA5A5' }}>Tinglanmoqda... gapiring</span>
+                  {selectedRole !== 'SUDYA' && (
                     <button
-                      onClick={stopMic}
-                      style={{
-                        marginLeft: 'auto',
-                        padding: '2px 10px',
-                        background: '#EF4444',
-                        color: '#fff',
-                        border: 'none',
-                        borderRadius: 6,
-                        fontSize: 11,
-                        cursor: 'pointer',
-                      }}
-                    >
-                      To'xtat
-                    </button>
-                  </div>
-                )}
-
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <textarea
-                    ref={inputRef}
-                    value={input}
-                    onChange={e => setInput(e.target.value)}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault()
-                        submit()
+                      disabled={loading}
+                      onClick={() =>
+                        handleSendUserAction(
+                          "Hurmatli sud raisi, qarshi tarafning argumentiga protsessual qonunchilikka binoan e'tiroz bildiraman!",
+                          'object'
+                        )
                       }
-                    }}
-                    disabled={loading}
-                    rows={2}
-                    placeholder={`${role.title} sifatida nutq yoki argument kiriting...`}
-                    style={{
-                      flex: 1,
-                      padding: '11px 15px',
-                      background: 'rgba(255,255,255,0.06)',
-                      border: '1px solid rgba(255,255,255,0.13)',
-                      borderRadius: 12,
-                      color: '#F1F5F9',
-                      fontSize: 14,
-                      resize: 'none',
-                      outline: 'none',
-                      fontFamily: 'inherit',
-                    }}
-                  />
-                  {speechReady && (
-                    <button
-                      onClick={listening ? stopMic : startMic}
-                      style={{
-                        padding: '0 15px',
-                        borderRadius: 12,
-                        border: 'none',
-                        cursor: 'pointer',
-                        background: listening ? '#EF4444' : 'rgba(255,255,255,0.1)',
-                        color: '#fff',
-                      }}
-                      title={listening ? "To'xtatish" : 'Ovozli kiritish'}
+                      className="flex-shrink-0 px-2.5 py-1 text-xs rounded-lg bg-rose-950/60 hover:bg-rose-900/60 text-rose-300 border border-rose-800/60 transition"
                     >
-                      <Mic size={17} />
+                      ⚠️ E'tiroz bildirish
                     </button>
                   )}
+                </div>
+              )}
+
+              {/* INPUT FIELD WITH VOICE & SEND */}
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={inputMessage}
+                  onChange={e => setInputMessage(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault()
+                      handleSendUserAction()
+                    }
+                  }}
+                  placeholder={`${selectedRole} sifatida so‘zlang yoki yozing...`}
+                  disabled={loading}
+                  className="flex-1 px-4 py-2.5 rounded-xl bg-slate-950/80 border border-slate-800 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-blue-500 transition"
+                />
+
+                {sttSupported && (
                   <button
-                    onClick={() => submit()}
-                    disabled={loading || !input.trim()}
-                    style={{
-                      padding: '0 18px',
-                      borderRadius: 12,
-                      border: 'none',
-                      cursor: loading || !input.trim() ? 'not-allowed' : 'pointer',
-                      background: loading || !input.trim() ? 'rgba(37,99,235,0.3)' : '#2563EB',
-                      color: '#fff',
-                      display: 'flex',
-                      alignItems: 'center',
-                    }}
+                    onClick={toggleSpeech}
+                    disabled={loading}
+                    className={`p-2.5 rounded-xl border transition ${
+                      isListening
+                        ? 'bg-rose-600 text-white border-rose-500 animate-pulse'
+                        : 'bg-slate-800 text-slate-300 border-slate-700 hover:text-white'
+                    }`}
+                    title="Ovozli kiritish"
                   >
-                    {loading ? (
-                      <div
-                        style={{
-                          width: 17,
-                          height: 17,
-                          border: '2px solid rgba(255,255,255,0.3)',
-                          borderTop: '2px solid #fff',
-                          borderRadius: '50%',
-                          animation: 'spin 0.8s linear infinite',
-                        }}
-                      />
-                    ) : (
-                      <Send size={17} />
-                    )}
+                    {isListening ? <MicOff size={18} /> : <Mic size={18} />}
                   </button>
+                )}
+
+                <button
+                  onClick={() => handleSendUserAction()}
+                  disabled={loading || !inputMessage.trim()}
+                  className="p-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white transition shadow-md shadow-blue-500/20"
+                >
+                  <Send size={18} />
+                </button>
+              </div>
+            </div>
+          </main>
+
+          {/* RIGHT PANEL: EVIDENCE LOCKER & LEGAL BASIS (DESKTOP) */}
+          <aside
+            className={`w-80 border-l border-slate-800/80 bg-slate-950/80 backdrop-blur-sm p-4 overflow-y-auto flex-col ${
+              mobileTab === 'evidence'
+                ? 'flex w-full absolute inset-0 z-30 bg-slate-950'
+                : 'hidden lg:flex'
+            }`}
+          >
+            <div className="space-y-6">
+              {/* EVIDENCE SECTION */}
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <FolderOpen size={14} className="text-amber-400" /> Dalillar Ro‘yxati
+                  </h3>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400">
+                    {sessionState.evidence_state.length} ta
+                  </span>
+                </div>
+
+                <div className="space-y-2.5">
+                  {sessionState.evidence_state.map(ev => (
+                    <div
+                      key={ev.id}
+                      onClick={() => setSelectedEvidenceForView(ev)}
+                      className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 hover:border-slate-700 cursor-pointer transition"
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs font-bold text-white line-clamp-1">
+                          {ev.title}
+                        </span>
+                        <span
+                          className={`text-[9px] px-1.5 py-0.5 rounded font-medium ${
+                            ev.status === 'admitted'
+                              ? 'bg-emerald-950 text-emerald-400 border border-emerald-800/60'
+                              : ev.status === 'submitted'
+                                ? 'bg-amber-950 text-amber-400 border border-amber-800/60'
+                                : ev.status === 'rejected'
+                                  ? 'bg-rose-950 text-rose-400 border border-rose-800/60'
+                                  : 'bg-slate-800 text-slate-400'
+                          }`}
+                        >
+                          {ev.status === 'admitted'
+                            ? 'Qabul qilingan'
+                            : ev.status === 'submitted'
+                              ? 'Taqdim etilgan'
+                              : ev.status === 'rejected'
+                                ? 'Rad etilgan'
+                                : 'Mavjud'}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-400 line-clamp-2">{ev.description}</p>
+
+                      {/* If user is judge and evidence is submitted, show ruling buttons */}
+                      {selectedRole === 'SUDYA' && ev.status === 'submitted' && (
+                        <div
+                          className="flex items-center gap-1.5 mt-2 pt-2 border-t border-slate-800"
+                          onClick={e => e.stopPropagation()}
+                        >
+                          <button
+                            onClick={() => handleJudgeEvidenceDecision(ev.id, 'admit')}
+                            className="flex-1 py-1 rounded bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-300 text-[10px] font-semibold"
+                          >
+                            ✓ Ishga qo‘shish
+                          </button>
+                          <button
+                            onClick={() => handleJudgeEvidenceDecision(ev.id, 'reject')}
+                            className="flex-1 py-1 rounded bg-rose-600/30 hover:bg-rose-600/50 text-rose-300 text-[10px] font-semibold"
+                          >
+                            ✕ Rad etish
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* LEGAL BASIS & FACTS */}
+              <div>
+                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 mb-3">
+                  <BookOpen size={14} className="text-blue-400" /> Qonuniy Asoslar (LexUZ)
+                </h3>
+                <div className="space-y-2">
+                  {selectedScenario.legal_basis.map((l, i) => (
+                    <div
+                      key={i}
+                      className="p-2.5 rounded-xl bg-slate-900/40 border border-slate-800 text-xs"
+                    >
+                      <div className="font-bold text-blue-400">
+                        {l.code} {l.article}
+                      </div>
+                      <div className="text-slate-300 text-[11px] mt-0.5">{l.title}</div>
+                      <div className="text-slate-500 text-[10px] mt-1">{l.relevance}</div>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
-          </div>
+          </aside>
         </div>
-        <style>{`
-        @keyframes bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
-        @keyframes spin { to{transform:rotate(360deg)} }
-        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
-      `}</style>
+
+        {/* EVIDENCE VIEW / PRESENT MODAL */}
+        {selectedEvidenceForView && (
+          <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl shadow-2xl p-5 space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                <div className="flex items-center gap-2">
+                  <FileText className="text-blue-400" size={18} />
+                  <h4 className="text-sm font-bold text-white">{selectedEvidenceForView.title}</h4>
+                </div>
+                <button
+                  onClick={() => setSelectedEvidenceForView(null)}
+                  className="text-slate-400 hover:text-white"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div className="space-y-2 text-xs">
+                <div>
+                  <span className="text-slate-400">Turi: </span>
+                  <span className="text-white font-medium capitalize">
+                    {selectedEvidenceForView.type}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-slate-400">Manbasi: </span>
+                  <span className="text-white font-medium">{selectedEvidenceForView.source}</span>
+                </div>
+                <div>
+                  <span className="text-slate-400">Tavsif: </span>
+                  <p className="text-slate-200 mt-1">{selectedEvidenceForView.description}</p>
+                </div>
+                <div className="p-3 bg-slate-950 rounded-xl border border-slate-800">
+                  <span className="text-slate-400 block mb-1">Mazmuni:</span>
+                  <p className="text-slate-200 leading-relaxed">
+                    {selectedEvidenceForView.content}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2 border-t border-slate-800">
+                <button
+                  onClick={() => setSelectedEvidenceForView(null)}
+                  className="px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 text-xs"
+                >
+                  Yopish
+                </button>
+                {selectedEvidenceForView.status === 'unsubmitted' && (
+                  <button
+                    onClick={() => {
+                      handleSendUserAction(
+                        `Sudga quyidagi dalilni taqdim etaman: "${selectedEvidenceForView.title}".`,
+                        'present_evidence',
+                        selectedEvidenceForView.id
+                      )
+                      setSelectedEvidenceForView(null)
+                    }}
+                    className="px-3 py-1.5 rounded-lg bg-blue-600 text-white text-xs font-semibold"
+                  >
+                    Sudga Taqdim Etish
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     )
+  }
 
-  // ════════════════════════════════════════════════════════
-  // VERDICT SCREEN — merged Virtual Court + Simulator styles
-  // ════════════════════════════════════════════════════════
-  if (!results) return null
-  return (
-    <div
-      style={{
-        minHeight: '100vh',
-        background: '#F8FAFF',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: 24,
-      }}
-    >
-      {' '}
-      <div
-        className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800"
-        style={{
-          borderRadius: 22,
-          boxShadow: '0 8px 40px rgba(0,0,0,0.1)',
-          maxWidth: 560,
-          width: '100%',
-          overflow: 'hidden',
-        }}
-      >
-        <div
-          style={{
-            background: `linear-gradient(135deg,${simType.color},#7C3AED)`,
-            padding: '32px 28px',
-            textAlign: 'center',
-          }}
-        >
-          <Award size={48} color="#fff" />
-          <h1 style={{ fontSize: 24, fontWeight: 800, color: '#fff', margin: '12px 0 4px' }}>
-            Simulyatsiya Yakunlandi
-          </h1>
-          <p style={{ fontSize: 13, color: '#BFDBFE', margin: 0 }}>
-            {role.title} · {caseItem.title}
-          </p>
-        </div>
-        <div style={{ padding: 28 }}>
-          {/* Score grid — 3 columns from Virtual Court + 3 from Simulator */}
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(3,1fr)',
-              gap: 10,
-              marginBottom: 16,
-            }}
-          >
-            {[
-              { l: 'Sud etikasi', v: results.etiquette, c: '#22C55E' },
-              { l: 'Argument', v: results.argument, c: '#3B82F6' },
-              { l: 'Dalillar', v: results.evidence, c: '#A855F7' },
-            ].map(b => (
-              <div
-                key={b.l}
-                style={{
-                  background: '#F8FAFF',
-                  borderRadius: 12,
-                  padding: 12,
-                  textAlign: 'center',
-                  border: '1px solid #E5E7EB',
-                }}
-              >
-                <p style={{ fontSize: 20, fontWeight: 800, color: b.c, margin: '0 0 2px' }}>
-                  {b.v}%
-                </p>
-                <p style={{ fontSize: 11, color: '#6B7280', margin: 0 }}>{b.l}</p>
-              </div>
-            ))}
-          </div>
-          {/* Simulator-style score grid */}
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(3,1fr)',
-              gap: 10,
-              marginBottom: 20,
-            }}
-          >
-            {[
-              { l: 'Yuridik aniqlik', v: results.legalAccuracy, c: '#2563EB' },
-              { l: 'Etika', v: results.ethics, c: '#059669' },
-              { l: 'Ishonch', v: results.confidence, c: '#7C3AED' },
-            ].map(b => (
-              <div
-                key={b.l}
-                style={{
-                  background: '#F9FAFB',
-                  borderRadius: 12,
-                  padding: 12,
-                  textAlign: 'center',
-                  border: '1px solid #E5E7EB',
-                }}
-              >
-                <TrendingUp size={16} color={b.c} style={{ margin: '0 auto 4px' }} />
-                <p style={{ fontSize: 18, fontWeight: 800, color: b.c, margin: 0 }}>
-                  {Math.round(b.v)}%
-                </p>
-                <p style={{ fontSize: 10, color: '#6B7280', margin: 0 }}>{b.l}</p>
-              </div>
-            ))}
-          </div>
-          {/* Total score + XP */}
-          <div
-            style={{
-              background: 'linear-gradient(135deg,#EFF6FF,#F5F3FF)',
-              borderRadius: 14,
-              padding: 18,
-              textAlign: 'center',
-              marginBottom: 16,
-            }}
-          >
-            <p style={{ fontSize: 13, color: '#6B7280', margin: '0 0 4px' }}>Umumiy ball</p>
-            <p style={{ fontSize: 42, fontWeight: 900, color: simType.color, margin: '0 0 8px' }}>
-              {results.totalScore}/100
-            </p>
-            <div style={{ background: '#E5E7EB', borderRadius: 4, height: 7 }}>
-              <div
-                style={{
-                  height: 7,
-                  width: `${results.totalScore}%`,
-                  background: `linear-gradient(90deg,${simType.color},#7C3AED)`,
-                  borderRadius: 4,
-                }}
-              />
+  // ═════════════════════════════════════════════════════════════════════════
+  // RENDER: VERDICT & DETAILED SCORING SCREEN
+  // ═════════════════════════════════════════════════════════════════════════
+  if (viewState === 'verdict' && scoringResults && selectedScenario) {
+    return (
+      <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 selection:bg-blue-600 selection:text-white">
+        <div className="max-w-3xl w-full bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl p-6 sm:p-8 space-y-6 relative overflow-hidden">
+          {/* Header */}
+          <div className="text-center space-y-2">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-500 shadow-xl shadow-blue-500/20 mb-2">
+              <Award className="w-8 h-8 text-white" />
             </div>
-            <p style={{ fontSize: 13, color: '#374151', margin: '8px 0 0', fontWeight: 600 }}>
-              {results.totalScore >= 80 ? (
-                <>
-                  <Star className="w-4 h-4 text-yellow-500 fill-yellow-500 inline mr-1" />
-                  A'lo! Professional darajasi.
-                </>
-              ) : results.totalScore >= 60 ? (
-                <>
-                  <CheckCircle className="w-4 h-4 text-green-500 inline mr-1" />
-                  Yaxshi. Davom eting.
-                </>
-              ) : (
-                <>
-                  <Target className="w-4 h-4 text-blue-500 inline mr-1" />
-                  Mashq qiling.
-                </>
-              )}
+            <h2 className="text-2xl font-bold text-white">Sud Simulyatsiyasi Yakunlandi</h2>
+            <p className="text-xs text-slate-400">
+              Ish: <span className="text-slate-200 font-semibold">{selectedScenario.title}</span> •
+              Rol: <span className="text-blue-400 font-semibold">{selectedRole}</span>
             </p>
-            <div style={{ marginTop: 12, display: 'flex', justifyContent: 'center', gap: 16 }}>
-              <div style={{ background: '#FEF3C7', borderRadius: 10, padding: '6px 16px' }}>
-                <span style={{ fontSize: 11, color: '#92400E' }}>XP qo'shildi: </span>
-                <span style={{ fontSize: 18, fontWeight: 800, color: '#F59E0B' }}>
-                  +{results.xpEarned}
-                </span>
+          </div>
+
+          {/* Big Total Score Card */}
+          <div className="p-6 rounded-2xl bg-gradient-to-br from-blue-950/40 via-slate-900 to-indigo-950/40 border border-blue-500/30 text-center space-y-2">
+            <div className="text-xs font-semibold uppercase tracking-wider text-blue-400">
+              Umumiy Natija
+            </div>
+            <div className="text-5xl font-black text-white font-mono tracking-tight">
+              {scoringResults.totalScore}{' '}
+              <span className="text-lg text-slate-400 font-normal">/ 100</span>
+            </div>
+            <p className="text-sm text-slate-300 max-w-xl mx-auto mt-2 leading-relaxed">
+              {scoringResults.feedbackSummary}
+            </p>
+            <div className="pt-3 flex items-center justify-center gap-2">
+              <span className="text-xs px-3 py-1 rounded-full bg-blue-600/30 border border-blue-500/40 text-blue-300 font-semibold">
+                +{scoringResults.xpEarned} XP qo‘shildi
+              </span>
+            </div>
+          </div>
+
+          {/* Detailed Metrics Breakdown */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 text-center">
+              <div className="text-[11px] text-slate-400 mb-1">Qonuniy Asoslar</div>
+              <div className="text-lg font-bold text-white font-mono">
+                {scoringResults.legalReasoning}%
               </div>
-              <div style={{ background: '#EDE9FE', borderRadius: 10, padding: '6px 16px' }}>
-                <span style={{ fontSize: 11, color: '#6D28D9' }}>Jami XP: </span>
-                <span style={{ fontSize: 18, fontWeight: 800, color: '#7C3AED' }}>{totalXp}</span>
+            </div>
+            <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 text-center">
+              <div className="text-[11px] text-slate-400 mb-1">Argumentatsiya</div>
+              <div className="text-lg font-bold text-white font-mono">
+                {scoringResults.argumentQuality}%
+              </div>
+            </div>
+            <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 text-center">
+              <div className="text-[11px] text-slate-400 mb-1">Dalillar bilan ishlash</div>
+              <div className="text-lg font-bold text-white font-mono">
+                {scoringResults.evidenceUsage}%
+              </div>
+            </div>
+            <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 text-center">
+              <div className="text-[11px] text-slate-400 mb-1">Protsessual Tartib</div>
+              <div className="text-lg font-bold text-white font-mono">
+                {scoringResults.proceduralCorrectness}%
               </div>
             </div>
           </div>
+
           {/* Achievements */}
-          {results.achievements.length > 0 && (
-            <div
-              style={{
-                background: '#FFFBEB',
-                borderRadius: 12,
-                padding: 14,
-                marginBottom: 20,
-                border: '1px solid #FDE68A',
-              }}
-            >
-              <p style={{ fontWeight: 700, fontSize: 13, color: '#92400E', margin: '0 0 8px' }}>
-                ⭐ Yutuqlar
-              </p>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                {results.achievements.map((a, i) => (
+          {scoringResults.achievements.length > 0 && (
+            <div>
+              <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
+                Qo‘lga Kiritilgan Unvonlar
+              </h4>
+              <div className="flex flex-wrap gap-2">
+                {scoringResults.achievements.map((ach, i) => (
                   <span
                     key={i}
-                    style={{
-                      padding: '4px 12px',
-                      background: '#FDE68A',
-                      color: '#92400E',
-                      borderRadius: 20,
-                      fontSize: 12,
-                      fontWeight: 600,
-                    }}
+                    className="text-xs px-3 py-1 rounded-lg bg-amber-950/60 border border-amber-700/60 text-amber-300 font-semibold flex items-center gap-1.5"
                   >
-                    {a}
+                    <Star size={12} className="text-amber-400" /> {ach}
                   </span>
                 ))}
               </div>
             </div>
           )}
-          {/* Actions */}
-          <div style={{ display: 'flex', gap: 10 }}>
+
+          {/* Strengths & Improvements */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+            <div className="p-4 rounded-xl bg-emerald-950/20 border border-emerald-800/40 space-y-1.5">
+              <div className="font-bold text-emerald-400 flex items-center gap-1.5">
+                <CheckCircle size={14} /> Kuchli Tomonlar
+              </div>
+              {scoringResults.strengths.map((s, idx) => (
+                <div key={idx} className="text-slate-300">
+                  • {s}
+                </div>
+              ))}
+            </div>
+            <div className="p-4 rounded-xl bg-amber-950/20 border border-amber-800/40 space-y-1.5">
+              <div className="font-bold text-amber-400 flex items-center gap-1.5">
+                <TrendingUp size={14} /> Rivojlantirish Kerak
+              </div>
+              {scoringResults.improvements.map((im, idx) => (
+                <div key={idx} className="text-slate-300">
+                  • {im}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Bottom Actions */}
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
             <button
-              onClick={() => {
-                // Export transcript as .txt
-                const header = `=== VIRTUAL SUD SIMULYATSIYASI ===\nIsh: ${caseItem.title}\nRol: ${role.title}\nSana: ${new Date().toLocaleDateString('uz-UZ')}\n\n`
-                const body = msgs
-                  .map(
-                    m =>
-                      `[${m.speaker.toUpperCase()}] (${new Date(m.timestamp).toLocaleTimeString('uz-UZ')}): ${m.text}`
-                  )
-                  .join('\n\n')
-                const footer = `\n\n=== XULOSA ===\nUmumiy ball: ${results?.totalScore}/100\nXP: +${results?.xpEarned}\n`
-                const blob = new Blob([header + body + footer], {
-                  type: 'text/plain;charset=utf-8',
-                })
-                const url = URL.createObjectURL(blob)
-                const a = document.createElement('a')
-                a.href = url
-                a.download = `virtual-sud-${Date.now()}.txt`
-                a.click()
-                URL.revokeObjectURL(url)
-              }}
-              style={{
-                padding: '12px 16px',
-                background: '#059669',
-                color: '#fff',
-                border: 'none',
-                borderRadius: 11,
-                fontSize: 13,
-                fontWeight: 600,
-                cursor: 'pointer',
-                minHeight: 48,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-              }}
+              onClick={() => setViewState('select')}
+              className="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold transition flex items-center gap-2"
             >
-              📥 Yuklab olish
+              <RotateCcw size={15} /> Boshqa Ishni Tanlash
             </button>
             <button
-              onClick={() => {
-                setPage('select')
-                setMsgs([])
-                setResults(null)
-              }}
-              style={{
-                flex: 1,
-                padding: 12,
-                background: simType.color,
-                color: '#fff',
-                border: 'none',
-                borderRadius: 11,
-                fontSize: 14,
-                fontWeight: 700,
-                cursor: 'pointer',
-                minHeight: 48,
-              }}
+              onClick={() => handleStartSession(selectedScenario)}
+              className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition flex items-center gap-2 shadow-lg shadow-blue-500/20"
             >
-              Yangi simulyatsiya
-            </button>
-            <button
-              onClick={() => router.push('/dashboard')}
-              style={{
-                flex: 1,
-                padding: 12,
-                background: '#F3F4F6',
-                color: '#374151',
-                borderRadius: 11,
-                fontSize: 14,
-                fontWeight: 700,
-                textDecoration: 'none',
-                textAlign: 'center',
-                border: 'none',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                minHeight: 48,
-              }}
-            >
-              Bosh sahifa
+              <Play size={15} /> Qayta O‘ynash
             </button>
           </div>
         </div>
       </div>
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}}@media(max-width:639px){.vc-grid-types,.vc-grid-roles,.vc-grid-cases{grid-template-columns:1fr!important}}`}</style>
-    </div>
-  )
+    )
+  }
+
+  return null
 }

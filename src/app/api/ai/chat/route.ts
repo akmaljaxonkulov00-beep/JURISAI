@@ -76,6 +76,7 @@ QAT'IY QOIDALAR:
             content: message,
           },
         ],
+        metadata: { type: 'JSON' },
         temperature: 0.1,
         max_tokens: 2048,
       }),

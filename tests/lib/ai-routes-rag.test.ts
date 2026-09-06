@@ -124,10 +124,42 @@ describe('AI route prompt sifati (model + o\'zbek tili + RAG)', () => {
   beforeEach(() => {
     fetchMock.mockReset()
     vi.stubGlobal('fetch', fetchMock)
-    fetchMock.mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => ({ choices: [{ message: { content: "O'zbek tilidagi test javob." } }], usage: {} }),
+    fetchMock.mockImplementation(async (url: any) => {
+      const urlStr = String(url)
+      if (urlStr.includes('supabase.co')) {
+        const body = JSON.stringify([{ id: 'sim-mock-1' }])
+        return {
+          ok: true,
+          status: 200,
+          text: async () => body,
+          json: async () => JSON.parse(body),
+          headers: new Headers({ 'content-range': '0-0/1' }),
+        }
+      }
+      const groqBody = JSON.stringify({
+        choices: [
+          {
+            message: {
+              content: JSON.stringify({
+                speakers: [
+                  {
+                    speaker: 'Sud raisi',
+                    role: 'SUDYA',
+                    message: "Sud majlisi ochiq deb e'lon qilinadi.",
+                  },
+                ],
+              }),
+            },
+          },
+        ],
+        usage: {},
+      })
+      return {
+        ok: true,
+        status: 200,
+        text: async () => groqBody,
+        json: async () => JSON.parse(groqBody),
+      }
     })
   })
 
@@ -143,7 +175,9 @@ describe('AI route prompt sifati (model + o\'zbek tili + RAG)', () => {
       body: JSON.stringify(body),
     })
     const res = await mod.POST(req)
-    const call = fetchMock.mock.calls.at(-1)
+    const call =
+      fetchMock.mock.calls.find((c: any) => String(c[0]).includes('groq.com')) ||
+      fetchMock.mock.calls.at(-1)
     expect(call, 'Groq API chaqirilishi kerak').toBeDefined()
     const [url, init] = call as [string, { body: string }]
     expect(url).toBe('https://api.groq.com/openai/v1/chat/completions')

@@ -37,6 +37,7 @@ const state = vi.hoisted(() => {
 
   const makeClient = () => {
     const chain = (table: string) => {
+      if (!rows[table]) rows[table] = []
       const q: any = {
         __table: table,
         __filters: [] as Array<{ k: string; v: any; ilike?: boolean }>,
