@@ -250,7 +250,7 @@ export default function ProfileOverviewTab({ onGoToPersonal }: ProfileOverviewTa
       </div>
 
       {/* Real Stats Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-white dark:bg-zinc-900 border border-gray-200/70 dark:border-zinc-800 rounded-2xl p-4 shadow-xs">
           <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400 mb-1">
             <Sparkles className="w-4 h-4" />
@@ -286,22 +286,6 @@ export default function ProfileOverviewTab({ onGoToPersonal }: ProfileOverviewTa
             {stats?.completedIracCases ?? (profile ? 0 : '—')}
           </p>
         </div>
-
-        <div className="bg-white dark:bg-zinc-900 border border-gray-200/70 dark:border-zinc-800 rounded-2xl p-4 shadow-xs">
-          <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 mb-1">
-            <GraduationCap className="w-4 h-4" />
-            <span className="text-xs font-medium uppercase text-gray-500 dark:text-zinc-400">
-              {t('profileCourses', 'Kurslar')}
-            </span>
-          </div>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">
-            {profile?.courseLevel
-              ? profile.courseLevel
-              : profile
-                ? t('profileStatusUnknown', "Ko'rsatilmagan")
-                : '—'}
-          </p>
-        </div>
       </div>
 
       {/* Account Info Details List */}
@@ -322,19 +306,11 @@ export default function ProfileOverviewTab({ onGoToPersonal }: ProfileOverviewTa
 
           <div className="p-3.5 bg-gray-50 dark:bg-zinc-800/50 rounded-xl border border-gray-100 dark:border-zinc-800">
             <span className="text-xs text-gray-400 dark:text-zinc-500 block mb-0.5">
-              {t('specialization', 'Mutaxassislik')}
+              {t('email', 'Elektron pochta')}
             </span>
-            <span className="font-medium text-gray-800 dark:text-zinc-200">
-              {profile?.specialization || t('profileStatusUnknown', "Ko'rsatilmagan")}
-            </span>
-          </div>
-
-          <div className="p-3.5 bg-gray-50 dark:bg-zinc-800/50 rounded-xl border border-gray-100 dark:border-zinc-800">
-            <span className="text-xs text-gray-400 dark:text-zinc-500 block mb-0.5">
-              {t('university', 'Universitet')}
-            </span>
-            <span className="font-medium text-gray-800 dark:text-zinc-200">
-              {profile?.university || t('profileStatusUnknown', "Ko'rsatilmagan")}
+            <span className="font-medium text-gray-800 dark:text-zinc-200 flex items-center gap-2">
+              <Mail className="w-4 h-4 text-gray-400" />
+              {profile?.email || user?.email || t('profileStatusUnknown', "Ko'rsatilmagan")}
             </span>
           </div>
 
@@ -345,6 +321,17 @@ export default function ProfileOverviewTab({ onGoToPersonal }: ProfileOverviewTa
             <span className="font-medium text-gray-800 dark:text-zinc-200">
               {profile?.birthDate
                 ? new Date(profile.birthDate).toLocaleDateString()
+                : t('profileStatusUnknown', "Ko'rsatilmagan")}
+            </span>
+          </div>
+
+          <div className="p-3.5 bg-gray-50 dark:bg-zinc-800/50 rounded-xl border border-gray-100 dark:border-zinc-800">
+            <span className="text-xs text-gray-400 dark:text-zinc-500 block mb-0.5">
+              {t('profileMemberSince', 'A’zo bo‘lgan sana')}
+            </span>
+            <span className="font-medium text-gray-800 dark:text-zinc-200">
+              {profile?.createdAt
+                ? new Date(profile.createdAt).toLocaleDateString()
                 : t('profileStatusUnknown', "Ko'rsatilmagan")}
             </span>
           </div>

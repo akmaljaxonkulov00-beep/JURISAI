@@ -32,7 +32,7 @@ export const ru = {
   navVirtualCourt: 'Виртуальный суд',
   navScenarioGen: 'Генератор сценариев',
   navLegalDatabase: 'База законов',
-  navTools: 'Инструменты / Pro',
+  navTools: 'Инструменты',
   navCommunity: 'Сообщество',
   navStatistics: 'Статистика',
   navSettings: 'Настройки',

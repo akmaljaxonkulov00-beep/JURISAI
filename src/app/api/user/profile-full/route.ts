@@ -8,9 +8,6 @@ export interface FullUserProfilePayload {
   middleName?: string
   phone?: string
   birthDate?: string
-  specialization?: string
-  university?: string
-  courseLevel?: string
 }
 
 export async function GET(request: NextRequest) {
@@ -51,9 +48,6 @@ export async function GET(request: NextRequest) {
         middleName: regUser?.middle_name || '',
         phone: regUser?.phone || '',
         birthDate: regUser?.birth_date || null,
-        specialization: regUser?.specialization || '',
-        university: regUser?.university || '',
-        courseLevel: regUser?.course_level || '',
         role: regUser?.role || 'USER',
         subscriptionPlan: regUser?.subscription_plan || 'free',
         subscriptionExpiresAt: regUser?.subscription_expires_at || null,
@@ -93,9 +87,6 @@ export async function PUT(request: NextRequest) {
     if (body.phone !== undefined) updatePayload.phone = body.phone.trim()
     if (body.middleName !== undefined) updatePayload.middle_name = middleName
     if (body.birthDate !== undefined) updatePayload.birth_date = body.birthDate || null
-    if (body.specialization !== undefined) updatePayload.specialization = body.specialization.trim()
-    if (body.university !== undefined) updatePayload.university = body.university.trim()
-    if (body.courseLevel !== undefined) updatePayload.course_level = body.courseLevel.trim()
 
     // 1. Update registered_users in Supabase
     const { data: updatedUser, error: regError } = await supabase
@@ -115,7 +106,6 @@ export async function PUT(request: NextRequest) {
         user_metadata: {
           name: fullName,
           phone: updatePayload.phone,
-          specialization: updatePayload.specialization,
         },
       })
     } catch (authMetaErr) {

@@ -375,3 +375,59 @@ export function calculateDeadlines(input: DeadlineInput): DeadlineResult {
     proceduralSteps,
   }
 }
+
+/**
+ * 6. Zararni qoplash kalkulyatori (FK 14-modda)
+ */
+export function calculateDamages(input: {
+  directDamage: number
+  lostProfits: number
+  expenses: number
+}) {
+  const direct = Math.max(0, input.directDamage || 0)
+  const lost = Math.max(0, input.lostProfits || 0)
+  const exp = Math.max(0, input.expenses || 0)
+  const total = direct + lost + exp
+
+  return {
+    directDamage: direct,
+    lostProfits: lost,
+    expenses: exp,
+    totalDamage: total,
+    legalBases: [
+      'O‘zbekiston Respublikasi FK 14-moddasi (Zararni to‘lash)',
+      'O‘zbekiston Respublikasi FK 324-moddasi (Qarzdorning zararni to‘lash majburiyati)',
+    ],
+    officialSources: [OFFICIAL_LEGAL_SOURCES.CIVIL_CODE],
+    calculationFormula: `${direct.toLocaleString()} + ${lost.toLocaleString()} + ${exp.toLocaleString()} = ${total.toLocaleString()} so‘m`,
+  }
+}
+
+/**
+ * 7. Ma'muriy jarimalar kalkulyatori (MJK)
+ */
+export function calculateFines(input: {
+  bhmMultiplierMin: number
+  bhmMultiplierMax?: number
+  hasDiscount?: boolean
+}) {
+  const bhm = CURRENT_BHM_VALUE
+  const minAmount = Math.round(bhm * input.bhmMultiplierMin)
+  const maxAmount = input.bhmMultiplierMax ? Math.round(bhm * input.bhmMultiplierMax) : minAmount
+
+  // 15 kun ichida 50% yoki 70% chegirma (MJK 332-1-modda: 15 kunda 50%, 30 kunda 70%)
+  const discountedAmount = input.hasDiscount ? Math.round(minAmount * 0.5) : minAmount
+
+  return {
+    bhmRate: bhm,
+    minAmount,
+    maxAmount,
+    discountedAmount,
+    hasDiscount: !!input.hasDiscount,
+    legalBases: [
+      'O‘zbekiston Respublikasi Ma’muriy javobgarlik to‘g‘risidagi kodeksi (MJK)',
+      'MJK 332-1-moddasi (Jarima solish to‘g‘risidagi qarorni ijro etishning soddalashtirilgan tartibi)',
+    ],
+    officialSources: [OFFICIAL_LEGAL_SOURCES.BHM_DECREE],
+  }
+}

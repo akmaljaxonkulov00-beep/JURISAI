@@ -32,7 +32,7 @@ export const en = {
   navVirtualCourt: 'Virtual Court',
   navScenarioGen: 'Scenario Generator',
   navLegalDatabase: 'Legal Database',
-  navTools: 'Tools & Pro Toolkit',
+  navTools: 'Tools',
   navCommunity: 'Community',
   navStatistics: 'Statistics',
   navSettings: 'Settings',

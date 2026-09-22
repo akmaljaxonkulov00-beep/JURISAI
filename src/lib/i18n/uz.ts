@@ -32,7 +32,7 @@ export const uz = {
   navVirtualCourt: 'Virtual Sud',
   navScenarioGen: 'Senariy Generator',
   navLegalDatabase: 'Qonunlar bazasi',
-  navTools: 'Asboblar / Pro vositalar',
+  navTools: 'Asboblar',
   navCommunity: 'Jamiyat',
   navStatistics: 'Statistika',
   navSettings: 'Sozlamalar',

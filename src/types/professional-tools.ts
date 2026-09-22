@@ -6,7 +6,7 @@
 export interface OfficialLegalSource {
   source_key: string
   source_name: string
-  source_type: 'law' | 'code' | 'plenum' | 'cbu_rate' | 'decree' | 'standard_form'
+  source_type: 'law' | 'code' | 'plenum' | 'cbu_rate' | 'decree' | 'standard_form' | 'regulation'
   official_domain: string
   url: string
   document_number: string
@@ -14,7 +14,7 @@ export interface OfficialLegalSource {
   effective_date?: string
   current_rate?: number
   currency?: string
-  verification_status: 'verified' | 'pending' | 'archived'
+  verification_status: 'verified' | 'pending' | 'archived' | 'deprecated'
   verified_at?: string
   description?: string
 }
@@ -111,15 +111,17 @@ export interface BhmResult {
   officialSources: OfficialLegalSource[]
 }
 
+export type DeadlineCategory =
+  | 'civil_general'
+  | 'labor_reinstatement'
+  | 'labor_other'
+  | 'contract_breach'
+  | 'appeal_civil'
+  | 'appeal_economic'
+
 export interface DeadlineInput {
   startDate: string
-  disputeCategory:
-    | 'civil_general'
-    | 'labor_reinstatement'
-    | 'labor_other'
-    | 'contract_breach'
-    | 'appeal_civil'
-    | 'appeal_economic'
+  disputeCategory: DeadlineCategory
 }
 
 export interface DeadlineResult {

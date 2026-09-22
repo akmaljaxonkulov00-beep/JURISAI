@@ -1,1033 +1,879 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
-import { Button } from '@/components/ui/Button'
-import { Textarea } from '@/components/ui/Textarea'
-import { Select } from '@/components/ui/Select'
-import { Badge } from '@/components/ui/Badge'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs'
+import React, { useState, useEffect } from 'react'
+import {
+  Sparkles,
+  BookOpen,
+  History,
+  Scale,
+  Award,
+  Shield,
+  Clock,
+  Play,
+  CheckCircle2,
+  AlertTriangle,
+  ArrowRight,
+  RotateCcw,
+  Layers,
+  FileText,
+  UserCheck,
+  Check,
+  ChevronRight,
+  HelpCircle,
+  ExternalLink,
+  Target,
+  GraduationCap,
+  Loader2,
+} from 'lucide-react'
+import {
+  ScenarioData,
+  ScenarioDomain,
+  ScenarioDifficulty,
+  ScenarioRole,
+  ScenarioObjective,
+  UserActionLog,
+  ScenarioEvaluation,
+  ScenarioSession,
+} from '@/types/scenario-generator'
+import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/app/providers'
-import { getUserIdentityPayload } from '@/lib/client-user'
-
-interface Scenario {
-  id: string
-  scenario_type: string
-  title: string
-  description: string
-  difficulty_level: string
-  complexity: string
-  participants: Array<{
-    id: string
-    name: string
-    role: string
-    description: string
-    objectives: string[]
-    background: string
-    personality_traits: string[]
-  }>
-  case_data: {
-    subject: string
-    background: string
-    key_issue: string
-    additional_facts?: string[]
-    complications?: string[]
-  }
-  objectives: Array<{
-    id: string
-    description: string
-    priority: string
-    success_criteria: string[]
-    legal_references: string[]
-  }>
-  legal_references: string[]
-  estimated_duration: number
-  ai_generated: boolean
-  status: string
-  created_at: string
-}
-
-interface CreateScenarioRequest {
-  scenario_type: string
-  difficulty_level: string
-  complexity: string
-  participants_count: number
-  focus_areas: string[]
-  duration_minutes: number
-}
+import { VERIFIED_SCENARIO_TEMPLATES } from '@/lib/scenario-generator-engine'
 
 export default function ScenarioGenerator() {
+  const { t } = useLanguage()
   const { user } = useAuth()
-  const [activeTab, setActiveTab] = useState('create')
-  const [scenarioType, setScenarioType] = useState('civil')
-  const [difficultyLevel, setDifficultyLevel] = useState('intermediate')
-  const [complexity, setComplexity] = useState('standard')
-  const [participantsCount, setParticipantsCount] = useState(3)
+
+  const [activeTab, setActiveTab] = useState<'create' | 'simulation' | 'templates' | 'history'>(
+    'create'
+  )
+
+  // Builder Form State
+  const [domain, setDomain] = useState<ScenarioDomain>('civil')
+  const [difficulty, setDifficulty] = useState<ScenarioDifficulty>('intermediate')
+  const [role, setRole] = useState<ScenarioRole>('advokat')
+  const [objective, setObjective] = useState<ScenarioObjective>('court_practice')
+  const [topic, setTopic] = useState('')
   const [focusAreas, setFocusAreas] = useState<string[]>([])
-  const [duration, setDuration] = useState(45)
-  const [currentScenario, setCurrentScenario] = useState<Scenario | null>(null)
+  const [additionalReqs, setAdditionalReqs] = useState('')
+
+  // Generation & Active Simulation State
   const [isGenerating, setIsGenerating] = useState(false)
-  const [scenarios, setScenarios] = useState<Scenario[]>([])
-  interface ScenarioTemplateRow {
-    id: string
-    title: string
-    description: string
-    scenario_type: string
-    difficulty_level: string
-    complexity?: string
-    estimated_duration?: number
-    participants_count?: number
-  }
-  const [templates, setTemplates] = useState<ScenarioTemplateRow[]>([])
-  const [error, setError] = useState<string | null>(null)
+  const [genError, setGenError] = useState<string | null>(null)
+  const [currentScenario, setCurrentScenario] = useState<ScenarioData | null>(null)
+  const [currentStep, setCurrentStep] = useState(1)
+  const [actionLogs, setActionLogs] = useState<UserActionLog[]>([])
+  const [evaluation, setEvaluation] = useState<ScenarioEvaluation | null>(null)
+  const [isEvaluating, setIsEvaluating] = useState(false)
+
+  // History & Templates State
+  const [templates, setTemplates] = useState<ScenarioData[]>([])
+  const [sessions, setSessions] = useState<ScenarioSession[]>([])
+  const [loadingHistory, setLoadingHistory] = useState(false)
+  const [historyTotal, setHistoryTotal] = useState(0)
 
   useEffect(() => {
-    if (user) {
-      loadScenarios()
-    }
     loadTemplates()
-  }, [user])
-
-  const typeLabel = (t: string): string => {
-    switch (t) {
-      case 'civil':
-        return "Fuqarolik huquqi (shartnoma, mulk, to'lov nizolari)"
-      case 'criminal':
-        return "Jinoyat huquqi (o'g'irlik, firibgarlik, jinoyat ishi)"
-      case 'family':
-        return 'Oila huquqi (ajralish, aliment, vorislik)'
-      case 'labor':
-        return "Mehnat huquqi (ishdan bo'shatish, ish haqi, mehnat shartnomasi)"
-      case 'administrative':
-        return "Ma'muriy javobgarlik (jarimalar, litsenziyalar)"
-      default:
-        return 'Huquqiy masala'
+    if (user) {
+      loadHistory()
     }
-  }
+  }, [user])
 
   const loadTemplates = async () => {
     try {
-      const res = await fetch('/api/scenario-generator/templates', { credentials: 'include' })
-      const data = await res.json()
-      if (data && Array.isArray(data.templates)) {
-        const mapped = data.templates.map(
-          (t: {
-            id?: string
-            name?: string
-            description?: string
-            scenario_type?: string
-            difficulty_level?: string
-            complexity?: string
-            duration_minutes?: number
-            participants_count?: number
-          }) => ({
-            id: t.id || 'template_' + Math.random().toString(36).slice(2, 8),
-            title: t.name || 'Senariy shabloni',
-            description: t.description || '',
-            scenario_type: t.scenario_type || 'civil',
-            difficulty_level:
-              t.difficulty_level === 'easy'
-                ? 'beginner'
-                : t.difficulty_level === 'medium'
-                  ? 'intermediate'
-                  : t.difficulty_level === 'hard'
-                    ? 'advanced'
-                    : t.difficulty_level || 'intermediate',
-            complexity: t.complexity || 'standard',
-            estimated_duration: t.duration_minutes || 45,
-            participants_count: t.participants_count || 3,
-          })
-        )
-        setTemplates(mapped)
-      }
-    } catch (err) {
-      console.error('Templates loading error:', err)
-    }
-  }
-
-  const loadScenarios = async () => {
-    // 1) Supabase'dan REAL saqlangan senariylar (boshqa qurilmada ham ko'rinadi)
-    try {
-      const res = await fetch('/api/scenario-generator/scenarios', { credentials: 'include' })
+      const res = await fetch('/api/scenario-generator/templates')
       if (res.ok) {
-        const json = await res.json()
-        if (Array.isArray(json.scenarios)) {
-          setScenarios(json.scenarios)
+        const data = await res.json()
+        if (data.templates && data.templates.length > 0) {
+          setTemplates(data.templates)
           return
         }
       }
-    } catch (err) {
-      console.error('Scenarios API loading error:', err)
+    } catch {
+      // fallback to built-in
     }
-    // 2) Fallback: localStorage
-    try {
-      const stored = localStorage.getItem('generated_scenarios')
-      if (stored) {
-        setScenarios(JSON.parse(stored))
-      }
-    } catch (error) {
-      console.error('Scenarios loading error:', error)
-    }
+    setTemplates(VERIFIED_SCENARIO_TEMPLATES)
   }
 
-  const saveScenario = async (scenario: Scenario) => {
-    const updated = [scenario, ...scenarios]
-    setScenarios(updated)
-    localStorage.setItem('generated_scenarios', JSON.stringify(updated))
-    // Supabase'ga saqlash (session mavjud bo'lsa)
+  const loadHistory = async () => {
+    setLoadingHistory(true)
     try {
-      await fetch('/api/scenario-generator/scenarios', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ data: scenario }),
-      })
-    } catch (err) {
-      console.error('Scenario API save error:', err)
-    }
-  }
-
-  const parseScenarioResponse = (
-    text: string,
-    scenarioType: string,
-    difficultyLevel: string,
-    complexity: string,
-    durationMinutes: number
-  ): Scenario => {
-    // AI qaytargan struktur javobni bo'limlarga ajratish:
-    // **SENARIY NOMI:** / **KONTEKST:** / **TOMONLAR:** / **ASOSIY MUAMMO:**
-    // **QO'SHIMCHA FAKTLAR:** / **QONUNIY ASOS:** / **MAQSADLAR:**
-    const sections: Record<string, string> = {}
-    let currentKey = ''
-    text.split('\n').forEach(line => {
-      const match = line.trim().match(/^\*\*(.+?)\*\*:?\s*$/)
-      if (match) {
-        currentKey = match[1].trim().toUpperCase()
-        sections[currentKey] = ''
-      } else if (currentKey) {
-        sections[currentKey] += (sections[currentKey] ? '\n' : '') + line
-      }
-    })
-
-    const getSection = (name: string): string =>
-      Object.entries(sections)
-        .find(([key]) => key.includes(name))?.[1]
-        ?.trim() || ''
-
-    const listItems = (section: string): string[] =>
-      section
-        .split('\n')
-        .map(l => l.replace(/^[-•*\d.)]\s*/, '').trim())
-        .filter(Boolean)
-
-    // ── TOMONLAR: "- Prokuror: Akbar Toshmatov — ayblovni taqdim etadi" ──
-    // yoki "- **Xurshid**: Biznesmen, mahsulot yetkazib beruvchi"
-    const participants = listItems(getSection('TOMONLAR')).map((item, i) => {
-      let role = ''
-      let name = ''
-      let desc = ''
-      const boldMatch = item.match(/^\*\*(.+?)\*\*\s*:\s*(.*)$/)
-      if (boldMatch) {
-        name = boldMatch[1].trim()
-        desc = boldMatch[2].trim()
-      } else {
-        const colonIdx = item.indexOf(':')
-        if (colonIdx > 0) {
-          role = item.slice(0, colonIdx).trim()
-          const rest = item.slice(colonIdx + 1).trim()
-          const [n, ...d] = rest.split(/[—–-]/)
-          name = (n || '').trim()
-          desc = d.join(' — ').trim() || rest
-        } else {
-          const [n, ...d] = item.split(/[—–-]/)
-          name = (n || '').trim()
-          desc = d.join(' — ').trim()
+      const res = await fetch('/api/scenario-generator/sessions?limit=20')
+      if (res.ok) {
+        const data = await res.json()
+        if (data.sessions) {
+          setSessions(data.sessions)
+          setHistoryTotal(data.total || data.sessions.length)
         }
       }
-      return {
-        id: 'p' + (i + 1),
-        name: name || `Tomon ${i + 1}`,
-        role: role || 'Ishtirokchi',
-        description: desc,
-        objectives: desc ? [desc] : [`${name || 'Ishtirokchi'} maqsadi`],
-        background: '',
-        personality_traits: [],
-      }
-    })
-
-    const facts = listItems(getSection("QO'SHIMCHA FAKTLAR"))
-    const refs = listItems(getSection('QONUNIY ASOS'))
-    const objectives = listItems(getSection('MAQSADLAR'))
-    const title = getSection('SENARIY NOMI') || `${typeLabel(scenarioType)} bo'yicha senariy`
-    const kontekst = getSection('KONTEKST')
-    const muammo = getSection('ASOSIY MUAMMO')
-
-    return {
-      id: 'scenario_' + Date.now(),
-      scenario_type: scenarioType,
-      title,
-      description: (kontekst || text).slice(0, 300),
-      difficulty_level: difficultyLevel,
-      complexity,
-      participants:
-        participants.length > 0
-          ? participants
-          : [
-              {
-                id: 'p1',
-                name: 'Tomon A',
-                role: "Da'vogar",
-                description: 'Ishtirokchi',
-                objectives: ["O'z manfaatini himoya qilish"],
-                background: '',
-                personality_traits: [],
-              },
-              {
-                id: 'p2',
-                name: 'Tomon B',
-                role: 'Javobgar',
-                description: 'Ishtirokchi',
-                objectives: ["O'z manfaatini himoya qilish"],
-                background: '',
-                personality_traits: [],
-              },
-            ],
-      case_data: {
-        subject: title,
-        background: kontekst || text,
-        key_issue: muammo || 'Asosiy huquqiy masala',
-        additional_facts: facts,
-        complications: facts.slice(0, 2),
-      },
-      objectives:
-        objectives.length > 0
-          ? objectives.map((desc, i) => ({
-              id: 'obj' + (i + 1),
-              description: desc,
-              priority: i === 0 ? 'high' : 'medium',
-              success_criteria: [desc + ' — amalga oshganini baholash'],
-              legal_references: refs,
-            }))
-          : [
-              {
-                id: 'obj1',
-                description: muammo || 'Asosiy masalani hal qilish',
-                priority: 'high',
-                success_criteria: ['Qonuniy yechim topilgan'],
-                legal_references: refs,
-              },
-            ],
-      legal_references: refs.length > 0 ? refs : ["O'zbekiston Respublikasi qonunlari"],
-      estimated_duration: durationMinutes,
-      ai_generated: true,
-      status: 'completed',
-      created_at: new Date().toISOString(),
+    } catch (err) {
+      console.error('History load error:', err)
+    } finally {
+      setLoadingHistory(false)
     }
   }
 
-  const handleGenerateScenario = async () => {
+  const toggleFocusArea = (area: string) => {
+    if (focusAreas.includes(area)) {
+      setFocusAreas(focusAreas.filter(a => a !== area))
+    } else {
+      setFocusAreas([...focusAreas, area])
+    }
+  }
+
+  // Handle Scenario Generation
+  const handleGenerateScenario = async (e: React.FormEvent) => {
+    e.preventDefault()
     setIsGenerating(true)
-    setError(null)
+    setGenError(null)
 
     try {
-      const topic = `${typeLabel(scenarioType)} mavzusida real hayotga mos huquqiy senariy`
       const res = await fetch('/api/scenario-generator/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          topic,
-          difficulty: difficultyLevel,
+          domain,
+          difficulty,
+          role,
+          objective,
+          topic: topic.trim() || '2026-yilgi amaliy huquqiy nizo',
           focus_areas: focusAreas,
-          ...getUserIdentityPayload(),
+          additional_requirements: additionalReqs,
         }),
       })
+
       const data = await res.json()
 
-      if (!res.ok) {
-        throw new Error(data.message || data.error || 'Senariyo yaratishda xatolik yuz berdi')
+      if (res.ok && data.scenario) {
+        startSimulation(data.scenario)
+      } else {
+        setGenError(data.error || 'Senariy yaratishda xatolik yuz berdi. Qayta urinib ko‘ring.')
       }
-
-      const scenario = parseScenarioResponse(
-        data.text || '',
-        scenarioType,
-        difficultyLevel,
-        complexity,
-        duration
-      )
-
-      setCurrentScenario(scenario)
-      saveScenario(scenario)
-      setActiveTab('scenario')
-    } catch (err) {
-      console.error('Scenario generation error:', err)
-      setError(err instanceof Error ? err.message : 'Senariyo yaratishda xatolik yuz berdi')
+    } catch {
+      setGenError('Server bilan bog‘lanishda xatolik yuz berdi')
     } finally {
       setIsGenerating(false)
     }
   }
 
-  const getDifficultyColor = (level: string) => {
-    switch (level) {
-      case 'beginner':
-        return 'bg-green-100 text-green-800'
-      case 'intermediate':
-        return 'bg-yellow-100 text-yellow-800'
-      case 'advanced':
-        return 'bg-orange-100 text-orange-800'
-      case 'expert':
-        return 'bg-red-100 text-red-800'
-      default:
-        return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200'
+  // Start Simulation with a chosen scenario
+  const startSimulation = (scenario: ScenarioData) => {
+    setCurrentScenario(scenario)
+    setCurrentStep(1)
+    setActionLogs([])
+    setEvaluation(null)
+    setActiveTab('simulation')
+  }
+
+  // Handle user decision action step
+  const handleSelectOption = async (optionId: string) => {
+    if (!currentScenario) return
+
+    try {
+      const res = await fetch('/api/scenario-generator/step', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          scenario: currentScenario,
+          current_step: currentStep,
+          chosen_option_id: optionId,
+        }),
+      })
+
+      const data = await res.json()
+
+      if (res.ok && data.action_log) {
+        const updatedLogs = [...actionLogs, data.action_log]
+        setActionLogs(updatedLogs)
+
+        if (data.is_completed) {
+          finishSimulation(updatedLogs)
+        } else {
+          setCurrentStep(data.next_step)
+        }
+      }
+    } catch (err) {
+      console.error('Step execution error:', err)
     }
   }
 
-  const getComplexityColor = (level: string) => {
-    switch (level) {
-      case 'simple':
-        return 'bg-blue-100 text-blue-800'
-      case 'standard':
-        return 'bg-purple-100 text-purple-800'
-      case 'complex':
-        return 'bg-indigo-100 text-indigo-800'
-      case 'expert':
-        return 'bg-pink-100 text-pink-800'
-      default:
-        return 'bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200'
+  // Finish simulation and compute evaluation
+  const finishSimulation = async (finalLogs: UserActionLog[]) => {
+    if (!currentScenario) return
+    setIsEvaluating(true)
+
+    try {
+      const res = await fetch('/api/scenario-generator/evaluate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          scenario: currentScenario,
+          action_logs: finalLogs,
+        }),
+      })
+
+      const data = await res.json()
+      if (res.ok && data.evaluation) {
+        setEvaluation(data.evaluation)
+        loadHistory()
+      }
+    } catch (err) {
+      console.error('Simulation evaluation error:', err)
+    } finally {
+      setIsEvaluating(false)
     }
   }
 
-  const getScenarioTypeIcon = (type: string) => {
-    switch (type) {
-      case 'civil':
-        return '▢'
-      case 'criminal':
-        return '═'
-      case 'family':
-        return '◉◉◉'
-      case 'labor':
-        return '▣'
-      case 'administrative':
-        return '◇'
-      default:
-        return '▣'
-    }
-  }
-
-  const renderParticipant = (participant: {
-    id: string
-    name?: string
-    role?: string
-    description?: string
-    objectives?: string[]
-    background?: string
-    personality_traits?: string[]
-  }) => (
-    <Card
-      key={participant.id}
-      className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl"
-    >
-      <CardHeader>
-        <div className="flex justify-between items-start">
-          <CardTitle className="text-blue-900 text-lg">{participant.name}</CardTitle>
-          <Badge className="bg-blue-100 text-blue-800">{participant.role}</Badge>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <p className="text-gray-700 dark:text-zinc-300 mb-4">{participant.description}</p>
-
-        <div className="space-y-3">
-          <div>
-            <p className="text-sm font-medium text-blue-700 mb-2">Maqsadlar:</p>
-            <div className="space-y-1">
-              {(participant.objectives || []).map((obj: string, index: number) => (
-                <div key={index} className="text-sm text-gray-600 dark:text-zinc-400">
-                  • {obj}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <p className="text-sm font-medium text-blue-700 mb-1">Tarix:</p>
-            <p className="text-sm text-gray-600 dark:text-zinc-400">{participant.background}</p>
-          </div>
-
-          <div>
-            <p className="text-sm font-medium text-blue-700 mb-2">Xususiyatlar:</p>
-            <div className="flex flex-wrap gap-1">
-              {(participant.personality_traits || []).map((trait: string, index: number) => (
-                <Badge
-                  key={index}
-                  className="bg-gray-100 dark:bg-zinc-800/30 text-gray-800 dark:text-zinc-200 text-xs"
-                >
-                  {trait}
-                </Badge>
-              ))}
-            </div>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+  const currentDecisionPoint = currentScenario?.decision_points?.find(
+    dp => dp.step_number === currentStep
   )
 
   return (
-    <div className="p-4 sm:p-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-6">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1">
-            Senariy Generator
-          </h1>
-          <p className="text-sm text-gray-500 dark:text-zinc-400">
-            O'zbekiston qonunchiligiga moslashgan huquqiy senariylar yaratish
-          </p>
+    <div className="space-y-6">
+      {/* Navigation Tabs Header */}
+      <div className="bg-white dark:bg-zinc-900 border border-gray-200/80 dark:border-zinc-800 rounded-3xl p-2.5 shadow-xs flex items-center justify-between gap-2 overflow-x-auto no-scrollbar">
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={() => setActiveTab('create')}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+              activeTab === 'create'
+                ? 'bg-blue-600 text-white shadow-xs'
+                : 'text-gray-600 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800'
+            }`}
+          >
+            <Sparkles className="w-4 h-4" />
+            <span>Yaratish</span>
+          </button>
+
+          <button
+            onClick={() => currentScenario && setActiveTab('simulation')}
+            disabled={!currentScenario}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-semibold transition-all ${
+              activeTab === 'simulation'
+                ? 'bg-blue-600 text-white shadow-xs'
+                : currentScenario
+                  ? 'text-gray-600 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800 cursor-pointer'
+                  : 'text-gray-300 dark:text-zinc-600 cursor-not-allowed'
+            }`}
+          >
+            <Play className="w-4 h-4" />
+            <span>Simulyatsiya</span>
+            {currentScenario && !evaluation && (
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            )}
+          </button>
+
+          <button
+            onClick={() => setActiveTab('templates')}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+              activeTab === 'templates'
+                ? 'bg-blue-600 text-white shadow-xs'
+                : 'text-gray-600 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800'
+            }`}
+          >
+            <BookOpen className="w-4 h-4" />
+            <span>Shablonlar ({templates.length})</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('history')}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+              activeTab === 'history'
+                ? 'bg-blue-600 text-white shadow-xs'
+                : 'text-gray-600 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800'
+            }`}
+          >
+            <History className="w-4 h-4" />
+            <span>Tarix ({sessions.length})</span>
+          </button>
         </div>
 
-        {error && (
-          <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-xl">
-            {error}
-          </div>
-        )}
+        <span className="hidden md:inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 px-3 py-1 rounded-xl border border-emerald-200/50">
+          <Scale className="w-3.5 h-3.5" /> 2026 Qonunchilik
+        </span>
+      </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl p-1">
-            <TabsTrigger
-              value="create"
-              className="rounded-xl data-[state=active]:bg-blue-600 data-[state=active]:text-white"
-            >
-              Yaratish
-            </TabsTrigger>
-            <TabsTrigger
-              value="scenario"
-              className="rounded-xl data-[state=active]:bg-blue-600 data-[state=active]:text-white"
-            >
-              Senariyo
-            </TabsTrigger>
-            <TabsTrigger
-              value="templates"
-              className="rounded-xl data-[state=active]:bg-blue-600 data-[state=active]:text-white"
-            >
-              Shablonlar
-            </TabsTrigger>
-            <TabsTrigger
-              value="history"
-              className="rounded-xl data-[state=active]:bg-blue-600 data-[state=active]:text-white"
-            >
-              Tarix
-            </TabsTrigger>
-          </TabsList>
+      {/* ── 1. BUILDER TAB ── */}
+      {activeTab === 'create' && (
+        <form onSubmit={handleGenerateScenario} className="space-y-6">
+          <div className="bg-white dark:bg-zinc-900 border border-gray-200/80 dark:border-zinc-800 rounded-3xl p-6 sm:p-8 shadow-xs space-y-6">
+            <div>
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-blue-600" />
+                <span>Interaktiv Huquqiy Senariy Konstruktori</span>
+              </h2>
+              <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1">
+                O‘zbekiston Respublikasining 2026-yilgi amaldagi qonunchiligi asosida real keys
+                simulyatsiyasini yarating.
+              </p>
+            </div>
 
-          <TabsContent value="create" className="mt-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2">
-                <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
-                  <CardHeader>
-                    <CardTitle className="text-blue-900">Senariyo Parametrlari</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-blue-700 mb-2">
-                          Senariyo turi
-                        </label>
-                        <Select
-                          value={scenarioType}
-                          onChange={e => setScenarioType(e.target.value)}
-                          options={[
-                            { value: 'civil', label: '▢ Fuqarolik' },
-                            { value: 'criminal', label: '═ Jinoyat' },
-                            { value: 'family', label: '◉◉◉ Oilaviy' },
-                            { value: 'labor', label: '▣ Mehnat' },
-                            { value: 'administrative', label: "◇ Ma'muriy" },
-                          ]}
-                        />
-                      </div>
+            {genError && (
+              <div className="p-4 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 rounded-2xl flex items-center gap-3 text-red-700 dark:text-red-300 text-xs">
+                <AlertTriangle className="w-5 h-5 flex-shrink-0 text-red-500" />
+                <span>{genError}</span>
+              </div>
+            )}
 
-                      <div>
-                        <label className="block text-sm font-medium text-blue-700 mb-2">
-                          Qiyinlik darajasi
-                        </label>
-                        <Select
-                          value={difficultyLevel}
-                          onChange={e => setDifficultyLevel(e.target.value)}
-                          options={[
-                            { value: 'beginner', label: "Boshlang'ich" },
-                            { value: 'intermediate', label: "O'rta" },
-                            { value: 'advanced', label: 'Yuqori' },
-                            { value: 'expert', label: 'Ekspert' },
-                          ]}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-blue-700 mb-2">
-                          Murakkablik
-                        </label>
-                        <Select
-                          value={complexity}
-                          onChange={e => setComplexity(e.target.value)}
-                          options={[
-                            { value: 'simple', label: 'Oddiy' },
-                            { value: 'standard', label: 'Standart' },
-                            { value: 'complex', label: 'Murakkab' },
-                            { value: 'expert', label: 'Ekspert' },
-                          ]}
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-blue-700 mb-2">
-                          Ishtirokchilar soni
-                        </label>
-                        <Select
-                          value={participantsCount.toString()}
-                          onChange={e => setParticipantsCount(parseInt(e.target.value))}
-                          options={[
-                            { value: '2', label: '2 kishi' },
-                            { value: '3', label: '3 kishi' },
-                            { value: '4', label: '4 kishi' },
-                            { value: '5', label: '5 kishi' },
-                          ]}
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-blue-700 mb-2">
-                        Davomiyligi (daqiqa)
-                      </label>
-                      <input
-                        type="number"
-                        min="15"
-                        max="120"
-                        value={duration}
-                        onChange={e => setDuration(parseInt(e.target.value))}
-                        className="w-full px-4 py-2 bg-white/50 rounded-xl border-blue-200 focus:border-blue-400"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-blue-700 mb-2">
-                        Diqqat markazlari (ixtiyoriy)
-                      </label>
-                      <Textarea
-                        placeholder="Masalan: shartnoma shartlari, to'lov, muddatlar"
-                        value={focusAreas.join(', ')}
-                        onChange={e =>
-                          setFocusAreas(
-                            e.target.value
-                              .split(',')
-                              .map(s => s.trim())
-                              .filter(s => s)
-                          )
-                        }
-                        className="min-h-[80px] bg-white/50 rounded-xl border-blue-200 focus:border-blue-400"
-                      />
-                    </div>
-
-                    <Button
-                      onClick={handleGenerateScenario}
-                      disabled={isGenerating}
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl py-3 font-semibold"
-                    >
-                      {isGenerating ? 'Yaratilmoqda...' : 'Senariyoni Yaratish'}
-                    </Button>
-                  </CardContent>
-                </Card>
+            {/* Grid 1: Domain, Difficulty, Role, Objective */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-zinc-400 mb-1.5">
+                  Huquq Sohasi
+                </label>
+                <select
+                  value={domain}
+                  onChange={e => setDomain(e.target.value as ScenarioDomain)}
+                  className="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-zinc-800/80 border border-gray-200 dark:border-zinc-700 rounded-xl text-xs sm:text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="civil">Fuqarolik huquqi</option>
+                  <option value="contract">Shartnomaviy munosabatlar</option>
+                  <option value="labor">Mehnat huquqi</option>
+                  <option value="criminal">Jinoyat huquqi</option>
+                  <option value="administrative">Ma’muriy huquq</option>
+                  <option value="business">Tadbirkorlik va iqtisod</option>
+                  <option value="family">Oila huquqi</option>
+                  <option value="inheritance">Meros huquqi</option>
+                  <option value="property">Mulk huquqi</option>
+                  <option value="land">Yer va shaharsozlik</option>
+                  <option value="ip">Intellektual mulk</option>
+                  <option value="tax">Soliq huquqi</option>
+                </select>
               </div>
 
               <div>
-                <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
-                  <CardHeader>
-                    <CardTitle className="text-blue-900">Senariyo Turlari</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
-                      <h4 className="font-semibold text-blue-900 mb-2">▢ Fuqarolik</h4>
-                      <p className="text-sm text-blue-700">Shartnoma, mulkiy nizolar, to'lovlar</p>
-                    </div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-zinc-400 mb-1.5">
+                  Qiyinlik Darajasi
+                </label>
+                <select
+                  value={difficulty}
+                  onChange={e => setDifficulty(e.target.value as ScenarioDifficulty)}
+                  className="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-zinc-800/80 border border-gray-200 dark:border-zinc-700 rounded-xl text-xs sm:text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="beginner">Boshlang‘ich (Talaba)</option>
+                  <option value="intermediate">O‘rta (Yurist)</option>
+                  <option value="advanced">Murakkab (Advokat)</option>
+                  <option value="expert">Ekspert (Sudya darajasi)</option>
+                </select>
+              </div>
 
-                    <div className="p-4 bg-red-50 dark:bg-red-900/20 rounded-xl">
-                      <h4 className="font-semibold text-red-900 mb-2">═ Jinoyat</h4>
-                      <p className="text-sm text-red-700">Jinoyat ishlari, tergov, sud protsessi</p>
-                    </div>
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-zinc-400 mb-1.5">
+                  Sizning Rolingiz
+                </label>
+                <select
+                  value={role}
+                  onChange={e => setRole(e.target.value as ScenarioRole)}
+                  className="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-zinc-800/80 border border-gray-200 dark:border-zinc-700 rounded-xl text-xs sm:text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="advokat">Advokat</option>
+                  <option value="yurist">Korxona Yuristi</option>
+                  <option value="himoyachi">Himoyachi</option>
+                  <option value="prokuror">Prokuror</option>
+                  <option value="sudya">Sudya</option>
+                  <option value="tergovchi">Tergovchi</option>
+                  <option value="mediator">Mediator</option>
+                  <option value="davogar_vakili">Da’vogar vakili</option>
+                  <option value="javobgar_vakili">Javobgar vakili</option>
+                  <option value="talaba">Yuridik talaba</option>
+                </select>
+              </div>
 
-                    <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-xl">
-                      <h4 className="font-semibold text-green-900 mb-2">◉◉◉ Oilaviy</h4>
-                      <p className="text-sm text-green-700">Ajralish, aliment, vorislik</p>
-                    </div>
-
-                    <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-xl">
-                      <h4 className="font-semibold text-purple-900 mb-2">▣ Mehnat</h4>
-                      <p className="text-sm text-purple-700">
-                        Ishdan bo'shatish, ish haqi, mehnat shartnomasi
-                      </p>
-                    </div>
-
-                    <div className="p-4 bg-orange-50 rounded-xl">
-                      <h4 className="font-semibold text-orange-900 mb-2">◇ Ma'muriy</h4>
-                      <p className="text-sm text-orange-700">
-                        Jarimalar, litsenziyalar, protsedura
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-zinc-400 mb-1.5">
+                  Asosiy Maqsad
+                </label>
+                <select
+                  value={objective}
+                  onChange={e => setObjective(e.target.value as ScenarioObjective)}
+                  className="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-zinc-800/80 border border-gray-200 dark:border-zinc-700 rounded-xl text-xs sm:text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="court_practice">Sud amaliyoti va strategiya</option>
+                  <option value="irac">IRAC tahlil usuli</option>
+                  <option value="negotiation">Muzokara va tinch yo‘l</option>
+                  <option value="investigation">Tergov va dalil to‘plash</option>
+                  <option value="legal_consulting">Huquqiy maslahat berish</option>
+                  <option value="document_drafting">Protsessual hujjat tayyorlash</option>
+                  <option value="evidence_evaluation">Dalillarni baholash</option>
+                </select>
               </div>
             </div>
-          </TabsContent>
 
-          <TabsContent value="scenario" className="mt-6">
-            {currentScenario ? (
-              <div className="space-y-6">
-                <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
-                  <CardHeader>
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <CardTitle className="text-blue-900 text-2xl">
-                          {currentScenario.title}
-                        </CardTitle>
-                        <p className="text-gray-600 dark:text-zinc-400 mt-2">
-                          {currentScenario.description}
-                        </p>
-                      </div>
-                      <div className="text-right space-y-2">
-                        <Badge className={getDifficultyColor(currentScenario.difficulty_level)}>
-                          {currentScenario.difficulty_level}
-                        </Badge>
-                        <Badge className={getComplexityColor(currentScenario.complexity)}>
-                          {currentScenario.complexity}
-                        </Badge>
-                      </div>
-                    </div>
-                  </CardHeader>
-                </Card>
+            {/* Topic Input */}
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-zinc-400 mb-1.5">
+                Keys Mavzusi yoki Real Vaziyat
+              </label>
+              <input
+                type="text"
+                value={topic}
+                onChange={e => setTopic(e.target.value)}
+                placeholder="Masalan: Yetkazib berish shartnomasi bo‘yicha to‘lov kechikishi, mehnat shartnomasini noqonuniy bekor qilish..."
+                className="w-full px-4 py-3 bg-gray-50 dark:bg-zinc-800/80 border border-gray-200 dark:border-zinc-700 rounded-xl text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-400"
+              />
+            </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Focus Areas Chips */}
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-zinc-400 mb-2">
+                Diqqat Markazlari (Ko‘nikmalar)
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  'Shartnoma bandlari',
+                  'To‘lov muddati',
+                  'Penya & Foizlar',
+                  'Yozma dalillar',
+                  'Guvohlar ko‘rsatmasi',
+                  'Qonuniy moddalar (2026)',
+                  'Protsessual xatolar',
+                  'Yetkazilgan zarar',
+                  'Sababiy bog‘liqlik',
+                  'Da’vo muddati',
+                ].map(item => {
+                  const isSelected = focusAreas.includes(item)
+                  return (
+                    <button
+                      type="button"
+                      key={item}
+                      onClick={() => toggleFocusArea(item)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all cursor-pointer ${
+                        isSelected
+                          ? 'bg-blue-600 text-white shadow-xs'
+                          : 'bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-zinc-300 hover:bg-gray-200 dark:hover:bg-zinc-700'
+                      }`}
+                    >
+                      {item}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Additional Requirements */}
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-zinc-400 mb-1.5">
+                Qo‘shimcha Shartlar yoki Maxsus Talablar (Ixtiyoriy)
+              </label>
+              <textarea
+                value={additionalReqs}
+                onChange={e => setAdditionalReqs(e.target.value)}
+                rows={2}
+                placeholder="Keysda qanday kutilmagan holat yoki dalil ziddiyati bo‘lishini xohlaysiz?..."
+                className="w-full px-4 py-2.5 bg-gray-50 dark:bg-zinc-800/80 border border-gray-200 dark:border-zinc-700 rounded-xl text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-400"
+              />
+            </div>
+
+            {/* Submit Button */}
+            <div className="pt-4 border-t border-gray-100 dark:border-zinc-800 flex justify-end">
+              <button
+                type="submit"
+                disabled={isGenerating}
+                className="flex items-center gap-2 px-8 py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl text-sm font-bold transition-all shadow-md cursor-pointer"
+              >
+                {isGenerating ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>2026 Qonunlari bo‘yicha senariy tuzilmoqda...</span>
+                  </>
+                ) : (
+                  <>
+                    <Play className="w-4 h-4" />
+                    <span>Senariyni Yaratish & Simulyatsiyani Boshlash</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </form>
+      )}
+
+      {/* ── 2. SIMULATION TAB ── */}
+      {activeTab === 'simulation' && currentScenario && (
+        <div className="space-y-6">
+          {/* Header & Meta */}
+          <div className="bg-white dark:bg-zinc-900 border border-gray-200/80 dark:border-zinc-800 rounded-3xl p-6 shadow-xs">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+              <div className="flex items-center gap-2">
+                <span className="px-2.5 py-1 rounded-lg text-xs font-bold uppercase bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300">
+                  {currentScenario.legal_domain}
+                </span>
+                <span className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-400">
+                  Rol: {currentScenario.user_role}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2 text-xs font-semibold text-gray-500 dark:text-zinc-400">
+                <Clock className="w-4 h-4 text-blue-600" />
+                <span>
+                  Bosqich {currentStep} / {currentScenario.decision_points?.length || 1}
+                </span>
+              </div>
+            </div>
+
+            <h1 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-2">
+              {currentScenario.title}
+            </h1>
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-zinc-300 leading-relaxed">
+              {currentScenario.background}
+            </p>
+          </div>
+
+          {/* Evaluation Modal / Screen if completed */}
+          {evaluation ? (
+            <div className="bg-white dark:bg-zinc-900 border border-gray-200/80 dark:border-zinc-800 rounded-3xl p-6 sm:p-8 shadow-md space-y-6 animate-in zoom-in-95 duration-300">
+              <div className="text-center max-w-md mx-auto space-y-2">
+                <div className="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto mb-2">
+                  <Award className="w-8 h-8" />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  Simulyatsiya Muvaffaqiyatli Yakunlandi!
+                </h2>
+                <p className="text-xs text-gray-500 dark:text-zinc-400">
+                  Sizning yuridik tahlilingiz va qabul qilgan qarorlaringiz O‘zbekiston amaldagi
+                  qonunchiligi asosida baholandi.
+                </p>
+              </div>
+
+              {/* Scores Grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div className="bg-gray-50 dark:bg-zinc-800/60 p-4 rounded-2xl text-center border border-gray-100 dark:border-zinc-800">
+                  <span className="text-xs font-semibold text-gray-400 uppercase">Umumiy Ball</span>
+                  <p className="text-3xl font-black text-blue-600 dark:text-blue-400 mt-1">
+                    {evaluation.total_score} <span className="text-sm text-gray-400">/ 100</span>
+                  </p>
+                </div>
+
+                <div className="bg-gray-50 dark:bg-zinc-800/60 p-4 rounded-2xl text-center border border-gray-100 dark:border-zinc-800">
+                  <span className="text-xs font-semibold text-gray-400 uppercase">
+                    Qarorlar Sifati
+                  </span>
+                  <p className="text-3xl font-black text-indigo-600 dark:text-indigo-400 mt-1">
+                    {evaluation.decision_quality_score}%
+                  </p>
+                </div>
+
+                <div className="bg-gray-50 dark:bg-zinc-800/60 p-4 rounded-2xl text-center border border-gray-100 dark:border-zinc-800">
+                  <span className="text-xs font-semibold text-gray-400 uppercase">
+                    Yuridik Tahlil
+                  </span>
+                  <p className="text-3xl font-black text-emerald-600 dark:text-emerald-400 mt-1">
+                    {evaluation.legal_analysis_score}%
+                  </p>
+                </div>
+
+                <div className="bg-gray-50 dark:bg-zinc-800/60 p-4 rounded-2xl text-center border border-gray-100 dark:border-zinc-800">
+                  <span className="text-xs font-semibold text-gray-400 uppercase">Berilgan XP</span>
+                  <p className="text-3xl font-black text-amber-500 mt-1">
+                    +{evaluation.xp_awarded} XP
+                  </p>
+                </div>
+              </div>
+
+              {/* Recommendations & Mistakes */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-4 bg-emerald-50/50 dark:bg-emerald-950/20 rounded-2xl border border-emerald-100 dark:border-emerald-900/40">
+                  <h3 className="text-xs font-bold text-emerald-800 dark:text-emerald-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                    <CheckCircle2 className="w-4 h-4" /> Tavsiyalar
+                  </h3>
+                  <ul className="space-y-1.5 text-xs text-gray-700 dark:text-zinc-300">
+                    {evaluation.recommendations.map((rec, i) => (
+                      <li key={i} className="flex items-start gap-2">
+                        <span className="text-emerald-500">•</span>
+                        <span>{rec}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="p-4 bg-amber-50/50 dark:bg-amber-950/20 rounded-2xl border border-amber-100 dark:border-amber-900/40">
+                  <h3 className="text-xs font-bold text-amber-800 dark:text-amber-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                    <AlertTriangle className="w-4 h-4" /> E’tibor qaratish lozim
+                  </h3>
+                  <ul className="space-y-1.5 text-xs text-gray-700 dark:text-zinc-300">
+                    {evaluation.mistakes.length > 0 ? (
+                      evaluation.mistakes.map((mis, i) => (
+                        <li key={i} className="flex items-start gap-2">
+                          <span className="text-amber-500">•</span>
+                          <span>{mis}</span>
+                        </li>
+                      ))
+                    ) : (
+                      <li className="text-emerald-600 font-medium">
+                        Hech qanday jiddiy xato aniqlanmadi!
+                      </li>
+                    )}
+                  </ul>
+                </div>
+              </div>
+
+              <div className="flex justify-center gap-3 pt-2">
+                <button
+                  onClick={() => startSimulation(currentScenario)}
+                  className="px-6 py-2.5 bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-700 dark:text-zinc-300 font-semibold rounded-xl text-xs sm:text-sm transition-all flex items-center gap-2 cursor-pointer"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  <span>Qayta urinish</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('create')}
+                  className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl text-xs sm:text-sm transition-all flex items-center gap-2 shadow-xs cursor-pointer"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  <span>Yangi senariy yaratish</span>
+                </button>
+              </div>
+            </div>
+          ) : (
+            /* Active Step Simulation UI */
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              {/* Left Column: Dossier & Evidence (5 Cols) */}
+              <div className="lg:col-span-5 space-y-4">
+                {/* Facts & Participants */}
+                <div className="bg-white dark:bg-zinc-900 border border-gray-200/80 dark:border-zinc-800 rounded-3xl p-5 shadow-xs space-y-4">
                   <div>
-                    <h3 className="text-xl font-semibold text-blue-900 mb-4">Case Ma'lumotlari</h3>
-                    <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
-                      <CardContent className="space-y-4 p-6">
-                        <div>
-                          <p className="text-sm font-medium text-blue-700 mb-1">Mavzu:</p>
-                          <p className="text-gray-800 dark:text-zinc-200">
-                            {currentScenario.case_data.subject}
-                          </p>
-                        </div>
-
-                        <div>
-                          <p className="text-sm font-medium text-blue-700 mb-1">Tarix:</p>
-                          <p className="text-gray-800 dark:text-zinc-200">
-                            {currentScenario.case_data.background}
-                          </p>
-                        </div>
-
-                        <div>
-                          <p className="text-sm font-medium text-blue-700 mb-1">Asosiy muammo:</p>
-                          <p className="text-gray-800 dark:text-zinc-200">
-                            {currentScenario.case_data.key_issue}
-                          </p>
-                        </div>
-
-                        {currentScenario.case_data.additional_facts && (
-                          <div>
-                            <p className="text-sm font-medium text-blue-700 mb-2">
-                              Qo'shimcha faktlar:
-                            </p>
-                            <div className="space-y-1">
-                              {currentScenario.case_data.additional_facts.map(
-                                (fact: string, index: number) => (
-                                  <div
-                                    key={index}
-                                    className="text-sm text-gray-600 dark:text-zinc-400"
-                                  >
-                                    • {fact}
-                                  </div>
-                                )
-                              )}
-                            </div>
+                    <h3 className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5 mb-2.5">
+                      <UserCheck className="w-4 h-4 text-blue-600" />
+                      <span>Tomonlar & Ishtirokchilar</span>
+                    </h3>
+                    <div className="space-y-2">
+                      {currentScenario.participants?.map(p => (
+                        <div
+                          key={p.id}
+                          className="p-3 bg-gray-50 dark:bg-zinc-800/60 rounded-xl text-xs"
+                        >
+                          <div className="flex items-center justify-between font-bold text-gray-900 dark:text-white mb-0.5">
+                            <span>{p.name}</span>
+                            <span className="text-[10px] font-semibold text-blue-600 dark:text-blue-400">
+                              {p.role}
+                            </span>
                           </div>
-                        )}
-
-                        {currentScenario.case_data.complications && (
-                          <div>
-                            <p className="text-sm font-medium text-blue-700 mb-2">
-                              Murakkabliklar:
-                            </p>
-                            <div className="space-y-1">
-                              {currentScenario.case_data.complications.map(
-                                (comp: string, index: number) => (
-                                  <div key={index} className="text-sm text-red-600">
-                                    • {comp}
-                                  </div>
-                                )
-                              )}
-                            </div>
-                          </div>
-                        )}
-
-                        <div>
-                          <p className="text-sm font-medium text-blue-700 mb-2">
-                            Huquqiy havolalar:
-                          </p>
-                          <div className="space-y-1">
-                            {currentScenario.legal_references.map((ref: string, index: number) => (
-                              <div key={index} className="text-sm text-blue-600">
-                                • {ref}
-                              </div>
-                            ))}
-                          </div>
+                          <p className="text-gray-500 dark:text-zinc-400">{p.interests}</p>
                         </div>
-                      </CardContent>
-                    </Card>
+                      ))}
+                    </div>
                   </div>
 
+                  {/* Evidence Vault */}
                   <div>
-                    <h3 className="text-xl font-semibold text-blue-900 mb-4">Maqsadlar</h3>
-                    <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
-                      <CardContent className="space-y-4 p-6">
-                        {currentScenario.objectives.map(objective => (
-                          <div
-                            key={objective.id}
-                            className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200"
-                          >
-                            <div className="flex justify-between items-start mb-2">
-                              <p className="font-medium text-blue-900">{objective.description}</p>
-                              <Badge
-                                className={
-                                  objective.priority === 'high'
-                                    ? 'bg-red-100 text-red-800'
-                                    : 'bg-yellow-100 text-yellow-800'
-                                }
-                              >
-                                {objective.priority}
-                              </Badge>
-                            </div>
-                            <div className="space-y-2">
-                              <p className="text-sm font-medium text-blue-700">
-                                Muvaffaqiyat mezonlari:
+                    <h3 className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5 mb-2.5">
+                      <FileText className="w-4 h-4 text-indigo-600" />
+                      <span>Dalillar Portfeli</span>
+                    </h3>
+                    <div className="space-y-2">
+                      {currentScenario.evidence?.map(ev => (
+                        <div
+                          key={ev.id}
+                          className="p-3 bg-gray-50 dark:bg-zinc-800/60 rounded-xl text-xs border border-gray-100 dark:border-zinc-800"
+                        >
+                          <div className="flex items-center justify-between font-semibold text-gray-900 dark:text-white mb-0.5">
+                            <span>{ev.title}</span>
+                            <span className="text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-400">
+                              {ev.reliability}
+                            </span>
+                          </div>
+                          <p className="text-gray-500 dark:text-zinc-400">{ev.description}</p>
+                          {ev.legal_basis && (
+                            <span className="text-[10px] font-medium text-blue-600 dark:text-blue-400 mt-1 block">
+                              Asos: {ev.legal_basis}
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column: Decision Point Interactive Area (7 Cols) */}
+              <div className="lg:col-span-7 space-y-4">
+                {currentDecisionPoint ? (
+                  <div className="bg-white dark:bg-zinc-900 border border-blue-200/80 dark:border-blue-900/50 rounded-3xl p-6 sm:p-7 shadow-sm space-y-6">
+                    <div>
+                      <span className="text-[11px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider block mb-1">
+                        {currentDecisionPoint.stage_title}
+                      </span>
+                      <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white leading-snug">
+                        {currentDecisionPoint.prompt}
+                      </h3>
+                    </div>
+
+                    {/* Options list */}
+                    <div className="space-y-3">
+                      {currentDecisionPoint.options?.map(option => (
+                        <div
+                          key={option.id}
+                          onClick={() => handleSelectOption(option.id)}
+                          className="p-4 bg-gray-50 dark:bg-zinc-800/70 hover:bg-blue-50/70 dark:hover:bg-blue-950/40 border border-gray-200/80 dark:border-zinc-700 hover:border-blue-400 dark:hover:border-blue-600 rounded-2xl cursor-pointer transition-all duration-200 group shadow-xs"
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex-1">
+                              <h4 className="font-bold text-sm text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                                {option.label}
+                              </h4>
+                              <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1">
+                                {option.description}
                               </p>
-                              <div className="space-y-1">
-                                {objective.success_criteria.map(
-                                  (criteria: string, index: number) => (
-                                    <div
-                                      key={index}
-                                      className="text-sm text-gray-600 dark:text-zinc-400"
-                                    >
-                                      [OK] {criteria}
-                                    </div>
-                                  )
-                                )}
-                              </div>
                             </div>
+                            <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 flex-shrink-0">
+                              +{option.xp} XP
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Previous Action Logs Summary */}
+                    {actionLogs.length > 0 && (
+                      <div className="pt-4 border-t border-gray-100 dark:border-zinc-800 space-y-2">
+                        <span className="text-xs font-semibold text-gray-400 uppercase">
+                          Avvalgi qarorlar tarixi:
+                        </span>
+                        {actionLogs.map((log, idx) => (
+                          <div
+                            key={idx}
+                            className="p-2.5 bg-gray-50 dark:bg-zinc-800/40 rounded-xl text-xs flex items-center justify-between"
+                          >
+                            <span className="font-medium text-gray-800 dark:text-zinc-200">
+                              {log.step_number}-bosqich: {log.action_title}
+                            </span>
+                            <span
+                              className={`text-[11px] font-bold ${
+                                log.is_optimal ? 'text-emerald-600' : 'text-amber-600'
+                              }`}
+                            >
+                              +{log.xp_earned} XP
+                            </span>
                           </div>
                         ))}
-                      </CardContent>
-                    </Card>
+                      </div>
+                    )}
                   </div>
+                ) : (
+                  <div className="text-center py-12 bg-white dark:bg-zinc-900 rounded-3xl border border-gray-200 dark:border-zinc-800">
+                    <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-2" />
+                    <p className="text-xs text-gray-500">Natijalar hisoblanmoqda...</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── 3. TEMPLATES TAB ── */}
+      {activeTab === 'templates' && (
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {templates.map(tmpl => (
+              <div
+                key={tmpl.id}
+                className="bg-white dark:bg-zinc-900 border border-gray-200/80 dark:border-zinc-800 rounded-3xl p-6 shadow-xs flex flex-col justify-between hover:border-blue-400 dark:hover:border-blue-700 transition-all"
+              >
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <span className="px-2.5 py-0.5 rounded-md text-[11px] font-bold uppercase bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300">
+                      {tmpl.legal_domain}
+                    </span>
+                    <span className="text-xs font-semibold text-gray-400">
+                      Qiyinlik: {tmpl.difficulty}
+                    </span>
+                  </div>
+
+                  <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-2">
+                    {tmpl.title}
+                  </h3>
+                  <p className="text-xs text-gray-500 dark:text-zinc-400 line-clamp-3 mb-4">
+                    {tmpl.background}
+                  </p>
                 </div>
 
-                <div>
-                  <h3 className="text-xl font-semibold text-blue-900 mb-4">
-                    Ishtirokchilar ({currentScenario.participants.length})
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {currentScenario.participants.map(renderParticipant)}
-                  </div>
+                <div className="pt-4 border-t border-gray-100 dark:border-zinc-800 flex items-center justify-between">
+                  <span className="text-xs text-gray-400 flex items-center gap-1">
+                    <Scale className="w-3.5 h-3.5" /> 2026 Tasdiqlangan
+                  </span>
+                  <button
+                    onClick={() => startSimulation(tmpl)}
+                    className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer"
+                  >
+                    <Play className="w-3.5 h-3.5" />
+                    <span>Boshlash</span>
+                  </button>
                 </div>
               </div>
-            ) : (
-              <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
-                <CardContent className="text-center py-12">
-                  <p className="text-gray-500 dark:text-zinc-500 mb-4">
-                    Hali hech qanday senariyo yaratilmagan
-                  </p>
-                  <Button
-                    onClick={() => setActiveTab('create')}
-                    className="bg-blue-600 hover:bg-blue-700"
-                  >
-                    Birinchi Senariyoni Yaratish
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
+            ))}
+          </div>
+        </div>
+      )}
 
-          <TabsContent value="templates" className="mt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {templates.map(template => (
-                <Card
-                  key={template.id}
-                  className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl hover:shadow-2xl transition-shadow"
+      {/* ── 4. HISTORY TAB ── */}
+      {activeTab === 'history' && (
+        <div className="space-y-4">
+          {loadingHistory ? (
+            <div className="text-center py-16 bg-white dark:bg-zinc-900 rounded-3xl border border-gray-200 dark:border-zinc-800">
+              <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-2" />
+              <p className="text-xs text-gray-500">Tarix yuklanmoqda...</p>
+            </div>
+          ) : sessions.length === 0 ? (
+            <div className="text-center py-16 bg-white dark:bg-zinc-900 rounded-3xl border border-gray-200/80 dark:border-zinc-800">
+              <History className="w-10 h-10 text-gray-300 dark:text-zinc-600 mx-auto mb-3" />
+              <h3 className="text-sm font-semibold text-gray-700 dark:text-zinc-300">
+                Hali yakunlangan simulyatsiyalar yo‘q
+              </h3>
+              <p className="text-xs text-gray-400 dark:text-zinc-500 mt-1 mb-4">
+                Yangi senariy yaratib yoki shablonlardan birini tanlab amaliyotni boshlang.
+              </p>
+              <button
+                onClick={() => setActiveTab('create')}
+                className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all"
+              >
+                Senariy Yaratish
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {sessions.map(sess => (
+                <div
+                  key={sess.id}
+                  className="bg-white dark:bg-zinc-900 border border-gray-200/80 dark:border-zinc-800 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs"
                 >
-                  <CardHeader>
-                    <div className="flex justify-between items-start">
-                      <CardTitle className="text-blue-900 text-lg">{template.title}</CardTitle>
-                      <span className="text-2xl">
-                        {getScenarioTypeIcon(template.scenario_type)}
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300">
+                        {sess.scenario_data?.legal_domain || 'Huquqiy'}
+                      </span>
+                      <span className="text-xs text-gray-400">
+                        {new Date(sess.created_at).toLocaleDateString()}
                       </span>
                     </div>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-gray-700 dark:text-zinc-300 mb-4">{template.description}</p>
+                    <h4 className="text-sm font-bold text-gray-900 dark:text-white">
+                      {sess.scenario_data?.title || 'Yuridik Simulyatsiya'}
+                    </h4>
+                  </div>
 
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600 dark:text-zinc-400">Turi:</span>
-                        <span className="font-medium capitalize">{template.scenario_type}</span>
+                  <div className="flex items-center gap-4">
+                    {sess.score != null && (
+                      <div className="text-right">
+                        <span className="text-[10px] text-gray-400 block uppercase">Natija</span>
+                        <span className="text-sm font-bold text-blue-600 dark:text-blue-400">
+                          {sess.score}/100 (+{sess.xp_awarded || 0} XP)
+                        </span>
                       </div>
+                    )}
 
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600 dark:text-zinc-400">Qiyinlik:</span>
-                        <Badge className={getDifficultyColor(template.difficulty_level)}>
-                          {template.difficulty_level}
-                        </Badge>
-                      </div>
-
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600 dark:text-zinc-400">Murakkablik:</span>
-                        <Badge className={getComplexityColor(template.complexity || 'standard')}>
-                          {template.complexity}
-                        </Badge>
-                      </div>
-
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600 dark:text-zinc-400">Davomiyligi:</span>
-                        <span className="font-medium">{template.estimated_duration} daqiqa</span>
-                      </div>
-
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600 dark:text-zinc-400">Ishtirokchilar:</span>
-                        <span className="font-medium">{template.participants_count} kishi</span>
-                      </div>
-                    </div>
-
-                    <Button
-                      onClick={() => {
-                        // Shablon parametrlarini qo'llash
-                        const typeMap: Record<string, string> = {
-                          tergov: 'criminal',
-                          sud: 'criminal',
-                          muzokara: 'civil',
-                          mehnat: 'labor',
-                          oila: 'family',
-                          jinoyat: 'criminal',
-                          fuqarolik: 'civil',
-                        }
-                        const diffMap: Record<string, string> = {
-                          "boshlang'ich": 'beginner',
-                          "o'rta": 'intermediate',
-                          murakkab: 'advanced',
-                          beginner: 'beginner',
-                          intermediate: 'intermediate',
-                          advanced: 'advanced',
-                        }
-                        setScenarioType(
-                          typeMap[template.scenario_type] || template.scenario_type || 'civil'
-                        )
-                        setDifficultyLevel(
-                          diffMap[template.difficulty_level] ||
-                            template.difficulty_level ||
-                            'intermediate'
-                        )
-                        setComplexity(template.complexity || 'standard')
-                        setParticipantsCount(template.participants_count || 3)
-                        setDuration(template.estimated_duration || 45)
-                        setActiveTab('create')
-                        // Avtomatik generatsiya
-                        setTimeout(() => handleGenerateScenario(), 100)
-                      }}
-                      disabled={isGenerating}
-                      className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white"
+                    <button
+                      onClick={() => startSimulation(sess.scenario_data)}
+                      className="px-3.5 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-700 dark:text-zinc-300 rounded-xl text-xs font-semibold transition-all"
                     >
-                      {isGenerating ? 'Yaratilmoqda...' : 'Ishlatish'}
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
-
-              {templates.length === 0 && (
-                <div className="col-span-full">
-                  <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
-                    <CardContent className="text-center py-12">
-                      <p className="text-gray-500 dark:text-zinc-500">Shablonlar yuklanmoqda...</p>
-                    </CardContent>
-                  </Card>
+                      Qayta ko‘rish
+                    </button>
+                  </div>
                 </div>
-              )}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="history" className="mt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {scenarios.map(scenario => (
-                <Card
-                  key={scenario.id}
-                  className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl hover:shadow-2xl transition-shadow cursor-pointer"
-                  onClick={() => {
-                    setCurrentScenario(scenario)
-                    setActiveTab('scenario')
-                  }}
-                >
-                  <CardHeader>
-                    <div className="flex flex-row items-center justify-between">
-                      <CardTitle className="text-blue-900 text-lg">{scenario.title}</CardTitle>
-                      <span className="text-2xl">
-                        {getScenarioTypeIcon(scenario.scenario_type)}
-                      </span>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <p className="text-sm text-gray-600 dark:text-zinc-400">
-                        {scenario.description}
-                      </p>
-
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600 dark:text-zinc-400">Turi:</span>
-                        <span className="font-medium capitalize">{scenario.scenario_type}</span>
-                      </div>
-
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600 dark:text-zinc-400">Ishtirokchilar:</span>
-                        <span className="font-medium">{scenario.participants.length} kishi</span>
-                      </div>
-
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600 dark:text-zinc-400">Davomiyligi:</span>
-                        <span className="font-medium">{scenario.estimated_duration} daqiqa</span>
-                      </div>
-
-                      <div className="pt-2 border-t border-gray-200 dark:border-zinc-800">
-                        <p className="text-xs text-gray-500 dark:text-zinc-500">
-                          {new Date(scenario.created_at).toLocaleDateString('uz-UZ')}
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
               ))}
-
-              {scenarios.length === 0 && (
-                <div className="col-span-full">
-                  <Card className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-xl">
-                    <CardContent className="text-center py-12">
-                      <p className="text-gray-500 dark:text-zinc-500 mb-4">
-                        Hali hech qanday senariylar mavjud emas
-                      </p>
-                      <Button
-                        onClick={() => setActiveTab('create')}
-                        className="bg-blue-600 hover:bg-blue-700"
-                      >
-                        Birinchi Senariyoni Yaratish
-                      </Button>
-                    </CardContent>
-                  </Card>
-                </div>
-              )}
             </div>
-          </TabsContent>
-        </Tabs>
-      </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }

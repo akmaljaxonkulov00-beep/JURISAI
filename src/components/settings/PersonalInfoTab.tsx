@@ -11,9 +11,6 @@ import {
   Mail,
   Phone,
   Calendar,
-  Building,
-  GraduationCap,
-  Briefcase,
 } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/app/providers'
@@ -26,9 +23,6 @@ interface FormData {
   email: string
   phone: string
   birthDate: string
-  specialization: string
-  university: string
-  courseLevel: string
 }
 
 export default function PersonalInfoTab() {
@@ -42,9 +36,6 @@ export default function PersonalInfoTab() {
     email: '',
     phone: '',
     birthDate: '',
-    specialization: '',
-    university: '',
-    courseLevel: '',
   })
 
   const [formData, setFormData] = useState<FormData>(initialData)
@@ -69,9 +60,6 @@ export default function PersonalInfoTab() {
               email: d.email || user?.email || '',
               phone: d.phone || user?.phone || '',
               birthDate: d.birthDate ? d.birthDate.split('T')[0] : '',
-              specialization: d.specialization || '',
-              university: d.university || '',
-              courseLevel: d.courseLevel || '',
             }
             setInitialData(loaded)
             setFormData(loaded)
@@ -288,60 +276,6 @@ export default function PersonalInfoTab() {
                 value={formData.birthDate}
                 onChange={handleInputChange}
                 className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-zinc-800/80 border border-gray-200 dark:border-zinc-700 rounded-xl text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-              />
-            </div>
-          </div>
-
-          {/* Specialization */}
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-zinc-400 mb-1.5">
-              {t('specialization', 'Mutaxassislik')}
-            </label>
-            <div className="relative">
-              <Briefcase className="w-4 h-4 text-gray-400 dark:text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                name="specialization"
-                value={formData.specialization}
-                onChange={handleInputChange}
-                className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-zinc-800/80 border border-gray-200 dark:border-zinc-700 rounded-xl text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-                placeholder="Fuqarolik huquqi / Korporativ huquq"
-              />
-            </div>
-          </div>
-
-          {/* University / Workplace */}
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-zinc-400 mb-1.5">
-              {t('university', 'Universitet / Ish joyi')}
-            </label>
-            <div className="relative">
-              <Building className="w-4 h-4 text-gray-400 dark:text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                name="university"
-                value={formData.university}
-                onChange={handleInputChange}
-                className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-zinc-800/80 border border-gray-200 dark:border-zinc-700 rounded-xl text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-                placeholder="Toshkent Davlat Yuridik Universiteti"
-              />
-            </div>
-          </div>
-
-          {/* Course / Level */}
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-zinc-400 mb-1.5">
-              {t('courseLevel', 'Kurs / Bosqich')}
-            </label>
-            <div className="relative">
-              <GraduationCap className="w-4 h-4 text-gray-400 dark:text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                name="courseLevel"
-                value={formData.courseLevel}
-                onChange={handleInputChange}
-                className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-zinc-800/80 border border-gray-200 dark:border-zinc-700 rounded-xl text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-                placeholder="4-bosqich talabasi"
               />
             </div>
           </div>
