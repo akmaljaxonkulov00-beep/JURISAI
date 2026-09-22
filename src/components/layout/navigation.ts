@@ -125,7 +125,7 @@ export const NAV_GROUPS: NavGroup[] = [
       {
         id: 'profile',
         name: 'Sozlamalar',
-        href: '/profile',
+        href: '/settings',
         icon: Settings,
         requiresAuth: true,
         badge: null,

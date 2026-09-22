@@ -1,61 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireUser } from '@/lib/server-auth'
 import { supabase } from '@/lib/supabase'
+import { DecisionCase } from '@/types/decision-tree'
 
-interface TreeNodeLite {
-  id: string
-  label: string
-  type?: string
-  probability?: number
-  duration?: string
-  cost?: number
-  legalBasis?: string
-  details?: string
-  children?: TreeNodeLite[]
-}
-
-function countNodes(node: TreeNodeLite): number {
-  let count = 1
-  if (Array.isArray(node.children)) {
-    for (const c of node.children) count += countNodes(c)
-  }
-  return count
-}
-
-function countOutcomes(node: TreeNodeLite): number {
-  if (node.type === 'outcome') return 1
-  let count = 0
-  if (Array.isArray(node.children)) {
-    for (const c of node.children) count += countOutcomes(c)
-  }
-  return count
-}
-
-function avgProbability(node: TreeNodeLite, acc: number[] = []): number {
-  if (typeof node.probability === 'number') acc.push(node.probability)
-  if (Array.isArray(node.children)) {
-    for (const c of node.children) avgProbability(c, acc)
-  }
-  return acc.length ? acc.reduce((s, p) => s + p, 0) / acc.length : 55
-}
-
-interface TreeRow {
-  id: string
-  name?: string
-  case_type?: string | null
-  scenario?: string | null
-  tree?: unknown
-  created_at?: string | null
-  updated_at?: string | null
-}
-
-interface MappedTree {
-  id: string
-  status: string
-  confidence_score: number
-}
-
-/** Foydalanuvchining REAL decision_trees jadvalidagi daraxtlarini qaytaradi (mock yo'q) */
+/**
+ * GET /api/decision-tree/trees
+ * Foydalanuvchining barcha saqlangan qaror daraxtlarini qidirish, filtrlash va saralash bilan qaytaradi.
+ */
 export async function GET(request: NextRequest) {
   try {
     const auth = await requireUser(request)
@@ -63,86 +14,164 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url)
     const case_type = searchParams.get('case_type')
-    const limit = Math.min(parseInt(searchParams.get('limit') || '20') || 20, 100)
-    const offset = Math.max(parseInt(searchParams.get('offset') || '0') || 0, 0)
+    const search = searchParams.get('search')?.toLowerCase().trim()
+    const limit = Math.min(parseInt(searchParams.get('limit') || '50', 10) || 50, 100)
+    const offset = Math.max(parseInt(searchParams.get('offset') || '0', 10) || 0, 0)
 
     let query = supabase
       .from('decision_trees')
-      .select('*')
+      .select('*', { count: 'exact' })
       .eq('user_id', auth.user.id)
       .order('updated_at', { ascending: false })
       .range(offset, offset + limit - 1)
-    if (case_type) query = query.eq('case_type', case_type)
 
-    const { data, error } = await query
+    if (case_type && case_type !== 'all') {
+      query = query.eq('case_type', case_type)
+    }
+
+    if (search) {
+      query = query.or(
+        `name.ilike.%${search}%,objectives.ilike.%${search}%,known_facts.ilike.%${search}%`
+      )
+    }
+
+    const { data, count, error } = await query
+
     if (error) {
-      // Jadval mavjud bo'lmasa — bo'sh (lekin valid) javob, mock emas
-      console.error('Decision trees get error:', error.message)
+      console.error('Decision trees fetch error:', error.message)
       return NextResponse.json({
         trees: [],
-        pagination: { total: 0, limit, offset, has_more: false },
-        filters: { case_type: case_type || null },
-        summary: { total_trees: 0, active_trees: 0, completed_trees: 0, average_confidence: 0 },
-        last_updated: new Date().toISOString(),
+        total: 0,
+        error: error.message,
       })
     }
 
-    const rows = (data || []) as TreeRow[]
-    const trees = rows.map(t => {
-      const tree: TreeNodeLite = (t.tree as TreeNodeLite) || {
-        label: t.name || 'Daraxt',
-        type: 'root',
+    const rows = (data || []) as any[]
+    const trees = rows.map(r => {
+      const treeObj = r.tree
+      const countNodes = (node: any): number => {
+        if (!node || typeof node !== 'object') return 0
+        let count = 1
+        if (Array.isArray(node.children)) {
+          for (const c of node.children) count += countNodes(c)
+        }
+        return count
       }
-      const total = countNodes(tree)
-      const outcomes = countOutcomes(tree)
-      const avgProb = Math.round(avgProbability(tree))
+      const computeConfidence = (node: any, acc: number[] = []): number => {
+        if (!node || typeof node !== 'object') return 75
+        if (typeof node.confidence === 'number') acc.push(node.confidence)
+        else if (typeof node.probability === 'number') acc.push(node.probability)
+        if (Array.isArray(node.children)) {
+          for (const c of node.children) computeConfidence(c, acc)
+        }
+        return acc.length ? Math.round(acc.reduce((s, p) => s + p, 0) / acc.length) : 75
+      }
+
+      const total_nodes = countNodes(treeObj) || 1
+      const confidence_score = computeConfidence(treeObj)
+
       return {
-        id: t.id,
-        title: t.name || tree.label || 'Nomsiz daraxt',
-        case_type: t.case_type || 'huquqiy',
-        description: t.scenario || '',
-        complexity_level: outcomes >= 8 ? 'high' : outcomes >= 4 ? 'medium' : 'low',
-        created_at: t.created_at,
-        updated_at: t.updated_at,
-        status: 'active',
-        confidence_score: Math.min(95, Math.max(35, Math.round(avgProb * 0.6 + 40 * 0.4))),
-        total_nodes: total,
-        completed_nodes: 0,
-        current_node: tree.id || 'root',
-        progress: 0,
-        estimated_completion: null,
-        outcomes: [],
+        ...r,
+        total_nodes,
+        confidence_score,
       }
     })
-
-    const active = trees.filter(t => t.status === 'active').length
-    const completed = trees.filter(t => t.status === 'completed').length
 
     return NextResponse.json({
+      success: true,
       trees,
-      pagination: {
-        total: trees.length,
-        limit,
-        offset,
-        has_more: trees.length >= limit,
-      },
-      filters: { case_type: case_type || null },
-      summary: {
-        total_trees: trees.length,
-        active_trees: active,
-        completed_trees: completed,
-        average_confidence: trees.length
-          ? Math.round(
-              trees.reduce((s: number, t: MappedTree) => s + t.confidence_score, 0) / trees.length
-            )
-          : 0,
-      },
-      last_updated: new Date().toISOString(),
+      total: count || trees.length,
+      limit,
+      offset,
     })
   } catch (error) {
-    console.error('Decision trees get error:', error)
+    console.error('Decision trees GET error:', error)
     return NextResponse.json(
-      { error: 'Qaror daraxtlarini olishda xatolik yuz berdi' },
+      { success: false, error: 'Qaror daraxtlarini olishda xatolik yuz berdi' },
+      { status: 500 }
+    )
+  }
+}
+
+/**
+ * POST /api/decision-tree/trees
+ * Yangi qaror daraxtini Supabase bazasiga saqlash.
+ */
+export async function POST(request: NextRequest) {
+  try {
+    const auth = await requireUser(request)
+    if (!auth.ok) return auth.response
+
+    const body = await request.json().catch(() => ({}))
+    const {
+      name,
+      case_type = 'fuqarolik',
+      user_role = 'davogar',
+      objectives = '',
+      known_facts = '',
+      evidence_docs = '',
+      opposing_party = '',
+      deadlines = '',
+      additional_notes = '',
+      tree,
+      analysis = {},
+      selected_path = [],
+      evidence_state = {},
+      notes = '',
+    } = body
+
+    if (!name || !tree) {
+      return NextResponse.json(
+        { success: false, error: 'Ish nomi va daraxt tuzilmasi talab qilinadi' },
+        { status: 400 }
+      )
+    }
+
+    const now = new Date().toISOString()
+    const payload = {
+      user_id: auth.user.id,
+      name: String(name).trim(),
+      case_type: String(case_type).trim(),
+      user_role: String(user_role).trim(),
+      objectives: String(objectives || '').trim(),
+      known_facts: String(known_facts || '').trim(),
+      evidence_docs: String(evidence_docs || '').trim(),
+      opposing_party: String(opposing_party || '').trim(),
+      deadlines: String(deadlines || '').trim(),
+      additional_notes: String(additional_notes || '').trim(),
+      tree,
+      analysis,
+      selected_path,
+      evidence_state,
+      notes: String(notes || '').trim(),
+      status: 'active',
+      created_at: now,
+      updated_at: now,
+    }
+
+    const { data, error } = await supabase
+      .from('decision_trees')
+      .insert(payload)
+      .select('*')
+      .single()
+
+    if (error) {
+      console.error('Decision tree save error:', error.message)
+      return NextResponse.json(
+        { success: false, error: 'Daraxtni saqlashda maʼlumotlar bazasi xatosi: ' + error.message },
+        { status: 500 }
+      )
+    }
+
+    return NextResponse.json({
+      success: true,
+      case: data,
+      message: 'Qarorlar daraxti muvaffaqiyatli saqlandi',
+    })
+  } catch (error) {
+    console.error('Decision tree POST error:', error)
+    return NextResponse.json(
+      { success: false, error: 'Daraxtni saqlashda server xatosi' },
       { status: 500 }
     )
   }

@@ -34,6 +34,7 @@ import {
   CheckCircle,
 } from 'lucide-react'
 import UsageLimitIndicator from '@/components/ai/UsageLimitIndicator'
+import ActivityHistoryModal from '@/components/dashboard/ActivityHistoryModal'
 
 interface UserStats {
   xp: number
@@ -46,6 +47,7 @@ interface UserStats {
   rank: string
   achievements: Achievement[]
   recentActivity: Activity[]
+  allActivity?: Activity[]
 }
 
 interface Achievement {
@@ -74,6 +76,7 @@ export default function Dashboard() {
   const [userStats, setUserStats] = useState<UserStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [profileImage, setProfileImage] = useState<string | null>(null)
+  const [showHistoryModal, setShowHistoryModal] = useState(false)
 
   // Auth guard — tizimga kirmagan foydalanuvchini signin sahifasiga yo'naltirish
   useEffect(() => {
@@ -122,7 +125,7 @@ export default function Dashboard() {
       try {
         const { getAuthHeaders } = await import('@/lib/api-auth-client')
         const authHeaders = await getAuthHeaders()
-        const res = await fetch('/api/user/stats', {
+        const res = await fetch('/api/user/stats?limit=6', {
           headers: { ...authHeaders },
           cache: 'no-cache',
         })
@@ -139,6 +142,7 @@ export default function Dashboard() {
             rank: d.rank || t('dashboardNewUser'),
             achievements: Array.isArray(d.achievements) ? d.achievements : [],
             recentActivity: Array.isArray(d.recentActivity) ? d.recentActivity : [],
+            allActivity: Array.isArray(d.allActivity) ? d.allActivity : [],
           }
           setUserStats(realStats)
           return
@@ -222,10 +226,10 @@ export default function Dashboard() {
   }
 
   const renderSidebar = () => (
-    <div className="w-80 glass-strong rounded-2xl shadow-2xl overflow-hidden">
+    <div className="w-80 glass-strong rounded-2xl shadow-2xl relative">
       {/* User Profile Section */}{' '}
       <div className="p-6 border-b border-gray-100 dark:border-zinc-800/50 dark:border-gray-700/50 relative">
-        <div className="absolute top-4 right-4 z-10">
+        <div className="absolute top-4 right-4 z-20">
           <NotificationBell />
         </div>
         <div className="flex items-center space-x-4">
@@ -486,38 +490,48 @@ export default function Dashboard() {
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Recent Activity */}
-        <Card className="lg:col-span-2 card-default rounded-2xl overflow-hidden">
-          <CardHeader className="border-b border-gray-100 dark:border-zinc-800/50 dark:border-gray-700/50 pb-4">
+        <Card className="lg:col-span-2 card-default rounded-2xl overflow-hidden flex flex-col justify-between">
+          <CardHeader className="border-b border-gray-100 dark:border-zinc-800/50 dark:border-gray-700/50 pb-3 flex flex-row items-center justify-between">
             <CardTitle className="flex items-center space-x-2 text-gray-800 dark:text-white">
               <Clock className="w-5 h-5 text-blue-500" />
-              <span className="text-lg">{t('dashboardRecentActivity')}</span>
+              <span className="text-base sm:text-lg">
+                {t('dashboardRecentActivity', 'So‘nggi faoliyat')}
+              </span>
             </CardTitle>
+            {userStats?.recentActivity && userStats.recentActivity.length > 0 && (
+              <button
+                onClick={() => setShowHistoryModal(true)}
+                className="text-xs font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 hover:underline transition-colors"
+              >
+                {t('details', 'Barchasini ko‘rish')} →
+              </button>
+            )}
           </CardHeader>
-          <CardContent className="pt-5">
+          <CardContent className="pt-4 flex-1 max-h-[380px] overflow-y-auto pr-1">
             {userStats?.recentActivity && userStats.recentActivity.length > 0 ? (
-              <div className="space-y-3">
-                {userStats.recentActivity.map((activity, idx) => (
+              <div className="space-y-2.5">
+                {userStats.recentActivity.slice(0, 6).map((activity, idx) => (
                   <div
                     key={activity.id}
-                    className="stagger-enter flex items-start space-x-4 p-4 rounded-xl hover:bg-gray-50 dark:bg-zinc-800/50/80 dark:hover:bg-gray-800/30 transition-all duration-200 card-hover"
-                    style={{ animationDelay: `${idx * 80}ms` }}
+                    className="stagger-enter flex items-start space-x-3.5 p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition-all duration-200 card-hover"
+                    style={{ animationDelay: `${idx * 60}ms` }}
                   >
-                    <div className="w-10 h-10 bg-gradient-to-br from-blue-50 to-green-50 rounded-xl flex items-center justify-center text-lg font-medium text-blue-600">
+                    <div className="w-9 h-9 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/40 dark:to-indigo-950/40 rounded-xl flex items-center justify-center text-base font-medium text-blue-600 dark:text-blue-400 flex-shrink-0">
                       {getActivityIcon(activity.type)}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-semibold text-gray-900 dark:text-white text-sm truncate">
+                      <div className="flex items-center justify-between gap-2">
+                        <h4 className="font-semibold text-gray-900 dark:text-white text-xs sm:text-sm truncate">
                           {activity.title}
                         </h4>
-                        <Badge className="bg-emerald-50 text-emerald-700 border-0 text-xs font-medium ml-2 flex-shrink-0">
+                        <Badge className="bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border-0 text-[11px] font-bold ml-2 flex-shrink-0">
                           +{activity.xp} XP
                         </Badge>
                       </div>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 dark:text-zinc-500 mt-0.5">
+                      <p className="text-xs text-gray-500 dark:text-zinc-400 mt-0.5 line-clamp-1 break-words">
                         {activity.description}
                       </p>
-                      <span className="text-xs text-gray-400 dark:text-gray-500 dark:text-zinc-500 mt-1 block">
+                      <span className="text-[10px] text-gray-400 dark:text-zinc-500 mt-1 block">
                         {new Date(activity.timestamp).toLocaleDateString('uz-UZ', {
                           day: 'numeric',
                           month: 'long',
@@ -528,9 +542,8 @@ export default function Dashboard() {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-10 text-gray-400 dark:text-zinc-500 text-sm">
-                Hozircha so&apos;nggi faoliyat yo&apos;q. Kazus yechish yoki AI bilan ishlash orqali
-                boshlang!
+              <div className="text-center py-10 text-gray-400 dark:text-zinc-500 text-xs sm:text-sm">
+                {t('emptyState', 'Hozircha so‘nggi faoliyat yo‘q.')}
               </div>
             )}
           </CardContent>
@@ -663,6 +676,18 @@ export default function Dashboard() {
       <AIChatFloatingWidget />
       {/* Interactive onboarding tour for new users */}
       <OnboardingTour />
+      {/* Full Activity History Modal */}
+      <ActivityHistoryModal
+        isOpen={showHistoryModal}
+        onClose={() => setShowHistoryModal(false)}
+        activities={(userStats?.allActivity || userStats?.recentActivity || []).map(a => ({
+          id: a.id,
+          action: a.type,
+          title: a.title,
+          xp: a.xp,
+          timestamp: a.timestamp,
+        }))}
+      />
     </div>
   )
 }

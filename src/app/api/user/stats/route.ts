@@ -84,6 +84,7 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url)
     const days = parseInt(searchParams.get('days') || '9999')
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '6')))
     const supabase = getSupabaseAdmin()
 
     // 1. User data
@@ -238,8 +239,18 @@ export async function GET(request: NextRequest) {
       },
     ].filter(p => p.count > 0)
 
-    // Faoliyat tarixi
-    const recentActivity = usageLogs.slice(0, 30).map(log => ({
+    // Faoliyat tarixi (Dashboard uchun limitlangan preview)
+    const recentActivity = usageLogs.slice(0, limit).map(log => ({
+      id: String(log.id || ''),
+      action: String(log.action || ''),
+      title: getActionTitle(String(log.action || '')),
+      icon: getActionIcon(String(log.action || '')),
+      xp: getXPForAction(String(log.action || '')),
+      timestamp: String(log.created_at || ''),
+    }))
+
+    // To'liq faoliyat tarixi
+    const allActivity = usageLogs.slice(0, 100).map(log => ({
       id: String(log.id || ''),
       action: String(log.action || ''),
       title: getActionTitle(String(log.action || '')),
@@ -295,6 +306,7 @@ export async function GET(request: NextRequest) {
 
       // Activity history
       recentActivity,
+      allActivity,
       recentIRAC,
       achievements: achievementList,
 
