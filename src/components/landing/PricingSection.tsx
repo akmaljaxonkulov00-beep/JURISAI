@@ -65,11 +65,11 @@ const PricingSection: React.FC<PricingSectionProps> = ({ className }) => {
       description: 'Boshlash uchun bepul reja',
       features: [
         "To'liq qonunlar bazasi — cheksiz",
-        "10 ta AI chat so'rovi / oy",
-        '3 ta IRAC tahlili / oy',
-        '3 ta hujjat generator / oy',
-        '5 ta ovozli yozuv (STT) / oy',
-        '3 ta senariy generator / oy',
+        "30 ta AI chat so'rovi / oy",
+        '10 ta IRAC tahlili / oy',
+        '10 ta hujjat generator / oy',
+        '10 ta ovozli yozuv (STT) / oy',
+        '5 ta senariy generator / oy',
         'Asboblar, jamiyat, statistika — cheksiz',
       ],
       cta: 'Bepul boshlash',
@@ -88,18 +88,18 @@ const PricingSection: React.FC<PricingSectionProps> = ({ className }) => {
     {
       id: 'standart',
       name: 'Standart',
-      price: billingCycle === 'monthly' ? 45000 : 432000,
-      period: billingCycle === 'monthly' ? 'oyiga' : 'yiliga',
+      price: 29000,
+      period: 'oyiga',
       description: 'Faol foydalanuvchilar uchun keng imkoniyatlar',
       features: [
-        "200 ta AI chat so'rovi / oy",
-        'Cheksiz IRAC tahlili',
+        "300 ta AI chat so'rovi / oy",
+        '50 ta IRAC tahlili / oy',
         '50 ta hujjat generator / oy',
-        '20 ta hujjat tahlili / oy',
-        '20 ta qarorlar daraxti / oy',
+        '30 ta hujjat tahlili / oy',
+        '30 ta qarorlar daraxti / oy',
         '100 ta ovozli yozuv (STT) / oy',
-        '5 ta virtual sud sessiyasi / oy',
-        '20 ta senariy generator / oy',
+        '15 ta virtual sud sessiyasi / oy',
+        '30 ta senariy generator / oy',
       ],
       popular: true,
       cta: 'Tanlash',
@@ -118,14 +118,17 @@ const PricingSection: React.FC<PricingSectionProps> = ({ className }) => {
     {
       id: 'pro',
       name: 'Pro',
-      price: billingCycle === 'monthly' ? 140000 : 1344000,
-      period: billingCycle === 'monthly' ? 'oyiga' : 'yiliga',
+      price: 79000,
+      period: 'oyiga',
       description: 'Professional huquqshunoslar va advokatlar uchun',
       features: [
-        "Cheksiz AI chat so'rovlari",
-        'Cheksiz IRAC, hujjat, daraxt, senariy',
-        'Cheksiz ovozli yozuv (STT)',
-        'Cheksiz virtual sud sessiyalari',
+        "AI chat so'rovlari — Fair Use",
+        'IRAC — Fair Use',
+        'Hujjat — Fair Use',
+        'Daraxt — Fair Use',
+        'Senariy — Fair Use',
+        'Ovozli yozuv (STT) — Fair Use',
+        '50 ta virtual sud sessiyasi / oy',
         'Shaxsiy maslahatchi',
         'Ekspert konsultatsiyasi',
       ],
@@ -144,22 +147,30 @@ const PricingSection: React.FC<PricingSectionProps> = ({ className }) => {
     },
   ]
 
-  // Baza ma'lumoti bor bo'lsa — narx va imkoniyatlar bazadan keladi,
-  // aks holda hardcoded (dizayn/ikonlar har ikkala holatda ham saqlanadi)
-  const plans: PricingPlan[] = BASE_PLANS.map(base => {
-    const db = dbPlans[base.id]
-    if (!db) return base
-    return {
-      ...base,
-      price: db.price ?? base.price,
-      features: db.features.length > 0 ? db.features : base.features,
-    }
-  }).sort((a, b) => (a.price ?? 0) - (b.price ?? 0))
-
   const getYearlyDiscount = (monthlyPrice: number) => {
     const yearlyPrice = monthlyPrice * 12
     return Math.round(yearlyPrice * 0.8) // 20% discount
   }
+
+  // Baza ma'lumoti bor bo'lsa — narx va imkoniyatlar bazadan keladi,
+  // aks holda hardcoded (dizayn/ikonlar har ikkala holatda ham saqlanadi)
+  const plans: PricingPlan[] = BASE_PLANS.map(base => {
+    const db = dbPlans[base.id]
+    const baseMonthlyPrice = db?.price ?? base.price
+    const finalPrice =
+      baseMonthlyPrice === null || baseMonthlyPrice === 0
+        ? baseMonthlyPrice
+        : billingCycle === 'yearly'
+          ? getYearlyDiscount(baseMonthlyPrice)
+          : baseMonthlyPrice
+
+    return {
+      ...base,
+      price: finalPrice,
+      period: billingCycle === 'monthly' ? 'oyiga' : 'yiliga',
+      features: db && db.features.length > 0 ? db.features : base.features,
+    }
+  }).sort((a, b) => (a.price ?? 0) - (b.price ?? 0))
 
   const formatPrice = (price: number | null) => {
     if (price === null) return 'Custom'

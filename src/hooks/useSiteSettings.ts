@@ -26,7 +26,7 @@ const DEFAULT_SETTINGS: SiteSettings = {
     "JURISTIV tomonidan berilgan ma'lumotlar faqat ma'lumot uchun. Rasmiy huquqiy maslahat o'rnini bosa olmaydi.",
   systemPrompt: 'You are Juristiv — an expert legal consultant...',
   paymentCardNumber: '8600 1234 5678 9012',
-  paymentDetails: 'Click: *123# 45000 UZS / Payme: 8600 1234 5678 9012',
+  paymentDetails: 'Click: *123# 29000 UZS / Payme: 8600 1234 5678 9012',
 }
 
 export function useSiteSettings(): SiteSettings {
