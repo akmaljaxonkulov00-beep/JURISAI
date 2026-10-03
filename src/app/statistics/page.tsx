@@ -173,7 +173,7 @@ export default function Statistics() {
 
   // Realtime refresh
   useEffect(() => {
-    const refresh = () => loadStats()
+    const refresh = () => loadStats(true)
     window.addEventListener('stats-updated', refresh)
     return () => window.removeEventListener('stats-updated', refresh)
   }, [loadStats])

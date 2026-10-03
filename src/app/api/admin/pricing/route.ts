@@ -53,6 +53,8 @@ export async function POST(request: NextRequest) {
       features: Array.isArray(plan.features) ? plan.features : [],
       case_limit: Number(plan.caseLimit || plan.case_limit || -1),
       limits: limitsMap[plan.id as string] || (plan.limits as any) || {},
+      discount_percent: Number(plan.discountPercent || plan.discount_percent || 0),
+      discount_label: String(plan.discountLabel || plan.discount_label || ''),
       updated_at: new Date().toISOString(),
     }))
 

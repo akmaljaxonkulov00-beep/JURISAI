@@ -92,6 +92,13 @@ export default function Dashboard() {
     if (user) {
       loadUserStats()
     }
+    const handleStatsUpdated = () => {
+      if (user) loadUserStats()
+    }
+    window.addEventListener('stats-updated', handleStatsUpdated)
+    return () => {
+      window.removeEventListener('stats-updated', handleStatsUpdated)
+    }
   }, [user])
 
   const handleLogout = async () => {

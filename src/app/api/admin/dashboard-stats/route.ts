@@ -153,13 +153,45 @@ export async function GET(request: NextRequest) {
       /* ignore */
     }
 
-    // ── 5. AI requests (estimated from articles count) ──
-    result.total_ai_requests = Math.round(result.total_documents * 0.3)
+    // ── 5. Real AI requests from usage_logs ──
+    try {
+      const { count: aiCount } = await supabase
+        .from('usage_logs')
+        .select('*', { count: 'exact', head: true })
+        .ilike('action', '%ai%')
+      result.total_ai_requests = aiCount ?? 0
+    } catch {
+      result.total_ai_requests = 0
+    }
+
+    // ── 6. Documents generated today from tool_history & usage_logs ──
+    try {
+      const now = new Date()
+      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString()
+      const { count: docTodayCount } = await supabase
+        .from('tool_history')
+        .select('*', { count: 'exact', head: true })
+        .eq('tool_type', 'document')
+        .gte('created_at', todayStart)
+
+      if (docTodayCount !== null && docTodayCount > 0) {
+        result.documents_generated_today = docTodayCount
+      } else {
+        const { count: usageDocCount } = await supabase
+          .from('usage_logs')
+          .select('*', { count: 'exact', head: true })
+          .ilike('action', '%doc%')
+          .gte('created_at', todayStart)
+        result.documents_generated_today = usageDocCount ?? 0
+      }
+    } catch {
+      result.documents_generated_today = 0
+    }
 
     const res = NextResponse.json({
       success: true,
       stats: result,
-      source: 'auth.users',
+      source: 'database_and_auth',
     })
     res.headers.set('Cache-Control', 'no-store, max-age=0')
     return res

@@ -111,8 +111,27 @@ QAT'IY QOIDALAR:
       // Validatsiya xatosi javobni buzmasin
     }
 
+    // XP mukofoti (+5 XP)
+    let xpResult = null
+    try {
+      const { awardUserXP } = await import('@/lib/xp-engine')
+      xpResult = await awardUserXP({
+        userId: auth.user.id,
+        xp: 5,
+        action: 'ai-chat',
+        title: 'AI yuridik maslahat',
+        description: 'AI yuridik maslahat so‘rovi',
+        idempotencyKey: `ai_chat_${auth.user.id}_${Date.now()}`,
+      })
+    } catch (e) {
+      console.warn('AI chat XP award error:', e)
+    }
+
     return NextResponse.json({
       response: aiResponse,
+      xpAwarded: xpResult?.xpEarned || 0,
+      totalXp: xpResult?.totalXp,
+      level: xpResult?.level,
       suggestions: [
         'Batafsil tushuntiring',
         "Qonun moddalarini ko'rsating",

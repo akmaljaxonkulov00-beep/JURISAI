@@ -217,7 +217,36 @@ export async function awardUserXP(options: AwardXPOptions): Promise<AwardXPResul
             unlocked_at: new Date().toISOString(),
           })
           unlockedAchievements.push(m.title)
+
+          // Yutuq bildirishnomasi
+          await supabase.from('user_notifications').insert({
+            user_id: userId,
+            type: 'success',
+            category: 'achievement',
+            title: `Yangi yutuq: ${m.title}!`,
+            message: m.description,
+            action_url: '/statistics',
+            action_text: 'Statistikani ko‘rish',
+            read: false,
+            created_at: new Date().toISOString(),
+          })
         }
+      }
+
+      // Daraja oshganida bildirishnoma
+      const oldLevel = Number(userRecord?.level || 1)
+      if (newLevel > oldLevel) {
+        await supabase.from('user_notifications').insert({
+          user_id: userId,
+          type: 'success',
+          category: 'achievement',
+          title: `Daraja oshdi: ${newLevel}-daraja!`,
+          message: `Tabriklaymiz! Siz ${newLevel}-darajaga ko‘tarildingiz (${newXp} XP).`,
+          action_url: '/dashboard',
+          action_text: 'Dashboardga o‘tish',
+          read: false,
+          created_at: new Date().toISOString(),
+        })
       }
     } catch (achErr) {
       console.warn('Achievement check error:', achErr)
