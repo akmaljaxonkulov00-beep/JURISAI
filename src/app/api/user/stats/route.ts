@@ -73,15 +73,48 @@ export async function GET(request: NextRequest) {
     const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '6', 10)))
     const supabase = getSupabaseAdmin()
 
-    // 1. Fetch user data from registered_users
-    const { data: userData } = await supabase
+    // 1. Fetch user data from registered_users (by ID, then by Email, or auto-provision)
+    let { data: userData } = await supabase
       .from('registered_users')
       .select('id, name, full_name, email, created_at, subscription_plan, xp, level')
       .eq('id', auth.user.id)
       .maybeSingle()
 
+    if (!userData && auth.user.email) {
+      const { data: byEmail } = await supabase
+        .from('registered_users')
+        .select('id, name, full_name, email, created_at, subscription_plan, xp, level')
+        .eq('email', auth.user.email.toLowerCase().trim())
+        .maybeSingle()
+      if (byEmail) {
+        userData = byEmail
+      }
+    }
+
     if (!userData) {
-      return NextResponse.json({ error: 'Foydalanuvchi topilmadi' }, { status: 404 })
+      // Auto-provision initial record for authenticated user
+      const initialUser = {
+        id: auth.user.id,
+        email: auth.user.email || '',
+        name: auth.user.email?.split('@')[0] || 'Foydalanuvchi',
+        full_name: auth.user.email?.split('@')[0] || 'Foydalanuvchi',
+        xp: 0,
+        level: 1,
+        role: 'USER',
+        subscription_plan: 'free',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }
+      try {
+        const { data: created } = await supabase
+          .from('registered_users')
+          .insert(initialUser)
+          .select('id, name, full_name, email, created_at, subscription_plan, xp, level')
+          .single()
+        userData = created || initialUser
+      } catch {
+        userData = initialUser
+      }
     }
 
     // 2. Fetch usage logs for user

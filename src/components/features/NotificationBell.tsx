@@ -42,7 +42,11 @@ export default function NotificationBell() {
 
   const loadNotifications = useCallback(async () => {
     try {
-      const res = await fetch('/api/notifications', { cache: 'no-cache' })
+      const { getAuthHeaders } = await import('@/lib/api-auth-client')
+      const headers = await getAuthHeaders()
+      if (!headers.Authorization) return // Skip when not logged in
+
+      const res = await fetch('/api/notifications', { headers, cache: 'no-cache' })
       if (res.ok) {
         const result = await res.json()
         if (result.success && Array.isArray(result.data)) {
@@ -122,9 +126,11 @@ export default function NotificationBell() {
   const markAllRead = async () => {
     setNotifications(prev => prev.map(n => ({ ...n, read: true })))
     try {
+      const { getAuthHeaders } = await import('@/lib/api-auth-client')
+      const headers = await getAuthHeaders()
       await fetch('/api/notifications', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...headers },
         body: JSON.stringify({ markAll: true }),
       })
     } catch {}
@@ -133,9 +139,11 @@ export default function NotificationBell() {
   const markRead = async (id: string) => {
     setNotifications(prev => prev.map(n => (n.id === id ? { ...n, read: true } : n)))
     try {
+      const { getAuthHeaders } = await import('@/lib/api-auth-client')
+      const headers = await getAuthHeaders()
       await fetch('/api/notifications', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...headers },
         body: JSON.stringify({ id }),
       })
     } catch {}
@@ -145,9 +153,11 @@ export default function NotificationBell() {
     setNotifications(prev => prev.filter(n => n.id !== id))
     if (selectedNotif?.id === id) setSelectedNotif(null)
     try {
+      const { getAuthHeaders } = await import('@/lib/api-auth-client')
+      const headers = await getAuthHeaders()
       await fetch('/api/notifications', {
         method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...headers },
         body: JSON.stringify({ id }),
       })
     } catch {}

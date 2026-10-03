@@ -153,7 +153,10 @@ export default function VirtualCourtPage() {
   }
 
   // ── API: Load Scenarios ──
+  const loadingScenariosRef = useRef(false)
   const loadScenarios = async () => {
+    if (loadingScenariosRef.current) return
+    loadingScenariosRef.current = true
     setLoading(true)
     setLoadingText('Sud ishlari bazasi yuklanmoqda...')
     try {
@@ -172,12 +175,16 @@ export default function VirtualCourtPage() {
     } catch {
       setErrorBanner('Ssenariylarni yuklashda xatolik yuz berdi')
     } finally {
+      loadingScenariosRef.current = false
       setLoading(false)
     }
   }
 
   // ── API: Load History ──
+  const loadingHistoryRef = useRef(false)
   const loadHistory = async () => {
+    if (loadingHistoryRef.current) return
+    loadingHistoryRef.current = true
     setLoadingHistory(true)
     try {
       const res = await fetch('/api/court-simulator', {
@@ -190,6 +197,7 @@ export default function VirtualCourtPage() {
         setHistoryList(data.history || [])
       }
     } catch {}
+    loadingHistoryRef.current = false
     setLoadingHistory(false)
   }
 
@@ -219,6 +227,7 @@ export default function VirtualCourtPage() {
 
   // ── API: Start Session ──
   const handleStartSession = async (scenarioToStart?: CourtScenario) => {
+    if (loading) return
     const sc = scenarioToStart || selectedScenario
     if (!sc) return
 

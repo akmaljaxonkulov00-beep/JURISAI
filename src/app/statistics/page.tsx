@@ -135,6 +135,7 @@ export default function Statistics() {
 
   // Cache stats for each time filter to avoid refetching
   const statsCacheRef = useRef<Record<string, StatsData>>({})
+  const inFlightRef = useRef(false)
 
   const loadStats = useCallback(
     async (forceRefresh = false) => {
@@ -144,6 +145,8 @@ export default function Statistics() {
         setLoading(false)
         return
       }
+      if (inFlightRef.current) return
+      inFlightRef.current = true
       setLoading(true)
       setError(null)
       try {
@@ -161,6 +164,7 @@ export default function Statistics() {
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Xatolik')
       } finally {
+        inFlightRef.current = false
         setLoading(false)
       }
     },

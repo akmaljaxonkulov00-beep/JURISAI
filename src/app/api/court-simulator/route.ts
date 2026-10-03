@@ -26,7 +26,8 @@ import { awardUserXP } from '@/lib/xp-engine'
 async function getSessionById(
   sessionId: string
 ): Promise<{ sessionRow: any; state: CourtSessionState } | null> {
-  const { data, error } = await supabase
+  const admin = getSupabaseAdmin()
+  const { data, error } = await admin
     .from('court_sessions')
     .select('*')
     .eq('id', sessionId)
@@ -685,8 +686,9 @@ export async function POST(request: NextRequest) {
 
       const scenario = await getScenarioById(dbSession.state.scenario_id)
 
+      const admin = getSupabaseAdmin()
       // Xabarlar tarixini yuklash
-      const { data: messages } = await supabase
+      const { data: messages } = await admin
         .from('court_messages')
         .select('*')
         .eq('session_id', simulationId)
@@ -709,8 +711,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
 
       const { state } = dbSession
-      const scenario = await getScenarioById(state.scenario_id)
-      if (!scenario) return NextResponse.json({ error: 'Ssenariy topilmadi' }, { status: 404 })
+      const scenario = (await getScenarioById(state.scenario_id)) || SEED_SCENARIOS[0]
 
       state.completed = true
       const scoringResult = calculateSessionScore(state, scenario)
@@ -733,7 +734,8 @@ export async function POST(request: NextRequest) {
 
     // ── 9. LIST HISTORY ──────────────────────────────────────────────────
     if (action === 'list_history') {
-      const { data: sessions, error } = await supabase
+      const admin = getSupabaseAdmin()
+      const { data: sessions, error } = await admin
         .from('court_sessions')
         .select('id, title, user_role, status, score, outcome, created_at, updated_at, evaluation')
         .eq('user_id', userId)

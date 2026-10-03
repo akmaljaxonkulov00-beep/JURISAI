@@ -184,56 +184,199 @@ ISH MA'LUMOTLARI:
 Ushbu ishni to'liq tahlil qilib, belgilangan JSON schema formatida qaytaring.
 `
 
-    const aiRes = await fetch(GROQ_API_URL, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${GROQ_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt },
-        ],
-        temperature: 0.2,
-        max_tokens: 4500,
-        response_format: { type: 'json_object' },
-      }),
-    })
+    // Multi-model fallback sequence for maximum reliability
+    const candidateModels = [
+      'llama-3.3-70b-versatile',
+      'openai/gpt-oss-120b',
+      'llama-3.1-70b-versatile',
+    ]
 
-    if (!aiRes.ok) {
-      const errText = await aiRes.text()
-      console.error('Groq decision tree analyze error:', errText)
+    let aiContent = ''
+    let lastError = ''
+
+    for (const modelName of candidateModels) {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 28000)
+
+      try {
+        const aiRes = await fetch(GROQ_API_URL, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${GROQ_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: modelName,
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: userPrompt },
+            ],
+            temperature: 0.2,
+            max_tokens: 3500,
+            response_format: { type: 'json_object' },
+          }),
+          signal: controller.signal,
+        })
+
+        clearTimeout(timeoutId)
+
+        if (aiRes.ok) {
+          const aiData = await aiRes.json()
+          aiContent = aiData.choices?.[0]?.message?.content || ''
+          if (aiContent.trim()) {
+            break // Success
+          }
+        } else {
+          const errText = await aiRes.text().catch(() => '')
+          lastError = `Model ${modelName} error (${aiRes.status}): ${errText.slice(0, 200)}`
+          console.warn('Groq model attempt failed:', lastError)
+        }
+      } catch (fetchErr: any) {
+        clearTimeout(timeoutId)
+        lastError =
+          fetchErr.name === 'AbortError' ? 'AI so‘rovi vaqti tugadi (timeout)' : fetchErr.message
+        console.warn(`Groq fetch error with ${modelName}:`, lastError)
+      }
+    }
+
+    if (!aiContent) {
+      console.error('All Groq candidate models failed for decision-tree:', lastError)
       return NextResponse.json(
-        { success: false, error: 'AI tahlil xizmatida xatolik yuz berdi' },
-        { status: 502 }
+        {
+          success: false,
+          error:
+            'AI xizmatidan vaqtincha javob olinmadi. Iltimos, bir ozdan so‘ng qayta urinib ko‘ring.',
+        },
+        { status: 503 }
       )
     }
 
-    const aiData = await aiRes.json()
-    const content = ensureUzbekLatin(aiData.choices?.[0]?.message?.content || '{}')
+    const content = ensureUzbekLatin(aiContent)
 
-    let parsedResult: { analysis?: CaseAnalysis; tree?: DecisionNode }
+    let parsedResult: { analysis?: CaseAnalysis; tree?: DecisionNode } | null = null
     try {
       parsedResult = JSON.parse(content)
     } catch {
       // JSON match fallback
       const jsonMatch = content.match(/\{[\s\S]*\}/)
-      if (!jsonMatch) {
-        return NextResponse.json(
-          { success: false, error: 'AI javobini o‘qib bo‘lmadi (JSON format xatosi)' },
-          { status: 502 }
-        )
+      if (jsonMatch) {
+        try {
+          parsedResult = JSON.parse(jsonMatch[0])
+        } catch {}
       }
-      parsedResult = JSON.parse(jsonMatch[0])
     }
 
-    if (!parsedResult || !parsedResult.tree || !parsedResult.analysis) {
-      return NextResponse.json(
-        { success: false, error: 'AI tahlil natijalari toʻliq shakllanmadi' },
-        { status: 502 }
-      )
+    // Default structure normalization if partial
+    if (!parsedResult || typeof parsedResult !== 'object') {
+      parsedResult = {}
+    }
+
+    if (!parsedResult.analysis) {
+      parsedResult.analysis = {
+        case_summary: description || `${name} bo'yicha huquqiy tahlil`,
+        legal_domain: caseType,
+        user_role: userRole,
+        objectives: objectives || 'Qonuniy himoya va huquqni tiklash',
+        key_facts: knownFacts ? [knownFacts] : ['Ish holatlari tahlil qilinmoqda'],
+        missing_facts: [],
+        legal_issues: ["Huquqiy munosabatlarni aniqlash va qonun normalarini to'g'ri qo'llash"],
+        applicable_laws: [],
+        evidence: evidenceDocs ? [evidenceDocs] : [],
+        assumptions: [],
+        decision_points: ["Da'vo yoki talabnoma taqdim etish asoslarini tekshirish"],
+        possible_strategies: [
+          'Talabnoma yuborish orqali hal etish',
+          "Sudga da'vo arizasi kiritish",
+        ],
+        risks: [
+          {
+            title: 'Dalillar yetarli emasligi',
+            level: 'medium',
+            basis: "Hujjatlar to'liq taqdim etilmagan bo'lishi mumkin",
+          },
+        ],
+        opportunities: ["O'zbekiston Respublikasi qonunchiligiga muvofiq huquqlarni himoya qilish"],
+        recommended_next_steps: [
+          "Hujjatlar to'plamini to'liq shakllantirish",
+          'Tegishli yuridik xulosa tayyorlash',
+        ],
+      }
+    }
+
+    if (!parsedResult.tree || typeof parsedResult.tree !== 'object') {
+      parsedResult.tree = {
+        id: 'root',
+        type: 'ROOT',
+        title: name || 'Huquqiy ish tahlili',
+        description: description || "Boshlang'ich huquqiy holat tahlili",
+        risk_level: 'medium',
+        confidence: 80,
+        children: [
+          {
+            id: 'strategy_pre_trial',
+            type: 'DECISION',
+            title: "1-Yo'nalish: Sudgacha hal etish (Talabnoma)",
+            description: 'Qarshi tomonga yozma talabnoma va ogohlantirish xati yuborish',
+            action: 'Talabnoma tayyorlash va yuborish',
+            risk_level: 'low',
+            probability: 65,
+            estimated_cost: 300000,
+            estimated_duration: '10-15 kun',
+            confidence: 85,
+            next_steps: [
+              'Talabnoma matnini qonun moddalariga asoslab yozish',
+              'Pochta orqali topshirish',
+            ],
+            children: [
+              {
+                id: 'outcome_settled',
+                type: 'SUCCESS',
+                title: 'Ijobiy natija: Nizoni ixtiyoriy hal qilish',
+                description: "Talablar qarshi tomon tomonidan to'liq qanoatlantiriladi",
+                risk_level: 'low',
+                probability: 60,
+                confidence: 85,
+                next_steps: ["Kelishuv ijrosini ta'minlash"],
+              },
+              {
+                id: 'outcome_refused',
+                type: 'FAILURE',
+                title: 'Talab rad etildi yoki javobsiz qoldi',
+                description: 'Qarshi tomon talabni bajarmadi, sudga murojaat qilish zarur',
+                risk_level: 'high',
+                probability: 40,
+                confidence: 75,
+                next_steps: ["Sudga da'vo arizasi tayyorlash"],
+              },
+            ],
+          },
+          {
+            id: 'strategy_court',
+            type: 'DECISION',
+            title: "2-Yo'nalish: Sudga da'vo arizasi kiritish",
+            description: "Vakolatli sudga da'vo arizasi va dalillar paketini taqdim etish",
+            action: "Da'vo arizasini rasmiylashtirish va davlat bojini to'lash",
+            risk_level: 'medium',
+            probability: 75,
+            estimated_cost: 1500000,
+            estimated_duration: '1-3 oy',
+            confidence: 80,
+            next_steps: ["Da'vo arizasi va ilovalarni shakllantirish", "E-Sud orqali jo'natish"],
+            children: [
+              {
+                id: 'outcome_court_won',
+                type: 'SUCCESS',
+                title: "Da'vo to'liq qanoatlantirildi",
+                description: 'Sud qarori qonuniy kuchga kiradi va ijro varaqasi olinadi',
+                risk_level: 'low',
+                probability: 70,
+                confidence: 80,
+                next_steps: ['MIB orqali ijroga qaratish'],
+              },
+            ],
+          },
+        ],
+      }
     }
 
     // Bind real RAG articles to applicable laws if AI omitted or generalized

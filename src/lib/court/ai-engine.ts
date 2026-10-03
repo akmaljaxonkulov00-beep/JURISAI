@@ -9,9 +9,13 @@ import {
 import { groundPrompt } from '@/lib/legal-rag'
 import { ensureUzbekLatin } from '@/lib/uz-latin'
 
-const GROQ_API_KEY = process.env.GROQ_API_KEY
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
-const GROQ_MODEL = 'openai/gpt-oss-120b'
+
+const CANDIDATE_MODELS = [
+  'openai/gpt-oss-120b',
+  'llama-3.3-70b-versatile',
+  'llama-3.1-70b-versatile',
+]
 
 /**
  * Groq API ga JSON rejimida xavfsiz so'rov yuboradi.
@@ -23,36 +27,52 @@ async function callGroqJson(
 ): Promise<string> {
   const apiKey = process.env.GROQ_API_KEY || 'test-groq-key'
 
-  const res = await fetch(GROQ_API_URL, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: GROQ_MODEL,
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
-      ],
-      response_format: { type: 'json_object' },
-      temperature: 0.2,
-      max_tokens: maxTokens,
-    }),
-  })
+  let lastError = ''
+  for (const model of CANDIDATE_MODELS) {
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 25000)
 
-  if (!res.ok) {
-    const errText = await res.text().catch(() => '')
-    console.error('Groq court AI error:', res.status, errText.slice(0, 300))
-    throw new Error(`AI xizmatida xatolik yuz berdi (${res.status})`)
+    try {
+      const res = await fetch(GROQ_API_URL, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt },
+          ],
+          response_format: { type: 'json_object' },
+          temperature: 0.2,
+          max_tokens: maxTokens,
+        }),
+        signal: controller.signal,
+      })
+
+      clearTimeout(timeoutId)
+
+      if (res.ok) {
+        const data = await res.json()
+        const content = data.choices?.[0]?.message?.content
+        if (content && content.trim()) {
+          return content
+        }
+      } else {
+        const errText = await res.text().catch(() => '')
+        lastError = `Model ${model} failed (${res.status}): ${errText.slice(0, 150)}`
+        console.warn('Groq court AI attempt failed:', lastError)
+      }
+    } catch (e: any) {
+      clearTimeout(timeoutId)
+      lastError = e.name === 'AbortError' ? 'AI timeout (25s)' : e.message
+      console.warn(`Groq court AI error with ${model}:`, lastError)
+    }
   }
 
-  const data = await res.json()
-  const content = data.choices?.[0]?.message?.content
-  if (!content) {
-    throw new Error('AI xizmatidan bo‘sh javob qaytdi')
-  }
-  return content
+  throw new Error(`AI xizmatida xatolik yuz berdi: ${lastError || 'Barcha modellar band'}`)
 }
 
 /**

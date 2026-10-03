@@ -68,15 +68,27 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     // Sync from server preference if logged in
     async function syncServerTheme() {
       try {
-        const res = await fetch('/api/user/preferences', { cache: 'no-cache' })
+        const { getAuthHeaders } = await import('@/lib/api-auth-client')
+        const headers = await getAuthHeaders()
+        if (!headers.Authorization) return // Skip for unauthenticated visitors
+
+        const res = await fetch('/api/user/preferences', {
+          headers,
+          cache: 'no-cache',
+        })
         if (res.ok) {
           const json = await res.json()
           if (json.success && json.data?.theme) {
             const serverTheme = json.data.theme as ThemeMode
             if (['light', 'dark', 'system'].includes(serverTheme)) {
-              setThemeState(serverTheme)
-              localStorage.setItem(STORAGE_KEY, serverTheme)
-              applyTheme(serverTheme)
+              setThemeState(prev => {
+                if (prev !== serverTheme) {
+                  localStorage.setItem(STORAGE_KEY, serverTheme)
+                  applyTheme(serverTheme)
+                  return serverTheme
+                }
+                return prev
+              })
             }
           }
         }
@@ -101,18 +113,28 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   const setTheme = useCallback(
     (newTheme: ThemeMode) => {
-      setThemeState(newTheme)
-      if (typeof window !== 'undefined') {
-        localStorage.setItem(STORAGE_KEY, newTheme)
-      }
-      applyTheme(newTheme)
+      setThemeState(prev => {
+        if (prev === newTheme) return prev
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(STORAGE_KEY, newTheme)
+        }
+        applyTheme(newTheme)
 
-      // Persist to database asynchronously
-      fetch('/api/user/preferences', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ theme: newTheme }),
-      }).catch(() => {})
+        // Persist to database asynchronously only if authenticated
+        import('@/lib/api-auth-client').then(({ getAuthHeaders }) => {
+          getAuthHeaders().then(headers => {
+            if (headers.Authorization) {
+              fetch('/api/user/preferences', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', ...headers },
+                body: JSON.stringify({ theme: newTheme }),
+              }).catch(() => {})
+            }
+          })
+        })
+
+        return newTheme
+      })
     },
     [applyTheme]
   )

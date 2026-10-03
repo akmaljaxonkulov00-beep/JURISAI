@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
@@ -78,6 +78,75 @@ export default function Dashboard() {
   const [profileImage, setProfileImage] = useState<string | null>(null)
   const [showHistoryModal, setShowHistoryModal] = useState(false)
 
+  const fetchingStatsRef = useRef(false)
+  const lastFetchedUserRef = useRef<string | null>(null)
+
+  const loadUserStats = useCallback(
+    async (force = false) => {
+      if (!user) return
+      if (fetchingStatsRef.current) return
+      if (!force && lastFetchedUserRef.current === user.id && userStats) return
+
+      fetchingStatsRef.current = true
+      try {
+        setLoading(true)
+
+        // 1) API'dan real ma'lumot olish (Database + Usage logs)
+        try {
+          const { getAuthHeaders } = await import('@/lib/api-auth-client')
+          const authHeaders = await getAuthHeaders()
+          const res = await fetch('/api/user/stats?limit=6', {
+            headers: { ...authHeaders },
+            cache: 'no-cache',
+          })
+          if (res.ok) {
+            const d = await res.json()
+            const realStats: UserStats = {
+              xp: typeof d.xp === 'number' ? d.xp : 0,
+              level: typeof d.level === 'number' ? d.level : 1,
+              completedCases: typeof d.completedIracCases === 'number' ? d.completedIracCases : 0,
+              totalCases: typeof d.totalIracCases === 'number' ? d.totalIracCases : 0,
+              weeklyProgress: typeof d.weeklyProgress === 'number' ? d.weeklyProgress : 0,
+              weeklyXP: typeof d.weeklyXP === 'number' ? d.weeklyXP : 0,
+              streak: typeof d.streak === 'number' ? d.streak : 0,
+              rank: d.rank || t('dashboardNewUser'),
+              achievements: Array.isArray(d.achievements) ? d.achievements : [],
+              recentActivity: Array.isArray(d.recentActivity) ? d.recentActivity : [],
+              allActivity: Array.isArray(d.allActivity) ? d.allActivity : [],
+            }
+            setUserStats(realStats)
+            lastFetchedUserRef.current = user.id
+            return
+          }
+        } catch (err) {
+          console.warn('Stats fetch error:', err)
+        }
+
+        // 2) Fallback to default if empty
+        const defaultStats: UserStats = {
+          xp: 0,
+          level: 1,
+          completedCases: 0,
+          totalCases: 0,
+          weeklyProgress: 0,
+          weeklyXP: 0,
+          streak: 0,
+          rank: t('dashboardNewUser'),
+          achievements: [],
+          recentActivity: [],
+        }
+        setUserStats(defaultStats)
+        lastFetchedUserRef.current = user.id
+      } catch (error) {
+        console.error('Dashboard stats error:', error)
+      } finally {
+        fetchingStatsRef.current = false
+        setLoading(false)
+      }
+    },
+    [user, userStats, t]
+  )
+
   // Auth guard — tizimga kirmagan foydalanuvchini signin sahifasiga yo'naltirish
   useEffect(() => {
     if (!isLoading && !user) {
@@ -89,17 +158,17 @@ export default function Dashboard() {
     if (typeof window !== 'undefined') {
       setProfileImage(localStorage.getItem('profile_image'))
     }
-    if (user) {
+    if (user?.id) {
       loadUserStats()
     }
     const handleStatsUpdated = () => {
-      if (user) loadUserStats()
+      if (user?.id) loadUserStats(true)
     }
     window.addEventListener('stats-updated', handleStatsUpdated)
     return () => {
       window.removeEventListener('stats-updated', handleStatsUpdated)
     }
-  }, [user])
+  }, [user?.id, loadUserStats])
 
   const handleLogout = async () => {
     await authService.signOut()
@@ -122,61 +191,6 @@ export default function Dashboard() {
         </div>
       </div>
     )
-  }
-
-  const loadUserStats = async () => {
-    try {
-      setLoading(true)
-
-      // 1) API'dan real ma'lumot olish (Database + Usage logs)
-      try {
-        const { getAuthHeaders } = await import('@/lib/api-auth-client')
-        const authHeaders = await getAuthHeaders()
-        const res = await fetch('/api/user/stats?limit=6', {
-          headers: { ...authHeaders },
-          cache: 'no-cache',
-        })
-        if (res.ok) {
-          const d = await res.json()
-          const realStats: UserStats = {
-            xp: typeof d.xp === 'number' ? d.xp : 0,
-            level: typeof d.level === 'number' ? d.level : 1,
-            completedCases: typeof d.completedIracCases === 'number' ? d.completedIracCases : 0,
-            totalCases: typeof d.totalIracCases === 'number' ? d.totalIracCases : 0,
-            weeklyProgress: typeof d.weeklyProgress === 'number' ? d.weeklyProgress : 0,
-            weeklyXP: typeof d.weeklyXP === 'number' ? d.weeklyXP : 0,
-            streak: typeof d.streak === 'number' ? d.streak : 0,
-            rank: d.rank || t('dashboardNewUser'),
-            achievements: Array.isArray(d.achievements) ? d.achievements : [],
-            recentActivity: Array.isArray(d.recentActivity) ? d.recentActivity : [],
-            allActivity: Array.isArray(d.allActivity) ? d.allActivity : [],
-          }
-          setUserStats(realStats)
-          return
-        }
-      } catch (err) {
-        console.warn('Stats fetch error:', err)
-      }
-
-      // 2) Fallback to empty default if no stats yet
-      const defaultStats: UserStats = {
-        xp: 0,
-        level: 1,
-        completedCases: 0,
-        totalCases: 0,
-        weeklyProgress: 0,
-        weeklyXP: 0,
-        streak: 0,
-        rank: t('dashboardNewUser'),
-        achievements: [],
-        recentActivity: [],
-      }
-      setUserStats(defaultStats)
-    } catch (error) {
-      console.error('Dashboard stats error:', error)
-    } finally {
-      setLoading(false)
-    }
   }
 
   // ── Single source of truth: shared NAV_GROUPS + filter ──────────

@@ -197,10 +197,14 @@ export default function DecisionTreePage() {
 
   // Handle New Case Submission (AI Analysis)
   const handleCreateCase = async (formData: NewCaseFormData) => {
+    if (loading) return
     setIsNewCaseOpen(false)
     setIsProgressOpen(true)
     setError(null)
     setLoading(true)
+
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 40000)
 
     try {
       const headers = await getAuthHeaders()
@@ -211,8 +215,10 @@ export default function DecisionTreePage() {
           ...headers,
         },
         body: JSON.stringify(formData),
+        signal: controller.signal,
       })
 
+      clearTimeout(timeoutId)
       const result = await res.json()
 
       if (!res.ok || !result.success) {

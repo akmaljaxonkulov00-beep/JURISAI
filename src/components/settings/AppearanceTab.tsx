@@ -31,9 +31,11 @@ export default function AppearanceTab() {
     const tz = e.target.value
     setTimezone(tz)
     try {
+      const { getAuthHeaders } = await import('@/lib/api-auth-client')
+      const headers = await getAuthHeaders()
       await fetch('/api/user/preferences', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...headers },
         body: JSON.stringify({ timezone: tz }),
       })
       triggerFeedback(t('savedSuccessfully', 'O‘zgarishlar muvaffaqiyatli saqlandi!'))

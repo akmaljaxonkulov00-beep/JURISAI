@@ -66,9 +66,12 @@ export default function ProfileOverviewTab({ onGoToPersonal }: ProfileOverviewTa
     async function loadData() {
       setLoading(true)
       try {
+        const { getAuthHeaders } = await import('@/lib/api-auth-client')
+        const headers = await getAuthHeaders()
+
         const [profRes, statsRes] = await Promise.all([
-          fetch('/api/user/profile-full', { cache: 'no-cache' }),
-          fetch('/api/user/stats', { cache: 'no-cache' }),
+          fetch('/api/user/profile-full', { headers, cache: 'no-cache' }),
+          fetch('/api/user/stats', { headers, cache: 'no-cache' }),
         ])
 
         if (profRes.ok) {

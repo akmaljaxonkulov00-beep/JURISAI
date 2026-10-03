@@ -68,15 +68,27 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     // Sync from server preference if logged in
     async function syncServerLanguage() {
       try {
-        const res = await fetch('/api/user/preferences', { cache: 'no-cache' })
+        const { getAuthHeaders } = await import('@/lib/api-auth-client')
+        const headers = await getAuthHeaders()
+        if (!headers.Authorization) return // Skip for unauthenticated visitors
+
+        const res = await fetch('/api/user/preferences', {
+          headers,
+          cache: 'no-cache',
+        })
         if (res.ok) {
           const json = await res.json()
           if (json.success && json.data?.language) {
             const serverLang = json.data.language as Language
             if (languages[serverLang]) {
-              setLanguageState(serverLang)
-              localStorage.setItem(STORAGE_KEY, serverLang)
-              applyLanguage(serverLang)
+              setLanguageState(prev => {
+                if (prev !== serverLang) {
+                  localStorage.setItem(STORAGE_KEY, serverLang)
+                  applyLanguage(serverLang)
+                  return serverLang
+                }
+                return prev
+              })
             }
           }
         }
@@ -90,18 +102,28 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const setLanguage = useCallback(
     (newLang: Language) => {
       if (languages[newLang]) {
-        setLanguageState(newLang)
-        if (typeof window !== 'undefined') {
-          localStorage.setItem(STORAGE_KEY, newLang)
-        }
-        applyLanguage(newLang)
+        setLanguageState(prev => {
+          if (prev === newLang) return prev
+          if (typeof window !== 'undefined') {
+            localStorage.setItem(STORAGE_KEY, newLang)
+          }
+          applyLanguage(newLang)
 
-        // Persist to DB asynchronously
-        fetch('/api/user/preferences', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ language: newLang }),
-        }).catch(() => {})
+          // Persist to DB asynchronously only if authenticated
+          import('@/lib/api-auth-client').then(({ getAuthHeaders }) => {
+            getAuthHeaders().then(headers => {
+              if (headers.Authorization) {
+                fetch('/api/user/preferences', {
+                  method: 'PUT',
+                  headers: { 'Content-Type': 'application/json', ...headers },
+                  body: JSON.stringify({ language: newLang }),
+                }).catch(() => {})
+              }
+            })
+          })
+
+          return newLang
+        })
       }
     },
     [applyLanguage]
