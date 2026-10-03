@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireUser } from '@/lib/server-auth'
-import { supabase } from '@/lib/supabase'
+import { getSupabaseAdmin } from '@/lib/supabase-admin'
+import { awardUserXP } from '@/lib/xp-engine'
 
 interface IracInput {
   issue?: string
@@ -24,7 +25,7 @@ export async function POST(request: NextRequest) {
       typeof body.total_score === 'number'
         ? Math.min(100, Math.max(0, Math.round(body.total_score)))
         : 0
-    const completed_at: string | null =
+    const completed_at: string =
       typeof body.completed_at === 'string' ? body.completed_at : new Date().toISOString()
 
     if (!case_title) {
@@ -34,14 +35,17 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // ── Deterministik baholash (Math.random YO'Q — har safar bir xil natija) ──
+    // Deterministik baholash
     const grade = getGrade(total_score)
     const feedback = buildFeedback(total_score, analysis)
     const suggestions = buildSuggestions(analysis)
     const strengths = buildStrengths(analysis)
     const weaknesses = buildWeaknesses(analysis)
 
-    const { data, error } = await supabase
+    const supabase = getSupabaseAdmin()
+
+    // 1. Save to irac_analyses table
+    const { data: savedAnalysis, error } = await supabase
       .from('irac_analyses')
       .insert({
         user_id: auth.user.id,
@@ -62,23 +66,45 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('IRAC analysis save error:', error.message)
-      // Yolg'on "muvaffaqiyat" qaytarilmaydi — real xato
       return NextResponse.json(
-        { error: 'IRAC tahlilini saqlashda xatolik yuz berdi' },
+        { error: 'IRAC tahlilini saqlashda xatolik yuz berdi: ' + error.message },
         { status: 500 }
       )
     }
 
+    // 2. Award XP (+20 XP) with idempotency key
+    const idempotencyKey = `case_solver_${auth.user.id}_${case_title}_${completed_at.slice(0, 16)}`
+    const xpResult = await awardUserXP({
+      userId: auth.user.id,
+      userEmail: auth.user.email,
+      action: 'case-solver',
+      xp: total_score >= 60 ? 20 : 10,
+      title: `Kazus yechildi: ${case_title}`,
+      description: `IRAC tahlili yakunlandi (${total_score} ball, ${grade})`,
+      idempotencyKey,
+      metadata: {
+        analysis_id: savedAnalysis.id,
+        case_title,
+        case_category,
+        total_score,
+        grade,
+      },
+    })
+
     return NextResponse.json({
       success: true,
-      id: data.id,
+      id: savedAnalysis.id,
       total_score,
       grade,
       feedback,
       suggestions,
       strengths,
       weaknesses,
-      message: 'IRAC tahlili muvaffaqiyatli saqlandi',
+      xpEarned: xpResult.xpEarned,
+      totalXp: xpResult.totalXp,
+      level: xpResult.level,
+      unlockedAchievements: xpResult.unlockedAchievements,
+      message: 'IRAC tahlili muvaffaqiyatli saqlandi va ball hisoblandi',
       saved_at: new Date().toISOString(),
     })
   } catch (error) {
@@ -101,7 +127,6 @@ function getGrade(score: number): string {
   return 'F (Qayta urinish kerak)'
 }
 
-/** Deterministik fikr-mulohaza — tahlil mazmuniga asoslanadi, tasodifiy emas */
 function buildFeedback(score: number, analysis: IracInput): string {
   const hasRule = Boolean(analysis.rule && /modda|kodeks|qonun/i.test(analysis.rule))
   const hasApplication = Boolean(

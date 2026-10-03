@@ -293,12 +293,62 @@ export default function DecisionTreePage() {
         setCurrentCase(resData.case)
         setSavedCases(prev => [resData.case, ...prev.filter(x => x.id !== resData.case.id)])
         showToast('Qarorlar daraxti bazaga muvaffaqiyatli saqlandi!')
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('stats-updated'))
+        }
       } else {
         throw new Error(resData.error || 'Saqlashda xatolik yuz berdi')
       }
     } catch (err) {
       console.error('Save error:', err)
       setError(err instanceof Error ? err.message : 'Saqlashda xatolik yuz berdi')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  // Complete Case (Mark as COMPLETED, award XP and finish session)
+  const handleCompleteCase = async () => {
+    if (!currentCase) return
+    setSaving(true)
+    try {
+      const headers = await getAuthHeaders()
+      const payload = {
+        ...currentCase,
+        status: 'completed',
+        selected_path: activePathIds,
+        evidence_state: evidenceState,
+      }
+
+      let res
+      if (currentCase.id && !currentCase.id.startsWith('case_')) {
+        res = await fetch(`/api/decision-tree/trees/${currentCase.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', ...headers },
+          body: JSON.stringify(payload),
+        })
+      } else {
+        res = await fetch('/api/decision-tree/trees', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...headers },
+          body: JSON.stringify(payload),
+        })
+      }
+
+      const resData = await res.json()
+      if (resData.success && resData.case) {
+        setCurrentCase(resData.case)
+        setSavedCases(prev => [resData.case, ...prev.filter(x => x.id !== resData.case.id)])
+        showToast(`Qarorlar daraxti muvaffaqiyatli yakunlandi! +${resData.xpEarned || 20} XP`)
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('stats-updated'))
+        }
+      } else {
+        throw new Error(resData.error || 'Yakunlashda xatolik yuz berdi')
+      }
+    } catch (err) {
+      console.error('Complete error:', err)
+      setError(err instanceof Error ? err.message : 'Yakunlashda xatolik yuz berdi')
     } finally {
       setSaving(false)
     }
@@ -538,10 +588,21 @@ export default function DecisionTreePage() {
           <button
             onClick={() => saveCaseToDb()}
             disabled={!currentCase || saving}
-            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 rounded-xl shadow-sm shadow-blue-500/20 transition-all"
+            className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-zinc-200 bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 disabled:opacity-50 rounded-xl transition-all"
+            title="Daraxtni saqlash"
           >
             <Save className="w-4 h-4" />
-            <span>{saving ? 'Saqlanmoqda...' : 'Saqlash'}</span>
+            <span className="hidden sm:inline">{saving ? 'Saqlanmoqda...' : 'Saqlash'}</span>
+          </button>
+
+          <button
+            onClick={() => handleCompleteCase()}
+            disabled={!currentCase || saving || currentCase.status === 'completed'}
+            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 rounded-xl shadow-sm shadow-blue-500/20 transition-all"
+            title="Daraxtni yakunlash va XP olish"
+          >
+            <CheckCircle2 className="w-4 h-4" />
+            <span>{currentCase?.status === 'completed' ? 'Yakunlangan' : 'Yakunlash'}</span>
           </button>
 
           <button

@@ -38,6 +38,7 @@ import {
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/app/providers'
 import { VERIFIED_SCENARIO_TEMPLATES } from '@/lib/scenario-generator-engine'
+import { getAuthHeaders } from '@/lib/api-auth-client'
 
 export default function ScenarioGenerator() {
   const { t } = useLanguage()
@@ -80,7 +81,8 @@ export default function ScenarioGenerator() {
 
   const loadTemplates = async () => {
     try {
-      const res = await fetch('/api/scenario-generator/templates')
+      const headers = await getAuthHeaders()
+      const res = await fetch('/api/scenario-generator/templates', { headers })
       if (res.ok) {
         const data = await res.json()
         if (data.templates && data.templates.length > 0) {
@@ -97,7 +99,8 @@ export default function ScenarioGenerator() {
   const loadHistory = async () => {
     setLoadingHistory(true)
     try {
-      const res = await fetch('/api/scenario-generator/sessions?limit=20')
+      const headers = await getAuthHeaders()
+      const res = await fetch('/api/scenario-generator/sessions?limit=20', { headers })
       if (res.ok) {
         const data = await res.json()
         if (data.sessions) {
@@ -127,9 +130,13 @@ export default function ScenarioGenerator() {
     setGenError(null)
 
     try {
+      const headers = await getAuthHeaders()
       const res = await fetch('/api/scenario-generator/generate', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...headers,
+        },
         body: JSON.stringify({
           domain,
           difficulty,
@@ -169,9 +176,13 @@ export default function ScenarioGenerator() {
     if (!currentScenario) return
 
     try {
+      const headers = await getAuthHeaders()
       const res = await fetch('/api/scenario-generator/step', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...headers,
+        },
         body: JSON.stringify({
           scenario: currentScenario,
           current_step: currentStep,
@@ -202,9 +213,13 @@ export default function ScenarioGenerator() {
     setIsEvaluating(true)
 
     try {
+      const headers = await getAuthHeaders()
       const res = await fetch('/api/scenario-generator/evaluate', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...headers,
+        },
         body: JSON.stringify({
           scenario: currentScenario,
           action_logs: finalLogs,
@@ -215,6 +230,9 @@ export default function ScenarioGenerator() {
       if (res.ok && data.evaluation) {
         setEvaluation(data.evaluation)
         loadHistory()
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('stats-updated'))
+        }
       }
     } catch (err) {
       console.error('Simulation evaluation error:', err)

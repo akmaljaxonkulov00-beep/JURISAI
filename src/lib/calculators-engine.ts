@@ -15,10 +15,11 @@ import {
   CURRENT_BHM_VALUE,
   CURRENT_CBU_MAIN_RATE,
   OFFICIAL_LEGAL_SOURCES,
+  getBhmForDate,
 } from './official-sources-registry'
 
 /**
- * 1. Davlat Boji Kalkulyatori
+ * 1. Davlat Boji Kalkulyatori (2026)
  * Asos: O‘zbekiston Respublikasining "Davlat boji to‘g‘risida"gi O‘RQ-600-son Qonuni
  */
 export function calculateStateFee(input: StateFeeInput): StateFeeResult {
@@ -60,7 +61,7 @@ export function calculateStateFee(input: StateFeeInput): StateFeeResult {
         baseFee = Math.max(bhm, percentageFee)
         breakdown.push({
           name: 'Fuqarolik sudi — Mulkiy da‘vo',
-          rateDescription: 'Da‘vo bahosining 4 foizi (kamida 1 BHM)',
+          rateDescription: 'Da‘vo bahosining 4 foizi (kamida 1 BHM = 440 000 so‘m)',
           calculatedAmount: baseFee,
           statutoryMinimum: bhm,
           legalGround: 'O‘RQ-600-son Qonun ilovasi 1-bandi "a" kichik bandi',
@@ -74,7 +75,7 @@ export function calculateStateFee(input: StateFeeInput): StateFeeResult {
         baseFee = bhm * 2
         breakdown.push({
           name: 'Fuqarolik sudi — Nomulkiy da‘vo',
-          rateDescription: 'BHMning 2 baravari',
+          rateDescription: `BHMning 2 baravari (${(bhm * 2).toLocaleString()} so‘m)`,
           calculatedAmount: baseFee,
           legalGround: 'O‘RQ-600-son Qonun ilovasi 1-bandi "b" kichik bandi',
           sourceUrl: OFFICIAL_LEGAL_SOURCES.STATE_FEE_LAW.url,
@@ -87,7 +88,7 @@ export function calculateStateFee(input: StateFeeInput): StateFeeResult {
         baseFee = bhm * 2
         breakdown.push({
           name: 'Nikohni bekor qilish haqidagi da‘vo',
-          rateDescription: 'BHMning 2 baravari',
+          rateDescription: `BHMning 2 baravari (${(bhm * 2).toLocaleString()} so‘m)`,
           calculatedAmount: baseFee,
           legalGround: 'O‘RQ-600-son Qonun ilovasi 1-bandi "g" kichik bandi',
           sourceUrl: OFFICIAL_LEGAL_SOURCES.STATE_FEE_LAW.url,
@@ -100,7 +101,7 @@ export function calculateStateFee(input: StateFeeInput): StateFeeResult {
         baseFee = bhm * 4
         breakdown.push({
           name: 'Takroriy nikohni bekor qilish da‘vosi',
-          rateDescription: 'BHMning 4 baravari',
+          rateDescription: `BHMning 4 baravari (${(bhm * 4).toLocaleString()} so‘m)`,
           calculatedAmount: baseFee,
           legalGround: 'O‘RQ-600-son Qonun ilovasi 1-bandi "d" kichik bandi',
           sourceUrl: OFFICIAL_LEGAL_SOURCES.STATE_FEE_LAW.url,
@@ -142,7 +143,7 @@ export function calculateStateFee(input: StateFeeInput): StateFeeResult {
       baseFee = Math.max(bhm, percentageFee)
       breakdown.push({
         name: 'Iqtisodiy sud — Mulkiy da‘vo',
-        rateDescription: 'Da‘vo bahosining 2 foizi (kamida 1 BHM)',
+        rateDescription: 'Da‘vo bahosining 2 foizi (kamida 1 BHM = 440 000 so‘m)',
         calculatedAmount: baseFee,
         statutoryMinimum: bhm,
         legalGround: 'O‘RQ-600-son Qonun ilovasi 2-bandi "a" kichik bandi',
@@ -154,7 +155,7 @@ export function calculateStateFee(input: StateFeeInput): StateFeeResult {
       baseFee = bhm * 10
       breakdown.push({
         name: 'Iqtisodiy sud — Nomulkiy da‘vo / Shartnoma shartlarini o‘zgartirish',
-        rateDescription: 'BHMning 10 baravari',
+        rateDescription: `BHMning 10 baravari (${(bhm * 10).toLocaleString()} so‘m)`,
         calculatedAmount: baseFee,
         legalGround: 'O‘RQ-600-son Qonun ilovasi 2-bandi "b" kichik bandi',
         sourceUrl: OFFICIAL_LEGAL_SOURCES.STATE_FEE_LAW.url,
@@ -166,7 +167,7 @@ export function calculateStateFee(input: StateFeeInput): StateFeeResult {
     baseFee = bhm * 1
     breakdown.push({
       name: 'Ma‘muriy sud — Davlat organi qarori ustidan shikoyat',
-      rateDescription: 'BHMning 1 baravari',
+      rateDescription: `BHMning 1 baravari (${bhm.toLocaleString()} so‘m)`,
       calculatedAmount: baseFee,
       legalGround: 'O‘RQ-600-son Qonun ilovasi 3-bandi',
       sourceUrl: OFFICIAL_LEGAL_SOURCES.STATE_FEE_LAW.url,
@@ -191,7 +192,7 @@ export function calculateStateFee(input: StateFeeInput): StateFeeResult {
     officialSources: [OFFICIAL_LEGAL_SOURCES.STATE_FEE_LAW, OFFICIAL_LEGAL_SOURCES.BHM_DECREE],
     calculationFormula:
       instance === 'first_instance'
-        ? `Baza miqdori: ${baseFee.toLocaleString('uz-UZ')} so‘m`
+        ? `Baza miqdori: ${baseFee.toLocaleString('uz-UZ')} so‘m (1 BHM = ${bhm.toLocaleString()} so‘m)`
         : `Birinchi instansiya stavkasi (${baseFee.toLocaleString('uz-UZ')} so‘m) * 50% = ${finalFee.toLocaleString('uz-UZ')} so‘m`,
     notes,
   }
@@ -239,7 +240,9 @@ export function calculatePenaltyAndDamages(input: PenaltyInput): PenaltyResult {
     legalBases: [
       '670-I-son Qonun 25-32-moddalari (Penya kuniga 0.5%, max 50%)',
       ...(input.includeInterest327
-        ? ['O‘zbekiston FK 327-moddasi (Markaziy Bankning 13.5% stavkasi bo‘yicha foiz)']
+        ? [
+            `O‘zbekiston FK 327-moddasi (Markaziy Bankning ${CURRENT_CBU_MAIN_RATE}% stavkasi bo‘yicha foiz)`,
+          ]
         : []),
     ],
     officialSources: [
@@ -267,7 +270,7 @@ export function calculateInterest327(input: Interest327Input): Interest327Result
   return {
     interestAmount,
     annualRateApplied: annualRate,
-    cbuRateDate: '2024-12-12',
+    cbuRateDate: '2026-yil amaldagi stavka',
     daysCount: days,
     dailyRate,
     calculationFormula: formula,
@@ -280,7 +283,7 @@ export function calculateInterest327(input: Interest327Input): Interest327Result
 }
 
 /**
- * 4. BHM Kalkulyatori
+ * 4. BHM Kalkulyatori (2026 — PF-115)
  */
 export function calculateBhm(input: BhmInput): BhmResult {
   const bhm = input.customBhmRate || CURRENT_BHM_VALUE
@@ -291,8 +294,8 @@ export function calculateBhm(input: BhmInput): BhmResult {
     multiplier,
     singleBhmAmount: bhm,
     totalAmount: total,
-    decreeNumber: 'PF-108-son',
-    effectiveFrom: '2024-09-01',
+    decreeNumber: 'PF-115-son',
+    effectiveFrom: '2026-09-01',
     officialSources: [OFFICIAL_LEGAL_SOURCES.BHM_DECREE],
   }
 }

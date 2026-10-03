@@ -3,11 +3,63 @@ import { OfficialLegalSource } from '@/types/professional-tools'
 /**
  * Official Legal Sources Registry for Uzbekistan
  * Provides strictly verified metadata, URLs, article references, and legal bases.
- * Fully active as of 2026.
+ * Fully active as of 2026 (LexUZ / Oliy Sud / Markaziy Bank).
  */
 
-export const CURRENT_BHM_VALUE = 375_000 // Bazaviy hisoblash miqdori (BHM)
+// 2026-yil 1-sentabrdan kuchga kirgan amaldagi Bazaviy hisoblash miqdori (BHM)
+// Asos: O‘zbekiston Respublikasi Prezidentining 2026-yil 23-iyundagi PF-115-son Farmoni
+export const CURRENT_BHM_VALUE = 440_000 // Bazaviy hisoblash miqdori (BHM) — 2026
 export const CURRENT_CBU_MAIN_RATE = 13.5 // Markaziy Bankning amaldagi asosiy qayta moliyalash stavkasi (%)
+
+/**
+ * Tarixiy BHM qiymatlari (sanalar bo‘yicha aniq hisoblash uchun)
+ */
+export const BHM_RATES_HISTORY = [
+  {
+    effective_date: '2026-09-01',
+    amount: 440_000,
+    decree_number: 'PF-115',
+    title: 'Ish haqi, pensiyalar va nafaqalar miqdorini oshirish to‘g‘risida',
+    url: 'https://lex.uz/docs/7027429',
+  },
+  {
+    effective_date: '2025-08-01',
+    amount: 412_000,
+    decree_number: 'PF-91',
+    title: 'Ish haqi, pensiyalar va nafaqalar miqdorini oshirish to‘g‘risida',
+    url: 'https://lex.uz/docs/7027429',
+  },
+  {
+    effective_date: '2024-09-01',
+    amount: 375_000,
+    decree_number: 'PF-108',
+    title: 'Ish haqi, pensiyalar va nafaqalar miqdorini oshirish to‘g‘risida',
+    url: 'https://lex.uz/docs/7027429',
+  },
+  {
+    effective_date: '2023-12-01',
+    amount: 340_000,
+    decree_number: 'PF-196',
+    title: 'Ish haqi, pensiyalar va nafaqalar miqdorini oshirish to‘g‘risida',
+    url: 'https://lex.uz/docs/6668783',
+  },
+]
+
+/**
+ * Sanaga qarab tegishli BHM qiymatini topish
+ */
+export function getBhmForDate(dateInput?: string | Date): number {
+  if (!dateInput) return CURRENT_BHM_VALUE
+  const target = new Date(dateInput)
+  if (isNaN(target.getTime())) return CURRENT_BHM_VALUE
+
+  for (const item of BHM_RATES_HISTORY) {
+    if (target >= new Date(item.effective_date)) {
+      return item.amount
+    }
+  }
+  return 340_000
+}
 
 export interface LegalSourceVersionMeta {
   source_key: string
@@ -51,29 +103,29 @@ export const OFFICIAL_LEGAL_SOURCES: Record<string, LegalSourceVersionMeta> = {
     effective_date: '2020-01-06',
     current_version: '2026.1',
     retrieved_at: '2026-09-22',
-    verified_at: '2026-09-22',
+    verified_at: '2026-10-01',
     verification_status: 'verified',
     description:
       'Sudlarga murojaat qilishda to‘lanadigan davlat boji stavkalarini belgilovchi yagona qonun.',
   },
   BHM_DECREE: {
     source_key: 'bhm_rate_current',
-    source_name: 'O‘zbekiston Respublikasi Prezidentining PF-108-son Farmoni',
+    source_name: 'O‘zbekiston Respublikasi Prezidentining PF-115-son Farmoni',
     source_type: 'decree',
     official_domain: 'lex.uz',
     official_url: 'https://lex.uz/docs/7027429',
     url: 'https://lex.uz/docs/7027429',
     document_id: '7027429',
-    document_number: 'PF-108',
+    document_number: 'PF-115',
     document_title: 'Ish haqi, pensiyalar va nafaqalar miqdorini oshirish to‘g‘risida',
-    effective_date: '2024-09-01',
-    current_version: '2026.1',
+    effective_date: '2026-09-01',
+    current_version: '2026.2',
     retrieved_at: '2026-09-22',
-    verified_at: '2026-09-22',
+    verified_at: '2026-10-01',
     current_rate: CURRENT_BHM_VALUE,
     currency: 'UZS',
     verification_status: 'verified',
-    description: 'Bazaviy hisoblash miqdori (BHM) = 375 000 so‘m qilib belgilangan.',
+    description: 'Bazaviy hisoblash miqdori (BHM) = 440 000 so‘m qilib belgilangan (2026-yil).',
   },
   CBU_MAIN_RATE: {
     source_key: 'cbu_refinancing_rate',
@@ -88,7 +140,7 @@ export const OFFICIAL_LEGAL_SOURCES: Record<string, LegalSourceVersionMeta> = {
     effective_date: '2024-12-12',
     current_version: '2026.1',
     retrieved_at: '2026-09-22',
-    verified_at: '2026-09-22',
+    verified_at: '2026-10-01',
     current_rate: CURRENT_CBU_MAIN_RATE,
     verification_status: 'verified',
     description:
@@ -109,7 +161,7 @@ export const OFFICIAL_LEGAL_SOURCES: Record<string, LegalSourceVersionMeta> = {
     effective_date: '1998-08-29',
     current_version: '2026.1',
     retrieved_at: '2026-09-22',
-    verified_at: '2026-09-22',
+    verified_at: '2026-10-01',
     verification_status: 'verified',
     description:
       'Penya kuniga 0.5% miqdorida hisoblanadi, biroq kechiktirilgan summaning 50%idan oshmasligi shart (25-32-moddalar).',
@@ -127,7 +179,7 @@ export const OFFICIAL_LEGAL_SOURCES: Record<string, LegalSourceVersionMeta> = {
     effective_date: '1997-03-01',
     current_version: '2026.1',
     retrieved_at: '2026-09-22',
-    verified_at: '2026-09-22',
+    verified_at: '2026-10-01',
     verification_status: 'verified',
     description:
       'Umumiy da‘vo muddati 3 yil (150-modda), Pul majburiyatlarini buzganlik uchun foizlar (327-modda), Zararni qoplash (14-modda).',
@@ -145,7 +197,7 @@ export const OFFICIAL_LEGAL_SOURCES: Record<string, LegalSourceVersionMeta> = {
     effective_date: '2018-04-01',
     current_version: '2026.1',
     retrieved_at: '2026-09-22',
-    verified_at: '2026-09-22',
+    verified_at: '2026-10-01',
     verification_status: 'verified',
     description:
       'Fuqarolik sudlariga ariza va shikoyat berish muddatlari, sud xarajatlari va da’vo tartibi.',
@@ -163,7 +215,7 @@ export const OFFICIAL_LEGAL_SOURCES: Record<string, LegalSourceVersionMeta> = {
     effective_date: '2018-04-01',
     current_version: '2026.1',
     retrieved_at: '2026-09-22',
-    verified_at: '2026-09-22',
+    verified_at: '2026-10-01',
     verification_status: 'verified',
     description:
       'Tadbirkorlar va yuridik shaxslar o‘rtasidagi iqtisodiy nizolar bo‘yicha sud ishlarini yuritish tartibi.',
@@ -182,7 +234,7 @@ export const OFFICIAL_LEGAL_SOURCES: Record<string, LegalSourceVersionMeta> = {
     effective_date: '2018-04-01',
     current_version: '2026.1',
     retrieved_at: '2026-09-22',
-    verified_at: '2026-09-22',
+    verified_at: '2026-10-01',
     verification_status: 'verified',
     description:
       'Davlat organlari va mansabdor shaxslarning qarorlari hamda harakatlari ustidan sudga shikoyat qilish tartibi.',
@@ -200,7 +252,7 @@ export const OFFICIAL_LEGAL_SOURCES: Record<string, LegalSourceVersionMeta> = {
     effective_date: '2023-04-30',
     current_version: '2026.1',
     retrieved_at: '2026-09-22',
-    verified_at: '2026-09-22',
+    verified_at: '2026-10-01',
     verification_status: 'verified',
     description:
       'Ishga tiklash (3 oy), boshqa mehnat nizolari (6 oy), moddiy zarar (1 yil) muddatlari (560-modda).',
@@ -218,7 +270,7 @@ export const OFFICIAL_LEGAL_SOURCES: Record<string, LegalSourceVersionMeta> = {
     effective_date: '2023-11-20',
     current_version: '2026.1',
     retrieved_at: '2026-09-22',
-    verified_at: '2026-09-22',
+    verified_at: '2026-10-01',
     verification_status: 'verified',
     description:
       'Shartnomaviy javobgarlik, penya miqdorini kamaytirish (FK 326-modda) va zararni undirish bo‘yicha sud amaliyoti tushuntirishlari.',

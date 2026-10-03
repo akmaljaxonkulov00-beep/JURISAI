@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireUser } from '@/lib/server-auth'
-import { supabase } from '@/lib/supabase'
+import { getSupabaseAdmin } from '@/lib/supabase-admin'
+import { awardUserXP } from '@/lib/xp-engine'
 
 /**
  * GET /api/decision-tree/trees/[id]
@@ -16,6 +17,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ success: false, error: 'ID talab qilinadi' }, { status: 400 })
     }
 
+    const supabase = getSupabaseAdmin()
     const { data, error } = await supabase
       .from('decision_trees')
       .select('*')
@@ -80,6 +82,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     if (body.notes !== undefined) updatePayload.notes = String(body.notes).trim()
     if (body.status !== undefined) updatePayload.status = String(body.status).trim()
 
+    const supabase = getSupabaseAdmin()
     const { data, error } = await supabase
       .from('decision_trees')
       .update(updatePayload)
@@ -96,9 +99,29 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       )
     }
 
+    // Agar status completed bo'lsa, yakuniy completion XP beramiz
+    let xpEarned = 0
+    if (body.status === 'completed') {
+      const xpRes = await awardUserXP({
+        userId: auth.user.id,
+        userEmail: auth.user.email,
+        action: 'decision-tree',
+        xp: 20,
+        title: `Qarorlar daraxti yakunlandi: ${data.name}`,
+        description: `Tahlil va strategiya yakuniy bosqichga yetkazildi`,
+        idempotencyKey: `decision_tree_complete_${id}`,
+        metadata: {
+          tree_id: id,
+          name: data.name,
+        },
+      })
+      xpEarned = xpRes.xpEarned
+    }
+
     return NextResponse.json({
       success: true,
       case: data,
+      xpEarned,
       message: 'Qarorlar daraxti yangilandi',
     })
   } catch (error) {
@@ -127,6 +150,7 @@ export async function DELETE(
       return NextResponse.json({ success: false, error: 'ID talab qilinadi' }, { status: 400 })
     }
 
+    const supabase = getSupabaseAdmin()
     const { error } = await supabase
       .from('decision_trees')
       .delete()

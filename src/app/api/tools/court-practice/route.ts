@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireUser } from '@/lib/server-auth'
 import { retrieveLegalArticles } from '@/lib/legal-rag'
 import { ensureUzbekLatin } from '@/lib/uz-latin'
-import { supabase } from '@/lib/supabase'
+import { getSupabaseAdmin } from '@/lib/supabase-admin'
+import { awardUserXP } from '@/lib/xp-engine'
 import { CourtPracticeItem } from '@/types/professional-tools'
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY
@@ -107,7 +108,7 @@ export async function POST(request: NextRequest) {
     if (GROQ_API_KEY) {
       try {
         const articles = await retrieveLegalArticles(query, 4)
-        const sysPrompt = `Sen O‘zbekiston Respublikasi sud amaliyoti tahlilchisisan.
+        const sysPrompt = `Sen O‘zbekiston Respublikasi sud amaliyoti tahlilchisisan (2026).
 Foydalanuvchining so‘rovi bo‘yicha O‘zbekiston Oliy Sudi Plenum qarorlari va sud amaliyoti tendensiyalari asosida qisqa, aniq va asoslangan yuridik tahlil ber.
 QOIDALAR:
 - Faqat O‘zbekiston qonunchiligiga asoslan.
@@ -142,21 +143,48 @@ QOIDALAR:
       }
     }
 
+    const supabase = getSupabaseAdmin()
+
     // Save to tool history
+    let historyId = `court_${Date.now()}`
     try {
-      await supabase.from('tool_history').insert({
-        user_id: auth.user.id,
-        tool_type: 'court_practice',
-        title: `Sud Amaliyoti: ${query.slice(0, 50)}`,
-        summary: aiSynthesis.slice(0, 200) || matches[0]?.title || '',
-        input_data: { query, category },
-        result_data: { matchesCount: matches.length, aiSynthesis },
-        legal_references: matches.flatMap(m => m.citedLaws),
-        status: 'completed',
-      })
+      const { data: savedRow } = await supabase
+        .from('tool_history')
+        .insert({
+          user_id: auth.user.id,
+          tool_type: 'court_practice',
+          title: `Sud Amaliyoti: ${query.slice(0, 50)}`,
+          summary: aiSynthesis.slice(0, 200) || matches[0]?.title || '',
+          input_data: { query, category },
+          result_data: { matchesCount: matches.length, aiSynthesis },
+          legal_references: matches.flatMap(m => m.citedLaws),
+          status: 'completed',
+          created_at: new Date().toISOString(),
+        })
+        .select('id')
+        .single()
+
+      if (savedRow?.id) historyId = savedRow.id
     } catch (saveErr) {
-      console.error('Failed to save court practice history:', saveErr)
+      console.warn('Failed to save court practice history:', saveErr)
     }
+
+    // Award XP (+10 XP)
+    const idempotencyKey = `court_practice_${auth.user.id}_${Date.now()}`
+    const xpResult = await awardUserXP({
+      userId: auth.user.id,
+      userEmail: auth.user.email,
+      action: 'court-practice',
+      xp: 10,
+      title: `Sud amaliyoti tahlil qilindi: ${query.slice(0, 40)}`,
+      description: `Oliy Sud Plenum qarorlari bo‘yicha huquqiy tahlil o‘tkazildi`,
+      idempotencyKey,
+      metadata: {
+        tool_type: 'court_practice',
+        query,
+        history_id: historyId,
+      },
+    })
 
     return NextResponse.json({
       success: true,
@@ -164,6 +192,9 @@ QOIDALAR:
       category,
       results: matches,
       aiSynthesis,
+      xpEarned: xpResult.xpEarned,
+      totalXp: xpResult.totalXp,
+      level: xpResult.level,
     })
   } catch (error) {
     console.error('Court practice API error:', error)

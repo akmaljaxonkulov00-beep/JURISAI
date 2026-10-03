@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireUser } from '@/lib/server-auth'
-import { supabase } from '@/lib/supabase'
+import { getSupabaseAdmin } from '@/lib/supabase-admin'
+import { awardUserXP } from '@/lib/xp-engine'
 import {
   calculateStateFee,
   calculatePenaltyAndDamages,
@@ -18,7 +19,7 @@ import {
 
 /**
  * POST /api/tools/calculators
- * 100% rasmiy qonunchilikka asoslangan yuridik kalkulyatorlar API.
+ * 100% rasmiy qonunchilikka asoslangan yuridik kalkulyatorlar API (2026).
  */
 export async function POST(request: NextRequest) {
   try {
@@ -72,26 +73,56 @@ export async function POST(request: NextRequest) {
         )
     }
 
+    const supabase = getSupabaseAdmin()
+
     // Save to user tool history
+    let historyId = `calc_${Date.now()}`
     try {
-      await supabase.from('tool_history').insert({
-        user_id: auth.user.id,
-        tool_type: 'calculator',
-        title,
-        summary: (result.calculationFormula as string) || (result.durationText as string) || '',
-        input_data: body.input || {},
-        result_data: result,
-        legal_references: (result.legalBases as string[]) || [],
-        status: 'completed',
-      })
+      const { data: savedRow } = await supabase
+        .from('tool_history')
+        .insert({
+          user_id: auth.user.id,
+          tool_type: 'calculator',
+          title,
+          summary: (result.calculationFormula as string) || (result.durationText as string) || '',
+          input_data: body.input || {},
+          result_data: result,
+          legal_references: (result.legalBases as string[]) || [],
+          status: 'completed',
+          created_at: new Date().toISOString(),
+        })
+        .select('id')
+        .single()
+
+      if (savedRow?.id) historyId = savedRow.id
     } catch (saveErr) {
-      console.error('Failed to save calculation history:', saveErr)
+      console.warn('Failed to save calculation history:', saveErr)
     }
+
+    // Award XP (+5 XP)
+    const idempotencyKey = `calc_${auth.user.id}_${calculatorType}_${Date.now()}`
+    const xpResult = await awardUserXP({
+      userId: auth.user.id,
+      userEmail: auth.user.email,
+      action: 'calculator',
+      xp: 5,
+      title,
+      description: (result.calculationFormula as string) || 'Yuridik hisob-kitob bajarildi',
+      idempotencyKey,
+      metadata: {
+        tool_type: 'calculator',
+        calculator_type: calculatorType,
+        history_id: historyId,
+      },
+    })
 
     return NextResponse.json({
       success: true,
       type: calculatorType,
       result,
+      xpEarned: xpResult.xpEarned,
+      totalXp: xpResult.totalXp,
+      level: xpResult.level,
     })
   } catch (error) {
     console.error('Calculator API error:', error)

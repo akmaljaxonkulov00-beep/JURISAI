@@ -3,7 +3,8 @@ import { requireUser } from '@/lib/server-auth'
 import { checkAndIncrement, usageMessage } from '@/lib/usage-limits'
 import { retrieveLegalArticles, buildLegalContext } from '@/lib/legal-rag'
 import { ensureUzbekLatin } from '@/lib/uz-latin'
-import { supabase } from '@/lib/supabase'
+import { getSupabaseAdmin } from '@/lib/supabase-admin'
+import { awardUserXP } from '@/lib/xp-engine'
 import { OFFICIAL_LEGAL_SOURCES } from '@/lib/official-sources-registry'
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY
@@ -52,7 +53,7 @@ export async function POST(request: NextRequest) {
     const articles = await retrieveLegalArticles(documentText.slice(0, 2000), 6)
     const legalContext = buildLegalContext(articles, 1000)
 
-    const systemPrompt = `Sen O‘zbekiston Respublikasi qonunchiligi bo‘yicha professional shartnomalar va hujjatlar auditorisan.
+    const systemPrompt = `Sen O‘zbekiston Respublikasi qonunchiligi (2026) bo‘yicha professional shartnomalar va hujjatlar auditorisan.
 Vazifang: Foydalanuvchi taqdim etgan hujjatni (shartnoma, bitim, talabnoma) chuqur tahlil qilib, undagi huquqiy xavflar, noaniq bandlar, qonunga zid shartlar va yetishmayotgan muhim qismlarni aniqlash.
 
 TALABLAR:
@@ -152,28 +153,59 @@ JSON SCHEMA:
       scannedAt: new Date().toISOString(),
     }
 
+    const supabase = getSupabaseAdmin()
+
     // Save to history
+    let historyId = `risk_${Date.now()}`
     try {
-      await supabase.from('tool_history').insert({
-        user_id: auth.user.id,
-        tool_type: 'risk_assessment',
-        title: `Risk Tahlili: ${documentTitle}`,
-        summary: report.summary,
-        input_data: { documentTitle, documentType, length: documentText.length },
-        result_data: report,
-        legal_references:
-          report.detectedIssues
-            ?.map((i: { legalGround?: string }) => i.legalGround)
-            .filter(Boolean) || [],
-        status: 'completed',
-      })
+      const { data: savedRow } = await supabase
+        .from('tool_history')
+        .insert({
+          user_id: auth.user.id,
+          tool_type: 'risk_assessment',
+          title: `Risk Tahlili: ${documentTitle}`,
+          summary: report.summary,
+          input_data: { documentTitle, documentType, length: documentText.length },
+          result_data: report,
+          legal_references:
+            report.detectedIssues
+              ?.map((i: { legalGround?: string }) => i.legalGround)
+              .filter(Boolean) || [],
+          status: 'completed',
+          created_at: new Date().toISOString(),
+        })
+        .select('id')
+        .single()
+
+      if (savedRow?.id) historyId = savedRow.id
     } catch (saveErr) {
-      console.error('Failed to save risk assessment history:', saveErr)
+      console.warn('Failed to save risk assessment history:', saveErr)
     }
+
+    // Award XP (+10 XP)
+    const idempotencyKey = `risk_scan_${auth.user.id}_${Date.now()}`
+    const xpResult = await awardUserXP({
+      userId: auth.user.id,
+      userEmail: auth.user.email,
+      action: 'risk-assessment',
+      xp: 10,
+      title: `Shartnoma riski tekshirildi: ${documentTitle}`,
+      description: `Hujjat auditi yakunlandi (Xavf: ${report.overallRisk})`,
+      idempotencyKey,
+      metadata: {
+        tool_type: 'risk_assessment',
+        document_title: documentTitle,
+        risk_score: report.riskScore,
+        history_id: historyId,
+      },
+    })
 
     return NextResponse.json({
       success: true,
       report,
+      xpEarned: xpResult.xpEarned,
+      totalXp: xpResult.totalXp,
+      level: xpResult.level,
     })
   } catch (error) {
     console.error('Risk assessment API error:', error)

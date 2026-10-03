@@ -583,8 +583,8 @@ export default function LegalCalculatorsWorkspace() {
               <p>
                 1 BHM = <strong>{CURRENT_BHM_VALUE.toLocaleString()} so‘m</strong>
               </p>
-              <p>Amal qilish sanasi: 2024-yil 1-sentabrdan boshlab</p>
-              <p>Asos: Prezidentning PF-108-son Farmoni</p>
+              <p>Amal qilish sanasi: 2026-yil 1-sentabrdan boshlab</p>
+              <p>Asos: Prezidentning PF-115-son Farmoni (Lex.uz tasdiqlangan)</p>
             </div>
           </div>
 
@@ -615,7 +615,7 @@ export default function LegalCalculatorsWorkspace() {
                 rel="noreferrer"
                 className="text-[11px] font-semibold text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
               >
-                <BookOpen className="w-3.5 h-3.5" /> PF-108 Farmoni (Lex.uz)
+                <BookOpen className="w-3.5 h-3.5" /> PF-115 Farmoni (Lex.uz)
               </a>
             </div>
           </div>

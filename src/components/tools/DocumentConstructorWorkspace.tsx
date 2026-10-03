@@ -20,9 +20,105 @@ import { supabase } from '@/lib/supabase-browser'
 import { OfficialTemplate } from '@/types/professional-tools'
 import { getAuthHeaders } from '@/lib/api-auth-client'
 
+const DEFAULT_OFFICIAL_TEMPLATES: OfficialTemplate[] = [
+  {
+    id: 'tpl_davo_qarz',
+    slug: 'davo-arizasi-qarz',
+    name: 'Qarz summasini undirish to‘g‘risida da‘vo arizasi',
+    category: 'fuqarolik',
+    description: 'Qarz tilxati yoki shartnomasi bo‘yicha muddati o‘tgan pulni sud orqali undirish',
+    law_ref: 'FK 732-736-moddalari, FPK 189-191-moddalari',
+    format: 'DOCX',
+    content: `FUQAROLIK ISHLARI BO‘YICHA (tuman/shahar) SUDIGA
+
+Da‘vogar: (F.I.Sh., yashash manzili, telefon raqami)
+Javobgar: (F.I.Sh., yashash manzili)
+Da‘vo bahosi: ___________ so'm
+
+DA‘VO ARIZASI
+(Qarz summasini undirish to‘g‘risida)
+
+Javobgar bilan o‘rtamizda tuzilgan qarz shartnomasiga (tilxatga) asosan, men javobgarga ___________ so'm miqdorida qarz bergan edim. Qarzni qaytarish muddati tugagan bo‘lsa-da, javobgar qarzni qaytarishdan bosh tortib kelmoqda.
+
+(da'vo asoslari batafsil yoziladi)
+
+O‘zbekiston Respublikasi Fuqarolik Kodeksining 732, 735, 736-moddalariga, FPKning 189-191-moddalariga asosan,
+
+SO‘RAYMAN:
+1. Javobgardan mening foydamga ___________ so'm qarz summasini undirishingizni;
+2. To‘langan davlat boji va sud xarajatlarini javobgar hisobidan qoplashingizni.
+
+Ilova qilinayotgan hujjatlar:
+1. Da‘vo arizasi nusxalari.
+2. Qarz tilxati (shartnomasi) nusxasi.
+3. Davlat boji to‘langanligi haqida kvitansiya.
+
+Da‘vogar: (da'vogarning F.I.Sh.) ___________
+Sana: 2026-yil "___" __________`,
+  },
+  {
+    id: 'tpl_ishga_tiklash',
+    slug: 'davo-arizasi-mehnat',
+    name: 'Ishga tiklash va oylik ish haqini undirish arizasi',
+    category: 'mehnat',
+    description: 'Noqonuniy ishdan bo‘shatish yuzasidan sudga murojaat qilish shakli',
+    law_ref: 'Yangi MK 161, 560-moddalari, FPK 189-moddasi',
+    format: 'DOCX',
+    content: `FUQAROLIK ISHLARI BO‘YICHA (tuman/shahar) SUDIGA
+
+Da‘vogar: (F.I.Sh., yashash manzili, telefon raqami)
+Javobgar: (F.I.Sh., yashash manzili)
+
+DA‘VO ARIZASI
+(Ishga tiklash va majburiy progul haqini undirish to‘g‘risida)
+
+Men javobgar tashkilotida ishlab kelganman. 2026-yilda asossiz ravishda ishdan bo‘shatildim.
+
+(da'vo asoslari batafsil yoziladi)
+
+O‘zbekiston Respublikasi Mehnat Kodeksining 161, 560-moddalariga asosan,
+
+SO‘RAYMAN:
+1. Meni avvalgi lavozimimga ishga tiklashingizni;
+2. Majburiy progul kunlari uchun o‘rtacha ish haqini undirishingizni.
+
+Da‘vogar: (da'vogarning F.I.Sh.) ___________
+Sana: 2026-yil "___" __________`,
+  },
+  {
+    id: 'tpl_shartnoma_oldi_sotdi',
+    slug: 'oldi-sotdi-shartnomasi',
+    name: 'Mahsulot yetkazib berish va oldi-sotdi shartnomasi (2026)',
+    category: 'iqtisodiy',
+    description: 'Xo‘jalik yurituvchi subyektlar o‘rtasidagi rasmiy kontrakt shakli',
+    law_ref: 'FK 386, 437-moddalari, 670-I-son Qonun',
+    format: 'DOCX',
+    content: `MAHSULOT YETKAZIB BERISH SHARTNOMASI № ___
+
+Toshkent shahri                                              2026-yil "___" __________
+
+Bir tomondan (F.I.Sh., yashash manzili, telefon raqami) (keyingi o‘rinlarda "Sotuvchi"),
+ikkinchi tomondan (F.I.Sh., yashash manzili) (keyingi o‘rinlarda "Xaridor"),
+quyidagilar to‘g‘risida mazkur shartnomani tuzdilar:
+
+1. SHARTNOMA PREDMETI
+1.1. Sotuvchi mahsulotni Xaridor mulkiga yetkazib berish, Xaridor esa qabul qilib to‘lash majburiyatini oladi.
+1.2. Shartnoma umumiy summasi: ___________ so'm.
+
+(da'vo asoslari batafsil yoziladi)
+
+2. TARAFLARNING JAVOBGARLIGI
+2.1. Majburiyatlar kechiktirilganda kuniga 0.5% penya hisoblanadi (max 50% - 670-I Qonun).
+
+Sotuvchi: ____________________          Xaridor: ____________________`,
+  },
+]
+
 export default function DocumentConstructorWorkspace() {
-  const [templates, setTemplates] = useState<OfficialTemplate[]>([])
-  const [selectedTemplate, setSelectedTemplate] = useState<OfficialTemplate | null>(null)
+  const [templates, setTemplates] = useState<OfficialTemplate[]>(DEFAULT_OFFICIAL_TEMPLATES)
+  const [selectedTemplate, setSelectedTemplate] = useState<OfficialTemplate | null>(
+    DEFAULT_OFFICIAL_TEMPLATES[0]
+  )
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [loading, setLoading] = useState(false)
@@ -50,14 +146,16 @@ export default function DocumentConstructorWorkspace() {
           .eq('is_active', true)
           .order('name', { ascending: true })
 
-        if (!error && data) {
+        if (!error && data && data.length > 0) {
           setTemplates(data as OfficialTemplate[])
-          if (data.length > 0) {
-            setSelectedTemplate(data[0] as OfficialTemplate)
-          }
+          setSelectedTemplate(data[0] as OfficialTemplate)
+        } else {
+          setTemplates(DEFAULT_OFFICIAL_TEMPLATES)
+          setSelectedTemplate(DEFAULT_OFFICIAL_TEMPLATES[0])
         }
       } catch (err) {
         console.error('Error loading templates:', err)
+        setTemplates(DEFAULT_OFFICIAL_TEMPLATES)
       } finally {
         setLoading(false)
       }
@@ -112,11 +210,35 @@ export default function DocumentConstructorWorkspace() {
     return content
   }, [selectedTemplate, formData])
 
+  // Backend sync helper
+  const syncDocumentToBackend = async () => {
+    if (!selectedTemplate) return
+    try {
+      const headers = await getAuthHeaders()
+      await fetch('/api/tools/document-generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...headers },
+        body: JSON.stringify({
+          templateSlug: selectedTemplate.slug,
+          formData,
+          title: selectedTemplate.name,
+          customContent: renderedContent,
+        }),
+      })
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('stats-updated'))
+      }
+    } catch (err) {
+      console.warn('Doc sync error:', err)
+    }
+  }
+
   // PDF Export
   const handleExportPdf = async () => {
     if (!selectedTemplate || !renderedContent) return
     setGenerating(true)
     try {
+      syncDocumentToBackend()
       const doc = await PDFDocument.create()
       const pageSize: [number, number] = [595.28, 841.89] // A4
       const margin = 50
@@ -178,6 +300,7 @@ export default function DocumentConstructorWorkspace() {
   // TXT / DOCX Export
   const handleExportDocx = () => {
     if (!renderedContent) return
+    syncDocumentToBackend()
     const blob = new Blob([renderedContent], { type: 'text/plain;charset=utf-8' })
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireUser } from '@/lib/server-auth'
-import { supabase } from '@/lib/supabase'
-import { DecisionCase } from '@/types/decision-tree'
+import { getSupabaseAdmin } from '@/lib/supabase-admin'
+import { awardUserXP } from '@/lib/xp-engine'
 
 /**
  * GET /api/decision-tree/trees
@@ -18,6 +18,7 @@ export async function GET(request: NextRequest) {
     const limit = Math.min(parseInt(searchParams.get('limit') || '50', 10) || 50, 100)
     const offset = Math.max(parseInt(searchParams.get('offset') || '0', 10) || 0, 0)
 
+    const supabase = getSupabaseAdmin()
     let query = supabase
       .from('decision_trees')
       .select('*', { count: 'exact' })
@@ -95,7 +96,7 @@ export async function GET(request: NextRequest) {
 
 /**
  * POST /api/decision-tree/trees
- * Yangi qaror daraxtini Supabase bazasiga saqlash.
+ * Yangi qaror daraxtini Supabase bazasiga saqlash va XP berish.
  */
 export async function POST(request: NextRequest) {
   try {
@@ -118,6 +119,7 @@ export async function POST(request: NextRequest) {
       selected_path = [],
       evidence_state = {},
       notes = '',
+      status = 'active',
     } = body
 
     if (!name || !tree) {
@@ -127,6 +129,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const supabase = getSupabaseAdmin()
     const now = new Date().toISOString()
     const payload = {
       user_id: auth.user.id,
@@ -144,7 +147,7 @@ export async function POST(request: NextRequest) {
       selected_path,
       evidence_state,
       notes: String(notes || '').trim(),
-      status: 'active',
+      status: String(status || 'active').trim(),
       created_at: now,
       updated_at: now,
     }
@@ -163,9 +166,29 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Award XP (+15 XP)
+    const idempotencyKey = `decision_tree_create_${data.id}`
+    const xpResult = await awardUserXP({
+      userId: auth.user.id,
+      userEmail: auth.user.email,
+      action: 'decision-tree',
+      xp: 15,
+      title: `Qarorlar daraxti yaratildi: ${name}`,
+      description: `${case_type} bo‘yicha yuridik strategiya tahlili`,
+      idempotencyKey,
+      metadata: {
+        tree_id: data.id,
+        name,
+        case_type,
+      },
+    })
+
     return NextResponse.json({
       success: true,
       case: data,
+      xpEarned: xpResult.xpEarned,
+      totalXp: xpResult.totalXp,
+      level: xpResult.level,
       message: 'Qarorlar daraxti muvaffaqiyatli saqlandi',
     })
   } catch (error) {

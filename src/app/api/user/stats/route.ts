@@ -1,36 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireUser } from '@/lib/server-auth'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
+import { LEVEL_XP, XP_ACTION_VALUES } from '@/lib/xp-engine'
 
-// ═══════════════════════════════════════════════════════════════════
-// XP QOIDALARI — HAQIQIY LOGIC
-// ═══════════════════════════════════════════════════════════════════
-// usage_logs.action ga qarab XP beriladi:
-const XP_VALUES: Record<string, number> = {
-  'ai-chat': 5,
-  ai_legal_chat: 5,
-  irac: 15,
-  irac_analysis: 15,
-  'case-solver': 20,
-  'document-generate': 10,
-  document_analysis: 10,
-  'law-search': 3,
-  'virtual-court': 25,
-  'court-simulation': 25,
-  'decision-tree': 15,
-  'speech-stt': 5,
-  scenario: 10,
-}
-const LEVEL_XP = 200 // 200 XP per level
 const WEEKLY_GOAL_XP = 500
-
-function getXPForAction(action: string): number {
-  return XP_VALUES[action] || 5
-}
-
-function getLevel(xp: number): number {
-  return Math.floor(xp / LEVEL_XP) + 1
-}
 
 function getRank(level: number): string {
   if (level >= 50) return 'Legal Master'
@@ -43,36 +16,48 @@ function getRank(level: number): string {
   return 'Beginner'
 }
 
-function getActionTitle(action: string): string {
+function getActionTitle(action: string, metadataTitle?: string): string {
+  if (metadataTitle) return metadataTitle
   const titles: Record<string, string> = {
     'ai-chat': 'AI huquqiy maslahat',
     ai_legal_chat: 'AI huquqiy maslahat',
     irac: 'IRAC tahlili',
     irac_analysis: 'IRAC tahlili',
+    'case-solver': 'Kazus yechish',
     'document-generate': 'Hujjat generatsiyasi',
     document_analysis: 'Hujjat tahlili',
-    'law-search': 'Qonunlar bazasi qidirish',
-    'case-solver': 'Kazus yechish',
-    'virtual-court': 'Virtual sud',
-    'court-simulation': 'Virtual sud',
+    'risk-assessment': 'Shartnoma riski tahlili',
+    'court-practice': 'Sud amaliyoti tahlili',
+    calculator: 'Yuridik kalkulyator',
+    'law-search': 'Qonunlar bazasi qidiruv',
+    'virtual-court': 'Virtual sud majlisi',
+    'court-simulation': 'Virtual sud majlisi',
     'decision-tree': 'Qarorlar daraxti',
-    'speech-stt': 'Ovozli kiritish',
-    scenario: 'Senariy yaratish',
+    'speech-stt': 'Ovozli yozuv',
+    scenario: 'Senariy simulyatsiyasi',
+    'scenario-evaluation': 'Senariy baholash',
   }
-  return titles[action] || 'Faoliyat'
+  return titles[action] || 'Huquqiy amaliyot'
 }
 
 function getActionIcon(action: string): string {
   const icons: Record<string, string> = {
     'ai-chat': '💬',
     irac: '⚖️',
-    'document-generate': '📄',
-    'law-search': '📚',
+    irac_analysis: '⚖️',
     'case-solver': '🔍',
+    'document-generate': '📄',
+    document_analysis: '🛡️',
+    'risk-assessment': '🛡️',
+    'court-practice': '📈',
+    calculator: '🧮',
+    'law-search': '📚',
     'virtual-court': '🏛️',
+    'court-simulation': '🏛️',
     'decision-tree': '🌳',
     'speech-stt': '🎤',
     scenario: '🎭',
+    'scenario-evaluation': '🎭',
   }
   return icons[action] || '📝'
 }
@@ -83,41 +68,41 @@ export async function GET(request: NextRequest) {
     if (!auth.ok) return auth.response
 
     const { searchParams } = new URL(request.url)
-    const days = parseInt(searchParams.get('days') || '9999')
-    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '6')))
+    const daysParam = searchParams.get('days')
+    const days = daysParam ? parseInt(daysParam, 10) : 9999
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '6', 10)))
     const supabase = getSupabaseAdmin()
 
-    // 1. User data
+    // 1. Fetch user data from registered_users
     const { data: userData } = await supabase
       .from('registered_users')
-      .select('id, name, created_at, subscription_plan')
+      .select('id, name, full_name, email, created_at, subscription_plan, xp, level')
       .eq('id', auth.user.id)
       .maybeSingle()
 
     if (!userData) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+      return NextResponse.json({ error: 'Foydalanuvchi topilmadi' }, { status: 404 })
     }
 
-    // 2. Usage logs — asosiy data manbai
+    // 2. Fetch usage logs for user
     const sinceDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString()
     const { data: usageData } = await supabase
       .from('usage_logs')
-      .select('id, action, tokens, created_at')
+      .select('id, action, tokens, metadata, created_at')
       .eq('user_id', auth.user.id)
       .gte('created_at', sinceDate)
       .order('created_at', { ascending: false })
-      .limit(200)
+      .limit(300)
 
-    // 3. IRAC cases
-    const { data: iracData } = await supabase
-      .from('irac_cases')
-      .select('id, title, status, total_score, created_at')
+    // 3. Fetch completed IRAC cases / analyses
+    const { data: iracAnalyses } = await supabase
+      .from('irac_analyses')
+      .select('id, case_title, total_score, grade, completed_at, created_at')
       .eq('user_id', auth.user.id)
-      .gte('created_at', sinceDate)
       .order('created_at', { ascending: false })
       .limit(100)
 
-    // 4. Achievements
+    // 4. Fetch achievements
     const { data: achData } = await supabase
       .from('achievements')
       .select('id, title, achievement_type, rarity, unlocked_at')
@@ -125,81 +110,94 @@ export async function GET(request: NextRequest) {
       .order('unlocked_at', { ascending: false })
       .limit(50)
 
-    // ── XP hisoblash ──
     const usageLogs = usageData || []
-    const iracCases = iracData || []
+    const analyses = iracAnalyses || []
     const achievements = achData || []
 
-    // Har bir action uchun XP
+    // ── XP & Counts Breakdown ──
     const xpByAction: Record<string, number> = {}
     const countByAction: Record<string, number> = {}
-    let totalXP = 0
+    let logsTotalXP = 0
 
     for (const log of usageLogs) {
       const action = String(log.action || '')
-      const xp = getXPForAction(action)
+      const xp = Number(log.metadata?.xp_awarded ?? log.tokens ?? XP_ACTION_VALUES[action] ?? 5)
       xpByAction[action] = (xpByAction[action] || 0) + xp
       countByAction[action] = (countByAction[action] || 0) + 1
-      totalXP += xp
+      logsTotalXP += xp
     }
 
-    // IRAC uchun qo'shimcha XP
-    const completedIRAC = iracCases.filter(c => c.status === 'COMPLETED').length
-    totalXP += completedIRAC * 15
-
-    const level = getLevel(totalXP)
+    // Database registered_users XP is the primary source of truth
+    const userDbXp = Number(userData.xp || 0)
+    const totalXP = Math.max(userDbXp, logsTotalXP)
+    const level = Number(userData.level || Math.floor(totalXP / LEVEL_XP) + 1)
     const xpInCurrentLevel = totalXP % LEVEL_XP
     const xpToNextLevel = LEVEL_XP - xpInCurrentLevel
     const progressPercent = Math.round((xpInCurrentLevel / LEVEL_XP) * 100)
 
-    // Haftalik XP
-    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+    // ── Haftalik XP (Start of this week in Tashkent time UTC+5) ──
+    const now = new Date()
+    const tashkentOffsetMs = 5 * 60 * 60 * 1000
+    const localNow = new Date(now.getTime() + tashkentOffsetMs)
+    const dayOfWeek = localNow.getUTCDay() // 0 = Sunday, 1 = Monday
+    const daysSinceMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1
+    const mondayStartUtc = new Date(
+      Date.UTC(
+        localNow.getUTCFullYear(),
+        localNow.getUTCMonth(),
+        localNow.getUTCDate() - daysSinceMonday
+      ) - tashkentOffsetMs
+    )
+
     const weeklyXP = usageLogs
-      .filter(l => new Date(l.created_at || '') >= weekAgo)
-      .reduce((sum, l) => sum + getXPForAction(String(l.action || '')), 0)
+      .filter(l => new Date(l.created_at || '') >= mondayStartUtc)
+      .reduce(
+        (sum, l) =>
+          sum +
+          Number(
+            l.metadata?.xp_awarded ?? l.tokens ?? XP_ACTION_VALUES[String(l.action || '')] ?? 5
+          ),
+        0
+      )
     const weeklyProgress = Math.min(Math.round((weeklyXP / WEEKLY_GOAL_XP) * 100), 100)
 
-    // Kunlik faollik (oxirgi 30 kun)
+    // ── Kunlik faollik xaritasi (oxirgi 30 kun) ──
     const dailyActivity: Record<string, number> = {}
     for (const log of usageLogs) {
       const day = String(log.created_at || '').split('T')[0]
-      dailyActivity[day] = (dailyActivity[day] || 0) + 1
+      if (day) dailyActivity[day] = (dailyActivity[day] || 0) + 1
     }
     const activeDays = Object.keys(dailyActivity).length
 
-    // Streak — ketma-ket faol kunlar
+    // ── Streak (Ketma-ket faol kunlar) ──
     let streak = 0
-    const today = new Date()
+    const todayStr = now.toISOString().split('T')[0]
     for (let i = 0; i < 365; i++) {
-      const d = new Date(today)
+      const d = new Date(now)
       d.setDate(d.getDate() - i)
       const key = d.toISOString().split('T')[0]
-      if (dailyActivity[key]) streak++
-      else if (i > 0) break
+      if (dailyActivity[key]) {
+        streak++
+      } else if (i > 0 && key !== todayStr) {
+        break
+      }
     }
 
-    // Amaliyot bo'yicha statistika
+    // ── Amaliyot bo‘yicha statistika ──
     const practiceStats = [
       {
         key: 'case-solver',
         label: 'Kazus Yechish',
         icon: '🔍',
-        count: countByAction['case-solver'] || 0,
-        xp: xpByAction['case-solver'] || 0,
-      },
-      {
-        key: 'irac',
-        label: 'IRAC Tahlili',
-        icon: '⚖️',
-        count: (countByAction['irac'] || 0) + completedIRAC,
-        xp: (xpByAction['irac'] || 0) + completedIRAC * 15,
+        count: (countByAction['case-solver'] || 0) + (countByAction['irac_analysis'] || 0),
+        xp: (xpByAction['case-solver'] || 0) + (xpByAction['irac_analysis'] || 0),
       },
       {
         key: 'virtual-court',
         label: 'Virtual Sud',
         icon: '🏛️',
-        count: countByAction['virtual-court'] || countByAction['court-simulation'] || 0,
-        xp: xpByAction['virtual-court'] || xpByAction['court-simulation'] || 0,
+        count: (countByAction['virtual-court'] || 0) + (countByAction['court-simulation'] || 0),
+        xp: (xpByAction['virtual-court'] || 0) + (xpByAction['court-simulation'] || 0),
       },
       {
         key: 'decision-tree',
@@ -212,8 +210,34 @@ export async function GET(request: NextRequest) {
         key: 'scenario',
         label: 'Senariy Generator',
         icon: '🎭',
-        count: countByAction['scenario'] || 0,
-        xp: xpByAction['scenario'] || 0,
+        count: (countByAction['scenario'] || 0) + (countByAction['scenario-evaluation'] || 0),
+        xp: (xpByAction['scenario'] || 0) + (xpByAction['scenario-evaluation'] || 0),
+      },
+      {
+        key: 'document-generate',
+        label: 'Hujjatlar & Risk',
+        icon: '📄',
+        count:
+          (countByAction['document-generate'] || 0) +
+          (countByAction['risk-assessment'] || 0) +
+          (countByAction['document_analysis'] || 0),
+        xp:
+          (xpByAction['document-generate'] || 0) +
+          (xpByAction['risk-assessment'] || 0) +
+          (xpByAction['document_analysis'] || 0),
+      },
+      {
+        key: 'calculator',
+        label: 'Yuridik Asboblar',
+        icon: '🧮',
+        count:
+          (countByAction['calculator'] || 0) +
+          (countByAction['court-practice'] || 0) +
+          (countByAction['legal_tools'] || 0),
+        xp:
+          (xpByAction['calculator'] || 0) +
+          (xpByAction['court-practice'] || 0) +
+          (xpByAction['legal_tools'] || 0),
       },
       {
         key: 'ai-chat',
@@ -221,14 +245,6 @@ export async function GET(request: NextRequest) {
         icon: '💬',
         count: (countByAction['ai-chat'] || 0) + (countByAction['ai_legal_chat'] || 0),
         xp: (xpByAction['ai-chat'] || 0) + (xpByAction['ai_legal_chat'] || 0),
-      },
-      {
-        key: 'document-generate',
-        label: 'Hujjat',
-        icon: '📄',
-        count:
-          (countByAction['document-generate'] || 0) + (countByAction['document_analysis'] || 0),
-        xp: (xpByAction['document-generate'] || 0) + (xpByAction['document_analysis'] || 0),
       },
       {
         key: 'law-search',
@@ -239,36 +255,34 @@ export async function GET(request: NextRequest) {
       },
     ].filter(p => p.count > 0)
 
-    // Faoliyat tarixi (Dashboard uchun limitlangan preview)
-    const recentActivity = usageLogs.slice(0, limit).map(log => ({
-      id: String(log.id || ''),
-      action: String(log.action || ''),
-      title: getActionTitle(String(log.action || '')),
-      icon: getActionIcon(String(log.action || '')),
-      xp: getXPForAction(String(log.action || '')),
-      timestamp: String(log.created_at || ''),
-    }))
+    // ── Faoliyat tarixi ──
+    const formatActivityItem = (log: any) => {
+      const action = String(log.action || '')
+      const meta = log.metadata || {}
+      return {
+        id: String(log.id || ''),
+        action,
+        title: getActionTitle(action, meta.title),
+        icon: getActionIcon(action),
+        xp: Number(meta.xp_awarded ?? log.tokens ?? XP_ACTION_VALUES[action] ?? 5),
+        description: meta.description || meta.summary || '',
+        timestamp: String(log.created_at || ''),
+      }
+    }
 
-    // To'liq faoliyat tarixi
-    const allActivity = usageLogs.slice(0, 100).map(log => ({
-      id: String(log.id || ''),
-      action: String(log.action || ''),
-      title: getActionTitle(String(log.action || '')),
-      icon: getActionIcon(String(log.action || '')),
-      xp: getXPForAction(String(log.action || '')),
-      timestamp: String(log.created_at || ''),
-    }))
+    const recentActivity = usageLogs.slice(0, limit).map(formatActivityItem)
+    const allActivity = usageLogs.slice(0, 100).map(formatActivityItem)
 
-    // Oxirgi IRAC natijalari
-    const recentIRAC = iracCases.slice(0, 10).map(c => ({
+    // ── IRAC natijalari ──
+    const recentIRAC = analyses.slice(0, 10).map(c => ({
       id: String(c.id || ''),
-      title: String(c.title || ''),
-      status: String(c.status || ''),
+      title: String(c.case_title || 'IRAC Kazus'),
+      status: 'COMPLETED',
       score: Number(c.total_score || 0),
-      timestamp: String(c.created_at || ''),
+      timestamp: String(c.completed_at || c.created_at || ''),
     }))
 
-    // Yutuqlar
+    // ── Yutuqlar ──
     const achievementList = achievements.map(a => ({
       id: String(a.id || ''),
       title: String(a.title || ''),
@@ -278,7 +292,6 @@ export async function GET(request: NextRequest) {
     }))
 
     return NextResponse.json({
-      // Asosiy ko'rsatkichlar
       xp: totalXP,
       level,
       xpInCurrentLevel,
@@ -290,36 +303,28 @@ export async function GET(request: NextRequest) {
       rank: getRank(level),
       levelXp: LEVEL_XP,
 
-      // Faollik
       activeDays,
       streak,
       totalActions: usageLogs.length,
-      totalIracCases: iracCases.length,
-      completedIracCases: completedIRAC,
+      totalIracCases: analyses.length,
+      completedIracCases: analyses.length,
 
-      // XP breakdown
       xpByAction,
       countByAction,
-
-      // Practice stats
       practiceStats,
 
-      // Activity history
       recentActivity,
       allActivity,
       recentIRAC,
       achievements: achievementList,
-
-      // Daily activity (heatmap)
       dailyActivity,
 
-      // User info
-      userName: userData.name || '',
+      userName: userData.full_name || userData.name || userData.email?.split('@')[0] || '',
       memberSince: userData.created_at || '',
       subscriptionPlan: userData.subscription_plan || 'free',
     })
   } catch (error) {
-    console.error('User stats error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('User stats API error:', error)
+    return NextResponse.json({ error: 'Ichki server xatosi' }, { status: 500 })
   }
 }

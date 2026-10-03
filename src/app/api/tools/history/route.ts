@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireUser } from '@/lib/server-auth'
-import { supabase } from '@/lib/supabase'
+import { getSupabaseAdmin } from '@/lib/supabase-admin'
 
 /**
  * GET /api/tools/history
@@ -15,6 +15,7 @@ export async function GET(request: NextRequest) {
     const tool_type = searchParams.get('tool_type')
     const limit = Math.min(parseInt(searchParams.get('limit') || '50', 10) || 50, 100)
 
+    const supabase = getSupabaseAdmin()
     let query = supabase
       .from('tool_history')
       .select('*')
@@ -62,6 +63,7 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'ID talab qilinadi' }, { status: 400 })
     }
 
+    const supabase = getSupabaseAdmin()
     const { error } = await supabase
       .from('tool_history')
       .delete()

@@ -20,6 +20,7 @@ import {
 } from '@/lib/court/stage-machine'
 import { generateCourtAiTurn } from '@/lib/court/ai-engine'
 import { calculateSessionScore } from '@/lib/court/scoring-engine'
+import { awardUserXP } from '@/lib/xp-engine'
 
 // ── Database Session Helper ────────────────────────────────────────────────
 async function getSessionById(
@@ -511,7 +512,35 @@ export async function POST(request: NextRequest) {
       const score = typeof scoreResult?.totalScore === 'number' ? scoreResult.totalScore : 85
       const outcome = `Yakunlangan — Ball: ${score}`
       await persistSessionState(simulationId, userId, state, 'completed', score, outcome)
-      return NextResponse.json({ success: true, verdict, score, outcome })
+
+      // Award XP (+25 XP) with idempotency key
+      const xpResult = await awardUserXP({
+        userId,
+        userEmail: auth.user.email,
+        action: 'virtual-court',
+        xp: 25,
+        title: `Virtual sud majlisi: ${scenarioObj.title || 'Sud simulyatsiyasi'}`,
+        description: `${state.selected_role} rolida sud jarayoni yakunlandi (${score} ball, ${verdict})`,
+        idempotencyKey: `virtual_court_${simulationId}`,
+        metadata: {
+          simulation_id: simulationId,
+          scenario_id: state.scenario_id,
+          user_role: state.selected_role,
+          score,
+          verdict,
+        },
+      })
+
+      return NextResponse.json({
+        success: true,
+        verdict,
+        score,
+        outcome,
+        xpEarned: xpResult.xpEarned,
+        totalXp: xpResult.totalXp,
+        level: xpResult.level,
+        unlockedAchievements: xpResult.unlockedAchievements,
+      })
     }
 
     // ── 5. NEXT STAGE (SERVER-SIDE CONTROL) ──────────────────────────────
