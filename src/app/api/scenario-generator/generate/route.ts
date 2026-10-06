@@ -144,32 +144,64 @@ Mavzu/Vaziyat: ${topic || '2026-yilgi amaliy huquqiy nizo'}
 Diqqat markazlari: ${focusAreas.join(', ') || 'Umumiy huquqiy tahlil'}
 Qo‘shimcha talablar: ${additionalRequirements || 'Standart professional amaliyot'}`
 
-    const response = await fetch(GROQ_API_URL, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${GROQ_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'openai/gpt-oss-120b',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt },
-        ],
-        temperature: 0.5,
-        max_tokens: 3500,
-        response_format: { type: 'json_object' },
-      }),
-    })
+    const CANDIDATE_MODELS = [
+      'openai/gpt-oss-120b',
+      'llama-3.3-70b-versatile',
+      'llama-3.1-70b-versatile',
+    ]
 
-    if (!response.ok) {
-      const errorText = await response.text()
-      console.error('Groq scenario generate error:', errorText)
-      return NextResponse.json({ error: 'AI xizmati vaqtincha band' }, { status: response.status })
+    let contentStr = ''
+    let lastError = ''
+
+    for (const model of CANDIDATE_MODELS) {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 25000)
+
+      try {
+        const response = await fetch(GROQ_API_URL, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${GROQ_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model,
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: userPrompt },
+            ],
+            temperature: 0.5,
+            max_tokens: 3500,
+            response_format: { type: 'json_object' },
+          }),
+          signal: controller.signal,
+        })
+
+        clearTimeout(timeoutId)
+
+        if (response.ok) {
+          const aiRes = await response.json()
+          contentStr = aiRes.choices?.[0]?.message?.content || ''
+          if (contentStr.trim()) break
+        } else {
+          const errorText = await response.text().catch(() => '')
+          lastError = `Model ${model} failed (${response.status}): ${errorText.slice(0, 150)}`
+          console.warn('Groq scenario generate attempt failed:', lastError)
+        }
+      } catch (e: any) {
+        clearTimeout(timeoutId)
+        lastError = e.name === 'AbortError' ? 'AI timeout (25s)' : e.message
+        console.warn(`Groq scenario generate error with ${model}:`, lastError)
+      }
     }
 
-    const aiRes = await response.json()
-    const contentStr = aiRes.choices[0]?.message?.content || '{}'
+    if (!contentStr) {
+      return NextResponse.json(
+        { error: `AI xizmati vaqtincha band: ${lastError || 'Barcha modellar band'}` },
+        { status: 503 }
+      )
+    }
+
     let scenarioData: ScenarioData
 
     try {
@@ -179,6 +211,49 @@ Qo‘shimcha talablar: ${additionalRequirements || 'Standart professional amaliy
         { error: 'AI javobini tahlil qilishda xatolik yuz berdi' },
         { status: 502 }
       )
+    }
+
+    // Ensure Uzbek Latin for text fields
+    if (scenarioData.title) scenarioData.title = ensureUzbekLatin(scenarioData.title)
+    if (scenarioData.background) scenarioData.background = ensureUzbekLatin(scenarioData.background)
+    if (Array.isArray(scenarioData.facts)) {
+      scenarioData.facts = scenarioData.facts.map(f => ({
+        ...f,
+        statement: ensureUzbekLatin(f.statement || ''),
+      }))
+    }
+    if (Array.isArray(scenarioData.participants)) {
+      scenarioData.participants = scenarioData.participants.map(p => ({
+        ...p,
+        name: ensureUzbekLatin(p.name || ''),
+        role: ensureUzbekLatin(p.role || ''),
+        background: ensureUzbekLatin(p.background || ''),
+        interests: ensureUzbekLatin(p.interests || ''),
+      }))
+    }
+    if (Array.isArray(scenarioData.evidence)) {
+      scenarioData.evidence = scenarioData.evidence.map(e => ({
+        ...e,
+        title: ensureUzbekLatin(e.title || ''),
+        description: ensureUzbekLatin(e.description || ''),
+        legal_basis: e.legal_basis ? ensureUzbekLatin(e.legal_basis) : undefined,
+      }))
+    }
+    if (Array.isArray(scenarioData.decision_points)) {
+      scenarioData.decision_points = scenarioData.decision_points.map(dp => ({
+        ...dp,
+        stage_title: ensureUzbekLatin(dp.stage_title || ''),
+        prompt: ensureUzbekLatin(dp.prompt || ''),
+        options: Array.isArray(dp.options)
+          ? dp.options.map(opt => ({
+              ...opt,
+              label: ensureUzbekLatin(opt.label || ''),
+              description: ensureUzbekLatin(opt.description || ''),
+              consequence: ensureUzbekLatin(opt.consequence || ''),
+              feedback: ensureUzbekLatin(opt.feedback || ''),
+            }))
+          : [],
+      }))
     }
 
     // Apply strict legal integrity validation

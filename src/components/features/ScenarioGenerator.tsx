@@ -25,6 +25,7 @@ import {
   GraduationCap,
   Loader2,
 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import {
   ScenarioData,
   ScenarioDomain,
@@ -39,10 +40,14 @@ import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/app/providers'
 import { VERIFIED_SCENARIO_TEMPLATES } from '@/lib/scenario-generator-engine'
 import { getAuthHeaders } from '@/lib/api-auth-client'
+import LimitExceededModal from '@/components/ai/LimitExceededModal'
+import { useLimitModal } from '@/hooks/useLimitModal'
 
 export default function ScenarioGenerator() {
+  const router = useRouter()
   const { t } = useLanguage()
   const { user } = useAuth()
+  const { modalProps, checkLimitError } = useLimitModal()
 
   const [activeTab, setActiveTab] = useState<'create' | 'simulation' | 'templates' | 'history'>(
     'create'
@@ -150,10 +155,18 @@ export default function ScenarioGenerator() {
 
       const data = await res.json()
 
-      if (res.ok && data.scenario) {
+      if (!res.ok) {
+        if (checkLimitError(data)) {
+          return
+        }
+        setGenError(data.error || 'Senariy yaratishda xatolik yuz berdi. Qayta urinib ko‘ring.')
+        return
+      }
+
+      if (data.scenario) {
         startSimulation(data.scenario)
       } else {
-        setGenError(data.error || 'Senariy yaratishda xatolik yuz berdi. Qayta urinib ko‘ring.')
+        setGenError('Senariy yaratishda xatolik yuz berdi. Qayta urinib ko‘ring.')
       }
     } catch {
       setGenError('Server bilan bog‘lanishda xatolik yuz berdi')
@@ -892,6 +905,8 @@ export default function ScenarioGenerator() {
           )}
         </div>
       )}
+
+      <LimitExceededModal {...modalProps} onUpgrade={() => router.push('/premium')} />
     </div>
   )
 }

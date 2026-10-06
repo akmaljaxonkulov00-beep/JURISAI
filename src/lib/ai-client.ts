@@ -136,69 +136,83 @@ export class AIClient {
     if (request.systemPrompt) {
       messages.push({ role: 'system', content: request.systemPrompt })
     }
-    messages.push({ role: 'user', content: request.prompt })
+    const CANDIDATE_MODELS = [
+      'openai/gpt-oss-120b',
+      'llama-3.3-70b-versatile',
+      'llama-3.1-70b-versatile',
+    ]
 
-    const requestBody = JSON.stringify({
-      model: 'openai/gpt-oss-120b',
-      messages,
-      temperature: request.temperature ?? 0.2,
-      max_tokens: request.maxTokens ?? 1500,
-      frequency_penalty: 0.6,
-      presence_penalty: 0.3,
-    })
+    let responseText = ''
+    let usageData = { promptTokens: 0, completionTokens: 0, totalTokens: 0 }
+    let lastError = ''
 
-    try {
-      const result = await httpsRequest(
-        GROQ_API_URL,
-        {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${this.apiKey}`,
-            'Content-Type': 'application/json',
-            'Content-Length': String(Buffer.byteLength(requestBody)),
-          },
-        },
-        requestBody
-      )
+    for (const model of CANDIDATE_MODELS) {
+      const requestBody = JSON.stringify({
+        model,
+        messages,
+        temperature: request.temperature ?? 0.2,
+        max_tokens: request.maxTokens ?? 1500,
+        frequency_penalty: 0.6,
+        presence_penalty: 0.3,
+      })
 
-      const data = result.data
-
-      if (!data.choices?.[0]?.message?.content) {
-        throw new Error('AI dan javob olinmadi')
-      }
-
-      const responseText = ensureUzbekLatin(data.choices[0].message.content)
-
-      // ── 2. Save to Cache (non-blocking in background) ──
       try {
-        supabase
-          .from('ai_response_cache')
-          .insert({
-            prompt_hash: promptHash,
-            prompt: request.prompt,
-            system_prompt: request.systemPrompt || '',
-            response: responseText,
-          })
-          .then(({ error }) => {
-            if (error && error.code !== '23505') {
-              console.warn('[Cache Save Error]:', error.message)
-            }
-          })
-      } catch (err) {
-        console.warn('[Cache Catch Error]:', err)
-      }
+        const result = await httpsRequest(
+          GROQ_API_URL,
+          {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${this.apiKey}`,
+              'Content-Type': 'application/json',
+              'Content-Length': String(Buffer.byteLength(requestBody)),
+            },
+          },
+          requestBody
+        )
 
-      return {
-        text: responseText,
-        usage: {
-          promptTokens: data.usage?.prompt_tokens || 0,
-          completionTokens: data.usage?.completion_tokens || 0,
-          totalTokens: data.usage?.total_tokens || 0,
-        },
+        const data = result.data
+
+        if (data.choices?.[0]?.message?.content) {
+          responseText = ensureUzbekLatin(data.choices[0].message.content)
+          usageData = {
+            promptTokens: data.usage?.prompt_tokens || 0,
+            completionTokens: data.usage?.completion_tokens || 0,
+            totalTokens: data.usage?.total_tokens || 0,
+          }
+          break
+        }
+      } catch (err: any) {
+        lastError = err.message || String(err)
+        console.warn(`[AIClient] Attempt with model ${model} failed:`, lastError)
       }
-    } catch (error) {
-      if (error instanceof Error) throw error
-      throw new Error("Groq API bilan bog'lanishda xatolik")
+    }
+
+    if (!responseText) {
+      throw new Error(`AI xizmatidan javob olinmadi: ${lastError || 'Barcha modellar band'}`)
+    }
+
+    // ── 2. Save to Cache (non-blocking in background) ──
+    try {
+      supabase
+        .from('ai_response_cache')
+        .insert({
+          prompt_hash: promptHash,
+          prompt: request.prompt,
+          system_prompt: request.systemPrompt || '',
+          response: responseText,
+        })
+        .then(({ error }) => {
+          if (error && error.code !== '23505') {
+            console.warn('[Cache Save Error]:', error.message)
+          }
+        })
+    } catch (err) {
+      console.warn('[Cache Catch Error]:', err)
+    }
+
+    return {
+      text: responseText,
+      usage: usageData,
     }
   }
 

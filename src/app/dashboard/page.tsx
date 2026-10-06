@@ -635,7 +635,7 @@ export default function Dashboard() {
         <CardContent className="pt-5">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div
-              onClick={() => handleNavigation('/irac')}
+              onClick={() => handleNavigation('/case-solver')}
               className="relative overflow-hidden group p-6 bg-gradient-to-br from-blue-50/80 to-green-50/80 rounded-xl border border-blue-100/50 hover:border-blue-200/80 transition-all duration-300 cursor-pointer hover-lift"
             >
               <div className="absolute -top-6 -right-6 w-20 h-20 bg-blue-200/20 rounded-full blur-xl group-hover:scale-150 transition-transform duration-500" />
@@ -646,7 +646,7 @@ export default function Dashboard() {
               <p className="text-sm text-blue-600/70 mt-1">{t('dashboardIrDesc')}</p>
             </div>
             <div
-              onClick={() => handleNavigation('/legal-database-new')}
+              onClick={() => handleNavigation('/legal-database')}
               className="relative overflow-hidden group p-6 bg-gradient-to-br from-emerald-50/80 to-teal-50/80 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-xl border border-emerald-100/50 dark:border-emerald-800/30 hover:border-emerald-200/80 transition-all duration-300 cursor-pointer hover-lift"
             >
               <div className="absolute -top-6 -right-6 w-20 h-20 bg-emerald-200/20 rounded-full blur-xl group-hover:scale-150 transition-transform duration-500" />

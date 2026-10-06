@@ -15,7 +15,7 @@ import {
 } from 'lucide-react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import CheckoutModal from '@/components/payment/checkout-modal'
-import type { SiteSettings } from '@/lib/settings-sync'
+import { getPricingPlans, type PricingPlan, type SiteSettings } from '@/lib/settings-sync'
 
 function PaymentContent() {
   const router = useRouter()
@@ -91,50 +91,69 @@ function PaymentContent() {
     ? adminSettings.paymentDetails.replace('{amount}', amount.toLocaleString())
     : undefined
 
+  const [plans, setPlans] = useState<PricingPlan[]>([
+    {
+      id: 'standart',
+      name: 'Standart',
+      price: 29000,
+      features: [
+        "300 ta AI chat so'rovi / oy",
+        '50 ta IRAC tahlili / oy',
+        '50 ta hujjat generator / oy',
+        '30 ta hujjat tahlili / oy',
+        '30 ta qarorlar daraxti / oy',
+        '100 ta ovozli yozuv (STT) / oy',
+        '15 ta virtual sud sessiyasi / oy',
+        '30 ta senariy generator / oy',
+      ],
+      caseLimit: 50,
+    },
+    {
+      id: 'pro',
+      name: 'Pro',
+      price: 79000,
+      features: [
+        "Cheksiz AI chat so'rovlari",
+        'Cheksiz IRAC tahlili',
+        'Cheksiz hujjat generator',
+        'Cheksiz hujjat tahlili',
+        'Cheksiz qarorlar daraxti',
+        'Cheksiz ovozli yozuv (STT)',
+        '50 ta virtual sud sessiyasi / oy',
+        'Cheksiz senariy generator',
+      ],
+      caseLimit: -1,
+    },
+  ])
+
+  useEffect(() => {
+    let isMounted = true
+    getPricingPlans().then(allPlans => {
+      if (isMounted && allPlans && allPlans.length > 0) {
+        setPlans(allPlans.filter(p => p.id !== 'free'))
+      }
+    })
+    return () => {
+      isMounted = false
+    }
+  }, [])
+
   useEffect(() => {
     const plan = searchParams.get('plan') || 'standart'
-    const amt = parseInt(searchParams.get('amount') || '45000')
+    const amtParam = searchParams.get('amount')
+    const matchedPlan = plans.find(p => p.id === plan)
+    const defaultAmount = matchedPlan ? matchedPlan.price : plan === 'pro' ? 79000 : 29000
+    const amt = amtParam ? parseInt(amtParam) : defaultAmount
 
-    if (amt === 0) {
+    if (amt === 0 || plan === 'free') {
       setPaymentStatus('success')
       setPlanName('Bepul')
       setAmount(0)
     } else {
       setAmount(amt)
-      setPlanName(plan === 'standart' ? 'Standart' : 'Pro')
+      setPlanName(plan === 'pro' ? 'Pro' : 'Standart')
     }
-  }, [searchParams])
-
-  const plans = [
-    {
-      id: 'standart',
-      name: 'Standart',
-      price: 45000,
-      features: [
-        "200 ta AI chat so'rovi / oy",
-        'Cheksiz IRAC tahlili',
-        '50 ta hujjat generator / oy',
-        '20 ta hujjat tahlili / oy',
-        '20 ta qarorlar daraxti / oy',
-        '100 ta ovozli yozuv (STT) / oy',
-        '5 ta virtual sud sessiyasi / oy',
-        '20 ta senariy generator / oy',
-      ],
-    },
-    {
-      id: 'pro',
-      name: 'Pro',
-      price: 140000,
-      features: [
-        "Cheksiz AI chat so'rovlari",
-        'Cheksiz IRAC, hujjat, daraxt, senariy',
-        'Cheksiz ovozli yozuv (STT)',
-        'Cheksiz virtual sud sessiyalari',
-        'Shaxsiy maslahatchi',
-        'Ekspert konsultatsiyasi',
-      ],
-    },
-  ]
+  }, [searchParams, plans])
 
   const handlePlanSelect = (planId: string, price: number) => {
     setPlanName(planId === 'standart' ? 'Standart' : 'Pro')

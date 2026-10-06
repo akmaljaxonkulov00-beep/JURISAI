@@ -57,7 +57,7 @@ export default function LandingPage() {
         description: t('landingSmartSearchDesc'),
         bgColor: 'bg-violet-50 dark:bg-violet-900/20',
         textColor: 'text-violet-600',
-        href: '/legal-database-new',
+        href: '/legal-database',
       },
       {
         icon: FileText,
@@ -73,7 +73,7 @@ export default function LandingPage() {
         description: t('landingLawDatabaseDesc'),
         bgColor: 'bg-emerald-50 dark:bg-emerald-900/20',
         textColor: 'text-emerald-600',
-        href: '/legal-database-new',
+        href: '/legal-database',
       },
     ],
     [t]
@@ -378,7 +378,7 @@ export default function LandingPage() {
                   </a>
                 </li>
                 <li>
-                  <a href="/legal-database-new" className="hover:text-white transition-colors">
+                  <a href="/legal-database" className="hover:text-white transition-colors">
                     {t('landingLawDatabase')}
                   </a>
                 </li>
@@ -390,8 +390,8 @@ export default function LandingPage() {
               </h3>
               <ul className="space-y-2 text-sm">
                 <li>
-                  <a href="/irac" className="hover:text-white transition-colors">
-                    IRAC Tahlili
+                  <a href="/case-solver" className="hover:text-white transition-colors">
+                    Kazus Yechish / IRAC
                   </a>
                 </li>
                 <li>

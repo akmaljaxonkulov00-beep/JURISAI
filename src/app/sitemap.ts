@@ -11,7 +11,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 1,
     },
     {
-      url: `${baseUrl}/irac`,
+      url: `${baseUrl}/case-solver`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/decision-tree`,
       lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 0.9,

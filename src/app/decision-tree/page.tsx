@@ -39,6 +39,8 @@ import BranchComparisonModal from '@/components/decision-tree/BranchComparisonMo
 import EvidencePanel from '@/components/decision-tree/EvidencePanel'
 import CaseHistoryDrawer from '@/components/decision-tree/CaseHistoryDrawer'
 import { generateDecisionTreePdf } from '@/components/decision-tree/PdfExportHelper'
+import LimitExceededModal from '@/components/ai/LimitExceededModal'
+import { useLimitModal } from '@/hooks/useLimitModal'
 import {
   DecisionCase,
   DecisionNode,
@@ -101,6 +103,7 @@ const INITIAL_ROOT_NODE: DecisionNode = {
 
 export default function DecisionTreePage() {
   const router = useRouter()
+  const { modalProps, checkLimitError } = useLimitModal()
 
   // Case State
   const [currentCase, setCurrentCase] = useState<DecisionCase | null>(null)
@@ -222,6 +225,9 @@ export default function DecisionTreePage() {
       const result = await res.json()
 
       if (!res.ok || !result.success) {
+        if (checkLimitError(result)) {
+          return
+        }
         throw new Error(result.error || result.message || 'AI tahlilida xatolik yuz berdi')
       }
 
@@ -942,6 +948,8 @@ export default function DecisionTreePage() {
         onDeleteCase={handleDeleteCase}
         onNewCase={() => setIsNewCaseOpen(true)}
       />
+
+      <LimitExceededModal {...modalProps} onUpgrade={() => router.push('/premium')} />
     </div>
   )
 }

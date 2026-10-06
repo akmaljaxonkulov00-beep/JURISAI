@@ -69,34 +69,68 @@ HAR BIR BO'LIM AJRATILGAN BO'LISHI SHART — ularni aralashtirma yoki birlashtir
     // ── RAG: ish matniga mos moddalarni qonunchilik bazasidan qidirish ──
     const { prompt: systemPrompt, articles } = await groundPrompt(caseText, BASE_SYSTEM_PROMPT, 8)
 
-    const response = await fetch(GROQ_API_URL, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${GROQ_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'openai/gpt-oss-120b',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          {
-            role: 'user',
-            content: `Quyidagi huquqiy holatni IRAC metodologiyasi bo'yicha tahlil qiling:\n\n${caseText}`,
-          },
-        ],
-        temperature: 0.1,
-        max_tokens: 2048,
-      }),
-    })
+    const CANDIDATE_MODELS = [
+      'openai/gpt-oss-120b',
+      'llama-3.3-70b-versatile',
+      'llama-3.1-70b-versatile',
+    ]
 
-    if (!response.ok) {
-      const errorText = await response.text()
-      console.error('Groq API error:', errorText)
-      return NextResponse.json({ error: 'AI tahlil xatosi' }, { status: response.status })
+    let analysisText = ''
+    let lastError = ''
+
+    for (const model of CANDIDATE_MODELS) {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 25000)
+
+      try {
+        const response = await fetch(GROQ_API_URL, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${GROQ_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model,
+            messages: [
+              { role: 'system', content: systemPrompt },
+              {
+                role: 'user',
+                content: `Quyidagi huquqiy holatni IRAC metodologiyasi bo'yicha tahlil qiling:\n\n${caseText}`,
+              },
+            ],
+            temperature: 0.1,
+            max_tokens: 2048,
+          }),
+          signal: controller.signal,
+        })
+
+        clearTimeout(timeoutId)
+
+        if (response.ok) {
+          const data = await response.json()
+          const raw = data.choices?.[0]?.message?.content || ''
+          if (raw.trim()) {
+            analysisText = ensureUzbekLatin(raw)
+            break
+          }
+        } else {
+          const errorText = await response.text().catch(() => '')
+          lastError = `Model ${model} failed (${response.status}): ${errorText.slice(0, 150)}`
+          console.warn('Groq IRAC attempt failed:', lastError)
+        }
+      } catch (e: any) {
+        clearTimeout(timeoutId)
+        lastError = e.name === 'AbortError' ? 'AI timeout (25s)' : e.message
+        console.warn(`Groq IRAC error with ${model}:`, lastError)
+      }
     }
 
-    const data = await response.json()
-    const analysisText = ensureUzbekLatin(data.choices[0]?.message?.content || 'Tahlil olinmadi')
+    if (!analysisText) {
+      return NextResponse.json(
+        { error: `AI tahlil xatosi: ${lastError || 'Barcha modellar band'}` },
+        { status: 503 }
+      )
+    }
 
     // ── IRAC bo'limlarini ajratib olish (kengaytirilgan regex + fallback) ──
     const extractSection = (text: string, ...names: string[]): string => {

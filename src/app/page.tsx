@@ -392,8 +392,8 @@ export default function LandingPage() {
               <h3 className="font-semibold mb-3 text-sm">Platforma</h3>
               <ul className="space-y-2 text-sm text-gray-400">
                 <li>
-                  <Link href="/irac" className="hover:text-white transition-colors">
-                    IRAC Tahlili
+                  <Link href="/case-solver" className="hover:text-white transition-colors">
+                    Kazus Yechish / IRAC
                   </Link>
                 </li>
                 <li>

@@ -281,7 +281,11 @@ export default function Premium() {
                     ))}
                   </ul>
                   <Link
-                    href={`/manual-payment?plan=${plan.id}&amount=${(plan.discountPercent ?? 0) > 0 ? Math.round(plan.price * (1 - (plan.discountPercent ?? 0) / 100)) : plan.price}`}
+                    href={
+                      isFree
+                        ? '/dashboard'
+                        : `/manual-payment?plan=${plan.id}&amount=${(plan.discountPercent ?? 0) > 0 ? Math.round(plan.price * (1 - (plan.discountPercent ?? 0) / 100)) : plan.price}`
+                    }
                   >
                     <Button
                       className={`w-full ${isPopular ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-800 dark:bg-zinc-800 hover:bg-gray-700 dark:hover:bg-zinc-700'}`}

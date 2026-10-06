@@ -99,37 +99,68 @@ BOSHQA QOIDALAR:
 - Javob uzunligi: odatda 200-300 so'z. Foydalanuvchi "batafsil" desa 400-600 so'z. "Qisqacha" desa 100-180 so'z.
 ${legalContext}${contextText}`
 
-    // Call Groq with strict parameters
-    const response = await fetch(GROQ_API_URL, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${GROQ_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'openai/gpt-oss-120b',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: message },
-        ],
-        temperature: 0.1,
-        frequency_penalty: 0.3,
-        presence_penalty: 0.1,
-        max_tokens: 2048,
-      }),
-    })
+    // Call Groq with strict parameters and multi-model fallback
+    const CANDIDATE_MODELS = [
+      'openai/gpt-oss-120b',
+      'llama-3.3-70b-versatile',
+      'llama-3.1-70b-versatile',
+    ]
 
-    if (!response.ok) {
-      const errorText = await response.text()
-      console.error('Groq API error:', errorText)
-      return NextResponse.json(
-        { error: 'AI xizmati xatosi', success: false },
-        { status: response.status }
-      )
+    let responseText = ''
+    let lastError = ''
+
+    for (const model of CANDIDATE_MODELS) {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 25000)
+
+      try {
+        const response = await fetch(GROQ_API_URL, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${GROQ_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model,
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: message },
+            ],
+            temperature: 0.1,
+            frequency_penalty: 0.3,
+            presence_penalty: 0.1,
+            max_tokens: 2048,
+          }),
+          signal: controller.signal,
+        })
+
+        clearTimeout(timeoutId)
+
+        if (response.ok) {
+          const data = await response.json()
+          const raw = data.choices?.[0]?.message?.content || ''
+          if (raw.trim()) {
+            responseText = raw
+            break
+          }
+        } else {
+          const errorText = await response.text().catch(() => '')
+          lastError = `Model ${model} failed (${response.status}): ${errorText.slice(0, 150)}`
+          console.warn('Groq Legal Chat attempt failed:', lastError)
+        }
+      } catch (e: any) {
+        clearTimeout(timeoutId)
+        lastError = e.name === 'AbortError' ? 'AI timeout (25s)' : e.message
+        console.warn(`Groq Legal Chat error with ${model}:`, lastError)
+      }
     }
 
-    const data = await response.json()
-    let responseText = data.choices[0]?.message?.content || 'Javob olinmadi'
+    if (!responseText) {
+      return NextResponse.json(
+        { error: `AI xizmati xatosi: ${lastError || 'Barcha modellar band'}`, success: false },
+        { status: 503 }
+      )
+    }
 
     // ── Lotin alifbosi kafolati: kirillcha aralashsa transliteratsiya qilinadi ──
     responseText = ensureUzbekLatin(responseText)

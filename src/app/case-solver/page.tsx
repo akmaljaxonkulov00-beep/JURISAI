@@ -469,15 +469,22 @@ export default function CaseSolver() {
   /* ── Natijani DB'ga saqlash (progress statistikasi uchun) ── */
   const persistResult = useCallback(
     async (score: number, analysis: Record<string, string>) => {
-      if (!currentCase) return
+      const caseTitle =
+        currentCase?.title ||
+        customCaseText.trim().split('\n')[0].slice(0, 80) ||
+        'Foydalanuvchi kazusi'
+      const caseCategory = currentCase?.category || category !== 'all' ? category : 'jinoyat'
+      const caseDifficulty = currentCase?.difficulty || difficulty !== 'all' ? difficulty : 'medium'
+
       try {
+        const headers = await getAuthHeaders()
         const res = await fetch('/api/case-solver/save-analysis', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', ...(await getAuthHeaders()) },
+          headers: { 'Content-Type': 'application/json', ...headers },
           body: JSON.stringify({
-            case_title: currentCase.title,
-            case_category: currentCase.category,
-            case_difficulty: currentCase.difficulty,
+            case_title: caseTitle,
+            case_category: caseCategory,
+            case_difficulty: caseDifficulty,
             irac_analysis: {
               issue: analysis.issue || '',
               rule: analysis.rule || '',
@@ -491,10 +498,13 @@ export default function CaseSolver() {
         if (res.ok) {
           setSaved(true)
           loadHistory() // progress yangilanadi
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('stats-updated'))
+          }
         }
       } catch {}
     },
-    [currentCase, loadHistory]
+    [currentCase, customCaseText, category, difficulty, loadHistory]
   )
 
   /* ── AI baholash (foydalanuvchi yechishi rejimi) ── */
@@ -657,14 +667,12 @@ FAQAT O'ZBEK LOTIN ALIFBOSIDA yozing. Kirill harflari ishlatilmaydi.`
     if (!newCase.title || !newCase.description) return
     setAddCaseLoading(true)
     try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
+      const authHeaders = await getAuthHeaders()
       const res = await fetch('/api/irac/cases', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${session?.access_token || ''}`,
+          ...authHeaders,
         },
         body: JSON.stringify({
           ...newCase,
@@ -697,11 +705,9 @@ FAQAT O'ZBEK LOTIN ALIFBOSIDA yozing. Kirill harflari ishlatilmaydi.`
   /* ── Admin: barcha kazuslar ── */
   const loadAllCases = async () => {
     try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
+      const authHeaders = await getAuthHeaders()
       const res = await fetch('/api/admin/irac-cases', {
-        headers: { Authorization: `Bearer ${session?.access_token || ''}` },
+        headers: { ...authHeaders },
       })
       const data = await res.json()
       if (data.cases) setAllCases(data.cases)
@@ -710,12 +716,10 @@ FAQAT O'ZBEK LOTIN ALIFBOSIDA yozing. Kirill harflari ishlatilmaydi.`
 
   const deleteCase = async (id: string) => {
     try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
+      const authHeaders = await getAuthHeaders()
       await fetch(`/api/admin/irac-cases?id=${id}`, {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${session?.access_token || ''}` },
+        headers: { ...authHeaders },
       })
       loadAllCases()
       loadCases()
