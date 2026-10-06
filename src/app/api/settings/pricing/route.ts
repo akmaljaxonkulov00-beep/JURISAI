@@ -124,6 +124,69 @@ export async function GET() {
       } catch {
         rawPlans = DEFAULT_PLANS
       }
+    } else {
+      // Self-healing: agar bazada eski 45000 yoki 140000 qolib ketgan bo'lsa — avtomatik 29000 va 79000 ga yangilash
+      let needsDbUpdate = false
+      rawPlans = rawPlans.map((p: any) => {
+        if (p.id === 'standart' && (p.price === 45000 || !p.price)) {
+          needsDbUpdate = true
+          return {
+            ...p,
+            price: 29000,
+            features: DEFAULT_PLANS.find(d => d.id === 'standart')?.features || p.features,
+            limits:
+              p.limits && Object.keys(p.limits).length > 0
+                ? p.limits
+                : DEFAULT_PLANS.find(d => d.id === 'standart')?.limits,
+          }
+        }
+        if (p.id === 'pro' && (p.price === 140000 || !p.price)) {
+          needsDbUpdate = true
+          return {
+            ...p,
+            price: 79000,
+            features: DEFAULT_PLANS.find(d => d.id === 'pro')?.features || p.features,
+            limits:
+              p.limits && Object.keys(p.limits).length > 0
+                ? p.limits
+                : DEFAULT_PLANS.find(d => d.id === 'pro')?.limits,
+          }
+        }
+        if (p.id === 'free' && p.price !== 0) {
+          needsDbUpdate = true
+          return {
+            ...p,
+            price: 0,
+            features: DEFAULT_PLANS.find(d => d.id === 'free')?.features || p.features,
+            limits:
+              p.limits && Object.keys(p.limits).length > 0
+                ? p.limits
+                : DEFAULT_PLANS.find(d => d.id === 'free')?.limits,
+          }
+        }
+        return p
+      })
+
+      if (needsDbUpdate) {
+        try {
+          await supabase.from('pricing_plans').upsert(
+            rawPlans.map((p: any) => ({
+              id: p.id,
+              name: p.name,
+              price: p.price,
+              features: p.features,
+              case_limit: p.case_limit ?? -1,
+              limits: p.limits || {},
+              discount_percent: p.discount_percent || 0,
+              discount_label: p.discount_label || '',
+              updated_at: new Date().toISOString(),
+            })),
+            { onConflict: 'id' }
+          )
+        } catch (e) {
+          console.warn('[Pricing Auto-Heal] DB update failed:', e)
+        }
+      }
     }
 
     // Transform snake_case to camelCase + calculate discounted price

@@ -18,12 +18,17 @@ export async function GET(request: NextRequest) {
       supabase.from('site_settings').select('fair_use_limits').eq('id', 'global').maybeSingle(),
     ])
 
-    const plans = (plansRes.data || []).map((p: Record<string, unknown>) => ({
-      id: p.id as string,
-      name: String(p.name || ''),
-      price: Number(p.price) || 0,
-      limits: (p.limits as Record<string, unknown>) || {},
-    }))
+    const plans = (plansRes.data || []).map((p: Record<string, unknown>) => {
+      let price = Number(p.price) || 0
+      if (p.id === 'standart' && (price === 45000 || price === 0)) price = 29000
+      if (p.id === 'pro' && (price === 140000 || price === 0)) price = 79000
+      return {
+        id: p.id as string,
+        name: String(p.name || ''),
+        price,
+        limits: (p.limits as Record<string, unknown>) || {},
+      }
+    })
 
     // fair_use_limits ustuni hali bazada bo'lmasa — bo'sh obyekt (frontend default ishlatadi)
     let fairUse: Record<string, number> = {}

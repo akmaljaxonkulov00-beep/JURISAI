@@ -62,7 +62,7 @@ const steps: Step[] = [
     description:
       "Har bir bajarilgan ish uchun XP va darajalar to'plang, yangi yutuqlarni oching. Premium tarifga o'tish orqali cheksiz AI so'rovlari, barcha kodekslar va ekspert maslahatiga ega bo'ling.",
     highlight: 'Premium tariflar',
-    tip: "Standart 45,000 UZS/oy yoki Pro 140,000 UZS/yil — o'zingizga mosini tanlang.",
+    tip: "Standart 29 000 UZS/oy yoki Pro 79 000 UZS/oy — o'zingizga mosini tanlang.",
   },
 ]
 
