@@ -695,14 +695,19 @@ export function onAuthChange(callback: (user: AuthUser | null) => void): () => v
     if ((event === 'INITIAL_SESSION' || event === 'SIGNED_IN') && !initialHandled) {
       initialHandled = true
       if (session?.user) {
-        resolveUserRole(mapSupabaseUser(session.user))
+        // 1) Tezkor dastlabki render — foydalanuvchini kutdirmaslik uchun
+        const immediateUser = mapSupabaseUser(session.user)
+        const savedImmediate = saveUserToLocal(immediateUser)
+        callback(savedImmediate)
+
+        // 2) Orqa fonda rolni aniqlash va obunani yangilash
+        resolveUserRole(immediateUser)
           .then(resolved => {
             const savedUser = saveUserToLocal(resolved)
             callback(savedUser)
           })
           .catch(() => {
-            const savedUser = saveUserToLocal(mapSupabaseUser(session.user))
-            callback(savedUser)
+            // Error bo'lsa dastlabki saqlangan foydalanuvchi qoladi
           })
       } else {
         clearUserFromLocal()

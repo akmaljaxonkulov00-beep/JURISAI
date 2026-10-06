@@ -39,13 +39,30 @@ function AuthProvider({ children }: { children: ReactNode }) {
   const getSubscriptionPlan = user?.subscription_plan || 'free'
 
   useEffect(() => {
-    // Subscribe to Firebase auth state changes
+    // 1) Tezkor dastlabki tiklash (sessionStorage / localStorage keshidan)
+    try {
+      const cached = authService.getCurrentUser()
+      if (cached) {
+        setUser(cached)
+        setIsLoading(false)
+      }
+    } catch {}
+
+    // 2) Supabase auth state o'zgarishlarini kuzatish
     const unsubscribe = authService.onAuthChange(authUser => {
       setUser(authUser)
       setIsLoading(false)
     })
 
-    return unsubscribe
+    // 3) Timeout xavfsizlik chorasi — ulanish sekin bo'lsa ham foydalanuvchini bloklab qo'ymaslik
+    const fallbackTimeout = setTimeout(() => {
+      setIsLoading(false)
+    }, 2000)
+
+    return () => {
+      unsubscribe()
+      clearTimeout(fallbackTimeout)
+    }
   }, [])
 
   const login = async (email: string, password: string) => {

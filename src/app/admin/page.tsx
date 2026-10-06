@@ -123,6 +123,7 @@ interface PricingPlan {
   caseLimit: number
   discountPercent?: number
   discountLabel?: string
+  limits?: Record<string, any>
 }
 
 interface PaymentRequest {
@@ -1562,194 +1563,312 @@ export default function AdminDashboard() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-gray-800 dark:text-white">
                   <DollarSign className="w-5 h-5 text-blue-500" />
-                  Narxlar va rejalarni boshqarish
+                  Tariflar va AI Limitlarini Boshqarish (Yagona Manba)
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid md:grid-cols-3 gap-4">
-                  {pricingPlans.map(plan => (
-                    <div
-                      key={plan.id}
-                      className="p-4 rounded-xl bg-gray-50 dark:bg-zinc-800/50 border border-gray-100 dark:border-zinc-700"
-                    >
-                      {editingPlan === plan.id ? (
-                        <div className="space-y-3">
-                          <Input
-                            value={editPlanData?.name || ''}
-                            onChange={e =>
-                              setEditPlanData(prev =>
-                                prev ? { ...prev, name: e.target.value } : null
-                              )
-                            }
-                            placeholder="Reja nomi"
-                            className="w-full text-sm"
-                          />
-                          <Input
-                            type="number"
-                            value={editPlanData?.price || 0}
-                            onChange={e =>
-                              setEditPlanData(prev =>
-                                prev ? { ...prev, price: Number(e.target.value) } : null
-                              )
-                            }
-                            placeholder="Narxi (UZS)"
-                            className="w-full text-sm"
-                          />
-                          <Input
-                            type="number"
-                            value={editPlanData?.caseLimit || 0}
-                            onChange={e =>
-                              setEditPlanData(prev =>
-                                prev ? { ...prev, caseLimit: Number(e.target.value) } : null
-                              )
-                            }
-                            placeholder="Kunlik limit"
-                            className="w-full text-sm"
-                          />
-                          <div className="flex gap-2">
-                            <div className="flex-1">
-                              <label className="block text-xs text-gray-500 dark:text-zinc-400 mb-1">
-                                Chegirma (%)
+                <div className="grid md:grid-cols-3 gap-6">
+                  {pricingPlans.map(plan => {
+                    const planLimits = plan.limits || {}
+                    const getFeatureVal = (key: string, def: number) => {
+                      const raw = planLimits[key]
+                      if (typeof raw === 'number') return raw
+                      if (typeof raw === 'object' && raw !== null && 'value' in raw)
+                        return raw.value
+                      return def
+                    }
+
+                    return (
+                      <div
+                        key={plan.id}
+                        className="p-5 rounded-2xl bg-white dark:bg-zinc-800/80 border border-gray-200 dark:border-zinc-700 shadow-sm flex flex-col justify-between"
+                      >
+                        {editingPlan === plan.id ? (
+                          <div className="space-y-4">
+                            <div>
+                              <label className="block text-xs font-semibold text-gray-700 dark:text-zinc-300 mb-1">
+                                Reja nomi
                               </label>
                               <Input
-                                type="number"
-                                min={0}
-                                max={100}
-                                value={editPlanData?.discountPercent || 0}
+                                value={editPlanData?.name || ''}
                                 onChange={e =>
                                   setEditPlanData(prev =>
-                                    prev
-                                      ? {
-                                          ...prev,
-                                          discountPercent: Math.min(
-                                            100,
-                                            Math.max(0, Number(e.target.value))
-                                          ),
-                                        }
-                                      : null
+                                    prev ? { ...prev, name: e.target.value } : null
                                   )
                                 }
-                                placeholder="0"
-                                className="w-full text-sm"
+                                placeholder="Reja nomi"
+                                className="w-full text-sm font-bold"
                               />
                             </div>
-                            <div className="flex-1">
-                              <label className="block text-xs text-gray-500 dark:text-zinc-400 mb-1">
-                                Chegirma yorlig'i
-                              </label>
-                              <Input
-                                value={editPlanData?.discountLabel || ''}
-                                onChange={e =>
-                                  setEditPlanData(prev =>
-                                    prev ? { ...prev, discountLabel: e.target.value } : null
+
+                            <div className="grid grid-cols-2 gap-2">
+                              <div>
+                                <label className="block text-xs font-semibold text-gray-700 dark:text-zinc-300 mb-1">
+                                  Narxi (UZS / oy)
+                                </label>
+                                <Input
+                                  type="number"
+                                  value={editPlanData?.price ?? 0}
+                                  onChange={e =>
+                                    setEditPlanData(prev =>
+                                      prev ? { ...prev, price: Number(e.target.value) } : null
+                                    )
+                                  }
+                                  placeholder="Narxi"
+                                  className="w-full text-sm font-bold text-blue-600"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-xs font-semibold text-gray-700 dark:text-zinc-300 mb-1">
+                                  Kunlik limit
+                                </label>
+                                <Input
+                                  type="number"
+                                  value={editPlanData?.caseLimit ?? -1}
+                                  onChange={e =>
+                                    setEditPlanData(prev =>
+                                      prev ? { ...prev, caseLimit: Number(e.target.value) } : null
+                                    )
+                                  }
+                                  placeholder="-1 = Cheksiz"
+                                  className="w-full text-sm"
+                                />
+                              </div>
+                            </div>
+
+                            <div className="flex gap-2">
+                              <div className="flex-1">
+                                <label className="block text-xs text-gray-500 dark:text-zinc-400 mb-1">
+                                  Chegirma (%)
+                                </label>
+                                <Input
+                                  type="number"
+                                  min={0}
+                                  max={100}
+                                  value={editPlanData?.discountPercent || 0}
+                                  onChange={e =>
+                                    setEditPlanData(prev =>
+                                      prev
+                                        ? {
+                                            ...prev,
+                                            discountPercent: Math.min(
+                                              100,
+                                              Math.max(0, Number(e.target.value))
+                                            ),
+                                          }
+                                        : null
+                                    )
+                                  }
+                                  placeholder="0"
+                                  className="w-full text-sm"
+                                />
+                              </div>
+                              <div className="flex-1">
+                                <label className="block text-xs text-gray-500 dark:text-zinc-400 mb-1">
+                                  Chegirma yorlig'i
+                                </label>
+                                <Input
+                                  value={editPlanData?.discountLabel || ''}
+                                  onChange={e =>
+                                    setEditPlanData(prev =>
+                                      prev ? { ...prev, discountLabel: e.target.value } : null
+                                    )
+                                  }
+                                  placeholder="Masalan: Yangi yil"
+                                  className="w-full text-sm"
+                                />
+                              </div>
+                            </div>
+
+                            {/* Feature limits editor */}
+                            <div className="border-t border-b border-gray-100 dark:border-zinc-700 py-3 my-2 space-y-2">
+                              <p className="text-xs font-bold text-gray-800 dark:text-zinc-200">
+                                ⚙️ Funksiya Limitlari (-1 = Cheksiz/Fair Use):
+                              </p>
+                              <div className="grid grid-cols-2 gap-2 text-xs">
+                                {[
+                                  { key: 'ai_chat', label: 'AI Chat (/oy)' },
+                                  { key: 'irac', label: 'IRAC (/oy)' },
+                                  { key: 'document_generate', label: 'Hujjat Gen (/oy)' },
+                                  { key: 'document_analysis', label: 'Hujjat Tahlil (/oy)' },
+                                  { key: 'virtual_court', label: 'Virtual Sud (/oy)' },
+                                  { key: 'decision_tree', label: 'Qarorlar Daraxti (/oy)' },
+                                  { key: 'speech_stt', label: 'STT Ovoz (/oy)' },
+                                  { key: 'scenario', label: 'Senariy Gen (/oy)' },
+                                ].map(f => {
+                                  const curLimits = editPlanData?.limits || {}
+                                  const currentVal =
+                                    typeof curLimits[f.key] === 'object' &&
+                                    curLimits[f.key] !== null
+                                      ? curLimits[f.key].value
+                                      : typeof curLimits[f.key] === 'number'
+                                        ? curLimits[f.key]
+                                        : plan.id === 'pro' && f.key !== 'virtual_court'
+                                          ? -1
+                                          : 0
+
+                                  return (
+                                    <div key={f.key} className="flex flex-col">
+                                      <span className="text-[11px] text-gray-500 dark:text-zinc-400 truncate mb-0.5">
+                                        {f.label}
+                                      </span>
+                                      <Input
+                                        type="number"
+                                        value={currentVal}
+                                        onChange={e => {
+                                          const val = Number(e.target.value)
+                                          setEditPlanData(prev => {
+                                            if (!prev) return null
+                                            const existingLimits = prev.limits || {}
+                                            return {
+                                              ...prev,
+                                              limits: {
+                                                ...existingLimits,
+                                                [f.key]: { value: val, period_type: 'monthly' },
+                                              },
+                                            }
+                                          })
+                                        }}
+                                        className="h-8 text-xs font-semibold"
+                                      />
+                                    </div>
                                   )
-                                }
-                                placeholder="Masalan: Yangi yil"
-                                className="w-full text-sm"
-                              />
+                                })}
+                              </div>
+                            </div>
+
+                            <div>
+                              <p className="text-xs font-bold text-gray-700 dark:text-zinc-300 mb-2">
+                                📋 Xususiyatlar matni (Pricing kartalarida ko'rinadi):
+                              </p>
+                              {editPlanData?.features.map((f, idx) => (
+                                <div key={idx} className="flex items-center gap-1 mb-1.5">
+                                  <Input
+                                    value={f}
+                                    onChange={e => updateFeature(idx, e.target.value)}
+                                    className="text-xs flex-1 h-8"
+                                  />
+                                  <button
+                                    onClick={() => removeFeature(idx)}
+                                    className="p-1 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
+                                  >
+                                    <X size={14} />
+                                  </button>
+                                </div>
+                              ))}
+                              <button
+                                onClick={addFeatureToPlan}
+                                className="text-xs text-blue-600 dark:text-blue-400 font-semibold hover:underline mt-1"
+                              >
+                                + Yangi xususiyat qo'shish
+                              </button>
+                            </div>
+
+                            <div className="flex gap-2 pt-2">
+                              <button
+                                onClick={savePlan}
+                                className="flex-1 py-2 bg-blue-600 text-white font-medium text-xs rounded-xl hover:bg-blue-700 shadow-md transition-all flex items-center justify-center gap-1"
+                              >
+                                <Save size={14} />
+                                Saqlash
+                              </button>
+                              <button
+                                onClick={() => setEditingPlan(null)}
+                                className="px-4 py-2 bg-gray-100 dark:bg-zinc-700 text-gray-700 dark:text-zinc-300 font-medium text-xs rounded-xl hover:bg-gray-200 dark:hover:bg-zinc-600 transition-all"
+                              >
+                                Bekor qilish
+                              </button>
                             </div>
                           </div>
-                          <div>
-                            <p className="text-xs font-medium text-gray-600 dark:text-zinc-400 mb-1">
-                              Xususiyatlar:
-                            </p>
-                            {editPlanData?.features.map((f, idx) => (
-                              <div key={idx} className="flex items-center gap-1 mb-1">
-                                <Input
-                                  value={f}
-                                  onChange={e => updateFeature(idx, e.target.value)}
-                                  className="text-xs flex-1"
-                                />
+                        ) : (
+                          <div className="flex flex-col h-full justify-between">
+                            <div>
+                              <div className="flex items-center justify-between mb-3">
+                                <span className="text-lg font-bold text-gray-900 dark:text-white">
+                                  {plan.name}
+                                </span>
                                 <button
-                                  onClick={() => removeFeature(idx)}
-                                  className="p-1 text-red-500"
+                                  onClick={() => startEditPlan(plan)}
+                                  className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-zinc-700 rounded-lg transition-colors"
+                                  title="Tahrirlash"
                                 >
-                                  <X size={14} />
+                                  <Settings size={16} />
                                 </button>
                               </div>
-                            ))}
-                            <button
-                              onClick={addFeatureToPlan}
-                              className="text-xs text-blue-600 hover:text-blue-800 mt-1"
-                            >
-                              + Xususiyat qo'shish
-                            </button>
-                          </div>
-                          <div className="flex gap-2">
-                            <button
-                              onClick={savePlan}
-                              className="px-3 py-1.5 bg-blue-600 text-white text-xs rounded-lg hover:bg-blue-700"
-                            >
-                              <Save size={14} className="inline mr-1" />
-                              Saqlash
-                            </button>
-                            <button
-                              onClick={() => setEditingPlan(null)}
-                              className="px-3 py-1.5 bg-gray-200 dark:bg-zinc-700 text-gray-700 dark:text-zinc-300 text-xs rounded-lg"
-                            >
-                              Bekor qilish
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <>
-                          <div className="flex items-center justify-between mb-2">
-                            <h3 className="font-bold text-gray-800 dark:text-white">{plan.name}</h3>
-                            <button
-                              onClick={() => startEditPlan(plan)}
-                              className="p-1 text-gray-400 dark:text-zinc-500 hover:text-blue-600 dark:hover:text-blue-400"
-                            >
-                              <Settings size={14} />
-                            </button>
-                          </div>
-                          <div className="mb-2">
-                            {(plan as any).discountPercent > 0 ? (
-                              <div className="flex items-center gap-2">
-                                <p className="text-xl font-bold text-green-600">
-                                  {Math.round(
-                                    plan.price * (1 - ((plan as any).discountPercent || 0) / 100)
-                                  ).toLocaleString()}{' '}
-                                  UZS
-                                </p>
-                                <span className="text-sm text-gray-400 line-through">
-                                  {plan.price.toLocaleString()} UZS
-                                </span>
-                                <span className="text-xs font-bold text-white bg-red-500 px-2 py-0.5 rounded-full">
-                                  -{(plan as any).discountPercent}%
-                                </span>
+
+                              <div className="mb-4">
+                                {(plan as any).discountPercent > 0 ? (
+                                  <div>
+                                    <div className="flex items-center gap-2">
+                                      <p className="text-2xl font-black text-green-600">
+                                        {Math.round(
+                                          plan.price *
+                                            (1 - ((plan as any).discountPercent || 0) / 100)
+                                        ).toLocaleString()}{' '}
+                                        UZS
+                                      </p>
+                                      <span className="text-xs font-bold text-white bg-red-500 px-2 py-0.5 rounded-full">
+                                        -{(plan as any).discountPercent}%
+                                      </span>
+                                    </div>
+                                    <span className="text-xs text-gray-400 line-through">
+                                      {plan.price.toLocaleString()} UZS / oy
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <p className="text-2xl font-black text-blue-600 dark:text-blue-400">
+                                    {plan.price === 0
+                                      ? '0 UZS'
+                                      : `${plan.price.toLocaleString()} UZS`}
+                                    {plan.price > 0 && (
+                                      <span className="text-xs font-normal text-gray-400 ml-1">
+                                        /oy
+                                      </span>
+                                    )}
+                                  </p>
+                                )}
+                                {(plan as any).discountLabel && (
+                                  <p className="text-xs text-amber-600 font-medium mt-1">
+                                    🏷️ {(plan as any).discountLabel}
+                                  </p>
+                                )}
                               </div>
-                            ) : (
-                              <p className="text-xl font-bold text-blue-600">
-                                {plan.price.toLocaleString()} UZS
-                              </p>
-                            )}
-                            {(plan as any).discountLabel && (
-                              <p className="text-xs text-orange-500 font-medium mt-0.5">
-                                🏷️ {(plan as any).discountLabel}
-                              </p>
-                            )}
-                          </div>
-                          <ul className="space-y-1">
-                            {plan.features.map((f, idx) => (
-                              <li
-                                key={idx}
-                                className="text-xs text-secondary flex items-start gap-1"
+
+                              {/* Features list */}
+                              <div className="mb-4">
+                                <p className="text-xs font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-wider mb-2">
+                                  Asosiy Imkoniyatlar:
+                                </p>
+                                <ul className="space-y-1.5">
+                                  {plan.features.map((f, idx) => (
+                                    <li
+                                      key={idx}
+                                      className="text-xs text-gray-700 dark:text-zinc-300 flex items-start gap-1.5"
+                                    >
+                                      <CheckCircle
+                                        size={14}
+                                        className="text-green-500 mt-0.5 flex-shrink-0"
+                                      />
+                                      <span>{f}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            </div>
+
+                            <div className="pt-3 border-t border-gray-100 dark:border-zinc-700/60 mt-2">
+                              <button
+                                onClick={() => startEditPlan(plan)}
+                                className="w-full py-2 bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 font-semibold text-xs rounded-xl hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
                               >
-                                <CheckCircle
-                                  size={12}
-                                  className="text-green-500 mt-0.5 flex-shrink-0"
-                                />
-                                {f}
-                              </li>
-                            ))}
-                          </ul>
-                          <p className="text-xs text-secondary mt-2">
-                            Kunlik limit: {plan.caseLimit === -1 ? 'Cheksiz' : plan.caseLimit} ta
-                          </p>
-                        </>
-                      )}
-                    </div>
-                  ))}
+                                ✏️ Tarifni va Limitlarni O'zgartirish
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
                 </div>
               </CardContent>
             </Card>

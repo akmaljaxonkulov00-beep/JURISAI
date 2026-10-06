@@ -26,7 +26,7 @@ export interface PricingPlan {
   caseLimit: number
   discountPercent?: number
   discountLabel?: string
-  limits?: Record<string, number>
+  limits?: Record<string, number | { value: number; period_type: string }>
 }
 
 export interface PaymentRequest {

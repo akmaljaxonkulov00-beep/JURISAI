@@ -129,38 +129,36 @@ export default function Premium() {
 
   const loadPricingPlans = async () => {
     try {
-      const fetched = await getPricingPlans()
-      if (fetched && fetched.length > 0) {
+      const res = await fetch('/api/settings/pricing', {
+        cache: 'no-cache',
+      })
+      const result = await res.json()
+      if (result.success && Array.isArray(result.data) && result.data.length > 0) {
         // Narx bo'yicha tartiblash: Bepul → Standart → Pro
-        const sorted = [...fetched].sort((a, b) => (a.price ?? 0) - (b.price ?? 0))
+        const sorted = [...result.data].sort((a, b) => (a.price ?? 0) - (b.price ?? 0))
         setPlans(sorted)
+
+        const limits: Record<string, Record<string, number>> = {}
+        for (const p of sorted) {
+          if (p.id) {
+            limits[p.id] = { ...(DEFAULT_MATRIX_LIMITS[p.id] || {}) }
+            if (p.limits && typeof p.limits === 'object') {
+              for (const [k, v] of Object.entries(p.limits as Record<string, any>)) {
+                if (typeof v === 'number') limits[p.id][k] = v
+                else if (typeof v === 'object' && v !== null && 'value' in v) {
+                  limits[p.id][k] = v.value
+                }
+              }
+            }
+          }
+        }
+        if (Object.keys(limits).length > 0) setMatrixLimits(limits)
       }
     } catch (err) {
       console.warn('[Premium] Failed to load pricing plans:', err)
     } finally {
       setLoading(false)
     }
-
-    // Tarif limitlarini (pricing_plans.limits) yuklash
-    try {
-      const res = await fetch('/api/settings/pricing', {
-        cache: 'no-cache',
-        credentials: 'include',
-        headers: { ...(await getAuthHeaders()) },
-      })
-      const result = await res.json()
-      if (result.success && Array.isArray(result.data)) {
-        const limits: Record<string, Record<string, number>> = {}
-        for (const p of result.data) {
-          if (p.id && p.limits && typeof p.limits === 'object') {
-            limits[p.id] = { ...(DEFAULT_MATRIX_LIMITS[p.id] || {}), ...p.limits }
-          } else if (p.id) {
-            limits[p.id] = DEFAULT_MATRIX_LIMITS[p.id] || {}
-          }
-        }
-        if (Object.keys(limits).length > 0) setMatrixLimits(limits)
-      }
-    } catch {}
   }
 
   // Admin narx/limit o'zgartirsa — realtime yangilanadi

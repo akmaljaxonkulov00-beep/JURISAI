@@ -241,39 +241,93 @@ export async function getUserPlan(userId?: string, email?: string): Promise<stri
  * per-user override > tarif limiti > default limit
  */
 /**
- * Joriy davr boshlanish sanasini hisoblaydi
+ * Joriy davr boshlanish sanasini hisoblaydi (Asia/Tashkent UTC+5 bo'yicha)
  */
 function getPeriodStart(periodType: PeriodType): Date {
   const now = new Date()
+  const TASHKENT_OFFSET_MS = 5 * 60 * 60 * 1000 // UTC+5
+  const localNow = new Date(now.getTime() + TASHKENT_OFFSET_MS)
+
   if (periodType === 'daily') {
-    return new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0)
+    const startUtcMs =
+      Date.UTC(
+        localNow.getUTCFullYear(),
+        localNow.getUTCMonth(),
+        localNow.getUTCDate(),
+        0,
+        0,
+        0,
+        0
+      ) - TASHKENT_OFFSET_MS
+    return new Date(startUtcMs)
   }
   if (periodType === 'weekly') {
-    const day = now.getDay() // 0=Sun
+    const day = localNow.getUTCDay() // 0=Sun, 1=Mon
     const diff = day === 0 ? 6 : day - 1 // Monday = 0
-    const monday = new Date(now)
-    monday.setDate(now.getDate() - diff)
-    return new Date(monday.getFullYear(), monday.getMonth(), monday.getDate(), 0, 0, 0, 0)
+    const startUtcMs =
+      Date.UTC(
+        localNow.getUTCFullYear(),
+        localNow.getUTCMonth(),
+        localNow.getUTCDate() - diff,
+        0,
+        0,
+        0,
+        0
+      ) - TASHKENT_OFFSET_MS
+    return new Date(startUtcMs)
   }
-  // monthly (default)
-  return new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0)
+  // monthly (default) - Toshkent vaqti bilan oyning 1-sanasi 00:00:00
+  const startUtcMs =
+    Date.UTC(localNow.getUTCFullYear(), localNow.getUTCMonth(), 1, 0, 0, 0, 0) - TASHKENT_OFFSET_MS
+  return new Date(startUtcMs)
 }
 
 /**
- * Joriy davr tugash sanasini hisoblaydi (keyingi davr boshlanishidan 1 ms oldin)
+ * Joriy davr tugash sanasini hisoblaydi (Asia/Tashkent UTC+5 bo'yicha)
  */
 function getPeriodEnd(periodType: PeriodType): Date {
-  const start = getPeriodStart(periodType)
-  const end = new Date(start)
+  const now = new Date()
+  const TASHKENT_OFFSET_MS = 5 * 60 * 60 * 1000 // UTC+5
+  const localNow = new Date(now.getTime() + TASHKENT_OFFSET_MS)
+
   if (periodType === 'daily') {
-    end.setDate(end.getDate() + 1)
-  } else if (periodType === 'weekly') {
-    end.setDate(end.getDate() + 7)
-  } else {
-    end.setMonth(end.getMonth() + 1)
+    const endUtcMs =
+      Date.UTC(
+        localNow.getUTCFullYear(),
+        localNow.getUTCMonth(),
+        localNow.getUTCDate() + 1,
+        0,
+        0,
+        0,
+        0
+      ) -
+      TASHKENT_OFFSET_MS -
+      1
+    return new Date(endUtcMs)
   }
-  end.setTime(end.getTime() - 1)
-  return end
+  if (periodType === 'weekly') {
+    const day = localNow.getUTCDay()
+    const diff = day === 0 ? 6 : day - 1
+    const endUtcMs =
+      Date.UTC(
+        localNow.getUTCFullYear(),
+        localNow.getUTCMonth(),
+        localNow.getUTCDate() - diff + 7,
+        0,
+        0,
+        0,
+        0
+      ) -
+      TASHKENT_OFFSET_MS -
+      1
+    return new Date(endUtcMs)
+  }
+  // monthly - keyingi oyning 1-sanasi 00:00:00 dan 1 ms oldin
+  const endUtcMs =
+    Date.UTC(localNow.getUTCFullYear(), localNow.getUTCMonth() + 1, 1, 0, 0, 0, 0) -
+    TASHKENT_OFFSET_MS -
+    1
+  return new Date(endUtcMs)
 }
 
 /**
