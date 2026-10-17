@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import {
   Sparkles,
   BookOpen,
@@ -21,9 +21,8 @@ import {
   ChevronRight,
   HelpCircle,
   ExternalLink,
-  Target,
-  GraduationCap,
   Loader2,
+  Download,
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import {
@@ -70,6 +69,10 @@ export default function ScenarioGenerator() {
   const [actionLogs, setActionLogs] = useState<UserActionLog[]>([])
   const [evaluation, setEvaluation] = useState<ScenarioEvaluation | null>(null)
   const [isEvaluating, setIsEvaluating] = useState(false)
+  const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null)
+  const [customActionText, setCustomActionText] = useState('')
+  const [showCustomInput, setShowCustomInput] = useState(false)
+  const [isSubmittingStep, setIsSubmittingStep] = useState(false)
 
   // History & Templates State
   const [templates, setTemplates] = useState<ScenarioData[]>([])
@@ -77,14 +80,7 @@ export default function ScenarioGenerator() {
   const [loadingHistory, setLoadingHistory] = useState(false)
   const [historyTotal, setHistoryTotal] = useState(0)
 
-  useEffect(() => {
-    loadTemplates()
-    if (user) {
-      loadHistory()
-    }
-  }, [user])
-
-  const loadTemplates = async () => {
+  const loadTemplates = useCallback(async () => {
     try {
       const headers = await getAuthHeaders()
       const res = await fetch('/api/scenario-generator/templates', { headers })
@@ -99,9 +95,9 @@ export default function ScenarioGenerator() {
       // fallback to built-in
     }
     setTemplates(VERIFIED_SCENARIO_TEMPLATES)
-  }
+  }, [])
 
-  const loadHistory = async () => {
+  const loadHistory = useCallback(async () => {
     setLoadingHistory(true)
     try {
       const headers = await getAuthHeaders()
@@ -118,7 +114,14 @@ export default function ScenarioGenerator() {
     } finally {
       setLoadingHistory(false)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    loadTemplates()
+    if (user) {
+      loadHistory()
+    }
+  }, [user, loadTemplates, loadHistory])
 
   const toggleFocusArea = (area: string) => {
     if (focusAreas.includes(area)) {
@@ -181,13 +184,102 @@ export default function ScenarioGenerator() {
     setCurrentStep(1)
     setActionLogs([])
     setEvaluation(null)
+    setSelectedOptionId(null)
+    setCustomActionText('')
+    setShowCustomInput(false)
     setActiveTab('simulation')
   }
 
-  // Handle user decision action step
-  const handleSelectOption = async (optionId: string) => {
-    if (!currentScenario) return
+  // Resume or view session from history
+  const handleViewSessionResult = (sess: ScenarioSession) => {
+    setCurrentScenario(sess.scenario_data)
+    setCurrentStep(sess.current_step || sess.total_steps || 1)
+    setActionLogs(sess.user_actions || [])
+    setEvaluation(sess.evaluation || null)
+    setActiveTab('simulation')
+  }
 
+  const handleResumeSimulation = (sess: ScenarioSession) => {
+    setCurrentScenario(sess.scenario_data)
+    setCurrentStep(sess.current_step || 1)
+    setActionLogs(sess.user_actions || [])
+    setEvaluation(null)
+    setSelectedOptionId(null)
+    setCustomActionText('')
+    setShowCustomInput(false)
+    setActiveTab('simulation')
+  }
+
+  // Export Scenario Report (Senariy Tahlili va Natijasi)
+  const handleExportScenarioReport = () => {
+    if (!currentScenario) return
+    let text = `=================================================================\n`
+    text += `       JURISTIV HUQUQIY SENARIY SIMULYATSIYASI HISOBOTI (2026)\n`
+    text += `=================================================================\n\n`
+    text += `Keys nomi: ${currentScenario.title}\n`
+    text += `Huquq sohasi: ${currentScenario.legal_domain}\n`
+    text += `Qiyinlik darajasi: ${currentScenario.difficulty}\n`
+    text += `Sana: ${new Date().toLocaleDateString('uz-UZ')}\n\n`
+    text += `ISHNING FAZL-U ASOSLARI:\n${currentScenario.background}\n\n`
+    if (evaluation) {
+      text += `-----------------------------------------------------------------\n`
+      text += `                       YAKUNIY BAHOLASH\n`
+      text += `-----------------------------------------------------------------\n`
+      text += `Umumiy natija: ${evaluation.total_score} / 100 ball (+${evaluation.xp_awarded} XP)\n`
+      text += `Qarorlar sifati: ${evaluation.decision_quality_score}%\n`
+      text += `Huquqiy tahlil: ${evaluation.legal_analysis_score}%\n`
+      text += `Dalillar bilan ishlash: ${evaluation.evidence_usage_score}%\n`
+      text += `Strategik yondashuv: ${evaluation.strategy_score}%\n\n`
+      if (evaluation.mistakes && evaluation.mistakes.length > 0) {
+        text += `Yo'l qo'yilgan xatolar:\n`
+        evaluation.mistakes.forEach(m => {
+          text += ` • ${m}\n`
+        })
+        text += `\n`
+      }
+      if (evaluation.recommendations && evaluation.recommendations.length > 0) {
+        text += `Amaliy tavsiyalar:\n`
+        evaluation.recommendations.forEach(r => {
+          text += ` • ${r}\n`
+        })
+        text += `\n`
+      }
+    }
+    if (actionLogs.length > 0) {
+      text += `-----------------------------------------------------------------\n`
+      text += `                 QABUL QILINGAN QARORLAR KETMA-KETLIGI\n`
+      text += `-----------------------------------------------------------------\n`
+      actionLogs.forEach(log => {
+        text += `[${log.step_number}-bosqich] ${log.action_title} (+${log.xp_earned} XP)\n`
+        text += `Natija va oqibat: ${log.consequence}\n`
+        if (log.feedback) text += `Izoh: ${log.feedback}\n`
+        text += `\n`
+      })
+    }
+    text += `=================================================================\n`
+    text += `Tizim: JuristAI Professional Senariy Generator (2026)\n`
+
+    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `Senariy_Tahlili_${Date.now()}.txt`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
+  // Handle user decision action step with confirmation & custom action
+  const handleConfirmStep = async (optionId?: string, customText?: string) => {
+    if (!currentScenario || isSubmittingStep) return
+    const chosenId = optionId || selectedOptionId
+    const textToSubmit = customText !== undefined ? customText : customActionText.trim()
+
+    // Fallback: agar optionId ham, customText ham yo'q bo'lsa
+    if (!chosenId && !textToSubmit) return
+
+    setIsSubmittingStep(true)
     try {
       const headers = await getAuthHeaders()
       const res = await fetch('/api/scenario-generator/step', {
@@ -199,7 +291,8 @@ export default function ScenarioGenerator() {
         body: JSON.stringify({
           scenario: currentScenario,
           current_step: currentStep,
-          chosen_option_id: optionId,
+          chosen_option_id: chosenId || currentDecisionPoint?.options?.[0]?.id || 'opt_1',
+          custom_action_text: textToSubmit || undefined,
         }),
       })
 
@@ -208,6 +301,9 @@ export default function ScenarioGenerator() {
       if (res.ok && data.action_log) {
         const updatedLogs = [...actionLogs, data.action_log]
         setActionLogs(updatedLogs)
+        setSelectedOptionId(null)
+        setCustomActionText('')
+        setShowCustomInput(false)
 
         if (data.is_completed) {
           finishSimulation(updatedLogs)
@@ -217,6 +313,8 @@ export default function ScenarioGenerator() {
       }
     } catch (err) {
       console.error('Step execution error:', err)
+    } finally {
+      setIsSubmittingStep(false)
     }
   }
 
@@ -637,7 +735,15 @@ export default function ScenarioGenerator() {
                 </div>
               </div>
 
-              <div className="flex justify-center gap-3 pt-2">
+              <div className="flex flex-wrap justify-center gap-3 pt-2">
+                <button
+                  onClick={handleExportScenarioReport}
+                  className="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-semibold rounded-xl text-xs sm:text-sm transition-all flex items-center gap-2 cursor-pointer shadow-xs"
+                >
+                  <Download className="w-4 h-4 text-blue-400" />
+                  <span>Hisobotni yuklab olish</span>
+                </button>
+
                 <button
                   onClick={() => startSimulation(currentScenario)}
                   className="px-6 py-2.5 bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-700 dark:text-zinc-300 font-semibold rounded-xl text-xs sm:text-sm transition-all flex items-center gap-2 cursor-pointer"
@@ -731,28 +837,122 @@ export default function ScenarioGenerator() {
 
                     {/* Options list */}
                     <div className="space-y-3">
-                      {currentDecisionPoint.options?.map(option => (
-                        <div
-                          key={option.id}
-                          onClick={() => handleSelectOption(option.id)}
-                          className="p-4 bg-gray-50 dark:bg-zinc-800/70 hover:bg-blue-50/70 dark:hover:bg-blue-950/40 border border-gray-200/80 dark:border-zinc-700 hover:border-blue-400 dark:hover:border-blue-600 rounded-2xl cursor-pointer transition-all duration-200 group shadow-xs"
-                        >
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="flex-1">
-                              <h4 className="font-bold text-sm text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                                {option.label}
-                              </h4>
-                              <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1">
-                                {option.description}
-                              </p>
+                      {currentDecisionPoint.options?.map(option => {
+                        const isSelected = selectedOptionId === option.id
+                        return (
+                          <div
+                            key={option.id}
+                            onClick={() => {
+                              setSelectedOptionId(option.id)
+                              setShowCustomInput(false)
+                            }}
+                            className={`p-4 rounded-2xl cursor-pointer transition-all duration-200 border ${
+                              isSelected
+                                ? 'bg-blue-50/90 dark:bg-blue-950/60 border-blue-500 shadow-sm ring-2 ring-blue-500/20'
+                                : 'bg-gray-50 dark:bg-zinc-800/70 hover:bg-blue-50/40 dark:hover:bg-blue-950/20 border-gray-200/80 dark:border-zinc-700 hover:border-blue-300'
+                            }`}
+                          >
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="flex items-start gap-3 flex-1">
+                                <div
+                                  className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-colors ${
+                                    isSelected
+                                      ? 'border-blue-600 bg-blue-600 text-white'
+                                      : 'border-gray-300 dark:border-zinc-600'
+                                  }`}
+                                >
+                                  {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+                                </div>
+                                <div>
+                                  <h4 className="font-bold text-sm text-gray-900 dark:text-white">
+                                    {option.label}
+                                  </h4>
+                                  <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1">
+                                    {option.description}
+                                  </p>
+                                </div>
+                              </div>
+                              <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 flex-shrink-0">
+                                +{option.xp} XP
+                              </span>
                             </div>
-                            <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 flex-shrink-0">
-                              +{option.xp} XP
-                            </span>
+                          </div>
+                        )
+                      })}
+                    </div>
+
+                    {/* Custom Action toggle & input */}
+                    <div className="pt-2">
+                      {!showCustomInput ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowCustomInput(true)
+                            setSelectedOptionId(null)
+                          }}
+                          className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1.5"
+                        >
+                          <span>✍️ O‘z mustaqil yuridik pozitsiyangizni yozmoqchimisiz?</span>
+                        </button>
+                      ) : (
+                        <div className="p-4 rounded-2xl bg-gray-50 dark:bg-zinc-800/70 border border-blue-200 dark:border-blue-900/60 space-y-3">
+                          <label className="block text-xs font-bold text-gray-700 dark:text-zinc-300">
+                            Mustaqil yuridik harakat bayoni:
+                          </label>
+                          <textarea
+                            value={customActionText}
+                            onChange={e => setCustomActionText(e.target.value)}
+                            placeholder="Vaziyat bo‘yicha aynan qanday protsessual harakatni amalga oshirmoqchisiz?..."
+                            rows={3}
+                            className="w-full p-3 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 rounded-xl text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                          <div className="flex justify-end gap-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setShowCustomInput(false)
+                                setCustomActionText('')
+                              }}
+                              className="px-3 py-1.5 text-xs text-gray-500 hover:text-gray-700"
+                            >
+                              Bekor qilish
+                            </button>
                           </div>
                         </div>
-                      ))}
+                      )}
                     </div>
+
+                    {/* Step Action Confirmation Bar */}
+                    {(selectedOptionId || (showCustomInput && customActionText.trim())) && (
+                      <div className="pt-3 border-t border-gray-100 dark:border-zinc-800 flex items-center justify-between gap-3 animate-in fade-in duration-200">
+                        <span className="text-xs text-gray-500 dark:text-zinc-400">
+                          {selectedOptionId ? 'Variant tanlandi' : 'Mustaqil fikr kiritildi'}
+                        </span>
+                        <button
+                          type="button"
+                          disabled={isSubmittingStep}
+                          onClick={() =>
+                            handleConfirmStep(
+                              selectedOptionId || undefined,
+                              customActionText.trim() || undefined
+                            )
+                          }
+                          className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs sm:text-sm font-bold shadow-sm transition-all disabled:opacity-50 cursor-pointer"
+                        >
+                          {isSubmittingStep ? (
+                            <>
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                              <span>Qabul qilinmoqda...</span>
+                            </>
+                          ) : (
+                            <>
+                              <span>Qarorni tasdiqlash & Davom etish</span>
+                              <ArrowRight className="w-4 h-4" />
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    )}
 
                     {/* Previous Action Logs Summary */}
                     {actionLogs.length > 0 && (
@@ -882,7 +1082,7 @@ export default function ScenarioGenerator() {
                     </h4>
                   </div>
 
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-3">
                     {sess.score != null && (
                       <div className="text-right">
                         <span className="text-[10px] text-gray-400 block uppercase">Natija</span>
@@ -892,11 +1092,29 @@ export default function ScenarioGenerator() {
                       </div>
                     )}
 
+                    {sess.evaluation ? (
+                      <button
+                        onClick={() => handleViewSessionResult(sess)}
+                        className="px-3.5 py-2 bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/60 dark:hover:bg-blue-900/60 text-blue-700 dark:text-blue-300 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <Award className="w-3.5 h-3.5" />
+                        <span>Natijani ko‘rish</span>
+                      </button>
+                    ) : sess.status === 'active' && (sess.current_step || 1) > 1 ? (
+                      <button
+                        onClick={() => handleResumeSimulation(sess)}
+                        className="px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <Play className="w-3.5 h-3.5" />
+                        <span>Davom ettirish</span>
+                      </button>
+                    ) : null}
+
                     <button
                       onClick={() => startSimulation(sess.scenario_data)}
-                      className="px-3.5 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-700 dark:text-zinc-300 rounded-xl text-xs font-semibold transition-all"
+                      className="px-3.5 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-700 dark:text-zinc-300 rounded-xl text-xs font-semibold transition-all cursor-pointer"
                     >
-                      Qayta ko‘rish
+                      Qayta o‘ynash
                     </button>
                   </div>
                 </div>

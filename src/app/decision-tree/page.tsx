@@ -514,6 +514,22 @@ export default function DecisionTreePage() {
     }
   }
 
+  // Duplicate saved case
+  const handleDuplicateCase = async (decisionCase: DecisionCase) => {
+    const duplicated: DecisionCase = {
+      ...decisionCase,
+      id: `case_${Date.now()}`,
+      name: `${decisionCase.name} (Nusxa)`,
+      status: 'active',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }
+    await saveCaseToDb(duplicated)
+    setCurrentCase(duplicated)
+    setSelectedNode(duplicated.tree)
+    showToast(`"${duplicated.name}" nusxasi yaratildi!`)
+  }
+
   // PDF Export
   const handleExportPdf = async () => {
     if (!currentCase) return
@@ -946,6 +962,7 @@ export default function DecisionTreePage() {
           }
         }}
         onDeleteCase={handleDeleteCase}
+        onDuplicateCase={handleDuplicateCase}
         onNewCase={() => setIsNewCaseOpen(true)}
       />
 

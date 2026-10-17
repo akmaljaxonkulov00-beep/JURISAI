@@ -2,9 +2,10 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useState, useCallback, type ReactNode } from 'react'
 import { useAuth } from '@/app/providers'
 import { NAV_GROUPS, filterNavGroups, isNavItemActive } from './navigation'
+import { getAuthHeaders } from '@/lib/api-auth-client'
 
 interface AppSidebarProps {
   /**
@@ -52,24 +53,54 @@ export default function AppSidebar({ children }: AppSidebarProps) {
   const { user, isAuthenticated, isAdmin, logout } = useAuth()
   const [stats, setStats] = useState<SidebarStats>(DEFAULT_STATS)
 
-  // XP / Level — dashboard bilan bir xil manba (localStorage 'user_stats')
-  useEffect(() => {
+  // Real-time stats sync (API + localStorage + stats-updated event)
+  const refreshStats = useCallback(async () => {
     if (typeof window === 'undefined') return
     try {
       const stored = localStorage.getItem('user_stats')
       if (stored) {
         const parsed = JSON.parse(stored)
-        setStats({
-          xp: parsed.xp ?? 0,
-          level: parsed.level ?? 1,
-          weeklyProgress: parsed.weeklyProgress ?? 0,
-          rank: parsed.rank || 'Yangi boshlovchi',
-        })
+        setStats(prev => ({
+          ...prev,
+          xp: parsed.xp ?? prev.xp,
+          level: parsed.level ?? prev.level,
+          weeklyProgress: parsed.weeklyProgress ?? prev.weeklyProgress,
+          rank: parsed.rank || prev.rank,
+        }))
       }
-    } catch {
-      // localStorage ma'lumot buzilgan bo'lsa — default qiymatlar
+
+      if (isAuthenticated) {
+        const headers = await getAuthHeaders()
+        const res = await fetch('/api/user/stats?limit=1', { headers })
+        if (res.ok) {
+          const data = await res.json()
+          if (data.success && data.stats) {
+            const newStats = {
+              xp: data.stats.xp ?? 0,
+              level: data.stats.level ?? 1,
+              weeklyProgress: data.stats.weeklyProgress ?? 0,
+              rank: data.stats.rank || 'Yangi boshlovchi',
+            }
+            setStats(newStats)
+            localStorage.setItem('user_stats', JSON.stringify(newStats))
+          }
+        }
+      }
+    } catch {}
+  }, [isAuthenticated])
+
+  useEffect(() => {
+    refreshStats()
+
+    const handleUpdate = () => {
+      refreshStats()
     }
-  }, [])
+
+    window.addEventListener('stats-updated', handleUpdate)
+    return () => {
+      window.removeEventListener('stats-updated', handleUpdate)
+    }
+  }, [refreshStats])
 
   // Single source of truth: shared NAV_GROUPS + auth/admin filter
   const groups = filterNavGroups(NAV_GROUPS, { isAuthenticated, isAdmin })
@@ -139,9 +170,21 @@ export default function AppSidebar({ children }: AppSidebarProps) {
         <nav className="flex-1 px-4 py-4 space-y-5 overflow-y-auto overscroll-contain">
           {groups.map(group => (
             <div key={group.title}>
-              <h3 className="px-4 text-[11px] font-semibold text-gray-400 dark:text-zinc-500 uppercase tracking-[0.08em] mb-2">
-                {group.title}
-              </h3>
+              {group.href ? (
+                <Link
+                  href={group.href}
+                  className="px-4 text-[11px] font-semibold text-gray-400 dark:text-zinc-500 uppercase tracking-[0.08em] mb-2 hover:text-blue-600 dark:hover:text-blue-400 transition-colors flex items-center justify-between group/hdr"
+                >
+                  <span>{group.title}</span>
+                  <span className="text-[10px] opacity-0 group-hover/hdr:opacity-100 transition-opacity">
+                    Barchasi →
+                  </span>
+                </Link>
+              ) : (
+                <h3 className="px-4 text-[11px] font-semibold text-gray-400 dark:text-zinc-500 uppercase tracking-[0.08em] mb-2">
+                  {group.title}
+                </h3>
+              )}
               <div className="space-y-0.5">
                 {group.items.map(item => {
                   const Icon = item.icon

@@ -35,6 +35,9 @@ import {
   History,
   RotateCcw,
   Sparkles,
+  ArrowLeft,
+  VolumeX,
+  Download,
 } from 'lucide-react'
 import type {
   CourtRole,
@@ -201,6 +204,104 @@ export default function VirtualCourtPage() {
     setLoadingHistory(false)
   }
 
+  // ── API: Resume / View Session from History ──
+  const handleResumeSession = async (sessId: string) => {
+    setLoading(true)
+    setLoadingText('Sud sessiyasi yuklanmoqda...')
+    setShowHistoryModal(false)
+    try {
+      const res = await fetch('/api/court-simulator', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...(await getAuthHeaders()) },
+        body: JSON.stringify({
+          action: 'get_session',
+          simulationId: sessId,
+        }),
+      })
+      const data = await res.json()
+      if (data.success && data.session && data.scenario) {
+        setSimulationId(sessId)
+        setSessionState(data.session)
+        setSelectedScenario(data.scenario)
+        setSelectedRole(data.session.selected_role)
+        if (Array.isArray(data.messages) && data.messages.length > 0) {
+          setMessages(
+            data.messages.map((m: any) => ({
+              id: m.id || 'msg_' + Math.random(),
+              speaker: m.speaker,
+              role: m.role,
+              text: m.content,
+              time: new Date(m.created_at).toLocaleTimeString('uz-UZ', {
+                hour: '2-digit',
+                minute: '2-digit',
+              }),
+            }))
+          )
+        }
+        setViewState('session')
+      } else {
+        setErrorBanner(data.error || 'Sessiyani yuklab bo‘lmadi')
+      }
+    } catch {
+      setErrorBanner('Sessiyani yuklashda xatolik yuz berdi')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // ── Export Court Transcript (Sud Bayonnomasi) ──
+  const handleExportTranscript = () => {
+    if (!messages.length && !sessionState) return
+    const title = selectedScenario?.title || 'Virtual Sud Majlisi'
+    let text = `=================================================================\n`
+    text += `       O'ZBEKISTON RESPUBLIKASI VIRTUAL SUD MAJLISI BAYONNOMASI\n`
+    text += `=================================================================\n\n`
+    text += `Ish nomi: ${title}\n`
+    text += `Huquq sohasi: ${selectedScenario?.category || 'Umumiy'}\n`
+    text += `Sizning rolingiz: ${selectedRole}\n`
+    text += `Sana va vaqt: ${new Date().toLocaleDateString('uz-UZ')} ${new Date().toLocaleTimeString('uz-UZ')}\n`
+    text += `Jarayon holati: ${sessionState?.completed ? 'Yakunlangan' : 'Jarayonda'}\n`
+    if (scoringResults) {
+      text += `Yakuniy natija: ${scoringResults.totalScore} / 100 ball\n`
+      text += `Qonuniy asoslar: ${scoringResults.legalReasoning}%\n`
+      text += `Argumentatsiya: ${scoringResults.argumentQuality}%\n`
+      text += `Dalillar bilan ishlash: ${scoringResults.evidenceUsage}%\n`
+      text += `Protsessual tartib: ${scoringResults.proceduralCorrectness}%\n`
+      text += `Xulosa: ${scoringResults.feedbackSummary}\n`
+    }
+    text += `\n-----------------------------------------------------------------\n`
+    text += `                     MAJLIS BAYONI VA REPLIKALAR\n`
+    text += `-----------------------------------------------------------------\n\n`
+    messages.forEach(m => {
+      text += `[${m.time}] ${m.speaker} (${m.role}):\n${m.text}\n\n`
+    })
+    text += `=================================================================\n`
+    text += `Hujjat: JuristAI Virtual Sud Simulyatori orqali shakllantirildi\n`
+
+    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `Sud_Bayonnomasi_${Date.now()}.txt`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
+  // ── Audio / TTS Narration ──
+  const [ttsEnabled, setTtsEnabled] = useState(false)
+  const speakText = useCallback((text: string) => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return
+    try {
+      window.speechSynthesis.cancel()
+      const utterance = new SpeechSynthesisUtterance(text.slice(0, 300))
+      utterance.lang = 'uz-UZ'
+      utterance.rate = 1.05
+      window.speechSynthesis.speak(utterance)
+    } catch {}
+  }, [])
+
   // ── Sequential Message Appender ──
   const appendMessagesSequentially = async (
     speakers: Array<{ speaker: string; role: string; message: string }>
@@ -208,6 +309,9 @@ export default function VirtualCourtPage() {
     for (let i = 0; i < speakers.length; i++) {
       const s = speakers[i]
       setActiveSpeaker(s.speaker)
+      if (ttsEnabled) {
+        speakText(s.message)
+      }
       setMessages(prev => [
         ...prev,
         {
@@ -564,15 +668,22 @@ export default function VirtualCourtPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => router.push('/dashboard')}
+              className="px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700/60 transition flex items-center gap-1.5"
+            >
+              <ArrowLeft size={14} className="text-slate-400" />
+              <span>Boshqaruv Paneli</span>
+            </button>
             <button
               onClick={() => {
                 setShowHistoryModal(true)
                 loadHistory()
               }}
-              className="px-3.5 py-1.5 text-xs font-medium rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700/60 transition flex items-center gap-1.5"
+              className="px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700/60 transition flex items-center gap-1.5"
             >
-              <History size={15} className="text-blue-400" />
+              <History size={14} className="text-blue-400" />
               <span>Mening Sudlarim</span>
             </button>
           </div>
@@ -898,9 +1009,9 @@ export default function VirtualCourtPage() {
                   historyList.map(h => (
                     <div
                       key={h.id}
-                      className="p-4 rounded-xl bg-slate-950/60 border border-slate-800 flex items-center justify-between"
+                      className="p-4 rounded-xl bg-slate-950/60 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-slate-700 transition"
                     >
-                      <div>
+                      <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                           <span className="text-xs font-semibold px-2 py-0.5 rounded bg-blue-900/60 text-blue-300">
                             {h.user_role}
@@ -909,18 +1020,27 @@ export default function VirtualCourtPage() {
                             {new Date(h.created_at).toLocaleDateString('uz-UZ')}
                           </span>
                         </div>
-                        <h4 className="text-sm font-bold text-white">{h.title}</h4>
+                        <h4 className="text-sm font-bold text-white truncate">{h.title}</h4>
                         <p className="text-xs text-slate-400 mt-0.5">
                           Holat: {h.outcome || h.status}
                         </p>
                       </div>
-                      <div className="text-right">
-                        <div className="text-base font-bold text-emerald-400">
-                          {h.score || 0} ball
+                      <div className="flex items-center gap-3 self-end sm:self-center">
+                        <div className="text-right">
+                          <div className="text-base font-bold text-emerald-400">
+                            {h.score || 0} ball
+                          </div>
+                          <span className="text-[10px] text-slate-500">
+                            {h.status === 'completed' ? 'Yakunlangan' : 'Jarayonda'}
+                          </span>
                         </div>
-                        <span className="text-[10px] text-slate-500">
-                          {h.status === 'completed' ? 'Yakunlangan' : 'Jarayonda'}
-                        </span>
+                        <button
+                          onClick={() => handleResumeSession(h.id)}
+                          className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold transition flex items-center gap-1.5 shadow-sm"
+                        >
+                          <Play size={12} />
+                          <span>{h.status === 'completed' ? 'Ko‘rish' : 'Davom ettirish'}</span>
+                        </button>
                       </div>
                     </div>
                   ))
@@ -970,12 +1090,45 @@ export default function VirtualCourtPage() {
               </div>
             </div>
 
-            {/* Timer & Finish Button */}
-            <div className="flex items-center gap-3">
+            {/* Timer, Voice TTS & Finish Button */}
+            <div className="flex items-center gap-2 sm:gap-3">
+              <button
+                onClick={() => {
+                  const nextState = !ttsEnabled
+                  setTtsEnabled(nextState)
+                  if (!nextState && typeof window !== 'undefined' && 'speechSynthesis' in window) {
+                    window.speechSynthesis.cancel()
+                  }
+                }}
+                className={`px-2.5 py-1 rounded-lg border text-xs transition flex items-center gap-1.5 ${
+                  ttsEnabled
+                    ? 'bg-blue-600/30 text-blue-300 border-blue-500/50'
+                    : 'bg-slate-800 text-slate-400 border-slate-700/60 hover:text-white'
+                }`}
+                title={ttsEnabled ? "Ovozli o'qishni o'chirish" : "Ovozli o'qishni yoqish"}
+              >
+                {ttsEnabled ? (
+                  <Volume2 size={14} className="text-blue-400" />
+                ) : (
+                  <VolumeX size={14} />
+                )}
+                <span className="hidden sm:inline">
+                  {ttsEnabled ? 'Ovoz yoqiq' : 'Ovoz o‘chiq'}
+                </span>
+              </button>
+
               <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-800/80 border border-slate-700/60 text-xs font-mono text-amber-400">
                 <Clock size={14} />
                 <span>{formatTime(timeRemaining)}</span>
               </div>
+              <button
+                onClick={handleExportTranscript}
+                className="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 border border-slate-700/60 hover:bg-slate-700 text-xs font-medium transition flex items-center gap-1.5"
+                title="Sud bayonnomasini yuklab olish"
+              >
+                <Download size={13} className="text-blue-400" />
+                <span className="hidden md:inline">Bayonnoma</span>
+              </button>
               <button
                 onClick={handleFinishSession}
                 className="px-3 py-1 rounded-lg bg-rose-600/20 text-rose-300 border border-rose-500/30 hover:bg-rose-600/30 text-xs font-medium transition"
@@ -1563,19 +1716,28 @@ export default function VirtualCourtPage() {
           </div>
 
           {/* Bottom Actions */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-slate-800">
             <button
-              onClick={() => setViewState('select')}
-              className="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold transition flex items-center gap-2"
+              onClick={handleExportTranscript}
+              className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition flex items-center gap-2 border border-slate-700/60"
             >
-              <RotateCcw size={15} /> Boshqa Ishni Tanlash
+              <Download size={15} className="text-blue-400" />
+              <span>Bayonnomani Yuklab Olish</span>
             </button>
-            <button
-              onClick={() => handleStartSession(selectedScenario)}
-              className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition flex items-center gap-2 shadow-lg shadow-blue-500/20"
-            >
-              <Play size={15} /> Qayta O‘ynash
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setViewState('select')}
+                className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold transition flex items-center gap-2"
+              >
+                <RotateCcw size={15} /> Boshqa Ishni Tanlash
+              </button>
+              <button
+                onClick={() => handleStartSession(selectedScenario)}
+                className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition flex items-center gap-2 shadow-lg shadow-blue-500/20"
+              >
+                <Play size={15} /> Qayta O‘ynash
+              </button>
+            </div>
           </div>
         </div>
       </div>

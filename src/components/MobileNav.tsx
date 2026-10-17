@@ -201,9 +201,20 @@ export default function MobileNav() {
               ) : (
                 groups.map(group => (
                   <div key={group.title} className="mb-4">
-                    <p className="px-3 text-xs font-semibold text-gray-500 dark:text-zinc-500 uppercase tracking-wider mb-2">
-                      {group.title}
-                    </p>
+                    {group.href ? (
+                      <Link
+                        href={group.href}
+                        onClick={close}
+                        className="px-3 text-xs font-semibold text-gray-500 dark:text-zinc-500 uppercase tracking-wider mb-2 hover:text-blue-600 dark:hover:text-blue-400 flex items-center justify-between"
+                      >
+                        <span>{group.title}</span>
+                        <span className="text-[10px] text-blue-500">Barchasi →</span>
+                      </Link>
+                    ) : (
+                      <p className="px-3 text-xs font-semibold text-gray-500 dark:text-zinc-500 uppercase tracking-wider mb-2">
+                        {group.title}
+                      </p>
+                    )}
                     <div className="space-y-0.5">
                       {group.items.map(item => {
                         const isActive = isNavItemActive(item.href, pathname)

@@ -114,6 +114,52 @@ export default function DecisionTreeGraph({
 
   const handleMouseUp = () => setIsDragging(false)
 
+  // Touch interactions for mobile (Pan & Pinch-to-zoom)
+  const touchStartRef = useRef<{ x: number; y: number; dist?: number }>({ x: 0, y: 0 })
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if ((e.target as HTMLElement).closest('.decision-node-card')) return
+    if (e.touches.length === 1) {
+      const t = e.touches[0]
+      setIsDragging(true)
+      setDragStart({ x: t.clientX - pan.x, y: t.clientY - pan.y })
+    } else if (e.touches.length === 2) {
+      setIsDragging(false)
+      const dist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      )
+      touchStartRef.current = {
+        x: (e.touches[0].clientX + e.touches[1].clientX) / 2,
+        y: (e.touches[0].clientY + e.touches[1].clientY) / 2,
+        dist,
+      }
+    }
+  }
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (e.touches.length === 1 && isDragging) {
+      const t = e.touches[0]
+      setPan({
+        x: t.clientX - dragStart.x,
+        y: t.clientY - dragStart.y,
+      })
+    } else if (e.touches.length === 2 && touchStartRef.current.dist) {
+      const dist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      )
+      const scale = dist / touchStartRef.current.dist
+      touchStartRef.current.dist = dist
+      setZoom(prev => Math.min(2.5, Math.max(0.3, prev * (1 + (scale - 1) * 0.8))))
+    }
+  }
+
+  const handleTouchEnd = () => {
+    setIsDragging(false)
+    touchStartRef.current.dist = undefined
+  }
+
   // Wheel zoom
   const handleWheel = (e: React.WheelEvent) => {
     e.preventDefault()
@@ -342,6 +388,9 @@ export default function DecisionTreeGraph({
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
       onWheel={handleWheel}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
     >
       {/* Interactive Tool Control Bar */}
       <div className="absolute top-4 left-4 z-20 flex items-center gap-1.5 p-1 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md rounded-xl border border-slate-200 dark:border-zinc-800 shadow-sm">

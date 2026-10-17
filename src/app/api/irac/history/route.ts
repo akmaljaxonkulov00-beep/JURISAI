@@ -35,11 +35,20 @@ export async function GET(request: NextRequest) {
       .eq('is_active', true)
 
     const totalByCategory: Record<string, number> = {}
-    if (Array.isArray(caseCounts)) {
+    if (Array.isArray(caseCounts) && caseCounts.length > 0) {
       caseCounts.forEach(row => {
-        const cat = String((row as { category?: string }).category || 'general')
+        const cat = String((row as { category?: string }).category || 'general').toLowerCase()
         totalByCategory[cat] = (totalByCategory[cat] || 0) + 1
       })
+    } else {
+      // Fallback: seed cases dan hisoblash
+      try {
+        const { SEED_IRAC_CASES } = await import('@/lib/cases/seed-cases')
+        SEED_IRAC_CASES.forEach(c => {
+          const cat = c.category.toLowerCase()
+          totalByCategory[cat] = (totalByCategory[cat] || 0) + 1
+        })
+      } catch {}
     }
 
     // 3. Har bir yo'nalish bo'yicha yechilganlar + o'rtacha ball

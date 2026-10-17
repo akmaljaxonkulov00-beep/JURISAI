@@ -7,15 +7,17 @@ import {
 } from '@/types/decision-tree'
 import { formatCurrencySom } from '@/lib/decision-tree-engine'
 
+import { ensureUzbekLatin } from '@/lib/uz-latin'
+
 /**
- * Sanitize text to safe ASCII characters for standard PDF fonts
+ * Sanitize text to safe ASCII characters for standard PDF fonts (transliterates Cyrillic first)
  */
 function sanitizeText(s: string = ''): string {
-  return s
-    .replace(/ʻ/g, "'")
-    .replace(/[’‘`]/g, "'")
-    .replace(/—|–/g, '-')
-    .replace(/[^\x20-\x7E]/g, ch => (ch === "'" ? "'" : ' '))
+  const latinText = ensureUzbekLatin(s)
+  return latinText
+    .replace(/[ʻʼ’‘`]/g, "'")
+    .replace(/[—–]/g, '-')
+    .replace(/[^\x20-\x7E]/g, ch => (ch === "'" ? "'" : ''))
 }
 
 export async function generateDecisionTreePdf(

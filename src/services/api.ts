@@ -139,22 +139,36 @@ class ApiService {
   }
 
   // ── Decision Tree ──
-  async analyzeDecisionPath(scenario: string, caseType: string, decisions: JsonObject) {
+  async analyzeDecisionPath(formDataOrScenario: any, caseType?: string, decisions?: JsonObject) {
+    let bodyPayload: JsonObject
+    if (typeof formDataOrScenario === 'object' && formDataOrScenario !== null) {
+      bodyPayload = formDataOrScenario
+    } else {
+      bodyPayload = {
+        name: formDataOrScenario,
+        scenario_title: formDataOrScenario,
+        scenario_description: formDataOrScenario,
+        case_type: caseType || 'fuqarolik',
+        initial_decisions: decisions,
+      }
+    }
     return this.request('/api/decision-tree/analyze', {
       method: 'POST',
-      body: JSON.stringify({
-        scenario_title: scenario,
-        scenario_description: scenario,
-        case_type: caseType,
-        initial_decisions: decisions,
-      }),
+      body: JSON.stringify(bodyPayload),
     })
   }
 
-  async updateDecisionTree(treeId: string, nodeId: string, decision: string, confidence: number) {
-    return this.request(`/api/decision-tree/tree/${treeId}/update`, {
+  async saveDecisionTree(treeData: JsonObject) {
+    return this.request('/api/decision-tree/trees', {
+      method: 'POST',
+      body: JSON.stringify(treeData),
+    })
+  }
+
+  async updateDecisionTree(treeId: string, payload: JsonObject) {
+    return this.request(`/api/decision-tree/trees/${treeId}`, {
       method: 'PUT',
-      body: JSON.stringify({ node_id: nodeId, decision, confidence }),
+      body: JSON.stringify(payload),
     })
   }
 
@@ -164,9 +178,15 @@ class ApiService {
     })
   }
 
-  async getDecisionTreeNodes(scenario: string) {
-    return this.request(`/api/decision-tree/nodes?scenario=${scenario}`, {
+  async getDecisionTreeById(treeId: string) {
+    return this.request(`/api/decision-tree/trees/${treeId}`, {
       method: 'GET',
+    })
+  }
+
+  async deleteDecisionTree(treeId: string) {
+    return this.request(`/api/decision-tree/trees/${treeId}`, {
+      method: 'DELETE',
     })
   }
 
@@ -206,28 +226,57 @@ class ApiService {
 
   // ── Scenario Generator ──
   async generateScenario(
-    scenarioType: string,
-    difficultyLevel: string,
-    complexity: string,
-    participantsCount: number,
-    focusAreas: string[],
-    durationMinutes: number
+    paramsOrType: any,
+    difficulty?: string,
+    complexity?: string,
+    participantsCount?: number,
+    focusAreas?: string[],
+    durationMinutes?: number
   ) {
-    return this.request('/api/scenario-generator/generate', {
-      method: 'POST',
-      body: JSON.stringify({
-        scenario_type: scenarioType,
-        difficulty_level: difficultyLevel,
+    let bodyPayload: JsonObject
+    if (typeof paramsOrType === 'object' && paramsOrType !== null) {
+      bodyPayload = paramsOrType
+    } else {
+      bodyPayload = {
+        domain: paramsOrType || 'civil',
+        scenario_type: paramsOrType,
+        difficulty: difficulty || 'intermediate',
+        difficulty_level: difficulty,
         complexity,
         participants_count: participantsCount,
-        focus_areas: focusAreas,
+        focus_areas: focusAreas || [],
         duration_minutes: durationMinutes,
-      }),
+        topic: `${paramsOrType || 'Huquqiy nizo'} bo'yicha amaliy keys`,
+      }
+    }
+    return this.request('/api/scenario-generator/generate', {
+      method: 'POST',
+      body: JSON.stringify(bodyPayload),
     })
   }
 
-  async getScenarios() {
-    return this.request('/api/scenario-generator/scenarios', {
+  async executeScenarioStep(payload: {
+    scenario: any
+    current_step: number
+    chosen_option_id: string
+    custom_action_text?: string
+  }) {
+    return this.request('/api/scenario-generator/step', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    })
+  }
+
+  async evaluateScenario(payload: { scenario: any; action_logs: any[] }) {
+    return this.request('/api/scenario-generator/evaluate', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    })
+  }
+
+  async getScenarioSessions(limit = 20, status?: string) {
+    const q = status ? `?limit=${limit}&status=${status}` : `?limit=${limit}`
+    return this.request(`/api/scenario-generator/sessions${q}`, {
       method: 'GET',
     })
   }

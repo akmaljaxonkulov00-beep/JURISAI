@@ -28,6 +28,7 @@ export interface NavItem {
 
 export interface NavGroup {
   title: string
+  href?: string
   items: NavItem[]
 }
 
@@ -47,6 +48,7 @@ export interface NavGroup {
 export const NAV_GROUPS: NavGroup[] = [
   {
     title: 'Amaliyot',
+    href: '/amaliyot',
     items: [
       {
         id: 'case-solver',

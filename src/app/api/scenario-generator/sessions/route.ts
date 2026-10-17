@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireUser } from '@/lib/server-auth'
-import { supabase } from '@/lib/supabase'
+import { getSupabaseAdmin } from '@/lib/supabase-admin'
 
 /**
  * GET /api/scenario-generator/sessions
@@ -16,7 +16,8 @@ export async function GET(request: NextRequest) {
     const offset = Math.max(parseInt(searchParams.get('offset') || '0', 10) || 0, 0)
     const status = searchParams.get('status')
 
-    let query = supabase
+    const admin = getSupabaseAdmin()
+    let query = admin
       .from('scenario_sessions')
       .select('*', { count: 'exact' })
       .eq('user_id', auth.user.id)

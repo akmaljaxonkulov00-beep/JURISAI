@@ -28,10 +28,11 @@ const Header: React.FC<HeaderProps> = ({ user, className }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   const navigation = [
-    { name: 'Bosh sahifa', href: '/' },
+    { name: 'Bosh sahifa', href: '/dashboard' },
     { name: 'Kazus Yechish', href: '/case-solver' },
-    { name: 'Qaror daraxti', href: '/decision-tree' },
-    { name: 'Jamiyat', href: '/community' },
+    { name: 'Qarorlar Daraxti', href: '/decision-tree' },
+    { name: 'Virtual Sud', href: '/virtual-court' },
+    { name: 'Senariy Generator', href: '/scenario-generator' },
   ]
 
   const handleLogout = async () => {

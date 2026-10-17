@@ -32,6 +32,8 @@ import {
   Database,
   Gavel,
   CheckCircle,
+  GitBranch,
+  Clapperboard,
 } from 'lucide-react'
 import UsageLimitIndicator from '@/components/ai/UsageLimitIndicator'
 import ActivityHistoryModal from '@/components/dashboard/ActivityHistoryModal'
@@ -633,39 +635,87 @@ export default function Dashboard() {
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-5">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* 1. Kazus Yechish (IRAC) */}
             <div
               onClick={() => handleNavigation('/case-solver')}
-              className="relative overflow-hidden group p-6 bg-gradient-to-br from-blue-50/80 to-green-50/80 rounded-xl border border-blue-100/50 hover:border-blue-200/80 transition-all duration-300 cursor-pointer hover-lift"
+              className="relative overflow-hidden group p-5 bg-gradient-to-br from-blue-50/80 to-indigo-50/80 dark:from-blue-950/20 dark:to-indigo-950/20 rounded-2xl border border-blue-100/50 dark:border-blue-900/40 hover:border-blue-300 transition-all duration-300 cursor-pointer hover-lift flex flex-col justify-between"
             >
-              <div className="absolute -top-6 -right-6 w-20 h-20 bg-blue-200/20 rounded-full blur-xl group-hover:scale-150 transition-transform duration-500" />
-              <Scale className="w-8 h-8 text-blue-600 mb-3 group-hover:scale-110 transition-transform duration-200" />
-              <h3 className="font-semibold text-blue-900 dark:text-blue-300">
-                {t('dashboardIrTitle')}
-              </h3>
-              <p className="text-sm text-blue-600/70 mt-1">{t('dashboardIrDesc')}</p>
+              <div>
+                <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center text-blue-600 dark:text-blue-400 mb-3 group-hover:scale-110 transition-transform">
+                  <Scale className="w-5 h-5" />
+                </div>
+                <h3 className="font-bold text-gray-900 dark:text-white text-sm">
+                  Kazus Yechish (IRAC)
+                </h3>
+                <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1 line-clamp-2">
+                  Sud kazuslarini xalqaro IRAC metodikasi bo‘yicha tahlil qiling
+                </p>
+              </div>
+              <span className="text-[11px] font-semibold text-blue-600 dark:text-blue-400 mt-3 inline-block">
+                Boshlash →
+              </span>
             </div>
+
+            {/* 2. Qarorlar Daraxti */}
             <div
-              onClick={() => handleNavigation('/legal-database')}
-              className="relative overflow-hidden group p-6 bg-gradient-to-br from-emerald-50/80 to-teal-50/80 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-xl border border-emerald-100/50 dark:border-emerald-800/30 hover:border-emerald-200/80 transition-all duration-300 cursor-pointer hover-lift"
+              onClick={() => handleNavigation('/decision-tree')}
+              className="relative overflow-hidden group p-5 bg-gradient-to-br from-emerald-50/80 to-teal-50/80 dark:from-emerald-950/20 dark:to-teal-950/20 rounded-2xl border border-emerald-100/50 dark:border-emerald-900/40 hover:border-emerald-300 transition-all duration-300 cursor-pointer hover-lift flex flex-col justify-between"
             >
-              <div className="absolute -top-6 -right-6 w-20 h-20 bg-emerald-200/20 rounded-full blur-xl group-hover:scale-150 transition-transform duration-500" />
-              <Database className="w-8 h-8 text-emerald-600 mb-3 group-hover:scale-110 transition-transform duration-200" />
-              <h3 className="font-semibold text-emerald-900 dark:text-emerald-300">
-                {t('dashboardLegalTitle')}
-              </h3>
-              <p className="text-sm text-emerald-600/70 mt-1">{t('dashboardLegalDesc')}</p>
+              <div>
+                <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center text-emerald-600 dark:text-emerald-400 mb-3 group-hover:scale-110 transition-transform">
+                  <GitBranch className="w-5 h-5" />
+                </div>
+                <h3 className="font-bold text-gray-900 dark:text-white text-sm">
+                  Qarorlar Daraxti
+                </h3>
+                <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1 line-clamp-2">
+                  Huquqiy strategiya, xavflar va ehtimolliklarni vizual xaritalang
+                </p>
+              </div>
+              <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 mt-3 inline-block">
+                Boshlash →
+              </span>
             </div>
+
+            {/* 3. Virtual Sud */}
             <div
               onClick={() => handleNavigation('/virtual-court')}
-              className="relative overflow-hidden group p-6 bg-gradient-to-br from-orange-50/80 to-amber-50/80 dark:from-orange-900/20 dark:to-amber-900/20 rounded-xl border border-orange-100/50 dark:border-orange-800/30 hover:border-orange-200/80 transition-all duration-300 cursor-pointer hover-lift"
+              className="relative overflow-hidden group p-5 bg-gradient-to-br from-amber-50/80 to-orange-50/80 dark:from-amber-950/20 dark:to-orange-950/20 rounded-2xl border border-amber-100/50 dark:border-amber-900/40 hover:border-amber-300 transition-all duration-300 cursor-pointer hover-lift flex flex-col justify-between"
             >
-              <div className="absolute -top-6 -right-6 w-20 h-20 bg-orange-200/20 rounded-full blur-xl group-hover:scale-150 transition-transform duration-500" />
-              <Gavel className="w-8 h-8 text-orange-600 mb-3 group-hover:scale-110 transition-transform duration-200" />
-              <h3 className="font-semibold text-orange-900 dark:text-orange-300">
-                {t('dashboardCourtTitle')}
-              </h3>
-              <p className="text-sm text-orange-600/70 mt-1">{t('dashboardCourtDesc')}</p>
+              <div>
+                <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center text-amber-600 dark:text-amber-400 mb-3 group-hover:scale-110 transition-transform">
+                  <Gavel className="w-5 h-5" />
+                </div>
+                <h3 className="font-bold text-gray-900 dark:text-white text-sm">Virtual Sud</h3>
+                <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1 line-clamp-2">
+                  Advokat, prokuror yoki sudya sifatida real sud majlisida qatnashing
+                </p>
+              </div>
+              <span className="text-[11px] font-semibold text-amber-600 dark:text-amber-400 mt-3 inline-block">
+                Boshlash →
+              </span>
+            </div>
+
+            {/* 4. Senariy Generator */}
+            <div
+              onClick={() => handleNavigation('/scenario-generator')}
+              className="relative overflow-hidden group p-5 bg-gradient-to-br from-purple-50/80 to-violet-50/80 dark:from-purple-950/20 dark:to-violet-950/20 rounded-2xl border border-purple-100/50 dark:border-purple-900/40 hover:border-purple-300 transition-all duration-300 cursor-pointer hover-lift flex flex-col justify-between"
+            >
+              <div>
+                <div className="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-900/40 flex items-center justify-center text-purple-600 dark:text-purple-400 mb-3 group-hover:scale-110 transition-transform">
+                  <Clapperboard className="w-5 h-5" />
+                </div>
+                <h3 className="font-bold text-gray-900 dark:text-white text-sm">
+                  Senariy Generator
+                </h3>
+                <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1 line-clamp-2">
+                  2026 qonunchiligi bo‘yicha interaktiv keyslar yarating va yeching
+                </p>
+              </div>
+              <span className="text-[11px] font-semibold text-purple-600 dark:text-purple-400 mt-3 inline-block">
+                Boshlash →
+              </span>
             </div>
           </div>
         </CardContent>
