@@ -402,11 +402,11 @@ function SignInContent() {
         </div>
 
         {/* Content */}
-        <div className="relative z-10 flex flex-col h-full w-full p-8 lg:p-10 xl:p-12 max-w-xl mx-auto justify-between">
+        <div className="relative z-10 flex flex-col h-full w-full p-10 xl:p-12 max-w-[55%]">
           {/* Logo */}
-          <div className="flex items-center gap-3 mb-8 lg:mb-10">
+          <div className="flex items-center gap-3 mb-12">
             <div
-              className="w-10 h-10 rounded-[12px] flex items-center justify-center"
+              className="w-11 h-11 rounded-[14px] flex items-center justify-center"
               style={{
                 background: 'rgba(99,102,241,0.12)',
                 border: '1px solid rgba(99,102,241,0.25)',
@@ -414,7 +414,7 @@ function SignInContent() {
             >
               <svg
                 viewBox="0 0 24 24"
-                className="w-5 h-5"
+                className="w-5.5 h-5.5"
                 fill="none"
                 stroke={BRAND.accent}
                 strokeWidth="1.5"
@@ -426,42 +426,44 @@ function SignInContent() {
               </svg>
             </div>
             <div>
-              <h1 className="text-xl font-bold text-white tracking-tight leading-none">
+              <h1 className="text-[22px] font-bold text-white tracking-tight leading-none">
                 JURIST<span className="text-indigo-400">IV</span>
               </h1>
-              <p className="text-[10px] text-white/35 tracking-[0.25em] uppercase font-medium mt-0.5">
+              <p className="text-[10px] text-white/35 tracking-[0.3em] uppercase font-medium mt-0.5">
                 Huquqiy AI Platformasi
               </p>
             </div>
           </div>
 
           {/* Headline */}
-          <div className="mb-8">
-            <h2 className="text-2xl lg:text-3xl xl:text-4xl font-bold text-white leading-snug mb-3">
-              Huquqiy bilimlar kelajagi –{' '}
+          <div className="mb-10">
+            <h2 className="text-[34px] xl:text-[40px] font-bold text-white leading-[1.15] mb-5">
+              Huquqiy bilimlar
+              <br />
+              kelajagi –{' '}
               <span className="bg-gradient-to-r from-indigo-400 to-blue-400 bg-clip-text text-transparent">
                 AI
               </span>{' '}
-              bilan bugundan boshlanadi
+              bilan
+              <br />
+              bugundan boshlanadi
             </h2>
-            <p className="text-sm text-white/50 leading-relaxed max-w-md">
+            <p className="text-[14px] text-white/40 leading-relaxed max-w-[380px]">
               Sun'iy intellekt yordamida huquqiy tahlil qiling, hujjatlar yarating va
               bilimlaringizni yangi darajaga ko'taring.
             </p>
           </div>
 
           {/* Features */}
-          <div className="flex flex-col gap-3.5 mb-auto">
+          <div className="flex flex-col gap-5 mb-auto">
             {FEATURES.map(f => (
-              <div key={f.title} className="group flex items-start gap-3">
+              <div key={f.title} className="group flex items-start gap-3.5">
                 <FeatureIcon icon={f.icon} color={f.color} />
                 <div className="min-w-0 pt-0.5">
-                  <h3 className="text-xs sm:text-[13px] font-semibold text-white/90 leading-tight">
+                  <h3 className="text-[13px] font-semibold text-white/85 leading-tight">
                     {f.title}
                   </h3>
-                  <p className="text-[11px] sm:text-[12px] text-white/40 mt-0.5 leading-relaxed">
-                    {f.desc}
-                  </p>
+                  <p className="text-[12px] text-white/35 mt-1 leading-relaxed">{f.desc}</p>
                 </div>
               </div>
             ))}
@@ -469,7 +471,7 @@ function SignInContent() {
 
           {/* Stats */}
           <div
-            className="mt-6 flex items-center rounded-[12px] overflow-hidden"
+            className="mt-8 flex items-center rounded-[14px] overflow-hidden"
             style={{
               background: 'rgba(255,255,255,0.04)',
               border: '1px solid rgba(255,255,255,0.06)',
@@ -561,19 +563,19 @@ function SignInContent() {
           </button>
         </div>
 
-        <div className="w-full max-w-[400px] mx-auto">
+        <div className="w-full max-w-[420px] mx-auto">
           {/* Mobile Logo */}
-          <div className="lg:hidden text-center mb-6">
+          <div className="lg:hidden text-center mb-8">
             <div
-              className="inline-flex items-center justify-center w-12 h-12 rounded-[14px] mb-2.5"
+              className="inline-flex items-center justify-center w-14 h-14 rounded-[16px] mb-3"
               style={{
                 background: `linear-gradient(135deg, ${BRAND.primary}, ${BRAND.violet})`,
-                boxShadow: '0 6px 20px rgba(99,102,241,0.22)',
+                boxShadow: '0 8px 24px rgba(99,102,241,0.25)',
               }}
             >
               <svg
                 viewBox="0 0 24 24"
-                className="w-6 h-6 text-white"
+                className="w-7 h-7 text-white"
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="1.5"
@@ -584,22 +586,22 @@ function SignInContent() {
                 <path d="M12 8v8M9 12h6" />
               </svg>
             </div>
-            <h1 className="text-xl font-bold text-gray-900">JURISTIV</h1>
-            <p className="text-xs text-gray-400 mt-0.5">Huquqiy AI Platformasi</p>
+            <h1 className="text-[22px] font-bold text-gray-900">JURISTIV</h1>
+            <p className="text-[12px] text-gray-400 mt-0.5">Huquqiy AI Platformasi</p>
           </div>
 
           {/* Auth Card */}
           <div
-            className="bg-white rounded-[20px] p-6 sm:p-7"
+            className="bg-white rounded-[20px] p-7 sm:p-8"
             style={{
               boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 8px 32px rgba(0,0,0,0.06)',
               border: '1px solid #E8E8F0',
             }}
           >
             {/* Card icon */}
-            <div className="flex justify-center mb-4">
+            <div className="flex justify-center mb-5">
               <div
-                className="w-12 h-12 rounded-full flex items-center justify-center"
+                className="w-14 h-14 rounded-full flex items-center justify-center"
                 style={{
                   background: `linear-gradient(135deg, ${BRAND.primary}, ${BRAND.violet})`,
                   boxShadow: '0 4px 16px rgba(99,102,241,0.2)',
@@ -607,7 +609,7 @@ function SignInContent() {
               >
                 <svg
                   viewBox="0 0 24 24"
-                  className="w-5 h-5 text-white"
+                  className="w-6 h-6 text-white"
                   fill="none"
                   stroke="currentColor"
                   strokeWidth="1.5"
@@ -620,13 +622,13 @@ function SignInContent() {
             </div>
 
             {/* Title */}
-            <h2 className="text-lg font-bold text-gray-900 text-center mb-1">Xush kelibsiz!</h2>
-            <p className="text-xs sm:text-[13px] text-gray-500 text-center mb-5">
+            <h2 className="text-[20px] font-bold text-gray-900 text-center mb-1">Xush kelibsiz!</h2>
+            <p className="text-[13px] text-gray-500 text-center mb-7">
               Hisobingizga kiring yoki yangi hisob yarating
             </p>
 
             {/* Tabs */}
-            <div className="flex bg-gray-100 rounded-[12px] p-1 mb-5">
+            <div className="flex bg-gray-100 rounded-[12px] p-1 mb-6">
               <button
                 onClick={() => {
                   setMode('login')
