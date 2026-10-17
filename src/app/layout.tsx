@@ -11,7 +11,6 @@ import OAuthHandler from '@/components/auth/OAuthHandler'
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
 }
 
 const googleSans = Poppins({

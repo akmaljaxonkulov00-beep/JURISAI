@@ -249,26 +249,26 @@ export default function Dashboard() {
   }
 
   const renderSidebar = () => (
-    <div className="w-80 glass-strong rounded-2xl shadow-2xl relative">
+    <div className="w-full md:w-72 lg:w-76 glass-strong rounded-2xl shadow-xl relative">
       {/* User Profile Section */}{' '}
-      <div className="p-6 border-b border-gray-100 dark:border-zinc-800/50 dark:border-gray-700/50 relative">
+      <div className="p-5 border-b border-gray-100 dark:border-zinc-800/50 dark:border-gray-700/50 relative">
         <div className="absolute top-4 right-4 z-20">
           <NotificationBell />
         </div>
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-3.5">
           <button
             onClick={() => router.push('/profile')}
-            className="flex items-center space-x-4 group cursor-pointer"
+            className="flex items-center space-x-3.5 group cursor-pointer"
           >
-            <div className="relative group">
+            <div className="relative group flex-shrink-0">
               {profileImage ? (
                 <img
                   src={profileImage}
                   alt="Profile"
-                  className="w-16 h-16 rounded-full object-cover shadow-lg"
+                  className="w-14 h-14 rounded-full object-cover shadow-md"
                 />
               ) : (
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-green-500 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg transition-transform group-hover:scale-105 duration-200">
+                <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-green-500 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-md transition-transform group-hover:scale-105 duration-200">
                   {user?.name?.charAt(0).toUpperCase() || 'U'}
                 </div>
               )}
@@ -735,12 +735,14 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 mobile-safe-top p-3 md:p-6">
-      <div className="max-w-full mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 mobile-safe-top p-3 sm:p-4 md:p-6">
+      <div className="max-w-7xl mx-auto w-full">
         <div className="flex flex-col md:flex-row gap-4 md:gap-6">
-          <div className="desktop-sidebar w-full md:w-80 flex-shrink-0">{renderSidebar()}</div>
+          <div className="desktop-sidebar w-full md:w-72 lg:w-76 flex-shrink-0">
+            {renderSidebar()}
+          </div>
 
-          <div className="flex-1">{renderOverview()}</div>
+          <div className="flex-1 min-w-0">{renderOverview()}</div>
         </div>
       </div>
       {/* AI Chat Floating Widget — only on dashboard */}

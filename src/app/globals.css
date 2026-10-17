@@ -85,6 +85,32 @@
   color: #1e40af;
 }
 
+/* Base HTML typography and desktop scaling: prevents oversized blown-up layout on laptops and desktop */
+html {
+  font-size: 14.5px;
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+@media (min-width: 640px) {
+  html {
+    font-size: 15px;
+  }
+}
+
+@media (min-width: 1440px) {
+  html {
+    font-size: 15.5px;
+  }
+}
+
+@media (min-width: 1920px) {
+  html {
+    font-size: 16px;
+  }
+}
+
 body {
   background: var(--bg-page);
   color: var(--foreground);
@@ -94,6 +120,8 @@ body {
     system-ui,
     -apple-system,
     sans-serif;
+  font-size: 0.9375rem;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: clip;

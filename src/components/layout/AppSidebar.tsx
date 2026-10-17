@@ -108,7 +108,7 @@ export default function AppSidebar({ children }: AppSidebarProps) {
 
   return (
     <aside
-      className="hidden md:flex flex-col w-72 lg:w-80 shrink-0 h-screen sticky top-0 overflow-y-auto overscroll-contain p-4"
+      className="hidden md:flex flex-col w-64 lg:w-72 shrink-0 h-screen sticky top-0 overflow-y-auto overscroll-contain p-3 lg:p-4"
       aria-label="Asosiy navigatsiya"
     >
       <div className="glass-strong rounded-2xl shadow-2xl overflow-hidden flex flex-col flex-1">

@@ -690,7 +690,7 @@ export default function VirtualCourtPage() {
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
+        <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 space-y-6">
           {/* STEP 1: CHOOSE PROCEDURE TYPE */}
           <section>
             <div className="flex items-center justify-between mb-4">

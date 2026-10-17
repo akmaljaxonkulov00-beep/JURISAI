@@ -179,44 +179,44 @@ export default function LandingPage() {
         <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-950 dark:to-indigo-950/20" />
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-blue-400/10 dark:bg-blue-500/5 rounded-full blur-3xl" />
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28 lg:py-36">
-          <div className="text-center max-w-4xl mx-auto">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
+          <div className="text-center max-w-3xl mx-auto">
             {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 dark:bg-blue-950/50 border border-blue-100 dark:border-blue-900/50 mb-8">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50 dark:bg-blue-950/50 border border-blue-100 dark:border-blue-900/50 mb-6">
               <Shield className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-              <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
+              <span className="text-xs sm:text-sm font-medium text-blue-700 dark:text-blue-300">
                 O'zbekistonning birinchi AI huquqiy platformasi
               </span>
             </div>
 
             {/* Main Heading */}
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white leading-tight mb-6">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white leading-tight mb-5">
               Huquqiy ta'limni{' '}
               <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                 qayta kashf qiling
               </span>
             </h1>
 
-            <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-400 mb-10 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-base sm:text-lg text-gray-600 dark:text-gray-400 mb-8 max-w-2xl mx-auto leading-relaxed">
               Zamonaviy AI texnologiyalari orqali huquqiy tahlil, IRAC metodologiyasi va interaktiv
               sud simulyatsiyalari bilan professional mahoratingizni oshiring
             </p>
 
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-3.5 justify-center">
               <Link
                 href="/signin?mode=register"
-                className="inline-flex items-center justify-center gap-2 px-8 py-3.5 text-base font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/30 hover:-translate-y-0.5"
+                className="inline-flex items-center justify-center gap-2 px-7 py-3 text-sm sm:text-base font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all shadow-md shadow-blue-500/25 hover:shadow-lg hover:shadow-blue-500/30 hover:-translate-y-0.5"
               >
                 Bepul boshlang
-                <ArrowRight className="w-5 h-5" />
+                <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
               </Link>
               <Link
                 href="/signin"
-                className="inline-flex items-center justify-center gap-2 px-8 py-3.5 text-base font-semibold text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all hover:-translate-y-0.5"
+                className="inline-flex items-center justify-center gap-2 px-7 py-3 text-sm sm:text-base font-semibold text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all hover:-translate-y-0.5"
               >
                 Kirish
-                <ChevronRight className="w-5 h-5" />
+                <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
               </Link>
             </div>
           </div>
@@ -228,14 +228,16 @@ export default function LandingPage() {
         id="stats"
         className="border-y border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50"
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {STATS.map(stat => (
               <div key={stat.label} className="text-center">
-                <div className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+                <div className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
                   {stat.value}
                 </div>
-                <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">{stat.label}</div>
+                <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  {stat.label}
+                </div>
               </div>
             ))}
           </div>
@@ -243,16 +245,16 @@ export default function LandingPage() {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-20 sm:py-28">
+      <section id="features" className="py-12 sm:py-16 lg:py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+          <div className="text-center mb-10">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-3">
               Zamonaviy AI bilan{' '}
               <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                 huquqiy yordam
               </span>
             </h2>
-            <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
               Barcha huquqiy ehtiyojlaringiz uchun bitta platforma — AI yordamida tezroq, aniqroq va
               professional
             </p>
@@ -289,18 +291,21 @@ export default function LandingPage() {
       </section>
 
       {/* About / CTA Section */}
-      <section id="about" className="py-20 sm:py-28 bg-gradient-to-br from-blue-600 to-indigo-700">
+      <section
+        id="about"
+        className="py-12 sm:py-16 lg:py-20 bg-gradient-to-br from-blue-600 to-indigo-700"
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
             <div>
-              <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6">
+              <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">
                 Nima uchun JURISTIV?
               </h2>
-              <p className="text-lg text-blue-100 mb-8 leading-relaxed">
+              <p className="text-sm sm:text-base text-blue-100 mb-6 leading-relaxed">
                 Biz O'zbekiston huquq tizimini zamonaviy AI bilan integratsiya qilish orqali har bir
                 fuqaroga professional huquqiy yordamni yetkazib berishni maqsad qilganmiz.
               </p>
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {[
                   "Barcha O'zbekiston kodekslari va qonunlari",
                   'AI yordamida real vaqtda huquqiy maslahat',
@@ -308,24 +313,24 @@ export default function LandingPage() {
                   'Hujjat avtomatik generatsiyasi',
                 ].map((item, i) => (
                   <div key={i} className="flex items-center gap-3">
-                    <CheckCircle className="w-5 h-5 text-emerald-300 flex-shrink-0" />
-                    <span className="text-blue-100">{item}</span>
+                    <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-300 flex-shrink-0" />
+                    <span className="text-sm sm:text-base text-blue-100">{item}</span>
                   </div>
                 ))}
               </div>
-              <div className="mt-8">
+              <div className="mt-6">
                 <Link
                   href="/signin?mode=register"
-                  className="inline-flex items-center gap-2 px-6 py-3 text-base font-semibold text-blue-600 bg-white rounded-xl hover:bg-blue-50 transition-all shadow-lg"
+                  className="inline-flex items-center gap-2 px-6 py-2.5 sm:py-3 text-sm sm:text-base font-semibold text-blue-600 bg-white rounded-xl hover:bg-blue-50 transition-all shadow-md"
                 >
-                  <Zap className="w-5 h-5" />
+                  <Zap className="w-4 h-4 sm:w-5 sm:h-5" />
                   Hoziroq boshlang
                 </Link>
               </div>
             </div>
             <div className="relative">
-              <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-8 border border-white/20">
-                <div className="grid grid-cols-2 gap-4">
+              <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 sm:p-8 border border-white/20">
+                <div className="grid grid-cols-2 gap-3.5">
                   {[
                     { icon: Users, label: 'Faol foydalanuvchilar', value: '500+' },
                     { icon: Star, label: "O'rtacha baho", value: '4.9/5' },
@@ -334,10 +339,15 @@ export default function LandingPage() {
                   ].map(item => {
                     const Icon = item.icon
                     return (
-                      <div key={item.label} className="bg-white/10 rounded-xl p-4 text-center">
-                        <Icon className="w-6 h-6 text-white/80 mx-auto mb-2" />
-                        <div className="text-xl font-bold text-white">{item.value}</div>
-                        <div className="text-xs text-blue-200 mt-1">{item.label}</div>
+                      <div
+                        key={item.label}
+                        className="bg-white/10 rounded-xl p-3 sm:p-4 text-center"
+                      >
+                        <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-white/80 mx-auto mb-1.5" />
+                        <div className="text-lg sm:text-xl font-bold text-white">{item.value}</div>
+                        <div className="text-[11px] sm:text-xs text-blue-200 mt-0.5">
+                          {item.label}
+                        </div>
                       </div>
                     )
                   })}
@@ -352,7 +362,7 @@ export default function LandingPage() {
       <ContactSection />
 
       {/* Footer */}
-      <footer className="bg-gray-900 dark:bg-gray-950 text-white py-12">
+      <footer className="bg-gray-900 dark:bg-gray-950 text-white py-8 sm:py-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
             <div>

@@ -153,19 +153,19 @@ export default function PracticeHubPage() {
       <div className="flex flex-col md:flex-row">
         <AppSidebar />
 
-        <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 space-y-8">
+        <div className="flex-1 min-w-0 p-3 sm:p-5 lg:p-6 max-w-7xl mx-auto w-full space-y-6">
           {/* Header Banner */}
-          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-900 via-indigo-900 to-slate-900 text-white p-6 sm:p-10 shadow-xl border border-blue-800/40">
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-900 via-indigo-900 to-slate-900 text-white p-5 sm:p-8 shadow-xl border border-blue-800/40">
             <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-blue-500/10 blur-3xl pointer-events-none" />
             <div className="absolute bottom-0 left-1/3 -mb-16 w-80 h-80 rounded-full bg-indigo-500/10 blur-3xl pointer-events-none" />
 
-            <div className="relative z-10 max-w-3xl space-y-4">
+            <div className="relative z-10 max-w-3xl space-y-3.5">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/20 text-blue-300 text-xs font-semibold border border-blue-400/30">
                 <Sparkles className="w-3.5 h-3.5" />
                 <span>Yuridik Amaliyot Platformasi (2026)</span>
               </div>
 
-              <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-white leading-tight">
+              <h1 className="text-xl sm:text-3xl font-extrabold tracking-tight text-white leading-tight">
                 Amaliy Yuridik Ko‘nikmalarni{' '}
                 <span className="bg-gradient-to-r from-blue-400 via-sky-300 to-indigo-300 bg-clip-text text-transparent">
                   Sunʼiy Intellekt
@@ -173,7 +173,7 @@ export default function PracticeHubPage() {
                 Bilan Oshiring
               </h1>
 
-              <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
+              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
                 Talabalar, amaliyotchi yuristlar va advokatlar uchun maxsus yaratilgan 4 ta
                 professional interaktiv simulyator. O‘zbekiston Respublikasi amaldagi qonunchiligi
                 asosida real sud, muzokara va kazus yechish tajribasini to‘plang.
