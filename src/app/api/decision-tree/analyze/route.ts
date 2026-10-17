@@ -185,11 +185,7 @@ Ushbu ishni to'liq tahlil qilib, belgilangan JSON schema formatida qaytaring.
 `
 
     // Multi-model fallback sequence for maximum reliability
-    const candidateModels = [
-      'llama-3.3-70b-versatile',
-      'openai/gpt-oss-120b',
-      'llama-3.1-70b-versatile',
-    ]
+    const candidateModels = ['openai/gpt-oss-120b', 'openai/gpt-oss-20b', 'qwen/qwen3.8-27b']
 
     let aiContent = ''
     let lastError = ''
@@ -213,7 +209,6 @@ Ushbu ishni to'liq tahlil qilib, belgilangan JSON schema formatida qaytaring.
             ],
             temperature: 0.2,
             max_tokens: 3500,
-            response_format: { type: 'json_object' },
           }),
           signal: controller.signal,
         })
@@ -240,14 +235,9 @@ Ushbu ishni to'liq tahlil qilib, belgilangan JSON schema formatida qaytaring.
     }
 
     if (!aiContent) {
-      console.error('All Groq candidate models failed for decision-tree:', lastError)
-      return NextResponse.json(
-        {
-          success: false,
-          error:
-            'AI xizmatidan vaqtincha javob olinmadi. Iltimos, bir ozdan so‘ng qayta urinib ko‘ring.',
-        },
-        { status: 503 }
+      console.warn(
+        'All Groq candidate models failed for decision-tree, utilizing legal engine fallback:',
+        lastError
       )
     }
 

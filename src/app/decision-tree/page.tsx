@@ -109,6 +109,7 @@ export default function DecisionTreePage() {
   const [currentCase, setCurrentCase] = useState<DecisionCase | null>(null)
   const [savedCases, setSavedCases] = useState<DecisionCase[]>([])
   const [activeTab, setActiveTab] = useState<'details' | 'evidence'>('details')
+  const [mobileTab, setMobileTab] = useState<'graph' | 'details' | 'stats'>('graph')
 
   // Graph & Node Selection State
   const [selectedNode, setSelectedNode] = useState<DecisionNode | null>(null)
@@ -142,19 +143,22 @@ export default function DecisionTreePage() {
       if (data.success && Array.isArray(data.trees)) {
         setSavedCases(data.trees)
         // If no case currently selected, open the latest saved one
-        if (!currentCase && data.trees.length > 0) {
-          const latest = data.trees[0]
-          setCurrentCase(latest)
-          setEvidenceState(latest.evidence_state || {})
-          if (Array.isArray(latest.selected_path) && latest.selected_path.length > 0) {
-            setSimulatedNodeId(latest.selected_path[latest.selected_path.length - 1])
+        setCurrentCase(prev => {
+          if (!prev && data.trees.length > 0) {
+            const latest = data.trees[0]
+            setEvidenceState(latest.evidence_state || {})
+            if (Array.isArray(latest.selected_path) && latest.selected_path.length > 0) {
+              setSimulatedNodeId(latest.selected_path[latest.selected_path.length - 1])
+            }
+            return latest
           }
-        }
+          return prev
+        })
       }
     } catch (err) {
       console.error('Error loading saved trees:', err)
     }
-  }, [currentCase])
+  }, [])
 
   useEffect(() => {
     loadSavedCases()
@@ -694,10 +698,46 @@ export default function DecisionTreePage() {
         </div>
       )}
 
+      {/* Mobile Workspace Tabs Switcher */}
+      <div className="lg:hidden flex items-center bg-white dark:bg-zinc-900 border-b border-slate-200 dark:border-zinc-800 p-1.5 gap-1 text-xs z-10 sticky top-16 shadow-xs">
+        <button
+          onClick={() => setMobileTab('graph')}
+          className={`flex-1 py-2 rounded-xl font-bold flex items-center justify-center gap-1.5 transition-all ${
+            mobileTab === 'graph'
+              ? 'bg-blue-600 text-white shadow-sm'
+              : 'text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800'
+          }`}
+        >
+          <GitBranch className="w-4 h-4" /> Daraxt
+        </button>
+        <button
+          onClick={() => setMobileTab('details')}
+          className={`flex-1 py-2 rounded-xl font-bold flex items-center justify-center gap-1.5 transition-all ${
+            mobileTab === 'details'
+              ? 'bg-blue-600 text-white shadow-sm'
+              : 'text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800'
+          }`}
+        >
+          <BookOpen className="w-4 h-4" /> Tafsilotlar
+        </button>
+        <button
+          onClick={() => setMobileTab('stats')}
+          className={`flex-1 py-2 rounded-xl font-bold flex items-center justify-center gap-1.5 transition-all ${
+            mobileTab === 'stats'
+              ? 'bg-blue-600 text-white shadow-sm'
+              : 'text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800'
+          }`}
+        >
+          <BarChart3 className="w-4 h-4" /> Koʻrsatkichlar
+        </button>
+      </div>
+
       {/* Main 3-Pane Workspace */}
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 overflow-hidden">
         {/* LEFT PANE (Case Metadata & Analysis Summary & Evidence) */}
-        <div className="lg:col-span-3 border-r border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 flex flex-col h-full overflow-hidden">
+        <div
+          className={`lg:col-span-3 border-r border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 flex-col h-full overflow-hidden ${mobileTab === 'details' ? 'flex' : 'hidden lg:flex'}`}
+        >
           {/* Tabs */}
           <div className="flex border-b border-slate-200 dark:border-zinc-800 bg-slate-50/50 dark:bg-zinc-800/30">
             <button
@@ -821,7 +861,9 @@ export default function DecisionTreePage() {
         </div>
 
         {/* CENTER PANE (Interactive Decision Tree Graph) */}
-        <div className="lg:col-span-6 h-full p-4 flex flex-col bg-slate-100/60 dark:bg-zinc-950 overflow-hidden">
+        <div
+          className={`lg:col-span-6 h-full p-2 sm:p-4 flex-col bg-slate-100/60 dark:bg-zinc-950 overflow-hidden ${mobileTab === 'graph' ? 'flex' : 'hidden lg:flex'}`}
+        >
           {currentCase?.tree ? (
             <DecisionTreeGraph
               tree={currentCase.tree}
@@ -854,7 +896,9 @@ export default function DecisionTreePage() {
         </div>
 
         {/* RIGHT PANE (Node Details & Real-Time Stats) */}
-        <div className="lg:col-span-3 border-l border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 flex flex-col h-full overflow-hidden">
+        <div
+          className={`lg:col-span-3 border-l border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 flex-col h-full overflow-hidden ${mobileTab === 'stats' ? 'flex' : 'hidden lg:flex'}`}
+        >
           {selectedNode ? (
             <NodeDetailPanel
               node={selectedNode}

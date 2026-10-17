@@ -11,11 +11,7 @@ import { ensureUzbekLatin } from '@/lib/uz-latin'
 
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
 
-const CANDIDATE_MODELS = [
-  'openai/gpt-oss-120b',
-  'llama-3.3-70b-versatile',
-  'llama-3.1-70b-versatile',
-]
+const CANDIDATE_MODELS = ['openai/gpt-oss-120b', 'openai/gpt-oss-20b', 'qwen/qwen3.8-27b']
 
 /**
  * Groq API ga JSON rejimida xavfsiz so'rov yuboradi.
@@ -45,7 +41,6 @@ async function callGroqJson(
             { role: 'system', content: systemPrompt },
             { role: 'user', content: userPrompt },
           ],
-          response_format: { type: 'json_object' },
           temperature: 0.2,
           max_tokens: maxTokens,
         }),
@@ -80,7 +75,13 @@ async function callGroqJson(
  */
 function safeParseAiResponse(raw: string, userRole: CourtRole): StructuredAiResponse {
   try {
-    const parsed = JSON.parse(raw)
+    let cleanRaw = raw.trim()
+    if (cleanRaw.startsWith('```json')) cleanRaw = cleanRaw.slice(7)
+    else if (cleanRaw.startsWith('```')) cleanRaw = cleanRaw.slice(3)
+    if (cleanRaw.endsWith('```')) cleanRaw = cleanRaw.slice(0, -3)
+    cleanRaw = cleanRaw.trim()
+
+    const parsed = JSON.parse(cleanRaw)
     if (parsed && Array.isArray(parsed.speakers) && parsed.speakers.length > 0) {
       return {
         speakers: parsed.speakers.map((s: any) => ({

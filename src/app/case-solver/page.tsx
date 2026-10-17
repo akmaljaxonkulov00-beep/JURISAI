@@ -247,6 +247,7 @@ export default function CaseSolver() {
   // ── History / progress (real DB) ──
   const [historyData, setHistoryData] = useState<HistoryData | null>(null)
   const [historyLoading, setHistoryLoading] = useState(false)
+  const [expandedHistoryId, setExpandedHistoryId] = useState<string | null>(null)
 
   // ── Admin ──
   const [isAdmin, setIsAdmin] = useState(false)
@@ -1333,48 +1334,136 @@ export default function CaseSolver() {
         </div>
       ) : (
         <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-gray-100 dark:border-zinc-800 divide-y divide-gray-100 dark:divide-zinc-800 overflow-hidden">
-          {(historyData?.history || []).map(h => (
-            <div key={h.id} className="p-4 sm:p-5 flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-2 mb-1">
-                  <span className="text-xs px-2 py-0.5 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-full">
-                    {categoryLabel(h.case_category)}
-                  </span>
-                  <span
-                    className={`text-xs px-2 py-0.5 rounded-full ${difficultyColor(h.case_difficulty)}`}
-                  >
-                    {difficultyLabel(h.case_difficulty)}
-                  </span>
-                  <span className="text-xs px-2 py-0.5 bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-400 rounded-full">
-                    {new Date(h.completed_at).toLocaleDateString('uz-UZ')}
-                  </span>
+          {(historyData?.history || []).map(h => {
+            const isExpanded = expandedHistoryId === h.id
+            return (
+              <div
+                key={h.id}
+                className="transition-colors hover:bg-slate-50/50 dark:hover:bg-zinc-800/30"
+              >
+                <div
+                  onClick={() => setExpandedHistoryId(isExpanded ? null : h.id)}
+                  className="p-4 sm:p-5 flex items-start justify-between gap-3 cursor-pointer select-none"
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                      <span className="text-xs px-2.5 py-0.5 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-full font-medium">
+                        {categoryLabel(h.case_category)}
+                      </span>
+                      <span
+                        className={`text-xs px-2.5 py-0.5 rounded-full font-medium ${difficultyColor(h.case_difficulty)}`}
+                      >
+                        {difficultyLabel(h.case_difficulty)}
+                      </span>
+                      <span className="text-xs px-2.5 py-0.5 bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-400 rounded-full">
+                        {new Date(h.completed_at).toLocaleDateString('uz-UZ', {
+                          day: 'numeric',
+                          month: 'short',
+                          year: 'numeric',
+                        })}
+                      </span>
+                    </div>
+                    <h3 className="font-semibold text-gray-800 dark:text-zinc-100 text-sm">
+                      {h.case_title}
+                    </h3>
+                    {h.feedback && (
+                      <p
+                        className={`text-xs text-gray-500 dark:text-zinc-400 mt-1 ${isExpanded ? '' : 'line-clamp-2'}`}
+                      >
+                        {h.feedback}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex-shrink-0 text-right flex items-center gap-3">
+                    <div>
+                      <div
+                        className={`text-xl font-bold ${
+                          h.total_score >= 70
+                            ? 'text-green-600'
+                            : h.total_score >= 40
+                              ? 'text-amber-500'
+                              : 'text-red-500'
+                        }`}
+                      >
+                        {h.total_score}
+                        <span className="text-xs font-normal text-gray-400">/100</span>
+                      </div>
+                      <div className="text-[10px] text-gray-400 font-semibold">{h.grade}</div>
+                    </div>
+                  </div>
                 </div>
-                <h3 className="font-semibold text-gray-800 dark:text-zinc-100 text-sm">
-                  {h.case_title}
-                </h3>
-                {h.feedback && (
-                  <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1 line-clamp-2">
-                    {h.feedback}
-                  </p>
+
+                {/* Expanded Details: Strengths, Weaknesses, and Action */}
+                {isExpanded && (
+                  <div className="px-4 pb-4 sm:px-5 sm:pb-5 pt-1 border-t border-slate-100 dark:border-zinc-800/80 bg-slate-50/40 dark:bg-zinc-800/20 space-y-3">
+                    {Array.isArray(h.strengths) && h.strengths.length > 0 && (
+                      <div>
+                        <span className="text-[11px] font-bold text-emerald-700 dark:text-emerald-400 block mb-1">
+                          ✓ Ijobiy jihatlar:
+                        </span>
+                        <div className="space-y-1">
+                          {h.strengths.map((str, idx) => (
+                            <div
+                              key={idx}
+                              className="text-xs text-slate-700 dark:text-zinc-300 pl-2 border-l-2 border-emerald-500"
+                            >
+                              {str}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {Array.isArray(h.weaknesses) && h.weaknesses.length > 0 && (
+                      <div>
+                        <span className="text-[11px] font-bold text-amber-700 dark:text-amber-400 block mb-1">
+                          ⚠ Yaxshilash lozim boʻlgan jihatlar:
+                        </span>
+                        <div className="space-y-1">
+                          {h.weaknesses.map((w, idx) => (
+                            <div
+                              key={idx}
+                              className="text-xs text-slate-700 dark:text-zinc-300 pl-2 border-l-2 border-amber-500"
+                            >
+                              {w}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="pt-2 flex items-center justify-end">
+                      <button
+                        onClick={() => {
+                          const found = cases.find(
+                            c => c.title.toLowerCase() === h.case_title.toLowerCase()
+                          )
+                          if (found) {
+                            startCase(found)
+                          } else {
+                            const custom: IracCase = {
+                              id: 'hist_' + Date.now(),
+                              title: h.case_title,
+                              description: h.feedback || h.case_title,
+                              category: h.case_category || 'jinoyat',
+                              difficulty: h.case_difficulty || 'medium',
+                              law_references: [],
+                              is_active: true,
+                            }
+                            startCase(custom)
+                          }
+                        }}
+                        className="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs flex items-center gap-1.5 transition-all"
+                      >
+                        <RotateCcw className="w-3.5 h-3.5" />
+                        <span>Kazusni qayta ishlash</span>
+                      </button>
+                    </div>
+                  </div>
                 )}
               </div>
-              <div className="flex-shrink-0 text-right">
-                <div
-                  className={`text-xl font-bold ${
-                    h.total_score >= 70
-                      ? 'text-green-600'
-                      : h.total_score >= 40
-                        ? 'text-amber-500'
-                        : 'text-red-500'
-                  }`}
-                >
-                  {h.total_score}
-                  <span className="text-xs font-normal text-gray-400">/100</span>
-                </div>
-                <div className="text-[10px] text-gray-400">{h.grade}</div>
-              </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
     </div>

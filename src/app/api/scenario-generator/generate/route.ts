@@ -144,11 +144,7 @@ Mavzu/Vaziyat: ${topic || '2026-yilgi amaliy huquqiy nizo'}
 Diqqat markazlari: ${focusAreas.join(', ') || 'Umumiy huquqiy tahlil'}
 Qo‘shimcha talablar: ${additionalRequirements || 'Standart professional amaliyot'}`
 
-    const CANDIDATE_MODELS = [
-      'openai/gpt-oss-120b',
-      'llama-3.3-70b-versatile',
-      'llama-3.1-70b-versatile',
-    ]
+    const CANDIDATE_MODELS = ['openai/gpt-oss-120b', 'openai/gpt-oss-20b', 'qwen/qwen3.8-27b']
 
     let contentStr = ''
     let lastError = ''
