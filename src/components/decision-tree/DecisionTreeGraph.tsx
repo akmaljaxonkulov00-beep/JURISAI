@@ -160,12 +160,22 @@ export default function DecisionTreeGraph({
     touchStartRef.current.dist = undefined
   }
 
-  // Wheel zoom
-  const handleWheel = (e: React.WheelEvent) => {
-    e.preventDefault()
-    const zoomFactor = e.deltaY < 0 ? 1.1 : 0.9
-    setZoom(prev => Math.min(2.5, Math.max(0.3, prev * zoomFactor)))
-  }
+  // Non-passive wheel zoom (fixes 'Unable to preventDefault inside passive event listener' warning)
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+
+    const handleWheelNative = (e: WheelEvent) => {
+      e.preventDefault()
+      const zoomFactor = e.deltaY < 0 ? 1.1 : 0.9
+      setZoom(prev => Math.min(2.5, Math.max(0.3, prev * zoomFactor)))
+    }
+
+    el.addEventListener('wheel', handleWheelNative, { passive: false })
+    return () => {
+      el.removeEventListener('wheel', handleWheelNative)
+    }
+  }, [])
 
   // Fullscreen toggle
   const toggleFullscreen = () => {
@@ -387,7 +397,6 @@ export default function DecisionTreeGraph({
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
-      onWheel={handleWheel}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}

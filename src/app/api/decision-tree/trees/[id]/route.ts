@@ -32,7 +32,26 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       )
     }
 
-    return NextResponse.json({ success: true, case: data })
+    const treeObj = data.tree
+    const meta = (treeObj && typeof treeObj === 'object' && (treeObj as any).metadata) || {}
+    const normalizedCase = {
+      ...meta,
+      ...data,
+      user_role: data.user_role ?? meta.user_role ?? 'davogar',
+      objectives: data.objectives ?? meta.objectives ?? '',
+      known_facts: data.known_facts ?? meta.known_facts ?? '',
+      evidence_docs: data.evidence_docs ?? meta.evidence_docs ?? '',
+      opposing_party: data.opposing_party ?? meta.opposing_party ?? '',
+      deadlines: data.deadlines ?? meta.deadlines ?? '',
+      additional_notes: data.additional_notes ?? meta.additional_notes ?? '',
+      analysis: data.analysis ?? meta.analysis ?? {},
+      selected_path: data.selected_path ?? meta.selected_path ?? [],
+      evidence_state: data.evidence_state ?? meta.evidence_state ?? {},
+      notes: data.notes ?? meta.notes ?? '',
+      status: data.status ?? meta.status ?? 'active',
+    }
+
+    return NextResponse.json({ success: true, case: normalizedCase })
   } catch (error) {
     console.error('Decision tree GET by id error:', error)
     return NextResponse.json(
@@ -75,15 +94,46 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     if (body.deadlines !== undefined) updatePayload.deadlines = String(body.deadlines).trim()
     if (body.additional_notes !== undefined)
       updatePayload.additional_notes = String(body.additional_notes).trim()
-    if (body.tree !== undefined) updatePayload.tree = body.tree
     if (body.analysis !== undefined) updatePayload.analysis = body.analysis
     if (body.selected_path !== undefined) updatePayload.selected_path = body.selected_path
     if (body.evidence_state !== undefined) updatePayload.evidence_state = body.evidence_state
     if (body.notes !== undefined) updatePayload.notes = String(body.notes).trim()
     if (body.status !== undefined) updatePayload.status = String(body.status).trim()
 
+    // Persist all metadata inside tree JSONB so it is guaranteed to persist
+    const targetTree = body.tree !== undefined ? body.tree : undefined
+    if (targetTree && typeof targetTree === 'object') {
+      const existingMeta = (targetTree as any).metadata || {}
+      updatePayload.tree = {
+        ...targetTree,
+        metadata: {
+          ...existingMeta,
+          ...(body.user_role !== undefined && { user_role: String(body.user_role).trim() }),
+          ...(body.objectives !== undefined && { objectives: String(body.objectives).trim() }),
+          ...(body.known_facts !== undefined && { known_facts: String(body.known_facts).trim() }),
+          ...(body.evidence_docs !== undefined && {
+            evidence_docs: String(body.evidence_docs).trim(),
+          }),
+          ...(body.opposing_party !== undefined && {
+            opposing_party: String(body.opposing_party).trim(),
+          }),
+          ...(body.deadlines !== undefined && { deadlines: String(body.deadlines).trim() }),
+          ...(body.additional_notes !== undefined && {
+            additional_notes: String(body.additional_notes).trim(),
+          }),
+          ...(body.analysis !== undefined && { analysis: body.analysis }),
+          ...(body.selected_path !== undefined && { selected_path: body.selected_path }),
+          ...(body.evidence_state !== undefined && { evidence_state: body.evidence_state }),
+          ...(body.notes !== undefined && { notes: String(body.notes).trim() }),
+          ...(body.status !== undefined && { status: String(body.status).trim() }),
+        },
+      }
+    } else if (body.tree !== undefined) {
+      updatePayload.tree = body.tree
+    }
+
     const supabase = getSupabaseAdmin()
-    const { data, error } = await supabase
+    let updateResult = await supabase
       .from('decision_trees')
       .update(updatePayload)
       .eq('id', id)
@@ -91,12 +141,81 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       .select('*')
       .single()
 
-    if (error) {
-      console.error('Decision tree update error:', error.message)
+    // Self-healing retry if any column is missing in the database schema
+    let retries = 0
+    while (updateResult.error && retries < 15) {
+      retries++
+      const msg = updateResult.error.message || ''
+      const match =
+        msg.match(/Could not find the '([^']+)' column/i) ||
+        msg.match(/column "?([a-zA-Z0-9_]+)"? of relation/i)
+      if (
+        match &&
+        match[1] &&
+        match[1] in updatePayload &&
+        match[1] !== 'tree' &&
+        match[1] !== 'name'
+      ) {
+        const colToRemove = match[1]
+        console.warn(`[decision-tree] Column '${colToRemove}' missing on update. Retrying...`)
+        delete updatePayload[colToRemove]
+        updateResult = await supabase
+          .from('decision_trees')
+          .update(updatePayload)
+          .eq('id', id)
+          .eq('user_id', auth.user.id)
+          .select('*')
+          .single()
+      } else if (msg.includes('schema cache') || msg.includes('column')) {
+        console.warn(
+          `[decision-tree] Falling back to safe update fields due to schema error: ${msg}`
+        )
+        const safePayload: Record<string, unknown> = { updated_at: now }
+        if (updatePayload.name) safePayload.name = updatePayload.name
+        if (updatePayload.case_type) safePayload.case_type = updatePayload.case_type
+        if (updatePayload.tree) safePayload.tree = updatePayload.tree
+        updateResult = await supabase
+          .from('decision_trees')
+          .update(safePayload)
+          .eq('id', id)
+          .eq('user_id', auth.user.id)
+          .select('*')
+          .single()
+        break
+      } else {
+        break
+      }
+    }
+
+    if (updateResult.error || !updateResult.data) {
+      console.error('Decision tree update error:', updateResult.error?.message)
       return NextResponse.json(
-        { success: false, error: 'Yangilashda xatolik: ' + error.message },
+        {
+          success: false,
+          error: 'Yangilashda xatolik: ' + (updateResult.error?.message || 'Nomaʼlum xatolik'),
+        },
         { status: 500 }
       )
+    }
+
+    const savedRow = updateResult.data as Record<string, unknown>
+    const savedTree = savedRow.tree
+    const meta = (savedTree && typeof savedTree === 'object' && (savedTree as any).metadata) || {}
+    const normalizedCase = {
+      ...meta,
+      ...savedRow,
+      user_role: savedRow.user_role ?? meta.user_role ?? 'davogar',
+      objectives: savedRow.objectives ?? meta.objectives ?? '',
+      known_facts: savedRow.known_facts ?? meta.known_facts ?? '',
+      evidence_docs: savedRow.evidence_docs ?? meta.evidence_docs ?? '',
+      opposing_party: savedRow.opposing_party ?? meta.opposing_party ?? '',
+      deadlines: savedRow.deadlines ?? meta.deadlines ?? '',
+      additional_notes: savedRow.additional_notes ?? meta.additional_notes ?? '',
+      analysis: savedRow.analysis ?? meta.analysis ?? {},
+      selected_path: savedRow.selected_path ?? meta.selected_path ?? [],
+      evidence_state: savedRow.evidence_state ?? meta.evidence_state ?? {},
+      notes: savedRow.notes ?? meta.notes ?? '',
+      status: savedRow.status ?? meta.status ?? 'active',
     }
 
     // Agar status completed bo'lsa, yakuniy completion XP beramiz
@@ -107,12 +226,12 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         userEmail: auth.user.email,
         action: 'decision-tree',
         xp: 20,
-        title: `Qarorlar daraxti yakunlandi: ${data.name}`,
+        title: `Qarorlar daraxti yakunlandi: ${savedRow.name}`,
         description: `Tahlil va strategiya yakuniy bosqichga yetkazildi`,
         idempotencyKey: `decision_tree_complete_${id}`,
         metadata: {
           tree_id: id,
-          name: data.name,
+          name: savedRow.name,
         },
       })
       xpEarned = xpRes.xpEarned
@@ -120,7 +239,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
     return NextResponse.json({
       success: true,
-      case: data,
+      case: normalizedCase,
       xpEarned,
       message: 'Qarorlar daraxti yangilandi',
     })

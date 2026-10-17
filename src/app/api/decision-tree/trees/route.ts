@@ -50,6 +50,7 @@ export async function GET(request: NextRequest) {
     const rows = (data || []) as any[]
     const trees = rows.map(r => {
       const treeObj = r.tree
+      const meta = (treeObj && typeof treeObj === 'object' && (treeObj as any).metadata) || {}
       const countNodes = (node: any): number => {
         if (!node || typeof node !== 'object') return 0
         let count = 1
@@ -72,7 +73,20 @@ export async function GET(request: NextRequest) {
       const confidence_score = computeConfidence(treeObj)
 
       return {
+        ...meta,
         ...r,
+        user_role: r.user_role ?? meta.user_role ?? 'davogar',
+        objectives: r.objectives ?? meta.objectives ?? '',
+        known_facts: r.known_facts ?? meta.known_facts ?? '',
+        evidence_docs: r.evidence_docs ?? meta.evidence_docs ?? '',
+        opposing_party: r.opposing_party ?? meta.opposing_party ?? '',
+        deadlines: r.deadlines ?? meta.deadlines ?? '',
+        additional_notes: r.additional_notes ?? meta.additional_notes ?? '',
+        analysis: r.analysis ?? meta.analysis ?? {},
+        selected_path: r.selected_path ?? meta.selected_path ?? [],
+        evidence_state: r.evidence_state ?? meta.evidence_state ?? {},
+        notes: r.notes ?? meta.notes ?? '',
+        status: r.status ?? meta.status ?? 'active',
         total_nodes,
         confidence_score,
       }
@@ -131,7 +145,35 @@ export async function POST(request: NextRequest) {
 
     const supabase = getSupabaseAdmin()
     const now = new Date().toISOString()
-    const payload = {
+
+    const metadataToStore: Record<string, unknown> = {
+      user_role: String(user_role).trim(),
+      objectives: String(objectives || '').trim(),
+      known_facts: String(known_facts || '').trim(),
+      evidence_docs: String(evidence_docs || '').trim(),
+      opposing_party: String(opposing_party || '').trim(),
+      deadlines: String(deadlines || '').trim(),
+      additional_notes: String(additional_notes || '').trim(),
+      analysis: analysis || {},
+      selected_path: selected_path || [],
+      evidence_state: evidence_state || {},
+      notes: String(notes || '').trim(),
+      status: String(status || 'active').trim(),
+    }
+
+    // Persist all metadata inside tree JSONB so no data is ever lost even if DB columns are missing
+    const enrichedTree =
+      tree && typeof tree === 'object'
+        ? {
+            ...tree,
+            metadata: {
+              ...((tree as any).metadata || {}),
+              ...metadataToStore,
+            },
+          }
+        : tree
+
+    let payload: Record<string, unknown> = {
       user_id: auth.user.id,
       name: String(name).trim(),
       case_type: String(case_type).trim(),
@@ -142,32 +184,92 @@ export async function POST(request: NextRequest) {
       opposing_party: String(opposing_party || '').trim(),
       deadlines: String(deadlines || '').trim(),
       additional_notes: String(additional_notes || '').trim(),
-      tree,
+      tree: enrichedTree,
       analysis,
       selected_path,
       evidence_state,
       notes: String(notes || '').trim(),
       status: String(status || 'active').trim(),
+      scenario: String(objectives || known_facts || additional_notes || '').slice(0, 1000),
       created_at: now,
       updated_at: now,
     }
 
-    const { data, error } = await supabase
-      .from('decision_trees')
-      .insert(payload)
-      .select('*')
-      .single()
+    let insertResult = await supabase.from('decision_trees').insert(payload).select('*').single()
 
-    if (error) {
-      console.error('Decision tree save error:', error.message)
+    // Self-healing retry if any column does not exist in the Supabase schema cache
+    let retries = 0
+    while (insertResult.error && retries < 15) {
+      retries++
+      const msg = insertResult.error.message || ''
+      const match =
+        msg.match(/Could not find the '([^']+)' column/i) ||
+        msg.match(/column "?([a-zA-Z0-9_]+)"? of relation/i)
+      if (
+        match &&
+        match[1] &&
+        match[1] in payload &&
+        match[1] !== 'tree' &&
+        match[1] !== 'user_id' &&
+        match[1] !== 'name'
+      ) {
+        const missingCol = match[1]
+        console.warn(
+          `[decision-tree] Column '${missingCol}' missing in DB schema cache. Omitting and retrying...`
+        )
+        delete payload[missingCol]
+        insertResult = await supabase.from('decision_trees').insert(payload).select('*').single()
+      } else if (msg.includes('schema cache') || msg.includes('column')) {
+        console.warn(`[decision-tree] Falling back to core columns due to schema error: ${msg}`)
+        payload = {
+          user_id: auth.user.id,
+          name: String(name).trim(),
+          case_type: String(case_type).trim(),
+          tree: enrichedTree,
+          scenario: String(objectives || known_facts || additional_notes || '').slice(0, 1000),
+          created_at: now,
+          updated_at: now,
+        }
+        insertResult = await supabase.from('decision_trees').insert(payload).select('*').single()
+        break
+      } else {
+        break
+      }
+    }
+
+    if (insertResult.error || !insertResult.data) {
+      console.error('Decision tree save error:', insertResult.error?.message)
       return NextResponse.json(
-        { success: false, error: 'Daraxtni saqlashda maʼlumotlar bazasi xatosi: ' + error.message },
+        {
+          success: false,
+          error:
+            'Daraxtni saqlashda maʼlumotlar bazasi xatosi: ' +
+            (insertResult.error?.message || 'Nomaʼlum xatolik'),
+        },
         { status: 500 }
       )
     }
 
+    const savedRow = insertResult.data as Record<string, unknown>
+    const normalizedCase = {
+      ...metadataToStore,
+      ...savedRow,
+      user_role: savedRow.user_role ?? metadataToStore.user_role,
+      objectives: savedRow.objectives ?? metadataToStore.objectives,
+      known_facts: savedRow.known_facts ?? metadataToStore.known_facts,
+      evidence_docs: savedRow.evidence_docs ?? metadataToStore.evidence_docs,
+      opposing_party: savedRow.opposing_party ?? metadataToStore.opposing_party,
+      deadlines: savedRow.deadlines ?? metadataToStore.deadlines,
+      additional_notes: savedRow.additional_notes ?? metadataToStore.additional_notes,
+      analysis: savedRow.analysis ?? metadataToStore.analysis,
+      selected_path: savedRow.selected_path ?? metadataToStore.selected_path,
+      evidence_state: savedRow.evidence_state ?? metadataToStore.evidence_state,
+      notes: savedRow.notes ?? metadataToStore.notes,
+      status: savedRow.status ?? metadataToStore.status,
+    }
+
     // Award XP (+15 XP)
-    const idempotencyKey = `decision_tree_create_${data.id}`
+    const idempotencyKey = `decision_tree_create_${savedRow.id}`
     const xpResult = await awardUserXP({
       userId: auth.user.id,
       userEmail: auth.user.email,
@@ -177,7 +279,7 @@ export async function POST(request: NextRequest) {
       description: `${case_type} bo‘yicha yuridik strategiya tahlili`,
       idempotencyKey,
       metadata: {
-        tree_id: data.id,
+        tree_id: savedRow.id,
         name,
         case_type,
       },
@@ -185,7 +287,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      case: data,
+      case: normalizedCase,
       xpEarned: xpResult.xpEarned,
       totalXp: xpResult.totalXp,
       level: xpResult.level,
