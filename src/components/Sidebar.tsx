@@ -54,6 +54,12 @@ export default function Sidebar({ currentPage = 'home' }: SidebarProps) {
           href: '/virtual-court',
         },
         {
+          id: 'multiplayer-court',
+          label: 'Multiplayer Sud',
+          icon: Users,
+          href: '/virtual-court/multiplayer',
+        },
+        {
           id: 'scenario-generator',
           label: t('navScenarioGen', 'Senariy Generator'),
           icon: Clapperboard,

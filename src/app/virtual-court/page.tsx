@@ -686,11 +686,54 @@ export default function VirtualCourtPage() {
               <History size={14} className="text-blue-400" />
               <span>Mening Sudlarim</span>
             </button>
+            <button
+              onClick={() => router.push('/virtual-court/multiplayer')}
+              className="px-3.5 py-1.5 text-xs font-bold rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-md shadow-blue-500/20 transition flex items-center gap-1.5"
+            >
+              <Users size={14} className="text-white" />
+              <span className="hidden sm:inline">Ko‘p foydalanuvchili Sud</span>
+              <span className="sm:hidden">Multiplayer</span>
+            </button>
           </div>
         </header>
 
         {/* Main Content */}
         <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
+          {/* MULTIPLAYER PROMO BANNER */}
+          <div className="rounded-3xl bg-gradient-to-r from-blue-950/60 via-indigo-950/50 to-zinc-900 border border-blue-500/30 p-5 sm:p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xl">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-blue-500/20 border border-blue-500/40 flex items-center justify-center text-blue-400 flex-shrink-0">
+                <Users className="w-6 h-6" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] font-bold text-blue-400 uppercase tracking-wider">
+                    Yangi imkoniyat
+                  </span>
+                  <span className="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full font-bold animate-pulse">
+                    Jonli Onlayn
+                  </span>
+                </div>
+                <h3 className="text-base sm:text-lg font-bold text-white mt-0.5">
+                  Ko‘p Foydalanuvchili Virtual Sud (Multiplayer)
+                </h3>
+                <p className="text-xs text-zinc-300 max-w-2xl leading-relaxed">
+                  Boshqa foydalanuvchilar bilan real vaqtda bir xonada Sudya, Advokat, Prokuror yoki
+                  Guvoh maqomida sud majlisida qatnashing, dalillar taqdim eting va e’tirozlar
+                  bildiring.
+                </p>
+              </div>
+            </div>
+
+            <button
+              onClick={() => router.push('/virtual-court/multiplayer')}
+              className="w-full md:w-auto px-5 py-2.5 rounded-xl font-bold text-xs bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-500/25 flex items-center justify-center gap-2 transition-all flex-shrink-0"
+            >
+              <span>Multiplayer Zallarga Kirish</span>
+              <ArrowRight size={14} />
+            </button>
+          </div>
+
           {/* STEP 1: CHOOSE PROCEDURE TYPE */}
           <section>
             <div className="flex items-center justify-between mb-4">
