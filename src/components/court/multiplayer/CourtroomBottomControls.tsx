@@ -145,44 +145,57 @@ export default function CourtroomBottomControls({
     }
   }
 
-  if (room.status === 'waiting') {
+  const isWaiting = room.status === 'waiting'
+  const isCompleted = room.status === 'completed'
+  const isTrialActive = room.status === 'in_progress'
+
+  if (isCompleted) {
     return null
   }
 
   return (
     <footer className="bg-zinc-900/90 border-t border-zinc-800/90 backdrop-blur-md p-3 sm:p-4 space-y-3 relative z-10">
-      {/* Top action row: Objections, Queue, Judge Controls */}
+      {/* Top action row: Objections, Queue, Judge Controls OR Waiting Info */}
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          {/* Objection button (for all active participants except observers) */}
-          {myParticipant && myParticipant.role !== 'KUZATUVCHI' && (
-            <button
-              onClick={() => setShowObjectionModal(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 transition-all shadow-sm"
-            >
-              <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
-              <span>E’tiroz bildirish!</span>
-            </button>
-          )}
+        {isWaiting ? (
+          <div className="flex items-center gap-2">
+            <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-blue-500/10 text-blue-300 border border-blue-500/30">
+              <Radio className="w-3.5 h-3.5 text-blue-400 animate-pulse" />
+              <span>⏳ Kutish Zali — Jonli Muloqot & Ovoz/Kamera Sinovi</span>
+            </span>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            {/* Objection button (for all active participants except observers) */}
+            {myParticipant && myParticipant.role !== 'KUZATUVCHI' && (
+              <button
+                onClick={() => setShowObjectionModal(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 transition-all shadow-sm"
+              >
+                <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
+                <span>E’tiroz bildirish!</span>
+              </button>
+            )}
 
-          {/* Request to speak toggle for non-judge */}
-          {!isJudge && myParticipant && myParticipant.role !== 'KUZATUVCHI' && (
-            <button
-              onClick={() => onRequestSpeaking(isUserInQueue ? 'cancel' : 'request')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border transition-all ${
-                isUserInQueue
-                  ? 'bg-zinc-800 text-zinc-300 border-zinc-700'
-                  : 'bg-blue-600/20 text-blue-300 border-blue-500/40 hover:bg-blue-600/30'
-              }`}
-            >
-              <Clock className="w-3.5 h-3.5" />
-              <span>{isUserInQueue ? 'Navbatdan chiqish' : 'So‘z so‘rash'}</span>
-            </button>
-          )}
-        </div>
+            {/* Request to speak toggle for non-judge */}
+            {!isJudge && myParticipant && myParticipant.role !== 'KUZATUVCHI' && (
+              <button
+                onClick={() => onRequestSpeaking(isUserInQueue ? 'cancel' : 'request')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border transition-all ${
+                  isUserInQueue
+                    ? 'bg-zinc-800 text-zinc-300 border-zinc-700'
+                    : 'bg-blue-600/20 text-blue-300 border-blue-500/40 hover:bg-blue-600/30'
+                }`}
+              >
+                <Clock className="w-3.5 h-3.5" />
+                <span>{isUserInQueue ? 'Navbatdan chiqish' : 'So‘z so‘rash'}</span>
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Judge Controls: Advance Stage & Issue Verdict */}
-        {isJudge && (
+        {isJudge && isTrialActive && (
           <div className="flex items-center gap-2">
             <button
               onClick={() => setConfirmStageModal(true)}
@@ -205,8 +218,8 @@ export default function CourtroomBottomControls({
         )}
       </div>
 
-      {/* Speech Input Box (Only when allowed to speak or Judge) */}
-      {canSpeak ? (
+      {/* Speech Input Box (Allowed when in waiting room, or granted speaking turn in trial) */}
+      {isWaiting || canSpeak ? (
         <form onSubmit={handleSendSpeech} className="space-y-2">
           {/* Quick Phrase Suggestions */}
           {rolePhrases.length > 0 && (
@@ -258,9 +271,11 @@ export default function CourtroomBottomControls({
                 placeholder={
                   isListeningSTT
                     ? '🎤 Tinglanmoqda... Marhamat, gapiring (nutqingiz matnga aylanadi)...'
-                    : isJudge
-                      ? 'Sud raisi sifatida ko‘rsatma bering yoki nutq so‘zlang...'
-                      : 'Hurmatli sud, ushbu masala yuzasidan o‘z fikrimni bildirmoqchiman...'
+                    : isWaiting
+                      ? 'Kutish zali: O‘zaro salomlashish, mikrofoni tekshirish yoki xabar yozish...'
+                      : isJudge
+                        ? 'Sud raisi sifatida ko‘rsatma bering yoki nutq so‘zlang...'
+                        : 'Hurmatli sud, ushbu masala yuzasidan o‘z fikrimni bildirmoqchiman...'
                 }
                 value={speechText}
                 onChange={e => setSpeechText(e.target.value)}
@@ -283,7 +298,9 @@ export default function CourtroomBottomControls({
               className="px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-500/30 flex items-center gap-1.5 disabled:opacity-40 transition-all flex-shrink-0"
             >
               <Send className="w-4 h-4" />
-              <span className="hidden sm:inline">Nutq so‘zlash</span>
+              <span className="hidden sm:inline">
+                {isWaiting ? 'Xabar yuborish' : 'Nutq so‘zlash'}
+              </span>
             </button>
           </div>
         </form>

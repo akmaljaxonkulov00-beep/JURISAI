@@ -76,7 +76,7 @@ describe('Multiplayer Virtual Court — Room Creation & Joining', () => {
     expect(reJoin.room.participants.length).toBe(2)
   })
 
-  it('Noyob rol (SUDYA) boshqa foydalanuvchi tomonidan egallangan bo‘lsa, boshqa rol beriladi', async () => {
+  it('Noyob rol (SUDYA) boshqa foydalanuvchi tomonidan egallangan bo‘lsa, xatolik qaytariladi (band)', async () => {
     const room = await createCourtRoom(hostUser, {
       title: 'Jinoyat ishi',
       caseCategory: 'criminal',
@@ -84,9 +84,7 @@ describe('Multiplayer Virtual Court — Room Creation & Joining', () => {
 
     const user3 = { id: '00000000-0000-0000-0000-000000000003', name: 'Husan Jo‘rayev' }
     // Host is already SUDYA
-    const res = await joinCourtRoom(room.code, user3, 'SUDYA')
-
-    expect(res.participant.role).not.toBe('SUDYA')
+    await expect(joinCourtRoom(room.code, user3, 'SUDYA')).rejects.toThrow('band')
   })
 })
 

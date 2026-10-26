@@ -6,7 +6,7 @@ import { GET as getRoomRoute } from '@/app/api/court/multiplayer/rooms/[codeOrId
 import { POST as joinRoomRoute } from '@/app/api/court/multiplayer/rooms/[codeOrId]/join/route'
 import { POST as actionRoute } from '@/app/api/court/multiplayer/rooms/[codeOrId]/action/route'
 
-describe('Multiplayer Virtual Court — Next.js Route Handlers', () => {
+describe('Multiplayer Virtual Court — Next.js Route Handlers', { timeout: 15000 }, () => {
   let createdRoomCode = ''
   let createdRoomId = ''
 

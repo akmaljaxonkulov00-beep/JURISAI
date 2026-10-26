@@ -7,6 +7,7 @@ import { getSupabaseAdmin } from '@/lib/supabase-admin'
 import { getScenarioById, SEED_SCENARIOS } from './scenario-db'
 import { TRIAL_STAGES, getNextStage } from './stage-machine'
 import { awardUserXP } from '@/lib/xp-engine'
+import { ROLE_LABELS } from './multiplayer-types'
 import type {
   MultiplayerRoom,
   MultiplayerParticipant,
@@ -40,67 +41,90 @@ function generateRoomCode(): string {
 }
 
 // ── Fallback Database Persistence via court_sessions ──
+let cachedValidUserId: string | null = null
+
+async function getValidUserId(preferredId?: string): Promise<string> {
+  const isUuid =
+    !!preferredId &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(preferredId)
+  if (isUuid) return preferredId!
+  if (cachedValidUserId) return cachedValidUserId
+
+  try {
+    const admin = getSupabaseAdmin()
+    const { data: users } = await admin.auth.admin.listUsers({ page: 1, perPage: 1 })
+    if (users?.users?.[0]?.id) {
+      cachedValidUserId = users.users[0].id
+      return cachedValidUserId
+    }
+  } catch {
+    // fallback
+  }
+  return 'ba136659-9ef3-43b3-bd5a-70363cc7effb'
+}
+
 async function persistRoomToDb(room: MultiplayerRoom): Promise<void> {
   try {
     const admin = getSupabaseAdmin()
     // 1. Try dedicated table if it exists
-    const { error: mpErr } = await admin.from('court_multiplayer_rooms').upsert({
-      id: room.id,
-      code: room.code,
-      title: room.title,
-      case_category: room.caseCategory,
-      court_type: room.courtType,
-      scenario_id: room.scenarioId || null,
-      scenario_data: room.scenarioData,
-      host_id: room.hostId,
-      host_name: room.hostName,
-      is_public: room.isPublic,
-      ai_enabled: room.aiEnabled,
-      voice_enabled: room.voiceEnabled,
-      max_participants: room.maxParticipants,
-      status: room.status,
-      current_stage_id: room.currentStageId,
-      current_stage_order: room.currentStageOrder,
-      current_speaker_id: room.currentSpeakerId || null,
-      current_speaker_role: room.currentSpeakerRole || null,
-      speaking_queue: room.speakingQueue,
-      pending_objection: room.pendingObjection || null,
-      verdict_data: room.verdictData || null,
-      updated_at: new Date().toISOString(),
-    })
+    try {
+      const { error: mpErr } = await admin.from('court_multiplayer_rooms').upsert({
+        id: room.id,
+        code: room.code,
+        title: room.title,
+        case_category: room.caseCategory,
+        court_type: room.courtType,
+        scenario_id: room.scenarioId || null,
+        scenario_data: room.scenarioData,
+        host_id: room.hostId,
+        host_name: room.hostName,
+        is_public: room.isPublic,
+        ai_enabled: room.aiEnabled,
+        voice_enabled: room.voiceEnabled,
+        max_participants: room.maxParticipants,
+        status: room.status,
+        current_stage_id: room.currentStageId,
+        current_stage_order: room.currentStageOrder,
+        current_speaker_id: room.currentSpeakerId || null,
+        current_speaker_role: room.currentSpeakerRole || null,
+        speaking_queue: room.speakingQueue,
+        pending_objection: room.pendingObjection || null,
+        verdict_data: room.verdictData || null,
+        updated_at: new Date().toISOString(),
+      })
 
-    if (!mpErr) {
-      // Upsert participants
-      for (const p of room.participants) {
-        await admin.from('court_multiplayer_participants').upsert({
-          id: p.id,
-          room_id: room.id,
-          user_id: p.userId,
-          user_name: p.userName,
-          avatar_url: p.avatarUrl || '',
-          role: p.role,
-          is_host: p.isHost,
-          is_ai: p.isAi,
-          is_ready: p.isReady,
-          can_speak: p.canSpeak,
-          connection_status: p.connectionStatus,
-          last_seen_at: p.lastSeenAt,
-          joined_at: p.joinedAt,
-        })
+      if (!mpErr) {
+        // Upsert participants
+        for (const p of room.participants) {
+          await admin.from('court_multiplayer_participants').upsert({
+            id: p.id,
+            room_id: room.id,
+            user_id: p.userId,
+            user_name: p.userName,
+            avatar_url: p.avatarUrl || '',
+            role: p.role,
+            is_host: p.isHost,
+            is_ai: p.isAi,
+            is_ready: p.isReady,
+            can_speak: p.canSpeak,
+            connection_status: p.connectionStatus,
+            last_seen_at: p.lastSeenAt,
+            joined_at: p.joinedAt,
+          })
+        }
       }
-      return
+    } catch {
+      // Table may not exist yet in schema, proceed with universal fallback
     }
 
-    // 2. Fallback: Persist into existing court_sessions with rich JSON evaluation
-    // This guarantees persistence even before DDL migration is executed
+    // 2. Persist into existing court_sessions with rich JSON evaluation
+    // This guarantees persistence across serverless workers even without new DDL migration
+    const targetUserId = await getValidUserId(room.hostId)
     await admin.from('court_sessions').upsert({
       id: room.id,
-      user_id:
-        room.hostId.includes('-') && room.hostId.length === 36
-          ? room.hostId
-          : '00000000-0000-0000-0000-000000000000',
+      user_id: targetUserId,
       title: `[MULTIPLAYER] ${room.title} (${room.code})`,
-      case_details: room.scenarioData?.facts || room.title,
+      case_details: `${room.code} - ${room.scenarioData?.facts || room.title}`,
       user_role: 'SUDYA',
       status: room.status === 'completed' ? 'completed' : 'active',
       score: room.verdictData ? 90 : null,
@@ -109,12 +133,12 @@ async function persistRoomToDb(room: MultiplayerRoom): Promise<void> {
         (room.status === 'completed' ? 'Hukm chiqarilgan' : 'Ko‘p foydalanuvchili sud'),
       evaluation: {
         is_multiplayer: true,
+        room_code: room.code,
         room_data: room,
       },
       updated_at: new Date().toISOString(),
     })
   } catch (err) {
-    // Non-blocking catch to ensure realtime in-memory operation continues flawlessly
     console.error('persistRoomToDb error (safe fallback in memory):', err)
   }
 }
@@ -126,11 +150,13 @@ async function loadRoomFromDb(codeOrId: string): Promise<MultiplayerRoom | null>
     const cleanKey = codeOrId.toUpperCase().trim()
 
     // 1. Try court_multiplayer_rooms
-    const { data: mpData } = await admin
-      .from('court_multiplayer_rooms')
-      .select('*')
-      .or(`code.eq.${cleanKey},id.eq.${codeOrId}`)
-      .maybeSingle()
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+      codeOrId.trim()
+    )
+    const mpQuery = admin.from('court_multiplayer_rooms').select('*')
+    const { data: mpData } = isUuid
+      ? await mpQuery.or(`code.eq.${cleanKey},id.eq.${codeOrId}`).maybeSingle()
+      : await mpQuery.eq('code', cleanKey).maybeSingle()
 
     if (mpData) {
       const { data: partData } = await admin
@@ -225,12 +251,16 @@ async function loadRoomFromDb(codeOrId: string): Promise<MultiplayerRoom | null>
     }
 
     // 2. Try court_sessions fallback
-    const { data: sessData } = await admin
-      .from('court_sessions')
-      .select('*')
-      .or(`title.ilike.%${cleanKey}%,id.eq.${codeOrId}`)
-      .limit(1)
-      .maybeSingle()
+    const sessQuery = admin.from('court_sessions').select('*')
+    const { data: sessData } = isUuid
+      ? await sessQuery
+          .or(`id.eq.${codeOrId},title.ilike.%${cleanKey}%,case_details.ilike.%${cleanKey}%`)
+          .limit(1)
+          .maybeSingle()
+      : await sessQuery
+          .or(`title.ilike.%${cleanKey}%,case_details.ilike.%${cleanKey}%`)
+          .limit(1)
+          .maybeSingle()
 
     if (sessData?.evaluation?.is_multiplayer && sessData.evaluation.room_data) {
       const room = sessData.evaluation.room_data as MultiplayerRoom
@@ -399,7 +429,40 @@ export async function listPublicCourtRooms(): Promise<
     createdAt: string
   }>
 > {
-  // Check memory and also poll database
+  // Sync from court_sessions database so all public rooms show across serverless instances
+  try {
+    const admin = getSupabaseAdmin()
+    const syncPromise = admin
+      .from('court_sessions')
+      .select('id, evaluation')
+      .ilike('title', '[MULTIPLAYER]%')
+      .order('updated_at', { ascending: false })
+      .limit(15)
+
+    // Abort DB sync if it takes > 3000ms to keep API ultra-responsive
+    const timeoutPromise = new Promise<{ data: null }>(resolve =>
+      setTimeout(() => resolve({ data: null }), 3000)
+    )
+
+    const res: any = await Promise.race([syncPromise, timeoutPromise])
+    const dbSessions = res?.data
+
+    if (dbSessions) {
+      for (const row of dbSessions) {
+        if (row.evaluation?.is_multiplayer && row.evaluation?.room_data) {
+          const room = row.evaluation.room_data as MultiplayerRoom
+          if (!roomsMap.has(room.id)) {
+            roomsMap.set(room.id, room)
+            roomsMap.set(room.code, room)
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('listPublicCourtRooms db sync warning:', err)
+  }
+
+  // Check memory and database synced rooms
   const activeRooms = Array.from(roomsMap.values()).filter(
     (r, idx, self) => r.isPublic && self.findIndex(o => o.id === r.id) === idx
   )
@@ -478,9 +541,13 @@ export async function joinCourtRoom(
   let assignedRole: MultiplayerRole = 'KUZATUVCHI'
   if (requestedRole && requestedRole !== 'KUZATUVCHI') {
     if (UNIQUE_ROLES.includes(requestedRole)) {
-      if (!takenRoles.has(requestedRole)) {
-        assignedRole = requestedRole
+      const existingHolder = room.participants.find(p => p.role === requestedRole)
+      if (existingHolder) {
+        throw new Error(
+          `Ushbu [${ROLE_LABELS[requestedRole]?.title || requestedRole}] roli allaqachon band (${existingHolder.userName}). Iltimos, boshqa bo‘sh rolni tanlang.`
+        )
       }
+      assignedRole = requestedRole
     } else {
       assignedRole = requestedRole
     }

@@ -320,6 +320,53 @@ export default function CourtroomCenterStage({
             </div>
           </div>
 
+          {/* Live Video & Audio Grid in Waiting Room */}
+          <div className="bg-zinc-900/70 border border-zinc-800 rounded-2xl p-5 space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-bold text-white flex items-center gap-2">
+                <Video className="w-4 h-4 text-blue-400" />
+                <span>
+                  Jonli zal — Kamera va mikrofon sinovi ({room.participants.length} ishtirokchi)
+                </span>
+              </h2>
+              <span className="text-xs text-zinc-400">Gapiring va kamerangizni tekshiring</span>
+            </div>
+
+            {/* Real-time Subtitles if anyone is speaking in waiting room */}
+            {showLiveSubtitle && activeSubtitleEntry && (
+              <div className="bg-blue-950/50 border border-blue-500/50 rounded-xl px-4 py-2.5 flex items-center gap-2 text-xs text-blue-200 animate-pulse">
+                <span className="font-bold text-white uppercase">
+                  {activeSubtitleEntry[1].role || 'Ishtirokchi'}:
+                </span>
+                <span className="italic">&ldquo;{activeSubtitleEntry[1].text}&rdquo;</span>
+              </div>
+            )}
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+              {room.participants.map(p => {
+                const stream = getMediaForUser(p.userId)
+                const isLocal = p.userId === myParticipant?.userId
+                const isVideoOn = isLocal
+                  ? !!localStream && localStream.getVideoTracks().some(t => t.enabled)
+                  : videoEnabledUserIds.has(p.userId)
+                const isAudioOn = speakingParticipants.has(p.userId)
+
+                return (
+                  <ParticipantMediaTile
+                    key={p.userId}
+                    participant={p}
+                    isCurrentSpeaker={false}
+                    isAudioSpeaking={isAudioOn}
+                    isVideoActive={isVideoOn}
+                    mediaStream={stream}
+                    isLocal={isLocal}
+                    customHeight="h-32 sm:h-36"
+                  />
+                )
+              })}
+            </div>
+          </div>
+
           {/* Host Start Trial Action Banner */}
           {isHost || isJudge ? (
             <div className="bg-blue-600/10 border border-blue-500/30 rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4">

@@ -22,6 +22,7 @@ import {
 } from 'lucide-react'
 import { useAuth } from '@/app/providers'
 import { getAuthHeaders } from '@/lib/api-auth-client'
+import { supabase } from '@/lib/supabase-client'
 import CreateRoomModal from '@/components/court/multiplayer/CreateRoomModal'
 import JoinRoomModal from '@/components/court/multiplayer/JoinRoomModal'
 import type {
@@ -71,8 +72,23 @@ function MultiplayerLobbyContent() {
 
   useEffect(() => {
     fetchRooms()
-    const timer = setInterval(fetchRooms, 5000)
-    return () => clearInterval(timer)
+    const timer = setInterval(fetchRooms, 4000)
+
+    // Realtime broadcast subscription for instant new room discovery
+    const lobbyChannel = supabase.channel('court_lobby_public')
+    lobbyChannel
+      .on('broadcast', { event: 'room_created' }, () => {
+        fetchRooms()
+      })
+      .on('broadcast', { event: 'court_state_update' }, () => {
+        fetchRooms()
+      })
+      .subscribe()
+
+    return () => {
+      clearInterval(timer)
+      supabase.removeChannel(lobbyChannel)
+    }
   }, [])
 
   // Create Room Handler
@@ -100,6 +116,13 @@ function MultiplayerLobbyContent() {
     if (!data.success) {
       throw new Error(data.error || 'Xona yaratishda xatolik yuz berdi')
     }
+
+    // Broadcast instant creation event across all peers in lobby
+    supabase.channel('court_lobby_public').send({
+      type: 'broadcast',
+      event: 'room_created',
+      payload: { room: data.room },
+    })
 
     router.push(`/virtual-court/multiplayer/${data.room.code}`)
   }
@@ -364,9 +387,12 @@ function MultiplayerLobbyContent() {
                       )}
                     </div>
 
-                    {/* Join Button */}
+                    {/* Join Button - opens JoinRoomModal to select free role */}
                     <button
-                      onClick={() => handleJoinRoom(r.code)}
+                      onClick={() => {
+                        setJoinCodeParam(r.code)
+                        setShowJoinModal(true)
+                      }}
                       className="w-full py-2.5 rounded-2xl font-bold text-xs bg-blue-600/20 hover:bg-blue-600 text-blue-300 hover:text-white border border-blue-500/30 hover:border-blue-500 flex items-center justify-center gap-1.5 transition-all shadow-sm"
                     >
                       <span>Xonaga kirish</span>

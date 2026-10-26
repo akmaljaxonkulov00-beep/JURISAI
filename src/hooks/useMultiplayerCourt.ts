@@ -672,7 +672,11 @@ export function useMultiplayerCourt({ codeOrId, currentUser }: UseMultiplayerCou
   const isHost = myParticipant?.isHost || room?.hostId === myIdentity.id
   const isJudge = myParticipant?.role === 'SUDYA'
   const isObserver = myParticipant?.role === 'KUZATUVCHI'
-  const canSpeak = isJudge || myParticipant?.canSpeak || room?.currentSpeakerId === myIdentity.id
+  const canSpeak =
+    isJudge ||
+    myParticipant?.canSpeak ||
+    room?.currentSpeakerId === myIdentity.id ||
+    room?.status === 'waiting'
 
   // ── Exposed Action Callbacks ──
   const startTrial = () => performAction('start')

@@ -1,8 +1,8 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { LogIn, X, AlertTriangle, Shield } from 'lucide-react'
-import { MultiplayerRole, ROLE_LABELS } from '@/lib/court/multiplayer-types'
+import { LogIn, X, AlertTriangle, Shield, CheckCircle, Lock, Users } from 'lucide-react'
+import { MultiplayerRole, ROLE_LABELS, MultiplayerRoom } from '@/lib/court/multiplayer-types'
 
 interface JoinRoomModalProps {
   isOpen: boolean
@@ -21,6 +21,8 @@ const ALL_ROLES: MultiplayerRole[] = [
   'KUZATUVCHI',
 ]
 
+const UNIQUE_ROLES: MultiplayerRole[] = ['SUDYA', 'PROKUROR', 'ADVOKAT', 'AYBLANUVCHI', 'KOTIB']
+
 export default function JoinRoomModal({
   isOpen,
   initialCode = '',
@@ -31,18 +33,88 @@ export default function JoinRoomModal({
   const [role, setRole] = useState<MultiplayerRole>('ADVOKAT')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [roomDetails, setRoomDetails] = useState<MultiplayerRoom | null>(null)
+  const [checkingRoom, setCheckingRoom] = useState(false)
+
+  // Fetch room preview whenever code changes
+  useEffect(() => {
+    const clean = code.toUpperCase().trim()
+    if (!clean || clean.length < 6) {
+      setRoomDetails(null)
+      return
+    }
+
+    let isMounted = true
+    const checkRoom = async () => {
+      try {
+        setCheckingRoom(true)
+        const res = await fetch(`/api/court/multiplayer/rooms/${clean}`)
+        const data = await res.json()
+        if (isMounted) {
+          if (data.success && data.room) {
+            setRoomDetails(data.room)
+            setError(null)
+
+            // Calculate occupied roles
+            const taken = new Map<string, string>()
+            data.room.participants.forEach((p: any) => {
+              taken.set(p.role, p.userName)
+            })
+
+            // If currently selected role is taken and unique, switch to first available role
+            if (UNIQUE_ROLES.includes(role) && taken.has(role)) {
+              const available = ALL_ROLES.find(
+                r => r === 'KUZATUVCHI' || r === 'GUVOH' || !taken.has(r)
+              )
+              if (available) setRole(available)
+            }
+          } else {
+            setRoomDetails(null)
+          }
+        }
+      } catch {
+        if (isMounted) setRoomDetails(null)
+      } finally {
+        if (isMounted) setCheckingRoom(false)
+      }
+    }
+
+    const timer = setTimeout(checkRoom, 300)
+    return () => {
+      isMounted = false
+      clearTimeout(timer)
+    }
+  }, [code, role])
 
   useEffect(() => {
-    if (initialCode) setCode(initialCode.toUpperCase().trim())
+    if (initialCode) {
+      setCode(initialCode.toUpperCase().trim())
+    }
   }, [initialCode])
 
   if (!isOpen) return null
+
+  // Map of taken unique roles
+  const occupiedRoles: Record<string, string> = {}
+  if (roomDetails) {
+    roomDetails.participants.forEach(p => {
+      occupiedRoles[p.role] = p.userName
+    })
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     const cleanCode = code.toUpperCase().trim()
     if (!cleanCode) {
       setError('Iltimos, xona kodini kiriting.')
+      return
+    }
+
+    // Verify role availability client-side
+    if (UNIQUE_ROLES.includes(role) && occupiedRoles[role]) {
+      setError(
+        `Ushbu [${ROLE_LABELS[role]?.title || role}] roli allaqachon ${occupiedRoles[role]} tomonidan band qilingan. Iltimos, boshqa bo‘sh rolni tanlang.`
+      )
       return
     }
 
@@ -115,39 +187,75 @@ export default function JoinRoomModal({
             />
           </div>
 
-          {/* Role Selection */}
+          {/* Room Verified Preview Card */}
+          {roomDetails && (
+            <div className="p-3 rounded-2xl bg-blue-950/30 border border-blue-500/30 space-y-1 animate-fade-in">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold text-blue-400 uppercase">
+                  Sud Zali Topildi:
+                </span>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 font-bold">
+                  {roomDetails.status === 'waiting' ? 'Kutish zali' : 'Jarayonda'}
+                </span>
+              </div>
+              <h3 className="text-xs font-bold text-white truncate">{roomDetails.title}</h3>
+              <div className="flex items-center justify-between text-[11px] text-zinc-400 pt-1">
+                <span>Toifa: {roomDetails.courtType}</span>
+                <span>{roomDetails.participants.length} ta ishtirokchi hozir</span>
+              </div>
+            </div>
+          )}
+
+          {/* Role Selection with Occupied Badges */}
           <div>
-            <label className="text-zinc-300 font-bold block mb-1.5">
-              Istalgan sud roli (bo‘sh bo‘lsa biriktiriladi):
-            </label>
+            <label className="text-zinc-300 font-bold block mb-1.5">Sud rolini tanlang:</label>
             <div className="grid grid-cols-2 gap-2">
               {ALL_ROLES.map(r => {
                 const def = ROLE_LABELS[r]
+                const isOccupied = UNIQUE_ROLES.includes(r) && !!occupiedRoles[r]
+                const occupiedName = occupiedRoles[r]
+                const isSelected = role === r
+
                 return (
                   <button
                     key={r}
                     type="button"
+                    disabled={isOccupied}
                     onClick={() => setRole(r)}
-                    className={`p-2.5 rounded-xl border text-left transition-all ${
-                      role === r
-                        ? 'bg-blue-600/20 border-blue-500 text-white shadow-sm shadow-blue-500/20'
-                        : 'bg-zinc-800/60 border-zinc-700/60 text-zinc-400 hover:bg-zinc-800'
+                    className={`p-2.5 rounded-xl border text-left transition-all relative ${
+                      isOccupied
+                        ? 'opacity-40 cursor-not-allowed bg-zinc-950 border-zinc-800 text-zinc-600'
+                        : isSelected
+                          ? 'bg-blue-600/20 border-blue-500 text-white shadow-sm shadow-blue-500/20 ring-1 ring-blue-500/50'
+                          : 'bg-zinc-800/60 border-zinc-700/60 text-zinc-300 hover:bg-zinc-800'
                     }`}
                   >
-                    <div className="flex items-center gap-1.5">
-                      <span>{def?.icon}</span>
-                      <span className="font-bold text-xs">{r}</span>
+                    <div className="flex items-center justify-between gap-1">
+                      <div className="flex items-center gap-1.5">
+                        <span>{def?.icon}</span>
+                        <span className="font-bold text-xs">{r}</span>
+                      </div>
+                      {isOccupied && <Lock className="w-3 h-3 text-red-400 flex-shrink-0" />}
                     </div>
-                    <span className="text-[10px] text-zinc-400 block truncate mt-0.5">
-                      {def?.title}
-                    </span>
+
+                    <div className="mt-1">
+                      {isOccupied ? (
+                        <span className="text-[10px] text-red-400/90 font-semibold block truncate">
+                          🔒 Band ({occupiedName})
+                        </span>
+                      ) : (
+                        <span className="text-[10px] text-emerald-400/90 font-medium block truncate">
+                          ✅ Bo‘sh (Mavjud)
+                        </span>
+                      )}
+                    </div>
                   </button>
                 )
               })}
             </div>
-            <p className="text-[11px] text-zinc-500 mt-1.5">
-              * Agar siz tanlagan noyob rol allaqachon band bo‘lsa, siz avtomatik tarzda bo‘sh rolga
-              yoki Kuzatuvchi maqomiga biriktirilasiz.
+            <p className="text-[11px] text-zinc-500 mt-2">
+              * Band qilingan asosiy rollar (Sudya, Prokuror, Advokat, Sudlanuvchi) qulflangan
+              bo‘lib, bir vaqtda faqat bir ishtirokchiga tegishli bo‘ladi.
             </p>
           </div>
         </div>
@@ -163,10 +271,11 @@ export default function JoinRoomModal({
           </button>
           <button
             type="submit"
-            disabled={loading || !code.trim()}
-            className="px-6 py-2.5 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-500/20 disabled:opacity-40 transition-all"
+            disabled={loading || (UNIQUE_ROLES.includes(role) && !!occupiedRoles[role])}
+            className="px-6 py-2.5 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-white shadow-lg shadow-blue-500/20 transition-all flex items-center gap-2"
           >
-            {loading ? 'Tekshirilmoqda...' : 'Sudga Qo‘shilish'}
+            <LogIn className="w-3.5 h-3.5" />
+            <span>{loading ? 'Ulanmoqda...' : 'Sudga kirish'}</span>
           </button>
         </div>
       </form>
