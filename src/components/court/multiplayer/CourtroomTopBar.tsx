@@ -24,15 +24,19 @@ interface CourtroomTopBarProps {
   room: MultiplayerRoom
   myParticipant?: MultiplayerParticipant
   connected: boolean
+  connectionState?: 'connecting' | 'connected' | 'reconnecting' | 'disconnected' | 'error'
   onlineCount: number
   isMicMuted: boolean
   isVideoOn?: boolean
   isAudioConnected: boolean
+  mediaError?: string | null
+  autoplayBlocked?: boolean
   elapsedSeconds?: number
   soundEffectsEnabled?: boolean
   onToggleMute: () => void
   onToggleVideo?: () => void
   onToggleSoundEffects?: () => void
+  onUnlockAudio?: () => void
   onLeave: () => void
 }
 
@@ -40,15 +44,19 @@ export default function CourtroomTopBar({
   room,
   myParticipant,
   connected,
+  connectionState = connected ? 'connected' : 'connecting',
   onlineCount,
   isMicMuted,
   isVideoOn = false,
   isAudioConnected,
+  mediaError,
+  autoplayBlocked = false,
   elapsedSeconds = 0,
   soundEffectsEnabled = true,
   onToggleMute,
   onToggleVideo,
   onToggleSoundEffects,
+  onUnlockAudio,
   onLeave,
 }: CourtroomTopBarProps) {
   const [copiedCode, setCopiedCode] = useState(false)
@@ -69,8 +77,13 @@ export default function CourtroomTopBar({
   }
 
   const formatTimer = (totalSec: number) => {
-    const mins = Math.floor(totalSec / 60)
+    if (totalSec <= 0) return '00:00'
+    const hours = Math.floor(totalSec / 3600)
+    const mins = Math.floor((totalSec % 3600) / 60)
     const secs = totalSec % 60
+    if (hours > 0) {
+      return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+    }
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
   }
 
@@ -137,20 +150,52 @@ export default function CourtroomTopBar({
           <span>{formatTimer(elapsedSeconds)}</span>
         </div>
 
+        {/* Unblock Remote Audio (Autoplay restriction) */}
+        {autoplayBlocked && onUnlockAudio && (
+          <button
+            onClick={onUnlockAudio}
+            className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-500 text-black hover:bg-amber-400 transition-colors animate-bounce"
+            title="Brauzer avtomatik ovoz ijrosini to‘xtatdi. Ovozni yoqish uchun bosing"
+          >
+            <Volume2 className="w-3.5 h-3.5" />
+            <span>Ovozni yoqish</span>
+          </button>
+        )}
+
         {/* Connection Status */}
         <div
           className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${
-            connected
+            connectionState === 'connected'
               ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-              : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+              : connectionState === 'reconnecting'
+                ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                : connectionState === 'connecting'
+                  ? 'bg-blue-500/10 text-blue-400 border-blue-500/20'
+                  : 'bg-zinc-800 text-zinc-400 border-zinc-700'
           }`}
         >
           <span
             className={`w-2 h-2 rounded-full ${
-              connected ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'
+              connectionState === 'connected'
+                ? 'bg-emerald-400 animate-pulse'
+                : connectionState === 'reconnecting'
+                  ? 'bg-amber-400 animate-ping'
+                  : connectionState === 'connecting'
+                    ? 'bg-blue-400 animate-pulse'
+                    : 'bg-zinc-500'
             }`}
           />
-          <span className="hidden sm:inline">{connected ? 'Onlayn' : 'Ulanmoqda...'}</span>
+          <span className="hidden sm:inline">
+            {connectionState === 'connected'
+              ? 'Onlayn'
+              : connectionState === 'reconnecting'
+                ? 'Qayta ulanmoqda...'
+                : connectionState === 'connecting'
+                  ? 'Ulanmoqda...'
+                  : connectionState === 'error'
+                    ? 'Xatolik'
+                    : 'Aloqa uzildi'}
+          </span>
           <span className="text-zinc-500 font-mono">({onlineCount})</span>
         </div>
 
@@ -230,6 +275,14 @@ export default function CourtroomTopBar({
           <LogOut className="w-4 h-4" />
         </button>
       </div>
+
+      {/* Media Error Toast Banner */}
+      {mediaError && (
+        <div className="absolute top-full left-0 right-0 bg-red-950/90 border-b border-red-500/40 p-2 text-center text-xs text-red-200 flex items-center justify-center gap-2 backdrop-blur-md z-30">
+          <Shield className="w-4 h-4 text-red-400 flex-shrink-0" />
+          <span>{mediaError}</span>
+        </div>
+      )}
 
       {/* Leave Confirmation Dialog Modal */}
       {showConfirmLeave && (

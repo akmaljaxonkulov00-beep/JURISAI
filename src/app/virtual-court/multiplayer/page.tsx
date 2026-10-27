@@ -157,8 +157,9 @@ function MultiplayerLobbyContent() {
     router.push(`/virtual-court/multiplayer/${code}`)
   }
 
-  // Filtered rooms
+  // Filtered rooms: strictly active rooms only (exclude completed and cancelled)
   const filteredRooms = rooms.filter(r => {
+    if (r.status === 'completed' || r.status === 'cancelled') return false
     const matchesSearch =
       r.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       r.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -227,6 +228,14 @@ function MultiplayerLobbyContent() {
                 <LogIn className="w-4 h-4 text-blue-400" />
                 <span>Sudga qo‘shilish (Kod orqali)</span>
               </button>
+
+              <Link
+                href="/virtual-court/completed"
+                className="flex items-center gap-2 px-5 py-3 rounded-2xl font-bold text-sm bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 transition-all transform hover:-translate-y-0.5"
+              >
+                <Clock className="w-4 h-4 text-amber-400" />
+                <span>Yakunlangan ishlar</span>
+              </Link>
             </div>
           </div>
         </div>
@@ -327,10 +336,6 @@ function MultiplayerLobbyContent() {
                             <span className="flex items-center gap-1 text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
                               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                               Kutish zali
-                            </span>
-                          ) : isCompleted ? (
-                            <span className="text-[11px] font-semibold text-zinc-400 bg-zinc-800 px-2 py-0.5 rounded-full">
-                              Yakunlangan
                             </span>
                           ) : (
                             <span className="flex items-center gap-1 text-[11px] font-semibold text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-full border border-blue-500/20">

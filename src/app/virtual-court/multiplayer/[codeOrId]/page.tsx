@@ -37,6 +37,7 @@ export default function MultiplayerCourtroomPage() {
     loading,
     error,
     connected,
+    connectionState,
     onlineUserIds,
     myParticipant,
     isHost,
@@ -45,6 +46,9 @@ export default function MultiplayerCourtroomPage() {
     isMicMuted,
     isVideoOn,
     isAudioConnected,
+    mediaError,
+    autoplayBlocked,
+    unlockAudio,
     speakingParticipants,
     videoEnabledUserIds,
     localStream,
@@ -140,15 +144,19 @@ export default function MultiplayerCourtroomPage() {
           room={room}
           myParticipant={myParticipant}
           connected={connected}
+          connectionState={connectionState}
           onlineCount={onlineUserIds.size || 1}
           isMicMuted={isMicMuted}
           isVideoOn={isVideoOn}
           isAudioConnected={isAudioConnected}
+          mediaError={mediaError}
+          autoplayBlocked={autoplayBlocked}
           elapsedSeconds={elapsedSeconds}
           soundEffectsEnabled={soundEffectsEnabled}
           onToggleMute={toggleMute}
           onToggleVideo={toggleVideo}
           onToggleSoundEffects={() => setSoundEffectsEnabled(!soundEffectsEnabled)}
+          onUnlockAudio={unlockAudio}
           onLeave={handleLeaveRoom}
         />
         <CourtroomPostTrialResults
@@ -167,15 +175,19 @@ export default function MultiplayerCourtroomPage() {
         room={room}
         myParticipant={myParticipant}
         connected={connected}
+        connectionState={connectionState}
         onlineCount={onlineUserIds.size || 1}
         isMicMuted={isMicMuted}
         isVideoOn={isVideoOn}
         isAudioConnected={isAudioConnected}
+        mediaError={mediaError}
+        autoplayBlocked={autoplayBlocked}
         elapsedSeconds={elapsedSeconds}
         soundEffectsEnabled={soundEffectsEnabled}
         onToggleMute={toggleMute}
         onToggleVideo={toggleVideo}
         onToggleSoundEffects={() => setSoundEffectsEnabled(!soundEffectsEnabled)}
+        onUnlockAudio={unlockAudio}
         onLeave={handleLeaveRoom}
       />
 

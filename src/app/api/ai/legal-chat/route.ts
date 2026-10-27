@@ -8,6 +8,7 @@ import {
   appendCitationNote,
 } from '@/lib/legal-rag'
 import { ensureUzbekLatin } from '@/lib/uz-latin'
+import { callGemini } from '@/lib/gemini'
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
@@ -24,7 +25,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Xabar juda uzun — maksimal 4000 belgi' }, { status: 400 })
     }
 
-    if (!GROQ_API_KEY) {
+    if (!GROQ_API_KEY && !process.env.GEMINI_API_KEY) {
       return NextResponse.json({ error: 'AI xizmati sozlanmagan' }, { status: 500 })
     }
 
@@ -99,55 +100,74 @@ BOSHQA QOIDALAR:
 - Javob uzunligi: odatda 200-300 so'z. Foydalanuvchi "batafsil" desa 400-600 so'z. "Qisqacha" desa 100-180 so'z.
 ${legalContext}${contextText}`
 
-    // Call Groq with strict parameters and multi-model fallback
+    // Call Gemini (primary) with Groq fallback
     const CANDIDATE_MODELS = ['openai/gpt-oss-120b', 'openai/gpt-oss-20b', 'qwen/qwen3.8-27b']
 
     let responseText = ''
     let lastError = ''
 
-    for (const model of CANDIDATE_MODELS) {
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 25000)
-
+    // ── 1. Google Gemini orqali javob (Birlamchi va bepul) ──
+    if (process.env.GEMINI_API_KEY) {
       try {
-        const response = await fetch(GROQ_API_URL, {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${GROQ_API_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model,
-            messages: [
-              { role: 'system', content: systemPrompt },
-              { role: 'user', content: message },
-            ],
-            temperature: 0.1,
-            frequency_penalty: 0.3,
-            presence_penalty: 0.1,
-            max_tokens: 2048,
-          }),
-          signal: controller.signal,
+        const geminiRes = await callGemini(message, {
+          systemInstruction: systemPrompt,
+          temperature: 0.1,
+          maxTokens: 2500,
         })
-
-        clearTimeout(timeoutId)
-
-        if (response.ok) {
-          const data = await response.json()
-          const raw = data.choices?.[0]?.message?.content || ''
-          if (raw.trim()) {
-            responseText = raw
-            break
-          }
-        } else {
-          const errorText = await response.text().catch(() => '')
-          lastError = `Model ${model} failed (${response.status}): ${errorText.slice(0, 150)}`
-          console.warn('Groq Legal Chat attempt failed:', lastError)
+        if (geminiRes && geminiRes.trim()) {
+          responseText = geminiRes
         }
-      } catch (e: any) {
-        clearTimeout(timeoutId)
-        lastError = e.name === 'AbortError' ? 'AI timeout (25s)' : e.message
-        console.warn(`Groq Legal Chat error with ${model}:`, lastError)
+      } catch (geminiErr: any) {
+        console.warn('Gemini Legal Chat urinishi xatoligi, Groq’ga o‘tilmoqda:', geminiErr.message)
+      }
+    }
+
+    // ── 2. Zaxira: Groq API ──
+    if (!responseText) {
+      for (const model of CANDIDATE_MODELS) {
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 25000)
+
+        try {
+          const response = await fetch(GROQ_API_URL, {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${GROQ_API_KEY}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model,
+              messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: message },
+              ],
+              temperature: 0.1,
+              frequency_penalty: 0.3,
+              presence_penalty: 0.1,
+              max_tokens: 2048,
+            }),
+            signal: controller.signal,
+          })
+
+          clearTimeout(timeoutId)
+
+          if (response.ok) {
+            const data = await response.json()
+            const raw = data.choices?.[0]?.message?.content || ''
+            if (raw.trim()) {
+              responseText = raw
+              break
+            }
+          } else {
+            const errorText = await response.text().catch(() => '')
+            lastError = `Model ${model} failed (${response.status}): ${errorText.slice(0, 150)}`
+            console.warn('Groq Legal Chat attempt failed:', lastError)
+          }
+        } catch (e: any) {
+          clearTimeout(timeoutId)
+          lastError = e.name === 'AbortError' ? 'AI timeout (25s)' : e.message
+          console.warn(`Groq Legal Chat error with ${model}:`, lastError)
+        }
       }
     }
 

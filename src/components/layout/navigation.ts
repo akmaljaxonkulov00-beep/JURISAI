@@ -12,6 +12,7 @@ import {
   Shield,
   LogOut,
   Clapperboard,
+  Award,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
@@ -81,6 +82,14 @@ export const NAV_GROUPS: NavGroup[] = [
         icon: Users,
         requiresAuth: false,
         badge: 'Yangi',
+      },
+      {
+        id: 'completed-trials',
+        name: 'Yakunlangan ishlar',
+        href: '/virtual-court/completed',
+        icon: Award,
+        requiresAuth: true,
+        badge: null,
       },
       {
         id: 'scenario-generator',

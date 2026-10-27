@@ -7,6 +7,7 @@ import { useLimitModal } from '@/hooks/useLimitModal'
 import LimitExceededModal from '@/components/ai/LimitExceededModal'
 import AppSidebar from '@/components/layout/AppSidebar'
 import FeatureInstructions from '@/components/ui/FeatureInstructions'
+import PageHeader from '@/components/layout/PageHeader'
 import {
   ArrowLeft,
   Target,
@@ -1965,16 +1966,6 @@ export default function CaseSolver() {
       <div className="flex flex-col md:flex-row">
         <AppSidebar>
           <div className="space-y-1">
-            <button
-              onClick={() => {
-                if (window.history.length > 1) router.back()
-                else router.push('/dashboard')
-              }}
-              className="flex items-center gap-3 px-3 py-2 w-full text-gray-600 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800 rounded-lg cursor-pointer transition-colors"
-            >
-              <ArrowLeft className="w-5 h-5" />
-              <span>Orqaga</span>
-            </button>
             <div className="flex items-center gap-3 px-3 py-2 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg">
               <Scale className="w-5 h-5" />
               <span className="font-medium">Kazus Yechish</span>
@@ -1983,19 +1974,13 @@ export default function CaseSolver() {
         </AppSidebar>
 
         <div className="flex-1 min-w-0">
-          {/* Header */}
-          <header className="bg-white dark:bg-zinc-900 px-4 sm:px-8 py-5 border-b border-gray-100 dark:border-zinc-800">
-            <div className="flex items-center justify-between flex-wrap gap-3">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-800 dark:text-zinc-100">
-                  Kazus Yechish
-                </h1>
-                <p className="text-sm text-gray-500 dark:text-zinc-400 mt-0.5">
-                  Huquqiy vaziyatlarni tahlil qiling va IRAC asosida o'z javobingizni ishlab
-                  chiqing.
-                </p>
-              </div>
-              {isAdmin && (
+          {/* Page Header */}
+          <PageHeader
+            title="Kazus Yechish"
+            description="Huquqiy vaziyatlarni tahlil qiling va IRAC asosida o'z javobingizni ishlab chiqing."
+            showBackButton={true}
+            actions={
+              isAdmin && (
                 <button
                   onClick={() => {
                     setShowAddCase(!showAddCase)
@@ -2007,9 +1992,9 @@ export default function CaseSolver() {
                   <Plus className="w-4 h-4" />
                   Kazus qo'shish
                 </button>
-              )}
-            </div>
-          </header>
+              )
+            }
+          />
 
           <main className="p-4 sm:p-6 lg:p-8 max-w-3xl mx-auto">
             {/* ADMIN: yechilayotgan kazus bo'lmaganda boshqaruv */}

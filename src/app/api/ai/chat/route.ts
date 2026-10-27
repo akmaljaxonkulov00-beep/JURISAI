@@ -8,6 +8,7 @@ import {
   appendCitationNote,
 } from '@/lib/legal-rag'
 import { ensureUzbekLatin } from '@/lib/uz-latin'
+import { callGemini, UZBEK_LEGAL_SYSTEM_INSTRUCTION } from '@/lib/gemini'
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
@@ -22,11 +23,6 @@ export async function POST(request: NextRequest) {
     }
     if (message.length > 4000) {
       return NextResponse.json({ error: 'Xabar juda uzun — maksimal 4000 belgi' }, { status: 400 })
-    }
-
-    if (!GROQ_API_KEY) {
-      console.error('GROQ_API_KEY not found')
-      return NextResponse.json({ error: 'AI service not configured' }, { status: 500 })
     }
 
     // ── Autentifikatsiya + AI limit tekshiruvi ──
@@ -49,59 +45,74 @@ export async function POST(request: NextRequest) {
     const relevantArticles = await retrieveLegalArticles(message, 6)
     const legalContext = buildLegalContext(relevantArticles)
 
-    const response = await fetch(GROQ_API_URL, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${GROQ_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'openai/gpt-oss-120b',
-        messages: [
-          {
-            role: 'system',
-            content: `Sen Juristiv — O'zbekiston Respublikasi qonunchiligi bo'yicha professional AI yuridik yordamchisan.
+    const chatSystemPrompt = `${UZBEK_LEGAL_SYSTEM_INSTRUCTION}
 
 QAT'IY QOIDALAR:
 1. FAQAT BAZA MA'LUMOTLARIGA ASOSLAN: Agar javobingda modda raqami yoki kodeks nomi keltirsang, u AYNAN quyidagi "BAZA MA'LUMOTLARI" blokida berilgan bo'lishi SHART. Undagi moddalardan tashqari hech qachon modda raqami, jazo muddati yoki norma to'qima.
 2. BAZA MA'LUMOTLARI blokidagi moddalarni keltirishda kodeks nomi va modda raqamini aniq yoz (masalan: "O'zbekiston Respublikasi Jinoyat Kodeksining 97-moddasi").
 3. Agar berilgan baza ma'lumotlarida foydalanuvchi savoliga mos modda bo'lmasa, shunday yoz: "Bazada bu savol bo'yicha aniq modda topilmadi" — va umumiy qonuniy tushuntirish bering, modda raqami keltirmang.
 4. JAVOBLAR ANIQLIGI: Jinoyat Kodeksi 97-moddasi — "Qasddan odam o'ldirish". Moddalarni boshqa kodekslar bilan adashtirma.
-5. TIL: Faqat adabiy o'zbek tilida, FAQAT LOTIN ALIFBOSIDA javob ber. Kirill harflari (ў, қ, ғ, ҳ, ё, ж kabi) MUTLAQO ISHLATILMAYDI.
+5. TIL: Faqat adabiy o'zbek tilida, FAQAT LOTIN ALIFBOSIDA javob ber. Kirill harflari MUTLAQO ISHLATILMAYDI.
 6. FORMAT: Toza Markdown ishlat (## sarlavhalar, **qalin**, • ro'yxatlar).
-7. Qisqa va aniq bo'l: odatda 150-250 so'z. Foydalanuvchi "batafsil" desa 300-500 so'z.${legalContext}`,
-          },
-          {
-            role: 'user',
-            content: message,
-          },
-        ],
-        metadata: { type: 'JSON' },
-        temperature: 0.1,
-        max_tokens: 2048,
-      }),
-    })
+7. Qisqa va aniq bo'l: odatda 150-250 so'z. Foydalanuvchi "batafsil" desa 300-500 so'z.${legalContext}`
 
-    if (!response.ok) {
-      const errorText = await response.text()
-      console.error('Groq API error:', errorText)
-      return NextResponse.json(
-        {
-          error: 'AI service error',
-          details: response.status === 401 ? 'API key invalid' : 'Unknown error',
-        },
-        { status: response.status }
-      )
+    let aiResponse = ''
+
+    // ── 1. Gemini (asosiy provider) ──
+    if (process.env.GEMINI_API_KEY) {
+      try {
+        const geminiResult = await callGemini(
+          `${chatSystemPrompt}\n\nFOYDALANUVCHI SAVOLI: ${message}`,
+          { maxTokens: 2048, temperature: 0.1 }
+        )
+        if (geminiResult?.trim()) {
+          aiResponse = ensureUzbekLatin(geminiResult)
+        }
+      } catch (geminiErr) {
+        console.warn("[chat] Gemini xatosi, Groq'ga o'tilmoqda:", geminiErr)
+      }
     }
 
-    const data = await response.json()
-    let aiResponse = data.choices[0]?.message?.content || 'Javob olinmadi'
+    // ── 2. Groq (zaxira provider) ──
+    if (!aiResponse) {
+      if (!GROQ_API_KEY) {
+        console.error('[chat] Na Gemini, na Groq sozlanmagan')
+        return NextResponse.json({ error: 'AI service not configured' }, { status: 500 })
+      }
+      const groqResp = await fetch(GROQ_API_URL, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${GROQ_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'openai/gpt-oss-120b',
+          messages: [
+            { role: 'system', content: chatSystemPrompt },
+            { role: 'user', content: message },
+          ],
+          temperature: 0.1,
+          max_tokens: 2048,
+        }),
+      })
 
-    // ── Lotin alifbosi kafolati: kirillcha aralashsa transliteratsiya qilinadi ──
-    aiResponse = ensureUzbekLatin(aiResponse)
+      if (!groqResp.ok) {
+        const errorText = await groqResp.text()
+        console.error('Groq API error:', errorText)
+        return NextResponse.json(
+          {
+            error: 'AI service error',
+            details: groqResp.status === 401 ? 'API key invalid' : 'Unknown error',
+          },
+          { status: groqResp.status }
+        )
+      }
 
-    // AI javobidagi modda iqtiboslari bazaga mosligini tekshiramiz —
-    // to'qima modda raqamlari javobda qolmasligi uchun.
+      const groqData = await groqResp.json()
+      aiResponse = ensureUzbekLatin(groqData.choices[0]?.message?.content || 'Javob olinmadi')
+    }
+
+    // ── Modda iqtiboslari validatsiyasi ──
     try {
       const citeResult = await validateCitations(aiResponse)
       if (citeResult.invalid.length > 0) {
@@ -111,7 +122,7 @@ QAT'IY QOIDALAR:
       // Validatsiya xatosi javobni buzmasin
     }
 
-    // XP mukofoti (+5 XP)
+    // ── XP mukofoti (+5 XP) ──
     let xpResult = null
     try {
       const { awardUserXP } = await import('@/lib/xp-engine')
@@ -120,7 +131,7 @@ QAT'IY QOIDALAR:
         xp: 5,
         action: 'ai-chat',
         title: 'AI yuridik maslahat',
-        description: 'AI yuridik maslahat so‘rovi',
+        description: "AI yuridik maslahat so'rovi",
         idempotencyKey: `ai_chat_${auth.user.id}_${Date.now()}`,
       })
     } catch (e) {

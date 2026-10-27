@@ -1,5 +1,5 @@
-// Groq API Integration for Juristiv Legal Platform
-// Using fetch API instead of groq-sdk to avoid dependency issues
+// Google Gemini & Groq API Integration for Juristiv Legal Platform
+import { callGemini } from './gemini'
 
 // Initialize Groq with environment variable
 const API_KEY = process.env.GROQ_API_KEY || '' // Set GROQ_API_KEY in environment variables
@@ -51,19 +51,38 @@ class GoogleAIService {
 
   async generateLegalResponse(request: LegalAnalysisRequest): Promise<AIResponse> {
     try {
-      // Check if API is available
+      const systemPrompt = this.buildSystemPrompt(request.type, request.language)
+      const userPrompt = this.buildUserPrompt(request)
+
+      // ── 1. Google Gemini orqali tahlil (Birlamchi va bepul) ──
+      if (process.env.GEMINI_API_KEY) {
+        try {
+          const geminiText = await callGemini(userPrompt, {
+            systemInstruction: systemPrompt,
+            temperature: request.type === 'irac-analysis' ? 0.2 : 0.4,
+            maxTokens: request.type === 'irac-analysis' ? 3500 : 2000,
+          })
+          if (geminiText && geminiText.trim()) {
+            return {
+              text: geminiText.trim(),
+              success: true,
+            }
+          }
+        } catch (geminiErr: any) {
+          console.warn('[GoogleAIService] Gemini urinishi xatoligi, Groq’ga o‘tilmoqda:', geminiErr.message)
+        }
+      }
+
+      // Check if Groq API is available
       if (!API_KEY) {
         return {
           text: '',
           success: false,
-          error: 'Groq API is not available',
+          error: 'AI xizmati sozlanmagan (Gemini va Groq kalitlari yo‘q)',
         }
       }
 
       const modelName = request.type === 'irac-analysis' ? this.legalModel : this.model
-
-      const systemPrompt = this.buildSystemPrompt(request.type, request.language)
-      const userPrompt = this.buildUserPrompt(request)
 
       const response = await fetch(GROQ_API_URL, {
         method: 'POST',

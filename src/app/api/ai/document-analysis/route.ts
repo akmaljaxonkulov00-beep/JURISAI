@@ -3,6 +3,7 @@ import { requireUser } from '@/lib/server-auth'
 import { checkAndIncrement, usageMessage } from '@/lib/usage-limits'
 import { groundPrompt } from '@/lib/legal-rag'
 import { ensureUzbekLatin } from '@/lib/uz-latin'
+import { callGemini } from '@/lib/gemini'
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
@@ -40,7 +41,7 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       )
     }
-    if (!GROQ_API_KEY) {
+    if (!GROQ_API_KEY && !process.env.GEMINI_API_KEY) {
       return NextResponse.json({ error: 'AI xizmati sozlanmagan' }, { status: 503 })
     }
 
@@ -67,44 +68,65 @@ export async function POST(req: NextRequest) {
       BASE_SYSTEM_PROMPT
     )
 
-    // Call Groq for document analysis
-    let response: Response
-    try {
-      response = await fetch(GROQ_API_URL, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${GROQ_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'openai/gpt-oss-120b',
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: documentText },
-          ],
+    let analysisText: string | null = null
+
+    // ── 1. Google Gemini orqali hujjat tahlili (Birlamchi va bepul) ──
+    if (process.env.GEMINI_API_KEY) {
+      try {
+        const geminiRes = await callGemini(documentText, {
+          systemInstruction: systemPrompt,
           temperature: 0.1,
-          max_tokens: 2048,
-        }),
-      })
-    } catch (err) {
-      console.error('Groq document-analysis fetch error:', err)
-      return NextResponse.json({ error: 'AI xizmatida xatolik yuz berdi' }, { status: 502 })
+          maxTokens: 2500,
+        })
+        if (geminiRes && geminiRes.trim()) {
+          analysisText = ensureUzbekLatin(geminiRes)
+        }
+      } catch (geminiErr: any) {
+        console.warn('Gemini Document Analysis urinishi xatoligi, Groq’ga o‘tilmoqda:', geminiErr.message)
+      }
     }
 
-    // Provider xatosi — fake muvaffaqiyat QAYTARILMAYDI
-    if (!response.ok) {
-      console.error('Groq document-analysis error:', response.status, await response.text())
-      return NextResponse.json({ error: 'AI xizmatida xatolik yuz berdi' }, { status: 502 })
-    }
-
-    const data = await response.json()
-    const analysisText = data.choices[0]?.message?.content
+    // ── 2. Zaxira: Groq API ──
     if (!analysisText) {
-      return NextResponse.json({ error: 'AI javob olinmadi' }, { status: 502 })
+      let response: Response
+      try {
+        response = await fetch(GROQ_API_URL, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${GROQ_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'openai/gpt-oss-120b',
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: documentText },
+            ],
+            temperature: 0.1,
+            max_tokens: 2048,
+          }),
+        })
+      } catch (err) {
+        console.error('Groq document-analysis fetch error:', err)
+        return NextResponse.json({ error: 'AI xizmatida xatolik yuz berdi' }, { status: 502 })
+      }
+
+      // Provider xatosi — fake muvaffaqiyat QAYTARILMAYDI
+      if (!response.ok) {
+        console.error('Groq document-analysis error:', response.status, await response.text())
+        return NextResponse.json({ error: 'AI xizmatida xatolik yuz berdi' }, { status: 502 })
+      }
+
+      const data = await response.json()
+      const rawText = data.choices[0]?.message?.content
+      if (!rawText) {
+        return NextResponse.json({ error: 'AI javob olinmadi' }, { status: 502 })
+      }
+      analysisText = ensureUzbekLatin(rawText)
     }
 
     // ── Lotin alifbosi kafolati ──
-    const latinAnalysis = ensureUzbekLatin(analysisText)
+    const latinAnalysis = analysisText
 
     return NextResponse.json({
       analysis: latinAnalysis,

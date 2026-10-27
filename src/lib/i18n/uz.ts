@@ -349,6 +349,17 @@ export const uz = {
   dashboardNewUser: 'Yangi boshlovchi',
   dashboardTagline: 'Huquqiy bilimlaringizni rivojlantirishni davom ettiring',
   dashboardUser: 'Foydalanuvchi',
+  dashboardWelcome: 'Xush kelibsiz',
+  dashboardCasesSolved: 'Yechilgan kazuslar',
+  dashboardTotalXP: 'Jami XP',
+  dashboardWeeklyGoal: 'Haftalik maqsad',
+  dashboardLevel: 'Daraja',
+  dashboardXpThisWeek: 'XP shu hafta',
+  dashboardStreak: 'Ketma-ket kunlar',
+  dashboardDaysRow: 'kun ketma-ket',
+  dashboardAchievements: 'Yutuqlar',
+  dashboardQuickActions: 'Tezkor amallar',
+  dashboardAboveAverage: 'O\'rtacha ko\'rsatkichdan yuqori',
 
   // Landing page extras
   landingHeroDesc:

@@ -5,6 +5,7 @@ import { getAuthHeaders } from '@/lib/api-auth-client'
 import { useRouter } from 'next/navigation'
 import { useLimitModal } from '@/hooks/useLimitModal'
 import LimitExceededModal from '@/components/ai/LimitExceededModal'
+import PageHeader from '@/components/layout/PageHeader'
 import { supabase } from '@/lib/supabase'
 import {
   Gavel,
@@ -636,8 +637,8 @@ export default function VirtualCourtPage() {
   const currentStageObj: CourtStage | undefined = useMemo(() => {
     if (!selectedScenario || !sessionState) return undefined
     return (
-      selectedScenario.stages.find(s => s.id === sessionState.current_stage) ||
-      selectedScenario.stages[0]
+      selectedScenario?.stages?.find(s => s.id === sessionState.current_stage) ||
+      selectedScenario?.stages?.[0]
     )
   }, [selectedScenario, sessionState])
 
@@ -649,449 +650,415 @@ export default function VirtualCourtPage() {
       <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-blue-600 selection:text-white">
         <LimitExceededModal {...modalProps} onUpgrade={() => router.push('/premium')} />
 
-        {/* Top Navigation */}
-        <header className="border-b border-slate-800/80 bg-slate-900/60 backdrop-blur-md sticky top-0 z-30 px-4 lg:px-8 py-3.5 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-500/20">
-              <Gavel className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <h1 className="text-lg font-bold text-white tracking-tight flex items-center gap-2">
-                JURISTIV{' '}
-                <span className="text-xs px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 font-semibold border border-blue-500/30">
-                  Virtual Sud
-                </span>
-              </h1>
-              <p className="text-xs text-slate-400">
-                Interaktiv Sud Simulyatsiyasi • O‘zbekiston Qonunchiligi
-              </p>
-            </div>
-          </div>
+        {/* Page Header */}
+        <PageHeader
+          title="Virtual Sud"
+          description="Sud jarayonini AI bilan simulyatsiya qiling. Sudya, prokuror yoki advokat sifatida tajriba orting."
+          showBackButton={true}
+        />
 
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => router.push('/dashboard')}
-              className="px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700/60 transition flex items-center gap-1.5"
-            >
-              <ArrowLeft size={14} className="text-slate-400" />
-              <span>Boshqaruv Paneli</span>
-            </button>
-            <button
-              onClick={() => {
-                setShowHistoryModal(true)
-                loadHistory()
-              }}
-              className="px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700/60 transition flex items-center gap-1.5"
-            >
-              <History size={14} className="text-blue-400" />
-              <span>Mening Sudlarim</span>
-            </button>
-            <button
-              onClick={() => router.push('/virtual-court/multiplayer')}
-              className="px-3.5 py-1.5 text-xs font-bold rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-md shadow-blue-500/20 transition flex items-center gap-1.5"
-            >
-              <Users size={14} className="text-white" />
-              <span className="hidden sm:inline">Ko‘p foydalanuvchili Sud</span>
-              <span className="sm:hidden">Multiplayer</span>
-            </button>
-          </div>
-        </header>
-
-        {/* Main Content */}
-        <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
-          {/* MULTIPLAYER PROMO BANNER */}
-          <div className="rounded-3xl bg-gradient-to-r from-blue-950/60 via-indigo-950/50 to-zinc-900 border border-blue-500/30 p-5 sm:p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xl">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-blue-500/20 border border-blue-500/40 flex items-center justify-center text-blue-400 flex-shrink-0">
-                <Users className="w-6 h-6" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-[11px] font-bold text-blue-400 uppercase tracking-wider">
-                    Yangi imkoniyat
-                  </span>
-                  <span className="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full font-bold animate-pulse">
-                    Jonli Onlayn
-                  </span>
+        <div className="flex-1 px-4 lg:px-8 py-6">
+          {/* Main Content */}
+          <main className="flex-1 max-w-7xl w-full mx-auto space-y-8 pt-6">
+            {/* MULTIPLAYER PROMO BANNER */}
+            <div className="rounded-3xl bg-gradient-to-r from-blue-950/60 via-indigo-950/50 to-zinc-900 border border-blue-500/30 p-5 sm:p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xl">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-blue-500/20 border border-blue-500/40 flex items-center justify-center text-blue-400 flex-shrink-0">
+                  <Users className="w-6 h-6" />
                 </div>
-                <h3 className="text-base sm:text-lg font-bold text-white mt-0.5">
-                  Ko‘p Foydalanuvchili Virtual Sud (Multiplayer)
-                </h3>
-                <p className="text-xs text-zinc-300 max-w-2xl leading-relaxed">
-                  Boshqa foydalanuvchilar bilan real vaqtda bir xonada Sudya, Advokat, Prokuror yoki
-                  Guvoh maqomida sud majlisida qatnashing, dalillar taqdim eting va e’tirozlar
-                  bildiring.
-                </p>
-              </div>
-            </div>
-
-            <button
-              onClick={() => router.push('/virtual-court/multiplayer')}
-              className="w-full md:w-auto px-5 py-2.5 rounded-xl font-bold text-xs bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-500/25 flex items-center justify-center gap-2 transition-all flex-shrink-0"
-            >
-              <span>Multiplayer Zallarga Kirish</span>
-              <ArrowRight size={14} />
-            </button>
-          </div>
-
-          {/* STEP 1: CHOOSE PROCEDURE TYPE */}
-          <section>
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h2 className="text-base font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-blue-600 text-xs flex items-center justify-center font-bold">
-                    1
-                  </span>
-                  Simulyatsiya Turi
-                </h2>
-                <p className="text-xs text-slate-400">Kerakli huquqiy amaliyot formatini tanlang</p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {[
-                {
-                  id: 'trial' as ProcedureType,
-                  title: 'Sud Jarayoni',
-                  sub: 'JPK / FPK bo‘yicha to‘liq sud majlisi',
-                  icon: Gavel,
-                  gradient: 'from-blue-600/30 to-indigo-600/10 border-blue-500/40',
-                  activeBorder: 'border-blue-500 bg-blue-950/40 shadow-lg shadow-blue-600/20',
-                },
-                {
-                  id: 'negotiation' as ProcedureType,
-                  title: 'Muzokara (Mediation)',
-                  sub: 'Shartnomaviy va biznes nizolarini hal etish',
-                  icon: Scale,
-                  gradient: 'from-emerald-600/30 to-teal-600/10 border-emerald-500/40',
-                  activeBorder:
-                    'border-emerald-500 bg-emerald-950/40 shadow-lg shadow-emerald-600/20',
-                },
-                {
-                  id: 'investigation' as ProcedureType,
-                  title: 'Tergov Harakatlari',
-                  sub: 'Guvohlarni so‘roq qilish va dalillarni tahlil qilish',
-                  icon: Search,
-                  gradient: 'from-purple-600/30 to-violet-600/10 border-purple-500/40',
-                  activeBorder: 'border-purple-500 bg-purple-950/40 shadow-lg shadow-purple-600/20',
-                },
-              ].map(p => {
-                const Icon = p.icon
-                const isSelected = selectedProcedure === p.id
-                return (
-                  <button
-                    key={p.id}
-                    onClick={() => setSelectedProcedure(p.id)}
-                    className={`p-5 rounded-2xl border text-left transition-all relative overflow-hidden flex flex-col justify-between ${
-                      isSelected
-                        ? p.activeBorder
-                        : 'border-slate-800 bg-slate-900/40 hover:border-slate-700 hover:bg-slate-900/80'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="w-10 h-10 rounded-xl bg-slate-800/80 flex items-center justify-center text-blue-400">
-                        <Icon size={20} />
-                      </div>
-                      {isSelected && (
-                        <span className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs">
-                          ✓
-                        </span>
-                      )}
-                    </div>
-                    <div>
-                      <h3 className="text-base font-bold text-white">{p.title}</h3>
-                      <p className="text-xs text-slate-400 mt-1">{p.sub}</p>
-                    </div>
-                  </button>
-                )
-              })}
-            </div>
-          </section>
-
-          {/* STEP 2: CHOOSE USER ROLE */}
-          <section>
-            <div className="mb-4">
-              <h2 className="text-base font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                <span className="w-6 h-6 rounded-full bg-blue-600 text-xs flex items-center justify-center font-bold">
-                  2
-                </span>
-                Ishtirok Etadigan Rolingiz
-              </h2>
-              <p className="text-xs text-slate-400">
-                Siz tanlagan rol sizning boshqaruvingizda bo‘ladi, qolgan barcha ishtirokchilar AI
-                tomonidan boshqariladi
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {[
-                {
-                  id: 'ADVOKAT' as CourtRole,
-                  title: 'Advokat (Himoyachi)',
-                  desc: 'Mijoz huquqlarini himoya qilish, dalillarga e’tiroz bildirish va oqlov/yengillik so‘rash',
-                  icon: Shield,
-                  color: 'text-amber-400',
-                  border: 'border-amber-500/50 bg-amber-950/20 shadow-amber-500/10',
-                },
-                {
-                  id: 'PROKUROR' as CourtRole,
-                  title: 'Prokuror (Ayblovchi)',
-                  desc: 'Davlat ayblovini qo‘llab-quvvatlash, dalillarni isbotlash va qat’iy jazo talab qilish',
-                  icon: Gavel,
-                  color: 'text-rose-400',
-                  border: 'border-rose-500/50 bg-rose-950/20 shadow-rose-500/10',
-                },
-                {
-                  id: 'SUDYA' as CourtRole,
-                  title: 'Sud Raisi (Sudya)',
-                  desc: 'Majlisni boshqarish, iltimosnomalarni hal etish, dalillarni qabul qilish va Hukm chiqarish',
-                  icon: Scale,
-                  color: 'text-blue-400',
-                  border: 'border-blue-500/50 bg-blue-950/20 shadow-blue-500/10',
-                },
-              ].map(r => {
-                const Icon = r.icon
-                const isSelected = selectedRole === r.id
-                return (
-                  <button
-                    key={r.id}
-                    onClick={() => setSelectedRole(r.id)}
-                    className={`p-5 rounded-2xl border text-left transition-all flex flex-col justify-between ${
-                      isSelected
-                        ? `border-2 ${r.border} shadow-lg`
-                        : 'border-slate-800 bg-slate-900/40 hover:border-slate-700'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <div
-                        className={`w-10 h-10 rounded-xl bg-slate-800/80 flex items-center justify-center ${r.color}`}
-                      >
-                        <Icon size={20} />
-                      </div>
-                      {isSelected && (
-                        <span className="text-xs px-2.5 py-1 rounded-full bg-blue-600 text-white font-semibold">
-                          Tanlandi
-                        </span>
-                      )}
-                    </div>
-                    <div>
-                      <h3 className="text-base font-bold text-white">{r.title}</h3>
-                      <p className="text-xs text-slate-400 mt-1 leading-relaxed">{r.desc}</p>
-                    </div>
-                  </button>
-                )
-              })}
-            </div>
-          </section>
-
-          {/* STEP 3: CHOOSE SCENARIO / CASE */}
-          <section className="space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <h2 className="text-base font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-blue-600 text-xs flex items-center justify-center font-bold">
-                    3
-                  </span>
-                  Ishni Tanlang (Case Selection)
-                </h2>
-                <p className="text-xs text-slate-400">
-                  O‘quv amaliyoti uchun realistik sud ishlari
-                </p>
-              </div>
-
-              {/* Filters */}
-              <div className="flex items-center gap-2 flex-wrap">
-                <div className="relative">
-                  <Search size={15} className="absolute left-3 top-2.5 text-slate-400" />
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={e => setSearchQuery(e.target.value)}
-                    placeholder="Qidiruv..."
-                    className="pl-9 pr-3 py-1.5 text-xs rounded-lg bg-slate-900 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
-                  />
-                </div>
-                <select
-                  value={categoryFilter}
-                  onChange={e => setCategoryFilter(e.target.value)}
-                  className="px-3 py-1.5 text-xs rounded-lg bg-slate-900 border border-slate-800 text-slate-200 focus:outline-none focus:border-blue-500"
-                >
-                  <option value="all">Barcha sohalar</option>
-                  <option value="criminal">Jinoyat ishlari</option>
-                  <option value="civil">Fuqarolik ishlari</option>
-                  <option value="labor">Mehnat nizolari</option>
-                  <option value="family">Oila nizolari</option>
-                  <option value="economic">Iqtisodiy / Biznes</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Cases Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredCases.map(sc => {
-                const isSelected = selectedScenario?.id === sc.id
-                return (
-                  <div
-                    key={sc.id}
-                    onClick={() => setSelectedScenario(sc)}
-                    className={`p-5 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between ${
-                      isSelected
-                        ? 'border-blue-500 bg-blue-950/20 shadow-lg shadow-blue-500/10'
-                        : 'border-slate-800/80 bg-slate-900/40 hover:border-slate-700 hover:bg-slate-900/80'
-                    }`}
-                  >
-                    <div>
-                      <div className="flex items-center justify-between gap-2 mb-2">
-                        <span className="text-[11px] px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 uppercase font-semibold">
-                          {sc.category}
-                        </span>
-                        <span
-                          className={`text-[11px] px-2 py-0.5 rounded-md font-semibold ${
-                            sc.difficulty === 'easy'
-                              ? 'bg-emerald-950/60 text-emerald-400 border border-emerald-800/60'
-                              : sc.difficulty === 'medium'
-                                ? 'bg-amber-950/60 text-amber-400 border border-amber-800/60'
-                                : 'bg-rose-950/60 text-rose-400 border border-rose-800/60'
-                          }`}
-                        >
-                          {sc.difficulty === 'easy'
-                            ? "Boshlang'ich"
-                            : sc.difficulty === 'medium'
-                              ? "O'rta"
-                              : 'Murakkab'}
-                        </span>
-                      </div>
-                      <h3 className="text-base font-bold text-white line-clamp-1">{sc.title}</h3>
-                      <p className="text-xs text-slate-400 mt-2 line-clamp-3 leading-relaxed">
-                        {sc.description || sc.facts}
-                      </p>
-                    </div>
-
-                    <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
-                      <span>👥 {sc.participants?.length || 4} ishtirokchi</span>
-                      <span>📂 {sc.evidence?.length || 2} ta dalil</span>
-                    </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] font-bold text-blue-400 uppercase tracking-wider">
+                      Yangi imkoniyat
+                    </span>
+                    <span className="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full font-bold animate-pulse">
+                      Jonli Onlayn
+                    </span>
                   </div>
-                )
-              })}
-            </div>
-
-            {filteredCases.length === 0 && (
-              <div className="text-center py-12 text-slate-500 bg-slate-900/30 rounded-2xl border border-slate-800/60">
-                <Scale className="mx-auto mb-2 opacity-50" size={32} />
-                <p className="text-sm">Ushbu filtr bo‘yicha sud ishlari topilmadi.</p>
-              </div>
-            )}
-          </section>
-
-          {/* START BUTTON BANNER */}
-          {selectedScenario && (
-            <div className="p-6 rounded-3xl bg-gradient-to-r from-blue-900/50 via-slate-900 to-indigo-950/50 border border-blue-500/30 flex flex-col md:flex-row items-center justify-between gap-4 shadow-xl">
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <Sparkles size={16} className="text-blue-400" />
-                  <span className="text-xs font-semibold text-blue-400 uppercase tracking-wider">
-                    Simulyatsiya Boshlashga Tayyor
-                  </span>
+                  <h3 className="text-base sm:text-lg font-bold text-white mt-0.5">
+                    Ko‘p Foydalanuvchili Virtual Sud (Multiplayer)
+                  </h3>
+                  <p className="text-xs text-zinc-300 max-w-2xl leading-relaxed">
+                    Boshqa foydalanuvchilar bilan real vaqtda bir xonada Sudya, Advokat, Prokuror
+                    yoki Guvoh maqomida sud majlisida qatnashing, dalillar taqdim eting va
+                    e’tirozlar bildiring.
+                  </p>
                 </div>
-                <h3 className="text-lg font-bold text-white">
-                  {selectedScenario.title} • <span className="text-blue-400">{selectedRole}</span>{' '}
-                  sifatida
-                </h3>
-                <p className="text-xs text-slate-300 mt-1">
-                  AI qatnashchilari to‘liq protsessual qonunlar asosida ish yuritadi.
-                </p>
               </div>
 
               <button
-                onClick={() => handleStartSession()}
-                disabled={loading}
-                className="w-full md:w-auto px-8 py-3.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-sm shadow-lg shadow-blue-500/25 transition-all flex items-center justify-center gap-2"
+                onClick={() => router.push('/virtual-court/multiplayer')}
+                className="w-full md:w-auto px-5 py-2.5 rounded-xl font-bold text-xs bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-500/25 flex items-center justify-center gap-2 transition-all flex-shrink-0"
               >
-                {loading ? (
-                  <>
-                    <RefreshCw size={18} className="animate-spin" /> {loadingText}
-                  </>
-                ) : (
-                  <>
-                    <Play size={18} /> Sud Majlisini Boshlash
-                  </>
-                )}
+                <span>Multiplayer Zallarga Kirish</span>
+                <ArrowRight size={14} />
               </button>
             </div>
-          )}
-        </main>
 
-        {/* HISTORY MODAL */}
-        {showHistoryModal && (
-          <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="bg-slate-900 border border-slate-800 w-full max-w-2xl rounded-2xl shadow-2xl flex flex-col max-h-[85vh]">
-              <div className="p-5 border-b border-slate-800 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <History className="text-blue-400" size={20} />
-                  <h3 className="text-base font-bold text-white">O‘tgan Sud Sessiyalari Tarixi</h3>
+            {/* STEP 1: CHOOSE PROCEDURE TYPE */}
+            <section>
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h2 className="text-base font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-full bg-blue-600 text-xs flex items-center justify-center font-bold">
+                      1
+                    </span>
+                    Simulyatsiya Turi
+                  </h2>
+                  <p className="text-xs text-slate-400">
+                    Kerakli huquqiy amaliyot formatini tanlang
+                  </p>
                 </div>
-                <button
-                  onClick={() => setShowHistoryModal(false)}
-                  className="text-slate-400 hover:text-white"
-                >
-                  <X size={20} />
-                </button>
               </div>
-              <div className="p-5 overflow-y-auto space-y-3 flex-1">
-                {loadingHistory ? (
-                  <div className="text-center py-8 text-slate-400">
-                    <RefreshCw size={24} className="animate-spin mx-auto mb-2" />
-                    Yuklanmoqda...
-                  </div>
-                ) : historyList.length === 0 ? (
-                  <div className="text-center py-8 text-slate-500">
-                    Hali yakunlangan simulyatsiyalar yo‘q.
-                  </div>
-                ) : (
-                  historyList.map(h => (
-                    <div
-                      key={h.id}
-                      className="p-4 rounded-xl bg-slate-950/60 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-slate-700 transition"
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {[
+                  {
+                    id: 'trial' as ProcedureType,
+                    title: 'Sud Jarayoni',
+                    sub: 'JPK / FPK bo‘yicha to‘liq sud majlisi',
+                    icon: Gavel,
+                    gradient: 'from-blue-600/30 to-indigo-600/10 border-blue-500/40',
+                    activeBorder: 'border-blue-500 bg-blue-950/40 shadow-lg shadow-blue-600/20',
+                  },
+                  {
+                    id: 'negotiation' as ProcedureType,
+                    title: 'Muzokara (Mediation)',
+                    sub: 'Shartnomaviy va biznes nizolarini hal etish',
+                    icon: Scale,
+                    gradient: 'from-emerald-600/30 to-teal-600/10 border-emerald-500/40',
+                    activeBorder:
+                      'border-emerald-500 bg-emerald-950/40 shadow-lg shadow-emerald-600/20',
+                  },
+                  {
+                    id: 'investigation' as ProcedureType,
+                    title: 'Tergov Harakatlari',
+                    sub: 'Guvohlarni so‘roq qilish va dalillarni tahlil qilish',
+                    icon: Search,
+                    gradient: 'from-purple-600/30 to-violet-600/10 border-purple-500/40',
+                    activeBorder:
+                      'border-purple-500 bg-purple-950/40 shadow-lg shadow-purple-600/20',
+                  },
+                ].map(p => {
+                  const Icon = p.icon
+                  const isSelected = selectedProcedure === p.id
+                  return (
+                    <button
+                      key={p.id}
+                      onClick={() => setSelectedProcedure(p.id)}
+                      className={`p-5 rounded-2xl border text-left transition-all relative overflow-hidden flex flex-col justify-between ${
+                        isSelected
+                          ? p.activeBorder
+                          : 'border-slate-800 bg-slate-900/40 hover:border-slate-700 hover:bg-slate-900/80'
+                      }`}
                     >
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="text-xs font-semibold px-2 py-0.5 rounded bg-blue-900/60 text-blue-300">
-                            {h.user_role}
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="w-10 h-10 rounded-xl bg-slate-800/80 flex items-center justify-center text-blue-400">
+                          <Icon size={20} />
+                        </div>
+                        {isSelected && (
+                          <span className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs">
+                            ✓
                           </span>
-                          <span className="text-xs text-slate-400">
-                            {new Date(h.created_at).toLocaleDateString('uz-UZ')}
+                        )}
+                      </div>
+                      <div>
+                        <h3 className="text-base font-bold text-white">{p.title}</h3>
+                        <p className="text-xs text-slate-400 mt-1">{p.sub}</p>
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+            </section>
+
+            {/* STEP 2: CHOOSE USER ROLE */}
+            <section>
+              <div className="mb-4">
+                <h2 className="text-base font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-blue-600 text-xs flex items-center justify-center font-bold">
+                    2
+                  </span>
+                  Ishtirok Etadigan Rolingiz
+                </h2>
+                <p className="text-xs text-slate-400">
+                  Siz tanlagan rol sizning boshqaruvingizda bo‘ladi, qolgan barcha ishtirokchilar AI
+                  tomonidan boshqariladi
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {[
+                  {
+                    id: 'ADVOKAT' as CourtRole,
+                    title: 'Advokat (Himoyachi)',
+                    desc: 'Mijoz huquqlarini himoya qilish, dalillarga e’tiroz bildirish va oqlov/yengillik so‘rash',
+                    icon: Shield,
+                    color: 'text-amber-400',
+                    border: 'border-amber-500/50 bg-amber-950/20 shadow-amber-500/10',
+                  },
+                  {
+                    id: 'PROKUROR' as CourtRole,
+                    title: 'Prokuror (Ayblovchi)',
+                    desc: 'Davlat ayblovini qo‘llab-quvvatlash, dalillarni isbotlash va qat’iy jazo talab qilish',
+                    icon: Gavel,
+                    color: 'text-rose-400',
+                    border: 'border-rose-500/50 bg-rose-950/20 shadow-rose-500/10',
+                  },
+                  {
+                    id: 'SUDYA' as CourtRole,
+                    title: 'Sud Raisi (Sudya)',
+                    desc: 'Majlisni boshqarish, iltimosnomalarni hal etish, dalillarni qabul qilish va Hukm chiqarish',
+                    icon: Scale,
+                    color: 'text-blue-400',
+                    border: 'border-blue-500/50 bg-blue-950/20 shadow-blue-500/10',
+                  },
+                ].map(r => {
+                  const Icon = r.icon
+                  const isSelected = selectedRole === r.id
+                  return (
+                    <button
+                      key={r.id}
+                      onClick={() => setSelectedRole(r.id)}
+                      className={`p-5 rounded-2xl border text-left transition-all flex flex-col justify-between ${
+                        isSelected
+                          ? `border-2 ${r.border} shadow-lg`
+                          : 'border-slate-800 bg-slate-900/40 hover:border-slate-700'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <div
+                          className={`w-10 h-10 rounded-xl bg-slate-800/80 flex items-center justify-center ${r.color}`}
+                        >
+                          <Icon size={20} />
+                        </div>
+                        {isSelected && (
+                          <span className="text-xs px-2.5 py-1 rounded-full bg-blue-600 text-white font-semibold">
+                            Tanlandi
+                          </span>
+                        )}
+                      </div>
+                      <div>
+                        <h3 className="text-base font-bold text-white">{r.title}</h3>
+                        <p className="text-xs text-slate-400 mt-1 leading-relaxed">{r.desc}</p>
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+            </section>
+
+            {/* STEP 3: CHOOSE SCENARIO / CASE */}
+            <section className="space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-base font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-full bg-blue-600 text-xs flex items-center justify-center font-bold">
+                      3
+                    </span>
+                    Ishni Tanlang (Case Selection)
+                  </h2>
+                  <p className="text-xs text-slate-400">
+                    O‘quv amaliyoti uchun realistik sud ishlari
+                  </p>
+                </div>
+
+                {/* Filters */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <div className="relative">
+                    <Search size={15} className="absolute left-3 top-2.5 text-slate-400" />
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={e => setSearchQuery(e.target.value)}
+                      placeholder="Qidiruv..."
+                      className="pl-9 pr-3 py-1.5 text-xs rounded-lg bg-slate-900 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+                  <select
+                    value={categoryFilter}
+                    onChange={e => setCategoryFilter(e.target.value)}
+                    className="px-3 py-1.5 text-xs rounded-lg bg-slate-900 border border-slate-800 text-slate-200 focus:outline-none focus:border-blue-500"
+                  >
+                    <option value="all">Barcha sohalar</option>
+                    <option value="criminal">Jinoyat ishlari</option>
+                    <option value="civil">Fuqarolik ishlari</option>
+                    <option value="labor">Mehnat nizolari</option>
+                    <option value="family">Oila nizolari</option>
+                    <option value="economic">Iqtisodiy / Biznes</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Cases Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredCases.map(sc => {
+                  const isSelected = selectedScenario?.id === sc.id
+                  return (
+                    <div
+                      key={sc.id}
+                      onClick={() => setSelectedScenario(sc)}
+                      className={`p-5 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between ${
+                        isSelected
+                          ? 'border-blue-500 bg-blue-950/20 shadow-lg shadow-blue-500/10'
+                          : 'border-slate-800/80 bg-slate-900/40 hover:border-slate-700 hover:bg-slate-900/80'
+                      }`}
+                    >
+                      <div>
+                        <div className="flex items-center justify-between gap-2 mb-2">
+                          <span className="text-[11px] px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 uppercase font-semibold">
+                            {sc.category}
+                          </span>
+                          <span
+                            className={`text-[11px] px-2 py-0.5 rounded-md font-semibold ${
+                              sc.difficulty === 'easy'
+                                ? 'bg-emerald-950/60 text-emerald-400 border border-emerald-800/60'
+                                : sc.difficulty === 'medium'
+                                  ? 'bg-amber-950/60 text-amber-400 border border-amber-800/60'
+                                  : 'bg-rose-950/60 text-rose-400 border border-rose-800/60'
+                            }`}
+                          >
+                            {sc.difficulty === 'easy'
+                              ? "Boshlang'ich"
+                              : sc.difficulty === 'medium'
+                                ? "O'rta"
+                                : 'Murakkab'}
                           </span>
                         </div>
-                        <h4 className="text-sm font-bold text-white truncate">{h.title}</h4>
-                        <p className="text-xs text-slate-400 mt-0.5">
-                          Holat: {h.outcome || h.status}
+                        <h3 className="text-base font-bold text-white line-clamp-1">{sc.title}</h3>
+                        <p className="text-xs text-slate-400 mt-2 line-clamp-3 leading-relaxed">
+                          {sc.description || sc.facts}
                         </p>
                       </div>
-                      <div className="flex items-center gap-3 self-end sm:self-center">
-                        <div className="text-right">
-                          <div className="text-base font-bold text-emerald-400">
-                            {h.score || 0} ball
-                          </div>
-                          <span className="text-[10px] text-slate-500">
-                            {h.status === 'completed' ? 'Yakunlangan' : 'Jarayonda'}
-                          </span>
-                        </div>
-                        <button
-                          onClick={() => handleResumeSession(h.id)}
-                          className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold transition flex items-center gap-1.5 shadow-sm"
-                        >
-                          <Play size={12} />
-                          <span>{h.status === 'completed' ? 'Ko‘rish' : 'Davom ettirish'}</span>
-                        </button>
+
+                      <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
+                        <span>👥 {sc.participants?.length || 4} ishtirokchi</span>
+                        <span>📂 {sc.evidence?.length || 2} ta dalil</span>
                       </div>
                     </div>
-                  ))
-                )}
+                  )
+                })}
+              </div>
+
+              {filteredCases.length === 0 && (
+                <div className="text-center py-12 text-slate-500 bg-slate-900/30 rounded-2xl border border-slate-800/60">
+                  <Scale className="mx-auto mb-2 opacity-50" size={32} />
+                  <p className="text-sm">Ushbu filtr bo‘yicha sud ishlari topilmadi.</p>
+                </div>
+              )}
+            </section>
+
+            {/* START BUTTON BANNER */}
+            {selectedScenario && (
+              <div className="p-6 rounded-3xl bg-gradient-to-r from-blue-900/50 via-slate-900 to-indigo-950/50 border border-blue-500/30 flex flex-col md:flex-row items-center justify-between gap-4 shadow-xl">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <Sparkles size={16} className="text-blue-400" />
+                    <span className="text-xs font-semibold text-blue-400 uppercase tracking-wider">
+                      Simulyatsiya Boshlashga Tayyor
+                    </span>
+                  </div>
+                  <h3 className="text-lg font-bold text-white">
+                    {selectedScenario?.title} •{' '}
+                    <span className="text-blue-400">{selectedRole}</span> sifatida
+                  </h3>
+                  <p className="text-xs text-slate-300 mt-1">
+                    AI qatnashchilari to‘liq protsessual qonunlar asosida ish yuritadi.
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => handleStartSession()}
+                  disabled={loading}
+                  className="w-full md:w-auto px-8 py-3.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-sm shadow-lg shadow-blue-500/25 transition-all flex items-center justify-center gap-2"
+                >
+                  {loading ? (
+                    <>
+                      <RefreshCw size={18} className="animate-spin" /> {loadingText}
+                    </>
+                  ) : (
+                    <>
+                      <Play size={18} /> Sud Majlisini Boshlash
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
+          </main>
+
+          {/* HISTORY MODAL */}
+          {showHistoryModal && (
+            <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+              <div className="bg-slate-900 border border-slate-800 w-full max-w-2xl rounded-2xl shadow-2xl flex flex-col max-h-[85vh]">
+                <div className="p-5 border-b border-slate-800 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <History className="text-blue-400" size={20} />
+                    <h3 className="text-base font-bold text-white">
+                      O‘tgan Sud Sessiyalari Tarixi
+                    </h3>
+                  </div>
+                  <button
+                    onClick={() => setShowHistoryModal(false)}
+                    className="text-slate-400 hover:text-white"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+                <div className="p-5 overflow-y-auto space-y-3 flex-1">
+                  {loadingHistory ? (
+                    <div className="text-center py-8 text-slate-400">
+                      <RefreshCw size={24} className="animate-spin mx-auto mb-2" />
+                      Yuklanmoqda...
+                    </div>
+                  ) : historyList.length === 0 ? (
+                    <div className="text-center py-8 text-slate-500">
+                      Hali yakunlangan simulyatsiyalar yo‘q.
+                    </div>
+                  ) : (
+                    historyList.map(h => (
+                      <div
+                        key={h.id}
+                        className="p-4 rounded-xl bg-slate-950/60 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-slate-700 transition"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-xs font-semibold px-2 py-0.5 rounded bg-blue-900/60 text-blue-300">
+                              {h.user_role}
+                            </span>
+                            <span className="text-xs text-slate-400">
+                              {new Date(h.created_at).toLocaleDateString('uz-UZ')}
+                            </span>
+                          </div>
+                          <h4 className="text-sm font-bold text-white truncate">{h.title}</h4>
+                          <p className="text-xs text-slate-400 mt-0.5">
+                            Holat: {h.outcome || h.status}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-3 self-end sm:self-center">
+                          <div className="text-right">
+                            <div className="text-base font-bold text-emerald-400">
+                              {h.score || 0} ball
+                            </div>
+                            <span className="text-[10px] text-slate-500">
+                              {h.status === 'completed' ? 'Yakunlangan' : 'Jarayonda'}
+                            </span>
+                          </div>
+                          <button
+                            onClick={() => handleResumeSession(h.id)}
+                            className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold transition flex items-center gap-1.5 shadow-sm"
+                          >
+                            <Play size={12} />
+                            <span>{h.status === 'completed' ? 'Ko‘rish' : 'Davom ettirish'}</span>
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     )
   }
@@ -1104,6 +1071,45 @@ export default function VirtualCourtPage() {
       <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col overflow-hidden relative selection:bg-blue-600 selection:text-white">
         <LimitExceededModal {...modalProps} onUpgrade={() => router.push('/premium')} />
 
+        {/* Minimal Top Navigation for Session */}
+        <div className="border-b border-slate-800/80 bg-slate-900/60 backdrop-blur-md sticky top-0 z-30 px-4 py-2 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                if (confirm('Sud sessiyasidan chiqishni xohlaysizmi? Session davom etadi.')) {
+                  setViewState('select')
+                }
+              }}
+              className="p-2 rounded-lg hover:bg-slate-800 transition-colors"
+              title="Sudni tark etish"
+            >
+              <ArrowLeft className="w-5 h-5 text-slate-400" />
+            </button>
+            <div className="flex items-center gap-2">
+              <Gavel className="w-4 h-4 text-blue-400" />
+              <span className="text-sm font-semibold text-white">
+                {selectedScenario?.title || 'Virtual Sud'}
+              </span>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowHistoryModal(true)}
+              className="p-2 rounded-lg hover:bg-slate-800 transition-colors"
+              title="Tarix"
+            >
+              <History className="w-4 h-4 text-slate-400" />
+            </button>
+            <button
+              onClick={handleExportTranscript}
+              className="p-2 rounded-lg hover:bg-slate-800 transition-colors"
+              title="Bayonnomani yuklab olish"
+            >
+              <Download className="w-4 h-4 text-slate-400" />
+            </button>
+          </div>
+        </div>
+
         {/* IMMERSIVE COURTROOM POV BACKGROUND */}
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat pointer-events-none transition-all duration-700 opacity-25"
@@ -1111,80 +1117,49 @@ export default function VirtualCourtPage() {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/80 to-slate-950/90 pointer-events-none" />
 
-        {/* ── TOP BAR: HUD & STAGE STEPPER ── */}
-        <header className="relative z-20 border-b border-slate-800/80 bg-slate-900/80 backdrop-blur-md px-4 lg:px-6 py-2.5 flex flex-col gap-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setViewState('select')}
-                className="text-xs text-slate-400 hover:text-white px-2 py-1 rounded bg-slate-800/60 transition"
-              >
-                ← Chiqish
-              </button>
-              <div>
-                <h2 className="text-sm font-bold text-white line-clamp-1">
-                  {selectedScenario.title}
-                </h2>
-                <div className="flex items-center gap-2 text-[11px] text-slate-400">
-                  <span className="text-blue-400 font-semibold">{selectedRole} sifatida</span>
-                  <span>•</span>
-                  <span>{selectedScenario.category}</span>
-                </div>
-              </div>
-            </div>
+        {/* Timer, Voice TTS & Finish Button - Inline with minimal nav */}
+        <div className="relative z-20 px-4 py-2 flex items-center justify-between border-b border-slate-800/80 bg-slate-900/80 backdrop-blur-md">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                const nextState = !ttsEnabled
+                setTtsEnabled(nextState)
+                if (!nextState && typeof window !== 'undefined' && 'speechSynthesis' in window) {
+                  window.speechSynthesis.cancel()
+                }
+              }}
+              className={`px-2.5 py-1 rounded-lg border text-xs transition flex items-center gap-1.5 ${
+                ttsEnabled
+                  ? 'bg-blue-600/30 text-blue-300 border-blue-500/50'
+                  : 'bg-slate-800 text-slate-400 border-slate-700/60 hover:text-white'
+              }`}
+              title={ttsEnabled ? "Ovozli o'qishni o'chirish" : "Ovozli o'qishni yoqish"}
+            >
+              {ttsEnabled ? <Volume2 size={14} className="text-blue-400" /> : <VolumeX size={14} />}
+              <span className="hidden sm:inline">{ttsEnabled ? 'Ovoz yoqiq' : 'Ovoz o‘chiq'}</span>
+            </button>
 
-            {/* Timer, Voice TTS & Finish Button */}
-            <div className="flex items-center gap-2 sm:gap-3">
-              <button
-                onClick={() => {
-                  const nextState = !ttsEnabled
-                  setTtsEnabled(nextState)
-                  if (!nextState && typeof window !== 'undefined' && 'speechSynthesis' in window) {
-                    window.speechSynthesis.cancel()
-                  }
-                }}
-                className={`px-2.5 py-1 rounded-lg border text-xs transition flex items-center gap-1.5 ${
-                  ttsEnabled
-                    ? 'bg-blue-600/30 text-blue-300 border-blue-500/50'
-                    : 'bg-slate-800 text-slate-400 border-slate-700/60 hover:text-white'
-                }`}
-                title={ttsEnabled ? "Ovozli o'qishni o'chirish" : "Ovozli o'qishni yoqish"}
-              >
-                {ttsEnabled ? (
-                  <Volume2 size={14} className="text-blue-400" />
-                ) : (
-                  <VolumeX size={14} />
-                )}
-                <span className="hidden sm:inline">
-                  {ttsEnabled ? 'Ovoz yoqiq' : 'Ovoz o‘chiq'}
-                </span>
-              </button>
-
-              <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-800/80 border border-slate-700/60 text-xs font-mono text-amber-400">
-                <Clock size={14} />
-                <span>{formatTime(timeRemaining)}</span>
-              </div>
-              <button
-                onClick={handleExportTranscript}
-                className="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 border border-slate-700/60 hover:bg-slate-700 text-xs font-medium transition flex items-center gap-1.5"
-                title="Sud bayonnomasini yuklab olish"
-              >
-                <Download size={13} className="text-blue-400" />
-                <span className="hidden md:inline">Bayonnoma</span>
-              </button>
-              <button
-                onClick={handleFinishSession}
-                className="px-3 py-1 rounded-lg bg-rose-600/20 text-rose-300 border border-rose-500/30 hover:bg-rose-600/30 text-xs font-medium transition"
-              >
-                Sudni Yakunlash
-              </button>
+            <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-800/80 border border-slate-700/60 text-xs font-mono text-amber-400">
+              <Clock size={14} />
+              <span>{formatTime(timeRemaining)}</span>
             </div>
           </div>
 
-          {/* STAGE STEPPER PROGRESS */}
-          <div className="overflow-x-auto pb-1 flex items-center gap-1.5 scrollbar-none">
-            {selectedScenario.stages.map((st, idx) => {
-              const isCurrent = st.id === sessionState.current_stage
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleFinishSession}
+              className="px-3 py-1 rounded-lg bg-rose-600/20 text-rose-300 border border-rose-500/30 hover:bg-rose-600/30 text-xs font-medium transition"
+            >
+              Sudni Yakunlash
+            </button>
+          </div>
+        </div>
+
+        {/* STAGE STEPPER PROGRESS */}
+        <div className="relative z-20 px-4 py-2 border-b border-slate-800/80 bg-slate-900/60 backdrop-blur-md overflow-x-auto">
+          <div className="flex items-center gap-1.5 scrollbar-none">
+            {selectedScenario?.stages?.map((st, idx) => {
+              const isCurrent = st.id === sessionState?.current_stage
               const isPast = st.order < (currentStageObj?.order || 1)
               return (
                 <div
@@ -1203,7 +1178,7 @@ export default function VirtualCourtPage() {
               )
             })}
           </div>
-        </header>
+        </div>
 
         {/* ERROR / FEEDBACK BANNER */}
         {errorBanner && (
@@ -1251,7 +1226,7 @@ export default function VirtualCourtPage() {
                 : 'border-transparent text-slate-400'
             }`}
           >
-            📂 Dalillar ({sessionState.evidence_state.length})
+            📂 Dalillar ({sessionState?.evidence_state?.length || 0})
           </button>
         </div>
 
@@ -1271,12 +1246,12 @@ export default function VirtualCourtPage() {
                   <Users size={14} className="text-blue-400" /> Ishtirokchilar
                 </h3>
                 <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">
-                  {sessionState.participant_state.length} kishi
+                  {sessionState?.participant_state?.length || 0} kishi
                 </span>
               </div>
 
               <div className="space-y-2">
-                {sessionState.participant_state.map(p => {
+                {sessionState?.participant_state?.map(p => {
                   const isSpeaking = activeSpeaker === p.name || activeSpeaker === p.title
                   return (
                     <div
@@ -1493,12 +1468,12 @@ export default function VirtualCourtPage() {
                     <FolderOpen size={14} className="text-amber-400" /> Dalillar Ro‘yxati
                   </h3>
                   <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400">
-                    {sessionState.evidence_state.length} ta
+                    {sessionState?.evidence_state?.length || 0} ta
                   </span>
                 </div>
 
                 <div className="space-y-2.5">
-                  {sessionState.evidence_state.map(ev => (
+                  {sessionState?.evidence_state?.map(ev => (
                     <div
                       key={ev.id}
                       onClick={() => setSelectedEvidenceForView(ev)}
@@ -1674,15 +1649,15 @@ export default function VirtualCourtPage() {
               Umumiy Natija
             </div>
             <div className="text-5xl font-black text-white font-mono tracking-tight">
-              {scoringResults.totalScore}{' '}
+              {scoringResults?.totalScore || 0}{' '}
               <span className="text-lg text-slate-400 font-normal">/ 100</span>
             </div>
             <p className="text-sm text-slate-300 max-w-xl mx-auto mt-2 leading-relaxed">
-              {scoringResults.feedbackSummary}
+              {scoringResults?.feedbackSummary || ''}
             </p>
             <div className="pt-3 flex items-center justify-center gap-2">
               <span className="text-xs px-3 py-1 rounded-full bg-blue-600/30 border border-blue-500/40 text-blue-300 font-semibold">
-                +{scoringResults.xpEarned} XP qo‘shildi
+                +{scoringResults?.xpEarned || 0} XP qo‘shildi
               </span>
             </div>
           </div>
@@ -1692,31 +1667,31 @@ export default function VirtualCourtPage() {
             <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 text-center">
               <div className="text-[11px] text-slate-400 mb-1">Qonuniy Asoslar</div>
               <div className="text-lg font-bold text-white font-mono">
-                {scoringResults.legalReasoning}%
+                {scoringResults?.legalReasoning || 0}%
               </div>
             </div>
             <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 text-center">
               <div className="text-[11px] text-slate-400 mb-1">Argumentatsiya</div>
               <div className="text-lg font-bold text-white font-mono">
-                {scoringResults.argumentQuality}%
+                {scoringResults?.argumentQuality || 0}%
               </div>
             </div>
             <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 text-center">
               <div className="text-[11px] text-slate-400 mb-1">Dalillar bilan ishlash</div>
               <div className="text-lg font-bold text-white font-mono">
-                {scoringResults.evidenceUsage}%
+                {scoringResults?.evidenceUsage || 0}%
               </div>
             </div>
             <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 text-center">
               <div className="text-[11px] text-slate-400 mb-1">Protsessual Tartib</div>
               <div className="text-lg font-bold text-white font-mono">
-                {scoringResults.proceduralCorrectness}%
+                {scoringResults?.proceduralCorrectness || 0}%
               </div>
             </div>
           </div>
 
           {/* Achievements */}
-          {scoringResults.achievements.length > 0 && (
+          {scoringResults?.achievements && scoringResults.achievements.length > 0 && (
             <div>
               <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
                 Qo‘lga Kiritilgan Unvonlar
@@ -1740,7 +1715,7 @@ export default function VirtualCourtPage() {
               <div className="font-bold text-emerald-400 flex items-center gap-1.5">
                 <CheckCircle size={14} /> Kuchli Tomonlar
               </div>
-              {scoringResults.strengths.map((s, idx) => (
+              {scoringResults?.strengths?.map((s, idx) => (
                 <div key={idx} className="text-slate-300">
                   • {s}
                 </div>
@@ -1750,7 +1725,7 @@ export default function VirtualCourtPage() {
               <div className="font-bold text-amber-400 flex items-center gap-1.5">
                 <TrendingUp size={14} /> Rivojlantirish Kerak
               </div>
-              {scoringResults.improvements.map((im, idx) => (
+              {scoringResults?.improvements?.map((im, idx) => (
                 <div key={idx} className="text-slate-300">
                   • {im}
                 </div>

@@ -3,6 +3,7 @@ import { requireUser } from '@/lib/server-auth'
 import { checkAndIncrement, usageMessage } from '@/lib/usage-limits'
 import { groundPrompt } from '@/lib/legal-rag'
 import { ensureUzbekLatin } from '@/lib/uz-latin'
+import { callGemini } from '@/lib/gemini'
 import { CreateScenarioFormInput, ScenarioData } from '@/types/scenario-generator'
 import { validateScenarioLegalIntegrity } from '@/lib/scenario-generator-engine'
 
@@ -35,7 +36,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (!GROQ_API_KEY) {
+    if (!GROQ_API_KEY && !process.env.GEMINI_API_KEY) {
       return NextResponse.json({ error: 'AI xizmati sozlanmagan' }, { status: 500 })
     }
 
@@ -149,45 +150,65 @@ Qo‘shimcha talablar: ${additionalRequirements || 'Standart professional amaliy
     let contentStr = ''
     let lastError = ''
 
-    for (const model of CANDIDATE_MODELS) {
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 25000)
-
+    // ── 1. Google Gemini orqali senariy yaratish (Birlamchi va bepul) ──
+    if (process.env.GEMINI_API_KEY) {
       try {
-        const response = await fetch(GROQ_API_URL, {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${GROQ_API_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model,
-            messages: [
-              { role: 'system', content: systemPrompt },
-              { role: 'user', content: userPrompt },
-            ],
-            temperature: 0.5,
-            max_tokens: 3500,
-            response_format: { type: 'json_object' },
-          }),
-          signal: controller.signal,
+        const geminiRes = await callGemini(userPrompt, {
+          systemInstruction: systemPrompt,
+          temperature: 0.4,
+          maxTokens: 3500,
+          responseJson: true,
         })
-
-        clearTimeout(timeoutId)
-
-        if (response.ok) {
-          const aiRes = await response.json()
-          contentStr = aiRes.choices?.[0]?.message?.content || ''
-          if (contentStr.trim()) break
-        } else {
-          const errorText = await response.text().catch(() => '')
-          lastError = `Model ${model} failed (${response.status}): ${errorText.slice(0, 150)}`
-          console.warn('Groq scenario generate attempt failed:', lastError)
+        if (geminiRes && geminiRes.trim()) {
+          contentStr = geminiRes
         }
-      } catch (e: any) {
-        clearTimeout(timeoutId)
-        lastError = e.name === 'AbortError' ? 'AI timeout (25s)' : e.message
-        console.warn(`Groq scenario generate error with ${model}:`, lastError)
+      } catch (geminiErr: any) {
+        console.warn('Gemini Scenario urinishi xatoligi, Groq’ga o‘tilmoqda:', geminiErr.message)
+      }
+    }
+
+    // ── 2. Zaxira: Groq API ──
+    if (!contentStr) {
+      for (const model of CANDIDATE_MODELS) {
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 25000)
+
+        try {
+          const response = await fetch(GROQ_API_URL, {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${GROQ_API_KEY}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model,
+              messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: userPrompt },
+              ],
+              temperature: 0.5,
+              max_tokens: 3500,
+              response_format: { type: 'json_object' },
+            }),
+            signal: controller.signal,
+          })
+
+          clearTimeout(timeoutId)
+
+          if (response.ok) {
+            const aiRes = await response.json()
+            contentStr = aiRes.choices?.[0]?.message?.content || ''
+            if (contentStr.trim()) break
+          } else {
+            const errorText = await response.text().catch(() => '')
+            lastError = `Model ${model} failed (${response.status}): ${errorText.slice(0, 150)}`
+            console.warn('Groq scenario generate attempt failed:', lastError)
+          }
+        } catch (e: any) {
+          clearTimeout(timeoutId)
+          lastError = e.name === 'AbortError' ? 'AI timeout (25s)' : e.message
+          console.warn(`Groq scenario generate error with ${model}:`, lastError)
+        }
       }
     }
 

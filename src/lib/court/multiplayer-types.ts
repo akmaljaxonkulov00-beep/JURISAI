@@ -138,6 +138,9 @@ export interface MultiplayerRoom {
   participants: MultiplayerParticipant[]
   evidence: MultiplayerEvidenceItem[]
   messages: MultiplayerMessage[]
+  startedAt?: string
+  completedAt?: string
+  durationSeconds?: number
   createdAt: string
   updatedAt: string
 }

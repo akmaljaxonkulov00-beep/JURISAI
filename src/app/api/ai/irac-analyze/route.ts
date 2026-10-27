@@ -3,6 +3,7 @@ import { requireUser } from '@/lib/server-auth'
 import { checkAndIncrement, usageMessage } from '@/lib/usage-limits'
 import { groundPrompt } from '@/lib/legal-rag'
 import { ensureUzbekLatin } from '@/lib/uz-latin'
+import { callGemini } from '@/lib/gemini'
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
@@ -25,7 +26,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (!GROQ_API_KEY) {
+    if (!GROQ_API_KEY && !process.env.GEMINI_API_KEY) {
       return NextResponse.json({ error: 'AI xizmati sozlanmagan' }, { status: 500 })
     }
 
@@ -74,50 +75,72 @@ HAR BIR BO'LIM AJRATILGAN BO'LISHI SHART — ularni aralashtirma yoki birlashtir
     let analysisText = ''
     let lastError = ''
 
-    for (const model of CANDIDATE_MODELS) {
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 25000)
-
+    // ── 1. Google Gemini orqali tahlil (Birlamchi va bepul) ──
+    if (process.env.GEMINI_API_KEY) {
       try {
-        const response = await fetch(GROQ_API_URL, {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${GROQ_API_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model,
-            messages: [
-              { role: 'system', content: systemPrompt },
-              {
-                role: 'user',
-                content: `Quyidagi huquqiy holatni IRAC metodologiyasi bo'yicha tahlil qiling:\n\n${caseText}`,
-              },
-            ],
+        const geminiRes = await callGemini(
+          `Quyidagi huquqiy holatni IRAC metodologiyasi bo'yicha tahlil qiling:\n\n${caseText}`,
+          {
+            systemInstruction: systemPrompt,
             temperature: 0.1,
-            max_tokens: 2048,
-          }),
-          signal: controller.signal,
-        })
-
-        clearTimeout(timeoutId)
-
-        if (response.ok) {
-          const data = await response.json()
-          const raw = data.choices?.[0]?.message?.content || ''
-          if (raw.trim()) {
-            analysisText = ensureUzbekLatin(raw)
-            break
+            maxTokens: 2500,
           }
-        } else {
-          const errorText = await response.text().catch(() => '')
-          lastError = `Model ${model} failed (${response.status}): ${errorText.slice(0, 150)}`
-          console.warn('Groq IRAC attempt failed:', lastError)
+        )
+        if (geminiRes && geminiRes.trim()) {
+          analysisText = ensureUzbekLatin(geminiRes)
         }
-      } catch (e: any) {
-        clearTimeout(timeoutId)
-        lastError = e.name === 'AbortError' ? 'AI timeout (25s)' : e.message
-        console.warn(`Groq IRAC error with ${model}:`, lastError)
+      } catch (geminiErr: any) {
+        console.warn('Gemini IRAC urinishi xatoligi, Groq’ga o‘tilmoqda:', geminiErr.message)
+      }
+    }
+
+    // ── 2. Zaxira: Groq API ──
+    if (!analysisText) {
+      for (const model of CANDIDATE_MODELS) {
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 25000)
+
+        try {
+          const response = await fetch(GROQ_API_URL, {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${GROQ_API_KEY}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model,
+              messages: [
+                { role: 'system', content: systemPrompt },
+                {
+                  role: 'user',
+                  content: `Quyidagi huquqiy holatni IRAC metodologiyasi bo'yicha tahlil qiling:\n\n${caseText}`,
+                },
+              ],
+              temperature: 0.1,
+              max_tokens: 2048,
+            }),
+            signal: controller.signal,
+          })
+
+          clearTimeout(timeoutId)
+
+          if (response.ok) {
+            const data = await response.json()
+            const raw = data.choices?.[0]?.message?.content || ''
+            if (raw.trim()) {
+              analysisText = ensureUzbekLatin(raw)
+              break
+            }
+          } else {
+            const errorText = await response.text().catch(() => '')
+            lastError = `Model ${model} failed (${response.status}): ${errorText.slice(0, 150)}`
+            console.warn('Groq IRAC attempt failed:', lastError)
+          }
+        } catch (e: any) {
+          clearTimeout(timeoutId)
+          lastError = e.name === 'AbortError' ? 'AI timeout (25s)' : e.message
+          console.warn(`Groq IRAC error with ${model}:`, lastError)
+        }
       }
     }
 

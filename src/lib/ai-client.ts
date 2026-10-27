@@ -5,12 +5,11 @@
 
 import crypto from 'crypto'
 import { supabase } from '@/lib/supabase'
-
-const GROQ_API_KEY = process.env.GROQ_API_KEY || 'YOUR_GROQ_API_KEY_HERE'
-const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
-
-// AI javoblari lotin o'zbek alifbosida bo'lishini kafolatlash
 import { ensureUzbekLatin } from './uz-latin'
+import { callGemini } from './gemini'
+
+const GROQ_API_KEY = process.env.GROQ_API_KEY || ''
+const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
 
 export interface AIRequest {
   prompt: string
@@ -142,44 +141,64 @@ export class AIClient {
     let usageData = { promptTokens: 0, completionTokens: 0, totalTokens: 0 }
     let lastError = ''
 
-    for (const model of CANDIDATE_MODELS) {
-      const requestBody = JSON.stringify({
-        model,
-        messages,
-        temperature: request.temperature ?? 0.2,
-        max_tokens: request.maxTokens ?? 1500,
-        frequency_penalty: 0.6,
-        presence_penalty: 0.3,
-      })
-
+    // ── 1. Google Gemini orqali so‘rov (Birlamchi va bepul) ──
+    if (process.env.GEMINI_API_KEY) {
       try {
-        const result = await httpsRequest(
-          GROQ_API_URL,
-          {
-            method: 'POST',
-            headers: {
-              Authorization: `Bearer ${this.apiKey}`,
-              'Content-Type': 'application/json',
-              'Content-Length': String(Buffer.byteLength(requestBody)),
-            },
-          },
-          requestBody
-        )
-
-        const data = result.data
-
-        if (data.choices?.[0]?.message?.content) {
-          responseText = ensureUzbekLatin(data.choices[0].message.content)
-          usageData = {
-            promptTokens: data.usage?.prompt_tokens || 0,
-            completionTokens: data.usage?.completion_tokens || 0,
-            totalTokens: data.usage?.total_tokens || 0,
-          }
-          break
+        const geminiText = await callGemini(request.prompt, {
+          systemInstruction: request.systemPrompt,
+          temperature: request.temperature ?? 0.2,
+          maxTokens: request.maxTokens ?? 2000,
+        })
+        if (geminiText && geminiText.trim()) {
+          responseText = ensureUzbekLatin(geminiText)
+          usageData = { promptTokens: 150, completionTokens: 250, totalTokens: 400 }
         }
-      } catch (err: any) {
-        lastError = err.message || String(err)
-        console.warn(`[AIClient] Attempt with model ${model} failed:`, lastError)
+      } catch (geminiErr: any) {
+        console.warn('[AIClient] Gemini urinishi muvaffaqiyatsiz bo‘ldi, Groq’ga o‘tilmoqda:', geminiErr.message)
+      }
+    }
+
+    // ── 2. Zaxira: Groq API ──
+    if (!responseText) {
+      for (const model of CANDIDATE_MODELS) {
+        const requestBody = JSON.stringify({
+          model,
+          messages,
+          temperature: request.temperature ?? 0.2,
+          max_tokens: request.maxTokens ?? 1500,
+          frequency_penalty: 0.6,
+          presence_penalty: 0.3,
+        })
+
+        try {
+          const result = await httpsRequest(
+            GROQ_API_URL,
+            {
+              method: 'POST',
+              headers: {
+                Authorization: `Bearer ${this.apiKey}`,
+                'Content-Type': 'application/json',
+                'Content-Length': String(Buffer.byteLength(requestBody)),
+              },
+            },
+            requestBody
+          )
+
+          const data = result.data
+
+          if (data.choices?.[0]?.message?.content) {
+            responseText = ensureUzbekLatin(data.choices[0].message.content)
+            usageData = {
+              promptTokens: data.usage?.prompt_tokens || 0,
+              completionTokens: data.usage?.completion_tokens || 0,
+              totalTokens: data.usage?.total_tokens || 0,
+            }
+            break
+          }
+        } catch (err: any) {
+          lastError = err.message || String(err)
+          console.warn(`[AIClient] Attempt with model ${model} failed:`, lastError)
+        }
       }
     }
 

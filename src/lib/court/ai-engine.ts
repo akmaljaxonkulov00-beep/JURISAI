@@ -8,13 +8,43 @@ import {
 } from './court-types'
 import { groundPrompt } from '@/lib/legal-rag'
 import { ensureUzbekLatin } from '@/lib/uz-latin'
+import { callGemini } from '@/lib/gemini'
 
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
 
 const CANDIDATE_MODELS = ['openai/gpt-oss-120b', 'openai/gpt-oss-20b', 'qwen/qwen3.8-27b']
 
 /**
- * Groq API ga JSON rejimida xavfsiz so'rov yuboradi.
+ * Universal Court AI: Google Gemini birlamchi, Groq zaxira.
+ */
+async function callCourtAiJson(
+  systemPrompt: string,
+  userPrompt: string,
+  maxTokens = 2500
+): Promise<string> {
+  // 1. Google Gemini orqali so'rov (bepul, yuridik jihatdan aniq)
+  if (process.env.GEMINI_API_KEY) {
+    try {
+      const geminiRes = await callGemini(userPrompt, {
+        systemInstruction: systemPrompt,
+        maxTokens,
+        temperature: 0.2,
+        responseJson: true,
+      })
+      if (geminiRes && geminiRes.trim()) {
+        return geminiRes
+      }
+    } catch (err: any) {
+      console.warn('[Court AI] Gemini attempt failed, falling back to Groq:', err.message)
+    }
+  }
+
+  // 2. Zaxira: Groq API
+  return callGroqJson(systemPrompt, userPrompt, maxTokens)
+}
+
+/**
+ * Groq API ga JSON rejimida xavfsiz so'rov yuboradi (Zaxira).
  */
 async function callGroqJson(
   systemPrompt: string,
@@ -270,13 +300,13 @@ Ushbu harakatga AI ishtirokchilari nomidan munosib protsessual reaksiya bering.`
     userPrompt = `Hozirgi bosqich: "${stage.title}". Jarayonni protsessual qonunchilikka binoan davom ettiring.`
   }
 
-  // AI chaqiruvi (retry bilan)
+  // AI chaqiruvi (Google Gemini primary, Groq fallback)
   let rawJson = ''
   try {
-    rawJson = await callGroqJson(groundedSystem, userPrompt)
+    rawJson = await callCourtAiJson(groundedSystem, userPrompt)
   } catch (err) {
     console.warn('Primary AI call failed, retrying once:', err)
-    rawJson = await callGroqJson(SYSTEM_PROMPT, userPrompt)
+    rawJson = await callCourtAiJson(SYSTEM_PROMPT, userPrompt)
   }
 
   return safeParseAiResponse(rawJson, userRole)

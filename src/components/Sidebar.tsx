@@ -17,6 +17,7 @@ import {
   HelpCircle,
   Shield,
   LogOut,
+  Award,
 } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/app/providers'
@@ -58,6 +59,12 @@ export default function Sidebar({ currentPage = 'home' }: SidebarProps) {
           label: 'Multiplayer Sud',
           icon: Users,
           href: '/virtual-court/multiplayer',
+        },
+        {
+          id: 'completed-trials',
+          label: t('navCompletedTrials', 'Yakunlangan ishlar'),
+          icon: Award,
+          href: '/virtual-court/completed',
         },
         {
           id: 'scenario-generator',

@@ -110,6 +110,11 @@ export default function JoinRoomModal({
       return
     }
 
+    if (roomDetails && roomDetails.status === 'completed') {
+      window.location.href = `/virtual-court/multiplayer/${cleanCode}`
+      return
+    }
+
     // Verify role availability client-side
     if (UNIQUE_ROLES.includes(role) && occupiedRoles[role]) {
       setError(
@@ -155,6 +160,18 @@ export default function JoinRoomModal({
             <X className="w-5 h-5" />
           </button>
         </div>
+
+        {roomDetails && roomDetails.status === 'completed' && (
+          <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs space-y-1">
+            <div className="flex items-center gap-2 font-bold">
+              <AlertTriangle className="w-4 h-4 text-amber-400" />
+              <span>Sud majlisi yakunlangan</span>
+            </div>
+            <p className="text-zinc-300">
+              Ushbu sud ishi yakunlangan. Siz uning yakuniy hukmi va protokolini to‘liq ko‘rishingiz mumkin.
+            </p>
+          </div>
+        )}
 
         {error && (
           <div className="p-3.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300 text-xs flex items-center gap-2">
@@ -271,11 +288,17 @@ export default function JoinRoomModal({
           </button>
           <button
             type="submit"
-            disabled={loading || (UNIQUE_ROLES.includes(role) && !!occupiedRoles[role])}
+            disabled={loading || (!roomDetails?.status && UNIQUE_ROLES.includes(role) && !!occupiedRoles[role])}
             className="px-6 py-2.5 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-white shadow-lg shadow-blue-500/20 transition-all flex items-center gap-2"
           >
             <LogIn className="w-3.5 h-3.5" />
-            <span>{loading ? 'Ulanmoqda...' : 'Sudga kirish'}</span>
+            <span>
+              {loading
+                ? 'Ulanmoqda...'
+                : roomDetails?.status === 'completed'
+                  ? 'Natijalarni ko‘rish'
+                  : 'Sudga kirish'}
+            </span>
           </button>
         </div>
       </form>

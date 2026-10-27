@@ -36,11 +36,19 @@ export default function CourtroomPostTrialResults({
     let doc = `=================================================================\n`
     doc += `      O‘ZBEKISTON RESPUBLIKASI VIRTUAL SUD MAJLISI BAYONNOMASI\n`
     doc += `=================================================================\n\n`
+    const startTime = room.startedAt ? new Date(room.startedAt).toLocaleString() : new Date(room.createdAt).toLocaleString()
+    const endTime = room.completedAt ? new Date(room.completedAt).toLocaleString() : new Date(room.updatedAt).toLocaleString()
+    const durationSec = room.durationSeconds || (room.startedAt && room.completedAt ? Math.max(0, Math.floor((new Date(room.completedAt).getTime() - new Date(room.startedAt).getTime()) / 1000)) : 0)
+    const mins = Math.floor(durationSec / 60)
+    const secs = durationSec % 60
+    const durationText = mins > 0 ? `${mins} daqiqa ${secs} soniya` : `${secs} soniya`
+
     doc += `Sud zali: ${room.title}\n`
     doc += `Xona kodi: ${room.code}\n`
     doc += `Toifa: ${room.courtType}\n`
-    doc += `Boshlangan vaqt: ${new Date(room.createdAt).toLocaleString()}\n`
-    doc += `Yakunlangan vaqt: ${new Date(room.updatedAt).toLocaleString()}\n`
+    doc += `Boshlangan vaqt: ${startTime}\n`
+    doc += `Yakunlangan vaqt: ${endTime}\n`
+    doc += `Jarayon davomiyligi: ${durationText}\n`
     doc += `Raislik qiluvchi: ${verdict?.judgedByName || room.hostName}\n\n`
 
     doc += `-----------------------------------------------------------------\n`
@@ -162,7 +170,7 @@ export default function CourtroomPostTrialResults({
         </div>
 
         {/* Authoritative Verdict Presentation */}
-        {verdict && (
+        {verdict ? (
           <div className="bg-zinc-900/90 border border-zinc-800 rounded-3xl p-6 sm:p-8 space-y-5 shadow-xl relative">
             <div className="border-b border-zinc-800 pb-4 flex items-center justify-between">
               <div>
@@ -180,7 +188,7 @@ export default function CourtroomPostTrialResults({
             {/* Verdict Summary Box */}
             <div className="bg-zinc-950/70 p-5 rounded-2xl border border-zinc-800/80 space-y-3">
               <h3 className="text-xs font-bold text-zinc-300 uppercase tracking-wider">
-                Xulosa va Ajrim:
+                Sud Raisining Rasmiy Hukmi / Ajrimi:
               </h3>
               <p className="text-sm text-zinc-100 leading-relaxed font-serif whitespace-pre-wrap">
                 {verdict.summary}
@@ -207,6 +215,17 @@ export default function CourtroomPostTrialResults({
               <span>Sud Raisi: {verdict.judgedByName}</span>
               <span>Sana: {new Date(verdict.judgedAt).toLocaleString()}</span>
             </div>
+          </div>
+        ) : (
+          <div className="bg-zinc-900/60 border border-zinc-800 rounded-3xl p-6 sm:p-8 space-y-3 shadow-lg">
+            <div className="flex items-center gap-2 text-zinc-400 text-xs font-bold uppercase tracking-wider">
+              <AlertTriangle className="w-4 h-4 text-amber-400" />
+              <span>Hukm holati</span>
+            </div>
+            <h3 className="text-base font-bold text-white">Sud majlisi yakunlangan, lekin rasmiy hukm kiritilmagan</h3>
+            <p className="text-xs text-zinc-400 leading-relaxed">
+              Sud majlisi yakunlangan deb e’lon qilingan, biroq sudya tomonidan rasmiy yakuniy hukm yoki hal qiluv qarori bayonnomaga qayd etilmagan.
+            </p>
           </div>
         )}
 

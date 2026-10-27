@@ -17,6 +17,8 @@ import {
   issueVerdict,
   leaveCourtRoom,
   kickParticipant,
+  getUserCompletedTrials,
+  getUserCompletedTrialDetail,
 } from '@/lib/court/multiplayer-db'
 import type { CreateRoomInput } from '@/lib/court/multiplayer-types'
 
@@ -290,4 +292,114 @@ describe('Multiplayer Virtual Court — Verdict & Completion', () => {
     const newHost = leftRoom?.participants.find(p => p.isHost)
     expect(newHost?.userId).toBe(lawyer.id)
   })
+})
+
+describe('Multiplayer Virtual Court — Lifecycle Timestamps, Lobby Exclusion & History', () => {
+  const hostJudge = { id: '00000000-0000-0000-0000-000000000001', name: 'Sud Raisi Anvar' }
+  const prosecutor = { id: '00000000-0000-0000-0000-000000000002', name: 'Davlat Ayblovchisi' }
+  const defense = { id: '00000000-0000-0000-0000-000000000003', name: 'Himoyachi Otabek' }
+  const outsider = { id: '00000000-0000-0000-0000-000000000099', name: 'Begona Shaxs' }
+
+  it('Sud majlisi boshlanganda startedAt o‘rnatiladi va qayta boshlash taqiqlanadi', async () => {
+    const room = await createCourtRoom(hostJudge, {
+      title: 'Fuqarolik nizosi: Mulk huquqi',
+      caseCategory: 'civil',
+      isPublic: true,
+    })
+
+    expect(room.startedAt).toBeUndefined()
+    expect(room.status).toBe('waiting')
+
+    const started = await startTrial(room.code, hostJudge.id)
+    expect(started.status).toBe('in_progress')
+    expect(started.startedAt).toBeDefined()
+    expect(new Date(started.startedAt!).getTime()).toBeGreaterThan(0)
+
+    // Cannot start again
+    await expect(startTrial(room.code, hostJudge.id)).rejects.toThrow('faqat kutilayotgan holatda')
+  }, 15000)
+
+  it('Hukm chiqarilganda completedAt va durationSeconds o‘rnatiladi, zal lobbydan chiqariladi', async () => {
+    const room = await createCourtRoom(hostJudge, {
+      title: 'Mehnat nizosi: Ishga tiklash',
+      caseCategory: 'labor',
+      isPublic: true,
+    })
+    await joinCourtRoom(room.code, defense, 'ADVOKAT')
+    await startTrial(room.code, hostJudge.id)
+
+    // Verify room is in public lobby while in_progress
+    const lobbyBefore = await listPublicCourtRooms()
+    const foundBefore = lobbyBefore.find(r => r.id === room.id)
+    expect(foundBefore).toBeDefined()
+
+    // Issue verdict
+    const completed = await issueVerdict(room.code, hostJudge.id, {
+      verdictDecision: 'qanoatlantirildi',
+      title: 'Sud Hal Qiluv Qarori',
+      summary: 'Da’vo to‘liq qanoatlantirilsin, ishga tiklansin.',
+      legalReasoning: 'Mehnat kodeksining 161-moddasi talablari buzilgan.',
+      penaltyOrRemedy: 'Majburiy progul uchun 12 000 000 so‘m kompensatsiya undirilsin.',
+    })
+
+    expect(completed.status).toBe('completed')
+    expect(completed.completedAt).toBeDefined()
+    expect(typeof completed.durationSeconds).toBe('number')
+
+    // Verify room is EXCLUDED from public lobby
+    const lobbyAfter = await listPublicCourtRooms()
+    const foundAfter = lobbyAfter.find(r => r.id === room.id)
+    expect(foundAfter).toBeUndefined()
+
+    // Verify joining completed room is strictly REJECTED
+    await expect(joinCourtRoom(room.code, outsider, 'KUZATUVCHI')).rejects.toThrow(
+      'Ushbu sud majlisi yakunlangan'
+    )
+  }, 30000)
+
+  it('Foydalanuvchining shaxsiy yakunlangan sud ishlari ro‘yxati (getUserCompletedTrials) to‘g‘ri filtrlanadi', async () => {
+    const userHistory = await getUserCompletedTrials(defense.id)
+    expect(userHistory).toBeDefined()
+    expect(userHistory.trials.length).toBeGreaterThan(0)
+
+    const trial = userHistory.trials[0]
+    expect(trial.myRole).toBe('ADVOKAT')
+    expect(trial.completedAt).toBeDefined()
+    expect(trial.durationFormatted).toBeTruthy()
+    expect(trial.verdictSummary).toContain('Da’vo to‘liq qanoatlantirilsin')
+
+    // Begona shaxsda yakunlangan ishlar mavjud emas
+    const outsiderHistory = await getUserCompletedTrials(outsider.id)
+    expect(outsiderHistory.trials.length).toBe(0)
+  }, 30000)
+
+  it('Yakunlangan sud dosyesi (getUserCompletedTrialDetail) faqat ishtirokchiga ochiladi, begonaga rad etiladi', async () => {
+    const userHistory = await getUserCompletedTrials(defense.id)
+    const completedCode = userHistory.trials[0].code
+
+    // Participant accesses detail
+    const detail = await getUserCompletedTrialDetail(completedCode, defense.id)
+    expect(detail).toBeDefined()
+    expect(detail.room.code).toBe(completedCode)
+    expect(detail.myParticipant.userId).toBe(defense.id)
+    expect(detail.myScore).toBeDefined()
+    expect(detail.durationFormatted).toBeTruthy()
+
+    // Non-participant is forbidden (403 / error)
+    await expect(getUserCompletedTrialDetail(completedCode, outsider.id)).rejects.toThrow(
+      'vakolati yo‘q'
+    )
+  }, 15000)
+
+  it('Mehnat va fuqarolik ishlari uchun taqrizda FPK va MK qonun moddalari aks etadi (jinoyat kodi emas)', async () => {
+    const userHistory = await getUserCompletedTrials(defense.id)
+    const completedCode = userHistory.trials[0].code
+    const detail = await getUserCompletedTrialDetail(completedCode, defense.id)
+
+    expect(detail.myScore).toBeDefined()
+    // Should reference FPK or MK, not JPK/JK
+    const articles = detail.myScore?.correctArticles || []
+    const hasProceduralCivilCode = articles.some(a => a.includes('FPK') || a.includes('MK'))
+    expect(hasProceduralCivilCode).toBe(true)
+  }, 15000)
 })

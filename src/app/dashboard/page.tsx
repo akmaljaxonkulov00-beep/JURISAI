@@ -250,7 +250,7 @@ export default function Dashboard() {
 
   const renderSidebar = () => (
     <div className="w-80 glass-strong rounded-2xl shadow-2xl relative">
-      {/* User Profile Section */}{' '}
+      {/* User Profile Section */}
       <div className="p-6 border-b border-gray-100 dark:border-zinc-800/50 dark:border-gray-700/50 relative">
         <div className="absolute top-4 right-4 z-20">
           <NotificationBell />
@@ -276,7 +276,7 @@ export default function Dashboard() {
                 <span className="text-white text-xs font-bold">{userStats?.level || 1}</span>
               </div>
             </div>
-            <div className="flex-1">
+            <div className="flex-1 pr-8">
               <h3 className="font-bold text-gray-900 dark:text-white text-lg group-hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
                 {user?.name || t('dashboardRank')}
               </h3>
@@ -301,27 +301,6 @@ export default function Dashboard() {
       {/* Usage Limits */}
       <div className="px-6 py-4 border-b border-gray-100 dark:border-zinc-800/50 dark:border-gray-700/50">
         <UsageLimitIndicator compact={false} showCard={false} />
-      </div>
-      {/* XP and Stats */}
-      <div className="px-6 py-4 border-b border-gray-100 dark:border-zinc-800/50 dark:border-gray-700/50">
-        <div className="grid grid-cols-2 gap-4">
-          <div className="text-center p-3 bg-blue-50 dark:bg-blue-900/20/50 rounded-xl hover:bg-blue-50 dark:bg-blue-900/20 transition-colors">
-            <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
-              {userStats?.xp || 0}
-            </div>{' '}
-            <div className="text-xs text-gray-500 dark:text-gray-400 dark:text-zinc-500 mt-1">
-              {t('dashboardTotalXP')}
-            </div>
-          </div>
-          <div className="text-center p-3 bg-emerald-50/50 rounded-xl hover:bg-emerald-50 transition-colors">
-            <div className="text-2xl font-bold text-emerald-600">
-              {userStats?.weeklyProgress || 0}%
-            </div>{' '}
-            <div className="text-xs text-gray-500 dark:text-gray-400 dark:text-zinc-500 mt-1">
-              {t('dashboardWeeklyGoal')}
-            </div>
-          </div>
-        </div>
       </div>
       {/* Navigation */}
       <nav className="p-4">

@@ -19,6 +19,7 @@ import type {
   CreateRoomInput,
   SpeakingQueueItem,
   ParticipantScore,
+  MultiplayerCaseCategory,
 } from './multiplayer-types'
 
 // Global server memory store to maintain live sub-millisecond rooms & active presence
@@ -90,28 +91,30 @@ async function persistRoomToDb(room: MultiplayerRoom): Promise<void> {
         speaking_queue: room.speakingQueue,
         pending_objection: room.pendingObjection || null,
         verdict_data: room.verdictData || null,
+        started_at: room.startedAt || null,
+        completed_at: room.completedAt || null,
+        duration_seconds: room.durationSeconds || 0,
         updated_at: new Date().toISOString(),
       })
 
-      if (!mpErr) {
-        // Upsert participants
-        for (const p of room.participants) {
-          await admin.from('court_multiplayer_participants').upsert({
-            id: p.id,
-            room_id: room.id,
-            user_id: p.userId,
-            user_name: p.userName,
-            avatar_url: p.avatarUrl || '',
-            role: p.role,
-            is_host: p.isHost,
-            is_ai: p.isAi,
-            is_ready: p.isReady,
-            can_speak: p.canSpeak,
-            connection_status: p.connectionStatus,
-            last_seen_at: p.lastSeenAt,
-            joined_at: p.joinedAt,
-          })
-        }
+      if (!mpErr && room.participants.length > 0) {
+        // Upsert participants in a single batch
+        const participantRows = room.participants.map(p => ({
+          id: p.id,
+          room_id: room.id,
+          user_id: p.userId,
+          user_name: p.userName,
+          avatar_url: p.avatarUrl || '',
+          role: p.role,
+          is_host: p.isHost,
+          is_ai: p.isAi,
+          is_ready: p.isReady,
+          can_speak: p.canSpeak,
+          connection_status: p.connectionStatus,
+          last_seen_at: p.lastSeenAt,
+          joined_at: p.joinedAt,
+        }))
+        await admin.from('court_multiplayer_participants').upsert(participantRows)
       }
     } catch {
       // Table may not exist yet in schema, proceed with universal fallback
@@ -244,6 +247,9 @@ async function loadRoomFromDb(codeOrId: string): Promise<MultiplayerRoom | null>
         })),
         createdAt: mpData.created_at,
         updatedAt: mpData.updated_at,
+        startedAt: mpData.started_at || undefined,
+        completedAt: mpData.completed_at || undefined,
+        durationSeconds: mpData.duration_seconds || undefined,
       }
       roomsMap.set(room.id, room)
       roomsMap.set(room.code, room)
@@ -429,13 +435,42 @@ export async function listPublicCourtRooms(): Promise<
     createdAt: string
   }>
 > {
-  // Sync from court_sessions database so all public rooms show across serverless instances
+  // Sync from database so active public rooms show across serverless instances
   try {
     const admin = getSupabaseAdmin()
+
+    // 1. Check dedicated court_multiplayer_rooms first
+    try {
+      const { data: dbRooms } = await admin
+        .from('court_multiplayer_rooms')
+        .select('*')
+        .eq('is_public', true)
+        .neq('status', 'completed')
+        .neq('status', 'cancelled')
+        .order('created_at', { ascending: false })
+        .limit(20)
+
+      if (dbRooms) {
+        for (const row of dbRooms) {
+          if (!roomsMap.has(row.id)) {
+            await loadRoomFromDb(row.id)
+          } else {
+            const r = roomsMap.get(row.id)!
+            r.status = row.status
+            r.updatedAt = row.updated_at
+          }
+        }
+      }
+    } catch {
+      // safe fallback
+    }
+
+    // 2. Check court_sessions table for active multiplayer rooms
     const syncPromise = admin
       .from('court_sessions')
-      .select('id, evaluation')
+      .select('id, evaluation, status')
       .ilike('title', '[MULTIPLAYER]%')
+      .neq('status', 'completed')
       .order('updated_at', { ascending: false })
       .limit(15)
 
@@ -451,9 +486,11 @@ export async function listPublicCourtRooms(): Promise<
       for (const row of dbSessions) {
         if (row.evaluation?.is_multiplayer && row.evaluation?.room_data) {
           const room = row.evaluation.room_data as MultiplayerRoom
-          if (!roomsMap.has(room.id)) {
-            roomsMap.set(room.id, room)
-            roomsMap.set(room.code, room)
+          if (room.status !== 'completed' && room.status !== 'cancelled') {
+            if (!roomsMap.has(room.id)) {
+              roomsMap.set(room.id, room)
+              roomsMap.set(room.code, room)
+            }
           }
         }
       }
@@ -462,9 +499,13 @@ export async function listPublicCourtRooms(): Promise<
     console.warn('listPublicCourtRooms db sync warning:', err)
   }
 
-  // Check memory and database synced rooms
+  // Filter in-memory map: strictly exclude completed or cancelled rooms
   const activeRooms = Array.from(roomsMap.values()).filter(
-    (r, idx, self) => r.isPublic && self.findIndex(o => o.id === r.id) === idx
+    (r, idx, self) =>
+      r.isPublic &&
+      r.status !== 'completed' &&
+      r.status !== 'cancelled' &&
+      self.findIndex(o => o.id === r.id) === idx
   )
 
   const ALL_ROLES: MultiplayerRole[] = [
@@ -511,6 +552,10 @@ export async function joinCourtRoom(
   const room = await getCourtRoom(codeOrId)
   if (!room) {
     throw new Error('Ko‘rsatilgan xona kodi bo‘yicha sud zali topilmadi.')
+  }
+
+  if (room.status === 'completed') {
+    throw new Error('Ushbu sud majlisi yakunlangan. Yakunlangan sud ishlarini tegishli bo‘limda ko‘rishingiz mumkin.')
   }
 
   if (room.status === 'cancelled') {
@@ -675,11 +720,17 @@ export async function startTrial(codeOrId: string, actorUserId: string): Promise
   const room = await getCourtRoom(codeOrId)
   if (!room) throw new Error('Sud zali topilmadi.')
 
+  if (room.status !== 'waiting') {
+    throw new Error('Sud majlisini faqat kutilayotgan holatda boshlash mumkin.')
+  }
+
   const actor = room.participants.find(p => p.userId === actorUserId)
   if (!actor || (!actor.isHost && actor.role !== 'SUDYA')) {
     throw new Error('Faqat Sud Raisi majlisni boshlashi mumkin.')
   }
 
+  const now = new Date().toISOString()
+  room.startedAt = room.startedAt || now
   room.status = 'in_progress'
   room.currentStageId = 'open_hearing'
   room.currentStageOrder = 1
@@ -689,7 +740,6 @@ export async function startTrial(codeOrId: string, actorUserId: string): Promise
   room.currentSpeakerId = judge.userId
   room.currentSpeakerRole = 'SUDYA'
 
-  const now = new Date().toISOString()
   room.messages.push({
     id: crypto.randomUUID(),
     roomId: room.id,
@@ -1116,7 +1166,8 @@ function generateRoleFeedback(
   userName: string,
   speechCount: number,
   hasEvidence: boolean,
-  totalScore: number
+  totalScore: number,
+  caseCategory: MultiplayerCaseCategory = 'criminal'
 ): {
   feedback: string
   mistakes: string[]
@@ -1134,6 +1185,98 @@ function generateRoleFeedback(
           : totalScore >= 65
             ? 'B'
             : 'C'
+
+  if (caseCategory === 'labor') {
+    switch (role) {
+      case 'SUDYA':
+        return {
+          feedback: `${userName} (Sud Raisi) mehnat nizosini xolisona ko‘rib chiqdi va Mehnat kodeksi normalariga tayandi.`,
+          mistakes: [
+            speechCount < 3
+              ? 'FPK 14-moddasi bo‘yicha taraflarga kelishuv bitimi (mediatsiya) tuzish imkoniyatini yetarlicha tushuntirmadi.'
+              : 'Mehnat shartnomasini bekor qilish buyrug‘ining qonuniyligini tekshirishda ish beruvchining kasaba uyushmasi roziligi olinganligiga to‘liq e’tibor qaratilmadi.',
+          ],
+          recommendations: [
+            'MK 161 va 443-moddalari talablari buzilganligini hal qiluv qarorida aniq ko‘rsatib, noqonuniy bo‘shatilgan xodimni avvalgi lavozimiga zudlik bilan tiklash lozim.',
+            'FPK 187-moddasi asosida sud majlisida taraflarning huquq va majburiyatlarini to‘liq tushuntirib berish shart.',
+          ],
+          correctArticles: ['MK 161-modda', 'MK 275-modda', 'MK 443-modda', 'FPK 187-modda'],
+          grade,
+        }
+      case 'ADVOKAT':
+        return {
+          feedback: `${userName} (Vakil / Advokat) xodimning mehnat huquqlari buzilganligini asoslab berdi va kompensatsiya talab qildi.`,
+          mistakes: [
+            !hasEvidence
+              ? 'Mehnat daftarchasi nusxasi va ish haqisi to‘g‘risidagi ma’lumotnomani dalil sifatida sudga kiritishda sustlik bo‘ldi.'
+              : 'Majburiy progul vaqtining har bir kuni uchun o‘rtacha ish haqini hisob-kitob qilish jadvalini o‘z vaqtida taqdim etmadi.',
+          ],
+          recommendations: [
+            'MK 161 va 275-moddalari bo‘yicha majburiy progul davri uchun to‘liq kompensatsiya undirish talabini ilgari surish lozim.',
+            'FPK 50 va 72-moddalari bo‘yicha har bir dalilning daxldorligi va maqbulligini isbotlab berish zarur.',
+          ],
+          correctArticles: ['MK 161-modda', 'MK 275-modda', 'FPK 50-modda', 'FPK 72-modda'],
+          grade,
+        }
+      case 'PROKUROR':
+        return {
+          feedback: `${userName} (Prokuror) mehnat qonunchiligiga rioya etilishi yuzasidan xulosa berdi.`,
+          mistakes: ['Ish beruvchining kasaba uyushmasi bilan kelishuv tartibini buzganiga yetarli e’tibor qaratmadi.'],
+          recommendations: ['Mehnat nizolarida qonuniylikni ta’minlash maqsadida MK 443-moddasiga tayangan holda prokuror xulosasini berish lozim.'],
+          correctArticles: ['MK 443-modda', 'FPK 52-modda'],
+          grade,
+        }
+      default:
+        return {
+          feedback: `${userName} (${role}) mehnat nizosi sud jarayonida tartibga rioya qildi.`,
+          mistakes: ['Jarayonda faolroq ishtirok etish tavsiya etiladi.'],
+          recommendations: ['Mehnat kodeksi normalarini puxtaroq o‘rganish maqsadga muvofiq.'],
+          correctArticles: ['MK 161-modda', 'FPK 187-modda'],
+          grade,
+        }
+    }
+  }
+
+  if (caseCategory === 'civil') {
+    switch (role) {
+      case 'SUDYA':
+        return {
+          feedback: `${userName} (Sud Raisi) fuqarolik ishini FPK normalari asosida boshqardi.`,
+          mistakes: [
+            'FPK 14-moddasi talabiga ko‘ra taraflar o‘rtasida kelishuv bitimini tuzish choralarini faolroq ko‘rmadi.',
+          ],
+          recommendations: [
+            'FPK 187-moddasiga asosan taraflarga moddiy da’vo doirasidagi dalillarni taqdim etish majburiyatini to‘liq tushuntirish lozim.',
+            'Hal qiluv qarorida FK 164 va 182-moddalari (Mulk huquqi) talablarini to‘liq aks ettirish zarur.',
+          ],
+          correctArticles: ['FPK 187-modda', 'FPK 249-modda', 'FK 164-modda', 'FK 182-modda'],
+          grade,
+        }
+      case 'ADVOKAT':
+        return {
+          feedback: `${userName} (Advokat / Vakil) da’vo talablarini qonuniy asosladi.`,
+          mistakes: [
+            !hasEvidence
+              ? 'Mulk huquqini tasdiqlovchi kadastr va shartnoma nusxalarini sudga ilova qilishda kechikdi.'
+              : 'Qarshi tarafning asossiz vajlariga nisbatan FPK doirasida e’tiroz bildirmadi.',
+          ],
+          recommendations: [
+            'FK 164-moddasiga asosan mulk daxlsizligi va uni o‘zganing noqonuniy egaligidan talab qilib olish huquqini ta’kidlash lozim.',
+            'FPK 72-moddasi bo‘yicha har bir taraf o‘z talab va e’tirozlariga asos qilib ko‘rsatgan holatlarni isbotlab berishi shart.',
+          ],
+          correctArticles: ['FK 164-modda', 'FPK 50-modda', 'FPK 72-modda'],
+          grade,
+        }
+      default:
+        return {
+          feedback: `${userName} (${role}) fuqarolik protsessi tartibiga rioya qildi.`,
+          mistakes: ['Jarayonda faolroq ishtirok etish tavsiya etiladi.'],
+          recommendations: ['Fuqarolik protsessual kodeksini o‘rganish maqsadga muvofiq.'],
+          correctArticles: ['FPK 187-modda', 'FK 164-modda'],
+          grade,
+        }
+    }
+  }
 
   switch (role) {
     case 'SUDYA':
@@ -1271,7 +1414,14 @@ export async function issueVerdict(
     const xpEarned = totalScore * 2 // 150 - 200 XP
 
     // Detailed educational analysis: Qayerda xato qildi & Nima qilishi kerak edi
-    const analysis = generateRoleFeedback(p.role, p.userName, speechCount, hasEvidence, totalScore)
+    const analysis = generateRoleFeedback(
+      p.role,
+      p.userName,
+      speechCount,
+      hasEvidence,
+      totalScore,
+      room.caseCategory
+    )
 
     scores[p.userId] = {
       userId: p.userId,
@@ -1320,6 +1470,9 @@ export async function issueVerdict(
 
   room.verdictData = verdict
   room.status = 'completed'
+  room.completedAt = now
+  const startMs = room.startedAt ? new Date(room.startedAt).getTime() : new Date(room.createdAt).getTime()
+  room.durationSeconds = Math.max(0, Math.floor((new Date(now).getTime() - startMs) / 1000))
   room.currentStageId = 'verdict_review'
   room.currentStageOrder = 8
 
@@ -1446,4 +1599,308 @@ export async function kickParticipant(
   room.updatedAt = now
   await persistRoomToDb(room)
   return room
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// 18. YAKUNLANGAN ISHLAR (Authoritative Completed Trial History & Dossier)
+// ═══════════════════════════════════════════════════════════════════════════
+
+export interface CompletedTrialFilter {
+  category?: string
+  role?: string
+  search?: string
+  page?: number
+  limit?: number
+}
+
+export interface UserCompletedTrialItem {
+  id: string
+  code: string
+  title: string
+  caseCategory: MultiplayerCaseCategory
+  courtType: string
+  completedAt: string
+  startedAt?: string
+  durationSeconds: number
+  durationFormatted: string
+  participantCount: number
+  participantsCount: number
+  myRole: MultiplayerRole
+  finalVerdictDecision: string | null
+  finalVerdictSummary: string | null
+  verdictSummary?: string
+  myScore?: number | null
+  myGrade?: string | null
+  judgedByName?: string
+}
+
+/**
+ * Foydalanuvchining shaxsiy yakunlangan sud ishlari ro'yxati
+ * Qat'iy avtorizatsiya: faqat o'zi ishtirok etgan yoki raislik qilgan ishlar qaytadi.
+ */
+export async function getUserCompletedTrials(
+  userId: string,
+  filter?: CompletedTrialFilter
+): Promise<{
+  trials: UserCompletedTrialItem[]
+  total: number
+  page: number
+  totalPages: number
+}> {
+  if (!userId) {
+    return { trials: [], total: 0, page: 1, totalPages: 1 }
+  }
+
+  const page = Math.max(1, filter?.page || 1)
+  const limit = Math.min(50, Math.max(1, filter?.limit || 10))
+
+  const candidateRoomsMap = new Map<string, { room: MultiplayerRoom; myRole: MultiplayerRole }>()
+
+  // 1. Check in-memory rooms
+  for (const r of roomsMap.values()) {
+    if (r.status === 'completed') {
+      const myPart = r.participants.find(p => p.userId === userId)
+      if (myPart || r.hostId === userId) {
+        candidateRoomsMap.set(r.id, {
+          room: r,
+          myRole: myPart?.role || (r.hostId === userId ? 'SUDYA' : 'KUZATUVCHI'),
+        })
+      }
+    }
+  }
+
+  // 2. Query Supabase database
+  try {
+    const admin = getSupabaseAdmin()
+
+    // 2a. Check court_multiplayer_participants
+    try {
+      const { data: participations } = await admin
+        .from('court_multiplayer_participants')
+        .select('room_id, role')
+        .eq('user_id', userId)
+        .order('joined_at', { ascending: false })
+        .limit(100)
+
+      if (participations && participations.length > 0) {
+        const roomIds = participations.map(p => p.room_id)
+        const { data: dbRooms } = await admin
+          .from('court_multiplayer_rooms')
+          .select('*')
+          .in('id', roomIds)
+          .eq('status', 'completed')
+
+        if (dbRooms) {
+          for (const d of dbRooms) {
+            const roleMatch = participations.find(p => p.room_id === d.id)?.role || 'KUZATUVCHI'
+            if (!candidateRoomsMap.has(d.id)) {
+              candidateRoomsMap.set(d.id, {
+                room: {
+                  id: d.id,
+                  code: d.code,
+                  title: d.title,
+                  courtType: d.court_type || 'Tuman sudi',
+                  caseCategory: d.case_category || 'criminal',
+                  status: d.status,
+                  hostId: d.host_id,
+                  hostName: d.host_name,
+                  startedAt: d.started_at,
+                  completedAt: d.completed_at,
+                  durationSeconds: d.duration_seconds,
+                  participants: [],
+                  evidence: [],
+                  messages: [],
+                  currentStageId: 'verdict_review',
+                  currentStageOrder: 8,
+                  createdAt: d.created_at,
+                  updatedAt: d.updated_at,
+                  verdictData: d.verdict_data,
+                } as any,
+                myRole: roleMatch as MultiplayerRole,
+              })
+            }
+          }
+        }
+      }
+    } catch {
+      // Table may not be active yet, proceed to fallback
+    }
+
+    // 2b. Fallback check on court_sessions only if needed
+    if (candidateRoomsMap.size === 0) {
+      const { data: sessions } = await admin
+        .from('court_sessions')
+        .select('id, evaluation, status, updated_at')
+        .eq('user_id', userId)
+        .eq('status', 'completed')
+        .order('updated_at', { ascending: false })
+        .limit(50)
+
+      if (sessions) {
+        for (const s of sessions) {
+          if (s.evaluation?.is_multiplayer && s.evaluation?.room_data) {
+            const r = s.evaluation.room_data as MultiplayerRoom
+            if (r.status === 'completed' && !candidateRoomsMap.has(r.id)) {
+              const myPart = r.participants.find(p => p.userId === userId)
+              candidateRoomsMap.set(r.id, {
+                room: r,
+                myRole: myPart?.role || (r.hostId === userId ? 'SUDYA' : 'KUZATUVCHI'),
+              })
+            }
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('getUserCompletedTrials db query warning:', err)
+  }
+
+  // 3. Convert to formatted items
+  let items: UserCompletedTrialItem[] = Array.from(candidateRoomsMap.values()).map(
+    ({ room, myRole }) => {
+      const myScoreObj = room.verdictData?.scores?.[userId]
+      const duration =
+        room.durationSeconds ||
+        (room.startedAt && room.completedAt
+          ? Math.max(0, Math.floor((new Date(room.completedAt).getTime() - new Date(room.startedAt).getTime()) / 1000))
+          : Math.max(0, Math.floor((new Date(room.updatedAt).getTime() - new Date(room.createdAt).getTime()) / 1000)))
+
+      const mins = Math.floor(duration / 60)
+      const secs = duration % 60
+      const durationFormatted = mins > 0 ? `${mins} daqiqa ${secs} soniya` : `${secs} soniya`
+
+      return {
+        id: room.id,
+        code: room.code,
+        title: room.title,
+        caseCategory: room.caseCategory,
+        courtType: room.courtType,
+        completedAt: room.completedAt || room.updatedAt,
+        startedAt: room.startedAt,
+        durationSeconds: duration,
+        durationFormatted,
+        participantCount: room.participants.length,
+        participantsCount: room.participants.length,
+        myRole,
+        finalVerdictDecision: room.verdictData?.verdictDecision || null,
+        finalVerdictSummary: room.verdictData?.summary || null,
+        verdictSummary: room.verdictData?.summary || undefined,
+        myScore: myScoreObj?.totalScore || null,
+        myGrade: myScoreObj?.proceduralGrade || null,
+        judgedByName: room.verdictData?.judgedByName || room.hostName,
+      }
+    }
+  )
+
+  // 4. Apply Filters
+  if (filter?.category && filter.category !== 'all') {
+    items = items.filter(it => it.caseCategory === filter.category)
+  }
+
+  if (filter?.role && filter.role !== 'all') {
+    items = items.filter(it => it.myRole === filter.role)
+  }
+
+  if (filter?.search && filter.search.trim()) {
+    const q = filter.search.toLowerCase().trim()
+    items = items.filter(
+      it =>
+        it.title.toLowerCase().includes(q) ||
+        it.code.toLowerCase().includes(q) ||
+        it.courtType.toLowerCase().includes(q)
+    )
+  }
+
+  // 5. Sort by completedAt DESC
+  items.sort((a, b) => new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime())
+
+  // 6. Pagination
+  const total = items.length
+  const totalPages = Math.max(1, Math.ceil(total / limit))
+  const offset = (page - 1) * limit
+  const paged = items.slice(offset, offset + limit)
+
+  return {
+    trials: paged,
+    total,
+    page,
+    totalPages,
+  }
+}
+
+/**
+ * 19. Yakunlangan sud ishining to'liq dosyesi va bayonnomasi
+ * Faqat ruxsat etilgan ishtirokchi uchun ochiladi.
+ */
+export async function getUserCompletedTrialDetail(
+  codeOrId: string,
+  userId: string
+): Promise<{
+  room: MultiplayerRoom
+  myParticipant: MultiplayerParticipant
+  myScore: ParticipantScore | null
+  userActions: MultiplayerMessage[]
+  userEvidence: MultiplayerEvidenceItem[]
+  otherEvidence: MultiplayerEvidenceItem[]
+  isJudge: boolean
+  durationFormatted: string
+}> {
+  const room = await getCourtRoom(codeOrId)
+  if (!room) {
+    throw new Error('Ko‘rsatilgan sud ishi topilmadi.')
+  }
+
+  if (room.status !== 'completed') {
+    throw new Error('Ushbu sud majlisi hali yakunlanmagan.')
+  }
+
+  // Authorization check: User must be host or participant
+  const myPart = room.participants.find(p => p.userId === userId)
+  const isHost = room.hostId === userId
+  if (!myPart && !isHost) {
+    throw new Error('Sizda ushbu sud bayonnomasini ko‘rish vakolati yo‘q.')
+  }
+
+  const effectiveParticipant: MultiplayerParticipant = myPart || {
+    id: crypto.randomUUID(),
+    roomId: room.id,
+    userId,
+    userName: room.hostName,
+    role: 'SUDYA',
+    isHost: true,
+    isAi: false,
+    isReady: true,
+    canSpeak: true,
+    connectionStatus: 'disconnected',
+    lastSeenAt: room.updatedAt,
+    joinedAt: room.createdAt,
+  }
+
+  const isJudge = effectiveParticipant.role === 'SUDYA'
+  const myScore = room.verdictData?.scores?.[userId] || null
+
+  const userActions = room.messages.filter(m => m.userId === userId)
+  const userEvidence = room.evidence.filter(e => e.submittedById === userId)
+  const otherEvidence = room.evidence.filter(e => e.submittedById !== userId)
+
+  const durationSec =
+    room.durationSeconds ||
+    (room.startedAt && room.completedAt
+      ? Math.max(0, Math.floor((new Date(room.completedAt).getTime() - new Date(room.startedAt).getTime()) / 1000))
+      : Math.max(0, Math.floor((new Date(room.updatedAt).getTime() - new Date(room.createdAt).getTime()) / 1000)))
+
+  const mins = Math.floor(durationSec / 60)
+  const secs = durationSec % 60
+  const durationFormatted = mins > 0 ? `${mins} daqiqa ${secs} soniya` : `${secs} soniya`
+
+  return {
+    room,
+    myParticipant: effectiveParticipant,
+    myScore,
+    userActions,
+    userEvidence,
+    otherEvidence,
+    isJudge,
+    durationFormatted,
+  }
 }
