@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import PlatformRoleNav from '@/components/layout/PlatformRoleNav'
 import { useAuth } from '@/app/providers'
@@ -14,7 +14,7 @@ import {
   Users,
 } from 'lucide-react'
 
-export default function AdvocateMessagesPage() {
+function AdvocateMessagesContent() {
   const { user } = useAuth()
   const searchParams = useSearchParams()
   const citizenId = searchParams.get('citizenId') || 'sample-citizen-1'
@@ -175,5 +175,20 @@ export default function AdvocateMessagesPage() {
         </form>
       </main>
     </div>
+  )
+}
+
+export default function AdvocateMessagesPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center text-sm text-gray-500">
+          <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mr-3" />
+          Yuklanmoqda...
+        </div>
+      }
+    >
+      <AdvocateMessagesContent />
+    </Suspense>
   )
 }
