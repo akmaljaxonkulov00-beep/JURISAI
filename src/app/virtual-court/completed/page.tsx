@@ -21,7 +21,11 @@ import {
 } from 'lucide-react'
 import { useAuth } from '@/app/providers'
 import { getAuthHeaders } from '@/lib/api-auth-client'
-import { ROLE_LABELS, type MultiplayerRole, type MultiplayerCaseCategory } from '@/lib/court/multiplayer-types'
+import {
+  ROLE_LABELS,
+  type MultiplayerRole,
+  type MultiplayerCaseCategory,
+} from '@/lib/court/multiplayer-types'
 
 interface CompletedTrialItem {
   id: string
@@ -65,8 +69,10 @@ export default function CompletedTrialsPage() {
       setError(null)
       const authHeaders = await getAuthHeaders()
 
-      const guestId = typeof window !== 'undefined' ? sessionStorage.getItem('juristiv_mp_guest_id') : null
-      const guestName = typeof window !== 'undefined' ? sessionStorage.getItem('juristiv_mp_guest_name') : null
+      const guestId =
+        typeof window !== 'undefined' ? sessionStorage.getItem('juristiv_mp_guest_id') : null
+      const guestName =
+        typeof window !== 'undefined' ? sessionStorage.getItem('juristiv_mp_guest_name') : null
 
       const params = new URLSearchParams()
       if (selectedCategory !== 'all') params.set('category', selectedCategory)
@@ -106,17 +112,41 @@ export default function CompletedTrialsPage() {
   const getCategoryBadge = (cat: MultiplayerCaseCategory) => {
     switch (cat) {
       case 'criminal':
-        return <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/30">Jinoyat ishi</span>
+        return (
+          <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/30">
+            Jinoyat ishi
+          </span>
+        )
       case 'civil':
-        return <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/30">Fuqarolik ishi</span>
+        return (
+          <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/30">
+            Fuqarolik ishi
+          </span>
+        )
       case 'labor':
-        return <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/30">Mehnat nizosi</span>
+        return (
+          <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/30">
+            Mehnat nizosi
+          </span>
+        )
       case 'economic':
-        return <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">Iqtisodiy ish</span>
+        return (
+          <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+            Iqtisodiy ish
+          </span>
+        )
       case 'administrative':
-        return <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-500/10 text-purple-400 border border-purple-500/30">Ma’muriy ish</span>
+        return (
+          <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-500/10 text-purple-400 border border-purple-500/30">
+            Ma’muriy ish
+          </span>
+        )
       default:
-        return <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-zinc-800 text-zinc-400 border border-zinc-700">Umumiy</span>
+        return (
+          <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-zinc-800 text-zinc-400 border border-zinc-700">
+            Umumiy
+          </span>
+        )
     }
   }
 
@@ -166,7 +196,8 @@ export default function CompletedTrialsPage() {
 
             <p className="text-sm text-zinc-300 leading-relaxed">
               Siz ishtirok etgan barcha virtual sud majlislarining rasmiy bayonnomalari, chiqarilgan
-              hukmlar, shaxsiy protsessual baholashlar va taqdim etilgan dalillar ushbu arxivda saqlanadi.
+              hukmlar, shaxsiy protsessual baholashlar va taqdim etilgan dalillar ushbu arxivda
+              saqlanadi.
             </p>
           </div>
         </div>
@@ -278,7 +309,9 @@ export default function CompletedTrialsPage() {
           <div className="space-y-4">
             <div className="flex items-center justify-between text-xs text-zinc-400">
               <span>Topilgan sud ishlari: {totalCount} ta</span>
-              <span>Sahifa {page} / {totalPages}</span>
+              <span>
+                Sahifa {page} / {totalPages}
+              </span>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -319,7 +352,9 @@ export default function CompletedTrialsPage() {
                           <Clock className="w-3.5 h-3.5 text-zinc-500" />
                           <span>Davomiyligi:</span>
                         </span>
-                        <span className="font-semibold text-zinc-300">{trial.durationFormatted}</span>
+                        <span className="font-semibold text-zinc-300">
+                          {trial.durationFormatted}
+                        </span>
                       </div>
 
                       <div className="flex items-center justify-between text-xs text-zinc-400">
@@ -327,7 +362,9 @@ export default function CompletedTrialsPage() {
                           <Users className="w-3.5 h-3.5 text-zinc-500" />
                           <span>Ishtirokchilar:</span>
                         </span>
-                        <span className="font-semibold text-zinc-300">{trial.participantsCount} nafar</span>
+                        <span className="font-semibold text-zinc-300">
+                          {trial.participantsCount} nafar
+                        </span>
                       </div>
                     </div>
 

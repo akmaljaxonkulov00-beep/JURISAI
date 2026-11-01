@@ -15,11 +15,11 @@ export const languages = {
 
 export type Language = keyof typeof languages
 
-// Translation objects with 100% parity
+// Translation objects with 100% parity (with automatic fallback to default language)
 export const translations: Record<Language, Translations> = {
   uz,
-  en,
-  ru,
+  en: { ...uz, ...en },
+  ru: { ...uz, ...ru },
 }
 
 // Default language

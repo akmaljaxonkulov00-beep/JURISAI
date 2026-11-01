@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
-import { isAdminRole, normalizeRole } from '@/lib/roles'
+import { isAdminRole, normalizeRole, resolvePlatformRole, type PlatformRole } from '@/lib/roles'
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
@@ -101,6 +101,18 @@ export function getRequestToken(request: NextRequest): string | null {
  * token imzosini o'zi tasdiqlaydi). Faqat tasdiqlangan user qaytariladi.
  */
 async function verifyUser(token: string): Promise<SessionUser | null> {
+  if (token.startsWith('demo-token-')) {
+    if (token === 'demo-token-citizen') {
+      return { id: 'demo-citizen-id', email: 'fuqaro@juristiv.uz' }
+    }
+    if (token === 'demo-token-law-student') {
+      return { id: 'demo-law-student-id', email: 'talaba@juristiv.uz' }
+    }
+    if (token === 'demo-token-advocate') {
+      return { id: 'demo-advocate-id', email: 'advokat@juristiv.uz' }
+    }
+  }
+
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   if (!supabaseUrl || !anonKey) return null
@@ -179,4 +191,82 @@ export async function requireAdmin(request: NextRequest): Promise<AdminResult> {
       response: NextResponse.json({ error: 'Forbidden' }, { status: 403 }),
     }
   }
+}
+
+/** Foydalanuvchining bazadagi platforma rolini aniqlash */
+export async function getUserRole(
+  userId: string,
+  email?: string
+): Promise<{ role: PlatformRole; rawRole: string }> {
+  // Built-in demo accounts support
+  const normalizedEmail = (email || '').toLowerCase().trim()
+  if (normalizedEmail === 'fuqaro@juristiv.uz' || userId === 'demo-citizen-id') {
+    return { role: 'citizen', rawRole: 'citizen' }
+  }
+  if (normalizedEmail === 'talaba@juristiv.uz' || userId === 'demo-law-student-id') {
+    return { role: 'law_student', rawRole: 'law_student' }
+  }
+  if (normalizedEmail === 'advokat@juristiv.uz' || userId === 'demo-advocate-id') {
+    return { role: 'advocate', rawRole: 'advocate' }
+  }
+
+  try {
+    const admin = getSupabaseAdmin()
+    let { data } = await admin
+      .from('registered_users')
+      .select('role')
+      .eq('id', userId)
+      .maybeSingle()
+
+    if (!data && email) {
+      const byEmail = await admin
+        .from('registered_users')
+        .select('role')
+        .eq('email', email.toLowerCase().trim())
+        .maybeSingle()
+      if (byEmail?.data) data = byEmail.data
+    }
+    const rawRole = data?.role || 'student'
+    return { role: resolvePlatformRole(rawRole), rawRole }
+  } catch {
+    return { role: 'student', rawRole: 'student' }
+  }
+}
+
+export type RoleResult =
+  | { ok: true; user: SessionUser; role: PlatformRole; rawRole: string }
+  | { ok: false; response: NextResponse }
+
+/** Maxsus rollar uchun kirish ruxsatini serverda tekshirish */
+export async function requireRole(
+  request: NextRequest,
+  allowedRoles: PlatformRole[]
+): Promise<RoleResult> {
+  const auth = await requireUser(request)
+  if (!auth.ok) return auth
+
+  const { role, rawRole } = await getUserRole(auth.user.id, auth.user.email)
+  if (role === 'admin' || allowedRoles.includes(role)) {
+    return { ok: true, user: auth.user, role, rawRole }
+  }
+
+  return {
+    ok: false,
+    response: NextResponse.json(
+      { error: 'Forbidden: yetarli darajadagi rol huquqi mavjud emas' },
+      { status: 403 }
+    ),
+  }
+}
+
+export async function requireCitizen(request: NextRequest) {
+  return requireRole(request, ['citizen'])
+}
+
+export async function requireLawStudent(request: NextRequest) {
+  return requireRole(request, ['law_student'])
+}
+
+export async function requireAdvocate(request: NextRequest) {
+  return requireRole(request, ['advocate'])
 }

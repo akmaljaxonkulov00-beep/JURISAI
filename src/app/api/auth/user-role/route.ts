@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAuthClient } from '@/lib/supabase-auth-client'
-import { normalizeRole } from '@/lib/roles'
+import { normalizeRole, resolvePlatformRole } from '@/lib/roles'
 import { requireUser } from '@/lib/server-auth'
 
 /**
@@ -79,9 +79,15 @@ export async function GET(request: NextRequest) {
     }
 
     // Rol ichki formatga keltiriladi: ADMIN/SUPER_ADMIN/admin/super_admin → ADMIN
+    // Shuningdek yangi tizim uchun platformRole (citizen, law_student, advocate, student, admin)
     return NextResponse.json({
       success: true,
-      data: { ...row, role: normalizeRole(row.role) },
+      data: {
+        ...row,
+        role: normalizeRole(row.role),
+        platformRole: resolvePlatformRole(row.role),
+        rawRole: row.role || 'student',
+      },
     })
   } catch (e) {
     const message = e instanceof Error ? e.message : 'Xatolik'

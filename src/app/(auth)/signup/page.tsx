@@ -7,6 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import Link from 'next/link'
 import { authService } from '@/services/supabase-auth'
+import { getRoleDashboardPath, PlatformRole } from '@/lib/roles'
 
 // Form validation schema
 const signUpSchema = z
@@ -28,6 +29,7 @@ export default function SignUpPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+  const [selectedRole, setSelectedRole] = useState<PlatformRole>('citizen')
 
   const {
     register,
@@ -43,7 +45,7 @@ export default function SignUpPage() {
     setSuccess(null)
 
     try {
-      const result = await authService.signUp(data.email, data.password, data.name)
+      const result = await authService.signUp(data.email, data.password, data.name, selectedRole)
 
       if (result.success) {
         // Email tasdiqlash talab qilinadi — session yaratilmagan, shuning
@@ -60,14 +62,14 @@ export default function SignUpPage() {
 
         setSuccess("Ro'yxatdan muvaffaqiyatli o'tdingiz!")
 
-        // Redirect to dashboard immediately
+        // Redirect to role dashboard immediately
         setTimeout(() => {
-          router.push('/dashboard')
+          router.push(getRoleDashboardPath(selectedRole))
         }, 1000)
       } else {
         setError(result.error || "Ro'yxatdan o'tish xatosi yuz berdi")
       }
-    } catch (err) {
+    } catch {
       setError("Noma'lum xatolik yuz berdi. Iltimos, qayta urinib ko'ring.")
     } finally {
       setIsLoading(false)
@@ -130,6 +132,73 @@ export default function SignUpPage() {
 
       {/* Sign Up Form */}
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        {/* Platform Role Selector */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Platformadagi rolingiz
+          </label>
+          <div className="grid grid-cols-2 gap-2.5">
+            <button
+              type="button"
+              onClick={() => setSelectedRole('citizen')}
+              className={`p-3 rounded-xl border text-left transition-all ${
+                selectedRole === 'citizen'
+                  ? 'border-blue-600 bg-blue-50 dark:bg-blue-950/40 text-blue-950 dark:text-blue-100 ring-2 ring-blue-500/20'
+                  : 'border-gray-200 dark:border-gray-750 hover:border-gray-300 dark:border-zinc-800 text-gray-700 dark:text-gray-300'
+              }`}
+            >
+              <div className="font-semibold text-sm flex items-center gap-1.5">
+                <span>🏛️</span> Fuqaro
+              </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Huquqiy yordam va savollar</p>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setSelectedRole('law_student')}
+              className={`p-3 rounded-xl border text-left transition-all ${
+                selectedRole === 'law_student'
+                  ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-950 dark:text-indigo-100 ring-2 ring-indigo-500/20'
+                  : 'border-gray-200 dark:border-gray-750 hover:border-gray-300 dark:border-zinc-800 text-gray-700 dark:text-gray-300'
+              }`}
+            >
+              <div className="font-semibold text-sm flex items-center gap-1.5">
+                <span>🎓</span> Yuridik talaba
+              </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Amaliyotchi huquqshunos</p>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setSelectedRole('advocate')}
+              className={`p-3 rounded-xl border text-left transition-all ${
+                selectedRole === 'advocate'
+                  ? 'border-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-950 dark:text-emerald-100 ring-2 ring-emerald-500/20'
+                  : 'border-gray-200 dark:border-gray-750 hover:border-gray-300 dark:border-zinc-800 text-gray-700 dark:text-gray-300'
+              }`}
+            >
+              <div className="font-semibold text-sm flex items-center gap-1.5">
+                <span>⚖️</span> Advokat
+              </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Litsenziyali himoyachi</p>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setSelectedRole('student')}
+              className={`p-3 rounded-xl border text-left transition-all ${
+                selectedRole === 'student'
+                  ? 'border-amber-600 bg-amber-50 dark:bg-amber-950/40 text-amber-950 dark:text-amber-100 ring-2 ring-amber-500/20'
+                  : 'border-gray-200 dark:border-gray-750 hover:border-gray-300 dark:border-zinc-800 text-gray-700 dark:text-gray-300'
+              }`}
+            >
+              <div className="font-semibold text-sm flex items-center gap-1.5">
+                <span>📚</span> Ta'lim talabasi
+              </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Mavjud simulyatorlar</p>
+            </button>
+          </div>
+        </div>
         {/* Name Field */}
         <div>
           <label

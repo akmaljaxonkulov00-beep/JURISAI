@@ -154,7 +154,10 @@ export class AIClient {
           usageData = { promptTokens: 150, completionTokens: 250, totalTokens: 400 }
         }
       } catch (geminiErr: any) {
-        console.warn('[AIClient] Gemini urinishi muvaffaqiyatsiz bo‘ldi, Groq’ga o‘tilmoqda:', geminiErr.message)
+        console.warn(
+          '[AIClient] Gemini urinishi muvaffaqiyatsiz bo‘ldi, Groq’ga o‘tilmoqda:',
+          geminiErr.message
+        )
       }
     }
 

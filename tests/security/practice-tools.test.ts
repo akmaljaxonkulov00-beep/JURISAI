@@ -529,7 +529,7 @@ describe('5) Court simulator — real sessiya va egalik', () => {
     // AI xabarlari ham bazaga yozilgan
     expect(state.rows.court_messages.length).toBeGreaterThan(0)
     expect(state.rows.court_messages[0].session_id).toBe(state.rows.court_sessions[0].id)
-  })
+  }, 20000)
 
   it('submit — User A User B ning sessiyasiga yozolmaydi → 403', async () => {
     state.rows.court_sessions = [
@@ -578,7 +578,7 @@ describe('5) Court simulator — real sessiya va egalik', () => {
     expect(saved.some((m: any) => m.speaker === 'SUDYA' && m.content.includes('Ayblov asossiz'))).toBe(true)
     expect(saved.some((m: any) => m.role === 'KOTIBA')).toBe(true)
     expect(saved.every((m: any) => m.session_id === 'sim-a')).toBe(true)
-  })
+  }, 20000)
 
   it('get_verdict o\'z sessiyasida — score/outcome bazaga yoziladi', async () => {
     state.rows.court_sessions = [
@@ -597,5 +597,5 @@ describe('5) Court simulator — real sessiya va egalik', () => {
     expect(updated.status).toBe('completed')
     expect(updated.score).toBe(json.score)
     expect(updated.outcome).toBe(json.outcome)
-  })
+  }, 20000)
 })

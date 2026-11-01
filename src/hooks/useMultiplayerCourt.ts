@@ -145,10 +145,7 @@ export function useMultiplayerCourt({ codeOrId, currentUser }: UseMultiplayerCou
           courtroomAudio.playObjectionChime()
         }
 
-        if (
-          lastStageIdRef.current &&
-          lastStageIdRef.current !== newRoom.currentStageId
-        ) {
+        if (lastStageIdRef.current && lastStageIdRef.current !== newRoom.currentStageId) {
           courtroomAudio.playGavelSound()
         }
         lastStageIdRef.current = newRoom.currentStageId
@@ -436,7 +433,9 @@ export function useMultiplayerCourt({ codeOrId, currentUser }: UseMultiplayerCou
       } catch (err: any) {
         console.warn('getUserMedia error:', err)
         if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-          setMediaError('Mikrofon yoki kameradan foydalanishga ruxsat berilmadi. Iltimos, brauzer sozlamalarida ruxsatni yoqing.')
+          setMediaError(
+            'Mikrofon yoki kameradan foydalanishga ruxsat berilmadi. Iltimos, brauzer sozlamalarida ruxsatni yoqing.'
+          )
         } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
           setMediaError('Qurilmangizda mikrofon yoki kamera topilmadi.')
         } else if (err.name === 'NotReadableError') {

@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase-browser'
 import { finalizeUserSession } from '@/services/supabase-auth'
-import { isAdminRole } from '@/lib/roles'
+import { isAdminRole, getRoleDashboardPath } from '@/lib/roles'
 import { syncSessionCookies, clearSessionCookies } from '@/lib/session-cookies'
 import { getErrorMessage } from '@/lib/errors'
 
@@ -66,7 +66,7 @@ export default function AuthCallbackPage() {
             return
           }
 
-          router.replace(isAdminRole(savedUser.role) ? '/admin' : '/dashboard')
+          router.replace(getRoleDashboardPath(savedUser.platformRole || savedUser.rawRole || savedUser.role))
         } catch (err) {
           console.error('[AuthCallback] finalizeUserSession error:', err)
           // Rol aniqlanmagan bo'lsa ham cookie'ni o'rnatamiz — dashboardga kiradi

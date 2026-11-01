@@ -359,7 +359,7 @@ export const uz = {
   dashboardDaysRow: 'kun ketma-ket',
   dashboardAchievements: 'Yutuqlar',
   dashboardQuickActions: 'Tezkor amallar',
-  dashboardAboveAverage: 'O\'rtacha ko\'rsatkichdan yuqori',
+  dashboardAboveAverage: "O'rtacha ko'rsatkichdan yuqori",
 
   // Landing page extras
   landingHeroDesc:

@@ -69,7 +69,10 @@ class GoogleAIService {
             }
           }
         } catch (geminiErr: any) {
-          console.warn('[GoogleAIService] Gemini urinishi xatoligi, Groq’ga o‘tilmoqda:', geminiErr.message)
+          console.warn(
+            '[GoogleAIService] Gemini urinishi xatoligi, Groq’ga o‘tilmoqda:',
+            geminiErr.message
+          )
         }
       }
 

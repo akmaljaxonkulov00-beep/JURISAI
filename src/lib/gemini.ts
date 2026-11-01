@@ -108,7 +108,8 @@ async function postJson(url: string, bodyObj: any): Promise<any> {
  * Gemini modeliga to'g'ridan-to'g'ri so'rov yuborish (Avtomatik fallback bilan).
  */
 export async function callGemini(prompt: string, options: GeminiOptions = {}): Promise<string> {
-  if (!apiKey) {
+  const activeKey = process.env.GEMINI_API_KEY || apiKey
+  if (!activeKey) {
     throw new Error('GEMINI_API_KEY topilmadi')
   }
 
@@ -140,7 +141,7 @@ export async function callGemini(prompt: string, options: GeminiOptions = {}): P
   // Candidate Gemini modellari bo'yicha ketma-ket urinib ko'rish
   for (const model of CANDIDATE_GEMINI_MODELS) {
     try {
-      const url = `${GEMINI_BASE_URL}/${model}:generateContent?key=${apiKey}`
+      const url = `${GEMINI_BASE_URL}/${model}:generateContent?key=${activeKey}`
       const data = await postJson(url, requestBody)
 
       const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text

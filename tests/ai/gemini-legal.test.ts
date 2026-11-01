@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeAll } from 'vitest'
 import {
   callGemini,
   callGeminiJson,
@@ -8,6 +8,10 @@ import {
 } from '@/lib/gemini'
 
 describe('Google Gemini — O‘zbekiston Qonunchiligi AI Integratsiyasi', () => {
+  beforeAll(() => {
+    process.env.GEMINI_API_KEY =
+      process.env.GEMINI_API_KEY || 'test-mock-gemini-key'
+  })
   it('Gemini tizim direktivasi O‘zbekiston qonun manbalarini o‘z ichiga oladi', () => {
     expect(UZBEK_LEGAL_SYSTEM_INSTRUCTION).toContain('O‘zbekiston Respublikasi Konstitutsiyasi')
     expect(UZBEK_LEGAL_SYSTEM_INSTRUCTION).toContain('Jinoyat kodeksi')

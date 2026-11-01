@@ -33,7 +33,7 @@ export default function PageHeader({
 
   // Generate default breadcrumbs if not provided
   const defaultBreadcrumbs: BreadcrumbItem[] = []
-  
+
   // Add dashboard as first breadcrumb if not on dashboard
   if (pathname !== '/dashboard') {
     defaultBreadcrumbs.push({
@@ -52,17 +52,17 @@ export default function PageHeader({
       'scenario-generator': t('navScenarioGen'),
       'legal-database': t('navLegalDatabase'),
       'legal-database-new': t('navLegalDatabase'),
-      'qonunlar': t('navLegalDatabase'),
-      'settings': t('navSettings'),
-      'profile': t('profile'),
-      'statistics': t('navStatistics'),
-      'community': t('navCommunity'),
-      'billing': t('billing'),
-      'premium': t('navPremium'),
-      'help': t('navHelp'),
-      'admin': t('adminDashboard'),
+      qonunlar: t('navLegalDatabase'),
+      settings: t('navSettings'),
+      profile: t('profile'),
+      statistics: t('navStatistics'),
+      community: t('navCommunity'),
+      billing: t('billing'),
+      premium: t('navPremium'),
+      help: t('navHelp'),
+      admin: t('adminDashboard'),
     }
-    
+
     const sectionLabel = sectionMap[pathSegments[0]]
     if (sectionLabel) {
       defaultBreadcrumbs.push({

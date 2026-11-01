@@ -555,7 +555,9 @@ export async function joinCourtRoom(
   }
 
   if (room.status === 'completed') {
-    throw new Error('Ushbu sud majlisi yakunlangan. Yakunlangan sud ishlarini tegishli bo‘limda ko‘rishingiz mumkin.')
+    throw new Error(
+      'Ushbu sud majlisi yakunlangan. Yakunlangan sud ishlarini tegishli bo‘limda ko‘rishingiz mumkin.'
+    )
   }
 
   if (room.status === 'cancelled') {
@@ -1221,8 +1223,12 @@ function generateRoleFeedback(
       case 'PROKUROR':
         return {
           feedback: `${userName} (Prokuror) mehnat qonunchiligiga rioya etilishi yuzasidan xulosa berdi.`,
-          mistakes: ['Ish beruvchining kasaba uyushmasi bilan kelishuv tartibini buzganiga yetarli e’tibor qaratmadi.'],
-          recommendations: ['Mehnat nizolarida qonuniylikni ta’minlash maqsadida MK 443-moddasiga tayangan holda prokuror xulosasini berish lozim.'],
+          mistakes: [
+            'Ish beruvchining kasaba uyushmasi bilan kelishuv tartibini buzganiga yetarli e’tibor qaratmadi.',
+          ],
+          recommendations: [
+            'Mehnat nizolarida qonuniylikni ta’minlash maqsadida MK 443-moddasiga tayangan holda prokuror xulosasini berish lozim.',
+          ],
           correctArticles: ['MK 443-modda', 'FPK 52-modda'],
           grade,
         }
@@ -1471,7 +1477,9 @@ export async function issueVerdict(
   room.verdictData = verdict
   room.status = 'completed'
   room.completedAt = now
-  const startMs = room.startedAt ? new Date(room.startedAt).getTime() : new Date(room.createdAt).getTime()
+  const startMs = room.startedAt
+    ? new Date(room.startedAt).getTime()
+    : new Date(room.createdAt).getTime()
   room.durationSeconds = Math.max(0, Math.floor((new Date(now).getTime() - startMs) / 1000))
   room.currentStageId = 'verdict_review'
   room.currentStageOrder = 8
@@ -1762,8 +1770,18 @@ export async function getUserCompletedTrials(
       const duration =
         room.durationSeconds ||
         (room.startedAt && room.completedAt
-          ? Math.max(0, Math.floor((new Date(room.completedAt).getTime() - new Date(room.startedAt).getTime()) / 1000))
-          : Math.max(0, Math.floor((new Date(room.updatedAt).getTime() - new Date(room.createdAt).getTime()) / 1000)))
+          ? Math.max(
+              0,
+              Math.floor(
+                (new Date(room.completedAt).getTime() - new Date(room.startedAt).getTime()) / 1000
+              )
+            )
+          : Math.max(
+              0,
+              Math.floor(
+                (new Date(room.updatedAt).getTime() - new Date(room.createdAt).getTime()) / 1000
+              )
+            ))
 
       const mins = Math.floor(duration / 60)
       const secs = duration % 60
@@ -1886,8 +1904,18 @@ export async function getUserCompletedTrialDetail(
   const durationSec =
     room.durationSeconds ||
     (room.startedAt && room.completedAt
-      ? Math.max(0, Math.floor((new Date(room.completedAt).getTime() - new Date(room.startedAt).getTime()) / 1000))
-      : Math.max(0, Math.floor((new Date(room.updatedAt).getTime() - new Date(room.createdAt).getTime()) / 1000)))
+      ? Math.max(
+          0,
+          Math.floor(
+            (new Date(room.completedAt).getTime() - new Date(room.startedAt).getTime()) / 1000
+          )
+        )
+      : Math.max(
+          0,
+          Math.floor(
+            (new Date(room.updatedAt).getTime() - new Date(room.createdAt).getTime()) / 1000
+          )
+        ))
 
   const mins = Math.floor(durationSec / 60)
   const secs = durationSec % 60

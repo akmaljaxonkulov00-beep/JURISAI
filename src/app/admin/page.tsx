@@ -48,6 +48,10 @@ import AdminLegalManager from '@/components/admin/AdminLegalManager'
 import AdminCourtScenarioManager from '@/components/admin/AdminCourtScenarioManager'
 import AdminUsageLimitsManager from '@/components/admin/AdminUsageLimitsManager'
 import AdminCostMonitor from '@/components/admin/AdminCostMonitor'
+import AdminVerificationsManager from '@/components/admin/AdminVerificationsManager'
+import AdminQuestionsManager from '@/components/admin/AdminQuestionsManager'
+import AdminConsultationsManager from '@/components/admin/AdminConsultationsManager'
+import AdminExistingStudentsManager from '@/components/admin/AdminExistingStudentsManager'
 import ContactSettingsCard from '@/components/admin/ContactSettingsCard'
 import BrandingSettingsCard from '@/components/admin/BrandingSettingsCard'
 import { useAdminRealtime } from '@/hooks/useAdminRealtime'
@@ -156,6 +160,10 @@ interface LoginActivity {
 
 type TabType =
   | 'dashboard'
+  | 'verifications'
+  | 'questions_moderation'
+  | 'consultations'
+  | 'existing_students'
   | 'reports'
   | 'monitoring'
   | 'cost'
@@ -746,6 +754,10 @@ export default function AdminDashboard() {
 
   const tabs: { id: TabType; label: string; icon: LucideIcon; badge?: number }[] = [
     { id: 'dashboard', label: 'Boshqaruv', icon: Shield },
+    { id: 'verifications', label: 'Verifikatsiya', icon: Shield },
+    { id: 'questions_moderation', label: 'Savol-Javob', icon: FileText },
+    { id: 'consultations', label: 'Konsultatsiyalar', icon: CalendarDays },
+    { id: 'existing_students', label: 'Talabalar (Mavjud)', icon: Scale },
     { id: 'monitoring', label: 'Monitoring', icon: Activity },
     { id: 'cost', label: 'Xarajat', icon: TrendingUp },
     { id: 'reports', label: 'Hisobotlar', icon: BarChart3 },
@@ -1253,6 +1265,18 @@ export default function AdminDashboard() {
             </div>
           </div>
         )}
+
+        {/* ===== VERIFIKATSIYA ===== */}
+        {activeTab === 'verifications' && <AdminVerificationsManager />}
+
+        {/* ===== SAVOL-JAVOB MODERATSIYASI ===== */}
+        {activeTab === 'questions_moderation' && <AdminQuestionsManager />}
+
+        {/* ===== KONSULTATSIYALAR ===== */}
+        {activeTab === 'consultations' && <AdminConsultationsManager />}
+
+        {/* ===== MAVJUD TALABALAR ===== */}
+        {activeTab === 'existing_students' && <AdminExistingStudentsManager />}
 
         {/* ===== MONITORING ===== */}
         {activeTab === 'monitoring' && <MonitoringDashboard />}

@@ -82,7 +82,10 @@ export async function POST(req: NextRequest) {
           analysisText = ensureUzbekLatin(geminiRes)
         }
       } catch (geminiErr: any) {
-        console.warn('Gemini Document Analysis urinishi xatoligi, Groq’ga o‘tilmoqda:', geminiErr.message)
+        console.warn(
+          'Gemini Document Analysis urinishi xatoligi, Groq’ga o‘tilmoqda:',
+          geminiErr.message
+        )
       }
     }
 

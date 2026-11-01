@@ -168,7 +168,8 @@ export default function JoinRoomModal({
               <span>Sud majlisi yakunlangan</span>
             </div>
             <p className="text-zinc-300">
-              Ushbu sud ishi yakunlangan. Siz uning yakuniy hukmi va protokolini to‘liq ko‘rishingiz mumkin.
+              Ushbu sud ishi yakunlangan. Siz uning yakuniy hukmi va protokolini to‘liq ko‘rishingiz
+              mumkin.
             </p>
           </div>
         )}
@@ -288,7 +289,10 @@ export default function JoinRoomModal({
           </button>
           <button
             type="submit"
-            disabled={loading || (!roomDetails?.status && UNIQUE_ROLES.includes(role) && !!occupiedRoles[role])}
+            disabled={
+              loading ||
+              (!roomDetails?.status && UNIQUE_ROLES.includes(role) && !!occupiedRoles[role])
+            }
             className="px-6 py-2.5 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-white shadow-lg shadow-blue-500/20 transition-all flex items-center gap-2"
           >
             <LogIn className="w-3.5 h-3.5" />

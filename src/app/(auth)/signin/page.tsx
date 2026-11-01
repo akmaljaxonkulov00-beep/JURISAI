@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { authService } from '@/services/supabase-auth'
-import { isAdminRole } from '@/lib/roles'
+import { isAdminRole, getRoleDashboardPath, PlatformRole } from '@/lib/roles'
 import { useAuth } from '@/app/providers'
 import { useRealtimeStats } from '@/hooks/useRealtimeStats'
 import AnimatedCounter from '@/components/AnimatedCounter'
@@ -151,6 +151,7 @@ function SignInContent() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [name, setName] = useState('')
+  const [selectedRole, setSelectedRole] = useState<PlatformRole>('citizen')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -180,9 +181,9 @@ function SignInContent() {
       .handleRedirectResult()
       .then(result => {
         if (result.success && result.data) {
-          const role = result.data.role
+          const role = (result.data as any).platformRole || result.data.role
           router.replace(
-            isAdminRole(role) ? '/admin' : searchParams?.get('redirectTo') || '/dashboard'
+            searchParams?.get('redirectTo') || getRoleDashboardPath(role)
           )
         }
       })
@@ -209,8 +210,9 @@ function SignInContent() {
         if (result.success) {
           if (rememberMe) localStorage.setItem('rememberedEmail', email)
           else localStorage.removeItem('rememberedEmail')
-          const role = result.data?.role
-          router.push(isAdminRole(role) ? '/admin' : '/dashboard')
+          const role = (result.data as any)?.platformRole || result.data?.role
+          const target = searchParams?.get('redirectTo') || getRoleDashboardPath(role)
+          router.push(target)
         } else {
           setError(result.error || "Email yoki parol noto'g'ri")
         }
@@ -220,7 +222,7 @@ function SignInContent() {
           setIsSubmitting(false)
           return
         }
-        const result = await authService.signUp(email, password, name)
+        const result = await authService.signUp(email, password, name, selectedRole)
         if (result.success) {
           if (result.needsEmailConfirmation) {
             setSuccessMsg(
@@ -230,7 +232,7 @@ function SignInContent() {
             setTimeout(() => setSuccessMsg(''), 8000)
           } else {
             setSuccessMsg("Ro'yxatdan o'tish muvaffaqiyatli!")
-            setTimeout(() => router.push('/dashboard'), 1500)
+            setTimeout(() => router.push(getRoleDashboardPath(selectedRole)), 1500)
           }
         } else {
           setError(result.error || "Ro'yxatdan o'tish xatosi")
@@ -243,6 +245,27 @@ function SignInContent() {
     }
   }
 
+  /* ── Quick Demo Login ── */
+  const handleQuickDemoLogin = async (demoEmail: string) => {
+    setEmail(demoEmail)
+    setPassword('juristiv2026!')
+    setIsSubmitting(true)
+    setError('')
+    try {
+      const result = await authService.signIn(demoEmail, 'juristiv2026!')
+      if (result.success && result.data) {
+        const role = (result.data as any)?.platformRole || result.data.role
+        router.push(getRoleDashboardPath(role))
+      } else {
+        setError(result.error || 'Kirishda xatolik')
+      }
+    } catch {
+      setError('Kirishda xatolik yuz berdi')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
   /* ── Google ── */
   const handleGoogleLogin = async () => {
     setIsGoogleLoading(true)
@@ -250,8 +273,8 @@ function SignInContent() {
     try {
       const result = await authService.signInWithGoogle()
       if (result.success && result.data) {
-        const role = result.data.role
-        router.push(isAdminRole(role) ? '/admin' : '/dashboard')
+        const role = (result.data as any)?.platformRole || result.data.role
+        router.push(getRoleDashboardPath(role))
       } else if (result.error) {
         setError(result.error)
       }
@@ -715,25 +738,94 @@ function SignInContent() {
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
               {mode === 'register' && (
-                <AuthInput
-                  label="Ismingiz"
-                  type="text"
-                  value={name}
-                  onChange={setName}
-                  placeholder="Ismingizni kiriting"
-                  icon={
-                    <svg
-                      className="w-4 h-4"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                    >
-                      <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
-                      <circle cx="12" cy="7" r="4" />
-                    </svg>
-                  }
-                />
+                <>
+                  <div className="space-y-1.5 pb-1">
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                      Platformadagi rolingizni tanlang:
+                    </label>
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedRole('citizen')}
+                        className={`p-2.5 rounded-xl border text-left transition-all ${
+                          selectedRole === 'citizen'
+                            ? 'border-blue-600 bg-blue-50/80 dark:bg-blue-950/40 text-blue-900 dark:text-blue-200 ring-2 ring-blue-500/20'
+                            : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 text-slate-700 dark:text-slate-300'
+                        }`}
+                      >
+                        <div className="font-semibold text-xs flex items-center gap-1.5">
+                          <span>🏛️</span> Fuqaro
+                        </div>
+                        <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">Yuridik yordam oluvchi</div>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setSelectedRole('law_student')}
+                        className={`p-2.5 rounded-xl border text-left transition-all ${
+                          selectedRole === 'law_student'
+                            ? 'border-indigo-600 bg-indigo-50/80 dark:bg-indigo-950/40 text-indigo-900 dark:text-indigo-200 ring-2 ring-indigo-500/20'
+                            : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 text-slate-700 dark:text-slate-300'
+                        }`}
+                      >
+                        <div className="font-semibold text-xs flex items-center gap-1.5">
+                          <span>🎓</span> Yuridik talaba
+                        </div>
+                        <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">Amaliyotchi huquqshunos</div>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setSelectedRole('advocate')}
+                        className={`p-2.5 rounded-xl border text-left transition-all ${
+                          selectedRole === 'advocate'
+                            ? 'border-emerald-600 bg-emerald-50/80 dark:bg-emerald-950/40 text-emerald-900 dark:text-emerald-200 ring-2 ring-emerald-500/20'
+                            : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 text-slate-700 dark:text-slate-300'
+                        }`}
+                      >
+                        <div className="font-semibold text-xs flex items-center gap-1.5">
+                          <span>⚖️</span> Advokat
+                        </div>
+                        <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">Litsenziyali himoyachi</div>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setSelectedRole('student')}
+                        className={`p-2.5 rounded-xl border text-left transition-all ${
+                          selectedRole === 'student'
+                            ? 'border-amber-600 bg-amber-50/80 dark:bg-amber-950/40 text-amber-900 dark:text-amber-200 ring-2 ring-amber-500/20'
+                            : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 text-slate-700 dark:text-slate-300'
+                        }`}
+                      >
+                        <div className="font-semibold text-xs flex items-center gap-1.5">
+                          <span>📚</span> Ta'lim talabasi
+                        </div>
+                        <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">Mavjud simulyatorlar</div>
+                      </button>
+                    </div>
+                  </div>
+
+                  <AuthInput
+                    label="Ismingiz"
+                    type="text"
+                    value={name}
+                    onChange={setName}
+                    placeholder="Ismingizni kiriting"
+                    icon={
+                      <svg
+                        className="w-4 h-4"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                      >
+                        <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+                        <circle cx="12" cy="7" r="4" />
+                      </svg>
+                    }
+                  />
+                </>
               )}
 
               <AuthInput
@@ -866,6 +958,60 @@ function SignInContent() {
                 )}
               </button>
             </form>
+
+            {/* Quick Demo Accounts Access */}
+            {mode === 'login' && (
+              <div className="mt-5 pt-4 border-t border-slate-100 dark:border-slate-800">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[12px] font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                    <span>⚡</span> 3 ta rol uchun tezkor demo kirish:
+                  </span>
+                  <span className="text-[10px] text-slate-400 font-mono bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">
+                    parol: juristiv2026!
+                  </span>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleQuickDemoLogin('fuqaro@juristiv.uz')}
+                    className="p-2 rounded-xl border border-blue-200 dark:border-blue-900/60 bg-blue-50/70 dark:bg-blue-950/30 hover:bg-blue-100/80 dark:hover:bg-blue-900/40 text-left transition-all group"
+                  >
+                    <div className="font-semibold text-xs text-blue-900 dark:text-blue-200 flex items-center gap-1">
+                      <span>🏛️</span> Fuqaro
+                    </div>
+                    <div className="text-[10px] text-blue-700 dark:text-blue-400 truncate mt-0.5">
+                      fuqaro@juristiv.uz
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleQuickDemoLogin('talaba@juristiv.uz')}
+                    className="p-2 rounded-xl border border-indigo-200 dark:border-indigo-900/60 bg-indigo-50/70 dark:bg-indigo-950/30 hover:bg-indigo-100/80 dark:hover:bg-indigo-900/40 text-left transition-all group"
+                  >
+                    <div className="font-semibold text-xs text-indigo-900 dark:text-indigo-200 flex items-center gap-1">
+                      <span>🎓</span> Talaba
+                    </div>
+                    <div className="text-[10px] text-indigo-700 dark:text-indigo-400 truncate mt-0.5">
+                      talaba@juristiv.uz
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleQuickDemoLogin('advokat@juristiv.uz')}
+                    className="p-2 rounded-xl border border-emerald-200 dark:border-emerald-900/60 bg-emerald-50/70 dark:bg-emerald-950/30 hover:bg-emerald-100/80 dark:hover:bg-emerald-900/40 text-left transition-all group"
+                  >
+                    <div className="font-semibold text-xs text-emerald-900 dark:text-emerald-200 flex items-center gap-1">
+                      <span>⚖️</span> Advokat
+                    </div>
+                    <div className="text-[10px] text-emerald-700 dark:text-emerald-400 truncate mt-0.5">
+                      advokat@juristiv.uz
+                    </div>
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Divider */}
             <div className="relative my-6">

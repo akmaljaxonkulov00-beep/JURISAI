@@ -57,7 +57,9 @@ export default function CompletedTrialDossierPage({
   const [data, setData] = useState<CompletedDetailResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState<'verdict' | 'scores' | 'evidence' | 'transcript'>('verdict')
+  const [activeTab, setActiveTab] = useState<'verdict' | 'scores' | 'evidence' | 'transcript'>(
+    'verdict'
+  )
   const [expandedParticipant, setExpandedParticipant] = useState<string | null>(null)
 
   const fetchDetail = useCallback(async () => {
@@ -66,8 +68,10 @@ export default function CompletedTrialDossierPage({
       setError(null)
       const authHeaders = await getAuthHeaders()
 
-      const guestId = typeof window !== 'undefined' ? sessionStorage.getItem('juristiv_mp_guest_id') : null
-      const guestName = typeof window !== 'undefined' ? sessionStorage.getItem('juristiv_mp_guest_name') : null
+      const guestId =
+        typeof window !== 'undefined' ? sessionStorage.getItem('juristiv_mp_guest_id') : null
+      const guestName =
+        typeof window !== 'undefined' ? sessionStorage.getItem('juristiv_mp_guest_name') : null
 
       const res = await fetch(`/api/court/multiplayer/history/${codeOrId}`, {
         headers: {
@@ -104,8 +108,12 @@ export default function CompletedTrialDossierPage({
     let doc = `=================================================================\n`
     doc += `      O‘ZBEKISTON RESPUBLIKASI VIRTUAL SUD MAJLISI BAYONNOMASI\n`
     doc += `=================================================================\n\n`
-    const startTime = room.startedAt ? new Date(room.startedAt).toLocaleString() : new Date(room.createdAt).toLocaleString()
-    const endTime = room.completedAt ? new Date(room.completedAt).toLocaleString() : new Date(room.updatedAt).toLocaleString()
+    const startTime = room.startedAt
+      ? new Date(room.startedAt).toLocaleString()
+      : new Date(room.createdAt).toLocaleString()
+    const endTime = room.completedAt
+      ? new Date(room.completedAt).toLocaleString()
+      : new Date(room.updatedAt).toLocaleString()
 
     doc += `Sud zali: ${room.title}\n`
     doc += `Xona kodi: ${room.code}\n`
@@ -206,7 +214,9 @@ export default function CompletedTrialDossierPage({
         <div className="max-w-md w-full p-6 rounded-3xl bg-zinc-900 border border-zinc-800 text-center space-y-4 shadow-2xl">
           <AlertCircle className="w-10 h-10 text-rose-500 mx-auto" />
           <h2 className="text-lg font-bold text-white">Xatolik yuz berdi</h2>
-          <p className="text-xs sm:text-sm text-zinc-400">{error || 'Sud dosyesi topilmadi yoki sizda unga kirish huquqi yo‘q.'}</p>
+          <p className="text-xs sm:text-sm text-zinc-400">
+            {error || 'Sud dosyesi topilmadi yoki sizda unga kirish huquqi yo‘q.'}
+          </p>
           <div className="pt-2 flex flex-col gap-2">
             <Link
               href="/virtual-court/completed"
@@ -220,7 +230,15 @@ export default function CompletedTrialDossierPage({
     )
   }
 
-  const { room, myParticipant, myScore, userActions, userEvidence, otherEvidence, durationFormatted } = data
+  const {
+    room,
+    myParticipant,
+    myScore,
+    userActions,
+    userEvidence,
+    otherEvidence,
+    durationFormatted,
+  } = data
   const verdict = room.verdictData
 
   return (
@@ -261,12 +279,17 @@ export default function CompletedTrialDossierPage({
             <div className="flex items-center gap-3 text-xs text-zinc-400">
               <span className="flex items-center gap-1.5">
                 <Clock className="w-4 h-4 text-zinc-500" />
-                <span>Davomiyligi: <strong className="text-zinc-200">{durationFormatted}</strong></span>
+                <span>
+                  Davomiyligi: <strong className="text-zinc-200">{durationFormatted}</strong>
+                </span>
               </span>
               <span>•</span>
               <span className="flex items-center gap-1.5">
                 <Users className="w-4 h-4 text-zinc-500" />
-                <span>Ishtirokchilar: <strong className="text-zinc-200">{room.participants.length} nafar</strong></span>
+                <span>
+                  Ishtirokchilar:{' '}
+                  <strong className="text-zinc-200">{room.participants.length} nafar</strong>
+                </span>
               </span>
             </div>
           </div>
@@ -293,7 +316,9 @@ export default function CompletedTrialDossierPage({
               <div className="flex items-center gap-3">
                 <span className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-xl bg-amber-500/10 text-amber-300 border border-amber-500/30">
                   <Award className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Daraja: {myScore.proceduralGrade} ({myScore.totalScore}/100)</span>
+                  <span>
+                    Daraja: {myScore.proceduralGrade} ({myScore.totalScore}/100)
+                  </span>
                 </span>
                 <span className="text-xs font-extrabold text-emerald-400">
                   +{myScore.xpEarned} XP
@@ -379,20 +404,30 @@ export default function CompletedTrialDossierPage({
 
                 {verdict.legalReasoning && (
                   <div className="p-4 rounded-2xl bg-zinc-950/60 border border-zinc-800/80 space-y-1.5">
-                    <span className="text-xs font-semibold text-zinc-500">Huquqiy asoslantirish:</span>
-                    <p className="text-xs text-zinc-300 leading-relaxed">{verdict.legalReasoning}</p>
+                    <span className="text-xs font-semibold text-zinc-500">
+                      Huquqiy asoslantirish:
+                    </span>
+                    <p className="text-xs text-zinc-300 leading-relaxed">
+                      {verdict.legalReasoning}
+                    </p>
                   </div>
                 )}
 
                 {verdict.penaltyOrRemedy && (
                   <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/20 space-y-1.5">
-                    <span className="text-xs font-semibold text-amber-400">Tayinlangan jazo / Majburiyat:</span>
-                    <p className="text-xs text-amber-200 leading-relaxed">{verdict.penaltyOrRemedy}</p>
+                    <span className="text-xs font-semibold text-amber-400">
+                      Tayinlangan jazo / Majburiyat:
+                    </span>
+                    <p className="text-xs text-amber-200 leading-relaxed">
+                      {verdict.penaltyOrRemedy}
+                    </p>
                   </div>
                 )}
 
                 <div className="text-xs text-zinc-500 flex items-center justify-between pt-2">
-                  <span>Sud Raisi: <strong className="text-zinc-300">{verdict.judgedByName}</strong></span>
+                  <span>
+                    Sud Raisi: <strong className="text-zinc-300">{verdict.judgedByName}</strong>
+                  </span>
                   <span>{new Date(verdict.judgedAt).toLocaleString()}</span>
                 </div>
               </div>
@@ -401,8 +436,8 @@ export default function CompletedTrialDossierPage({
                 <AlertCircle className="w-8 h-8 text-amber-400 mx-auto" />
                 <h3 className="text-base font-bold text-white">Sud majlisi yakunlangan</h3>
                 <p className="text-xs sm:text-sm text-zinc-400 max-w-md mx-auto">
-                  Ushbu sud majlisi yakunlangan, biroq sudya tomonidan rasmiy hukm yoki hal qiluv qarori
-                  kiritilmagan.
+                  Ushbu sud majlisi yakunlangan, biroq sudya tomonidan rasmiy hukm yoki hal qiluv
+                  qarori kiritilmagan.
                 </p>
               </div>
             )}
@@ -417,14 +452,17 @@ export default function CompletedTrialDossierPage({
                       <span>Sizning Protsessual Baholashingiz</span>
                     </h3>
                     <p className="text-xs text-zinc-400">
-                      Multiplayer sud jarayonida ko‘rsatgan nutqingiz, qonun moddalarini qo‘llashingiz va faolligingiz asosida.
+                      Multiplayer sud jarayonida ko‘rsatgan nutqingiz, qonun moddalarini
+                      qo‘llashingiz va faolligingiz asosida.
                     </p>
                   </div>
 
                   <div className="text-right">
                     <span className="text-3xl font-black text-amber-400">{myScore.totalScore}</span>
                     <span className="text-xs text-zinc-500"> / 100</span>
-                    <div className="text-xs font-bold text-zinc-300">Daraja: {myScore.proceduralGrade}</div>
+                    <div className="text-xs font-bold text-zinc-300">
+                      Daraja: {myScore.proceduralGrade}
+                    </div>
                   </div>
                 </div>
 
@@ -436,7 +474,10 @@ export default function CompletedTrialDossierPage({
                       <span className="text-blue-400">{myScore.legalReasoning}%</span>
                     </div>
                     <div className="w-full h-2 rounded-full bg-zinc-800 overflow-hidden">
-                      <div className="h-full bg-blue-500 rounded-full" style={{ width: `${myScore.legalReasoning}%` }} />
+                      <div
+                        className="h-full bg-blue-500 rounded-full"
+                        style={{ width: `${myScore.legalReasoning}%` }}
+                      />
                     </div>
                   </div>
 
@@ -446,7 +487,10 @@ export default function CompletedTrialDossierPage({
                       <span className="text-emerald-400">{myScore.proceduralCorrectness}%</span>
                     </div>
                     <div className="w-full h-2 rounded-full bg-zinc-800 overflow-hidden">
-                      <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${myScore.proceduralCorrectness}%` }} />
+                      <div
+                        className="h-full bg-emerald-500 rounded-full"
+                        style={{ width: `${myScore.proceduralCorrectness}%` }}
+                      />
                     </div>
                   </div>
 
@@ -456,7 +500,10 @@ export default function CompletedTrialDossierPage({
                       <span className="text-indigo-400">{myScore.evidenceUsage}%</span>
                     </div>
                     <div className="w-full h-2 rounded-full bg-zinc-800 overflow-hidden">
-                      <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${myScore.evidenceUsage}%` }} />
+                      <div
+                        className="h-full bg-indigo-500 rounded-full"
+                        style={{ width: `${myScore.evidenceUsage}%` }}
+                      />
                     </div>
                   </div>
 
@@ -466,7 +513,10 @@ export default function CompletedTrialDossierPage({
                       <span className="text-purple-400">{myScore.argumentQuality}%</span>
                     </div>
                     <div className="w-full h-2 rounded-full bg-zinc-800 overflow-hidden">
-                      <div className="h-full bg-purple-500 rounded-full" style={{ width: `${myScore.argumentQuality}%` }} />
+                      <div
+                        className="h-full bg-purple-500 rounded-full"
+                        style={{ width: `${myScore.argumentQuality}%` }}
+                      />
                     </div>
                   </div>
                 </div>
@@ -508,7 +558,9 @@ export default function CompletedTrialDossierPage({
                           </li>
                         ))
                       ) : (
-                        <li className="text-zinc-500">Mavjud tartib bo‘yicha to‘g‘ri harakat qilindi.</li>
+                        <li className="text-zinc-500">
+                          Mavjud tartib bo‘yicha to‘g‘ri harakat qilindi.
+                        </li>
                       )}
                     </ul>
                   </div>
@@ -570,7 +622,9 @@ export default function CompletedTrialDossierPage({
                           <span className="text-sm font-extrabold text-amber-400">
                             {pScore.totalScore}/100
                           </span>
-                          <span className="text-xs text-zinc-500 block">Daraja {pScore.proceduralGrade}</span>
+                          <span className="text-xs text-zinc-500 block">
+                            Daraja {pScore.proceduralGrade}
+                          </span>
                         </div>
                       )}
                     </div>
@@ -581,8 +635,14 @@ export default function CompletedTrialDossierPage({
                           onClick={() => setExpandedParticipant(isExpanded ? null : p.userId)}
                           className="w-full flex items-center justify-between text-xs text-blue-400 hover:text-blue-300 font-semibold"
                         >
-                          <span>{isExpanded ? 'Tahlilni yashirish' : 'Tahlil va tavsiyalarni ko‘rish'}</span>
-                          {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                          <span>
+                            {isExpanded ? 'Tahlilni yashirish' : 'Tahlil va tavsiyalarni ko‘rish'}
+                          </span>
+                          {isExpanded ? (
+                            <ChevronUp className="w-3.5 h-3.5" />
+                          ) : (
+                            <ChevronDown className="w-3.5 h-3.5" />
+                          )}
                         </button>
 
                         {isExpanded && (
@@ -612,12 +672,16 @@ export default function CompletedTrialDossierPage({
         {/* Tab 3: Evidence */}
         {activeTab === 'evidence' && (
           <div className="space-y-6">
-            <h3 className="text-base font-bold text-white">Ishga qo‘shilgan ashyoviy va yozma dalillar</h3>
+            <h3 className="text-base font-bold text-white">
+              Ishga qo‘shilgan ashyoviy va yozma dalillar
+            </h3>
 
             {room.evidence.length === 0 ? (
               <div className="py-12 bg-zinc-900/40 border border-zinc-800 rounded-2xl text-center space-y-2">
                 <FileText className="w-8 h-8 text-zinc-600 mx-auto" />
-                <p className="text-xs text-zinc-400">Sud jarayonida hech qanday dalil taqdim etilmagan.</p>
+                <p className="text-xs text-zinc-400">
+                  Sud jarayonida hech qanday dalil taqdim etilmagan.
+                </p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -629,7 +693,10 @@ export default function CompletedTrialDossierPage({
                     </h4>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {userEvidence.map(ev => (
-                        <div key={ev.id} className="p-4 rounded-2xl bg-blue-950/20 border border-blue-500/30 space-y-2">
+                        <div
+                          key={ev.id}
+                          className="p-4 rounded-2xl bg-blue-950/20 border border-blue-500/30 space-y-2"
+                        >
                           <div className="flex items-center justify-between text-xs">
                             <span className="font-bold text-white">{ev.title}</span>
                             <span className="px-2 py-0.5 rounded text-[10px] bg-blue-500/20 text-blue-300">
@@ -647,14 +714,20 @@ export default function CompletedTrialDossierPage({
                 {otherEvidence.length > 0 && (
                   <div className="space-y-3 pt-2">
                     <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
-                      Boshqa ishtirokchilar tomonidan taqdim etilgan dalillar ({otherEvidence.length})
+                      Boshqa ishtirokchilar tomonidan taqdim etilgan dalillar (
+                      {otherEvidence.length})
                     </h4>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {otherEvidence.map(ev => (
-                        <div key={ev.id} className="p-4 rounded-2xl bg-zinc-900 border border-zinc-800 space-y-2">
+                        <div
+                          key={ev.id}
+                          className="p-4 rounded-2xl bg-zinc-900 border border-zinc-800 space-y-2"
+                        >
                           <div className="flex items-center justify-between text-xs">
                             <span className="font-bold text-white">{ev.title}</span>
-                            <span className="text-zinc-500">{ev.submittedByName} ({ev.submittedByRole})</span>
+                            <span className="text-zinc-500">
+                              {ev.submittedByName} ({ev.submittedByRole})
+                            </span>
                           </div>
                           <p className="text-xs text-zinc-400">{ev.description}</p>
                         </div>
@@ -674,7 +747,10 @@ export default function CompletedTrialDossierPage({
             <div className="rounded-3xl bg-zinc-900/80 border border-zinc-800 p-4 sm:p-6 space-y-3 max-h-[600px] overflow-y-auto">
               {room.messages.map(m => {
                 const isMine = m.userId === myParticipant.userId
-                const time = new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                const time = new Date(m.createdAt).toLocaleTimeString([], {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })
 
                 return (
                   <div
@@ -683,8 +759,8 @@ export default function CompletedTrialDossierPage({
                       isMine
                         ? 'bg-blue-600/15 border border-blue-500/30 ml-4'
                         : m.messageType === 'system'
-                        ? 'bg-zinc-950/60 border border-zinc-800/60 text-zinc-400 text-center font-mono text-[11px]'
-                        : 'bg-zinc-950/40 border border-zinc-800/80 mr-4'
+                          ? 'bg-zinc-950/60 border border-zinc-800/60 text-zinc-400 text-center font-mono text-[11px]'
+                          : 'bg-zinc-950/40 border border-zinc-800/80 mr-4'
                     }`}
                   >
                     {m.messageType !== 'system' && (
@@ -695,7 +771,11 @@ export default function CompletedTrialDossierPage({
                         <span className="text-[10px] text-zinc-500">{time}</span>
                       </div>
                     )}
-                    <p className={m.messageType === 'system' ? 'italic' : 'text-zinc-300 leading-relaxed'}>
+                    <p
+                      className={
+                        m.messageType === 'system' ? 'italic' : 'text-zinc-300 leading-relaxed'
+                      }
+                    >
                       {m.content}
                     </p>
                   </div>

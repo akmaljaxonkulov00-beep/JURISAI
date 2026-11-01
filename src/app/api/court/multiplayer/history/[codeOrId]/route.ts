@@ -76,8 +76,8 @@ export async function GET(
     const status = err.message?.includes('vakolati yo‘q')
       ? 403
       : err.message?.includes('topilmadi')
-      ? 404
-      : 500
+        ? 404
+        : 500
 
     return NextResponse.json(
       { success: false, error: err.message || 'Dosyeni yuklab bo‘lmadi.' },

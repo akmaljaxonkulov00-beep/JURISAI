@@ -103,3 +103,5 @@ Thumbs.db
 supabase/.temp/
 nul
 .freebuff/
+
+/.data/

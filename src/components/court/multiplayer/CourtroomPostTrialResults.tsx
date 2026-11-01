@@ -36,9 +36,22 @@ export default function CourtroomPostTrialResults({
     let doc = `=================================================================\n`
     doc += `      O‘ZBEKISTON RESPUBLIKASI VIRTUAL SUD MAJLISI BAYONNOMASI\n`
     doc += `=================================================================\n\n`
-    const startTime = room.startedAt ? new Date(room.startedAt).toLocaleString() : new Date(room.createdAt).toLocaleString()
-    const endTime = room.completedAt ? new Date(room.completedAt).toLocaleString() : new Date(room.updatedAt).toLocaleString()
-    const durationSec = room.durationSeconds || (room.startedAt && room.completedAt ? Math.max(0, Math.floor((new Date(room.completedAt).getTime() - new Date(room.startedAt).getTime()) / 1000)) : 0)
+    const startTime = room.startedAt
+      ? new Date(room.startedAt).toLocaleString()
+      : new Date(room.createdAt).toLocaleString()
+    const endTime = room.completedAt
+      ? new Date(room.completedAt).toLocaleString()
+      : new Date(room.updatedAt).toLocaleString()
+    const durationSec =
+      room.durationSeconds ||
+      (room.startedAt && room.completedAt
+        ? Math.max(
+            0,
+            Math.floor(
+              (new Date(room.completedAt).getTime() - new Date(room.startedAt).getTime()) / 1000
+            )
+          )
+        : 0)
     const mins = Math.floor(durationSec / 60)
     const secs = durationSec % 60
     const durationText = mins > 0 ? `${mins} daqiqa ${secs} soniya` : `${secs} soniya`
@@ -222,9 +235,12 @@ export default function CourtroomPostTrialResults({
               <AlertTriangle className="w-4 h-4 text-amber-400" />
               <span>Hukm holati</span>
             </div>
-            <h3 className="text-base font-bold text-white">Sud majlisi yakunlangan, lekin rasmiy hukm kiritilmagan</h3>
+            <h3 className="text-base font-bold text-white">
+              Sud majlisi yakunlangan, lekin rasmiy hukm kiritilmagan
+            </h3>
             <p className="text-xs text-zinc-400 leading-relaxed">
-              Sud majlisi yakunlangan deb e’lon qilingan, biroq sudya tomonidan rasmiy yakuniy hukm yoki hal qiluv qarori bayonnomaga qayd etilmagan.
+              Sud majlisi yakunlangan deb e’lon qilingan, biroq sudya tomonidan rasmiy yakuniy hukm
+              yoki hal qiluv qarori bayonnomaga qayd etilmagan.
             </p>
           </div>
         )}
