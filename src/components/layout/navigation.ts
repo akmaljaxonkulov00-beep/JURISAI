@@ -76,22 +76,6 @@ export const NAV_GROUPS: NavGroup[] = [
         badge: null,
       },
       {
-        id: 'multiplayer-court',
-        name: 'Multiplayer Sud',
-        href: '/virtual-court/multiplayer',
-        icon: Users,
-        requiresAuth: false,
-        badge: 'Yangi',
-      },
-      {
-        id: 'completed-trials',
-        name: 'Yakunlangan ishlar',
-        href: '/virtual-court/completed',
-        icon: Award,
-        requiresAuth: true,
-        badge: null,
-      },
-      {
         id: 'scenario-generator',
         name: 'Senariy Generator',
         href: '/scenario-generator',

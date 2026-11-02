@@ -2,10 +2,11 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { getAuthHeaders } from '@/lib/api-auth-client'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useLimitModal } from '@/hooks/useLimitModal'
 import LimitExceededModal from '@/components/ai/LimitExceededModal'
 import PageHeader from '@/components/layout/PageHeader'
+import VirtualCourtHeaderNav from '@/components/court/VirtualCourtHeaderNav'
 import { supabase } from '@/lib/supabase'
 import {
   Gavel,
@@ -66,6 +67,8 @@ interface SpeechRecognitionLike {
 
 export default function VirtualCourtPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const activeTabParam = searchParams.get('tab')
   const { modalProps, checkLimitError } = useLimitModal()
 
   // ── Navigation & Page State ──
@@ -128,7 +131,14 @@ export default function VirtualCourtPage() {
     }
 
     loadScenarios()
+    loadHistory()
   }, [])
+
+  useEffect(() => {
+    if (activeTabParam === 'my-courts') {
+      loadHistory()
+    }
+  }, [activeTabParam])
 
   // Auto scroll chat to bottom
   useEffect(() => {
@@ -650,16 +660,104 @@ export default function VirtualCourtPage() {
       <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-blue-600 selection:text-white">
         <LimitExceededModal {...modalProps} onUpgrade={() => router.push('/premium')} />
 
-        {/* Page Header */}
-        <PageHeader
-          title="Virtual Sud"
-          description="Sud jarayonini AI bilan simulyatsiya qiling. Sudya, prokuror yoki advokat sifatida tajriba orting."
-          showBackButton={true}
-        />
+        {/* Unified Virtual Court Navigation Header */}
+        <VirtualCourtHeaderNav activeTab={activeTabParam === 'my-courts' ? 'my-courts' : 'new'} />
 
         <div className="flex-1 px-4 lg:px-8 py-6">
           {/* Main Content */}
-          <main className="flex-1 max-w-7xl w-full mx-auto space-y-8 pt-6">
+          <main className="flex-1 max-w-7xl w-full mx-auto space-y-8 pt-4">
+            {activeTabParam === 'my-courts' ? (
+              <div className="space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-6 rounded-3xl bg-zinc-900/80 border border-zinc-800">
+                  <div>
+                    <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                      <Clock className="w-5 h-5 text-blue-400" />
+                      Mening sud jarayonlarim
+                    </h2>
+                    <p className="text-xs text-zinc-400 mt-1">
+                      Sizning faol va avval yakunlangan shaxsiy sud simulyatsiyalaringiz
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => router.push('/virtual-court')}
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition shadow-xs self-start sm:self-auto"
+                  >
+                    <Play className="w-4 h-4" />
+                    <span>Yangi sud jarayonini boshlash</span>
+                  </button>
+                </div>
+
+                {loadingHistory ? (
+                  <div className="py-16 text-center space-y-2">
+                    <RefreshCw className="w-6 h-6 animate-spin text-blue-500 mx-auto" />
+                    <p className="text-xs text-zinc-400">Sud jarayonlaringiz yuklanmoqda...</p>
+                  </div>
+                ) : historyList.length === 0 ? (
+                  <div className="py-16 text-center rounded-3xl bg-zinc-900/40 border border-zinc-800/80 space-y-4">
+                    <FolderOpen className="w-12 h-12 text-zinc-600 mx-auto" />
+                    <div className="space-y-1">
+                      <h3 className="text-base font-bold text-white">Sizda hali sud jarayonlari mavjud emas</h3>
+                      <p className="text-xs text-zinc-400 max-w-md mx-auto">
+                        Yangi kazus bo‘yicha sud majlisini boshlang yoki multiplayer zaliga qo‘shiling.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => router.push('/virtual-court')}
+                      className="px-5 py-2.5 rounded-xl bg-blue-600 text-white text-xs font-semibold hover:bg-blue-500 transition"
+                    >
+                      Virtual Sudni boshlash
+                    </button>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {historyList.map(h => (
+                      <div
+                        key={h.id}
+                        className="p-5 rounded-2xl bg-zinc-900/80 border border-zinc-800 hover:border-blue-500/40 transition-all flex flex-col justify-between space-y-4"
+                      >
+                        <div className="space-y-2.5">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-blue-950/60 text-blue-300 border border-blue-800/40">
+                              {h.user_role || 'ADVOKAT'}
+                            </span>
+                            <span
+                              className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
+                                h.status === 'completed'
+                                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                                  : 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
+                              }`}
+                            >
+                              {h.status === 'completed' ? 'Yakunlangan' : 'Faol / Jarayonda'}
+                            </span>
+                          </div>
+
+                          <h3 className="text-sm font-bold text-white line-clamp-1">{h.title}</h3>
+                          <p className="text-xs text-zinc-400 line-clamp-2">
+                            {h.outcome || 'Jarayon davom etmoqda'}
+                          </p>
+                        </div>
+
+                        <div className="pt-3 border-t border-zinc-800/70 flex items-center justify-between text-xs">
+                          <div>
+                            <span className="text-zinc-500 text-[11px]">Ball: </span>
+                            <span className="font-bold text-emerald-400">{h.score || 0} / 100</span>
+                          </div>
+
+                          <button
+                            onClick={() => handleResumeSession(h.id)}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold transition"
+                          >
+                            <Play className="w-3.5 h-3.5" />
+                            <span>{h.status === 'completed' ? 'Ko‘rish' : 'Davom ettirish'}</span>
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <>
             {/* MULTIPLAYER PROMO BANNER */}
             <div className="rounded-3xl bg-gradient-to-r from-blue-950/60 via-indigo-950/50 to-zinc-900 border border-blue-500/30 p-5 sm:p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xl">
               <div className="flex items-center gap-4">
@@ -983,6 +1081,8 @@ export default function VirtualCourtPage() {
                   )}
                 </button>
               </div>
+            )}
+            </>
             )}
           </main>
 

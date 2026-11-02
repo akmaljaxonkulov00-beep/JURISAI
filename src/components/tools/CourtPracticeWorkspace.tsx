@@ -48,7 +48,7 @@ export default function CourtPracticeWorkspace() {
         throw new Error(data.error || 'Qidiruvda xatolik yuz berdi')
       }
 
-      setResults(data.results || [])
+      setResults(data.matches || data.results || [])
       setAiSynthesis(data.aiSynthesis || '')
     } catch (err) {
       console.error('Court practice search error:', err)

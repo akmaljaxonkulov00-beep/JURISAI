@@ -25,6 +25,7 @@ import { getAuthHeaders } from '@/lib/api-auth-client'
 import { supabase } from '@/lib/supabase-client'
 import CreateRoomModal from '@/components/court/multiplayer/CreateRoomModal'
 import JoinRoomModal from '@/components/court/multiplayer/JoinRoomModal'
+import VirtualCourtHeaderNav from '@/components/court/VirtualCourtHeaderNav'
 import type {
   CreateRoomInput,
   MultiplayerRole,
@@ -170,21 +171,8 @@ function MultiplayerLobbyContent() {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white flex flex-col">
-      {/* Top Breadcrumb Header */}
-      <header className="border-b border-zinc-800/80 bg-zinc-900/60 backdrop-blur-md px-4 sm:px-8 py-3.5 flex items-center justify-between">
-        <Link
-          href="/virtual-court"
-          className="flex items-center gap-2 text-xs font-semibold text-zinc-400 hover:text-white transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span>Yakka tartibdagi Virtual Sudga qaytish</span>
-        </Link>
-
-        <div className="flex items-center gap-2 text-xs">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="text-zinc-400">Multiplayer tarmog‘i faol</span>
-        </div>
-      </header>
+      {/* Unified Virtual Court Header Nav */}
+      <VirtualCourtHeaderNav activeTab="multiplayer" />
 
       {/* Main Lobby Container */}
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-8">

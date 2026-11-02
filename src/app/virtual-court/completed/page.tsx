@@ -21,6 +21,7 @@ import {
 } from 'lucide-react'
 import { useAuth } from '@/app/providers'
 import { getAuthHeaders } from '@/lib/api-auth-client'
+import VirtualCourtHeaderNav from '@/components/court/VirtualCourtHeaderNav'
 import {
   ROLE_LABELS,
   type MultiplayerRole,
@@ -162,21 +163,8 @@ export default function CompletedTrialsPage() {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white flex flex-col">
-      {/* Top Header */}
-      <header className="border-b border-zinc-800/80 bg-zinc-900/60 backdrop-blur-md px-4 sm:px-8 py-3.5 flex items-center justify-between">
-        <Link
-          href="/virtual-court/multiplayer"
-          className="flex items-center gap-2 text-xs font-semibold text-zinc-400 hover:text-white transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span>Multiplayer Sud Zaliga qaytish</span>
-        </Link>
-
-        <div className="flex items-center gap-2 text-xs">
-          <Award className="w-4 h-4 text-amber-400" />
-          <span className="text-zinc-300 font-semibold">Dosye va Protsessual Tahlillar</span>
-        </div>
-      </header>
+      {/* Unified Virtual Court Header Nav */}
+      <VirtualCourtHeaderNav activeTab="completed" />
 
       {/* Main Container */}
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-8">

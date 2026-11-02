@@ -1,10 +1,12 @@
 'use client'
 
-import { TrendingUp, Users, Clock, Award, Trophy } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { TrendingUp, Award, Flame, Trophy, Scale, Sparkles } from 'lucide-react'
+import { getAuthHeaders } from '@/lib/api-auth-client'
 
 interface StatCard {
   title: string
-  value: string
+  value: string | number
   subtitle: string
   progress: number
   color: string
@@ -12,52 +14,99 @@ interface StatCard {
   trend?: string
 }
 
-export default function StatisticsCards() {
+interface StatisticsCardsProps {
+  customStats?: any
+}
+
+export default function StatisticsCards({ customStats }: StatisticsCardsProps) {
+  const [statsData, setStatsData] = useState<any>(customStats || null)
+  const [loading, setLoading] = useState(!customStats)
+
+  useEffect(() => {
+    if (customStats) {
+      setStatsData(customStats)
+      setLoading(false)
+      return
+    }
+
+    let isMounted = true
+    async function fetchStats() {
+      try {
+        const headers = await getAuthHeaders()
+        const res = await fetch('/api/user/stats?limit=6', {
+          headers,
+          cache: 'no-cache',
+        })
+        if (res.ok) {
+          const data = await res.json()
+          if (isMounted) setStatsData(data)
+        }
+      } catch (err) {
+        console.warn('StatisticsCards load error:', err)
+      } finally {
+        if (isMounted) setLoading(false)
+      }
+    }
+
+    fetchStats()
+    return () => {
+      isMounted = false
+    }
+  }, [customStats])
+
+  const level = statsData?.level || 1
+  const xp = statsData?.xp || 0
+  const streak = statsData?.streak || 0
+  const progressPercent = statsData?.progressPercent || 0
+  const solvedCases = statsData?.totalSolvedCases || statsData?.totalIracCases || 0
+  const achievementsCount = statsData?.achievements?.length || 0
+  const weeklyXP = statsData?.weeklyXP || 0
+
   const stats: StatCard[] = [
     {
       title: 'Daraja',
-      value: '12',
-      subtitle: 'Daraja',
-      progress: 75,
+      value: `${level}`,
+      subtitle: statsData?.rank || 'Beginner',
+      progress: progressPercent,
       color: 'blue',
       icon: <TrendingUp className="w-5 h-5 text-blue-600" />,
-      trend: '+2',
+      trend: `${progressPercent}% keyingi darajaga`,
     },
     {
       title: 'Umumiy XP',
-      value: '2450',
-      subtitle: 'XP ballari',
-      progress: 87,
+      value: xp.toLocaleString(),
+      subtitle: `Haftalik: +${weeklyXP} XP`,
+      progress: Math.min(100, Math.round((weeklyXP / (statsData?.weeklyGoalXp || 500)) * 100)),
       color: 'green',
-      icon: <Users className="w-5 h-5 text-green-600" />,
-      trend: '+12%',
+      icon: <Sparkles className="w-5 h-5 text-emerald-600" />,
+      trend: 'Haqiqiy faoliyat',
     },
     {
-      title: 'Holati',
-      value: 'Faol',
-      subtitle: 'Hozirgi holat',
-      progress: 60,
+      title: 'Yechilgan Keyslar',
+      value: `${solvedCases}`,
+      subtitle: 'IRAC & Sud majlislari',
+      progress: Math.min(100, solvedCases * 10),
       color: 'orange',
-      icon: <Clock className="w-5 h-5 text-orange-600" />,
-      trend: '42 kun',
+      icon: <Scale className="w-5 h-5 text-amber-600" />,
+      trend: `${statsData?.completedTrialsCount || 0} ta sud`,
     },
     {
-      title: "O'qish zanjiri",
-      value: '42',
-      subtitle: 'Ketma-ket kunlar',
-      progress: 40,
+      title: 'Faol kunlar zanjiri',
+      value: `${streak}`,
+      subtitle: 'Ketma-ket faol kunlar',
+      progress: Math.min(100, streak * 15),
       color: 'purple',
-      icon: <Award className="w-5 h-5 text-purple-600" />,
-      trend: 'Rekord',
+      icon: <Flame className="w-5 h-5 text-rose-500" />,
+      trend: streak > 0 ? 'Davom eting!' : 'Bugun boshlang',
     },
     {
       title: 'Yutuqlar',
-      value: '156',
-      subtitle: 'Sertifikatlar',
-      progress: 92,
+      value: `${achievementsCount}`,
+      subtitle: 'Ochilgan nishonlar',
+      progress: Math.min(100, achievementsCount * 20),
       color: 'pink',
-      icon: <Trophy className="w-5 h-5 text-pink-600" />,
-      trend: 'Top 5%',
+      icon: <Trophy className="w-5 h-5 text-purple-600" />,
+      trend: achievementsCount > 0 ? 'Muvaffaqiyat' : '0 ta nishon',
     },
   ]
 
@@ -68,85 +117,71 @@ export default function StatisticsCards() {
           bg: 'bg-blue-100 dark:bg-blue-900/30',
           text: 'text-blue-600 dark:text-blue-400',
           progress: 'bg-blue-600 dark:bg-blue-500',
-          trend: 'text-green-600 dark:text-green-400',
+          trend: 'text-blue-600 dark:text-blue-400',
         }
       case 'green':
         return {
-          bg: 'bg-green-100 dark:bg-green-900/30',
-          text: 'text-green-600 dark:text-green-400',
-          progress: 'bg-green-600 dark:bg-green-500',
-          trend: 'text-green-600 dark:text-green-400',
+          bg: 'bg-emerald-100 dark:bg-emerald-900/30',
+          text: 'text-emerald-600 dark:text-emerald-400',
+          progress: 'bg-emerald-600 dark:bg-emerald-500',
+          trend: 'text-emerald-600 dark:text-emerald-400',
         }
       case 'orange':
         return {
-          bg: 'bg-orange-100 dark:bg-orange-900/30',
-          text: 'text-orange-600 dark:text-orange-400',
-          progress: 'bg-orange-600 dark:bg-orange-500',
-          trend: 'text-orange-600 dark:text-orange-400',
+          bg: 'bg-amber-100 dark:bg-amber-900/30',
+          text: 'text-amber-600 dark:text-amber-400',
+          progress: 'bg-amber-600 dark:bg-amber-500',
+          trend: 'text-amber-600 dark:text-amber-400',
         }
       case 'purple':
+        return {
+          bg: 'bg-rose-100 dark:bg-rose-900/30',
+          text: 'text-rose-600 dark:text-rose-400',
+          progress: 'bg-rose-600 dark:bg-rose-500',
+          trend: 'text-rose-600 dark:text-rose-400',
+        }
+      case 'pink':
+      default:
         return {
           bg: 'bg-purple-100 dark:bg-purple-900/30',
           text: 'text-purple-600 dark:text-purple-400',
           progress: 'bg-purple-600 dark:bg-purple-500',
           trend: 'text-purple-600 dark:text-purple-400',
         }
-      case 'pink':
-        return {
-          bg: 'bg-pink-100 dark:bg-pink-900/30',
-          text: 'text-pink-600 dark:text-pink-400',
-          progress: 'bg-pink-600 dark:bg-pink-500',
-          trend: 'text-pink-600 dark:text-pink-400',
-        }
-      default:
-        return {
-          bg: 'bg-gray-100 dark:bg-zinc-800/30',
-          text: 'text-gray-600 dark:text-zinc-400',
-          progress: 'bg-gray-600',
-          trend: 'text-gray-600 dark:text-zinc-400',
-        }
     }
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
       {stats.map((stat, index) => {
         const colors = getColorClasses(stat.color)
-
         return (
           <div
             key={index}
-            className="bg-white dark:bg-zinc-900 rounded-2xl p-3 sm:p-4 shadow-sm border border-gray-100 dark:border-zinc-800 min-w-0 overflow-hidden"
+            className="bg-white dark:bg-zinc-900 rounded-2xl p-5 border border-gray-100 dark:border-zinc-800 hover:shadow-md transition-all duration-200"
           >
-            <div className="flex items-center justify-between mb-2 sm:mb-3">
-              <div
-                className={`w-8 h-8 sm:w-10 sm:h-10 ${colors.bg} rounded-lg flex items-center justify-center flex-shrink-0`}
-              >
-                {stat.icon}
-              </div>
+            <div className="flex items-center justify-between mb-3">
+              <div className={`p-2.5 rounded-xl ${colors.bg}`}>{stat.icon}</div>
               {stat.trend && (
-                <span
-                  className={`text-[10px] sm:text-xs font-medium ${colors.trend} whitespace-nowrap ml-1`}
-                >
-                  {stat.trend}
-                </span>
+                <span className={`text-[11px] font-semibold ${colors.trend}`}>{stat.trend}</span>
               )}
             </div>
 
-            <div className="min-w-0">
-              <h3 className="text-lg sm:text-2xl font-bold text-gray-800 dark:text-zinc-200 mb-0.5 truncate">
-                {stat.value}
-              </h3>
-              <p className="text-[10px] sm:text-xs text-gray-600 dark:text-zinc-400 truncate">
-                {stat.subtitle}
+            <div className="space-y-1">
+              <p className="text-xs font-medium text-gray-500 dark:text-zinc-400">{stat.title}</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                {loading ? '...' : stat.value}
               </p>
+              <p className="text-[11px] text-gray-400 dark:text-zinc-500 truncate">{stat.subtitle}</p>
             </div>
 
-            <div className="mt-2 sm:mt-3 bg-gray-200 dark:bg-zinc-700 rounded-full h-1 sm:h-1.5 overflow-hidden">
-              <div
-                className={`${colors.progress} h-full rounded-full transition-all duration-300`}
-                style={{ width: `${stat.progress}%` }}
-              />
+            <div className="mt-4">
+              <div className="h-1.5 w-full bg-gray-100 dark:bg-zinc-800 rounded-full overflow-hidden">
+                <div
+                  className={`h-full ${colors.progress} transition-all duration-500 rounded-full`}
+                  style={{ width: `${loading ? 10 : Math.max(5, stat.progress)}%` }}
+                />
+              </div>
             </div>
           </div>
         )

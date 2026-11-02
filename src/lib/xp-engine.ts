@@ -45,7 +45,8 @@ export const XP_ACTION_VALUES: Record<string, number> = {
 
 /**
  * Centrally awards XP with strict idempotency to prevent duplicate grants.
- * Source of truth is PostgreSQL database via Supabase Admin.
+ * PostgreSQL database via Supabase Admin is the persistent store.
+ * Uses usage_logs tokens and achievements table.
  */
 export async function awardUserXP(options: AwardXPOptions): Promise<AwardXPResult> {
   const {
@@ -66,29 +67,31 @@ export async function awardUserXP(options: AwardXPOptions): Promise<AwardXPResul
   const supabase = getSupabaseAdmin()
 
   try {
-    // 1. Check idempotency in usage_logs metadata
-    const { data: existingLogs } = await supabase
+    // 1. Fetch recent usage logs for this user to check idempotency and calculate total XP
+    const { data: userLogs, error: logsError } = await supabase
       .from('usage_logs')
-      .select('id, metadata')
+      .select('id, name, tokens, action, created_at')
       .eq('user_id', userId)
-      .eq('action', action)
-      .limit(100)
+      .order('created_at', { ascending: false })
+      .limit(300)
 
-    const alreadyAwarded = (existingLogs || []).some(
-      log => log.metadata && (log.metadata as any).idempotency_key === idempotencyKey
+    if (logsError) {
+      console.warn('Error fetching usage_logs in awardUserXP:', logsError.message)
+    }
+
+    const logs = userLogs || []
+
+    // Check if this idempotency key was already recorded in log name
+    const idKeyTag = `[key:${idempotencyKey}]`
+    const alreadyAwarded = logs.some(
+      log => log.name && (log.name.includes(idKeyTag) || log.name.includes(idempotencyKey))
     )
 
-    // If already processed for this idempotency key, retrieve current user stats and return
+    // Calculate current total XP directly from real usage_logs tokens
+    const currentXp = logs.reduce((sum, log) => sum + (Number(log.tokens) || 0), 0)
+    const currentLevel = Math.floor(currentXp / LEVEL_XP) + 1
+
     if (alreadyAwarded) {
-      const { data: userRecord } = await supabase
-        .from('registered_users')
-        .select('xp, level')
-        .eq('id', userId)
-        .maybeSingle()
-
-      const currentXp = Number(userRecord?.xp || 0)
-      const currentLevel = Number(userRecord?.level || Math.floor(currentXp / LEVEL_XP) + 1)
-
       return {
         success: true,
         alreadyAwarded: true,
@@ -98,47 +101,22 @@ export async function awardUserXP(options: AwardXPOptions): Promise<AwardXPResul
       }
     }
 
-    // 2. Fetch current user XP from registered_users
-    const { data: userRecord } = await supabase
-      .from('registered_users')
-      .select('id, email, xp, level')
-      .eq('id', userId)
-      .maybeSingle()
-
-    const currentXp = Number(userRecord?.xp || 0)
-    const newXp = currentXp + Math.max(0, xp)
+    const xpEarned = Math.max(0, xp)
+    const newXp = currentXp + xpEarned
     const newLevel = Math.floor(newXp / LEVEL_XP) + 1
 
-    // 3. Insert usage_log record with idempotency key
-    const logMetadata = {
-      ...metadata,
-      idempotency_key: idempotencyKey,
-      xp_awarded: xp,
-      title: title || action,
-      description: description || '',
-      awarded_at: new Date().toISOString(),
-    }
-
+    // 2. Insert usage_log record storing idempotency key in name
+    const logName = `${idKeyTag} ${title || action}`.slice(0, 255)
     await supabase.from('usage_logs').insert({
       user_id: userId,
-      email: userEmail || userRecord?.email || '',
+      email: userEmail || '',
+      name: logName,
       action,
-      tokens: xp,
-      metadata: logMetadata,
+      tokens: xpEarned,
       created_at: new Date().toISOString(),
     })
 
-    // 4. Update registered_users XP and Level
-    await supabase
-      .from('registered_users')
-      .update({
-        xp: newXp,
-        level: newLevel,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', userId)
-
-    // 5. Check and unlock achievements
+    // 3. Check and unlock achievements
     const unlockedAchievements: string[] = []
     try {
       const { data: existingAchievements } = await supabase
@@ -234,8 +212,7 @@ export async function awardUserXP(options: AwardXPOptions): Promise<AwardXPResul
       }
 
       // Daraja oshganida bildirishnoma
-      const oldLevel = Number(userRecord?.level || 1)
-      if (newLevel > oldLevel) {
+      if (newLevel > currentLevel) {
         await supabase.from('user_notifications').insert({
           user_id: userId,
           type: 'success',

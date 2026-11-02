@@ -198,13 +198,13 @@ export default function RiskAssessmentWorkspace() {
                   <span
                     className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wide ${
                       scanResult.overallRisk === 'low'
-                        ? 'bg-emerald-100 text-emerald-800'
+                        ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
                         : scanResult.overallRisk === 'high'
-                          ? 'bg-rose-100 text-rose-800'
-                          : 'bg-amber-100 text-amber-800'
+                          ? 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300'
+                          : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
                     }`}
                   >
-                    Xavf darajasi: {scanResult.overallRisk}
+                    Xavf darajasi: {scanResult.overallRisk === 'low' ? 'Past' : scanResult.overallRisk === 'high' ? 'Yuqori' : 'O‘rta'}
                   </span>
                 </div>
                 <h4 className="text-sm font-bold text-slate-800 dark:text-zinc-100">
@@ -213,6 +213,11 @@ export default function RiskAssessmentWorkspace() {
                 <p className="text-xs text-slate-600 dark:text-zinc-400 mt-1 max-w-xl">
                   {scanResult.summary}
                 </p>
+                {scanResult.riskReasoning && (
+                  <p className="text-xs text-blue-600 dark:text-blue-400 mt-1.5 font-medium bg-blue-50 dark:bg-blue-950/40 p-2 rounded-lg border border-blue-200 dark:border-blue-900/50">
+                    <strong>Baholash asosi:</strong> {scanResult.riskReasoning}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -222,6 +227,17 @@ export default function RiskAssessmentWorkspace() {
               </p>
               <p>
                 Yetishmayotgan bandlar: <strong>{scanResult.missingClauses?.length || 0} ta</strong>
+              </p>
+            </div>
+          </div>
+
+          {/* Official Disclaimer */}
+          <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 flex items-start gap-3 text-xs text-amber-800 dark:text-amber-300">
+            <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-semibold">Muhim huquqiy ogohlantirish</p>
+              <p className="text-[11px] text-amber-700 dark:text-amber-400/90 mt-0.5">
+                Ushbu vosita sun’iy intellekt tomonidan O‘zbekiston Respublikasi Fuqarolik Kodeksi va amaldagi normativ-huquqiy hujjatlar asosida axborot-tahliliy maqsadda tayyorlangan. Ushbu baholash rasmiy advokat yoki yuridik maslahatchi xulosasini almashtirmaydi.
               </p>
             </div>
           </div>

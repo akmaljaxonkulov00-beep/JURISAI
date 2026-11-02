@@ -16,8 +16,12 @@ function getRank(level: number): string {
   return 'Beginner'
 }
 
-function getActionTitle(action: string, metadataTitle?: string): string {
-  if (metadataTitle) return metadataTitle
+function getActionTitle(action: string, logName?: string): string {
+  if (logName) {
+    // Strip [key:...] prefix if present
+    const clean = logName.replace(/^\[key:[^\]]+\]\s*/, '').trim()
+    if (clean) return clean
+  }
   const titles: Record<string, string> = {
     'ai-chat': 'AI huquqiy maslahat',
     ai_legal_chat: 'AI huquqiy maslahat',
@@ -73,17 +77,17 @@ export async function GET(request: NextRequest) {
     const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '6', 10)))
     const supabase = getSupabaseAdmin()
 
-    // 1. Fetch user data from registered_users (by ID, then by Email, or auto-provision)
+    // 1. Fetch user data from registered_users (safe columns only)
     let { data: userData } = await supabase
       .from('registered_users')
-      .select('id, name, full_name, email, created_at, subscription_plan, xp, level')
+      .select('id, name, full_name, email, role, subscription_plan, created_at, updated_at')
       .eq('id', auth.user.id)
       .maybeSingle()
 
     if (!userData && auth.user.email) {
       const { data: byEmail } = await supabase
         .from('registered_users')
-        .select('id, name, full_name, email, created_at, subscription_plan, xp, level')
+        .select('id, name, full_name, email, role, subscription_plan, created_at, updated_at')
         .eq('email', auth.user.email.toLowerCase().trim())
         .maybeSingle()
       if (byEmail) {
@@ -92,14 +96,11 @@ export async function GET(request: NextRequest) {
     }
 
     if (!userData) {
-      // Auto-provision initial record for authenticated user
       const initialUser = {
         id: auth.user.id,
         email: auth.user.email || '',
         name: auth.user.email?.split('@')[0] || 'Foydalanuvchi',
         full_name: auth.user.email?.split('@')[0] || 'Foydalanuvchi',
-        xp: 0,
-        level: 1,
         role: 'USER',
         subscription_plan: 'free',
         created_at: new Date().toISOString(),
@@ -109,7 +110,7 @@ export async function GET(request: NextRequest) {
         const { data: created } = await supabase
           .from('registered_users')
           .insert(initialUser)
-          .select('id, name, full_name, email, created_at, subscription_plan, xp, level')
+          .select('id, name, full_name, email, role, subscription_plan, created_at, updated_at')
           .single()
         userData = created || initialUser
       } catch {
@@ -117,11 +118,11 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // 2. Fetch usage logs for user
+    // 2. Fetch usage logs for user (safe columns: id, name, tokens, action, created_at)
     const sinceDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString()
     const { data: usageData } = await supabase
       .from('usage_logs')
-      .select('id, action, tokens, metadata, created_at')
+      .select('id, name, tokens, action, created_at')
       .eq('user_id', auth.user.id)
       .gte('created_at', sinceDate)
       .order('created_at', { ascending: false })
@@ -135,7 +136,16 @@ export async function GET(request: NextRequest) {
       .order('created_at', { ascending: false })
       .limit(100)
 
-    // 4. Fetch achievements
+    // 4. Fetch completed court sessions
+    const { data: courtSessions } = await supabase
+      .from('court_sessions')
+      .select('id, title, status, score, outcome, created_at, updated_at')
+      .eq('user_id', auth.user.id)
+      .eq('status', 'completed')
+      .order('created_at', { ascending: false })
+      .limit(100)
+
+    // 5. Fetch achievements
     const { data: achData } = await supabase
       .from('achievements')
       .select('id, title, achievement_type, rarity, unlocked_at')
@@ -145,25 +155,32 @@ export async function GET(request: NextRequest) {
 
     const usageLogs = usageData || []
     const analyses = iracAnalyses || []
+    const completedCourts = courtSessions || []
     const achievements = achData || []
 
     // ── XP & Counts Breakdown ──
     const xpByAction: Record<string, number> = {}
     const countByAction: Record<string, number> = {}
-    let logsTotalXP = 0
+    let totalXP = 0
 
     for (const log of usageLogs) {
       const action = String(log.action || '')
-      const xp = Number(log.metadata?.xp_awarded ?? log.tokens ?? XP_ACTION_VALUES[action] ?? 5)
+      const xp = Number(log.tokens || XP_ACTION_VALUES[action] || 5)
       xpByAction[action] = (xpByAction[action] || 0) + xp
       countByAction[action] = (countByAction[action] || 0) + 1
-      logsTotalXP += xp
+      totalXP += xp
     }
 
-    // Database registered_users XP is the primary source of truth
-    const userDbXp = Number(userData.xp || 0)
-    const totalXP = Math.max(userDbXp, logsTotalXP)
-    const level = Number(userData.level || Math.floor(totalXP / LEVEL_XP) + 1)
+    // Add XP from completed court sessions and irac if not already logged
+    const courtXpCount = (countByAction['virtual-court'] || 0) + (countByAction['court-simulation'] || 0)
+    if (completedCourts.length > courtXpCount) {
+      const extraCourtXp = (completedCourts.length - courtXpCount) * 25
+      totalXP += extraCourtXp
+      xpByAction['virtual-court'] = (xpByAction['virtual-court'] || 0) + extraCourtXp
+      countByAction['virtual-court'] = (countByAction['virtual-court'] || 0) + (completedCourts.length - courtXpCount)
+    }
+
+    const level = Math.floor(totalXP / LEVEL_XP) + 1
     const xpInCurrentLevel = totalXP % LEVEL_XP
     const xpToNextLevel = LEVEL_XP - xpInCurrentLevel
     const progressPercent = Math.round((xpInCurrentLevel / LEVEL_XP) * 100)
@@ -184,20 +201,21 @@ export async function GET(request: NextRequest) {
 
     const weeklyXP = usageLogs
       .filter(l => new Date(l.created_at || '') >= mondayStartUtc)
-      .reduce(
-        (sum, l) =>
-          sum +
-          Number(
-            l.metadata?.xp_awarded ?? l.tokens ?? XP_ACTION_VALUES[String(l.action || '')] ?? 5
-          ),
-        0
-      )
+      .reduce((sum, l) => sum + Number(l.tokens || XP_ACTION_VALUES[String(l.action || '')] || 5), 0)
     const weeklyProgress = Math.min(Math.round((weeklyXP / WEEKLY_GOAL_XP) * 100), 100)
 
-    // ── Kunlik faollik xaritasi (oxirgi 30 kun) ──
+    // ── Kunlik faollik xaritasi ──
     const dailyActivity: Record<string, number> = {}
     for (const log of usageLogs) {
       const day = String(log.created_at || '').split('T')[0]
+      if (day) dailyActivity[day] = (dailyActivity[day] || 0) + 1
+    }
+    for (const court of completedCourts) {
+      const day = String(court.created_at || '').split('T')[0]
+      if (day) dailyActivity[day] = (dailyActivity[day] || 0) + 1
+    }
+    for (const irac of analyses) {
+      const day = String(irac.created_at || '').split('T')[0]
       if (day) dailyActivity[day] = (dailyActivity[day] || 0) + 1
     }
     const activeDays = Object.keys(dailyActivity).length
@@ -222,14 +240,14 @@ export async function GET(request: NextRequest) {
         key: 'case-solver',
         label: 'Kazus Yechish',
         icon: '🔍',
-        count: (countByAction['case-solver'] || 0) + (countByAction['irac_analysis'] || 0),
-        xp: (xpByAction['case-solver'] || 0) + (xpByAction['irac_analysis'] || 0),
+        count: Math.max(analyses.length, (countByAction['case-solver'] || 0) + (countByAction['irac_analysis'] || 0)),
+        xp: (xpByAction['case-solver'] || 0) + (xpByAction['irac_analysis'] || 0) + (analyses.length > 0 && !xpByAction['case-solver'] ? analyses.length * 15 : 0),
       },
       {
         key: 'virtual-court',
         label: 'Virtual Sud',
         icon: '🏛️',
-        count: (countByAction['virtual-court'] || 0) + (countByAction['court-simulation'] || 0),
+        count: Math.max(completedCourts.length, (countByAction['virtual-court'] || 0) + (countByAction['court-simulation'] || 0)),
         xp: (xpByAction['virtual-court'] || 0) + (xpByAction['court-simulation'] || 0),
       },
       {
@@ -291,14 +309,13 @@ export async function GET(request: NextRequest) {
     // ── Faoliyat tarixi ──
     const formatActivityItem = (log: any) => {
       const action = String(log.action || '')
-      const meta = log.metadata || {}
       return {
         id: String(log.id || ''),
         action,
-        title: getActionTitle(action, meta.title),
+        title: getActionTitle(action, log.name),
         icon: getActionIcon(action),
-        xp: Number(meta.xp_awarded ?? log.tokens ?? XP_ACTION_VALUES[action] ?? 5),
-        description: meta.description || meta.summary || '',
+        xp: Number(log.tokens || XP_ACTION_VALUES[action] || 5),
+        description: log.name ? log.name.replace(/^\[key:[^\]]+\]\s*/, '') : '',
         timestamp: String(log.created_at || ''),
       }
     }
@@ -324,6 +341,8 @@ export async function GET(request: NextRequest) {
       unlockedAt: String(a.unlocked_at || ''),
     }))
 
+    const totalSolvedCases = analyses.length + completedCourts.length
+
     return NextResponse.json({
       xp: totalXP,
       level,
@@ -338,9 +357,11 @@ export async function GET(request: NextRequest) {
 
       activeDays,
       streak,
-      totalActions: usageLogs.length,
+      totalActions: usageLogs.length + completedCourts.length,
       totalIracCases: analyses.length,
       completedIracCases: analyses.length,
+      completedTrialsCount: completedCourts.length,
+      totalSolvedCases,
 
       xpByAction,
       countByAction,

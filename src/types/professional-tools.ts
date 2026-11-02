@@ -208,6 +208,7 @@ export interface RiskScanResult {
   documentTitle: string
   documentType: string
   overallRisk: 'low' | 'medium' | 'high'
+  riskReasoning?: string
   riskScore: number // 0-100 (100 is safest)
   summary: string
   detectedIssues: ClauseRiskIssue[]

@@ -22,6 +22,7 @@ import {
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/app/providers'
 import { usePathname } from 'next/navigation'
+import { getRoleDashboardPath } from '@/lib/roles'
 
 interface SidebarProps {
   currentPage?: string
@@ -31,6 +32,8 @@ export default function Sidebar({ currentPage = 'home' }: SidebarProps) {
   const { t } = useLanguage()
   const { user, isAdmin, logout } = useAuth()
   const pathname = usePathname()
+
+  const dashboardHref = getRoleDashboardPath(user?.role)
 
   const navSections = [
     {
@@ -53,18 +56,6 @@ export default function Sidebar({ currentPage = 'home' }: SidebarProps) {
           label: t('navVirtualCourt', 'Virtual Sud'),
           icon: Building2,
           href: '/virtual-court',
-        },
-        {
-          id: 'multiplayer-court',
-          label: 'Multiplayer Sud',
-          icon: Users,
-          href: '/virtual-court/multiplayer',
-        },
-        {
-          id: 'completed-trials',
-          label: t('navCompletedTrials', 'Yakunlangan ishlar'),
-          icon: Award,
-          href: '/virtual-court/completed',
         },
         {
           id: 'scenario-generator',
@@ -131,6 +122,21 @@ export default function Sidebar({ currentPage = 'home' }: SidebarProps) {
   return (
     <aside className="hidden lg:flex flex-col w-64 bg-white dark:bg-zinc-900 border-r border-gray-100 dark:border-zinc-800 min-h-screen flex-shrink-0 p-4 justify-between">
       <div className="space-y-6">
+        {/* Role-Based Dashboard Quick Access */}
+        <div className="pb-2 border-b border-gray-100 dark:border-zinc-800">
+          <Link
+            href={dashboardHref}
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+              pathname === dashboardHref || (dashboardHref === '/dashboard' && pathname === '/')
+                ? 'bg-blue-600 text-white shadow-xs'
+                : 'text-gray-700 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800'
+            }`}
+          >
+            <HomeIcon className="w-4 h-4" />
+            <span>{t('navDashboard', 'Bosh sahifa (Dashboard)')}</span>
+          </Link>
+        </div>
+
         {/* Navigation Groups */}
         {navSections.map(sec => (
           <div key={sec.title} className="space-y-1">

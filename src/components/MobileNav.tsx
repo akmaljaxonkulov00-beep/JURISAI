@@ -3,9 +3,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Moon, Sun, X, LogIn } from 'lucide-react'
+import { Moon, Sun, X, LogIn, Home } from 'lucide-react'
 import { useTheme } from '@/context/ThemeContext'
 import { useAuth } from '@/app/providers'
+import { getRoleDashboardPath } from '@/lib/roles'
 import {
   NAV_GROUPS,
   filterNavGroups,
@@ -194,6 +195,22 @@ export default function MobileNav() {
                     ADMIN
                   </span>
                 )}
+              </div>
+
+              {/* Bosh sahifa / Dashboard quick link */}
+              <div className="mb-3 px-1">
+                <Link
+                  href={getRoleDashboardPath(user?.role)}
+                  onClick={close}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+                    pathname === getRoleDashboardPath(user?.role)
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 dark:bg-zinc-800 text-gray-800 dark:text-zinc-200 hover:bg-gray-200'
+                  }`}
+                >
+                  <Home className="w-4 h-4" />
+                  <span>Bosh sahifa / Dashboard</span>
+                </Link>
               </div>
 
               {groups.length === 0 ? (

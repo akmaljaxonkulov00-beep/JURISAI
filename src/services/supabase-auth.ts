@@ -22,6 +22,7 @@ export interface AuthUser {
   subscription_expires_at?: string
   avatar?: string
   phone?: string
+  created_at?: string
   /** Kirish usuli: email | google | ... */
   provider?: string
   /** OAuth duplicate birlashtirilganda true — session user o'chirilgan bo'ladi */

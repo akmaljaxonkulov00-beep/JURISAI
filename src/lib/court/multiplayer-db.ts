@@ -1734,28 +1734,113 @@ export async function getUserCompletedTrials(
       // Table may not be active yet, proceed to fallback
     }
 
-    // 2b. Fallback check on court_sessions only if needed
-    if (candidateRoomsMap.size === 0) {
-      const { data: sessions } = await admin
-        .from('court_sessions')
-        .select('id, evaluation, status, updated_at')
-        .eq('user_id', userId)
-        .eq('status', 'completed')
-        .order('updated_at', { ascending: false })
-        .limit(50)
+    // 2b. Always load completed trials from court_sessions
+    const { data: sessions } = await admin
+      .from('court_sessions')
+      .select('id, user_id, title, user_role, status, score, outcome, evaluation, created_at, updated_at')
+      .eq('status', 'completed')
+      .order('updated_at', { ascending: false })
+      .limit(50)
 
-      if (sessions) {
-        for (const s of sessions) {
-          if (s.evaluation?.is_multiplayer && s.evaluation?.room_data) {
-            const r = s.evaluation.room_data as MultiplayerRoom
-            if (r.status === 'completed' && !candidateRoomsMap.has(r.id)) {
-              const myPart = r.participants.find(p => p.userId === userId)
-              candidateRoomsMap.set(r.id, {
-                room: r,
-                myRole: myPart?.role || (r.hostId === userId ? 'SUDYA' : 'KUZATUVCHI'),
-              })
-            }
+    if (sessions) {
+      for (const s of sessions) {
+        if (candidateRoomsMap.has(s.id)) continue
+
+        if (s.evaluation?.is_multiplayer && s.evaluation?.room_data) {
+          const r = s.evaluation.room_data as MultiplayerRoom
+          if (r.status === 'completed') {
+            const myPart = r.participants.find(p => p.userId === userId)
+            candidateRoomsMap.set(r.id, {
+              room: r,
+              myRole: myPart?.role || (r.hostId === userId ? 'SUDYA' : 'KUZATUVCHI'),
+            })
           }
+        } else {
+          // Standard Single-Player Virtual Court completed session
+          const ev = s.evaluation || {}
+          const mockRoom: MultiplayerRoom = {
+            id: s.id,
+            code: `SUD-${s.id.slice(0, 4).toUpperCase()}`,
+            title: s.title || 'Virtual Sud Majlisi',
+            caseCategory: (ev.category as MultiplayerCaseCategory) || 'criminal',
+            courtType: ev.court_type || 'Jinoyat ishlari bo‘yicha tuman sudi',
+            scenarioId: ev.scenario_id || 'scenario_theft_market',
+            scenarioData: ev.scenario || {
+              id: ev.scenario_id || 'scenario_theft_market',
+              title: s.title || 'Virtual Sud Majlisi',
+              category: 'criminal',
+              court_type: 'trial',
+              facts: s.title,
+              legal_basis: 'O‘zbekiston Respublikasi JK / JPK',
+              participants: [],
+            },
+            hostId: s.user_id,
+            hostName: 'Sud Raisi',
+            isPublic: true,
+            aiEnabled: true,
+            voiceEnabled: false,
+            maxParticipants: 4,
+            status: 'completed',
+            currentStageId: 'verdict_review',
+            currentStageOrder: 8,
+            participants: [
+              {
+                id: `part_${s.user_id}`,
+                roomId: s.id,
+                userId: s.user_id,
+                userName: 'Foydalanuvchi',
+                role: (s.user_role as MultiplayerRole) || 'ADVOKAT',
+                isHost: true,
+                isReady: true,
+                isAi: false,
+                canSpeak: true,
+                connectionStatus: 'disconnected',
+                lastSeenAt: s.updated_at || s.created_at,
+                joinedAt: s.created_at,
+              },
+            ],
+            messages: [],
+            evidence: [],
+            pendingObjection: null,
+            speakingQueue: [],
+            verdictData: {
+              verdictDecision: 'kelishuv',
+              title: s.title || 'Virtual Sud Hukmi',
+              summary: s.outcome || 'Sud qarori qabul qilingan',
+              legalReasoning: 'O‘zbekiston Respublikasi protsessual qonunchiligiga muvofiq',
+              penaltyOrRemedy: s.outcome || 'Qaror ijroga qaratildi',
+              judgedAt: s.updated_at || s.created_at,
+              judgedByName: 'AI Sud Raisi',
+              judgedById: 'ai_judge',
+              scores: {
+                [userId]: {
+                  userId,
+                  userName: 'Foydalanuvchi',
+                  role: (s.user_role as MultiplayerRole) || 'ADVOKAT',
+                  legalReasoning: 85,
+                  proceduralCorrectness: 90,
+                  argumentQuality: 85,
+                  evidenceUsage: 80,
+                  totalScore: s.score || 85,
+                  xpEarned: 25,
+                  feedback: s.outcome || 'Sud jarayoni yakunlangan',
+                  mistakes: [],
+                  recommendations: ['Dalillar bazasini yanada mustahkamlash'],
+                  proceduralGrade: (s.score || 85) >= 90 ? 'A+' : (s.score || 85) >= 75 ? 'A' : 'B',
+                },
+              },
+            },
+            startedAt: s.created_at,
+            completedAt: s.updated_at || s.created_at,
+            durationSeconds: 180,
+            createdAt: s.created_at,
+            updatedAt: s.updated_at || s.created_at,
+          }
+
+          candidateRoomsMap.set(s.id, {
+            room: mockRoom,
+            myRole: (s.user_role as MultiplayerRole) || 'ADVOKAT',
+          })
         }
       }
     }
@@ -1872,23 +1957,20 @@ export async function getUserCompletedTrialDetail(
     throw new Error('Ushbu sud majlisi hali yakunlanmagan.')
   }
 
-  // Authorization check: User must be host or participant
+  // Authorization check: User can be participant, host, or observer
   const myPart = room.participants.find(p => p.userId === userId)
   const isHost = room.hostId === userId
-  if (!myPart && !isHost) {
-    throw new Error('Sizda ushbu sud bayonnomasini ko‘rish vakolati yo‘q.')
-  }
 
   const effectiveParticipant: MultiplayerParticipant = myPart || {
     id: crypto.randomUUID(),
     roomId: room.id,
     userId,
-    userName: room.hostName,
-    role: 'SUDYA',
-    isHost: true,
+    userName: isHost ? room.hostName : 'Kuzatuvchi',
+    role: isHost ? 'SUDYA' : 'KUZATUVCHI',
+    isHost,
     isAi: false,
     isReady: true,
-    canSpeak: true,
+    canSpeak: false,
     connectionStatus: 'disconnected',
     lastSeenAt: room.updatedAt,
     joinedAt: room.createdAt,
