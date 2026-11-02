@@ -2,27 +2,60 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 /**
- * MIDDLEWARE — Route Protection
+ * MIDDLEWARE — Platform Route Protection
  *
- * Auth holati asosan client-side (Supabase localStorage/sessionStorage)
- * da saqlanadi, lekin login/OAuth tugagach `juristiv_auth` cookie'si ham
- * yoziladi (/auth/callback + login route'lar).
- *
- * Himoyalangan routlar (/admin, /payment-admin):
- *   - cookie yo'q → /signin ga qayta yo'naltirish (server-side gate)
- *   - cookie bor → o'tkaziladi; haqiqiy admin tekshiruvi admin sahifasi
- *     ichida database roli (isAdminRole) asosida bajariladi.
- *
- * OAuth callback (/auth/callback) bloklanmaydi — Google qaytganida
- * session hali yaratilayotgan bo'lishi mumkin.
+ * Foydalanuvchi tizimga kirmasdan turib sayt ichkarisiga kira olmaydi.
+ * Himoyalangan bo‘limlarga kirishga uringanda avtomatik /signin ga yo‘naltiriladi.
  */
+
+const PROTECTED_PREFIXES = [
+  '/dashboard',
+  '/virtual-court',
+  '/professional-tools',
+  '/case-solver',
+  '/citizen',
+  '/advocate',
+  '/law-student',
+  '/ratings',
+  '/statistics',
+  '/ai-chat',
+  '/decision-tree',
+  '/document-generator',
+  '/settings',
+  '/profile',
+  '/community',
+  '/billing',
+  '/admin',
+  '/payment-admin',
+  '/amaliyot',
+  '/qonunlar',
+  '/questions',
+  '/simulator',
+  '/lawyer-dashboard',
+  '/court-simulator',
+]
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // Admin routlar — tizimga kirmagan foydalanuvchi uchun darhol /signin
-  if (pathname.startsWith('/admin') || pathname.startsWith('/payment-admin')) {
-    const hasAuthCookie = request.cookies.get('juristiv_auth')?.value === '1'
-    if (!hasAuthCookie) {
+  // Tekshirish kerak bo‘lgan ichki sahifalar
+  const isProtected = PROTECTED_PREFIXES.some(
+    prefix => pathname === prefix || pathname.startsWith(`${prefix}/`)
+  )
+
+  if (isProtected) {
+    // 1. Juristiv maxsus cookie'si
+    const hasJuristivAuth = request.cookies.get('juristiv_auth')?.value === '1'
+
+    // 2. Supabase auth token cookie'lari
+    const hasSupabaseAuth = request.cookies.getAll().some(
+      cookie =>
+        cookie.name.includes('-auth-token') ||
+        cookie.name.startsWith('sb-') ||
+        cookie.name === 'supabase-auth-token'
+    )
+
+    if (!hasJuristivAuth && !hasSupabaseAuth) {
       const url = request.nextUrl.clone()
       url.pathname = '/signin'
       url.searchParams.set('redirectTo', pathname)

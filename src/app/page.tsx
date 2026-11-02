@@ -4,6 +4,8 @@ import { useState } from 'react'
 import Link from 'next/link'
 import SiteLogo from '@/components/SiteLogo'
 import ContactSection from '@/components/landing/ContactSection'
+import { useAuth } from '@/app/providers'
+import { getRoleDashboardPath } from '@/lib/roles'
 import {
   Brain,
   FileText,
@@ -13,7 +15,6 @@ import {
   Shield,
   Zap,
   Users,
-  Star,
   ChevronRight,
   ArrowRight,
   CheckCircle,
@@ -24,10 +25,9 @@ import {
   GraduationCap,
   UserCheck,
   Sparkles,
-  Lock,
-  FileCheck,
-  AlertCircle,
   ExternalLink,
+  LogIn,
+  LayoutDashboard,
 } from 'lucide-react'
 
 const AUDIENCES = [
@@ -42,7 +42,7 @@ const AUDIENCES = [
     features: [
       '24/7 AI konsultatsiya — savollaringizga amaldagi qonunchilik asosida javob',
       'Malakali va litsenziyaga ega advokatlar katalogi',
-      'Rasmiy arizalar, daʼvo va iltimosnomalar konstruktori',
+      'Rasmiy arizalar, daʼvo va shartnomalar konstruktori',
       'Huquqiy xavflarni oldindan baholash (Risk Assessment)',
     ],
     primaryAction: {
@@ -53,7 +53,6 @@ const AUDIENCES = [
       label: 'Advokat topish',
       href: '/citizen/advocates',
     },
-    gradient: 'from-emerald-500/10 via-teal-500/5 to-transparent',
     border: 'border-emerald-200 dark:border-emerald-800/40',
   },
   {
@@ -78,7 +77,6 @@ const AUDIENCES = [
       label: 'Kazus yechish',
       href: '/case-solver',
     },
-    gradient: 'from-blue-500/10 via-indigo-500/5 to-transparent',
     border: 'border-blue-200 dark:border-blue-800/40',
   },
   {
@@ -103,7 +101,6 @@ const AUDIENCES = [
       label: 'Mentorlik dasturi',
       href: '/advocate/mentorship',
     },
-    gradient: 'from-amber-500/10 via-orange-500/5 to-transparent',
     border: 'border-amber-200 dark:border-amber-800/40',
   },
 ]
@@ -131,7 +128,7 @@ const FEATURES = [
     icon: Sparkles,
     title: 'Professional Asboblar',
     description:
-      'Huquqiy risklarni baholash, Oliy Sud Plenum amaliyoti tahlili, qiyosiy tadqiqot va rasmiy LexUZ hujjatlar konstruktori.',
+      'Huquqiy risklarni baholash, Oliy Sud Plenum amaliyoti tahlili, qiyosiy tadqiqot va rasmiy daʼvo hamda shartnoma namunalari.',
     color: 'from-amber-500 to-yellow-600',
     bg: 'bg-amber-50 dark:bg-amber-950/40',
     href: '/professional-tools',
@@ -149,7 +146,7 @@ const FEATURES = [
     icon: BookOpen,
     title: 'O‘zbekiston Qonunchiligi',
     description:
-      'Rasmiy LexUZ bazasi bilan muvofiqlashtirilgan kodekslar, qonunlar va normativ hujjatlar bazasi.',
+      'Amaldagi qonunchilik bilan muvofiqlashtirilgan kodekslar, qonunlar va normativ hujjatlar bazasi.',
     color: 'from-emerald-500 to-teal-600',
     bg: 'bg-emerald-50 dark:bg-emerald-950/40',
     href: '/legal-database',
@@ -167,13 +164,22 @@ const FEATURES = [
 
 const STATS = [
   { value: '4,000+', label: 'Qonun moddalari' },
-  { value: '100%', label: 'Rasmiy LexUZ manbalari' },
+  { value: '100%', label: 'O‘zbekiston qonunchiligiga asoslangan' },
   { value: 'Real-time', label: 'Multiplayer sud zali' },
   { value: '24/7', label: 'AI huquqiy yordam' },
 ]
 
 export default function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const { user, isAuthenticated } = useAuth()
+
+  const userDashboardUrl = isAuthenticated ? getRoleDashboardPath(user?.role) : '/signin'
+
+  // Login qilmagan foydalanuvchini platforma ichiga emas, avval loginga yo'naltirish
+  const getAuthProtectedUrl = (destination: string) => {
+    if (isAuthenticated) return destination
+    return `/signin?redirectTo=${encodeURIComponent(destination)}`
+  }
 
   return (
     <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100">
@@ -201,39 +207,46 @@ export default function LandingPage() {
                 Imkoniyatlar
               </a>
               <Link
-                href="/virtual-court"
+                href={getAuthProtectedUrl('/virtual-court')}
                 className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-amber-400 transition-colors"
               >
                 Virtual Sud
               </Link>
               <Link
-                href="/professional-tools"
+                href={getAuthProtectedUrl('/professional-tools')}
                 className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-amber-400 transition-colors"
               >
                 Asboblar
               </Link>
-              <a
-                href="#trust"
-                className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-amber-400 transition-colors"
-              >
-                Xavfsizlik & Manbalar
-              </a>
             </nav>
 
-            {/* Desktop CTA */}
+            {/* Desktop Auth Controls */}
             <div className="hidden md:flex items-center gap-3">
-              <Link
-                href="/signin"
-                className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:text-blue-600 dark:hover:text-white transition-colors"
-              >
-                Kirish
-              </Link>
-              <Link
-                href="/signin?mode=register"
-                className="px-5 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-700 hover:to-indigo-700 rounded-xl transition-all shadow-md shadow-blue-500/20"
-              >
-                Ro‘yxatdan o‘tish
-              </Link>
+              {isAuthenticated ? (
+                <Link
+                  href={userDashboardUrl}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-all shadow-md shadow-blue-500/20"
+                >
+                  <LayoutDashboard className="w-4 h-4" />
+                  Kabinetga o‘tish
+                </Link>
+              ) : (
+                <>
+                  <Link
+                    href="/signin"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:text-blue-600 dark:hover:text-white transition-colors"
+                  >
+                    <LogIn className="w-4 h-4" />
+                    Kirish
+                  </Link>
+                  <Link
+                    href="/signin?mode=register"
+                    className="px-5 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-700 hover:to-indigo-700 rounded-xl transition-all shadow-md shadow-blue-500/20"
+                  >
+                    Ro‘yxatdan o‘tish
+                  </Link>
+                </>
+              )}
             </div>
 
             {/* Mobile menu button */}
@@ -265,32 +278,44 @@ export default function LandingPage() {
                   Imkoniyatlar
                 </a>
                 <Link
-                  href="/virtual-court"
+                  href={getAuthProtectedUrl('/virtual-court')}
                   onClick={() => setMobileMenuOpen(false)}
                   className="px-3 py-2 text-sm text-slate-700 dark:text-slate-300"
                 >
                   Virtual Sud
                 </Link>
                 <Link
-                  href="/professional-tools"
+                  href={getAuthProtectedUrl('/professional-tools')}
                   onClick={() => setMobileMenuOpen(false)}
                   className="px-3 py-2 text-sm text-slate-700 dark:text-slate-300"
                 >
                   Asboblar
                 </Link>
                 <div className="flex gap-2 pt-2">
-                  <Link
-                    href="/signin"
-                    className="flex-1 text-center py-2 text-sm font-medium border border-slate-300 dark:border-slate-700 rounded-lg"
-                  >
-                    Kirish
-                  </Link>
-                  <Link
-                    href="/signin?mode=register"
-                    className="flex-1 text-center py-2 text-sm font-medium bg-blue-600 text-white rounded-lg"
-                  >
-                    Ro‘yxatdan o‘tish
-                  </Link>
+                  {isAuthenticated ? (
+                    <Link
+                      href={userDashboardUrl}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="w-full text-center py-2.5 text-sm font-medium bg-blue-600 text-white rounded-lg"
+                    >
+                      Kabinetga o‘tish
+                    </Link>
+                  ) : (
+                    <>
+                      <Link
+                        href="/signin"
+                        className="flex-1 text-center py-2 text-sm font-medium border border-slate-300 dark:border-slate-700 rounded-lg"
+                      >
+                        Kirish
+                      </Link>
+                      <Link
+                        href="/signin?mode=register"
+                        className="flex-1 text-center py-2 text-sm font-medium bg-blue-600 text-white rounded-lg"
+                      >
+                        Ro‘yxatdan o‘tish
+                      </Link>
+                    </>
+                  )}
                 </div>
               </nav>
             </div>
@@ -300,7 +325,6 @@ export default function LandingPage() {
 
       {/* Hero Section */}
       <section className="relative overflow-hidden pt-12 pb-20 sm:pt-20 sm:pb-28">
-        {/* Ambient glow backgrounds */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[550px] bg-gradient-to-tr from-blue-600/10 via-amber-500/10 to-indigo-600/10 rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -309,11 +333,11 @@ export default function LandingPage() {
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 mb-6">
               <Shield className="w-4 h-4 text-amber-500" />
               <span className="text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300">
-                O‘zbekiston Respublikasi qonunchiligi & LexUZ integratsiyasi
+                O‘zbekiston Respublikasi qonunchiligiga asoslangan yagona platforma
               </span>
             </div>
 
-            {/* Required Headline */}
+            {/* Headline */}
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-slate-950 dark:text-white leading-[1.15] mb-6">
               Huquqiy bilim, sun’iy intellekt va professional yordam —{' '}
               <span className="bg-gradient-to-r from-blue-600 via-indigo-500 to-amber-500 bg-clip-text text-transparent">
@@ -321,30 +345,30 @@ export default function LandingPage() {
               </span>
             </h1>
 
-            {/* Required Description */}
+            {/* Description */}
             <p className="text-lg sm:text-xl text-slate-600 dark:text-slate-300 mb-10 max-w-3xl mx-auto leading-relaxed">
               Juristiv — fuqarolar uchun huquqiy yordam, yosh huquqshunoslar uchun amaliy ta’lim va
               advokatlar uchun zamonaviy raqamli ish muhitini birlashtiruvchi platforma.
             </p>
 
-            {/* Quick Action Buttons */}
+            {/* Quick Action Buttons (Protected) */}
             <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4">
               <Link
-                href="/signin?mode=register"
+                href={isAuthenticated ? userDashboardUrl : '/signin?mode=register'}
                 className="inline-flex items-center justify-center gap-2 px-7 py-3.5 text-base font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-xl transition-all shadow-lg shadow-blue-500/25 hover:-translate-y-0.5"
               >
                 Platformani boshlash
                 <ArrowRight className="w-5 h-5" />
               </Link>
               <Link
-                href="/virtual-court"
+                href={getAuthProtectedUrl('/virtual-court')}
                 className="inline-flex items-center justify-center gap-2 px-6 py-3.5 text-base font-semibold text-slate-800 dark:text-slate-200 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-850 rounded-xl transition-all hover:-translate-y-0.5"
               >
                 <Scale className="w-5 h-5 text-amber-500" />
                 Virtual Sud
               </Link>
               <Link
-                href="/citizen/advocates"
+                href={getAuthProtectedUrl('/citizen/advocates')}
                 className="inline-flex items-center justify-center gap-2 px-6 py-3.5 text-base font-semibold text-slate-800 dark:text-slate-200 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-850 rounded-xl transition-all hover:-translate-y-0.5"
               >
                 <Briefcase className="w-5 h-5 text-blue-500" />
@@ -429,17 +453,17 @@ export default function LandingPage() {
                     ))}
                   </div>
 
-                  {/* Action CTAs */}
+                  {/* Action CTAs (Protected) */}
                   <div className="space-y-2.5 pt-4 border-t border-slate-100 dark:border-slate-800">
                     <Link
-                      href={aud.primaryAction.href}
+                      href={getAuthProtectedUrl(aud.primaryAction.href)}
                       className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors shadow-sm"
                     >
                       {aud.primaryAction.label}
                       <ArrowRight className="w-4 h-4" />
                     </Link>
                     <Link
-                      href={aud.secondaryAction.href}
+                      href={getAuthProtectedUrl(aud.secondaryAction.href)}
                       className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-750 rounded-xl transition-colors"
                     >
                       {aud.secondaryAction.label}
@@ -452,7 +476,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Core Features Grid */}
+      {/* Core Features Grid (Protected Links) */}
       <section
         id="features"
         className="py-20 sm:py-28 bg-slate-50/70 dark:bg-slate-900/30 border-y border-slate-200 dark:border-slate-800"
@@ -476,7 +500,7 @@ export default function LandingPage() {
               return (
                 <Link
                   key={feature.title}
-                  href={feature.href}
+                  href={getAuthProtectedUrl(feature.href)}
                   className="group p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-blue-400 dark:hover:border-blue-600 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between"
                 >
                   <div>
@@ -502,59 +526,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Trust, Security & Compliance Section */}
-      <section id="trust" className="py-20 sm:py-28">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="rounded-3xl bg-gradient-to-br from-slate-900 via-slate-950 to-blue-950 text-white p-8 sm:p-14 border border-slate-800 shadow-2xl relative overflow-hidden">
-            <div className="max-w-3xl">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-semibold mb-6">
-                <Lock className="w-3.5 h-3.5" />
-                Ishonchlilik, Xavfsizlik va Shaffoflik
-              </div>
-              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
-                Huquqiy aniqlik va ma’lumotlar daxlsizligi kafolati
-              </h2>
-              <p className="text-slate-300 text-sm sm:text-base leading-relaxed mb-8">
-                Juristiv platformasi O‘zbekiston Respublikasining rasmiy normativ-huquqiy hujjatlari
-                (LexUZ) va Oliy Sud Plenum amaliyoti asosida ishlaydi. Ma’lumotlaringiz xalqaro
-                shifrlash standartlari asosida himoyalangan.
-              </p>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-                <div className="p-4 rounded-xl bg-white/5 border border-white/10">
-                  <div className="flex items-center gap-2.5 font-semibold text-sm mb-1 text-white">
-                    <FileCheck className="w-4 h-4 text-emerald-400" />
-                    LexUZ rasmiy manbalari
-                  </div>
-                  <p className="text-xs text-slate-300">
-                    Sun’iy yaratilgan yoki soxta normalar yo‘q. Faqat amaldagi qonunlar va Plenum qarorlari.
-                  </p>
-                </div>
-                <div className="p-4 rounded-xl bg-white/5 border border-white/10">
-                  <div className="flex items-center gap-2.5 font-semibold text-sm mb-1 text-white">
-                    <Shield className="w-4 h-4 text-blue-400" />
-                    Tekshirilgan advokatlar
-                  </div>
-                  <p className="text-xs text-slate-300">
-                    Platformada ro‘yxatdan o‘tgan advokatlarning litsenziyalari qat’iy tekshiruvdan o‘tkaziladi.
-                  </p>
-                </div>
-              </div>
-
-              {/* Legal AI Disclaimer */}
-              <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-start gap-3">
-                <AlertCircle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
-                <p className="text-xs text-amber-200 leading-relaxed">
-                  <strong>Eslatma:</strong> Platformadagi sun’iy intellekt tahlillari va tavsiyalari axborot-tahliliy
-                  hamda ta’limiy xarakterga ega bo‘lib, litsenziyalangan professional advokatning rasmiy
-                  yuridik xulosasini almashtirmaydi. Murakkab sud ishlarida malakali advokat bilan maslahatlashish tavsiya etiladi.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Contact Section */}
       <ContactSection />
 
@@ -574,27 +545,27 @@ export default function LandingPage() {
               <h3 className="font-semibold mb-3 text-sm text-slate-200">Asosiy xizmatlar</h3>
               <ul className="space-y-2 text-xs sm:text-sm text-slate-400">
                 <li>
-                  <Link href="/virtual-court" className="hover:text-white transition-colors">
+                  <Link href={getAuthProtectedUrl('/virtual-court')} className="hover:text-white transition-colors">
                     Virtual Sud
                   </Link>
                 </li>
                 <li>
-                  <Link href="/virtual-court/multiplayer" className="hover:text-white transition-colors">
+                  <Link href={getAuthProtectedUrl('/virtual-court/multiplayer')} className="hover:text-white transition-colors">
                     Multiplayer Sud
                   </Link>
                 </li>
                 <li>
-                  <Link href="/ai-chat" className="hover:text-white transition-colors">
+                  <Link href={getAuthProtectedUrl('/ai-chat')} className="hover:text-white transition-colors">
                     AI Maslahatchi
                   </Link>
                 </li>
                 <li>
-                  <Link href="/case-solver" className="hover:text-white transition-colors">
+                  <Link href={getAuthProtectedUrl('/case-solver')} className="hover:text-white transition-colors">
                     Kazus Yechish / IRAC
                   </Link>
                 </li>
                 <li>
-                  <Link href="/professional-tools" className="hover:text-white transition-colors">
+                  <Link href={getAuthProtectedUrl('/professional-tools')} className="hover:text-white transition-colors">
                     Professional Asboblar
                   </Link>
                 </li>
@@ -604,55 +575,35 @@ export default function LandingPage() {
               <h3 className="font-semibold mb-3 text-sm text-slate-200">Foydalanuvchi bo‘limlari</h3>
               <ul className="space-y-2 text-xs sm:text-sm text-slate-400">
                 <li>
-                  <Link href="/citizen" className="hover:text-white transition-colors">
+                  <Link href={getAuthProtectedUrl('/citizen')} className="hover:text-white transition-colors">
                     Fuqarolar portali
                   </Link>
                 </li>
                 <li>
-                  <Link href="/law-student" className="hover:text-white transition-colors">
+                  <Link href={getAuthProtectedUrl('/law-student')} className="hover:text-white transition-colors">
                     Talabalar portali
                   </Link>
                 </li>
                 <li>
-                  <Link href="/advocate" className="hover:text-white transition-colors">
+                  <Link href={getAuthProtectedUrl('/advocate')} className="hover:text-white transition-colors">
                     Advokatlar portali
                   </Link>
                 </li>
                 <li>
-                  <Link href="/ratings" className="hover:text-white transition-colors">
+                  <Link href={getAuthProtectedUrl('/ratings')} className="hover:text-white transition-colors">
                     Reyting va XP
                   </Link>
                 </li>
                 <li>
-                  <Link href="/legal-database" className="hover:text-white transition-colors">
+                  <Link href={getAuthProtectedUrl('/legal-database')} className="hover:text-white transition-colors">
                     Qonunlar bazasi
                   </Link>
                 </li>
               </ul>
             </div>
             <div>
-              <h3 className="font-semibold mb-3 text-sm text-slate-200">Rasmiy manbalar</h3>
+              <h3 className="font-semibold mb-3 text-sm text-slate-200">Huquqiy ma’lumotlar</h3>
               <ul className="space-y-2 text-xs sm:text-sm text-slate-400">
-                <li>
-                  <a
-                    href="https://lex.uz"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 hover:text-white transition-colors"
-                  >
-                    LexUZ Milliy bazasi <ExternalLink className="w-3 h-3" />
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="https://sud.uz"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 hover:text-white transition-colors"
-                  >
-                    Oliy Sud portali <ExternalLink className="w-3 h-3" />
-                  </a>
-                </li>
                 <li>
                   <Link href="/terms" className="hover:text-white transition-colors">
                     Foydalanish shartlari

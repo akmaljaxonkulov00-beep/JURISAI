@@ -45,6 +45,9 @@ function AuthProvider({ children }: { children: ReactNode }) {
       if (cached) {
         setUser(cached)
         setIsLoading(false)
+        if (typeof document !== 'undefined') {
+          document.cookie = `juristiv_auth=1; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax`
+        }
       }
     } catch {}
 
@@ -52,6 +55,13 @@ function AuthProvider({ children }: { children: ReactNode }) {
     const unsubscribe = authService.onAuthChange(authUser => {
       setUser(authUser)
       setIsLoading(false)
+      if (typeof document !== 'undefined') {
+        if (authUser) {
+          document.cookie = `juristiv_auth=1; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax`
+        } else {
+          document.cookie = 'juristiv_auth=; path=/; max-age=0; SameSite=Lax'
+        }
+      }
     })
 
     // 3) Timeout xavfsizlik chorasi — ulanish sekin bo'lsa ham foydalanuvchini bloklab qo'ymaslik
