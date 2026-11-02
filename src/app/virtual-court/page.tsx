@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo, Suspense } from 'react'
 import { getAuthHeaders } from '@/lib/api-auth-client'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useLimitModal } from '@/hooks/useLimitModal'
@@ -65,7 +65,7 @@ interface SpeechRecognitionLike {
   stop: () => void
 }
 
-export default function VirtualCourtPage() {
+function VirtualCourtContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const activeTabParam = searchParams.get('tab')
@@ -1863,4 +1863,18 @@ export default function VirtualCourtPage() {
   }
 
   return null
+}
+
+export default function VirtualCourtPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+        </div>
+      }
+    >
+      <VirtualCourtContent />
+    </Suspense>
+  )
 }

@@ -2,7 +2,7 @@
 
 import React from 'react'
 import Link from 'next/link'
-import { usePathname, useSearchParams } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import {
   Gavel,
   Users,
@@ -21,19 +21,15 @@ interface VirtualCourtHeaderNavProps {
 
 export default function VirtualCourtHeaderNav({ activeTab }: VirtualCourtHeaderNavProps) {
   const pathname = usePathname()
-  const searchParams = useSearchParams()
   const { user } = useAuth()
-  const currentTabParam = searchParams.get('tab')
 
   // Determine active tab if not explicitly passed
   let currentActive = activeTab
   if (!currentActive) {
-    if (pathname.includes('/virtual-court/multiplayer')) {
+    if (pathname?.includes('/virtual-court/multiplayer')) {
       currentActive = 'multiplayer'
-    } else if (pathname.includes('/virtual-court/completed')) {
+    } else if (pathname?.includes('/virtual-court/completed')) {
       currentActive = 'completed'
-    } else if (currentTabParam === 'my-courts') {
-      currentActive = 'my-courts'
     } else {
       currentActive = 'new'
     }

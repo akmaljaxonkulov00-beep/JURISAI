@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, Suspense } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
@@ -48,7 +48,7 @@ interface CompletedTrialItem {
   judgedByName?: string
 }
 
-export default function CompletedTrialsPage() {
+function CompletedTrialsContent() {
   const router = useRouter()
   const { user } = useAuth()
 
@@ -421,5 +421,19 @@ export default function CompletedTrialsPage() {
         )}
       </main>
     </div>
+  )
+}
+
+export default function CompletedTrialsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-zinc-400">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500" />
+        </div>
+      }
+    >
+      <CompletedTrialsContent />
+    </Suspense>
   )
 }
