@@ -38,8 +38,11 @@ import {
   BookOpen,
   Mail,
   Scale,
+  Award,
   type LucideIcon,
 } from 'lucide-react'
+import AdminLawStudentManager from '@/components/admin/AdminLawStudentManager'
+import AdminCitizenMonetizationManager from '@/components/admin/AdminCitizenMonetizationManager'
 import { authService, type AuthUser } from '@/services/supabase-auth'
 import MonitoringDashboard from '@/components/admin/MonitoringDashboard'
 import AdminTemplateManager from '@/components/admin/AdminTemplateManager'
@@ -161,6 +164,8 @@ interface LoginActivity {
 type TabType =
   | 'dashboard'
   | 'verifications'
+  | 'law_students'
+  | 'citizen_monetization'
   | 'questions_moderation'
   | 'consultations'
   | 'existing_students'
@@ -755,6 +760,8 @@ export default function AdminDashboard() {
   const tabs: { id: TabType; label: string; icon: LucideIcon; badge?: number }[] = [
     { id: 'dashboard', label: 'Boshqaruv', icon: Shield },
     { id: 'verifications', label: 'Verifikatsiya', icon: Shield },
+    { id: 'law_students', label: 'Talabalar & Payouts', icon: Award },
+    { id: 'citizen_monetization', label: 'Savol Monetizatsiyasi', icon: CreditCard },
     { id: 'questions_moderation', label: 'Savol-Javob', icon: FileText },
     { id: 'consultations', label: 'Konsultatsiyalar', icon: CalendarDays },
     { id: 'existing_students', label: 'Talabalar (Mavjud)', icon: Scale },
@@ -1268,6 +1275,12 @@ export default function AdminDashboard() {
 
         {/* ===== VERIFIKATSIYA ===== */}
         {activeTab === 'verifications' && <AdminVerificationsManager />}
+
+        {/* ===== LAW STUDENTS INVITATIONS & PAYOUTS ===== */}
+        {activeTab === 'law_students' && <AdminLawStudentManager />}
+
+        {/* ===== CITIZEN MONETIZATION & LIMITS ===== */}
+        {activeTab === 'citizen_monetization' && <AdminCitizenMonetizationManager />}
 
         {/* ===== SAVOL-JAVOB MODERATSIYASI ===== */}
         {activeTab === 'questions_moderation' && <AdminQuestionsManager />}

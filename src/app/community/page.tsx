@@ -46,12 +46,10 @@ import { getUserIdentityPayload } from '@/lib/client-user'
 /** Auth headers for API calls */
 async function apiHeaders(): Promise<Record<string, string>> {
   try {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession()
-    if (session?.access_token) return { Authorization: 'Bearer ' + session.access_token }
-  } catch {}
-  return {}
+    return await getAuthHeaders()
+  } catch {
+    return {}
+  }
 }
 
 // ── Umumiy tiplar (any o'rniga) ────────────────────────────────────────

@@ -312,7 +312,24 @@ async function getAccessToken(): Promise<string | null> {
     const {
       data: { session },
     } = await supabase.auth.getSession()
-    return session?.access_token || null
+    if (session?.access_token) return session.access_token
+
+    // Fallback: localStorage sb-*-auth-token
+    if (typeof window !== 'undefined') {
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i)
+        if (key && key.startsWith('sb-') && key.endsWith('-auth-token')) {
+          const raw = localStorage.getItem(key)
+          if (raw) {
+            try {
+              const parsed = JSON.parse(raw)
+              if (parsed?.access_token) return parsed.access_token
+            } catch {}
+          }
+        }
+      }
+    }
+    return null
   } catch {
     return null
   }
@@ -320,14 +337,18 @@ async function getAccessToken(): Promise<string | null> {
 
 async function syncUserToSupabase(user: AuthUser): Promise<void> {
   try {
-    // Authorization header orqali token yuboriladi — server-side identity
-    // tekshiruvi uchun (cookie race'ga bog'liq emas).
     const token = await getAccessToken()
+    if (!token) {
+      // Hali sessiya tokeni shakllanmagan bo'lsa 401 xatosi bermasligi uchun kutish
+      return
+    }
+
     await fetch('/api/auth/sync-user', {
       method: 'POST',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
         id: user.id,
@@ -619,24 +640,27 @@ export async function updateProfile(
     if (current?.id) {
       try {
         const token = await getAccessToken()
-        await fetch('/api/auth/sync-user', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
-          body: JSON.stringify({
-            id: current.id,
-            email: updates.email || current.email,
-            name: updates.name || current.name,
-            full_name: updates.name || current.name,
-            phone: updates.phone || current.phone,
-            avatar: updates.avatar || current.avatar,
-            role: updates.role || current.role || 'USER',
-            subscription_plan: updates.subscription_plan || current.subscription_plan || 'free',
-            provider: current.provider || 'email',
-          }),
-        })
+        if (token) {
+          await fetch('/api/auth/sync-user', {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              id: current.id,
+              email: updates.email || current.email,
+              name: updates.name || current.name,
+              full_name: updates.name || current.name,
+              phone: updates.phone || current.phone,
+              avatar: updates.avatar || current.avatar,
+              role: updates.role || current.role || 'USER',
+              subscription_plan: updates.subscription_plan || current.subscription_plan || 'free',
+              provider: current.provider || 'email',
+            }),
+          })
+        }
       } catch {}
     }
 

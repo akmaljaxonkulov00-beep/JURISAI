@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import PlatformRoleNav from '@/components/layout/PlatformRoleNav'
+import { getAuthHeaders } from '@/lib/api-auth-client'
 import {
   FileText,
   Clock,
@@ -32,7 +33,11 @@ export default function QuestionDetailPage() {
   useEffect(() => {
     async function loadQuestion() {
       try {
-        const res = await fetch(`/api/questions/${questionId}`)
+        const headers = await getAuthHeaders()
+        const res = await fetch(`/api/questions/${questionId}`, {
+          headers,
+          credentials: 'include',
+        })
         const json = await res.json()
         if (json.success && json.data) {
           setQuestion(json.data)

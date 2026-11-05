@@ -270,6 +270,10 @@ export default function ScenarioGenerator() {
     URL.revokeObjectURL(url)
   }
 
+  const currentDecisionPoint = currentScenario?.decision_points?.find(
+    dp => dp.step_number === currentStep
+  )
+
   // Handle user decision action step with confirmation & custom action
   const handleConfirmStep = async (optionId?: string, customText?: string) => {
     if (!currentScenario || isSubmittingStep) return
@@ -351,10 +355,6 @@ export default function ScenarioGenerator() {
       setIsEvaluating(false)
     }
   }
-
-  const currentDecisionPoint = currentScenario?.decision_points?.find(
-    dp => dp.step_number === currentStep
-  )
 
   return (
     <div className="space-y-6">

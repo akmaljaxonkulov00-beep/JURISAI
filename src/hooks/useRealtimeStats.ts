@@ -28,17 +28,16 @@ const POLL_INTERVAL = 30_000 // 30 seconds
 
 /**
  * Fetches aggregate platform statistics from the server-side API.
- * The API uses service_role key with Accept-Profile: auth to query auth.users.
+ * Uses public endpoint so unauthenticated sign-in pages don't trigger 401.
  */
 async function fetchStats(): Promise<PlatformStats> {
   try {
-    const response = await fetch('/api/admin/dashboard-stats', {
+    const response = await fetch('/api/platform/public-stats', {
       cache: 'no-store',
       headers: { 'Cache-Control': 'no-cache' },
     })
 
     if (!response.ok) {
-      console.warn('[Stats] API returned', response.status)
       return getLocalFallbackStats()
     }
 

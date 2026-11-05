@@ -20,6 +20,7 @@ import {
   CheckCircle,
   Briefcase,
   BookOpen,
+  Settings,
 } from 'lucide-react'
 
 interface PlatformRoleNavProps {
@@ -58,7 +59,7 @@ export default function PlatformRoleNav({
     { label: 'Talaba paneli', href: '/law-student', icon: Award },
     { label: 'Ommaviy savollar', href: '/law-student/questions', icon: BookOpen },
     { label: 'Mening javoblarim', href: '/law-student/answers', icon: CheckCircle },
-    { label: 'IRAC Simulyator', href: '/dashboard', icon: Scale }, // Link to existing student practice!
+    { label: 'Hamyon va mukofotlar', href: '/law-student/wallet', icon: CreditCard },
   ]
 
   const advocateLinks = [
@@ -68,6 +69,7 @@ export default function PlatformRoleNav({
     { label: 'Ishlar dosyesi', href: '/advocate/cases', icon: FileText },
     { label: 'Talabalar taqrizi', href: '/advocate/mentorship', icon: Award },
     { label: 'Daromadlar', href: '/advocate/earnings', icon: CreditCard },
+    { label: 'Sozlamalar', href: '/advocate/settings', icon: Settings },
   ]
 
   const activeLinks =

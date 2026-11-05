@@ -1,7 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { platformDb } from '@/lib/db/platform-db'
 import { requireUser, getUserRole } from '@/lib/server-auth'
 import { sanitizeInput } from '@/lib/api-security'
+import {
+  getUserConversations,
+  getConversationMessages,
+  sendChatMessage,
+  markConversationAsRead,
+} from '@/lib/chat-service'
+import { getSupabaseAdmin } from '@/lib/supabase-admin'
+
+export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
   try {
@@ -9,44 +17,76 @@ export async function GET(request: NextRequest) {
     if (!auth.ok) return auth.response
 
     const { searchParams } = new URL(request.url)
-    const citizenId = searchParams.get('citizenId')
-    const advocateId = searchParams.get('advocateId')
+    const conversationId = searchParams.get('conversationId')
+    const citizenIdParam = searchParams.get('citizenId')
+    const advocateIdParam = searchParams.get('advocateId')
 
-    if (!citizenId || !advocateId) {
-      return NextResponse.json(
-        { success: false, error: 'citizenId va advocateId parametrlari talab qilinadi' },
-        { status: 400 }
-      )
-    }
-
+    const admin = getSupabaseAdmin()
     const { role } = await getUserRole(auth.user.id, auth.user.email)
+    const isAdvocate = (role as string).toLowerCase() === 'advocate'
 
-    // XAVFSIZLIK QOIDASI: Faqat ushbu fuqaro yoki ushbu advokat (yoki favqulodda admin) ko'ra oladi
-    const isCitizenParticipant = auth.user.id === citizenId
-    const isAdvocateParticipant = auth.user.id === advocateId
-    const isAdmin = role === 'admin'
-
-    if (!isCitizenParticipant && !isAdvocateParticipant && !isAdmin) {
-      return NextResponse.json(
-        {
-          success: false,
-          error:
-            'Maxfiy advokat-mijoz suhbati. Siz ushbu suhbat ishtirokchisi emassiz (Kirish taqiqlangan).',
-        },
-        { status: 403 }
-      )
+    // 1. Agar aniq conversationId berilgan bo'lsa
+    if (conversationId) {
+      const result = await getConversationMessages(conversationId, auth.user.id)
+      if (!result.allowed) {
+        return NextResponse.json(
+          { success: false, error: "Ushbu shaxsiy suhbatga kirish taqiqlangan." },
+          { status: 403 }
+        )
+      }
+      // O'qilgan deb belgilash
+      await markConversationAsRead(conversationId, auth.user.id)
+      return NextResponse.json({ success: true, data: result.messages, partner: result.partner })
     }
 
-    const messages = await platformDb.getMessages(citizenId, advocateId)
+    // 2. Agar citizenId va advocateId berilgan bo'lsa
+    if (citizenIdParam && advocateIdParam) {
+      if (auth.user.id !== citizenIdParam && auth.user.id !== advocateIdParam && role !== 'admin') {
+        return NextResponse.json(
+          { success: false, error: "Maxfiy suhbat. Kirish taqiqlangan." },
+          { status: 403 }
+        )
+      }
 
-    // Mark as read for the receiver
-    const readerRole = isCitizenParticipant ? 'citizen' : 'advocate'
-    await platformDb.markMessagesRead(citizenId, advocateId, readerRole)
+      // Mavjud conversation ni topish yoki yangi ochish
+      let { data: conv } = await admin
+        .from('conversations')
+        .select('*')
+        .eq('citizen_id', citizenIdParam)
+        .eq('advocate_id', advocateIdParam)
+        .maybeSingle()
 
-    return NextResponse.json({ success: true, data: messages })
-  } catch (error) {
+      if (!conv) {
+        const { data: created } = await admin
+          .from('conversations')
+          .insert({
+            citizen_id: citizenIdParam,
+            advocate_id: advocateIdParam,
+            status: 'active',
+          })
+          .select()
+          .single()
+        conv = created
+      }
+
+      if (conv) {
+        const result = await getConversationMessages(conv.id, auth.user.id)
+        await markConversationAsRead(conv.id, auth.user.id)
+        return NextResponse.json({
+          success: true,
+          conversationId: conv.id,
+          data: result.messages,
+          partner: result.partner,
+        })
+      }
+    }
+
+    // 3. Hech narsa berilmagan bo'lsa: foydalanuvchining barcha conversationlari
+    const convs = await getUserConversations(auth.user.id, isAdvocate ? 'advocate' : 'citizen')
+    return NextResponse.json({ success: true, conversations: convs })
+  } catch (error: any) {
     return NextResponse.json(
-      { success: false, error: 'Xabarlarni yuklashda xatolik yuz berdi' },
+      { success: false, error: 'Xabarlarni yuklashda xatolik yuz berdi: ' + error.message },
       { status: 500 }
     )
   }
@@ -58,46 +98,74 @@ export async function POST(request: NextRequest) {
     if (!auth.ok) return auth.response
 
     const body = await request.json()
-    const { citizenId, advocateId, messageText, attachments } = body
+    const { conversationId, partnerId, messageText, attachments, messageType = 'text' } = body
 
-    if (!citizenId || !advocateId || !messageText?.trim()) {
+    if (!messageText?.trim() && (!attachments || attachments.length === 0)) {
       return NextResponse.json(
-        { success: false, error: 'Ishtirokchilar va xabar matni kiritilishi shart' },
+        { success: false, error: 'Xabar matni yoki biriktirilgan fayl kiritilishi shart' },
         { status: 400 }
       )
     }
 
-    const isCitizen = auth.user.id === citizenId
-    const isAdvocate = auth.user.id === advocateId
+    const admin = getSupabaseAdmin()
+    const { role } = await getUserRole(auth.user.id, auth.user.email)
+    const isAdvocate = (role as string).toLowerCase() === 'advocate'
+    const senderRole = isAdvocate ? 'advocate' : 'citizen'
 
-    if (!isCitizen && !isAdvocate) {
+    let targetConvId = conversationId
+
+    // Agar conversationId bo'lmasa, lekin partnerId bo'lsa
+    if (!targetConvId && partnerId) {
+      const citizenId = isAdvocate ? partnerId : auth.user.id
+      const advocateId = isAdvocate ? auth.user.id : partnerId
+
+      let { data: conv } = await admin
+        .from('conversations')
+        .select('id')
+        .eq('citizen_id', citizenId)
+        .eq('advocate_id', advocateId)
+        .maybeSingle()
+
+      if (!conv) {
+        const { data: created } = await admin
+          .from('conversations')
+          .insert({
+            citizen_id: citizenId,
+            advocate_id: advocateId,
+            status: 'active',
+          })
+          .select('id')
+          .single()
+        conv = created
+      }
+      targetConvId = conv?.id
+    }
+
+    if (!targetConvId) {
       return NextResponse.json(
-        {
-          success: false,
-          error: 'Siz bu shaxsiy suhbatga xabar yuborish huquqiga ega emassiz',
-        },
-        { status: 403 }
+        { success: false, error: 'Suhbat aniqlanmadi (conversationId yoki partnerId zarur)' },
+        { status: 400 }
       )
     }
 
-    const senderRole = isCitizen ? 'citizen' : 'advocate'
-    const conversationId = `conv-${[citizenId, advocateId].sort().join('-')}`
-
-    const msg = await platformDb.sendMessage({
-      conversation_id: conversationId,
-      citizen_id: citizenId,
-      advocate_id: advocateId,
-      sender_id: auth.user.id,
-      sender_role: senderRole,
-      message_text: sanitizeInput(messageText),
+    const cleanText = sanitizeInput(messageText || '')
+    const result = await sendChatMessage({
+      conversationId: targetConvId,
+      senderId: auth.user.id,
+      senderRole,
+      messageText: cleanText,
       attachments: attachments || [],
-      is_read: false,
+      messageType,
     })
 
-    return NextResponse.json({ success: true, data: msg }, { status: 201 })
-  } catch (error) {
+    if (!result.success) {
+      return NextResponse.json({ success: false, error: result.error }, { status: 403 })
+    }
+
+    return NextResponse.json({ success: true, data: result.message }, { status: 201 })
+  } catch (error: any) {
     return NextResponse.json(
-      { success: false, error: 'Xabar yuborishda xatolik yuz berdi' },
+      { success: false, error: 'Xabar yuborishda xatolik yuz berdi: ' + error.message },
       { status: 500 }
     )
   }

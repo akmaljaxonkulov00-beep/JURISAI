@@ -125,43 +125,32 @@ export async function GET() {
         rawPlans = DEFAULT_PLANS
       }
     } else {
-      // Self-healing: agar bazada eski 45000 yoki 140000 qolib ketgan bo'lsa — avtomatik 29000 va 79000 ga yangilash
+      // Missing price tekshiruvi: faqat narx belgilanmagan bo'lsa default'dan olish
       let needsDbUpdate = false
       rawPlans = rawPlans.map((p: any) => {
-        if (p.id === 'standart' && (p.price === 45000 || !p.price)) {
-          needsDbUpdate = true
-          return {
-            ...p,
-            price: 29000,
-            features: DEFAULT_PLANS.find(d => d.id === 'standart')?.features || p.features,
-            limits:
-              p.limits && Object.keys(p.limits).length > 0
-                ? p.limits
-                : DEFAULT_PLANS.find(d => d.id === 'standart')?.limits,
-          }
-        }
-        if (p.id === 'pro' && (p.price === 140000 || !p.price)) {
-          needsDbUpdate = true
-          return {
-            ...p,
-            price: 79000,
-            features: DEFAULT_PLANS.find(d => d.id === 'pro')?.features || p.features,
-            limits:
-              p.limits && Object.keys(p.limits).length > 0
-                ? p.limits
-                : DEFAULT_PLANS.find(d => d.id === 'pro')?.limits,
-          }
-        }
         if (p.id === 'free' && p.price !== 0) {
           needsDbUpdate = true
           return {
             ...p,
             price: 0,
-            features: DEFAULT_PLANS.find(d => d.id === 'free')?.features || p.features,
+            features: p.features || DEFAULT_PLANS.find(d => d.id === 'free')?.features,
             limits:
               p.limits && Object.keys(p.limits).length > 0
                 ? p.limits
                 : DEFAULT_PLANS.find(d => d.id === 'free')?.limits,
+          }
+        }
+        if (p.price === undefined || p.price === null || isNaN(Number(p.price))) {
+          needsDbUpdate = true
+          const def = DEFAULT_PLANS.find(d => d.id === p.id)
+          return {
+            ...p,
+            price: def ? def.price : 0,
+            features: p.features || def?.features || [],
+            limits:
+              p.limits && Object.keys(p.limits).length > 0
+                ? p.limits
+                : def?.limits || {},
           }
         }
         return p

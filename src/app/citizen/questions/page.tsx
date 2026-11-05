@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import PlatformRoleNav from '@/components/layout/PlatformRoleNav'
+import { getAuthHeaders } from '@/lib/api-auth-client'
 import {
   FileText,
   Search,
@@ -15,6 +16,7 @@ import {
   Shield,
   Eye,
   EyeOff,
+  UserCheck,
 } from 'lucide-react'
 
 export default function CitizenQuestionsPage() {
@@ -27,7 +29,14 @@ export default function CitizenQuestionsPage() {
     async function fetchQuestions() {
       try {
         setLoading(true)
-        const res = await fetch(`/api/questions?mine=true&status=${statusFilter}&search=${encodeURIComponent(searchQuery)}`)
+        const headers = await getAuthHeaders()
+        const res = await fetch(
+          `/api/questions?mine=true&status=${statusFilter}&search=${encodeURIComponent(searchQuery)}`,
+          {
+            headers,
+            credentials: 'include',
+          }
+        )
         const json = await res.json()
         if (json.success && json.data) {
           setQuestions(json.data)

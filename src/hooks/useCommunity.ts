@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { supabase } from '@/lib/supabase-client'
+import { getAuthHeaders } from '@/lib/api-auth-client'
 
 // ── Types ──────────────────────────────────────────────────────────────
 
@@ -141,9 +142,11 @@ export function useCommunity() {
   // ── Post'ni Supabase'ga sinxronlash (like/izoh/ko'rish va h.k.) ──
   const syncPost = useCallback(async (post: CommunityPost) => {
     try {
+      const authHeaders = await getAuthHeaders()
       await fetch('/api/community/posts', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
         body: JSON.stringify({
           id: post.id,
           content: post.content,
@@ -178,16 +181,36 @@ export function useCommunity() {
     }
   }, [loadFromApi])
 
-  // Re-sync current user on mount
+  // Re-sync current user on mount with active Supabase session
   useEffect(() => {
     setCurrentUser(getCurrentUser())
+    async function syncActiveUser() {
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession()
+        if (session?.user) {
+          const u = session.user
+          const meta = u.user_metadata || {}
+          setCurrentUser({
+            id: u.id,
+            name: meta.full_name || meta.name || u.email?.split('@')[0] || 'Foydalanuvchi',
+            avatar: meta.avatar || 'user',
+            role: meta.role || 'Foydalanuvchi',
+            verified: false,
+            reputation: meta.reputation || 0,
+          })
+        }
+      } catch {}
+    }
+    syncActiveUser()
   }, [])
 
   // ── CRUD Operations ───────────────────────────────────────────────
 
   const createPost = useCallback(
     (content: string, category: CommunityPost['category'], tags: string[]) => {
-      const user = getCurrentUser()
+      const user = currentUser
       const newPost: CommunityPost = {
         id: generateId(),
         author: user,
@@ -206,17 +229,20 @@ export function useCommunity() {
       }
       // Optimistic UI update
       setPosts(prev => [newPost, ...prev])
-      // Save to DB
-      fetch('/api/community/posts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content, category, tags, author: user }),
+      // Save to DB with credentials & auth
+      getAuthHeaders().then(authHeaders => {
+        fetch('/api/community/posts', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json', ...authHeaders },
+          body: JSON.stringify({ content, category, tags, author: user }),
+        })
+          .then(() => loadFromApi())
+          .catch(() => {})
       })
-        .then(() => loadFromApi())
-        .catch(() => {})
       return newPost
     },
-    [posts, loadFromApi]
+    [currentUser, loadFromApi]
   )
 
   const updatePost = useCallback(
@@ -242,10 +268,16 @@ export function useCommunity() {
   const deletePost = useCallback(
     (postId: string) => {
       setPosts(prev => prev.filter(p => p.id !== postId))
-      // Try API (Supabase-ready)
-      fetch(`/api/community/posts?id=${postId}`, { method: 'DELETE' }).catch(() => {})
+      // Try API with auth
+      getAuthHeaders().then(authHeaders => {
+        fetch(`/api/community/posts?id=${postId}`, {
+          method: 'DELETE',
+          credentials: 'include',
+          headers: { ...authHeaders },
+        }).catch(() => {})
+      })
     },
-    [posts]
+    []
   )
 
   // ── Like / Dislike ────────────────────────────────────────────────
@@ -333,7 +365,7 @@ export function useCommunity() {
 
   const addComment = useCallback(
     (postId: string, content: string, parentId?: string) => {
-      const user = getCurrentUser()
+      const user = currentUser
       const newComment: CommunityComment = {
         id: 'cmt_' + Date.now(),
         postId,
@@ -365,15 +397,18 @@ export function useCommunity() {
       // DB-backed — no localStorage save
       addNotification('comment', `${user.name} postingizga izoh qoldirdi`, user.name, postId)
       // API'ga yuborish: izoh jadvali + post.comments JSONB
-      fetch('/api/community/comments', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ postId, content, parentId, author: user }),
-      }).catch(() => {})
+      getAuthHeaders().then(authHeaders => {
+        fetch('/api/community/comments', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json', ...authHeaders },
+          body: JSON.stringify({ postId, content, parentId, author: user }),
+        }).catch(() => {})
+      })
       const target = updated.find(p => p.id === postId)
       if (target) syncPost(target)
     },
-    [posts, syncPost]
+    [currentUser, posts, syncPost]
   )
 
   const deleteComment = useCallback(
@@ -387,10 +422,14 @@ export function useCommunity() {
         return { ...p, comments: removeRecursive(p.comments) }
       })
       setPosts(updated)
-      // DB-backed — no localStorage save
-      fetch(`/api/community/comments?id=${commentId}&postId=${postId}`, { method: 'DELETE' }).catch(
-        () => {}
-      )
+      // DB-backed — with auth
+      getAuthHeaders().then(authHeaders => {
+        fetch(`/api/community/comments?id=${commentId}&postId=${postId}`, {
+          method: 'DELETE',
+          credentials: 'include',
+          headers: { ...authHeaders },
+        }).catch(() => {})
+      })
       const target = updated.find(p => p.id === postId)
       if (target) syncPost(target)
     },

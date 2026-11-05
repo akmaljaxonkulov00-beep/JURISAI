@@ -283,8 +283,8 @@ export default function DecisionTreePage() {
       const headers = await getAuthHeaders()
       const payload = {
         ...c,
-        selected_path: activePathIds,
-        evidence_state: evidenceState,
+        selected_path: Array.isArray(c.selected_path) && c.selected_path.length > 0 ? c.selected_path : activePathIds,
+        evidence_state: c.evidence_state && Object.keys(c.evidence_state).length > 0 ? c.evidence_state : evidenceState,
       }
 
       let res

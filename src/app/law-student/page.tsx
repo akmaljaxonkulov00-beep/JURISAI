@@ -16,6 +16,8 @@ import {
   FileText,
   UserCheck,
   Scale,
+  CreditCard,
+  DollarSign,
 } from 'lucide-react'
 
 export default function LawStudentDashboard() {
@@ -33,18 +35,24 @@ export default function LawStudentDashboard() {
   const [submittingVerification, setSubmittingVerification] = useState(false)
   const [verificationSuccess, setVerificationSuccess] = useState(false)
 
+  const [wallet, setWallet] = useState<any>(null)
+
   const loadData = async () => {
     try {
-      const [vRes, aRes] = await Promise.all([
-        fetch('/api/verification/student').then(r => r.json()),
-        fetch('/api/answers?awaitingReview=true').then(r => r.json()),
+      const [vRes, aRes, wRes] = await Promise.all([
+        fetch('/api/verification/student').then(r => r.json()).catch(() => ({})),
+        fetch('/api/answers?awaitingReview=true').then(r => r.json()).catch(() => ({})),
+        fetch('/api/law-student/wallet').then(r => r.json()).catch(() => ({})),
       ])
-      if (vRes.success && vRes.data) {
+      if (vRes?.success && vRes?.data) {
         setProfile(vRes.data)
       }
-      if (aRes.success && aRes.data && user?.id) {
+      if (aRes?.success && aRes?.data && user?.id) {
         const mine = aRes.data.filter((ans: any) => ans.author_id === user.id)
         setMyAnswers(mine)
+      }
+      if (wRes?.success && wRes?.wallet) {
+        setWallet(wRes.wallet)
       }
     } catch (e) {
       console.error(e)
@@ -123,11 +131,11 @@ export default function LawStudentDashboard() {
                 Ommaviy savollarga javob berish
               </Link>
               <Link
-                href="/dashboard"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-medium text-sm border border-white/10 transition-all backdrop-blur-sm"
+                href="/law-student/wallet"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600/30 hover:bg-emerald-600/50 text-white font-medium text-sm border border-emerald-400/30 transition-all backdrop-blur-sm"
               >
-                <Scale className="w-4 h-4 text-amber-400" />
-                Kazus va Sud Simulyatori (Mavjud Talaba Portali)
+                <CreditCard className="w-4 h-4 text-emerald-400" />
+                Hamyon: {Number(wallet?.balance || 0).toLocaleString()} UZS
               </Link>
             </div>
           </div>
@@ -254,6 +262,29 @@ export default function LawStudentDashboard() {
               </form>
             </div>
           )}
+        </div>
+
+        {/* Wallet & Rewards Highlight */}
+        <div className="bg-gradient-to-r from-emerald-900 via-teal-900 to-cyan-950 text-white p-6 rounded-2xl shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4 border border-emerald-700/30">
+          <div className="space-y-1">
+            <span className="text-xs uppercase font-bold tracking-wider text-emerald-300 flex items-center gap-1.5">
+              <CreditCard className="w-4 h-4" /> Talaba Shaxsiy Hamyoni
+            </span>
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-extrabold">{Number(wallet?.balance || 0).toLocaleString()} UZS</span>
+              <span className="text-xs text-emerald-200">(Jami ishlangan: {Number(wallet?.total_earned || 0).toLocaleString()} UZS)</span>
+            </div>
+            <p className="text-xs text-emerald-100">
+              AI mezonlari bo‘yicha 70+ ball to‘plagan har bir javob uchun 5 000 - 15 000 so‘m kafolatlangan mukofot beriladi.
+            </p>
+          </div>
+          <Link
+            href="/law-student/wallet"
+            className="px-5 py-2.5 rounded-xl bg-white text-emerald-900 hover:bg-emerald-50 text-xs font-bold transition-all shadow-md flex items-center gap-2 whitespace-nowrap"
+          >
+            <CreditCard className="w-4 h-4" />
+            Hamyon va Pul yechish
+          </Link>
         </div>
 
         {/* Statistics Grid */}

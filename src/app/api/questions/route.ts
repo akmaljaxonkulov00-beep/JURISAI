@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { platformDb } from '@/lib/db/platform-db'
 import { requireUser } from '@/lib/server-auth'
 import { sanitizeInput } from '@/lib/api-security'
+import { deductCitizenQuestion, getCitizenUsage } from '@/lib/citizen-service'
+import { getSupabaseAdmin } from '@/lib/supabase-admin'
+
+export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,16 +18,40 @@ export async function GET(request: NextRequest) {
     if (mineOnly) {
       const auth = await requireUser(request)
       if (!auth.ok) return auth.response
+
       const questions = await platformDb.getQuestions({
         citizenId: auth.user.id,
         category,
         status,
         search,
       })
-      return NextResponse.json({ success: true, data: questions })
+
+      // Har bir savol uchun javob muallifi ma'lumotlarini biriktirish
+      const admin = getSupabaseAdmin()
+      const enhancedQuestions = await Promise.all(
+        questions.map(async q => {
+          try {
+            const { data: answers } = await admin
+              .from('legal_answers')
+              .select('*')
+              .eq('question_id', q.id)
+              .order('created_at', { ascending: false })
+
+            return {
+              ...q,
+              answers: answers || [],
+              latest_answer: answers?.[0] || null,
+            }
+          } catch {
+            return q
+          }
+        })
+      )
+
+      return NextResponse.json({ success: true, data: enhancedQuestions })
     }
 
-    // Public questions feed — only questions marked public
+    // Public questions feed — faqat public bo'lgan savollar
     const questions = await platformDb.getQuestions({
       visibility: 'public',
       category,
@@ -31,7 +59,7 @@ export async function GET(request: NextRequest) {
       search,
     })
 
-    // Mask name if anonymous
+    // Anonim bo'lsa ismni yashirish
     const sanitizedList = questions.map(q => ({
       ...q,
       citizen_name: q.is_anonymous ? 'Anonim fuqaro' : q.citizen_name,
@@ -50,6 +78,19 @@ export async function POST(request: NextRequest) {
   try {
     const auth = await requireUser(request)
     if (!auth.ok) return auth.response
+
+    // 1. Citizen savol berish limiti va kreditlarini tekshirish
+    const deductResult = await deductCitizenQuestion(auth.user.id)
+    if (!deductResult.success) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: deductResult.error,
+          code: 'LIMIT_EXCEEDED',
+        },
+        { status: 402 } // Payment Required
+      )
+    }
 
     const body = await request.json()
     const {
@@ -87,7 +128,17 @@ export async function POST(request: NextRequest) {
       attachments: attachments || [],
     })
 
-    return NextResponse.json({ success: true, data: question }, { status: 201 })
+    return NextResponse.json(
+      {
+        success: true,
+        data: question,
+        usage: {
+          usedPaidCredit: deductResult.usedPaidCredit,
+          remaining: deductResult.remaining,
+        },
+      },
+      { status: 201 }
+    )
   } catch (error) {
     return NextResponse.json(
       { success: false, error: 'Savol yaratishda xatolik yuz berdi' },

@@ -135,12 +135,29 @@ export default function PracticeHubPage() {
   useEffect(() => {
     const loadPracticeStats = async () => {
       try {
+        // 1. LocalStorage stats
         const stored = localStorage.getItem('user_stats')
         if (stored) {
           const p = JSON.parse(stored)
           setStats(prev => ({
             ...prev,
             xpEarned: p.xp || 0,
+            totalSolved: p.casesSolved || prev.totalSolved,
+          }))
+        }
+
+        // 2. Server API dan real IRAC va amaliyot tarixi
+        const headers = await getAuthHeaders()
+        const res = await fetch('/api/irac/history', {
+          headers: { ...headers },
+          cache: 'no-cache',
+        })
+        const data = await res.json()
+        if (data.success && data.overall) {
+          setStats(prev => ({
+            ...prev,
+            totalSolved: data.overall.solved || prev.totalSolved,
+            averageScore: data.overall.avgScore || prev.averageScore,
           }))
         }
       } catch {}
@@ -206,6 +223,49 @@ export default function PracticeHubPage() {
               </div>
             </div>
           </div>
+
+          {/* Foydalanuvchi Shaxsiy Natijalari */}
+          {(stats.totalSolved > 0 || stats.xpEarned > 0) && (
+            <div className="bg-white dark:bg-zinc-900 rounded-2xl p-5 border border-blue-100 dark:border-blue-900/30 shadow-xs">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Award className="w-5 h-5 text-amber-500" />
+                  <h3 className="text-sm font-bold text-gray-900 dark:text-white">
+                    Sizning Shaxsiy Amaliyot Natijalaringiz
+                  </h3>
+                </div>
+                <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">
+                  Jonli hisobot
+                </span>
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="p-3 bg-blue-50/60 dark:bg-blue-950/30 rounded-xl border border-blue-100 dark:border-blue-900/40">
+                  <span className="text-xs text-blue-600 dark:text-blue-400 block font-medium">
+                    Yechilgan Kazuslar
+                  </span>
+                  <span className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
+                    {stats.totalSolved} ta
+                  </span>
+                </div>
+                <div className="p-3 bg-emerald-50/60 dark:bg-emerald-950/30 rounded-xl border border-emerald-100 dark:border-emerald-900/40">
+                  <span className="text-xs text-emerald-600 dark:text-emerald-400 block font-medium">
+                    O'rtacha Ball
+                  </span>
+                  <span className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
+                    {stats.averageScore ? `${stats.averageScore}%` : '—'}
+                  </span>
+                </div>
+                <div className="p-3 bg-purple-50/60 dark:bg-purple-950/30 rounded-xl border border-purple-100 dark:border-purple-900/40">
+                  <span className="text-xs text-purple-600 dark:text-purple-400 block font-medium">
+                    To'plangan XP
+                  </span>
+                  <span className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
+                    +{stats.xpEarned} XP
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* 4 Core Modules Grid */}
           <div>

@@ -476,8 +476,8 @@ export default function CaseSolver() {
         currentCase?.title ||
         customCaseText.trim().split('\n')[0].slice(0, 80) ||
         'Foydalanuvchi kazusi'
-      const caseCategory = currentCase?.category || category !== 'all' ? category : 'jinoyat'
-      const caseDifficulty = currentCase?.difficulty || difficulty !== 'all' ? difficulty : 'medium'
+      const caseCategory = currentCase?.category || (category !== 'all' ? category : 'jinoyat')
+      const caseDifficulty = currentCase?.difficulty || (difficulty !== 'all' ? difficulty : 'medium')
 
       try {
         const headers = await getAuthHeaders()
@@ -589,8 +589,8 @@ export default function CaseSolver() {
 
   /* ── Saqlash (AI rejimi) ── */
   const saveAnalysis = async () => {
-    if (!result || !currentCase) return
-    await persistResult(result.confidence, {
+    if (!result || (!currentCase && !customCaseText.trim())) return
+    await persistResult(result.confidence || 85, {
       issue: result.issue,
       rule: result.rule,
       application: result.application,

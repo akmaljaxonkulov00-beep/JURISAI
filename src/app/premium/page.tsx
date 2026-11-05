@@ -122,10 +122,28 @@ export default function Premium() {
   const [loading, setLoading] = useState(true)
   const [matrixLimits, setMatrixLimits] =
     useState<Record<string, Record<string, number>>>(DEFAULT_MATRIX_LIMITS)
+  const [currentUserPlan, setCurrentUserPlan] = useState<string>('free')
 
   useEffect(() => {
     loadPricingPlans()
+    loadUserPlan()
   }, [])
+
+  const loadUserPlan = async () => {
+    try {
+      const authHeaders = await getAuthHeaders()
+      const res = await fetch('/api/user/profile-full', {
+        headers: { ...authHeaders },
+        cache: 'no-cache',
+      })
+      const result = await res.json()
+      if (result.success && result.data?.plan) {
+        setCurrentUserPlan(String(result.data.plan).toLowerCase())
+      }
+    } catch {
+      // Offline yoki mehmon
+    }
+  }
 
   const loadPricingPlans = async () => {
     try {
@@ -214,38 +232,48 @@ export default function Premium() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 mb-12 md:mb-16">
           {plans.map((plan, index) => {
+            const hasDiscount = (plan.discountPercent ?? 0) > 0
+            const finalPrice = hasDiscount
+              ? Math.round(plan.price * (1 - (plan.discountPercent ?? 0) / 100))
+              : plan.price
             const priceFormatted = plan.price.toLocaleString() + ' UZS'
+            const finalPriceFormatted = finalPrice.toLocaleString() + ' UZS'
             const isPopular = index === 1 // Standart is popular
             const isFree = plan.price === 0
+            const isCurrentPlan = currentUserPlan === plan.id.toLowerCase()
             return (
               <Card
                 key={index}
-                className={`card-default relative ${isPopular ? 'ring-2 ring-blue-500 shadow-2xl transform scale-105' : 'shadow-lg'}`}
+                className={`card-default relative ${isCurrentPlan ? 'ring-2 ring-emerald-500 shadow-2xl' : isPopular ? 'ring-2 ring-blue-500 shadow-2xl transform scale-105' : 'shadow-lg'}`}
               >
-                {isPopular && (
+                {isCurrentPlan ? (
+                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
+                    <Badge className="bg-emerald-600 text-white px-4 py-1.5 shadow-lg flex items-center gap-1 text-xs">
+                      <Check className="w-3.5 h-3.5" />
+                      Sizning joriy tarifingiz
+                    </Badge>
+                  </div>
+                ) : isPopular ? (
                   <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
                     <Badge className="bg-blue-600 text-white px-4 py-2 shadow-lg">
                       <Star className="w-4 h-4 mr-1" />
                       Eng mashhur
                     </Badge>
                   </div>
-                )}
+                ) : null}
                 <CardHeader className="text-center pb-4">
                   <CardTitle className="text-2xl font-bold mb-2 text-gray-800 dark:text-white">
                     {plan.name}
                   </CardTitle>
                   <div className="mb-4">
-                    {(plan.discountPercent ?? 0) > 0 && !isFree ? (
+                    {hasDiscount && !isFree ? (
                       <div>
                         <div className="flex items-center justify-center gap-2">
                           <span className="text-4xl font-bold text-green-600">
-                            {Math.round(
-                              plan.price * (1 - (plan.discountPercent ?? 0) / 100)
-                            ).toLocaleString()}{' '}
-                            UZS
+                            {finalPriceFormatted}
                           </span>
                           <span className="text-lg text-gray-400 line-through">
-                            {plan.price.toLocaleString()}
+                            {priceFormatted}
                           </span>
                         </div>
                         <span className="inline-flex items-center gap-1 text-xs font-bold text-white bg-red-500 px-3 py-1 rounded-full mt-2">
@@ -280,16 +308,22 @@ export default function Premium() {
                   </ul>
                   <Link
                     href={
-                      isFree
+                      isCurrentPlan
                         ? '/dashboard'
-                        : `/manual-payment?plan=${plan.id}&amount=${(plan.discountPercent ?? 0) > 0 ? Math.round(plan.price * (1 - (plan.discountPercent ?? 0) / 100)) : plan.price}`
+                        : isFree
+                          ? '/dashboard'
+                          : `/manual-payment?plan=${plan.id}&amount=${finalPrice}`
                     }
                   >
                     <Button
-                      className={`w-full ${isPopular ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-800 dark:bg-zinc-800 hover:bg-gray-700 dark:hover:bg-zinc-700'}`}
+                      className={`w-full ${isCurrentPlan ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : isPopular ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-800 dark:bg-zinc-800 hover:bg-gray-700 dark:hover:bg-zinc-700'}`}
                       size="lg"
                     >
-                      {isFree ? 'Bepul boshlash' : `${priceFormatted} to'lash`}
+                      {isCurrentPlan
+                        ? 'Faol tarif (Kabinetga)'
+                        : isFree
+                          ? 'Bepul boshlash'
+                          : `${finalPriceFormatted} to'lash`}
                       <ArrowRight className="w-5 h-5 ml-2" />
                     </Button>
                   </Link>
