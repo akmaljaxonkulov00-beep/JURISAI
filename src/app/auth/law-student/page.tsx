@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import SiteLogo from '@/components/SiteLogo'
@@ -16,7 +16,9 @@ import {
   Building,
 } from 'lucide-react'
 
-export default function LawStudentClaimPage() {
+export const dynamic = 'force-dynamic'
+
+function LawStudentClaimContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const initialToken = searchParams.get('token') || ''
@@ -212,5 +214,19 @@ export default function LawStudentClaimPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function LawStudentClaimPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#070D18] flex items-center justify-center p-4">
+          <div className="text-xs text-indigo-300 animate-pulse">Yuklanmoqda...</div>
+        </div>
+      }
+    >
+      <LawStudentClaimContent />
+    </Suspense>
   )
 }
