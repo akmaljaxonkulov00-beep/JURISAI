@@ -43,6 +43,18 @@ const CATEGORY_DISPLAY: Record<string, string> = {
   family_code: "O'zbekiston Respublikasi Oila Kodeksi",
   administrative_code: "O'zbekiston Respublikasi Ma'muriy javobgarlik to'g'risidagi Kodeksi",
   admin_code: "O'zbekiston Respublikasi Ma'muriy javobgarlik to'g'risidagi Kodeksi",
+  air_code: "Oʻzbekiston Respublikasining Havo kodeksi",
+  customs_code: "Oʻzbekiston Respublikasining Bojxona kodeksi",
+  urban_planning_code: "Oʻzbekiston Respublikasining Shaharsozlik kodeksi",
+  economic_procedure_code: "Oʻzbekiston Respublikasining Iqtisodiy protsessual kodeksi",
+  housing_code: "Oʻzbekiston Respublikasining Uy-joy kodeksi",
+  administrative_court_code: "Oʻzbekiston Respublikasining Maʼmuriy sud ishlarini yuritish toʻgʻrisidagi kodeksi",
+  criminal_executive_code: "Oʻzbekiston Respublikasining Jinoyat-ijroiya kodeksi",
+  electoral_code: "Oʻzbekiston Respublikasining Saylov kodeksi",
+  land_code: "Oʻzbekiston Respublikasining Yer kodeksi",
+  water_code: "Oʻzbekiston Respublikasining Suv kodeksi",
+  budget_code: "O‘zbekiston Respublikasining Budjet kodeksi",
+  entrepreneurship_code: "O‘zbekiston Respublikasining Tadbirkorlik kodeksi",
 }
 
 function makeSupabase() {

@@ -205,10 +205,10 @@ HAR BIR BO'LIM AJRATILGAN BO'LISHI SHART — ularni aralashtirma yoki birlashtir
     // Pattern 1: To'liq kodeks nomi
     const sourcePatterns = [
       /(O'zbekiston Respublikasi\s+[A-Za-z\u00C0-\u024F\u0400-\u04FF\s]+?kodeks[i]?)\s+(\d+[\s-]*(?:modda|moddasi)?)/gi,
-      // Pattern 2: Qisqartmalar (JK, FK, MK, OK, SK, JPK, GPK, MJtK)
-      /\b(JK|FK|MK|OK|SK|JPK|GPK|MJtK|FPK)\s*(?:kodeksi(?:ning)?)?\s*(?:\d+[-]?\s*(?:modda|moddasi))?\s*(\d{1,4})\s*[-]?\s*(?:modda|moddasi)/gi,
+      // Pattern 2: Qisqartmalar (JK, FK, MK, OK, SK, JPK, GPK, MJtK, IPK, MSIYtK, JIK, YeK, BK, HK, UJK, etc.)
+      /\b(JK|FK|MK|OK|SK|JPK|GPK|MJtK|FPK|IPK|MSIYtK|JIK|YeK|BK|HK|UJK|ShK|TK)\s*(?:kodeksi(?:ning)?)?\s*(?:\d+[-]?\s*(?:modda|moddasi))?\s*(\d{1,4}(?:-\d+)?)\s*[-]?\s*(?:modda|moddasi)/gi,
       // Pattern 3: Oddiy "N-modda" format
-      /(\d{1,4})\s*[-–—]?\s*(?:modda|moddasi)/g,
+      /(\d{1,4}(?:-\d+)?)\s*[-–—]?\s*(?:modda|moddasi)/g,
     ]
 
     const codeMap: Record<string, string> = {
@@ -220,7 +220,16 @@ HAR BIR BO'LIM AJRATILGAN BO'LISHI SHART — ularni aralashtirma yoki birlashtir
       JPK: 'Jinoyat-protsessual kodeksi',
       GPK: 'Fuqarolik protsessual kodeksi',
       FPK: 'Fuqarolik protsessual kodeksi',
-      MJtK: "Ma'muriy javobgarlik kodeksi",
+      MJtK: "Ma'muriy javobgarlik to'g'risidagi kodeks",
+      IPK: 'Iqtisodiy protsessual kodeksi',
+      MSIYtK: 'Maʼmuriy sud ishlarini yuritish toʻgʻrisidagi kodeks',
+      JIK: 'Jinoyat-ijroiya kodeksi',
+      YeK: 'Yer kodeksi',
+      BK: 'Bojxona kodeksi',
+      HK: 'Havo kodeksi',
+      UJK: 'Uy-joy kodeksi',
+      ShK: 'Shaharsozlik kodeksi',
+      TK: 'Tadbirkorlik kodeksi',
     }
 
     for (const pattern of sourcePatterns) {

@@ -62,18 +62,27 @@ export { getDisplayNameFromCodeId as CODE_DISPLAY_NAMES }
  * All UI components use this map. NO raw slugs shown to users.
  */
 export const CODE_DISPLAY_NAMES_MAP: Record<string, string> = {
-  criminal_code: 'O\u02bbzbekiston Respublikasi Jinoyat Kodeksi',
-  civil_code: 'O\u02bbzbekiston Respublikasi Fuqarolik Kodeksi',
-  labor_code: 'O\u02bbzbekiston Respublikasi Mehnat Kodeksi',
-  family_code: 'O\u02bbzbekiston Respublikasi Oila Kodeksi',
-  tax_code: 'O\u02bbzbekiston Respublikasi Soliq Kodeksi',
-  land_code: 'O\u02bbzbekiston Respublikasi Yer Kodeksi',
-  admin_code:
-    'O\u02bbzbekiston Respublikasi Ma\u2019muriy javobgarlik to\u2018g\u2018risidagi Kodeksi',
-  civil_procedure_code: 'O\u02bbzbekiston Respublikasi Fuqarolik protsessual Kodeksi',
-  criminal_procedure_code: 'O\u02bbzbekiston Respublikasi Jinoyat-protsessual Kodeksi',
-  economic_procedure_code: 'O\u02bbzbekiston Respublikasi Iqtisodiy protsessual Kodeksi',
-  constitution: 'O\u02bbzbekiston Respublikasi Konstitutsiyasi',
+  criminal_code: 'Oʻzbekiston Respublikasi Jinoyat kodeksi',
+  civil_code: 'Oʻzbekiston Respublikasi Fuqarolik kodeksi',
+  labor_code: 'Oʻzbekiston Respublikasi Mehnat kodeksi',
+  family_code: 'Oʻzbekiston Respublikasi Oila kodeksi',
+  tax_code: 'Oʻzbekiston Respublikasi Soliq kodeksi',
+  land_code: 'Oʻzbekiston Respublikasi Yer kodeksi',
+  admin_code: 'Oʻzbekiston Respublikasi Maʼmuriy javobgarlik toʻgʻrisidagi kodeksi',
+  civil_procedure_code: 'Oʻzbekiston Respublikasi Fuqarolik protsessual kodeksi',
+  criminal_procedure_code: 'Oʻzbekiston Respublikasi Jinoyat-protsessual kodeksi',
+  economic_procedure_code: 'Oʻzbekiston Respublikasi Iqtisodiy protsessual kodeksi',
+  constitution: 'Oʻzbekiston Respublikasi Konstitutsiyasi',
+  criminal_executive_code: 'Oʻzbekiston Respublikasi Jinoyat-ijroiya kodeksi',
+  administrative_court_code: 'Oʻzbekiston Respublikasi Ma’muriy sud ishlarini yuritish to‘g‘risidagi kodeksi',
+  customs_code: 'Oʻzbekiston Respublikasi Bojxona kodeksi',
+  budget_code: 'Oʻzbekiston Respublikasi Budjet kodeksi',
+  electoral_code: 'Oʻzbekiston Respublikasi Saylov kodeksi',
+  housing_code: 'Oʻzbekiston Respublikasi Uy-joy kodeksi',
+  urban_planning_code: 'Oʻzbekiston Respublikasi Shaharsozlik kodeksi',
+  air_code: 'Oʻzbekiston Respublikasi Havo kodeksi',
+  water_code: 'Oʻzbekiston Respublikasi Suv kodeksi',
+  entrepreneurship_code: 'Oʻzbekiston Respublikasi Tadbirkorlik kodeksi',
 }
 
 /**

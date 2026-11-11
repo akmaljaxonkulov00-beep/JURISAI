@@ -408,24 +408,18 @@ function SignInContent() {
           {/* Logo */}
           <div className="flex items-center gap-3 mb-12">
             <div
-              className="w-11 h-11 rounded-[14px] flex items-center justify-center"
+              className="w-12 h-12 rounded-[14px] flex items-center justify-center p-1.5 overflow-hidden"
               style={{
-                background: 'rgba(99,102,241,0.12)',
-                border: '1px solid rgba(99,102,241,0.25)',
+                background: '#0a1931',
+                border: '1px solid rgba(255,255,255,0.15)',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
               }}
             >
-              <svg
-                viewBox="0 0 24 24"
-                className="w-5.5 h-5.5"
-                fill="none"
-                stroke={BRAND.accent}
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M12 2l8 4v6c0 5.5-3.8 10.7-8 12-4.2-1.3-8-6.5-8-12V6l8-4z" />
-                <path d="M12 8v8M9 12h6" />
-              </svg>
+              <img
+                src="/logo.png"
+                alt="JURISTIV"
+                className="w-full h-full object-contain"
+              />
             </div>
             <div>
               <h1 className="text-[22px] font-bold text-white tracking-tight leading-none">
@@ -567,26 +561,20 @@ function SignInContent() {
 
         <div className="w-full max-w-[420px] mx-auto">
           {/* Mobile Logo */}
-          <div className="lg:hidden text-center mb-8">
+          <div className="lg:hidden text-center mb-8 flex flex-col items-center">
             <div
-              className="inline-flex items-center justify-center w-14 h-14 rounded-[16px] mb-3"
+              className="inline-flex items-center justify-center w-14 h-14 rounded-[16px] mb-3 p-2 overflow-hidden"
               style={{
-                background: `linear-gradient(135deg, ${BRAND.primary}, ${BRAND.violet})`,
-                boxShadow: '0 8px 24px rgba(99,102,241,0.25)',
+                background: '#0a1931',
+                boxShadow: '0 8px 24px rgba(10,25,49,0.3)',
+                border: '1px solid rgba(255,255,255,0.1)',
               }}
             >
-              <svg
-                viewBox="0 0 24 24"
-                className="w-7 h-7 text-white"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M12 2l8 4v6c0 5.5-3.8 10.7-8 12-4.2-1.3-8-6.5-8-12V6l8-4z" />
-                <path d="M12 8v8M9 12h6" />
-              </svg>
+              <img
+                src="/logo.png"
+                alt="JURISTIV"
+                className="w-full h-full object-contain"
+              />
             </div>
             <h1 className="text-[22px] font-bold text-gray-900">JURISTIV</h1>
             <p className="text-[12px] text-gray-400 mt-0.5">Huquqiy AI Platformasi</p>

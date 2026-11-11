@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import SiteLogo from '@/components/SiteLogo'
 import {
   Button,
   Avatar,
@@ -63,11 +64,8 @@ const Header: React.FC<HeaderProps> = ({ user, className }) => {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex items-center">
-            <Link href="/" className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-emerald-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">J</span>
-              </div>
-              <span className="text-xl font-bold text-gray-900 dark:text-white">Juristiv</span>
+            <Link href="/" className="hover:opacity-90 transition-opacity">
+              <SiteLogo size="sm" />
             </Link>
           </div>
 

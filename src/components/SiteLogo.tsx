@@ -16,10 +16,10 @@ const sizeMap = {
 }
 
 export default function SiteLogo({ size = 'md', className = '', showText = true }: SiteLogoProps) {
-  const [logoUrl, setLogoUrl] = useState<string | null>(null)
-  const [logoDarkUrl, setLogoDarkUrl] = useState<string | null>(null)
-  const [faviconUrl, setFaviconUrl] = useState<string | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [logoUrl, setLogoUrl] = useState<string | null>('/logo.png')
+  const [logoDarkUrl, setLogoDarkUrl] = useState<string | null>('/logo.png')
+  const [faviconUrl, setFaviconUrl] = useState<string | null>('/favicon.ico')
+  const [loading, setLoading] = useState(false)
   const [isDark, setIsDark] = useState(false)
 
   useEffect(() => {
@@ -85,24 +85,17 @@ export default function SiteLogo({ size = 'md', className = '', showText = true 
   return (
     <div className={`flex items-center gap-3 ${className}`}>
       <div
-        className={`${s.container} rounded-xl overflow-hidden flex items-center justify-center bg-gradient-to-br from-blue-600 to-indigo-600 shadow-lg flex-shrink-0`}
+        className={`${s.container} rounded-xl overflow-hidden flex items-center justify-center bg-[#0a1931] shadow-md flex-shrink-0 border border-white/10`}
       >
-        {loading ? (
-          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-        ) : activeLogo ? (
-          <img
-            src={activeLogo}
-            alt="JURISTIV Logo"
-            className="w-full h-full object-contain p-1"
-            onError={() => {
-              // Fallback to icon
-              setLogoUrl(null)
-              setLogoDarkUrl(null)
-            }}
-          />
-        ) : (
-          <Scale className={`${s.icon} text-white`} />
-        )}
+        <img
+          src={activeLogo || '/logo.png'}
+          alt="JURISTIV Logo"
+          className="w-full h-full object-contain"
+          onError={(e) => {
+            // fallback
+            e.currentTarget.src = '/logo.png'
+          }}
+        />
       </div>
       {showText && (
         <span className={`${s.text} font-bold text-gray-900 dark:text-white tracking-tight`}>

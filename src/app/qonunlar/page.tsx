@@ -32,6 +32,14 @@ import {
   Sparkles,
   X,
   ChevronDown,
+  Building,
+  Plane,
+  Droplets,
+  Briefcase,
+  Vote,
+  Home,
+  Boxes,
+  PiggyBank,
 } from 'lucide-react'
 
 const CODE_ICONS: Record<string, React.ReactNode> = {
@@ -46,6 +54,16 @@ const CODE_ICONS: Record<string, React.ReactNode> = {
   civil_procedure_code: <FileText className="w-5 h-5" />,
   criminal_procedure_code: <FileText className="w-5 h-5" />,
   economic_procedure_code: <DollarSign className="w-5 h-5" />,
+  criminal_executive_code: <Shield className="w-5 h-5" />,
+  administrative_court_code: <Gavel className="w-5 h-5" />,
+  customs_code: <Boxes className="w-5 h-5" />,
+  budget_code: <PiggyBank className="w-5 h-5" />,
+  electoral_code: <Vote className="w-5 h-5" />,
+  housing_code: <Home className="w-5 h-5" />,
+  urban_planning_code: <Building className="w-5 h-5" />,
+  air_code: <Plane className="w-5 h-5" />,
+  water_code: <Droplets className="w-5 h-5" />,
+  entrepreneurship_code: <Briefcase className="w-5 h-5" />,
 }
 
 const CODE_COLORS: Record<string, string> = {
@@ -60,6 +78,16 @@ const CODE_COLORS: Record<string, string> = {
   civil_procedure_code: 'from-cyan-500 to-sky-600',
   criminal_procedure_code: 'from-rose-500 to-red-600',
   economic_procedure_code: 'from-teal-500 to-emerald-600',
+  criminal_executive_code: 'from-red-600 to-rose-700',
+  administrative_court_code: 'from-blue-600 to-cyan-600',
+  customs_code: 'from-amber-600 to-orange-600',
+  budget_code: 'from-emerald-600 to-green-700',
+  electoral_code: 'from-purple-600 to-indigo-600',
+  housing_code: 'from-orange-500 to-amber-600',
+  urban_planning_code: 'from-cyan-600 to-teal-700',
+  air_code: 'from-sky-500 to-blue-600',
+  water_code: 'from-teal-500 to-cyan-600',
+  entrepreneurship_code: 'from-indigo-600 to-violet-700',
 }
 
 const CODE_BADGE_COLORS: Record<string, string> = {
@@ -69,12 +97,21 @@ const CODE_BADGE_COLORS: Record<string, string> = {
   family_code: 'bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-pink-300',
   tax_code: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300',
   land_code: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300',
-  admin_code:
-    'bg-slate-100 dark:bg-zinc-800/30 text-slate-800 dark:bg-slate-900/30 dark:text-slate-300',
+  admin_code: 'bg-slate-100 dark:bg-zinc-800/30 text-slate-800 dark:bg-slate-900/30 dark:text-slate-300',
   constitution: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300',
   civil_procedure_code: 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-300',
   criminal_procedure_code: 'bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-300',
   economic_procedure_code: 'bg-teal-100 text-teal-800 dark:bg-teal-900/30 dark:text-teal-300',
+  criminal_executive_code: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300',
+  administrative_court_code: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
+  customs_code: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300',
+  budget_code: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300',
+  electoral_code: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300',
+  housing_code: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300',
+  urban_planning_code: 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-300',
+  air_code: 'bg-sky-100 text-sky-800 dark:bg-sky-900/30 dark:text-sky-300',
+  water_code: 'bg-teal-100 text-teal-800 dark:bg-teal-900/30 dark:text-teal-300',
+  entrepreneurship_code: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300',
 }
 
 const ARTICLES_PER_PAGE = 20

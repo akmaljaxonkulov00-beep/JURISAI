@@ -79,7 +79,15 @@ export default function SignUpPage() {
   return (
     <div className="w-full">
       {/* Header */}
-      <div className="text-center mb-8">
+      <div className="text-center mb-8 flex flex-col items-center">
+        <Link href="/" className="mb-4 inline-flex items-center gap-3 group">
+          <div className="w-12 h-12 rounded-xl bg-[#0a1931] flex items-center justify-center p-1.5 shadow-md border border-slate-700/50 group-hover:scale-105 transition-transform">
+            <img src="/logo.png" alt="JURISTIV" className="w-full h-full object-contain" />
+          </div>
+          <span className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
+            JURIST<span className="text-blue-600">IV</span>
+          </span>
+        </Link>
         <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Ro'yxatdan o'tish</h2>
         <p className="text-gray-600 dark:text-gray-400 dark:text-zinc-500">
           JURISTIV platformasiga qo'shilish uchun ma'lumotlaringizni kiriting

@@ -6,6 +6,7 @@ import { useEffect, useState, useCallback, type ReactNode } from 'react'
 import { useAuth } from '@/app/providers'
 import { NAV_GROUPS, filterNavGroups, isNavItemActive } from './navigation'
 import { getAuthHeaders } from '@/lib/api-auth-client'
+import SiteLogo from '@/components/SiteLogo'
 
 interface AppSidebarProps {
   /**
@@ -112,6 +113,13 @@ export default function AppSidebar({ children }: AppSidebarProps) {
       aria-label="Asosiy navigatsiya"
     >
       <div className="glass-strong rounded-2xl shadow-2xl overflow-hidden flex flex-col flex-1">
+        {/* ── Brand Logo Header ── */}
+        <div className="px-5 pt-4 pb-3 border-b border-gray-100 dark:border-zinc-800/40">
+          <Link href="/dashboard" className="block hover:opacity-90 transition-opacity">
+            <SiteLogo size="sm" />
+          </Link>
+        </div>
+
         {/* ── Profil: avatar, ism, daraja, Level + XP progress ───────── */}
         <div className="p-5 border-b border-gray-100 dark:border-zinc-800/50">
           <Link href="/profile" className="flex items-center space-x-4 group cursor-pointer">
