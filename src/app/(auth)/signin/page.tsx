@@ -482,8 +482,8 @@ function SignInContent() {
               },
               {
                 icon: 'M4 19.5A2.5 2.5 0 016.5 17H20 M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z',
-                value: liveStats.total_codes || 10,
-                suffix: '+',
+                value: liveStats.total_codes || 21,
+                suffix: '',
                 label: 'KODEKSLAR',
               },
               {

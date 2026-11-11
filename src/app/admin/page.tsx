@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { getAuthHeaders } from '@/lib/api-auth-client'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/app/providers'
@@ -904,6 +905,39 @@ export default function AdminDashboard() {
               </button>
             </div>
           </div>
+
+          {/* Maxsus 3 ta Boshqaruv Tizimi sahifalari */}
+          <div className="flex items-center gap-2 pb-3 pt-1 border-b border-gray-100 dark:border-zinc-800/80 mb-3 overflow-x-auto no-scrollbar">
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mr-1 flex items-center gap-1">
+              <Shield size={12} className="text-indigo-600" />
+              Tizimlar:
+            </span>
+            <Link
+              href="/admin/advocates"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200/60 dark:border-indigo-800/50 hover:bg-indigo-100 transition-colors"
+            >
+              <Scale size={13} />
+              Advokatlar Nazorati
+              <span className="text-[9px] px-1 rounded bg-indigo-200/80 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-200 font-bold">YANGI</span>
+            </Link>
+            <Link
+              href="/admin/citizens"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/50 hover:bg-blue-100 transition-colors"
+            >
+              <Users size={13} />
+              Fuqarolar Nazorati
+              <span className="text-[9px] px-1 rounded bg-blue-200/80 dark:bg-blue-900 text-blue-800 dark:text-blue-200 font-bold">YANGI</span>
+            </Link>
+            <Link
+              href="/admin/students"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200/60 dark:border-purple-800/50 hover:bg-purple-100 transition-colors"
+            >
+              <Award size={13} />
+              Yurist-Talabalar Nazorati
+              <span className="text-[9px] px-1 rounded bg-purple-200/80 dark:bg-purple-900 text-purple-800 dark:text-purple-200 font-bold">YANGI</span>
+            </Link>
+          </div>
+
           {/* Mobile tabs */}
           <div className="md:hidden flex gap-1 flex-wrap pb-3">
             {tabs.map(tab => {
@@ -941,6 +975,104 @@ export default function AdminDashboard() {
         {/* ===== DASHBOARD ===== */}
         {activeTab === 'dashboard' && (
           <div className="space-y-6">
+            {/* ── 3 TA ALOHIDA BOSHQARUV TIZIMI (Tartibli yangi sahifalar) ── */}
+            <div className="bg-gradient-to-r from-indigo-50/80 via-blue-50/60 to-purple-50/80 dark:from-indigo-950/40 dark:via-zinc-900/60 dark:to-purple-950/40 border border-indigo-200/60 dark:border-indigo-800/40 rounded-2xl p-5 shadow-sm space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-indigo-100 dark:border-zinc-800/60 pb-3">
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <Shield className="text-indigo-600" size={17} />
+                    Ixtisoslashtirilgan Boshqaruv va Nazorat Tizimlari
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
+                    Advokatlar, Fuqarolar va Yurist-talabalar uchun alohida tartibli boshqaruv sahifalari
+                  </p>
+                </div>
+                <span className="text-[11px] font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-100/80 dark:bg-indigo-900/60 px-2.5 py-1 rounded-lg max-w-fit">
+                  3 ta Alohida Bo‘lim
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+                {/* 1. Advokatlar */}
+                <Link
+                  href="/admin/advocates"
+                  className="group p-4 bg-white dark:bg-zinc-900/90 rounded-xl border border-slate-200/80 dark:border-zinc-800 hover:border-indigo-400 dark:hover:border-indigo-600 shadow-sm transition-all hover:shadow-md flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-2.5">
+                      <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 flex items-center justify-center font-bold">
+                        <Scale size={20} />
+                      </div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300 border border-indigo-200/50">
+                        Litsenziyalar
+                      </span>
+                    </div>
+                    <h4 className="font-bold text-sm text-gray-900 dark:text-white group-hover:text-indigo-600 transition-colors">
+                      Advokatlar Boshqaruvi
+                    </h4>
+                    <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1">
+                      Litsenziyalar verifikatsiyasi, Advokatlar palatasi a’zolari, narxlar va faoliyat nazorati.
+                    </p>
+                  </div>
+                  <div className="mt-3.5 pt-2.5 border-t border-slate-100 dark:border-zinc-800 text-xs font-semibold text-indigo-600 dark:text-indigo-400 flex items-center gap-1 group-hover:gap-1.5 transition-all">
+                    Advokatlar tizimiga o‘tish →
+                  </div>
+                </Link>
+
+                {/* 2. Fuqarolar */}
+                <Link
+                  href="/admin/citizens"
+                  className="group p-4 bg-white dark:bg-zinc-900/90 rounded-xl border border-slate-200/80 dark:border-zinc-800 hover:border-blue-400 dark:hover:border-blue-600 shadow-sm transition-all hover:shadow-md flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-2.5">
+                      <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 flex items-center justify-center font-bold">
+                        <Users size={20} />
+                      </div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300 border border-blue-200/50">
+                        Mijozlar
+                      </span>
+                    </div>
+                    <h4 className="font-bold text-sm text-gray-900 dark:text-white group-hover:text-blue-600 transition-colors">
+                      Fuqarolar Boshqaruvi
+                    </h4>
+                    <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1">
+                      Yuridik yordam oluvchi fuqarolar hisobi, obuna rejalari, shaxsiy balans va xavfsizlik nazorati.
+                    </p>
+                  </div>
+                  <div className="mt-3.5 pt-2.5 border-t border-slate-100 dark:border-zinc-800 text-xs font-semibold text-blue-600 dark:text-blue-400 flex items-center gap-1 group-hover:gap-1.5 transition-all">
+                    Fuqarolar tizimiga o‘tish →
+                  </div>
+                </Link>
+
+                {/* 3. Talabalar */}
+                <Link
+                  href="/admin/students"
+                  className="group p-4 bg-white dark:bg-zinc-900/90 rounded-xl border border-slate-200/80 dark:border-zinc-800 hover:border-purple-400 dark:hover:border-purple-600 shadow-sm transition-all hover:shadow-md flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-2.5">
+                      <div className="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 flex items-center justify-center font-bold">
+                        <Award size={20} />
+                      </div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300 border border-purple-200/50">
+                        Nomzodlar
+                      </span>
+                    </div>
+                    <h4 className="font-bold text-sm text-gray-900 dark:text-white group-hover:text-purple-600 transition-colors">
+                      Yurist-Talabalar Nazorati
+                    </h4>
+                    <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1">
+                      OTM talabalari, stajyorlar, Virtual sud (Moot court) natijalari, sertifikatlar va taklifnomalar.
+                    </p>
+                  </div>
+                  <div className="mt-3.5 pt-2.5 border-t border-slate-100 dark:border-zinc-800 text-xs font-semibold text-purple-600 dark:text-purple-400 flex items-center gap-1 group-hover:gap-1.5 transition-all">
+                    Talabalar tizimiga o‘tish →
+                  </div>
+                </Link>
+              </div>
+            </div>
+
             {/* Online Users Monitor — premium card above stats */}
             <div className="lg:max-w-sm">
               <OnlineUsersMonitor
