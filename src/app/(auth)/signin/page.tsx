@@ -151,7 +151,7 @@ function SignInContent() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [name, setName] = useState('')
-  const [selectedRole, setSelectedRole] = useState<PlatformRole>('citizen')
+  const [selectedRole, setSelectedRole] = useState<PlatformRole>('student')
   const [licenseNumber, setLicenseNumber] = useState('')
   const [barAssociation, setBarAssociation] = useState('Toshkent shahar advokatlar palatasi')
   const [specialCode, setSpecialCode] = useState('')
@@ -291,8 +291,10 @@ function SignInContent() {
           setIsGoogleLoading(false)
           return
         }
+        localStorage.setItem('preferred_auth_role', selectedRole)
+      } else {
+        localStorage.removeItem('preferred_auth_role')
       }
-      localStorage.setItem('preferred_auth_role', selectedRole)
       const result = await authService.signInWithGoogle()
       if (result.success && result.data) {
         const role = (result.data as any)?.platformRole || result.data.role
@@ -756,6 +758,21 @@ function SignInContent() {
                     <div className="grid grid-cols-2 gap-2 text-xs">
                       <button
                         type="button"
+                        onClick={() => setSelectedRole('student')}
+                        className={`p-2.5 rounded-xl border text-left transition-all ${
+                          selectedRole === 'student'
+                            ? 'border-indigo-600 bg-indigo-50/80 dark:bg-indigo-950/40 text-indigo-900 dark:text-indigo-200 ring-2 ring-indigo-500/20'
+                            : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 text-slate-700 dark:text-slate-300'
+                        }`}
+                      >
+                        <div className="font-semibold text-xs flex items-center gap-1.5">
+                          <span>🎓</span> Talaba
+                        </div>
+                        <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">Ta&apos;lim, testlar & kazuslar</div>
+                      </button>
+
+                      <button
+                        type="button"
                         onClick={() => setSelectedRole('citizen')}
                         className={`p-2.5 rounded-xl border text-left transition-all ${
                           selectedRole === 'citizen'
@@ -771,32 +788,17 @@ function SignInContent() {
 
                       <button
                         type="button"
-                        onClick={() => setSelectedRole('student')}
-                        className={`p-2.5 rounded-xl border text-left transition-all ${
-                          selectedRole === 'student'
-                            ? 'border-amber-600 bg-amber-50/80 dark:bg-amber-950/40 text-amber-900 dark:text-amber-200 ring-2 ring-amber-500/20'
-                            : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 text-slate-700 dark:text-slate-300'
-                        }`}
-                      >
-                        <div className="font-semibold text-xs flex items-center gap-1.5">
-                          <span>📚</span> Umumiy Talaba
-                        </div>
-                        <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">Ta'lim va testlar</div>
-                      </button>
-
-                      <button
-                        type="button"
                         onClick={() => setSelectedRole('law_student')}
                         className={`p-2.5 rounded-xl border text-left transition-all ${
                           selectedRole === 'law_student'
-                            ? 'border-indigo-600 bg-indigo-50/80 dark:bg-indigo-950/40 text-indigo-900 dark:text-indigo-200 ring-2 ring-indigo-500/20'
+                            ? 'border-purple-600 bg-purple-50/80 dark:bg-purple-950/40 text-purple-900 dark:text-purple-200 ring-2 ring-purple-500/20'
                             : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 text-slate-700 dark:text-slate-300'
                         }`}
                       >
                         <div className="font-semibold text-xs flex items-center gap-1.5">
-                          <span>🎓⚖️</span> Yosh Advokat
+                          <span>⚖️🎓</span> Yosh Advokat
                         </div>
-                        <div className="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold mt-0.5">Faqat maxsus parol bilan</div>
+                        <div className="text-[10px] text-purple-600 dark:text-purple-400 font-bold mt-0.5">Faqat maxsus parol bilan</div>
                       </button>
 
                       <button

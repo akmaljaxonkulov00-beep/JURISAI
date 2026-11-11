@@ -936,14 +936,6 @@ export default function AdminDashboard() {
               Fuqarolar Nazorati
               <span className="text-[9px] px-1 rounded bg-blue-200/80 dark:bg-blue-900 text-blue-800 dark:text-blue-200 font-bold">Mijozlar</span>
             </Link>
-            <Link
-              href="/admin/students"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800/50 hover:bg-amber-100 transition-colors shrink-0"
-            >
-              <BookOpen size={13} />
-              Umumiy Talabalar
-              <span className="text-[9px] px-1 rounded bg-amber-200/80 dark:bg-amber-900 text-amber-800 dark:text-amber-200 font-bold">Ta&apos;lim</span>
-            </Link>
           </div>
 
           {/* Mobile tabs */}
@@ -983,24 +975,24 @@ export default function AdminDashboard() {
         {/* ===== DASHBOARD ===== */}
         {activeTab === 'dashboard' && (
           <div className="space-y-6">
-            {/* ── 4 TA ALOHIDA MUSTAQIL BOSHQARUV TIZIMI ── */}
+            {/* ── 3 TA ALOHIDA MUSTAQIL BOSHQARUV TIZIMI ── */}
             <div className="bg-gradient-to-r from-slate-50 via-indigo-50/50 to-blue-50/50 dark:from-zinc-900/90 dark:via-indigo-950/30 dark:to-zinc-900/90 border border-slate-200/80 dark:border-zinc-800 rounded-2xl p-5 shadow-sm space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/80 dark:border-zinc-800/80 pb-3">
                 <div>
                   <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                     <Shield className="text-indigo-600" size={17} />
-                    4 Ta Mustaqil Boshqaruv & Alohida Moliya Tizimlari
+                    3 Ta Ixtisoslashtirilgan Boshqaruv & Alohida Moliya Tizimlari
                   </h3>
                   <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
-                    Har bir foydalanuvchi toifasi uchun alohida boshqaruv, mustaqil pul tushumlari va alohida platforma nastroykalari
+                    Advokatlar, Yosh advokatlar va Fuqarolar uchun alohida nazorat, mustaqil pul tushumlari va alohida sozlamalar
                   </p>
                 </div>
                 <span className="text-[11px] font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-100/80 dark:bg-indigo-900/60 px-2.5 py-1 rounded-lg max-w-fit">
-                  4 ta Alohida Tizim
+                  3 ta Alohida Tizim
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* 1. Advokatlar */}
                 <Link
                   href="/admin/advocates"
@@ -1016,14 +1008,14 @@ export default function AdminDashboard() {
                       </span>
                     </div>
                     <h4 className="font-bold text-sm text-gray-900 dark:text-white group-hover:text-emerald-600 transition-colors">
-                      Advokatlar Tizimi
+                      Advokatlar Boshqaruvi
                     </h4>
                     <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1 line-clamp-2">
                       Litsenziyalar verifikatsiyasi, qabullar monitoringi, 12% komissiya daromadi va narx sozlamalari.
                     </p>
                   </div>
                   <div className="mt-3.5 pt-2.5 border-t border-slate-100 dark:border-zinc-800 text-xs font-semibold text-emerald-600 dark:text-emerald-400 flex items-center justify-between">
-                    <span>Alohida Nazorat</span>
+                    <span>Alohida Boshqaruv</span>
                     <span>→</span>
                   </div>
                 </Link>
@@ -1043,14 +1035,14 @@ export default function AdminDashboard() {
                       </span>
                     </div>
                     <h4 className="font-bold text-sm text-gray-900 dark:text-white group-hover:text-indigo-600 transition-colors">
-                      Yosh Advokatlar
+                      Yosh Advokatlar (Nomzodlar)
                     </h4>
                     <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1 line-clamp-2">
                       Faqat maxsus parol orqali kirish, vaucherlar, virtual sud, stajirovka mukofotlari va hamyonlar.
                     </p>
                   </div>
                   <div className="mt-3.5 pt-2.5 border-t border-slate-100 dark:border-zinc-800 text-xs font-semibold text-indigo-600 dark:text-indigo-400 flex items-center justify-between">
-                    <span>Alohida Nazorat</span>
+                    <span>Alohida Boshqaruv</span>
                     <span>→</span>
                   </div>
                 </Link>
@@ -1070,41 +1062,14 @@ export default function AdminDashboard() {
                       </span>
                     </div>
                     <h4 className="font-bold text-sm text-gray-900 dark:text-white group-hover:text-blue-600 transition-colors">
-                      Fuqarolar Tizimi
+                      Fuqarolar Boshqaruvi
                     </h4>
                     <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1 line-clamp-2">
                       Yuridik savollar (9 900 so‘m), Pro/Premium obunalar, depozit balansi va murojaatlar moderatsiyasi.
                     </p>
                   </div>
                   <div className="mt-3.5 pt-2.5 border-t border-slate-100 dark:border-zinc-800 text-xs font-semibold text-blue-600 dark:text-blue-400 flex items-center justify-between">
-                    <span>Alohida Nazorat</span>
-                    <span>→</span>
-                  </div>
-                </Link>
-
-                {/* 4. Umumiy Talabalar */}
-                <Link
-                  href="/admin/students"
-                  className="group p-4 bg-white dark:bg-zinc-900 rounded-xl border border-slate-200/80 dark:border-zinc-800 hover:border-amber-500 dark:hover:border-amber-600 shadow-sm transition-all hover:shadow-md flex flex-col justify-between"
-                >
-                  <div>
-                    <div className="flex items-center justify-between mb-2.5">
-                      <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 flex items-center justify-center font-bold">
-                        <BookOpen size={20} />
-                      </div>
-                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300 border border-amber-200/50">
-                        Ta&apos;lim
-                      </span>
-                    </div>
-                    <h4 className="font-bold text-sm text-gray-900 dark:text-white group-hover:text-amber-600 transition-colors">
-                      Umumiy Talabalar
-                    </h4>
-                    <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1 line-clamp-2">
-                      Universitet talabalari, testlar bazasi, attestatsiya simulyatori, talaba ta&apos;riflari va o‘quv statistikasi.
-                    </p>
-                  </div>
-                  <div className="mt-3.5 pt-2.5 border-t border-slate-100 dark:border-zinc-800 text-xs font-semibold text-amber-600 dark:text-amber-400 flex items-center justify-between">
-                    <span>Alohida Nazorat</span>
+                    <span>Alohida Boshqaruv</span>
                     <span>→</span>
                   </div>
                 </Link>

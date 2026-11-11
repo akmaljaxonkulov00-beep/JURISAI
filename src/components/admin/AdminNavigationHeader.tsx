@@ -58,13 +58,6 @@ export default function AdminNavigationHeader({
       badge: 'Mijozlar',
     },
     {
-      href: '/admin/students',
-      label: 'Umumiy Talabalar',
-      icon: GraduationCap,
-      active: pathname.startsWith('/admin/students'),
-      badge: 'Ta’lim',
-    },
-    {
       href: '/admin/payments',
       label: 'Moliya & To‘lovlar',
       icon: CreditCard,

@@ -66,16 +66,29 @@ export default function AuthCallbackPage() {
             return
           }
 
-          let targetRole = savedUser.platformRole || savedUser.rawRole || savedUser.role
           if (typeof window !== 'undefined') {
-            const preferredRole = localStorage.getItem('preferred_auth_role')
-            if (preferredRole && (!savedUser.rawRole || savedUser.rawRole === 'USER')) {
-              if (preferredRole === 'citizen') targetRole = 'citizen'
-              else if (preferredRole === 'student') targetRole = 'student'
-            }
+            localStorage.removeItem('preferred_auth_role')
           }
 
-          router.replace(getRoleDashboardPath(targetRole))
+          let targetRole = savedUser.platformRole || savedUser.rawRole || savedUser.role
+
+          // Rol bo'yicha qat'iy yo'naltirish:
+          // 1. Admin -> /admin
+          // 2. Advokat -> /advocate
+          // 3. Yosh advokat (nomzod) -> /law-student
+          // 4. Aniq ro'yxatdan o'tgan fuqaro -> /citizen
+          // 5. Saytdagi barcha mavjud va oddiy foydalanuvchilar (USER, student va boshqalar) -> /dashboard (Oddiy talaba)!
+          if (targetRole === 'admin' || isAdminRole(targetRole)) {
+            router.replace('/admin')
+          } else if (targetRole === 'advocate') {
+            router.replace('/advocate')
+          } else if (targetRole === 'law_student') {
+            router.replace('/law-student')
+          } else if (targetRole === 'citizen') {
+            router.replace('/citizen')
+          } else {
+            router.replace('/dashboard')
+          }
         } catch (err) {
           console.error('[AuthCallback] finalizeUserSession error:', err)
           // Rol aniqlanmagan bo'lsa ham cookie'ni o'rnatamiz — dashboardga kiradi
