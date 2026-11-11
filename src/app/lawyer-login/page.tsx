@@ -65,8 +65,8 @@ export default function LawyerLoginPage() {
       const data = await response.json()
 
       if (response.ok) {
-        // Success - redirect to lawyer dashboard
-        router.push('/lawyer-dashboard')
+        // Success - redirect to advocate cabinet
+        router.push(data.redirectTo || '/advocate')
       } else {
         setErrors({ submit: data.error || 'Kirishda xatolik yuz berdi' })
       }

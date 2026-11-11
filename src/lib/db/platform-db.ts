@@ -572,6 +572,36 @@ export const platformDb = {
     status?: string
     search?: string
   }): Promise<LegalQuestion[]> {
+    try {
+      const admin = getSupabaseAdmin()
+      let query = admin.from('legal_questions').select('*')
+      if (filter?.visibility) {
+        query = query.eq('visibility', filter.visibility)
+      }
+      if (filter?.citizenId) {
+        query = query.eq('citizen_id', filter.citizenId)
+      }
+      if (filter?.category && filter.category !== 'all') {
+        query = query.eq('category', filter.category)
+      }
+      if (filter?.status && filter.status !== 'all') {
+        query = query.eq('status', filter.status)
+      }
+      if (filter?.search) {
+        query = query.or(`title.ilike.%${filter.search}%,description.ilike.%${filter.search}%`)
+      }
+      const { data, error } = await query.order('created_at', { ascending: false })
+      if (!error && data && data.length > 0) {
+        return data as LegalQuestion[]
+      }
+      // If DB has 0 questions and no specific filters, return seed only
+      if (!error && data && data.length === 0 && !filter?.citizenId && !filter?.search) {
+        return memoryStore.questions
+      }
+    } catch (err) {
+      console.warn('[platformDb.getQuestions] Supabase fallback to cache:', err)
+    }
+
     let list = [...memoryStore.questions]
     if (filter?.visibility) {
       list = list.filter(q => q.visibility === filter.visibility)
@@ -595,10 +625,47 @@ export const platformDb = {
   },
 
   async getQuestionById(id: string): Promise<LegalQuestion | null> {
+    try {
+      const admin = getSupabaseAdmin()
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)
+      if (isUuid) {
+        const { data, error } = await admin.from('legal_questions').select('*').eq('id', id).maybeSingle()
+        if (!error && data) return data as LegalQuestion
+      }
+    } catch {}
     return memoryStore.questions.find(q => q.id === id) || null
   },
 
   async createQuestion(data: Omit<LegalQuestion, 'id' | 'created_at' | 'updated_at'>): Promise<LegalQuestion> {
+    try {
+      const admin = getSupabaseAdmin()
+      const isUuid = data.citizen_id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(data.citizen_id)
+      const { data: inserted, error } = await admin.from('legal_questions').insert({
+        citizen_id: isUuid ? data.citizen_id : null,
+        citizen_name: data.citizen_name,
+        title: data.title,
+        description: data.description,
+        category: data.category,
+        ai_category_confidence: data.ai_category_confidence || 0.95,
+        urgency: data.urgency || 'medium',
+        visibility: data.visibility || 'public',
+        is_anonymous: Boolean(data.is_anonymous),
+        status: data.status || 'open',
+        attachments: data.attachments || [],
+        answers_count: 0
+      }).select().single()
+
+      if (!error && inserted) {
+        memoryStore.questions.unshift(inserted as LegalQuestion)
+        saveStoreToDisk(memoryStore)
+        return inserted as LegalQuestion
+      } else if (error) {
+        console.warn('[platformDb.createQuestion] Supabase insert warning:', error.message)
+      }
+    } catch (e) {
+      console.warn('[platformDb.createQuestion] Exception:', e)
+    }
+
     const newQ: LegalQuestion = {
       ...data,
       id: `q-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
@@ -612,6 +679,18 @@ export const platformDb = {
   },
 
   async updateQuestion(id: string, updates: Partial<LegalQuestion>): Promise<LegalQuestion | null> {
+    try {
+      const admin = getSupabaseAdmin()
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)
+      if (isUuid) {
+        const { data, error } = await admin.from('legal_questions').update({
+          ...updates,
+          updated_at: new Date().toISOString()
+        }).eq('id', id).select().maybeSingle()
+        if (!error && data) return data as LegalQuestion
+      }
+    } catch {}
+
     const idx = memoryStore.questions.findIndex(q => q.id === id)
     if (idx === -1) return null
     memoryStore.questions[idx] = {
@@ -625,24 +704,94 @@ export const platformDb = {
 
   // Answers
   async getAnswersForQuestion(questionId: string): Promise<LegalAnswer[]> {
+    try {
+      const admin = getSupabaseAdmin()
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(questionId)
+      if (isUuid) {
+        const { data, error } = await admin
+          .from('legal_answers')
+          .select('*')
+          .eq('question_id', questionId)
+          .order('created_at', { ascending: false })
+        if (!error && data && data.length > 0) {
+          return data as LegalAnswer[]
+        }
+      }
+    } catch {}
+
     return memoryStore.answers
       .filter(a => a.question_id === questionId)
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
   },
 
   async getAnswersByAuthor(authorId: string): Promise<LegalAnswer[]> {
+    try {
+      const admin = getSupabaseAdmin()
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(authorId)
+      if (isUuid) {
+        const { data, error } = await admin
+          .from('legal_answers')
+          .select('*')
+          .eq('author_id', authorId)
+          .order('created_at', { ascending: false })
+        if (!error && data && data.length > 0) return data as LegalAnswer[]
+      }
+    } catch {}
+
     return memoryStore.answers
       .filter(a => a.author_id === authorId)
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
   },
 
   async getAnswersAwaitingReview(): Promise<LegalAnswer[]> {
+    try {
+      const admin = getSupabaseAdmin()
+      const { data, error } = await admin
+        .from('legal_answers')
+        .select('*')
+        .in('status', ['awaiting_review', 'under_review', 'submitted'])
+        .order('created_at', { ascending: false })
+      if (!error && data && data.length > 0) return data as LegalAnswer[]
+    } catch {}
+
     return memoryStore.answers
       .filter(a => a.status === 'awaiting_review' || a.status === 'under_review' || a.status === 'submitted')
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
   },
 
   async createAnswer(data: Omit<LegalAnswer, 'id' | 'created_at' | 'updated_at'>): Promise<LegalAnswer> {
+    try {
+      const admin = getSupabaseAdmin()
+      const isAuthorUuid = data.author_id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(data.author_id)
+      const isQuestionUuid = data.question_id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(data.question_id)
+
+      if (isQuestionUuid) {
+        const { data: inserted, error } = await admin.from('legal_answers').insert({
+          question_id: data.question_id,
+          author_id: isAuthorUuid ? data.author_id : null,
+          author_name: data.author_name,
+          author_role: data.author_role || 'law_student',
+          content: data.content,
+          legal_basis: data.legal_basis || null,
+          status: data.status || 'submitted',
+          is_advocate_verified: Boolean(data.is_advocate_verified)
+        }).select().single()
+
+        if (!error && inserted) {
+          // Increment question count in Supabase
+          try {
+            await admin.rpc('increment_question_answers', { q_id: data.question_id })
+          } catch {}
+
+          memoryStore.answers.push(inserted as LegalAnswer)
+          saveStoreToDisk(memoryStore)
+          return inserted as LegalAnswer
+        }
+      }
+    } catch (e) {
+      console.warn('[platformDb.createAnswer] DB insert failed:', e)
+    }
+
     const newAns: LegalAnswer = {
       ...data,
       id: `ans-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
@@ -651,7 +800,7 @@ export const platformDb = {
     }
     memoryStore.answers.push(newAns)
 
-    // Update question answers_count
+    // Update question answers_count in memory
     const q = memoryStore.questions.find(item => item.id === data.question_id)
     if (q) {
       q.answers_count = (q.answers_count || 0) + 1
@@ -672,6 +821,24 @@ export const platformDb = {
       revisionNotes?: string
     }
   ): Promise<LegalAnswer | null> {
+    try {
+      const admin = getSupabaseAdmin()
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(answerId)
+      if (isUuid) {
+        const { data, error } = await admin.from('legal_answers').update({
+          status: review.status,
+          reviewed_by_advocate_name: review.advocateName,
+          reviewed_at: new Date().toISOString(),
+          review_feedback: review.feedback,
+          revision_notes: review.revisionNotes || null,
+          is_advocate_verified: review.status === 'approved',
+          updated_at: new Date().toISOString()
+        }).eq('id', answerId).select().maybeSingle()
+
+        if (!error && data) return data as LegalAnswer
+      }
+    } catch {}
+
     const idx = memoryStore.answers.findIndex(a => a.id === answerId)
     if (idx === -1) return null
 
@@ -709,6 +876,41 @@ export const platformDb = {
     verifiedOnly?: boolean
     search?: string
   }): Promise<AdvocateProfile[]> {
+    try {
+      const admin = getSupabaseAdmin()
+      let query = admin.from('advocate_profiles').select('*')
+      if (filter?.verifiedOnly) {
+        query = query.eq('verification_status', 'approved')
+      }
+      if (filter?.city && filter.city !== 'all') {
+        query = query.ilike('location_city', filter.city)
+      }
+      if (filter?.maxRate) {
+        query = query.lte('hourly_rate', filter.maxRate)
+      }
+      const { data, error } = await query.order('rating', { ascending: false })
+      if (!error && data && data.length > 0) {
+        let list = data as AdvocateProfile[]
+        if (filter?.specialty && filter.specialty !== 'all') {
+          list = list.filter(a => Array.isArray(a.specialties) && a.specialties.includes(filter.specialty!))
+        }
+        if (filter?.format) {
+          list = list.filter(a => Array.isArray(a.consultation_formats) && a.consultation_formats.includes(filter.format!))
+        }
+        if (filter?.search) {
+          const s = filter.search.toLowerCase()
+          list = list.filter(
+            a =>
+              a.full_name?.toLowerCase().includes(s) ||
+              a.bio?.toLowerCase().includes(s)
+          )
+        }
+        return list
+      }
+    } catch (e) {
+      console.warn('[platformDb.getAdvocates] Supabase fallback to cache:', e)
+    }
+
     let list = [...memoryStore.advocate_profiles]
     if (filter?.verifiedOnly) {
       list = list.filter(a => a.verification_status === 'approved')
@@ -738,6 +940,19 @@ export const platformDb = {
   },
 
   async getAdvocateById(id: string): Promise<AdvocateProfile | null> {
+    try {
+      const admin = getSupabaseAdmin()
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)
+      let query = admin.from('advocate_profiles').select('*')
+      if (isUuid) {
+        query = query.or(`id.eq.${id},user_id.eq.${id}`)
+      } else {
+        query = query.eq('license_number', id)
+      }
+      const { data, error } = await query.maybeSingle()
+      if (!error && data) return data as AdvocateProfile
+    } catch {}
+
     return (
       memoryStore.advocate_profiles.find(a => a.id === id || a.user_id === id) || null
     )
@@ -747,6 +962,43 @@ export const platformDb = {
     userId: string,
     data: Partial<AdvocateProfile>
   ): Promise<AdvocateProfile> {
+    try {
+      const admin = getSupabaseAdmin()
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId)
+      const payload: any = {
+        full_name: data.full_name || 'Advokat',
+        phone: data.phone || null,
+        email: data.email || null,
+        bio: data.bio || null,
+        specialties: data.specialties || ['Fuqarolik huquqi'],
+        experience_years: data.experience_years || 1,
+        license_number: data.license_number || null,
+        bar_association: data.bar_association || 'Toshkent shahar advokatlar palatasi',
+        verification_status: data.verification_status || 'approved',
+        languages: data.languages || ['uz'],
+        consultation_formats: data.consultation_formats || ['online'],
+        location_city: data.location_city || 'Toshkent',
+        hourly_rate: data.hourly_rate || 150000,
+        services: data.services || [],
+        rating: data.rating || 5.0,
+        review_count: data.review_count || 0,
+        updated_at: new Date().toISOString()
+      }
+      if (isUuid) payload.user_id = userId
+
+      const { data: upserted, error } = await admin
+        .from('advocate_profiles')
+        .upsert(payload)
+        .select()
+        .single()
+
+      if (!error && upserted) {
+        return upserted as AdvocateProfile
+      }
+    } catch (e) {
+      console.warn('[platformDb.upsertAdvocateProfile] DB upsert failed:', e)
+    }
+
     const idx = memoryStore.advocate_profiles.findIndex(a => a.user_id === userId || a.id === userId)
     if (idx >= 0) {
       memoryStore.advocate_profiles[idx] = {
@@ -794,6 +1046,16 @@ export const platformDb = {
 
   // Law Students
   async getLawStudents(status?: string): Promise<LawStudentProfile[]> {
+    try {
+      const admin = getSupabaseAdmin()
+      let query = admin.from('law_student_profiles').select('*')
+      if (status && status !== 'all') {
+        query = query.eq('verification_status', status)
+      }
+      const { data, error } = await query.order('reputation_score', { ascending: false })
+      if (!error && data && data.length > 0) return data as LawStudentProfile[]
+    } catch {}
+
     let list = [...memoryStore.law_student_profiles]
     if (status && status !== 'all') {
       list = list.filter(s => s.verification_status === status)
@@ -802,6 +1064,19 @@ export const platformDb = {
   },
 
   async getLawStudentById(userId: string): Promise<LawStudentProfile | null> {
+    try {
+      const admin = getSupabaseAdmin()
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId)
+      if (isUuid) {
+        const { data, error } = await admin
+          .from('law_student_profiles')
+          .select('*')
+          .or(`id.eq.${userId},user_id.eq.${userId}`)
+          .maybeSingle()
+        if (!error && data) return data as LawStudentProfile
+      }
+    } catch {}
+
     return memoryStore.law_student_profiles.find(s => s.user_id === userId || s.id === userId) || null
   },
 
@@ -809,6 +1084,37 @@ export const platformDb = {
     userId: string,
     data: Partial<LawStudentProfile>
   ): Promise<LawStudentProfile> {
+    try {
+      const admin = getSupabaseAdmin()
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId)
+      const payload: any = {
+        full_name: data.full_name || 'Talaba',
+        university: data.university || 'Toshkent davlat yuridik universiteti',
+        faculty: data.faculty || 'Yuridik',
+        study_year: data.study_year || 3,
+        specialization: data.specialization || 'Umumiy huquq',
+        student_id_number: data.student_id_number || null,
+        verification_status: data.verification_status || 'approved',
+        answers_count: data.answers_count || 0,
+        approved_answers_count: data.approved_answers_count || 0,
+        reputation_score: data.reputation_score || 50,
+        updated_at: new Date().toISOString()
+      }
+      if (isUuid) payload.user_id = userId
+
+      const { data: upserted, error } = await admin
+        .from('law_student_profiles')
+        .upsert(payload)
+        .select()
+        .single()
+
+      if (!error && upserted) {
+        return upserted as LawStudentProfile
+      }
+    } catch (e) {
+      console.warn('[platformDb.upsertLawStudentProfile] DB upsert failed:', e)
+    }
+
     const idx = memoryStore.law_student_profiles.findIndex(s => s.user_id === userId || s.id === userId)
     if (idx >= 0) {
       memoryStore.law_student_profiles[idx] = {
@@ -846,6 +1152,16 @@ export const platformDb = {
     advocateId?: string
     status?: string
   }): Promise<ConsultationAppointment[]> {
+    try {
+      const admin = getSupabaseAdmin()
+      let query = admin.from('consultation_appointments').select('*')
+      if (filter.citizenId) query = query.eq('citizen_id', filter.citizenId)
+      if (filter.advocateId) query = query.eq('advocate_id', filter.advocateId)
+      if (filter.status && filter.status !== 'all') query = query.eq('status', filter.status)
+      const { data, error } = await query.order('created_at', { ascending: false })
+      if (!error && data && data.length > 0) return data as ConsultationAppointment[]
+    } catch {}
+
     let list = [...memoryStore.appointments]
     if (filter.citizenId) list = list.filter(a => a.citizen_id === filter.citizenId)
     if (filter.advocateId) list = list.filter(a => a.advocate_id === filter.advocateId)
@@ -876,6 +1192,37 @@ export const platformDb = {
       throw new Error('Tanlangan vaqt allaqachon band qilingan. Iltimos, boshqa vaqtni tanlang.')
     }
 
+    try {
+      const admin = getSupabaseAdmin()
+      const isCitizenUuid = data.citizen_id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(data.citizen_id)
+      const isAdvocateUuid = data.advocate_id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(data.advocate_id)
+
+      const { data: inserted, error } = await admin.from('consultation_appointments').insert({
+        citizen_id: isCitizenUuid ? data.citizen_id : null,
+        citizen_name: data.citizen_name,
+        citizen_phone: data.citizen_phone || null,
+        advocate_id: isAdvocateUuid ? data.advocate_id : null,
+        advocate_name: data.advocate_name,
+        service_title: data.service_title,
+        format: data.format || 'online',
+        appointment_date: data.appointment_date,
+        appointment_time: data.appointment_time,
+        status: data.status || 'pending',
+        notes: data.notes || null,
+        amount: data.amount || 150000,
+        payment_status: data.payment_status || 'pending',
+        payment_method: data.payment_method || 'click'
+      }).select().single()
+
+      if (!error && inserted) {
+        memoryStore.appointments.unshift(inserted as ConsultationAppointment)
+        saveStoreToDisk(memoryStore)
+        return inserted as ConsultationAppointment
+      }
+    } catch (e) {
+      console.warn('[platformDb.createAppointment] DB insert fallback:', e)
+    }
+
     const app: ConsultationAppointment = {
       ...data,
       id: `app-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
@@ -888,6 +1235,20 @@ export const platformDb = {
   },
 
   async updateAppointment(id: string, updates: Partial<ConsultationAppointment>): Promise<ConsultationAppointment | null> {
+    try {
+      const admin = getSupabaseAdmin()
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)
+      if (isUuid) {
+        const { data, error } = await admin
+          .from('consultation_appointments')
+          .update({ ...updates, updated_at: new Date().toISOString() })
+          .eq('id', id)
+          .select()
+          .maybeSingle()
+        if (!error && data) return data as ConsultationAppointment
+      }
+    } catch {}
+
     const idx = memoryStore.appointments.findIndex(a => a.id === id)
     if (idx === -1) return null
     memoryStore.appointments[idx] = {
@@ -901,12 +1262,53 @@ export const platformDb = {
 
   // Private Messages
   async getMessages(citizenId: string, advocateId: string): Promise<PrivateMessage[]> {
+    try {
+      const admin = getSupabaseAdmin()
+      const isCitizenUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(citizenId)
+      const isAdvocateUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(advocateId)
+      if (isCitizenUuid && isAdvocateUuid) {
+        const { data, error } = await admin
+          .from('private_messages')
+          .select('*')
+          .or(`and(citizen_id.eq.${citizenId},advocate_id.eq.${advocateId})`)
+          .order('created_at', { ascending: true })
+        if (!error && data && data.length > 0) return data as PrivateMessage[]
+      }
+    } catch {}
+
     return memoryStore.messages
       .filter(m => (m.citizen_id === citizenId && m.advocate_id === advocateId))
       .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
   },
 
   async sendMessage(data: Omit<PrivateMessage, 'id' | 'created_at'>): Promise<PrivateMessage> {
+    try {
+      const admin = getSupabaseAdmin()
+      const isCitizenUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(data.citizen_id)
+      const isAdvocateUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(data.advocate_id)
+      const isSenderUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(data.sender_id)
+
+      if (isCitizenUuid && isAdvocateUuid && isSenderUuid) {
+        const { data: inserted, error } = await admin.from('private_messages').insert({
+          citizen_id: data.citizen_id,
+          advocate_id: data.advocate_id,
+          sender_id: data.sender_id,
+          sender_role: data.sender_role,
+          message_text: data.message_text,
+          message_type: 'text',
+          is_read: false
+        }).select().single()
+
+        if (!error && inserted) {
+          memoryStore.messages.push(inserted as PrivateMessage)
+          saveStoreToDisk(memoryStore)
+          return inserted as PrivateMessage
+        }
+      }
+    } catch (e) {
+      console.warn('[platformDb.sendMessage] DB insert fallback:', e)
+    }
+
     const msg: PrivateMessage = {
       ...data,
       id: `msg-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,

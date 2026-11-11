@@ -5,11 +5,12 @@ import crypto from 'crypto'
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { loginIdentifier, tempPassword, newPassword, email } = body
+    const { loginIdentifier, inviteToken, tempPassword, newPassword, email, fullName } = body
+    const cleanLogin = (loginIdentifier || inviteToken || '').trim()
 
-    if (!loginIdentifier?.trim() || !tempPassword?.trim() || !newPassword?.trim()) {
+    if (!cleanLogin || !tempPassword?.trim() || !newPassword?.trim()) {
       return NextResponse.json(
-        { success: false, error: 'Login, vaqtinchalik parol va yangi parol kiritilishi shart' },
+        { success: false, error: 'Maxsus login/taklifnoma kodi, vaqtinchalik parol va yangi parol kiritilishi shart' },
         { status: 400 }
       )
     }
@@ -22,15 +23,21 @@ export async function POST(request: NextRequest) {
     }
 
     const admin = getSupabaseAdmin()
-    const cleanLogin = loginIdentifier.trim()
     const hash = crypto.createHash('sha256').update(tempPassword.trim()).digest('hex')
 
-    // 1. Taklifnomani topish va tekshirish
-    const { data: inv, error: invErr } = await admin
+    // 1. Taklifnomani topish va tekshirish (login_identifier yoki id bo'yicha)
+    let invQuery = admin
       .from('law_student_invitations')
       .select('*')
-      .eq('login_identifier', cleanLogin)
-      .maybeSingle()
+
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cleanLogin)
+    if (isUuid) {
+      invQuery = invQuery.or(`login_identifier.eq.${cleanLogin},id.eq.${cleanLogin}`)
+    } else {
+      invQuery = invQuery.eq('login_identifier', cleanLogin)
+    }
+
+    const { data: inv, error: invErr } = await invQuery.maybeSingle()
 
     if (invErr || !inv) {
       return NextResponse.json(

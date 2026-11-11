@@ -21,37 +21,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Email yoki parol noto'g'ri" }, { status: 401 })
     }
 
-    // Check if user is a lawyer
-    const { data: lawyerData, error: lawyerError } = await supabase
+    // Check if user is a lawyer or advocate in advocate_profiles
+    let lawyerInfo: any = null
+
+    const { data: lawyerData } = await supabase
       .from('lawyers')
       .select('id, first_name, last_name, email, specialization, experience, status')
       .eq('user_id', authData.user.id)
-      .single()
+      .maybeSingle()
 
-    if (lawyerError || !lawyerData) {
-      // Sign out the user if they're not a lawyer
-      await supabase.auth.signOut()
-      return NextResponse.json({ error: 'Bu advokat login emas' }, { status: 403 })
-    }
-
-    // Check if lawyer is approved
-    if (lawyerData.status !== 'approved') {
-      await supabase.auth.signOut()
-      return NextResponse.json(
-        { error: "Advokat profili hali tasdiqlanmagan. Iltimos, admin bilan bog'laning." },
-        { status: 403 }
-      )
-    }
-
-    // Update last login
-    await supabase
-      .from('lawyers')
-      .update({ last_login: new Date().toISOString() })
-      .eq('id', lawyerData.id)
-
-    return NextResponse.json({
-      success: true,
-      lawyer: {
+    if (lawyerData) {
+      if (lawyerData.status !== 'approved') {
+        await supabase.auth.signOut()
+        return NextResponse.json(
+          { error: "Advokat profili hali tasdiqlanmagan. Iltimos, admin bilan bog'laning." },
+          { status: 403 }
+        )
+      }
+      lawyerInfo = {
         id: lawyerData.id,
         firstName: lawyerData.first_name,
         lastName: lawyerData.last_name,
@@ -59,8 +46,53 @@ export async function POST(request: NextRequest) {
         specialization: lawyerData.specialization,
         experience: lawyerData.experience,
         status: lawyerData.status,
-      },
+      }
+      await supabase
+        .from('lawyers')
+        .update({ last_login: new Date().toISOString() })
+        .eq('id', lawyerData.id)
+    } else {
+      // Check unified advocate_profiles table
+      const { data: advData } = await supabase
+        .from('advocate_profiles')
+        .select('*')
+        .or(`user_id.eq.${authData.user.id},email.eq.${email}`)
+        .maybeSingle()
+
+      if (!advData) {
+        await supabase.auth.signOut()
+        return NextResponse.json({ error: 'Bu hisob uchun advokat profili topilmadi' }, { status: 403 })
+      }
+
+      if (advData.verification_status !== 'approved') {
+        await supabase.auth.signOut()
+        return NextResponse.json(
+          { error: "Advokat profili hali tasdiqlanmagan (holat: " + advData.verification_status + "). Admin tasdiqlashini kuting." },
+          { status: 403 }
+        )
+      }
+
+      lawyerInfo = {
+        id: advData.id,
+        firstName: advData.full_name?.split(' ')[0] || advData.full_name,
+        lastName: advData.full_name?.split(' ').slice(1).join(' ') || '',
+        email: advData.email,
+        specialization: advData.specializations || [],
+        experience: advData.experience_years || 0,
+        status: advData.verification_status,
+      }
+    }
+
+    const response = NextResponse.json({
+      success: true,
+      lawyer: lawyerInfo,
+      redirectTo: '/advocate',
     })
+
+    // Set auth cookies for session consistency
+    response.cookies.set('juristiv_auth', '1', { path: '/', maxAge: 60 * 60 * 24 * 7 })
+    response.cookies.set('juristiv_role', 'advocate', { path: '/', maxAge: 60 * 60 * 24 * 7 })
+    return response
   } catch (error) {
     console.error('Lawyer login error:', error)
     return NextResponse.json(

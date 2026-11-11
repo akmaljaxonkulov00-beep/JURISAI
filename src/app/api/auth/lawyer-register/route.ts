@@ -131,6 +131,26 @@ export async function POST(request: NextRequest) {
       console.error('Lawyer update error:', updateError)
     }
 
+    // Also mirror to unified advocate_profiles table
+    try {
+      await supabaseServer.from('advocate_profiles').insert({
+        id: lawyerData.id,
+        user_id: userData.user.id,
+        full_name: `${firstName} ${lastName}`.trim(),
+        email,
+        phone,
+        license_number: licenseNumber,
+        specializations: Array.isArray(specialization) ? specialization : [specialization],
+        experience_years: Number(experience) || 0,
+        bio,
+        verification_status: 'pending',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+    } catch (e) {
+      console.warn('Could not mirror to advocate_profiles:', e)
+    }
+
     // Send welcome email (in production, you'd use an email service)
     // NOTE: tempPassword is NOT logged for security
 

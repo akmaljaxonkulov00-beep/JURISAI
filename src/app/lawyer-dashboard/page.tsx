@@ -627,6 +627,29 @@ export default function LawyerDashboard() {
         </div>
       </div>
 
+      {/* Unified Advocate Portal Notification Banner */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-md">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-white/20 rounded-lg">
+              <Award className="w-6 h-6 text-yellow-300" />
+            </div>
+            <div>
+              <p className="font-semibold text-base">Yangi Yagona Advokat Portali faollashtirildi</p>
+              <p className="text-sm text-blue-100">
+                Fuqarolar savollari, talabalar tahlilini tekshirish va onlayn konsultatsiyalar uchun yangi tizimga o'ting.
+              </p>
+            </div>
+          </div>
+          <Link
+            href="/advocate"
+            className="px-5 py-2.5 bg-white text-blue-700 font-semibold rounded-lg hover:bg-blue-50 transition shadow-sm whitespace-nowrap"
+          >
+            Yangi Kabinetga o'tish &rarr;
+          </Link>
+        </div>
+      </div>
+
       {/* Navigation Tabs */}
       <div className="bg-white dark:bg-zinc-900 border-b border-gray-200 dark:border-zinc-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

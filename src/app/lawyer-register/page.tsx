@@ -146,8 +146,8 @@ export default function LawyerRegisterPage() {
       const data = await response.json()
 
       if (response.ok) {
-        // Success - redirect to lawyer dashboard
-        router.push('/lawyer-dashboard')
+        // Success - redirect to advocate cabinet
+        router.push('/advocate')
       } else {
         setErrors({ submit: data.error || "Ro'yxatdan o'tishda xatolik yuz berdi" })
       }

@@ -54,6 +54,7 @@ function LawStudentClaimContent() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           inviteToken: inviteToken.trim(),
+          loginIdentifier: inviteToken.trim(),
           tempPassword: tempPassword.trim(),
           newPassword,
           fullName: fullName.trim() || undefined,

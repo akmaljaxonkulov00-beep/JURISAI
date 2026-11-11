@@ -1,5 +1,6 @@
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
 import crypto from 'crypto'
+import { callGeminiJson } from '@/lib/gemini'
 
 export interface LawStudentInvitationInput {
   university: string
@@ -151,17 +152,78 @@ export async function evaluateStudentAnswerAI(params: {
 }) {
   const { questionTitle, questionDesc, answerContent, legalBasis } = params
 
-  // Deterministik tahlil va Gemini / Groq modeli
+  try {
+    const prompt = `
+Siz O'zbekiston Respublikasi qonunchiligi bo'yicha yuridik fakultet talabalarining amaliy javoblarini baholovchi Oliy Yuridik Ekspertsiz.
+
+SAVOL:
+Sarlavha: "${questionTitle}"
+Tafsilot: "${questionDesc}"
+
+TALABANING JAVOBI:
+Matn: "${answerContent}"
+Ko'rsatilgan qonuniy asos: "${legalBasis || 'Keltirilmagan'}"
+
+VAZIFA:
+Talabaning javobini O'zbekiston Respublikasi amaldagi qonunlari (FK, JK, MK, JPK, FPK, Soliq, Oila va b.) mezonlariga muvofiq 7 ta mezon bo'yicha (har biri 0 dan 100 gacha butun son) ob'ektiv baholang:
+1. legal_accuracy (Huquqiy aniqlik va qonun normasining to'g'ri tanlangani)
+2. logical_consistency (Mantiqiy izchillik va fikr bayoni)
+3. relevance (Savolga to'g'ri va to'liq mos kelishi)
+4. evidence_quality (Dalillash va yuridik asoslash sifati)
+5. clarity (Fuqaro tushunishi uchun ravshan va tushunarli bayon)
+6. source_citation (O'zbekiston qonun moddalari, kodeks bandlari va lex.uz manbalariga to'g'ri havola)
+7. professional_tone (Yuridik etika va professional muomala madaniyati)
+
+Javobni FAQAT quyidagi JSON formatida qaytaring:
+{
+  "criteriaScores": {
+    "legal_accuracy": 85,
+    "logical_consistency": 80,
+    "relevance": 90,
+    "evidence_quality": 75,
+    "clarity": 85,
+    "source_citation": 80,
+    "professional_tone": 90
+  },
+  "score": 84,
+  "feedback": "Javob bo'yicha qisqa, professional tavsiya va tahlil."
+}
+`.trim()
+
+    const aiRes = await callGeminiJson<{
+      criteriaScores: Record<string, number>
+      score: number
+      feedback: string
+    }>(prompt, {
+      temperature: 0.1,
+      maxTokens: 1000,
+    })
+
+    if (aiRes && aiRes.criteriaScores && typeof aiRes.score === 'number') {
+      const score = Math.max(0, Math.min(100, Math.round(aiRes.score)))
+      return {
+        score,
+        criteriaScores: aiRes.criteriaScores,
+        feedback: aiRes.feedback || "Javob AI ekspert tomonidan muvaffaqiyatli baholandi.",
+        isEligibleForReward: score >= 60,
+        evaluatedAt: new Date().toISOString(),
+      }
+    }
+  } catch (err) {
+    console.warn('[evaluateStudentAnswerAI] Gemini AI error, falling back to heuristic:', err)
+  }
+
+  // Deterministik zaxira baholash (agar AI vaqtincha javob bermasa)
   let score = 75
   const feedbackItems: string[] = []
   const criteriaScores: Record<string, number> = {
-    legal_accuracy: 80,
+    legal_accuracy: 75,
     logical_consistency: 75,
-    relevance: 85,
+    relevance: 80,
     evidence_quality: 70,
-    clarity: 80,
-    source_citation: legalBasis && legalBasis.length > 5 ? 85 : 50,
-    professional_tone: 90,
+    clarity: 75,
+    source_citation: legalBasis && legalBasis.length > 5 ? 80 : 45,
+    professional_tone: 85,
   }
 
   if (answerContent.length < 150) {

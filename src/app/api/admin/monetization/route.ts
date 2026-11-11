@@ -15,9 +15,11 @@ export async function GET(req: NextRequest) {
       .maybeSingle()
 
     // Get aggregated statistics for citizen questions & revenue
-    const { count: totalQuestions } = await supabase
-      .from('citizen_questions')
-      .select('*', { count: 'exact', head: true })
+    const [{ count: totalCitizenQuestions }, { count: totalLegalQuestions }] = await Promise.all([
+      supabase.from('citizen_questions').select('*', { count: 'exact', head: true }),
+      supabase.from('legal_questions').select('*', { count: 'exact', head: true }),
+    ])
+    const totalQuestions = (totalCitizenQuestions || 0) + (totalLegalQuestions || 0)
 
     const { count: paidPurchasesCount } = await supabase
       .from('payment_requests')
