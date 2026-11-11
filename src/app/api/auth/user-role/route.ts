@@ -71,7 +71,53 @@ export async function GET(request: NextRequest) {
         .select('id, email, name, role, subscription_plan, subscription_expires_at')
         .eq('email', targetEmail)
         .maybeSingle()
-      if (!fallback.error) row = fallback.data
+      if (!fallback.error && fallback.data) row = fallback.data
+    }
+
+    // 3) Agar Advokatlar reyestrida bo'lsa (advocate_profiles)
+    if (targetEmail) {
+      const { data: adv } = await supabase
+        .from('advocate_profiles')
+        .select('id, full_name, email')
+        .eq('email', targetEmail)
+        .maybeSingle()
+      if (adv) {
+        if (!row) {
+          row = {
+            id: targetUserId || adv.id,
+            email: targetEmail,
+            name: adv.full_name,
+            role: 'advocate',
+            subscription_plan: 'free',
+            subscription_expires_at: null,
+          }
+        } else {
+          row.role = 'advocate'
+        }
+      }
+    }
+
+    // 4) Agar Advokat bo'lmoqchi bo'lgan talabalar (Yosh advokatlar) reyestrida bo'lsa
+    if (targetEmail && (!row || row.role === 'USER' || row.role === 'student')) {
+      const { data: ls } = await supabase
+        .from('law_student_profiles')
+        .select('id, full_name, email')
+        .eq('email', targetEmail)
+        .maybeSingle()
+      if (ls) {
+        if (!row) {
+          row = {
+            id: targetUserId || ls.id,
+            email: targetEmail,
+            name: ls.full_name,
+            role: 'law_student',
+            subscription_plan: 'free',
+            subscription_expires_at: null,
+          }
+        } else {
+          row.role = 'law_student'
+        }
+      }
     }
 
     if (!row) {

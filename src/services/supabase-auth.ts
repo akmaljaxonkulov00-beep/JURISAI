@@ -471,20 +471,18 @@ export async function signUp(
   email: string,
   password: string,
   name: string,
-  role?: string
+  role?: string,
+  extraData?: Record<string, any>
 ): Promise<
   | { success: true; data?: AuthUser; needsEmailConfirmation?: boolean }
   | { success: false; error: string }
 > {
   try {
     // ── Akkaunt yaratish + email tasdiqlash SERVER TOMONIDA ──
-    // `/api/auth/signup` emailni service-role bilan bir vaqtning o'zida
-    // tasdiqlaydi — alohida public auto-confirm endpoint yo'q (boshqa
-    // userlarning emailini tasdiqlab bo'lmaydi).
     const res = await fetch('/api/auth/signup', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email, password, role }),
+      body: JSON.stringify({ name, email, password, role, ...(extraData || {}) }),
     })
     const json = await res.json().catch(() => ({}))
 

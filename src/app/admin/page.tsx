@@ -906,35 +906,43 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {/* Maxsus 3 ta Boshqaruv Tizimi sahifalari */}
+          {/* Maxsus 4 ta Boshqaruv Tizimi sahifalari */}
           <div className="flex items-center gap-2 pb-3 pt-1 border-b border-gray-100 dark:border-zinc-800/80 mb-3 overflow-x-auto no-scrollbar">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mr-1 flex items-center gap-1">
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mr-1 flex items-center gap-1 shrink-0">
               <Shield size={12} className="text-indigo-600" />
               Tizimlar:
             </span>
             <Link
               href="/admin/advocates"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200/60 dark:border-indigo-800/50 hover:bg-indigo-100 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/50 hover:bg-emerald-100 transition-colors shrink-0"
             >
               <Scale size={13} />
               Advokatlar Nazorati
-              <span className="text-[9px] px-1 rounded bg-indigo-200/80 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-200 font-bold">YANGI</span>
+              <span className="text-[9px] px-1 rounded bg-emerald-200/80 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200 font-bold">Litsenziya</span>
+            </Link>
+            <Link
+              href="/admin/law-students"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200/60 dark:border-indigo-800/50 hover:bg-indigo-100 transition-colors shrink-0"
+            >
+              <Award size={13} />
+              Yosh Advokatlar (Nomzodlar)
+              <span className="text-[9px] px-1 rounded bg-indigo-200/80 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-200 font-bold">Maxsus Parol</span>
             </Link>
             <Link
               href="/admin/citizens"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/50 hover:bg-blue-100 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/50 hover:bg-blue-100 transition-colors shrink-0"
             >
               <Users size={13} />
               Fuqarolar Nazorati
-              <span className="text-[9px] px-1 rounded bg-blue-200/80 dark:bg-blue-900 text-blue-800 dark:text-blue-200 font-bold">YANGI</span>
+              <span className="text-[9px] px-1 rounded bg-blue-200/80 dark:bg-blue-900 text-blue-800 dark:text-blue-200 font-bold">Mijozlar</span>
             </Link>
             <Link
               href="/admin/students"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200/60 dark:border-purple-800/50 hover:bg-purple-100 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800/50 hover:bg-amber-100 transition-colors shrink-0"
             >
-              <Award size={13} />
-              Yurist-Talabalar Nazorati
-              <span className="text-[9px] px-1 rounded bg-purple-200/80 dark:bg-purple-900 text-purple-800 dark:text-purple-200 font-bold">YANGI</span>
+              <BookOpen size={13} />
+              Umumiy Talabalar
+              <span className="text-[9px] px-1 rounded bg-amber-200/80 dark:bg-amber-900 text-amber-800 dark:text-amber-200 font-bold">Ta&apos;lim</span>
             </Link>
           </div>
 
@@ -975,54 +983,82 @@ export default function AdminDashboard() {
         {/* ===== DASHBOARD ===== */}
         {activeTab === 'dashboard' && (
           <div className="space-y-6">
-            {/* ── 3 TA ALOHIDA BOSHQARUV TIZIMI (Tartibli yangi sahifalar) ── */}
-            <div className="bg-gradient-to-r from-indigo-50/80 via-blue-50/60 to-purple-50/80 dark:from-indigo-950/40 dark:via-zinc-900/60 dark:to-purple-950/40 border border-indigo-200/60 dark:border-indigo-800/40 rounded-2xl p-5 shadow-sm space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-indigo-100 dark:border-zinc-800/60 pb-3">
+            {/* ── 4 TA ALOHIDA MUSTAQIL BOSHQARUV TIZIMI ── */}
+            <div className="bg-gradient-to-r from-slate-50 via-indigo-50/50 to-blue-50/50 dark:from-zinc-900/90 dark:via-indigo-950/30 dark:to-zinc-900/90 border border-slate-200/80 dark:border-zinc-800 rounded-2xl p-5 shadow-sm space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/80 dark:border-zinc-800/80 pb-3">
                 <div>
                   <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                     <Shield className="text-indigo-600" size={17} />
-                    Ixtisoslashtirilgan Boshqaruv va Nazorat Tizimlari
+                    4 Ta Mustaqil Boshqaruv & Alohida Moliya Tizimlari
                   </h3>
                   <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
-                    Advokatlar, Fuqarolar va Yurist-talabalar uchun alohida tartibli boshqaruv sahifalari
+                    Har bir foydalanuvchi toifasi uchun alohida boshqaruv, mustaqil pul tushumlari va alohida platforma nastroykalari
                   </p>
                 </div>
                 <span className="text-[11px] font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-100/80 dark:bg-indigo-900/60 px-2.5 py-1 rounded-lg max-w-fit">
-                  3 ta Alohida Bo‘lim
+                  4 ta Alohida Tizim
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
                 {/* 1. Advokatlar */}
                 <Link
                   href="/admin/advocates"
-                  className="group p-4 bg-white dark:bg-zinc-900/90 rounded-xl border border-slate-200/80 dark:border-zinc-800 hover:border-indigo-400 dark:hover:border-indigo-600 shadow-sm transition-all hover:shadow-md flex flex-col justify-between"
+                  className="group p-4 bg-white dark:bg-zinc-900 rounded-xl border border-slate-200/80 dark:border-zinc-800 hover:border-emerald-500 dark:hover:border-emerald-600 shadow-sm transition-all hover:shadow-md flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-2.5">
+                      <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 flex items-center justify-center font-bold">
+                        <Scale size={20} />
+                      </div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-200/50">
+                        Litsenziyalar
+                      </span>
+                    </div>
+                    <h4 className="font-bold text-sm text-gray-900 dark:text-white group-hover:text-emerald-600 transition-colors">
+                      Advokatlar Tizimi
+                    </h4>
+                    <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1 line-clamp-2">
+                      Litsenziyalar verifikatsiyasi, qabullar monitoringi, 12% komissiya daromadi va narx sozlamalari.
+                    </p>
+                  </div>
+                  <div className="mt-3.5 pt-2.5 border-t border-slate-100 dark:border-zinc-800 text-xs font-semibold text-emerald-600 dark:text-emerald-400 flex items-center justify-between">
+                    <span>Alohida Nazorat</span>
+                    <span>→</span>
+                  </div>
+                </Link>
+
+                {/* 2. Yosh Advokatlar (Nomzodlar) */}
+                <Link
+                  href="/admin/law-students"
+                  className="group p-4 bg-white dark:bg-zinc-900 rounded-xl border border-slate-200/80 dark:border-zinc-800 hover:border-indigo-500 dark:hover:border-indigo-600 shadow-sm transition-all hover:shadow-md flex flex-col justify-between"
                 >
                   <div>
                     <div className="flex items-center justify-between mb-2.5">
                       <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 flex items-center justify-center font-bold">
-                        <Scale size={20} />
+                        <Award size={20} />
                       </div>
                       <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300 border border-indigo-200/50">
-                        Litsenziyalar
+                        Maxsus Parol
                       </span>
                     </div>
                     <h4 className="font-bold text-sm text-gray-900 dark:text-white group-hover:text-indigo-600 transition-colors">
-                      Advokatlar Boshqaruvi
+                      Yosh Advokatlar
                     </h4>
-                    <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1">
-                      Litsenziyalar verifikatsiyasi, Advokatlar palatasi a’zolari, narxlar va faoliyat nazorati.
+                    <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1 line-clamp-2">
+                      Faqat maxsus parol orqali kirish, vaucherlar, virtual sud, stajirovka mukofotlari va hamyonlar.
                     </p>
                   </div>
-                  <div className="mt-3.5 pt-2.5 border-t border-slate-100 dark:border-zinc-800 text-xs font-semibold text-indigo-600 dark:text-indigo-400 flex items-center gap-1 group-hover:gap-1.5 transition-all">
-                    Advokatlar tizimiga o‘tish →
+                  <div className="mt-3.5 pt-2.5 border-t border-slate-100 dark:border-zinc-800 text-xs font-semibold text-indigo-600 dark:text-indigo-400 flex items-center justify-between">
+                    <span>Alohida Nazorat</span>
+                    <span>→</span>
                   </div>
                 </Link>
 
-                {/* 2. Fuqarolar */}
+                {/* 3. Fuqarolar */}
                 <Link
                   href="/admin/citizens"
-                  className="group p-4 bg-white dark:bg-zinc-900/90 rounded-xl border border-slate-200/80 dark:border-zinc-800 hover:border-blue-400 dark:hover:border-blue-600 shadow-sm transition-all hover:shadow-md flex flex-col justify-between"
+                  className="group p-4 bg-white dark:bg-zinc-900 rounded-xl border border-slate-200/80 dark:border-zinc-800 hover:border-blue-500 dark:hover:border-blue-600 shadow-sm transition-all hover:shadow-md flex flex-col justify-between"
                 >
                   <div>
                     <div className="flex items-center justify-between mb-2.5">
@@ -1034,40 +1070,42 @@ export default function AdminDashboard() {
                       </span>
                     </div>
                     <h4 className="font-bold text-sm text-gray-900 dark:text-white group-hover:text-blue-600 transition-colors">
-                      Fuqarolar Boshqaruvi
+                      Fuqarolar Tizimi
                     </h4>
-                    <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1">
-                      Yuridik yordam oluvchi fuqarolar hisobi, obuna rejalari, shaxsiy balans va xavfsizlik nazorati.
+                    <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1 line-clamp-2">
+                      Yuridik savollar (9 900 so‘m), Pro/Premium obunalar, depozit balansi va murojaatlar moderatsiyasi.
                     </p>
                   </div>
-                  <div className="mt-3.5 pt-2.5 border-t border-slate-100 dark:border-zinc-800 text-xs font-semibold text-blue-600 dark:text-blue-400 flex items-center gap-1 group-hover:gap-1.5 transition-all">
-                    Fuqarolar tizimiga o‘tish →
+                  <div className="mt-3.5 pt-2.5 border-t border-slate-100 dark:border-zinc-800 text-xs font-semibold text-blue-600 dark:text-blue-400 flex items-center justify-between">
+                    <span>Alohida Nazorat</span>
+                    <span>→</span>
                   </div>
                 </Link>
 
-                {/* 3. Talabalar */}
+                {/* 4. Umumiy Talabalar */}
                 <Link
                   href="/admin/students"
-                  className="group p-4 bg-white dark:bg-zinc-900/90 rounded-xl border border-slate-200/80 dark:border-zinc-800 hover:border-purple-400 dark:hover:border-purple-600 shadow-sm transition-all hover:shadow-md flex flex-col justify-between"
+                  className="group p-4 bg-white dark:bg-zinc-900 rounded-xl border border-slate-200/80 dark:border-zinc-800 hover:border-amber-500 dark:hover:border-amber-600 shadow-sm transition-all hover:shadow-md flex flex-col justify-between"
                 >
                   <div>
                     <div className="flex items-center justify-between mb-2.5">
-                      <div className="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 flex items-center justify-center font-bold">
-                        <Award size={20} />
+                      <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 flex items-center justify-center font-bold">
+                        <BookOpen size={20} />
                       </div>
-                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300 border border-purple-200/50">
-                        Nomzodlar
+                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300 border border-amber-200/50">
+                        Ta&apos;lim
                       </span>
                     </div>
-                    <h4 className="font-bold text-sm text-gray-900 dark:text-white group-hover:text-purple-600 transition-colors">
-                      Yurist-Talabalar Nazorati
+                    <h4 className="font-bold text-sm text-gray-900 dark:text-white group-hover:text-amber-600 transition-colors">
+                      Umumiy Talabalar
                     </h4>
-                    <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1">
-                      OTM talabalari, stajyorlar, Virtual sud (Moot court) natijalari, sertifikatlar va taklifnomalar.
+                    <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1 line-clamp-2">
+                      Universitet talabalari, testlar bazasi, attestatsiya simulyatori, talaba ta&apos;riflari va o‘quv statistikasi.
                     </p>
                   </div>
-                  <div className="mt-3.5 pt-2.5 border-t border-slate-100 dark:border-zinc-800 text-xs font-semibold text-purple-600 dark:text-purple-400 flex items-center gap-1 group-hover:gap-1.5 transition-all">
-                    Talabalar tizimiga o‘tish →
+                  <div className="mt-3.5 pt-2.5 border-t border-slate-100 dark:border-zinc-800 text-xs font-semibold text-amber-600 dark:text-amber-400 flex items-center justify-between">
+                    <span>Alohida Nazorat</span>
+                    <span>→</span>
                   </div>
                 </Link>
               </div>

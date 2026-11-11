@@ -12,6 +12,7 @@ import {
   LayoutDashboard,
   ArrowLeft,
   Sparkles,
+  Award,
 } from 'lucide-react'
 import SiteLogo from '@/components/SiteLogo'
 
@@ -37,36 +38,37 @@ export default function AdminNavigationHeader({
     },
     {
       href: '/admin/advocates',
-      label: 'Advokatlar Nazorati',
+      label: 'Advokatlar',
       icon: Scale,
       active: pathname.startsWith('/admin/advocates'),
       badge: 'Litsenziya',
     },
     {
+      href: '/admin/law-students',
+      label: 'Yosh Advokatlar',
+      icon: Award,
+      active: pathname.startsWith('/admin/law-students'),
+      badge: 'Maxsus Parol',
+    },
+    {
       href: '/admin/citizens',
-      label: 'Fuqarolar Nazorati',
+      label: 'Fuqarolar',
       icon: Users,
       active: pathname.startsWith('/admin/citizens'),
       badge: 'Mijozlar',
     },
     {
       href: '/admin/students',
-      label: 'Yurist-Talabalar',
+      label: 'Umumiy Talabalar',
       icon: GraduationCap,
       active: pathname.startsWith('/admin/students'),
-      badge: 'Nomzodlar',
+      badge: 'Ta’lim',
     },
     {
       href: '/admin/payments',
-      label: 'To‘lovlar',
+      label: 'Moliya & To‘lovlar',
       icon: CreditCard,
       active: pathname.startsWith('/admin/payments'),
-    },
-    {
-      href: '/admin/users',
-      label: 'Barcha Foydalanuvchilar',
-      icon: Users,
-      active: pathname.startsWith('/admin/users'),
     },
   ]
 

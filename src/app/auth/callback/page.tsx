@@ -66,7 +66,16 @@ export default function AuthCallbackPage() {
             return
           }
 
-          router.replace(getRoleDashboardPath(savedUser.platformRole || savedUser.rawRole || savedUser.role))
+          let targetRole = savedUser.platformRole || savedUser.rawRole || savedUser.role
+          if (typeof window !== 'undefined') {
+            const preferredRole = localStorage.getItem('preferred_auth_role')
+            if (preferredRole && (!savedUser.rawRole || savedUser.rawRole === 'USER')) {
+              if (preferredRole === 'citizen') targetRole = 'citizen'
+              else if (preferredRole === 'student') targetRole = 'student'
+            }
+          }
+
+          router.replace(getRoleDashboardPath(targetRole))
         } catch (err) {
           console.error('[AuthCallback] finalizeUserSession error:', err)
           // Rol aniqlanmagan bo'lsa ham cookie'ni o'rnatamiz — dashboardga kiradi

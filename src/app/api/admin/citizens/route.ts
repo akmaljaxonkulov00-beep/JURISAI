@@ -6,7 +6,11 @@ export const dynamic = 'force-dynamic'
 
 /**
  * GET /api/admin/citizens
- * Barcha fuqarolarni olish, filtrlash, balans va obunalar bo'yicha saralash
+ * Fuqarolar boshqaruvi tizimi:
+ * 1. Fuqarolar reyestri (faqat fuqaro/user roli, talaba va advokatlar aralashmasdan)
+ * 2. Fuqarolar bergan yuridik savollar (legal_questions)
+ * 3. Alohida Pul tushumi (savol xaridlari, obunalar, depozitlar)
+ * 4. Alohida Nastroykalar (bepul limit, 1 ta savol narxi 9900, paketlar)
  */
 export async function GET(request: NextRequest) {
   try {
@@ -19,36 +23,46 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status') || 'all'
 
     const admin = getSupabaseAdmin()
-    const { data: users, error } = await admin
-      .from('registered_users')
-      .select('*')
-      .order('created_at', { ascending: false })
 
-    if (error) {
-      return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+    const [usersRes, questionsRes, settingsRes, profilesRes] = await Promise.allSettled([
+      admin.from('registered_users').select('*').order('created_at', { ascending: false }),
+      admin.from('legal_questions').select('*').order('created_at', { ascending: false }).limit(100),
+      admin.from('platform_settings').select('value').eq('key', 'citizen_settings').maybeSingle(),
+      admin.from('citizen_profiles').select('*'),
+    ])
+
+    const users = usersRes.status === 'fulfilled' && usersRes.value.data ? usersRes.value.data : []
+    const questions = questionsRes.status === 'fulfilled' && questionsRes.value.data ? questionsRes.value.data : []
+    const profiles = profilesRes.status === 'fulfilled' && profilesRes.value.data ? profilesRes.value.data : []
+    const settings = (settingsRes.status === 'fulfilled' && settingsRes.value.data?.value) || {
+      free_questions_monthly: 2,
+      question_price: 9900,
+      express_surcharge: 15000,
+      pro_monthly_price: 79000,
+      premium_monthly_price: 149000,
+      enable_paid_questions: true,
     }
 
-    // Fuqarolar (roli USER yoki citizen yoki undefined bo'lganlar, ya'ni ADMIN yoki ADVOCATE emaslar)
-    let citizens = (users || []).filter((u: any) => {
-      const r = (u.role || '').toUpperCase()
-      return r !== 'ADMIN' && r !== 'SUPER_ADMIN' && r !== 'ADVOCATE' && r !== 'LAW_STUDENT'
+    // Faqat FUQAROLARNI ajratib olish (advokat, talaba, nomzod, adminlar aralashmasin!)
+    const allCitizens = users.filter((u: any) => {
+      const r = (u.role || '').toLowerCase()
+      return r === 'citizen' || r === 'user' || (!r && u.role !== 'advocate' && u.role !== 'student' && u.role !== 'law_student' && u.role !== 'admin')
     })
 
-    // Plan filter
+    let filteredCitizens = [...allCitizens]
+
     if (plan !== 'all') {
-      citizens = citizens.filter((c: any) => (c.subscription_plan || 'free') === plan)
+      filteredCitizens = filteredCitizens.filter((c: any) => (c.subscription_plan || 'free') === plan)
     }
 
-    // Status filter
     if (status !== 'all') {
-      citizens = citizens.filter((c: any) =>
+      filteredCitizens = filteredCitizens.filter((c: any) =>
         status === 'blocked' ? c.blocked : !c.blocked
       )
     }
 
-    // Search filter
     if (search) {
-      citizens = citizens.filter((c: any) =>
+      filteredCitizens = filteredCitizens.filter((c: any) =>
         (c.name && c.name.toLowerCase().includes(search)) ||
         (c.full_name && c.full_name.toLowerCase().includes(search)) ||
         (c.email && c.email.toLowerCase().includes(search)) ||
@@ -57,26 +71,62 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const allCitizens = (users || []).filter((u: any) => {
-      const r = (u.role || '').toUpperCase()
-      return r !== 'ADMIN' && r !== 'SUPER_ADMIN' && r !== 'ADVOCATE'
-    })
+    // Fuqarolar profillari xaritasi
+    const profileMap = new Map<string, any>()
+    for (const p of profiles) {
+      profileMap.set(p.user_id, p)
+    }
+
+    // Alohida Fuqarolar Pul Tushumi (Moliya) hisobi
+    const totalDeposits = allCitizens.reduce((acc: number, c: any) => acc + Number(c.balance || 0), 0)
+    const paidQuestions = questions.filter((q: any) => q.is_paid_question)
+    const questionsRevenue = paidQuestions.length * Number(settings.question_price || 9900)
+    const proUsersCount = allCitizens.filter((c: any) => c.subscription_plan === 'pro').length
+    const premiumUsersCount = allCitizens.filter((c: any) => c.subscription_plan === 'premium').length
+    const subscriptionsRevenue = (proUsersCount * Number(settings.pro_monthly_price || 79000)) +
+                                 (premiumUsersCount * Number(settings.premium_monthly_price || 149000))
+
+    const financeStats = {
+      total_citizen_revenue: questionsRevenue + subscriptionsRevenue,
+      questions_revenue: questionsRevenue,
+      subscriptions_revenue: subscriptionsRevenue,
+      total_balance_held: totalDeposits,
+      paid_questions_count: paidQuestions.length,
+    }
 
     const stats = {
       total: allCitizens.length,
       active: allCitizens.filter((c: any) => !c.blocked).length,
       blocked: allCitizens.filter((c: any) => c.blocked).length,
-      pro: allCitizens.filter((c: any) => c.subscription_plan === 'pro').length,
-      premium: allCitizens.filter((c: any) => c.subscription_plan === 'premium').length,
-      total_balance: allCitizens.reduce((acc: number, c: any) => acc + (c.balance || 0), 0),
+      pro: proUsersCount,
+      premium: premiumUsersCount,
+      total_questions: questions.length,
+      unresolved_questions: questions.filter((q: any) => q.status === 'open' || q.status === 'pending').length,
     }
 
     return NextResponse.json({
       success: true,
       stats,
-      citizens,
+      financeStats,
+      settings,
+      citizens: filteredCitizens.map((c: any) => ({
+        ...c,
+        profile: profileMap.get(c.id) || null,
+      })),
+      questions: questions.map((q: any) => ({
+        id: q.id,
+        citizen_id: q.citizen_id,
+        title: q.title || 'Yuridik savol',
+        category: q.category || 'Umumiy',
+        status: q.status || 'open',
+        is_paid_question: Boolean(q.is_paid_question),
+        price: q.is_paid_question ? Number(settings.question_price || 9900) : 0,
+        answers_count: q.answers_count || 0,
+        created_at: q.created_at,
+      })),
     })
   } catch (err: any) {
+    console.error('Fuqarolar admin API xatosi:', err)
     return NextResponse.json({ success: false, error: err.message }, { status: 500 })
   }
 }
@@ -91,14 +141,28 @@ export async function PATCH(request: NextRequest) {
     if (!auth.ok) return auth.response
 
     const body = await request.json()
-    const { citizenId, action, blocked, balanceChange, subscriptionPlan, subscriptionExpiresAt } = body
+    const { citizenId, action, blocked, balanceChange, subscriptionPlan, subscriptionExpiresAt, settings } = body
+    const admin = getSupabaseAdmin()
+    const now = new Date().toISOString()
+
+    // 1. Nastroykalarni saqlash
+    if (action === 'save_settings' || settings) {
+      try {
+        await admin.from('platform_settings').upsert({
+          key: 'citizen_settings',
+          value: settings,
+          updated_at: now,
+        }, { onConflict: 'key' })
+      } catch (e) {
+        console.error('Fuqaro nastroykalarini saqlash xatosi:', e)
+      }
+      return NextResponse.json({ success: true, message: 'Fuqarolar nastroykasi saqlandi' })
+    }
 
     if (!citizenId) {
       return NextResponse.json({ success: false, error: 'citizenId ko‘rsatilmadi' }, { status: 400 })
     }
 
-    const admin = getSupabaseAdmin()
-    const now = new Date().toISOString()
     const updates: Record<string, any> = { updated_at: now }
 
     if (action === 'toggle_block' || blocked !== undefined) {
@@ -111,7 +175,6 @@ export async function PATCH(request: NextRequest) {
       if (subscriptionExpiresAt) {
         updates.subscription_expires_at = subscriptionExpiresAt
       } else {
-        // default 30 kun
         const exp = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
         updates.subscription_expires_at = exp
       }

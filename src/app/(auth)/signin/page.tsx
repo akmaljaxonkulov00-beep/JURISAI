@@ -152,6 +152,12 @@ function SignInContent() {
   const [password, setPassword] = useState('')
   const [name, setName] = useState('')
   const [selectedRole, setSelectedRole] = useState<PlatformRole>('citizen')
+  const [licenseNumber, setLicenseNumber] = useState('')
+  const [barAssociation, setBarAssociation] = useState('Toshkent shahar advokatlar palatasi')
+  const [specialCode, setSpecialCode] = useState('')
+  const [phone, setPhone] = useState('')
+  const [university, setUniversity] = useState('Toshkent davlat yuridik universiteti (TDYU)')
+  const [city, setCity] = useState('Toshkent')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -222,7 +228,31 @@ function SignInContent() {
           setIsSubmitting(false)
           return
         }
-        const result = await authService.signUp(email, password, name, selectedRole)
+
+        if (selectedRole === 'advocate') {
+          if (!licenseNumber.trim() || !barAssociation.trim()) {
+            setError("Advokat sifatida ro'yxatdan o'tish uchun Litsenziya raqami va Advokatlar palatasi bo'linmasi kiritilishi shart")
+            setIsSubmitting(false)
+            return
+          }
+        }
+
+        if (selectedRole === 'law_student') {
+          if (!specialCode.trim()) {
+            setError("Advokat bo‘lmoqchi bo‘lgan talabalar (Yosh advokatlar) faqat maxsus taklifnoma paroli orqali ro'yxatdan o'tishlari mumkin. Parolni kiriting.")
+            setIsSubmitting(false)
+            return
+          }
+        }
+
+        const result = await authService.signUp(email, password, name, selectedRole, {
+          licenseNumber,
+          barAssociation,
+          phone,
+          specialCode,
+          university,
+          city,
+        })
         if (result.success) {
           if (result.needsEmailConfirmation) {
             setSuccessMsg(
@@ -250,6 +280,19 @@ function SignInContent() {
     setIsGoogleLoading(true)
     setError('')
     try {
+      if (mode === 'register') {
+        if (selectedRole === 'advocate') {
+          setError("Advokatlar birinchi marta litsenziya ma'lumotlarini to'ldirib ro'yxatdan o'tishlari shart. Ro'yxatdan o'tgach, Google orqali kirsangiz avtomatik Advokat kabinetiga o'tasiz.")
+          setIsGoogleLoading(false)
+          return
+        }
+        if (selectedRole === 'law_student') {
+          setError("Advokat bo‘lmoqchi bo‘lgan talabalar (Yosh advokatlar) faqat maxsus taklifnoma paroli bilan ro'yxatdan o'tadilar. Parolni kiritib ro'yxatdan o'ting.")
+          setIsGoogleLoading(false)
+          return
+        }
+      }
+      localStorage.setItem('preferred_auth_role', selectedRole)
       const result = await authService.signInWithGoogle()
       if (result.success && result.data) {
         const role = (result.data as any)?.platformRole || result.data.role
@@ -728,6 +771,21 @@ function SignInContent() {
 
                       <button
                         type="button"
+                        onClick={() => setSelectedRole('student')}
+                        className={`p-2.5 rounded-xl border text-left transition-all ${
+                          selectedRole === 'student'
+                            ? 'border-amber-600 bg-amber-50/80 dark:bg-amber-950/40 text-amber-900 dark:text-amber-200 ring-2 ring-amber-500/20'
+                            : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 text-slate-700 dark:text-slate-300'
+                        }`}
+                      >
+                        <div className="font-semibold text-xs flex items-center gap-1.5">
+                          <span>📚</span> Umumiy Talaba
+                        </div>
+                        <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">Ta'lim va testlar</div>
+                      </button>
+
+                      <button
+                        type="button"
                         onClick={() => setSelectedRole('law_student')}
                         className={`p-2.5 rounded-xl border text-left transition-all ${
                           selectedRole === 'law_student'
@@ -736,9 +794,9 @@ function SignInContent() {
                         }`}
                       >
                         <div className="font-semibold text-xs flex items-center gap-1.5">
-                          <span>🎓</span> Yuridik talaba
+                          <span>🎓⚖️</span> Yosh Advokat
                         </div>
-                        <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">Amaliyotchi huquqshunos</div>
+                        <div className="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold mt-0.5">Faqat maxsus parol bilan</div>
                       </button>
 
                       <button
@@ -753,25 +811,107 @@ function SignInContent() {
                         <div className="font-semibold text-xs flex items-center gap-1.5">
                           <span>⚖️</span> Advokat
                         </div>
-                        <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">Litsenziyali himoyachi</div>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => setSelectedRole('student')}
-                        className={`p-2.5 rounded-xl border text-left transition-all ${
-                          selectedRole === 'student'
-                            ? 'border-amber-600 bg-amber-50/80 dark:bg-amber-950/40 text-amber-900 dark:text-amber-200 ring-2 ring-amber-500/20'
-                            : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 text-slate-700 dark:text-slate-300'
-                        }`}
-                      >
-                        <div className="font-semibold text-xs flex items-center gap-1.5">
-                          <span>📚</span> Ta'lim talabasi
-                        </div>
-                        <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">Mavjud simulyatorlar</div>
+                        <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold mt-0.5">Litsenziyali himoyachi</div>
                       </button>
                     </div>
                   </div>
+
+                  {/* Advokat uchun maxsus litsenziya xabarnomasi va maydonlari */}
+                  {selectedRole === 'advocate' && (
+                    <div className="p-3 bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/50 rounded-xl space-y-2.5 text-xs animate-in fade-in">
+                      <p className="text-[11px] text-emerald-800 dark:text-emerald-300 font-medium leading-relaxed">
+                        ⚖️ Advokatlar dastlabki kirishda litsenziya ma'lumotlarini to'ldirib ro'yxatdan o'tadilar. Ro'yxatdan o'tgach, Google orqali kirsangiz ham avtomatik Advokat tizimiga yo'naltirilasiz.
+                      </p>
+                      <AuthInput
+                        label="Litsenziya raqami *"
+                        type="text"
+                        value={licenseNumber}
+                        onChange={setLicenseNumber}
+                        placeholder="Masalan: ADV-UZ-004521"
+                        required
+                        icon={<span className="text-xs">📜</span>}
+                      />
+                      <AuthInput
+                        label="Advokatlar palatasi bo‘linmasi *"
+                        type="text"
+                        value={barAssociation}
+                        onChange={setBarAssociation}
+                        placeholder="Toshkent shahar advokatlar palatasi"
+                        required
+                        icon={<span className="text-xs">🏛️</span>}
+                      />
+                      <AuthInput
+                        label="Telefon raqami"
+                        type="tel"
+                        value={phone}
+                        onChange={setPhone}
+                        placeholder="+998 90 123 45 67"
+                        icon={<span className="text-xs">📞</span>}
+                      />
+                    </div>
+                  )}
+
+                  {/* Yosh advokat / Advokat bo‘lmoqchi talaba uchun maxsus parol maydoni */}
+                  {selectedRole === 'law_student' && (
+                    <div className="p-3 bg-indigo-50/70 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800/50 rounded-xl space-y-2.5 text-xs animate-in fade-in">
+                      <p className="text-[11px] text-indigo-800 dark:text-indigo-300 font-medium leading-relaxed">
+                        🎓 Advokat bo‘lmoqchi bo‘lgan talabalar (Yosh advokatlar) tizimga faqat maxsus taklifnoma paroli orqali a'zo bo'ladilar.
+                      </p>
+                      <AuthInput
+                        label="Maxsus taklifnoma paroli (Vaucher kodi) *"
+                        type="text"
+                        value={specialCode}
+                        onChange={setSpecialCode}
+                        placeholder="Masalan: YOSH-ADVOKAT-2026 yoki INV-..."
+                        required
+                        icon={<span className="text-xs">🔑</span>}
+                      />
+                      <AuthInput
+                        label="OTM Nomi"
+                        type="text"
+                        value={university}
+                        onChange={setUniversity}
+                        placeholder="Toshkent davlat yuridik universiteti (TDYU)"
+                        icon={<span className="text-xs">🏫</span>}
+                      />
+                    </div>
+                  )}
+
+                  {/* Umumiy talaba uchun maydon */}
+                  {selectedRole === 'student' && (
+                    <div className="space-y-2">
+                      <AuthInput
+                        label="Ta'lim muassasasi (OTM)"
+                        type="text"
+                        value={university}
+                        onChange={setUniversity}
+                        placeholder="Universitet yoki litsey nomi"
+                        icon={<span className="text-xs">🏫</span>}
+                      />
+                    </div>
+                  )}
+
+                  {/* Fuqaro uchun maydon */}
+                  {selectedRole === 'citizen' && (
+                    <div className="grid grid-cols-2 gap-2">
+                      <AuthInput
+                        label="Telefon raqami"
+                        type="tel"
+                        value={phone}
+                        onChange={setPhone}
+                        placeholder="+998 90 123 45 67"
+                        icon={<span className="text-xs">📞</span>}
+                      />
+                      <AuthInput
+                        label="Shahar / Viloyat"
+                        type="text"
+                        value={city}
+                        onChange={setCity}
+                        placeholder="Toshkent"
+                        icon={<span className="text-xs">📍</span>}
+                      />
+                    </div>
+                  )}
 
                   <AuthInput
                     label="Ismingiz"
