@@ -145,21 +145,36 @@ function safeParseAiResponse(raw: string, userRole: CourtRole): StructuredAiResp
     console.warn('AI JSON parse warning, attempting fallback extraction:', e)
   }
 
-  // Fallback: Agar JSON buzilgan bo'lsa, xavfsiz struktura yaratamiz
+  // Fallback: Agar JSON buzilgan bo'lsa yoki bo'sh bo'lsa, xavfsiz va protsessual haqiqiy ochilish/javob yaratamiz
   const cleanText = ensureUzbekLatin(raw.replace(/[{}\[\]"]/g, '').trim())
   const fallbackSpeaker = userRole === 'SUDYA' ? 'PROKUROR' : 'SUDYA'
+  
+  let fallbackMessage = cleanText.slice(0, 600)
+  if (!fallbackMessage || fallbackMessage.length < 20) {
+    if (userRole === 'ADVOKAT') {
+      fallbackMessage =
+        'O‘zbekiston Respublikasi nomidan! Sud majlisi ochiq deb e’lon qilinadi. Raislik qiluvchi: Farhod Ergashev. Zalda davlat ayblovchisi, himoyachi advokat va sudlanuvchi hozir. JPK 394–399-moddalariga muvofiq taraflarga o‘z protsessual huquq va majburiyatlari tushuntiriladi. Sud tarkibiga rad etish (otvod) yoki ish bo‘yicha dastlabki iltimosnomalar bormi? So‘z himoyachi advokatga beriladi.'
+    } else if (userRole === 'PROKUROR') {
+      fallbackMessage =
+        'O‘zbekiston Respublikasi nomidan! Sud majlisi ochiq deb e’lon qilinadi. Ish materiallari va taraflarning hozirligi tekshirildi. JPK talablariga muvofiq taraflarga huquqlari tushuntirildi. Ish bo‘yicha dastlabki iltimosnomalar bormi? So‘z davlat ayblovchisiga beriladi.'
+    } else {
+      fallbackMessage =
+        'Barcha o‘rnidan tursin, sud kelmoqda! Jinoyat ishlari bo‘yicha sud zaliga raislik qiluvchi sudya tashrif buyurdi. Barcha chaqirilgan ishtirokchilar zalda hozir. Muhtaram Sudya, marhamat, sud majlisini ochiq deb e’lon qiling.'
+    }
+  }
+
   return {
     speakers: [
       {
-        speaker: fallbackSpeaker === 'SUDYA' ? 'Sud raisi' : 'Davlat ayblovchisi',
-        role: fallbackSpeaker,
-        message: cleanText.slice(0, 600) || 'Sud majlisi tartibiga muvofiq davom etamiz.',
+        speaker: fallbackSpeaker === 'SUDYA' ? 'Sud raisi' : 'Sud kotibi',
+        role: fallbackSpeaker === 'SUDYA' ? 'SUDYA' : 'KOTIB',
+        message: fallbackMessage,
         action: 'speak',
       },
     ],
     user_feedback: {
       valid_procedural_move: true,
-      critique: 'Protsessual harakat qayd etildi.',
+      critique: 'Sud majlisi rasmiy ochildi va protsessual navbat sizga berildi.',
       etiquette_score_delta: 0,
       argument_score_delta: 5,
       evidence_score_delta: 0,
@@ -280,8 +295,21 @@ JSON SCHEMA:
   // User input tayyorlash
   let userPrompt = ''
   if (isOpening) {
-    userPrompt = `Sud majlisini oching. Foydalanuvchi ${userName} "${userRole}" rolida zalda hozir bo'lib turibdi.
-Majlis tartibi bo'yicha birinchi navbatda tegishli shaxs (agar foydalanuvchi Sudya bo'lsa Kotiba, aks holda Sud raisi) majlisni ochsin va jarayonni qonuniy boshlasin.`
+    if (userRole === 'SUDYA') {
+      userPrompt = `Sud majlisi ochilish vaqti keldi. Foydalanuvchi ${userName} "SUDYA" (Sud Raisi) sifatida majlisni boshqaradi.
+Birinchi bo‘lib Kotiba (Sud kotibi) so‘zlasin:
+"Barcha o‘rnidan tursin, sud kelmoqda! Jinoyat ishlari bo‘yicha sud zaliga raislik qiluvchi sudya ${userName} tashrif buyurdi. Zalda barcha chaqirilgan ishtirokchilar hozir."
+So‘ng Sudya ${userName}ga sud majlisini rasman ochiq deb e’lon qilish va taraflar shaxsini tekshirish uchun navbat berilsin.`
+    } else {
+      userPrompt = `Sud majlisini O‘zbekiston Respublikasi protsessual qonunchiligi (JPK 394–400 yoki FPK 180–188) talablariga binoan rasman OCHING.
+Foydalanuvchi ${userName} "${userRole}" (${userRole === 'ADVOKAT' ? 'Himoyachi advokat' : 'Davlat ayblovchisi'}) rolida hozir bo‘lib turibdi.
+
+Birinchi navbatda Sud Raisi (SUDYA) quyidagi ketma-ketlikda gapirishi SHART:
+1. "O‘zbekiston Respublikasi nomidan! Jinoyat ishlari bo‘yicha ... sudi ... jinoyat ishini ochiq sud majlisida ko‘rib chiqishni OCHIQ deb e’lon qiladi!"
+2. Ishtirokchilarning hozirligini tekshirsin: Davlat ayblovchisi, Himoyachi advokat ${userName}, Sudlanuvchi.
+3. JPK 397–399-moddalariga binoan taraflarga o‘z protsessual huquqlarini, sud tarkibini rad qilish (otvod) huquqini tushuntirsin.
+4. "Sud tarkibiga rad etish (otvod) yoki ish boshlanishidan avval dastlabki iltimosnomalar bormi?" deb so‘rasin va so‘z navbatini foydalanuvchi ${userName} (${userRole})ga bersin.`
+    }
   } else if (userAction) {
     userPrompt = `Foydalanuvchi (${userName}, roli: ${userRole}) quyidagi protsessual harakatni amalga oshirdi:
 Turi: ${userAction.type}

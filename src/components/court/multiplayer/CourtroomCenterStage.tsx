@@ -42,6 +42,7 @@ interface CourtroomCenterStageProps {
   onStartTrial: () => void
   onRuleObjection: (ruling: 'sustained' | 'overruled', reasoning: string) => void
   onAdvanceStage: () => void
+  onGrantSpeaking?: (targetUserId: string | null) => void
 }
 
 /**
@@ -56,6 +57,8 @@ function ParticipantMediaTile({
   mediaStream,
   isLocal,
   customHeight = 'h-36 sm:h-44',
+  canGrantSpeech = false,
+  onGrantSpeech,
 }: {
   participant?: MultiplayerParticipant
   isCurrentSpeaker: boolean
@@ -64,6 +67,8 @@ function ParticipantMediaTile({
   mediaStream?: MediaStream | null
   isLocal: boolean
   customHeight?: string
+  canGrantSpeech?: boolean
+  onGrantSpeech?: () => void
 }) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const roleDef = participant ? ROLE_LABELS[participant.role] : undefined
@@ -178,8 +183,22 @@ function ParticipantMediaTile({
         </div>
       </div>
 
-      {/* Bottom Overlay: Participant Name & Speaker indicator */}
-      <div className="relative z-10">
+      {/* Hidden audio element to guarantee remote audio playback even when video is off */}
+      {!isLocal && mediaStream && (
+        <audio
+          ref={el => {
+            if (el && el.srcObject !== mediaStream) {
+              el.srcObject = mediaStream
+              el.play().catch(() => {})
+            }
+          }}
+          autoPlay
+          playsInline
+        />
+      )}
+
+      {/* Bottom Overlay: Participant Name, Speaker indicator & Quick Speech Toggle */}
+      <div className="relative z-10 space-y-1">
         <div className="flex items-center justify-between">
           <span className="text-xs font-bold text-white drop-shadow truncate max-w-[140px]">
             {participant.userName} {isLocal && '(Siz)'}
@@ -191,6 +210,21 @@ function ParticipantMediaTile({
             </span>
           )}
         </div>
+
+        {/* Quick Grant/Revoke Speech Button for Judge */}
+        {canGrantSpeech && onGrantSpeech && !isLocal && (
+          <button
+            type="button"
+            onClick={onGrantSpeech}
+            className={`w-full py-0.5 rounded text-[10px] font-bold transition-all shadow ${
+              isCurrentSpeaker
+                ? 'bg-red-600/80 hover:bg-red-600 text-white'
+                : 'bg-blue-600/80 hover:bg-blue-600 text-white'
+            }`}
+          >
+            {isCurrentSpeaker ? 'So‘zni to‘xtatish' : 'So‘z berish'}
+          </button>
+        )}
       </div>
     </div>
   )
@@ -209,6 +243,7 @@ export default function CourtroomCenterStage({
   onStartTrial,
   onRuleObjection,
   onAdvanceStage,
+  onGrantSpeaking,
 }: CourtroomCenterStageProps) {
   const [showFacts, setShowFacts] = useState(false)
   const [viewMode, setViewMode] = useState<'spatial' | 'gallery'>('spatial')
@@ -446,6 +481,38 @@ export default function CourtroomCenterStage({
         </div>
       )}
 
+      {/* Speaking Queue Notification for Judge */}
+      {room.speakingQueue && room.speakingQueue.length > 0 && (
+        <div className="bg-blue-950/60 border border-blue-500/40 rounded-2xl p-3 flex flex-wrap items-center justify-between gap-2 shadow-lg">
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-blue-400 animate-ping" />
+            <span className="text-xs font-bold text-blue-200">
+              So‘z so‘raganlar navbati ({room.speakingQueue.length} ta):
+            </span>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {room.speakingQueue.map(q => (
+                <span
+                  key={q.userId}
+                  className="px-2 py-0.5 rounded-lg bg-blue-900/50 border border-blue-400/30 text-[11px] font-semibold text-white"
+                >
+                  {q.role}: {q.userName}
+                </span>
+              ))}
+            </div>
+          </div>
+          {isJudge && onGrantSpeaking && (
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => onGrantSpeaking(room.speakingQueue[0].userId)}
+                className="px-3 py-1 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white shadow-sm flex items-center gap-1 transition-all"
+              >
+                <span>Navbatdagiga so‘z berish ({room.speakingQueue[0].userName})</span>
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Interactive Courtroom Stand Layout */}
       <div className="bg-zinc-900/60 border border-zinc-800 rounded-3xl p-4 sm:p-6 relative shadow-inner">
         {/* Stage Header Info & View Mode Toggle */}
@@ -542,6 +609,7 @@ export default function CourtroomCenterStage({
                   mediaStream={getMediaForUser(judge?.userId)}
                   isLocal={judge?.userId === myParticipant?.userId}
                   customHeight="h-44 sm:h-52"
+                  canGrantSpeech={false}
                 />
               </div>
             </div>
@@ -558,6 +626,12 @@ export default function CourtroomCenterStage({
                   mediaStream={getMediaForUser(prosecutor?.userId)}
                   isLocal={prosecutor?.userId === myParticipant?.userId}
                   customHeight="h-40 sm:h-44"
+                  canGrantSpeech={isJudge && room.status === 'in_progress'}
+                  onGrantSpeech={() =>
+                    onGrantSpeaking?.(
+                      currentSpeaker?.userId === prosecutor?.userId ? null : prosecutor?.userId || null
+                    )
+                  }
                 />
               </div>
 
@@ -571,6 +645,12 @@ export default function CourtroomCenterStage({
                   mediaStream={getMediaForUser(lawyer?.userId)}
                   isLocal={lawyer?.userId === myParticipant?.userId}
                   customHeight="h-40 sm:h-44"
+                  canGrantSpeech={isJudge && room.status === 'in_progress'}
+                  onGrantSpeech={() =>
+                    onGrantSpeaking?.(
+                      currentSpeaker?.userId === lawyer?.userId ? null : lawyer?.userId || null
+                    )
+                  }
                 />
               </div>
             </div>
@@ -587,6 +667,12 @@ export default function CourtroomCenterStage({
                   mediaStream={getMediaForUser(witness?.userId)}
                   isLocal={witness?.userId === myParticipant?.userId}
                   customHeight="h-36 sm:h-40"
+                  canGrantSpeech={isJudge && room.status === 'in_progress'}
+                  onGrantSpeech={() =>
+                    onGrantSpeaking?.(
+                      currentSpeaker?.userId === witness?.userId ? null : witness?.userId || null
+                    )
+                  }
                 />
               </div>
 
@@ -600,6 +686,12 @@ export default function CourtroomCenterStage({
                   mediaStream={getMediaForUser(defendant?.userId)}
                   isLocal={defendant?.userId === myParticipant?.userId}
                   customHeight="h-36 sm:h-40"
+                  canGrantSpeech={isJudge && room.status === 'in_progress'}
+                  onGrantSpeech={() =>
+                    onGrantSpeaking?.(
+                      currentSpeaker?.userId === defendant?.userId ? null : defendant?.userId || null
+                    )
+                  }
                 />
               </div>
             </div>

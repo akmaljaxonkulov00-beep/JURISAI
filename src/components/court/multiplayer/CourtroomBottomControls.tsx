@@ -305,9 +305,24 @@ export default function CourtroomBottomControls({
           </div>
         </form>
       ) : (
-        <div className="p-3 rounded-xl bg-zinc-950/60 border border-zinc-800 text-center text-xs text-zinc-400">
-          🔒 Hozirda sizning nutq navbatingiz emas. So‘z olish uchun{' '}
-          <strong className="text-blue-400">&ldquo;So‘z so‘rash&rdquo;</strong> tugmasini bosing.
+        <div className="p-3 rounded-xl bg-zinc-950/60 border border-zinc-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-zinc-400">
+          <span>
+            🔒 Hozirda nutq navbati sizda emas. So‘z olish uchun Sud Raisiga so‘rov yuboring:
+          </span>
+          {myParticipant && myParticipant.role !== 'KUZATUVCHI' && (
+            <button
+              type="button"
+              onClick={() => onRequestSpeaking(isUserInQueue ? 'cancel' : 'request')}
+              className={`px-4 py-1.5 rounded-xl font-bold text-xs transition-all flex items-center gap-1.5 shadow ${
+                isUserInQueue
+                  ? 'bg-amber-600/30 text-amber-300 border border-amber-500/40'
+                  : 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-500/20'
+              }`}
+            >
+              <Clock className="w-3.5 h-3.5" />
+              <span>{isUserInQueue ? 'Navbatdan chiqish' : 'So‘z so‘rash (Qo‘l ko‘tarish)'}</span>
+            </button>
+          )}
         </div>
       )}
 

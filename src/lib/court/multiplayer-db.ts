@@ -251,6 +251,15 @@ async function loadRoomFromDb(codeOrId: string): Promise<MultiplayerRoom | null>
         completedAt: mpData.completed_at || undefined,
         durationSeconds: mpData.duration_seconds || undefined,
       }
+
+      // Preserve forward lifecycle in memory: never regress in_progress to waiting
+      const existingInMemory = roomsMap.get(room.id) || roomsMap.get(room.code)
+      if (existingInMemory && existingInMemory.status === 'in_progress' && room.status === 'waiting') {
+        room.status = 'in_progress'
+        room.currentStageId = existingInMemory.currentStageId
+        room.currentStageOrder = existingInMemory.currentStageOrder
+      }
+
       roomsMap.set(room.id, room)
       roomsMap.set(room.code, room)
       return room
@@ -456,7 +465,16 @@ export async function listPublicCourtRooms(): Promise<
             await loadRoomFromDb(row.id)
           } else {
             const r = roomsMap.get(row.id)!
-            r.status = row.status
+            // Monotonic lifecycle: NEVER regress in_progress to waiting!
+            if (row.status === 'completed' || row.status === 'cancelled') {
+              r.status = row.status
+            } else if (row.status === 'in_progress' && r.status === 'waiting') {
+              r.status = 'in_progress'
+            }
+            if (row.current_stage_order > r.currentStageOrder) {
+              r.currentStageOrder = row.current_stage_order
+              r.currentStageId = row.current_stage_id
+            }
             r.updatedAt = row.updated_at
           }
         }
@@ -600,7 +618,8 @@ export async function joinCourtRoom(
     }
   }
 
-  // If role is still KUZATUVCHI in waiting room, try to give an unfilled essential role
+  // If role is still KUZATUVCHI in waiting room, try to give an unfilled essential role.
+  // If the trial is already 'in_progress', joiners without explicit role strictly remain KUZATUVCHI (spectators).
   if (assignedRole === 'KUZATUVCHI' && room.status === 'waiting') {
     const priorityRoles: MultiplayerRole[] = [
       'PROKUROR',
@@ -1177,6 +1196,28 @@ function generateRoleFeedback(
   correctArticles: string[]
   grade: string
 } {
+  // Strict real evaluation: Zero participation gets failing grade F
+  if (speechCount === 0) {
+    return {
+      feedback: `${userName} (${ROLE_LABELS[role]?.title || role}) sud majlisida umuman so‘z olmadi, o‘z tarafi pozitsiyasini himoya qilmadi va barcha bosqichlarda sukut saqladi.`,
+      mistakes: [
+        `${ROLE_LABELS[role]?.title || role} sifatida sud majlisida qatnashib, qonuniy vakolatlarni amalga oshirmaslik protsessual qonunchilik talablariga mutlaqo zid.`,
+        `Taraf o‘z talab yoki e’tirozlarini og‘zaki bayon etmadi, bu esa sud jarayonida uning pozitsiyasini yo‘qqa chiqaradi.`,
+      ],
+      recommendations: [
+        `Sud majlisida faol ishtirok etib, o‘z vaqtida so‘z olish va himoya/ayblov nutqini so‘zlash shart.`,
+        `Qonun moddalari (JK, JPK, FPK, MK) bilan asoslangan vajlarni bayon qilish lozim.`,
+      ],
+      correctArticles:
+        caseCategory === 'labor'
+          ? ['MK 161-modda', 'FPK 50-modda']
+          : caseCategory === 'civil'
+            ? ['FPK 50-modda', 'FK 164-modda']
+            : ['JPK 51-modda', 'JPK 88-modda', 'JK 169-modda'],
+      grade: 'F',
+    }
+  }
+
   const grade =
     totalScore >= 92
       ? 'A+'
@@ -1186,7 +1227,11 @@ function generateRoleFeedback(
           ? 'B+'
           : totalScore >= 65
             ? 'B'
-            : 'C'
+            : totalScore >= 50
+              ? 'C'
+              : totalScore >= 25
+                ? 'D'
+                : 'F'
 
   if (caseCategory === 'labor') {
     switch (role) {
@@ -1410,14 +1455,50 @@ export async function issueVerdict(
     const speechCount = pMessages.length
     const hasEvidence = room.evidence.some(e => e.submittedById === p.userId)
 
-    const legalReasoning = Math.min(60 + speechCount * 8, 98)
-    const proceduralCorrectness = Math.min(70 + speechCount * 6, 95)
-    const argumentQuality = Math.min(65 + speechCount * 7, 96)
-    const evidenceUsage = hasEvidence ? 90 : 70
-    const totalScore = Math.round(
-      (legalReasoning + proceduralCorrectness + argumentQuality + evidenceUsage) / 4
-    )
-    const xpEarned = totalScore * 2 // 150 - 200 XP
+    const userSpeeches = pMessages.map(m => m.content)
+    const allText = userSpeeches.join(' ')
+    const wordCount = allText.split(/\s+/).filter(Boolean).length
+    const mentionsArticles = /\b(JK|JPK|FPK|MK|FK|BSK|modda|qonun|kodeks|qaror)\b/i.test(allText)
+    const mentionsEtiquette = /\b(hurmatli|muhtaram|sud|sudya|raislik|ruxsat)\b/i.test(allText)
+
+    let legalReasoning = 0
+    let proceduralCorrectness = 0
+    let argumentQuality = 0
+    let evidenceUsage = hasEvidence ? 80 : 0
+    let totalScore = 0
+    let xpEarned = 0
+
+    if (speechCount === 0) {
+      // Zero participation: strict failure, zero XP
+      legalReasoning = 0
+      proceduralCorrectness = 10
+      argumentQuality = 0
+      evidenceUsage = hasEvidence ? 40 : 0
+      totalScore = Math.round(
+        (legalReasoning + proceduralCorrectness + argumentQuality + evidenceUsage) / 4
+      )
+      xpEarned = 0
+    } else if (wordCount < 3 && !mentionsArticles && !mentionsEtiquette) {
+      // Trivial utterances ("ha", "yo‘q")
+      legalReasoning = 20
+      proceduralCorrectness = 30
+      argumentQuality = 20
+      evidenceUsage = hasEvidence ? 60 : 15
+      totalScore = Math.round(
+        (legalReasoning + proceduralCorrectness + argumentQuality + evidenceUsage) / 4
+      )
+      xpEarned = 15
+    } else {
+      // Genuine participation
+      legalReasoning = Math.min(50 + Math.min(speechCount * 7, 25) + (mentionsArticles ? 20 : 0), 98)
+      proceduralCorrectness = Math.min(55 + Math.min(speechCount * 5, 20) + (mentionsEtiquette ? 20 : 0), 95)
+      argumentQuality = Math.min(50 + Math.min(wordCount, 25) + (mentionsArticles ? 20 : 0), 96)
+      evidenceUsage = hasEvidence ? 90 : 50
+      totalScore = Math.round(
+        (legalReasoning + proceduralCorrectness + argumentQuality + evidenceUsage) / 4
+      )
+      xpEarned = totalScore * 2
+    }
 
     // Detailed educational analysis: Qayerda xato qildi & Nima qilishi kerak edi
     const analysis = generateRoleFeedback(
@@ -1957,17 +2038,21 @@ export async function getUserCompletedTrialDetail(
     throw new Error('Ushbu sud majlisi hali yakunlanmagan.')
   }
 
-  // Authorization check: User can be participant, host, or observer
+  // Authorization check: User must be a participant or the host
   const myPart = room.participants.find(p => p.userId === userId)
   const isHost = room.hostId === userId
+
+  if (!myPart && !isHost) {
+    throw new Error('Sizda ushbu yakunlangan sud dosyesini ko‘rish vakolati yo‘q.')
+  }
 
   const effectiveParticipant: MultiplayerParticipant = myPart || {
     id: crypto.randomUUID(),
     roomId: room.id,
     userId,
-    userName: isHost ? room.hostName : 'Kuzatuvchi',
-    role: isHost ? 'SUDYA' : 'KUZATUVCHI',
-    isHost,
+    userName: room.hostName,
+    role: 'SUDYA',
+    isHost: true,
     isAi: false,
     isReady: true,
     canSpeak: false,

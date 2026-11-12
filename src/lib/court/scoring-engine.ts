@@ -16,23 +16,53 @@ export function calculateSessionScore(
     e => e.eventType === 'evidence_presented' || e.eventType === 'evidence_admitted'
   )
 
-  // 2. Bazaviy ballarni shakllantirish
+  // Zero participation check: agar foydalanuvchi umuman qatnashmagan bo'lsa va hech qanday ball olmagan bo'lsa
+  if (userActionsCount === 0 && scoring.argument === 0 && scoring.evidence === 0 && !session.completed) {
+    return {
+      legalReasoning: 0,
+      argumentQuality: 0,
+      evidenceUsage: 0,
+      proceduralCorrectness: 10,
+      strategy: 0,
+      impartiality: selected_role === 'SUDYA' ? 10 : undefined,
+      totalScore: 5,
+      xpEarned: 0,
+      achievements: [],
+      feedbackSummary: `Siz ${selected_role} sifatida sud majlisida birorta ham protsessual harakat yoki nutq amalga oshirmadingiz. Qonuniy pozitsiyani himoya qilish uchun sud jarayonida faol ishtirok etish shart.`,
+      detailedCritique: [
+        `Tanlangan rol: ${selected_role}. Ish: "${scenario.title}".`,
+        `Amalga oshirilgan protsessual harakatlar soni: 0 ta (To‘liq sukut).`,
+        `Huquqiy talab: Taraflar o‘z talab va vajlarini sud majlisida og‘zaki bayon qilishlari va dalillar bilan asoslashlari shart.`,
+      ],
+      strengths: [],
+      improvements: [
+        'Sud majlisida o‘z vaqtida so‘z oling va o‘z tarafingiz himoyasini amalga oshiring',
+        'Ish bo‘yicha dalillarni taqdim eting va tegishli qonun moddalarini keltiring',
+      ],
+    }
+  }
+
+  // 2. Bazaviy ballarni shakllantirish (real ishtirok hajmiga bog'liq)
+  const participationFactor = userActionsCount === 0 ? 0.75 : Math.min(1, Math.max(0.6, userActionsCount / 4))
   let legalReasoning = Math.min(
     100,
-    Math.max(40, 60 + scoring.legalReasoning - procedural_violations.length * 5)
+    Math.max(10, Math.round((40 + scoring.legalReasoning * 0.6) * participationFactor - procedural_violations.length * 8))
   )
-  let argumentQuality = Math.min(100, Math.max(30, 50 + scoring.argument))
+  let argumentQuality = Math.min(
+    100,
+    Math.max(10, Math.round((30 + scoring.argument * 0.7) * participationFactor))
+  )
   let evidenceUsage = Math.min(
     100,
-    Math.max(20, evidenceEvents.length > 0 ? 55 + scoring.evidence : 35)
+    Math.max(10, evidenceEvents.length > 0 ? 55 + scoring.evidence : Math.round(25 * participationFactor))
   )
   let proceduralCorrectness = Math.min(
     100,
-    Math.max(25, scoring.etiquette - procedural_violations.length * 8)
+    Math.max(15, scoring.etiquette - procedural_violations.length * 10)
   )
   let strategy = Math.min(
     100,
-    Math.max(30, 50 + (userActionsCount >= 4 ? 25 : userActionsCount * 6))
+    Math.max(10, Math.round((30 + (userActionsCount >= 4 ? 35 : userActionsCount * 8)) * participationFactor))
   )
 
   let impartiality: number | undefined = undefined

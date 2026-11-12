@@ -257,6 +257,7 @@ export default function MultiplayerCourtroomPage() {
                 onStartTrial={startTrial}
                 onRuleObjection={ruleOnObjection}
                 onAdvanceStage={advanceStage}
+                onGrantSpeaking={grantSpeaking}
               />
             ) : (
               <div className="flex-1 p-4 overflow-hidden">
@@ -287,6 +288,7 @@ export default function MultiplayerCourtroomPage() {
                 onStartTrial={startTrial}
                 onRuleObjection={ruleOnObjection}
                 onAdvanceStage={advanceStage}
+                onGrantSpeaking={grantSpeaking}
               />
             )}
             {activeMobileTab === 'evidence' && (

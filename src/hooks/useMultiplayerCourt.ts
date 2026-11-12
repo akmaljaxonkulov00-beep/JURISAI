@@ -387,9 +387,40 @@ export function useMultiplayerCourt({ codeOrId, currentUser }: UseMultiplayerCou
           setLocalStream(stream)
           setIsAudioConnected(true)
 
-          // Attach tracks to all existing peer connections
-          peerConnectionsRef.current.forEach(pc => {
-            stream.getTracks().forEach(track => pc.addTrack(track, stream))
+          // Attach tracks to all existing peer connections & renegotiate so remote users hear the audio immediately
+          onlineUserIds.forEach(peerId => {
+            if (peerId !== myIdentityRef.current.id && !peerConnectionsRef.current.has(peerId)) {
+              setupPeerConnectionRef.current?.(peerId, true)
+            }
+          })
+
+          peerConnectionsRef.current.forEach(async (pc, peerId) => {
+            stream.getTracks().forEach(track => {
+              const senders = pc.getSenders()
+              const hasTrack = senders.some(s => s.track?.id === track.id)
+              if (!hasTrack) {
+                try {
+                  pc.addTrack(track, stream)
+                } catch {}
+              }
+            })
+            try {
+              const offer = await pc.createOffer()
+              await pc.setLocalDescription(offer)
+              if (channelRef.current) {
+                channelRef.current.send({
+                  type: 'broadcast',
+                  event: 'webrtc_signal',
+                  payload: {
+                    targetUserId: peerId,
+                    senderUserId: myIdentityRef.current.id,
+                    offer: pc.localDescription,
+                  },
+                })
+              }
+            } catch (renegErr) {
+              console.warn('Renegotiation error on adding audio track:', renegErr)
+            }
           })
 
           return stream
@@ -699,14 +730,18 @@ export function useMultiplayerCourt({ codeOrId, currentUser }: UseMultiplayerCou
         const userIds = new Set<string>()
         for (const [key] of Object.entries(presenceState)) {
           userIds.add(key)
+          // Establish peer connection with all online peers immediately
+          if (key !== myIdentity.id && !peerConnectionsRef.current.has(key)) {
+            setupPeerConnectionRef.current?.(key, myIdentity.id < key)
+          }
         }
         setOnlineUserIds(userIds)
         setConnectionState('connected')
       })
       .on('presence', { event: 'join' }, ({ key }) => {
         setOnlineUserIds(prev => new Set(prev).add(key))
-        if (key !== myIdentity.id && localStreamRef.current) {
-          setupPeerConnectionRef.current(key, true)
+        if (key !== myIdentity.id) {
+          setupPeerConnectionRef.current?.(key, true)
         }
       })
       .on('presence', { event: 'leave' }, ({ key }) => {

@@ -47,14 +47,13 @@ export async function POST(request: NextRequest) {
 
     const chatSystemPrompt = `${UZBEK_LEGAL_SYSTEM_INSTRUCTION}
 
-QAT'IY QOIDALAR:
-1. FAQAT BAZA MA'LUMOTLARIGA ASOSLAN: Agar javobingda modda raqami yoki kodeks nomi keltirsang, u AYNAN quyidagi "BAZA MA'LUMOTLARI" blokida berilgan bo'lishi SHART. Undagi moddalardan tashqari hech qachon modda raqami, jazo muddati yoki norma to'qima.
-2. BAZA MA'LUMOTLARI blokidagi moddalarni keltirishda kodeks nomi va modda raqamini aniq yoz (masalan: "O'zbekiston Respublikasi Jinoyat Kodeksining 97-moddasi").
-3. Agar berilgan baza ma'lumotlarida foydalanuvchi savoliga mos modda bo'lmasa, shunday yoz: "Bazada bu savol bo'yicha aniq modda topilmadi" — va umumiy qonuniy tushuntirish bering, modda raqami keltirmang.
-4. JAVOBLAR ANIQLIGI: Jinoyat Kodeksi 97-moddasi — "Qasddan odam o'ldirish". Moddalarni boshqa kodekslar bilan adashtirma.
-5. TIL: Faqat adabiy o'zbek tilida, FAQAT LOTIN ALIFBOSIDA javob ber. Kirill harflari MUTLAQO ISHLATILMAYDI.
-6. FORMAT: Toza Markdown ishlat (## sarlavhalar, **qalin**, • ro'yxatlar).
-7. Qisqa va aniq bo'l: odatda 150-250 so'z. Foydalanuvchi "batafsil" desa 300-500 so'z.${legalContext}`
+QONUNIY YO‘RIQNOMALAR:
+1. BARCHA HUQUQIY SAVOLLARGA JAVOB: Foydalanuvchining O‘zbekiston Respublikasi huquq tizimi va qonunchiligi bilan bog‘liq har qanday savoliga (21 ta amaldagi kodeks, qonunlar, LexUZ asosida) to‘liq, mukammal va professional yuridik javob ber. Hech qachon "bazada modda topilmadi" deb to'xtab qolma.
+2. ANIQ MODDALAR: Javoblarda O‘zbekiston Respublikasining tegishli amaldagi kodekslari va qonunlarining aniq moddalarini ko‘rsatib, yuridik tahlil ber (Masalan: "O‘zbekiston Respublikasi Jinoyat kodeksining 168-moddasi", "Mehnat kodeksining 161-moddasi", "Fuqarolik kodeksining 354-moddasi").
+3. BAZA MA'LUMOTLARI: Quyidagi BAZA MA'LUMOTLARI bloki rasmiy manba sifatida berilgan bo‘lsa, undan foydalan; agar savol bo‘yicha bazada modda bo‘lmasa ham, O‘zbekiston amaldagi qonunchiligi asosida to‘liq va aniq huquqiy yechim ber.
+4. TIL VA ALIFBO: Faqat adabiy o‘zbek tilida, FAQAT LOTIN ALIFBOSIDA javob ber. Kirill yozuvi mutlaqo ishlatilmaydi.
+5. FORMAT: Toza Markdown (## sarlavhalar, **qalin**, • ro‘yxatlar).
+6. Qisqa va lo‘nda bo‘l: odatda 150-300 so‘z. Foydalanuvchi "batafsil" desa 350-500 so‘z.${legalContext}`
 
     let aiResponse = ''
 

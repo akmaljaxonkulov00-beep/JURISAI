@@ -601,17 +601,13 @@ export async function groundPrompt(
 
   if (articles.length === 0) {
     const noDataRule =
-      "\n\nQAT'IY QOIDA: Hech qachon modda raqami, kodeks nomi yoki jazo muddatini to'qima. " +
-      'Aniq moddani bilmasang, "aniq modda uchun qonunlar bazasiga qarang" deb yoz va modda raqami keltirma.'
+      "\n\nQAT'IY QOIDA: Hech qachon xayoliy norma to'qima. O‘zbekiston Respublikasining 2026-yilgi amaldagi qonunchiligi (LexUZ, 21 ta kodeks) talablariga asoslanib to‘liq professional yuridik javob ber, noaniq bo'lsa modda raqami keltirma."
     return { prompt: basePrompt + noDataRule, articles }
   }
 
   const context = buildLegalContext(articles, 1200)
   const rule =
-    "\n\nQAT'IY QOIDA: Javobingda keltiriladigan HAR BIR modda raqami va kodeks nomi " +
-    "faqat yuqoridagi BAZA MA'LUMOTLARI blokidan olinishi SHART. Boshqa modda raqami, jazo " +
-    'muddati yoki norma to\'qima. Berilgan moddalar savolga mos kelmasa, "Bazada bu savol ' +
-    'bo\'yicha aniq modda topilmadi" deb yoz va modda raqami keltirma.'
+    "\n\nQONUNIY YO‘RIQNOMA: Yuqoridagi BAZA MA'LUMOTLARI blokidagi moddalar rasmiy manba sifatida taqdim etilmoqda. Savolga javob berishda ulardan va O‘zbekiston Respublikasining tegishli boshqa amaldagi qonun me’yorlaridan (LexUZ) to‘liq, xolis va asoslangan holda foydalaning."
   return { prompt: basePrompt + context + rule, articles }
 }
 
