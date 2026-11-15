@@ -43,8 +43,6 @@ import {
   GraduationCap,
   type LucideIcon,
 } from 'lucide-react'
-import AdminLawStudentManager from '@/components/admin/AdminLawStudentManager'
-import AdminCitizenMonetizationManager from '@/components/admin/AdminCitizenMonetizationManager'
 import { authService, type AuthUser } from '@/services/supabase-auth'
 import MonitoringDashboard from '@/components/admin/MonitoringDashboard'
 import AdminTemplateManager from '@/components/admin/AdminTemplateManager'
@@ -53,10 +51,6 @@ import AdminLegalManager from '@/components/admin/AdminLegalManager'
 import AdminCourtScenarioManager from '@/components/admin/AdminCourtScenarioManager'
 import AdminUsageLimitsManager from '@/components/admin/AdminUsageLimitsManager'
 import AdminCostMonitor from '@/components/admin/AdminCostMonitor'
-import AdminVerificationsManager from '@/components/admin/AdminVerificationsManager'
-import AdminQuestionsManager from '@/components/admin/AdminQuestionsManager'
-import AdminConsultationsManager from '@/components/admin/AdminConsultationsManager'
-import AdminExistingStudentsManager from '@/components/admin/AdminExistingStudentsManager'
 import ContactSettingsCard from '@/components/admin/ContactSettingsCard'
 import BrandingSettingsCard from '@/components/admin/BrandingSettingsCard'
 import { useAdminRealtime } from '@/hooks/useAdminRealtime'
@@ -165,12 +159,6 @@ interface LoginActivity {
 
 type TabType =
   | 'dashboard'
-  | 'verifications'
-  | 'law_students'
-  | 'citizen_monetization'
-  | 'questions_moderation'
-  | 'consultations'
-  | 'existing_students'
   | 'reports'
   | 'monitoring'
   | 'cost'
@@ -864,12 +852,6 @@ export default function AdminDashboard() {
 
   const tabs: { id: TabType; label: string; icon: LucideIcon; badge?: number }[] = [
     { id: 'dashboard', label: 'Boshqaruv', icon: Shield },
-    { id: 'verifications', label: 'Verifikatsiya', icon: Shield },
-    { id: 'law_students', label: 'Talabalar & Payouts', icon: Award },
-    { id: 'citizen_monetization', label: 'Savol Monetizatsiyasi', icon: CreditCard },
-    { id: 'questions_moderation', label: 'Savol-Javob', icon: FileText },
-    { id: 'consultations', label: 'Konsultatsiyalar', icon: CalendarDays },
-    { id: 'existing_students', label: 'Talabalar (Mavjud)', icon: Scale },
     { id: 'monitoring', label: 'Monitoring', icon: Activity },
     { id: 'cost', label: 'Xarajat', icon: TrendingUp },
     { id: 'reports', label: 'Hisobotlar', icon: BarChart3 },
@@ -1040,6 +1022,14 @@ export default function AdminDashboard() {
               Fuqarolar Nazorati
               <span className="text-[9px] px-1 rounded bg-blue-200/80 dark:bg-blue-900 text-blue-800 dark:text-blue-200 font-bold">Mijozlar</span>
             </Link>
+            <Link
+              href="/admin/students"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800/50 hover:bg-amber-100 transition-colors shrink-0"
+            >
+              <GraduationCap size={13} />
+              Ta‘lim Talabalari
+              <span className="text-[9px] px-1 rounded bg-amber-200/80 dark:bg-amber-900 text-amber-800 dark:text-amber-200 font-bold">Simulyator</span>
+            </Link>
           </div>
 
           {/* Mobile tabs */}
@@ -1202,300 +1192,6 @@ export default function AdminDashboard() {
                     <span>Ta&apos;lim Simulyatori</span>
                     <span>✓ Faol</span>
                   </div>
-                </div>
-              </div>
-            </div>
-
-            {/* ── REAL-TIME HAFTALIK VA OYLIK HISOBOTLAR MODULI ── */}
-            <div className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 rounded-2xl p-5 shadow-sm space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-zinc-800 pb-3">
-                <div className="flex items-center gap-2">
-                  <BarChart3 className="text-blue-600" size={18} />
-                  <div>
-                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                      Real-Time Haftalik & Oylik Tizimlar Hisoboti
-                    </h3>
-                    <p className="text-xs text-slate-500 dark:text-zinc-400">
-                      Har bir tizim bo‘yicha yangi foydalanuvchilar, faollik va tushum dinamikasi
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-zinc-800 p-1 rounded-xl">
-                  <button
-                    type="button"
-                    onClick={() => setReportRange('week')}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                      reportRange === 'week'
-                        ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-xs'
-                        : 'text-slate-600 dark:text-zinc-400'
-                    }`}
-                  >
-                    Haftalik (7 kun)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setReportRange('month')}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                      reportRange === 'month'
-                        ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-xs'
-                        : 'text-slate-600 dark:text-zinc-400'
-                    }`}
-                  >
-                    Oylik (30 kun)
-                  </button>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {/* Fuqarolar hisoboti */}
-                <div className="p-4 rounded-xl border border-blue-100 dark:border-blue-900/40 bg-blue-50/30 dark:bg-blue-950/20 space-y-2">
-                  <span className="text-xs font-bold text-blue-900 dark:text-blue-200 flex items-center justify-between">
-                    <span>🏛️ Fuqarolar</span>
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-bold">
-                      {reportRange === 'week' ? 'Haftalik' : 'Oylik'}
-                    </span>
-                  </span>
-                  <div className="text-xl font-black text-blue-950 dark:text-blue-100">
-                    +{reportRange === 'week' ? systemsOverview.citizens?.weekly || 0 : systemsOverview.citizens?.monthly || 0} yangi
-                  </div>
-                  <div className="text-xs text-slate-600 dark:text-zinc-400 pt-1 border-t border-blue-200/40">
-                    Tushum: <strong className="text-emerald-600 font-bold">
-                      {reportRange === 'week'
-                        ? Number(systemsOverview.citizens?.weeklyRevenue || 0).toLocaleString()
-                        : Number(systemsOverview.citizens?.monthlyRevenue || systemsOverview.citizens?.revenue || 0).toLocaleString()
-                      } UZS
-                    </strong>
-                  </div>
-                </div>
-
-                {/* Yosh advokatlar hisoboti */}
-                <div className="p-4 rounded-xl border border-indigo-100 dark:border-indigo-900/40 bg-indigo-50/30 dark:bg-indigo-950/20 space-y-2">
-                  <span className="text-xs font-bold text-indigo-900 dark:text-indigo-200 flex items-center justify-between">
-                    <span>🎓 Yosh Advokatlar</span>
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-bold">
-                      Faol staj
-                    </span>
-                  </span>
-                  <div className="text-xl font-black text-indigo-950 dark:text-indigo-100">
-                    {systemsOverview.lawStudents?.active || 0} ta stajyor
-                  </div>
-                  <div className="text-xs text-slate-600 dark:text-zinc-400 pt-1 border-t border-indigo-200/40">
-                    Kutilayotgan yechish: <strong className="text-rose-600 font-bold">{systemsOverview.lawStudents?.pendingPayouts || 0} ta so‘rov</strong>
-                  </div>
-                </div>
-
-                {/* Advokatlar hisoboti */}
-                <div className="p-4 rounded-xl border border-emerald-100 dark:border-emerald-900/40 bg-emerald-50/30 dark:bg-emerald-950/20 space-y-2">
-                  <span className="text-xs font-bold text-emerald-900 dark:text-emerald-200 flex items-center justify-between">
-                    <span>⚖️ Advokatlar</span>
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-bold">
-                      Litsenziyalar
-                    </span>
-                  </span>
-                  <div className="text-xl font-black text-emerald-950 dark:text-emerald-100">
-                    {systemsOverview.advocates?.approved || 0} ta litsenziyali
-                  </div>
-                  <div className="text-xs text-slate-600 dark:text-zinc-400 pt-1 border-t border-emerald-200/40">
-                    Kutilayotgan arizalar: <strong className="text-amber-600 font-bold">{systemsOverview.advocates?.pending || 0} ta</strong>
-                  </div>
-                </div>
-
-                {/* Ta'lim talabalari hisoboti */}
-                <div className="p-4 rounded-xl border border-amber-100 dark:border-amber-900/40 bg-amber-50/30 dark:bg-amber-950/20 space-y-2">
-                  <span className="text-xs font-bold text-amber-900 dark:text-amber-200 flex items-center justify-between">
-                    <span>📚 Ta&apos;lim Talabalari</span>
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-bold">
-                      Mavjud 23 ta
-                    </span>
-                  </span>
-                  <div className="text-xl font-black text-amber-950 dark:text-amber-100">
-                    {systemsOverview.students?.total || 23} ta talaba
-                  </div>
-                  <div className="text-xs text-slate-600 dark:text-zinc-400 pt-1 border-t border-amber-200/40">
-                    Faoliyat: <strong className="text-blue-600 font-bold">Virtual sud & IRAC testlar</strong>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* ── 3 TA TIZIMNING HISOB RAQAMLARI (MENING KARTAM) SOZLAMASI ── */}
-            <div className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 rounded-2xl p-5 shadow-sm space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-zinc-800 pb-3">
-                <div className="flex items-center gap-2">
-                  <CreditCard className="text-emerald-600" size={18} />
-                  <div>
-                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                      Tizimlar Bo‘yicha To‘lov Hisob Raqamlari (Mening Kartam)
-                    </h3>
-                    <p className="text-xs text-slate-500 dark:text-zinc-400">
-                      Qaysi tizimga qaysi karta kiritilsa, to‘lov sahifasida FAQAT o‘sha tizimda ko‘rsatiladi va to‘lov tushadi
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* 1. Fuqarolar hisob raqami */}
-                <div className="p-4 rounded-xl border border-blue-200/80 dark:border-blue-900/50 bg-blue-50/20 dark:bg-blue-950/20 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-blue-900 dark:text-blue-200 flex items-center gap-1.5">
-                      🏛️ Fuqarolar To‘lovi Kartasi
-                    </span>
-                    <span className="text-[10px] text-blue-700 bg-blue-100 px-2 py-0.5 rounded font-bold">
-                      Fuqarolar Tizimi
-                    </span>
-                  </div>
-
-                  <div className="space-y-2">
-                    <div>
-                      <label className="block text-[11px] font-semibold text-slate-600 dark:text-zinc-400 mb-0.5">
-                        Karta raqami (8600...):
-                      </label>
-                      <input
-                        type="text"
-                        value={paymentCards.citizen?.cardNumber || ''}
-                        onChange={(e) => setPaymentCards({
-                          ...paymentCards,
-                          citizen: { ...paymentCards.citizen, cardNumber: e.target.value }
-                        })}
-                        placeholder="8600 0000 0000 0000"
-                        className="w-full px-3 py-1.5 bg-white dark:bg-zinc-800 border rounded-lg text-xs font-mono font-bold"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[11px] font-semibold text-slate-600 dark:text-zinc-400 mb-0.5">
-                        Karta egasi:
-                      </label>
-                      <input
-                        type="text"
-                        value={paymentCards.citizen?.cardHolder || ''}
-                        onChange={(e) => setPaymentCards({
-                          ...paymentCards,
-                          citizen: { ...paymentCards.citizen, cardHolder: e.target.value }
-                        })}
-                        placeholder="ISM FAMILIYA"
-                        className="w-full px-3 py-1.5 bg-white dark:bg-zinc-800 border rounded-lg text-xs font-semibold"
-                      />
-                    </div>
-                  </div>
-
-                  <button
-                    type="button"
-                    disabled={savingCards}
-                    onClick={() => handleSavePaymentCard('citizen')}
-                    className="w-full py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-xs"
-                  >
-                    Fuqaro Kartasini Saqlash
-                  </button>
-                </div>
-
-                {/* 2. Advokatlar hisob raqami */}
-                <div className="p-4 rounded-xl border border-emerald-200/80 dark:border-emerald-900/50 bg-emerald-50/20 dark:bg-emerald-950/20 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-emerald-900 dark:text-emerald-200 flex items-center gap-1.5">
-                      ⚖️ Advokatlar To‘lovi Kartasi
-                    </span>
-                    <span className="text-[10px] text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded font-bold">
-                      Advokatlar Tizimi
-                    </span>
-                  </div>
-
-                  <div className="space-y-2">
-                    <div>
-                      <label className="block text-[11px] font-semibold text-slate-600 dark:text-zinc-400 mb-0.5">
-                        Karta raqami (8600...):
-                      </label>
-                      <input
-                        type="text"
-                        value={paymentCards.advocate?.cardNumber || ''}
-                        onChange={(e) => setPaymentCards({
-                          ...paymentCards,
-                          advocate: { ...paymentCards.advocate, cardNumber: e.target.value }
-                        })}
-                        placeholder="8600 0000 0000 0000"
-                        className="w-full px-3 py-1.5 bg-white dark:bg-zinc-800 border rounded-lg text-xs font-mono font-bold"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[11px] font-semibold text-slate-600 dark:text-zinc-400 mb-0.5">
-                        Karta egasi:
-                      </label>
-                      <input
-                        type="text"
-                        value={paymentCards.advocate?.cardHolder || ''}
-                        onChange={(e) => setPaymentCards({
-                          ...paymentCards,
-                          advocate: { ...paymentCards.advocate, cardHolder: e.target.value }
-                        })}
-                        placeholder="ISM FAMILIYA"
-                        className="w-full px-3 py-1.5 bg-white dark:bg-zinc-800 border rounded-lg text-xs font-semibold"
-                      />
-                    </div>
-                  </div>
-
-                  <button
-                    type="button"
-                    disabled={savingCards}
-                    onClick={() => handleSavePaymentCard('advocate')}
-                    className="w-full py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-xs"
-                  >
-                    Advokat Kartasini Saqlash
-                  </button>
-                </div>
-
-                {/* 3. Talabalar hisob raqami */}
-                <div className="p-4 rounded-xl border border-amber-200/80 dark:border-amber-900/50 bg-amber-50/20 dark:bg-amber-950/20 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-amber-900 dark:text-amber-200 flex items-center gap-1.5">
-                      🎓 Talabalar To‘lovi Kartasi
-                    </span>
-                    <span className="text-[10px] text-amber-700 bg-amber-100 px-2 py-0.5 rounded font-bold">
-                      Talabalar Tizimi
-                    </span>
-                  </div>
-
-                  <div className="space-y-2">
-                    <div>
-                      <label className="block text-[11px] font-semibold text-slate-600 dark:text-zinc-400 mb-0.5">
-                        Karta raqami (8600...):
-                      </label>
-                      <input
-                        type="text"
-                        value={paymentCards.student?.cardNumber || ''}
-                        onChange={(e) => setPaymentCards({
-                          ...paymentCards,
-                          student: { ...paymentCards.student, cardNumber: e.target.value }
-                        })}
-                        placeholder="8600 0000 0000 0000"
-                        className="w-full px-3 py-1.5 bg-white dark:bg-zinc-800 border rounded-lg text-xs font-mono font-bold"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[11px] font-semibold text-slate-600 dark:text-zinc-400 mb-0.5">
-                        Karta egasi:
-                      </label>
-                      <input
-                        type="text"
-                        value={paymentCards.student?.cardHolder || ''}
-                        onChange={(e) => setPaymentCards({
-                          ...paymentCards,
-                          student: { ...paymentCards.student, cardHolder: e.target.value }
-                        })}
-                        placeholder="ISM FAMILIYA"
-                        className="w-full px-3 py-1.5 bg-white dark:bg-zinc-800 border rounded-lg text-xs font-semibold"
-                      />
-                    </div>
-                  </div>
-
-                  <button
-                    type="button"
-                    disabled={savingCards}
-                    onClick={() => handleSavePaymentCard('student')}
-                    className="w-full py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold transition-all shadow-xs"
-                  >
-                    Talaba Kartasini Saqlash
-                  </button>
                 </div>
               </div>
             </div>
@@ -1831,24 +1527,6 @@ export default function AdminDashboard() {
             </div>
           </div>
         )}
-
-        {/* ===== VERIFIKATSIYA ===== */}
-        {activeTab === 'verifications' && <AdminVerificationsManager />}
-
-        {/* ===== LAW STUDENTS INVITATIONS & PAYOUTS ===== */}
-        {activeTab === 'law_students' && <AdminLawStudentManager />}
-
-        {/* ===== CITIZEN MONETIZATION & LIMITS ===== */}
-        {activeTab === 'citizen_monetization' && <AdminCitizenMonetizationManager />}
-
-        {/* ===== SAVOL-JAVOB MODERATSIYASI ===== */}
-        {activeTab === 'questions_moderation' && <AdminQuestionsManager />}
-
-        {/* ===== KONSULTATSIYALAR ===== */}
-        {activeTab === 'consultations' && <AdminConsultationsManager />}
-
-        {/* ===== MAVJUD TALABALAR ===== */}
-        {activeTab === 'existing_students' && <AdminExistingStudentsManager />}
 
         {/* ===== MONITORING ===== */}
         {activeTab === 'monitoring' && <MonitoringDashboard />}

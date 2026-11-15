@@ -25,6 +25,16 @@ export default function AdvocateEarningsPage() {
   const [earningsData, setEarningsData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
 
+  // Pul yechish so'rovi modali va holati
+  const [showPayoutModal, setShowPayoutModal] = useState(false)
+  const [payoutAmount, setPayoutAmount] = useState('')
+  const [cardNumber, setCardNumber] = useState('')
+  const [cardHolder, setCardHolder] = useState('')
+  const [bankName, setBankName] = useState('')
+  const [payoutLoading, setPayoutLoading] = useState(false)
+  const [payoutSuccess, setPayoutSuccess] = useState('')
+  const [payoutError, setPayoutError] = useState('')
+
   const loadEarnings = async () => {
     try {
       setLoading(true)
@@ -37,6 +47,52 @@ export default function AdvocateEarningsPage() {
       console.error('Earnings fetch error:', e)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleRequestPayout = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setPayoutError('')
+    setPayoutSuccess('')
+
+    const numAmount = Number(payoutAmount)
+    if (!numAmount || numAmount < 50000) {
+      setPayoutError('Minimal yechib olish summasi 50 000 UZS')
+      return
+    }
+
+    if (!cardNumber || cardNumber.replace(/\s/g, '').length < 16) {
+      setPayoutError('16 xonali karta raqamini to‘liq kiriting')
+      return
+    }
+
+    try {
+      setPayoutLoading(true)
+      const res = await fetch('/api/advocate/payouts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: numAmount,
+          cardNumber,
+          cardHolder,
+          bankName,
+        }),
+      })
+      const json = await res.json()
+      if (json.success) {
+        setPayoutSuccess(json.message || 'Pul yechish so‘rovingiz adminga yuborildi!')
+        setTimeout(() => {
+          setShowPayoutModal(false)
+          setPayoutSuccess('')
+          setPayoutAmount('')
+        }, 2000)
+      } else {
+        setPayoutError(json.error || 'So‘rov yuborishda xatolik')
+      }
+    } catch {
+      setPayoutError('Tarmoq xatosi')
+    } finally {
+      setPayoutLoading(false)
     }
   }
 
@@ -121,21 +177,32 @@ export default function AdvocateEarningsPage() {
         {/* 6 Key Financial Metrics Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {/* Sof Daromad (Net) */}
-          <div className="bg-gradient-to-br from-emerald-600 to-teal-700 rounded-3xl p-6 text-white shadow-xl space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs uppercase font-semibold text-emerald-100 tracking-wider">
-                Sof Daromad (Net)
-              </span>
-              <DollarSign className="w-6 h-6 text-emerald-200" />
-            </div>
+          <div className="bg-gradient-to-br from-emerald-600 to-teal-700 rounded-3xl p-6 text-white shadow-xl space-y-3 flex flex-col justify-between">
             <div>
-              <h2 className="text-3xl font-extrabold tracking-tight font-mono">
-                {netEarnings.toLocaleString('uz-UZ')} <span className="text-lg">UZS</span>
-              </h2>
-              <p className="text-xs text-emerald-100 mt-1">
-                Platforma komissiyasi (10%) chegirilgandan keyin
-              </p>
+              <div className="flex items-center justify-between">
+                <span className="text-xs uppercase font-semibold text-emerald-100 tracking-wider">
+                  Sof Daromad (Net)
+                </span>
+                <DollarSign className="w-6 h-6 text-emerald-200" />
+              </div>
+              <div className="mt-2">
+                <h2 className="text-3xl font-extrabold tracking-tight font-mono">
+                  {netEarnings.toLocaleString('uz-UZ')} <span className="text-lg">UZS</span>
+                </h2>
+                <p className="text-xs text-emerald-100 mt-1">
+                  Platforma komissiyasi (10%) chegirilgandan keyin
+                </p>
+              </div>
             </div>
+
+            <button
+              type="button"
+              onClick={() => setShowPayoutModal(true)}
+              className="w-full mt-3 py-2.5 px-4 rounded-xl bg-white text-emerald-800 font-bold text-xs hover:bg-emerald-50 transition-all shadow-md flex items-center justify-center gap-1.5"
+            >
+              <CreditCard size={15} />
+              Pulni Yechib Olish So‘rovi
+            </button>
           </div>
 
           {/* Jami Daromad (Gross) */}
@@ -327,6 +394,117 @@ export default function AdvocateEarningsPage() {
           )}
         </div>
       </main>
+
+      {/* Pul Yechish Modali */}
+      {showPayoutModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white dark:bg-gray-900 rounded-3xl max-w-md w-full p-6 shadow-2xl border border-gray-100 dark:border-gray-800 space-y-4">
+            <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-3">
+              <h3 className="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                <CreditCard className="text-emerald-600" size={18} />
+                Pul Yechish So‘rovi Yuborish
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowPayoutModal(false)}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+              >
+                ✕
+              </button>
+            </div>
+
+            {payoutSuccess ? (
+              <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 text-xs font-semibold text-center space-y-1">
+                <div>✓ {payoutSuccess}</div>
+                <div className="text-[11px] text-emerald-600">Admin so‘rovni tekshirib, pulni kartangizga tashlab beradi.</div>
+              </div>
+            ) : (
+              <form onSubmit={handleRequestPayout} className="space-y-3.5 text-xs">
+                {payoutError && (
+                  <div className="p-3 rounded-xl bg-red-50 text-red-600 font-medium">
+                    {payoutError}
+                  </div>
+                )}
+
+                <div>
+                  <label className="block font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                    Yechib olinadigan summa (UZS) *
+                  </label>
+                  <input
+                    type="number"
+                    min="50000"
+                    step="10000"
+                    value={payoutAmount}
+                    onChange={e => setPayoutAmount(e.target.value)}
+                    placeholder="Masalan: 500000"
+                    className="w-full h-10 px-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-sm font-bold"
+                    required
+                  />
+                  <p className="text-[10px] text-gray-400 mt-1">Minimal yechish summasi: 50 000 UZS</p>
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                    Karta raqami (16 xonali) *
+                  </label>
+                  <input
+                    type="text"
+                    value={cardNumber}
+                    onChange={e => setCardNumber(e.target.value)}
+                    placeholder="8600 0000 0000 0000"
+                    className="w-full h-10 px-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-sm font-mono font-bold"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                    Karta egasining to‘liq ismi *
+                  </label>
+                  <input
+                    type="text"
+                    value={cardHolder}
+                    onChange={e => setCardHolder(e.target.value)}
+                    placeholder="ALISHER FAYZULLAYEV"
+                    className="w-full h-10 px-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-xs font-semibold"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                    Bank nomi (ixtiyoriy)
+                  </label>
+                  <input
+                    type="text"
+                    value={bankName}
+                    onChange={e => setBankName(e.target.value)}
+                    placeholder="Kapitalbank, Ipak Yo‘li bank..."
+                    className="w-full h-10 px-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-xs"
+                  />
+                </div>
+
+                <div className="pt-2 flex items-center justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowPayoutModal(false)}
+                    className="px-4 py-2 rounded-xl text-gray-600 dark:text-gray-400 font-semibold"
+                  >
+                    Bekor qilish
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={payoutLoading}
+                    className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition-all shadow-md disabled:opacity-50"
+                  >
+                    {payoutLoading ? 'Yuborilmoqda...' : 'So‘rovni Yuborish'}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

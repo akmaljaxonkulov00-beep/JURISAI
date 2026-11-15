@@ -75,6 +75,7 @@ export default function AdminCitizensPage() {
     total_balance_held: 0,
     paid_questions_count: 0,
   })
+  const [reportRange, setReportRange] = useState<'week' | 'month'>('week')
 
   // Nastroykalar
   const [settings, setSettings] = useState({
@@ -273,6 +274,43 @@ export default function AdminCitizensPage() {
       </AdminNavigationHeader>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+        {/* Real-time davr tanlovi */}
+        <div className="flex items-center justify-between bg-white dark:bg-zinc-900 p-3 rounded-2xl border border-slate-200/80 dark:border-zinc-800 shadow-sm">
+          <div className="flex items-center gap-2">
+            <TrendingUp size={16} className="text-blue-600" />
+            <span className="text-xs font-bold text-slate-800 dark:text-zinc-200">
+              Fuqarolar Tizimi Real-Time Dinamikasi:
+            </span>
+            <span className="text-[11px] text-slate-400">
+              {reportRange === 'week' ? 'So‘nggi 7 kunlik fuqarolar va tushum ko‘rsatkichlari' : 'So‘nggi 30 kunlik oylik hisobot'}
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-zinc-800 p-1 rounded-xl">
+            <button
+              type="button"
+              onClick={() => setReportRange('week')}
+              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                reportRange === 'week'
+                  ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-xs'
+                  : 'text-slate-600 dark:text-zinc-400'
+              }`}
+            >
+              Haftalik
+            </button>
+            <button
+              type="button"
+              onClick={() => setReportRange('month')}
+              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                reportRange === 'month'
+                  ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-xs'
+                  : 'text-slate-600 dark:text-zinc-400'
+              }`}
+            >
+              Oylik
+            </button>
+          </div>
+        </div>
+
         {/* Real-time Haftalik va Oylik Hisobotlar & Asosiy Metrikalar */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="p-4 bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 rounded-2xl shadow-sm">

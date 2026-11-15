@@ -46,7 +46,7 @@ export default function LawStudentMyAnswersPage() {
       case 'approved':
         return (
           <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-200">
-            <CheckCircle className="w-3.5 h-3.5" /> Advokat tomonidan tekshirilgan
+            <CheckCircle className="w-3.5 h-3.5" /> AI va Fuqaro Bahosi bilan Tasdiqlangan
           </span>
         )
       case 'revision_requested':
@@ -64,14 +64,14 @@ export default function LawStudentMyAnswersPage() {
       case 'under_review':
         return (
           <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300 border border-amber-200">
-            <Clock className="w-3.5 h-3.5" /> Advokat ko‘rib chiqmoqda
+            <Clock className="w-3.5 h-3.5" /> Baholash jarayonida
           </span>
         )
       case 'awaiting_review':
       default:
         return (
           <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300 border border-blue-200">
-            <Clock className="w-3.5 h-3.5" /> Taqriz kutilmoqda
+            <Clock className="w-3.5 h-3.5" /> AI Tahlili Kutilmoqda
           </span>
         )
     }
@@ -85,10 +85,10 @@ export default function LawStudentMyAnswersPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <FileText className="w-6 h-6 text-indigo-600" />
-            Mening yuborgan javoblarim va mentor taqrizlari
+            Mening yuborgan javoblarim va AI ekspertiza xulosalari
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Advokatlar tomonidan ko‘rib chiqilgan, tasdiqlangan yoki tahrirlash so‘ralgan javoblar holati
+            AI qattiqqol ekspertizasi va fuqarolar tomonidan baholangan amaliy javoblaringiz holati
           </p>
         </div>
 
@@ -140,12 +140,12 @@ export default function LawStudentMyAnswersPage() {
                   </div>
                 )}
 
-                {/* Mentor Feedback Card */}
+                {/* AI / Ekspert Taqrizi */}
                 {ans.review_feedback && (
                   <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900 space-y-1.5">
                     <div className="flex items-center gap-1.5 text-xs font-bold text-blue-900 dark:text-blue-200">
                       <Shield className="w-4 h-4 text-blue-600" />
-                      Mentor Advokat Taqrizi ({ans.reviewed_by_advocate_name || 'Advokat'}):
+                      Huquqiy Ekspertiza Taqrizi:
                     </div>
                     <p className="text-xs text-blue-800 dark:text-blue-300 leading-relaxed">
                       {ans.review_feedback}

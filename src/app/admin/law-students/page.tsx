@@ -77,6 +77,7 @@ export default function AdminLawStudentsPage() {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
+  const [reportRange, setReportRange] = useState<'week' | 'month'>('week')
 
   const [lawStudents, setLawStudents] = useState<LawStudent[]>([])
   const [invitations, setInvitations] = useState<Invitation[]>([])
@@ -98,7 +99,8 @@ export default function AdminLawStudentsPage() {
 
   // Nastroykalar
   const [settings, setSettings] = useState({
-    answer_reward_amount: 15000,
+    quota_reward_amount: 100000,
+    required_quota_answers: 7,
     min_payout_amount: 100000,
     moot_court_pass_score: 80,
     invitation_valid_days: 30,
@@ -285,6 +287,43 @@ export default function AdminLawStudentsPage() {
       </AdminNavigationHeader>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+        {/* Real-time davr tanlovi */}
+        <div className="flex items-center justify-between bg-white dark:bg-zinc-900 p-3 rounded-2xl border border-slate-200/80 dark:border-zinc-800 shadow-sm">
+          <div className="flex items-center gap-2">
+            <TrendingUp size={16} className="text-indigo-600" />
+            <span className="text-xs font-bold text-slate-800 dark:text-zinc-200">
+              Yosh Advokatlar Tizimi Real-Time Dinamikasi:
+            </span>
+            <span className="text-[11px] text-slate-400">
+              {reportRange === 'week' ? 'So‘nggi 7 kunlik amaliyot ko‘rsatkichlari' : 'So‘nggi 30 kunlik stajirovka natijalari'}
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-zinc-800 p-1 rounded-xl">
+            <button
+              type="button"
+              onClick={() => setReportRange('week')}
+              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                reportRange === 'week'
+                  ? 'bg-white dark:bg-zinc-900 text-indigo-600 shadow-xs'
+                  : 'text-slate-600 dark:text-zinc-400'
+              }`}
+            >
+              Haftalik
+            </button>
+            <button
+              type="button"
+              onClick={() => setReportRange('month')}
+              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                reportRange === 'month'
+                  ? 'bg-white dark:bg-zinc-900 text-indigo-600 shadow-xs'
+                  : 'text-slate-600 dark:text-zinc-400'
+              }`}
+            >
+              Oylik
+            </button>
+          </div>
+        </div>
+
         {/* Yuqori alohida statistika ko'rsatkichlari */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="p-4 bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 rounded-2xl shadow-sm">
@@ -746,15 +785,15 @@ export default function AdminLawStudentsPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300">
-                    Fuqaro savoliga tasdiqlangan javob uchun stajirovka mukofoti (so‘m)
+                    Sifatli javoblar kvotasi uchun stajirovka mukofoti (so‘m)
                   </label>
                   <input
                     type="number"
-                    value={settings.answer_reward_amount}
-                    onChange={(e) => setSettings({ ...settings, answer_reward_amount: Number(e.target.value) })}
+                    value={settings.quota_reward_amount}
+                    onChange={(e) => setSettings({ ...settings, quota_reward_amount: Number(e.target.value) })}
                     className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-indigo-500"
                   />
-                  <p className="text-[11px] text-slate-400">Har bir muvaffaqiyatli taqrizdan o‘tgan yuridik javob uchun talabaga to‘lanadigan summa.</p>
+                  <p className="text-[11px] text-slate-400">Har bir javob uchun emas, kamida 7-10 ta sifatli (AI va fuqaro tomonidan yuqori baholangan) javoblar kvotasi to‘lganda beriladigan mukofot.</p>
                 </div>
 
                 <div className="space-y-2">

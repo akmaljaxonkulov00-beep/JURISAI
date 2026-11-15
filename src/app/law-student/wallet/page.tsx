@@ -241,7 +241,7 @@ export default function LawStudentWalletPage() {
                 Mukofotlash mexanizmi qanday ishlaydi?
               </h4>
               <p className="text-xs text-gray-600 dark:text-gray-300">
-                Har bir fuqaro savoliga asosli javob yozgach, sun’iy intellekt javobingizni 7 ta mezon bo‘yicha tekshiradi. 70 balldan yuqori natijaga erishilsa, zudlik bilan 5 000 dan 15 000 so‘mgacha bonus hamyoningizga o‘tadi!
+                Har bir fuqaro savoliga yozilgan javobingiz AI qattiqqol ekspertizasi va fuqaro tomonidan 1 dan 5 yulduzgacha baholanadi. Kamida 7 ta sifatli (yuqori baholangan) javob kvotasi to‘lganda, hisobingizga 100 000 UZS mukofot ajratiladi. Pul yechilgach balans 0 bo‘ladi, to‘plangan reyting va ballaringiz esa o‘chmasdan davom etadi!
               </p>
             </div>
           </div>

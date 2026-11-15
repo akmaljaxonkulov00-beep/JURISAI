@@ -53,6 +53,7 @@ export default function PlatformRoleNav({
     { label: 'Uchrashuvlar', href: '/citizen/appointments', icon: Calendar },
     { label: 'Xabarlar', href: '/citizen/messages', icon: MessageSquare },
     { label: 'To‘lovlar', href: '/citizen/payments', icon: CreditCard },
+    { label: 'Sozlamalar', href: '/citizen/settings', icon: Settings },
   ]
 
   const lawStudentLinks = [
@@ -60,6 +61,7 @@ export default function PlatformRoleNav({
     { label: 'Ommaviy savollar', href: '/law-student/questions', icon: BookOpen },
     { label: 'Mening javoblarim', href: '/law-student/answers', icon: CheckCircle },
     { label: 'Hamyon va mukofotlar', href: '/law-student/wallet', icon: CreditCard },
+    { label: 'Sozlamalar', href: '/law-student/settings', icon: Settings },
   ]
 
   const advocateLinks = [

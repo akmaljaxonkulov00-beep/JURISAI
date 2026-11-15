@@ -58,10 +58,11 @@ export default function AdminNavigationHeader({
       badge: 'Mijozlar',
     },
     {
-      href: '/admin/payments',
-      label: 'Moliya & To‘lovlar',
-      icon: CreditCard,
-      active: pathname.startsWith('/admin/payments'),
+      href: '/admin/students',
+      label: 'Talabalar (Ta‘lim)',
+      icon: GraduationCap,
+      active: pathname.startsWith('/admin/students'),
+      badge: 'Simulyator',
     },
   ]
 
@@ -88,13 +89,6 @@ export default function AdminNavigationHeader({
 
           <div className="flex items-center gap-3">
             {children}
-            <Link
-              href="/dashboard"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-gray-600 dark:text-zinc-300 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 transition-colors"
-            >
-              <ArrowLeft size={13} />
-              Platformaga qaytish
-            </Link>
           </div>
         </div>
 

@@ -54,8 +54,12 @@ interface Advocate {
 }
 
 export default function AdminAdvocatesPage() {
-  const [activeTab, setActiveTab] = useState<'list' | 'appointments' | 'settings' | 'revenue'>('list')
+  const [activeTab, setActiveTab] = useState<'list' | 'payouts' | 'appointments' | 'settings' | 'revenue'>('list')
   const [advocates, setAdvocates] = useState<Advocate[]>([])
+  const [payoutRequests, setPayoutRequests] = useState<any[]>([])
+  const [loadingPayouts, setLoadingPayouts] = useState(false)
+  const [processingPayoutId, setProcessingPayoutId] = useState<string | null>(null)
+  const [reportRange, setReportRange] = useState<'week' | 'month'>('week')
   const [stats, setStats] = useState({
     total: 0,
     approved: 0,
@@ -134,8 +138,52 @@ export default function AdminAdvocatesPage() {
     }
   }
 
+  const loadPayouts = async () => {
+    try {
+      setLoadingPayouts(true)
+      const authHeaders = await getAuthHeaders()
+      const res = await fetch('/api/admin/advocate-payouts', {
+        headers: { ...authHeaders },
+      })
+      const data = await res.json()
+      if (data.success) {
+        setPayoutRequests(data.data || [])
+      }
+    } catch (err) {
+      console.error('Advokat payoutlarini yuklashda xatolik:', err)
+    } finally {
+      setLoadingPayouts(false)
+    }
+  }
+
+  const handleProcessPayout = async (payoutId: string, status: 'paid' | 'rejected') => {
+    const actionName = status === 'paid' ? 'pul o‘tkazilganini tasdiqlash' : 'rad etish'
+    if (!confirm(`Haqiqatan ham ushbu so‘rovni ${actionName}ni xohlaysizmi?`)) return
+    try {
+      setProcessingPayoutId(payoutId)
+      const authHeaders = await getAuthHeaders()
+      const res = await fetch('/api/admin/advocate-payouts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
+        body: JSON.stringify({ payoutId, status }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        alert(data.message || 'Muvaffaqiyatli bajarildi')
+        loadPayouts()
+      } else {
+        alert(data.error || 'Xatolik yuz berdi')
+      }
+    } catch {
+      alert('Tarmoq xatosi')
+    } finally {
+      setProcessingPayoutId(null)
+    }
+  }
+
   useEffect(() => {
     loadAdvocates()
+    loadPayouts()
   }, [statusFilter])
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -294,6 +342,43 @@ export default function AdminAdvocatesPage() {
       </AdminNavigationHeader>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
+        {/* Real-time davr tanlovi */}
+        <div className="flex items-center justify-between bg-white dark:bg-zinc-900 p-3 rounded-2xl border border-slate-200/80 dark:border-zinc-800 shadow-sm">
+          <div className="flex items-center gap-2">
+            <TrendingUp size={16} className="text-emerald-600" />
+            <span className="text-xs font-bold text-slate-800 dark:text-zinc-200">
+              Advokatlar Tizimi Real-Time Dinamikasi:
+            </span>
+            <span className="text-[11px] text-slate-400">
+              {reportRange === 'week' ? 'So‘nggi 7 kunlik statistika' : 'So‘nggi 30 kunlik oylik ko‘rsatkichlar'}
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-zinc-800 p-1 rounded-xl">
+            <button
+              type="button"
+              onClick={() => setReportRange('week')}
+              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                reportRange === 'week'
+                  ? 'bg-white dark:bg-zinc-900 text-emerald-600 shadow-xs'
+                  : 'text-slate-600 dark:text-zinc-400'
+              }`}
+            >
+              Haftalik
+            </button>
+            <button
+              type="button"
+              onClick={() => setReportRange('month')}
+              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                reportRange === 'month'
+                  ? 'bg-white dark:bg-zinc-900 text-emerald-600 shadow-xs'
+                  : 'text-slate-600 dark:text-zinc-400'
+              }`}
+            >
+              Oylik
+            </button>
+          </div>
+        </div>
+
         {/* ── 1. Statistika vidjetlari ── */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
           <div className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-slate-200/80 dark:border-zinc-800 shadow-sm">
@@ -364,6 +449,18 @@ export default function AdminAdvocatesPage() {
           >
             <Scale size={15} />
             Advokatlar Ro‘yxati & Litsenziyalar ({advocates.length})
+          </button>
+
+          <button
+            onClick={() => setActiveTab('payouts')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
+              activeTab === 'payouts'
+                ? 'bg-white dark:bg-zinc-800 text-indigo-600 dark:text-white shadow-sm'
+                : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900'
+            }`}
+          >
+            <DollarSign size={15} />
+            Pul Yechish So‘rovlari ({payoutRequests.filter(p => p.status === 'pending').length})
           </button>
 
           <button
@@ -626,6 +723,127 @@ export default function AdminAdvocatesPage() {
                 </div>
               )}
             </div>
+          </div>
+        )}
+
+        {/* ── Tab: Pul Yechish So‘rovlari (Advokat Payouts) ── */}
+        {activeTab === 'payouts' && (
+          <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200/80 dark:border-zinc-800 shadow-sm p-6 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-zinc-800 pb-3">
+              <div>
+                <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <DollarSign className="text-emerald-600" size={18} />
+                  Advokatlarning Pul Yechish So‘rovlari
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Advokatlar ishlagan gonorar mablag‘larini yechib olish bo‘yicha so‘rov yuborishadi. Admin tasdiqlab, kartaga pul tashlab beradi.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={loadPayouts}
+                className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 flex items-center gap-1.5 self-start"
+              >
+                <RefreshCw size={13} className={loadingPayouts ? 'animate-spin' : ''} />
+                Yangilash
+              </button>
+            </div>
+
+            {loadingPayouts ? (
+              <div className="py-12 text-center text-xs text-slate-400">Yuklanmoqda...</div>
+            ) : payoutRequests.length === 0 ? (
+              <div className="py-12 text-center text-xs text-slate-400 bg-slate-50 dark:bg-zinc-800/40 rounded-xl">
+                Hozircha pul yechish so‘rovlari mavjud emas
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-50 dark:bg-zinc-800/60 text-slate-500 font-semibold border-b border-slate-200/80 dark:border-zinc-800">
+                    <tr>
+                      <th className="py-3 px-4">Advokat</th>
+                      <th className="py-3 px-4">Karta Rekvizitlari</th>
+                      <th className="py-3 px-4">Summa</th>
+                      <th className="py-3 px-4">Sana</th>
+                      <th className="py-3 px-4">Status</th>
+                      <th className="py-3 px-4 text-right">Amal</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-zinc-800/60 font-medium">
+                    {payoutRequests.map((req) => (
+                      <tr key={req.id} className="hover:bg-slate-50/50 dark:hover:bg-zinc-800/30">
+                        <td className="py-3 px-4">
+                          <div className="font-bold text-slate-900 dark:text-white">
+                            {req.advocate_name || 'Advokat'}
+                          </div>
+                          <div className="text-[11px] text-slate-400">{req.advocate_email}</div>
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="font-mono font-bold text-slate-800 dark:text-zinc-200">
+                            {req.card_number}
+                          </div>
+                          <div className="text-[10px] text-slate-400">
+                            {req.card_holder || req.bank_name || 'Plastik karta'}
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 font-bold text-emerald-600 text-sm">
+                          {Number(req.amount).toLocaleString()} UZS
+                        </td>
+                        <td className="py-3 px-4 text-slate-500">
+                          {new Date(req.created_at).toLocaleDateString('uz-UZ', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </td>
+                        <td className="py-3 px-4">
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                              req.status === 'paid'
+                                ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300'
+                                : req.status === 'rejected'
+                                ? 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300'
+                                : 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300'
+                            }`}
+                          >
+                            {req.status === 'paid'
+                              ? 'Pul o‘tkazildi'
+                              : req.status === 'rejected'
+                              ? 'Rad etildi'
+                              : 'Kutilmoqda'}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-right">
+                          {req.status === 'pending' ? (
+                            <div className="flex items-center justify-end gap-1.5">
+                              <button
+                                type="button"
+                                disabled={processingPayoutId === req.id}
+                                onClick={() => handleProcessPayout(req.id, 'paid')}
+                                className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-[11px] shadow-xs transition-all disabled:opacity-50"
+                              >
+                                Pul o‘tkazildi (Tasdiqlash)
+                              </button>
+                              <button
+                                type="button"
+                                disabled={processingPayoutId === req.id}
+                                onClick={() => handleProcessPayout(req.id, 'rejected')}
+                                className="px-2.5 py-1 bg-rose-50 text-rose-600 hover:bg-rose-100 font-bold rounded-lg text-[11px] transition-all disabled:opacity-50"
+                              >
+                                Rad etish
+                              </button>
+                            </div>
+                          ) : (
+                            <span className="text-[11px] text-slate-400">Amal bajarilgan</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         )}
 

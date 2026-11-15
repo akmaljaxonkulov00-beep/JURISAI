@@ -95,27 +95,21 @@ export async function POST(request: NextRequest) {
       })
       .eq('id', questionId)
 
-    // 6. Ballar jamg'arish (Har bir javob uchun AI bahosiga qarab ball to'planadi)
-    // Masalan: AI 85 ball bergan bo'lsa, talabaga +85 reyting bali yig'iladi.
-    const earnedPoints = aiEval.score || 50
+    // 6. Qat'iy 1-5 ballik shkala bo'yicha ball jamg'arish
+    const earnedStars = aiEval.score || 3 // 1 dan 5 gacha ball
     const currentScore = Number(studentProf?.reputation_score || 0)
-    const newTotalScore = currentScore + earnedPoints
+    const newTotalScore = currentScore + earnedStars
+    const currentApprovedCount = Number(studentProf?.approved_answers_count || 0) + (earnedStars >= 4 ? 1 : 0)
 
-    // Darajani aniqlash
-    let newLevel = studentProf?.level || 'beginner'
-    if (newTotalScore >= 500) newLevel = 'expert'
-    else if (newTotalScore >= 300) newLevel = 'advanced'
-    else if (newTotalScore >= 150) newLevel = 'skilled'
-    else if (newTotalScore >= 60) newLevel = 'contributor'
+    // Kvota tizimi: Kamida 7 ta sifatli (4-5 ballik) javoblar soniga yetganda mukofot ochiladi!
+    // Har bir javob uchun alohida pul to'lanmaydi!
+    const prevQuotaCount = Math.floor((studentProf?.approved_answers_count || 0) / 7)
+    const newQuotaCount = Math.floor(currentApprovedCount / 7)
+    const quotaAchieved = newQuotaCount > prevQuotaCount
 
-    // Ball chegarasi (Har 100 ballga yetganda daraja pul mukofoti ochiladi)
-    const prevThresholdCount = Math.floor(currentScore / 100)
-    const newThresholdCount = Math.floor(newTotalScore / 100)
-    const thresholdsAchieved = newThresholdCount - prevThresholdCount
-
-    let thresholdBonus = 0
-    if (thresholdsAchieved > 0) {
-      thresholdBonus = thresholdsAchieved * 50000 // Har 100 ballga 50 000 UZS
+    let quotaBonus = 0
+    if (quotaAchieved) {
+      quotaBonus = 100000 // 7 ta sifatli javob kvotasi uchun 100 000 UZS mukofot
 
       const { data: wallet } = await admin
         .from('student_wallets')
@@ -127,21 +121,28 @@ export async function POST(request: NextRequest) {
         await admin
           .from('student_wallets')
           .update({
-            balance: Number(wallet.balance || 0) + thresholdBonus,
-            total_earned: Number(wallet.total_earned || 0) + thresholdBonus,
+            balance: Number(wallet.balance || 0) + quotaBonus,
+            total_earned: Number(wallet.total_earned || 0) + quotaBonus,
             updated_at: new Date().toISOString(),
           })
           .eq('student_id', auth.user.id)
       } else {
         await admin.from('student_wallets').insert({
           student_id: auth.user.id,
-          balance: thresholdBonus,
-          total_earned: thresholdBonus,
+          balance: quotaBonus,
+          total_earned: quotaBonus,
           total_withdrawn: 0,
           updated_at: new Date().toISOString(),
         })
       }
     }
+
+    // Darajani aniqlash (1-5 ballik yig'indi bo'yicha)
+    let newLevel = studentProf?.level || 'beginner'
+    if (newTotalScore >= 100) newLevel = 'expert'
+    else if (newTotalScore >= 50) newLevel = 'advanced'
+    else if (newTotalScore >= 25) newLevel = 'skilled'
+    else if (newTotalScore >= 10) newLevel = 'contributor'
 
     // Profilni yangilash
     if (studentProf) {
@@ -149,7 +150,7 @@ export async function POST(request: NextRequest) {
         .from('law_student_profiles')
         .update({
           answers_count: (studentProf.answers_count || 0) + 1,
-          approved_answers_count: (studentProf.approved_answers_count || 0) + 1,
+          approved_answers_count: currentApprovedCount,
           reputation_score: newTotalScore,
           level: newLevel,
           updated_at: new Date().toISOString(),
@@ -157,9 +158,9 @@ export async function POST(request: NextRequest) {
         .eq('user_id', auth.user.id)
     }
 
-    const message = thresholdBonus > 0
-      ? `Javobingiz qabul qilindi! AI Bahosi: ${aiEval.score} ball. Tabriklaymiz, ${newTotalScore} ballga yetdingiz va hisobingizga +${thresholdBonus.toLocaleString()} so'm daraja bonusi qo'shildi!`
-      : `Javobingiz qabul qilindi! AI Bahosi: ${aiEval.score} ball (+${earnedPoints} reyting bali). Fuqaro javobingizni baholaganda qo‘shimcha ballar beriladi.`
+    const message = quotaBonus > 0
+      ? `Javobingiz qabul qilindi! AI Bahosi: ${earnedStars} / 5 yulduz. Tabriklaymiz, 7 ta sifatli javob kvotasini to‘ldirdingiz va hisobingizga +${quotaBonus.toLocaleString()} so'm kvota mukofoti qo‘shildi!`
+      : `Javobingiz qabul qilindi! AI Qattiqqol Bahosi: ${earnedStars} / 5 yulduz (+${earnedStars} reyting bali). Fuqaro javobingizni baholaganda qo‘shimcha ballar qo‘shiladi.`
 
     return NextResponse.json({
       success: true,
@@ -167,10 +168,10 @@ export async function POST(request: NextRequest) {
       data: {
         answer,
         evaluation: aiEval,
-        earnedPoints,
+        earnedPoints: earnedStars,
         newTotalScore,
         newLevel,
-        thresholdBonus,
+        quotaBonus,
       },
     })
   } catch (error: any) {

@@ -154,7 +154,7 @@ export async function evaluateStudentAnswerAI(params: {
 
   try {
     const prompt = `
-Siz O'zbekiston Respublikasi qonunchiligi bo'yicha yuridik fakultet talabalarining amaliy javoblarini baholovchi Oliy Yuridik Ekspertsiz.
+Siz O'zbekiston Respublikasi qonunchiligi bo'yicha yuridik fakultet talabalari va yosh advokat nomzodlarining javoblarini baholovchi eng QATTIQQOL va prinsipial Oliy Yuridik Ekspertsiz.
 
 SAVOL:
 Sarlavha: "${questionTitle}"
@@ -165,47 +165,47 @@ Matn: "${answerContent}"
 Ko'rsatilgan qonuniy asos: "${legalBasis || 'Keltirilmagan'}"
 
 VAZIFA:
-Talabaning javobini O'zbekiston Respublikasi amaldagi qonunlari (FK, JK, MK, JPK, FPK, Soliq, Oila va b.) mezonlariga muvofiq 7 ta mezon bo'yicha (har biri 0 dan 100 gacha butun son) ob'ektiv baholang:
-1. legal_accuracy (Huquqiy aniqlik va qonun normasining to'g'ri tanlangani)
-2. logical_consistency (Mantiqiy izchillik va fikr bayoni)
-3. relevance (Savolga to'g'ri va to'liq mos kelishi)
-4. evidence_quality (Dalillash va yuridik asoslash sifati)
-5. clarity (Fuqaro tushunishi uchun ravshan va tushunarli bayon)
-6. source_citation (O'zbekiston qonun moddalari, kodeks bandlari va lex.uz manbalariga to'g'ri havola)
-7. professional_tone (Yuridik etika va professional muomala madaniyati)
+Talabaning javobini O'zbekiston Respublikasi amaldagi qonunlari (FK, JK, MK, JPK, FPK, Soliq, Oila kodeksi va lex.uz qonun hujjatlari) talablariga muvofiq QATTIQQOL 1 dan 5 gacha bo'lgan baholash shkalasida baholang:
+1 - Yaroqsiz (noto'g'ri, yuridik asossiz, qonunga zid)
+2 - Zaif (savol mohiyati ochilmagan, moddalar yo'q yoki noto'g'ri)
+3 - Qoniqarli (umumiy javob, lekin aniq huquqiy yechim yetishmaydi)
+4 - Yaxshi (qonun normalari to'g'ri ko'rsatilgan, mantiqiy asosli)
+5 - A'lo / Professional (mukammal asoslangan, aniq O'zR moddalari, tushunarli amaliy yechim)
+
+TALAB:
+- Agar aniq qonun moddasi yoki kodeks nomi keltirilmagan bo'lsa, baho hech qachon 3 dan yuqori bo'lmasin!
+- Faqat juda professional, to'liq va fuqaroga amaliy foydali javoblargagina 5 ball bering.
 
 Javobni FAQAT quyidagi JSON formatida qaytaring:
 {
-  "criteriaScores": {
-    "legal_accuracy": 85,
-    "logical_consistency": 80,
-    "relevance": 90,
-    "evidence_quality": 75,
-    "clarity": 85,
-    "source_citation": 80,
-    "professional_tone": 90
+  "rating": 4,
+  "criteriaRatings": {
+    "legal_accuracy": 4,
+    "legal_citation": 4,
+    "practical_solution": 4,
+    "clarity": 5
   },
-  "score": 84,
-  "feedback": "Javob bo'yicha qisqa, professional tavsiya va tahlil."
+  "feedback": "Javob bo'yicha qat'iy va professional tahlil."
 }
 `.trim()
 
     const aiRes = await callGeminiJson<{
-      criteriaScores: Record<string, number>
-      score: number
+      rating: number
+      criteriaRatings: Record<string, number>
       feedback: string
     }>(prompt, {
       temperature: 0.1,
-      maxTokens: 1000,
+      maxTokens: 800,
     })
 
-    if (aiRes && aiRes.criteriaScores && typeof aiRes.score === 'number') {
-      const score = Math.max(0, Math.min(100, Math.round(aiRes.score)))
+    if (aiRes && typeof aiRes.rating === 'number') {
+      const rating = Math.max(1, Math.min(5, Math.round(aiRes.rating)))
       return {
-        score,
-        criteriaScores: aiRes.criteriaScores,
-        feedback: aiRes.feedback || "Javob AI ekspert tomonidan muvaffaqiyatli baholandi.",
-        isEligibleForReward: score >= 60,
+        score: rating, // 1 dan 5 gacha aniq ball
+        rating,
+        criteriaScores: aiRes.criteriaRatings || {},
+        feedback: aiRes.feedback || "Javob AI ekspert tomonidan qat'iy mezonlar bilan baholandi.",
+        isEligibleForReward: rating >= 4,
         evaluatedAt: new Date().toISOString(),
       }
     }
@@ -213,41 +213,35 @@ Javobni FAQAT quyidagi JSON formatida qaytaring:
     console.warn('[evaluateStudentAnswerAI] Gemini AI error, falling back to heuristic:', err)
   }
 
-  // Deterministik zaxira baholash (agar AI vaqtincha javob bermasa)
-  let score = 75
+  // Deterministik qattiqqol zaxira baholash (1 dan 5 gacha)
+  let rating = 3
   const feedbackItems: string[] = []
-  const criteriaScores: Record<string, number> = {
-    legal_accuracy: 75,
-    logical_consistency: 75,
-    relevance: 80,
-    evidence_quality: 70,
-    clarity: 75,
-    source_citation: legalBasis && legalBasis.length > 5 ? 80 : 45,
-    professional_tone: 85,
-  }
-
-  if (answerContent.length < 150) {
-    criteriaScores.clarity = 60
-    criteriaScores.evidence_quality = 55
-    feedbackItems.push("Javob matni ancha qisqa, tushuntirishlarni kengaytirish tavsiya etiladi.")
-  } else {
-    feedbackItems.push("Javob yetarlicha batafsil va amaliy asoslangan.")
-  }
 
   if (!legalBasis || legalBasis.trim().length < 5) {
-    feedbackItems.push("O'zbekiston qonun moddalari yoki kodeks bandlariga aniq havola keltiring.")
+    rating = 2
+    feedbackItems.push("O'zbekiston qonun moddalari yoki kodeks bandlariga aniq havola keltirilmagan (baho pasaytirildi).")
+  } else if (answerContent.length < 150) {
+    rating = 3
+    feedbackItems.push("Qonun keltirilgan, lekin javob juda qisqa va amaliy yo'riqnoma to'liq emas.")
+  } else if (answerContent.length >= 350 && legalBasis.length >= 10) {
+    rating = 5
+    feedbackItems.push("Javob batafsil, qonun moddalari to'liq ko'rsatilgan va professional bayon qilingan.")
   } else {
-    feedbackItems.push("Qonunchilik normalariga havola keltirilgan.")
+    rating = 4
+    feedbackItems.push("Javob yaxshi tayyorlangan va huquqiy jihatdan asosli.")
   }
 
-  const values = Object.values(criteriaScores)
-  score = Math.round(values.reduce((a, b) => a + b, 0) / values.length)
-
   return {
-    score,
-    criteriaScores,
+    score: rating,
+    rating,
+    criteriaScores: {
+      legal_accuracy: rating,
+      legal_citation: legalBasis && legalBasis.length > 5 ? rating : 2,
+      practical_solution: rating,
+      clarity: answerContent.length > 150 ? rating : 2,
+    },
     feedback: feedbackItems.join(' '),
-    isEligibleForReward: score >= 60,
+    isEligibleForReward: rating >= 4,
     evaluatedAt: new Date().toISOString(),
   }
 }
