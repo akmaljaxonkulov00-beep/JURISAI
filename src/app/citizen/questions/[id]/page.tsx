@@ -29,6 +29,42 @@ export default function QuestionDetailPage() {
   const [question, setQuestion] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [ratingLoading, setRatingLoading] = useState<string | null>(null)
+  const [selectedRatings, setSelectedRatings] = useState<Record<string, number>>({})
+  const [feedbackTexts, setFeedbackTexts] = useState<Record<string, string>>({})
+  const [rateSuccess, setRateSuccess] = useState<string | null>(null)
+
+  const handleRateAnswer = async (answerId: string) => {
+    const star = selectedRatings[answerId] || 5
+    const text = feedbackTexts[answerId] || ''
+    setRatingLoading(answerId)
+    setRateSuccess(null)
+
+    try {
+      const headers = await getAuthHeaders()
+      const res = await fetch(`/api/answers/${answerId}/citizen-rate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...headers },
+        body: JSON.stringify({ rating: star, feedback: text }),
+      })
+      const json = await res.json()
+      if (json.success) {
+        setRateSuccess(`Rahmat! Javobga ${star} yulduz baho berildi.`)
+        // Savolni qayta yuklash
+        const updatedRes = await fetch(`/api/questions/${questionId}`, { headers })
+        const updatedJson = await updatedRes.json()
+        if (updatedJson.success && updatedJson.data) {
+          setQuestion(updatedJson.data)
+        }
+      } else {
+        alert(json.error || 'Baholashda xatolik yuz berdi')
+      }
+    } catch {
+      alert('Server bilan aloqa xatosi')
+    } finally {
+      setRatingLoading(null)
+    }
+  }
 
   useEffect(() => {
     async function loadQuestion() {
@@ -257,6 +293,74 @@ export default function QuestionDetailPage() {
                         </p>
                       </div>
                     )}
+
+                    {/* Fuqaroning Bahosi / Baholash Paneli */}
+                    <div className="pt-3 border-t border-gray-100 dark:border-gray-800">
+                      {ans.citizen_rating ? (
+                        <div className="p-3 bg-amber-50/80 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/40 rounded-xl flex items-center justify-between text-xs">
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-amber-900 dark:text-amber-200">
+                              Sizning bahoyingiz:
+                            </span>
+                            <div className="flex text-amber-500 font-bold">
+                              {Array.from({ length: 5 }).map((_, i) => (
+                                <span key={i} className={i < ans.citizen_rating ? 'text-amber-400' : 'text-gray-300 dark:text-gray-600'}>
+                                  ★
+                                </span>
+                              ))}
+                            </div>
+                            <span className="text-gray-500 font-semibold">({ans.citizen_rating} / 5)</span>
+                          </div>
+                          {ans.citizen_feedback && (
+                            <span className="text-gray-600 dark:text-gray-400 italic text-[11px]">
+                              &ldquo;{ans.citizen_feedback}&rdquo;
+                            </span>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="p-4 bg-slate-50 dark:bg-gray-800/60 rounded-xl border border-slate-200/80 dark:border-gray-700 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-gray-800 dark:text-gray-200 flex items-center gap-1.5">
+                              ⭐ Ushbu javob sizga yordam berdimi? Talabaga baho bering:
+                            </span>
+                            <div className="flex items-center gap-1">
+                              {[1, 2, 3, 4, 5].map(star => {
+                                const current = selectedRatings[ans.id] || 5
+                                return (
+                                  <button
+                                    key={star}
+                                    type="button"
+                                    onClick={() => setSelectedRatings(prev => ({ ...prev, [ans.id]: star }))}
+                                    className={`text-lg transition-transform hover:scale-125 ${
+                                      star <= current ? 'text-amber-400' : 'text-gray-300 dark:text-gray-600'
+                                    }`}
+                                  >
+                                    ★
+                                  </button>
+                                )
+                              })}
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              value={feedbackTexts[ans.id] || ''}
+                              onChange={e => setFeedbackTexts(prev => ({ ...prev, [ans.id]: e.target.value }))}
+                              placeholder="Fikringiz yoki tavsiyangiz (ixtiyoriy)..."
+                              className="flex-1 px-3 py-1.5 text-xs rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                            />
+                            <button
+                              type="button"
+                              disabled={ratingLoading === ans.id}
+                              onClick={() => handleRateAnswer(ans.id)}
+                              className="px-4 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all disabled:opacity-50"
+                            >
+                              {ratingLoading === ans.id ? 'Saqlanmoqda...' : 'Bahoni yuborish'}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
 
                     {/* Action: Book Advocate */}
                     <div className="pt-2 flex justify-end">

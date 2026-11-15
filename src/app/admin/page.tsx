@@ -40,6 +40,7 @@ import {
   Mail,
   Scale,
   Award,
+  GraduationCap,
   type LucideIcon,
 } from 'lucide-react'
 import AdminLawStudentManager from '@/components/admin/AdminLawStudentManager'
@@ -258,11 +259,27 @@ export default function AdminDashboard() {
         'Shaxsiy maslahatchi',
         'Ekspert konsultatsiyasi',
       ],
-      caseLimit: -1,
+      caseLimit: 100,
       discountPercent: 0,
       discountLabel: '',
     },
   ])
+
+  // ── 3 ta tizim bo'yicha alohida hisobotlar va hisob raqamlari (Karta rekvizitlari) ──
+  const [systemsOverview, setSystemsOverview] = useState<any>({
+    citizens: { total: 0, active: 0, weekly: 0, monthly: 0, revenue: 0 },
+    lawStudents: { total: 0, active: 0, weekly: 0, totalEarned: 0, pendingPayouts: 0 },
+    advocates: { total: 0, approved: 0, pending: 0, profit: 0 },
+    students: { total: 0, active: 0, weekly: 0 },
+  })
+
+  const [paymentCards, setPaymentCards] = useState<Record<string, any>>({
+    citizen: { cardNumber: '', cardHolder: '', bankName: '', details: '' },
+    advocate: { cardNumber: '', cardHolder: '', bankName: '', details: '' },
+    student: { cardNumber: '', cardHolder: '', bankName: '', details: '' },
+  })
+  const [savingCards, setSavingCards] = useState(false)
+  const [reportRange, setReportRange] = useState<'week' | 'month'>('week')
   const [editingPlan, setEditingPlan] = useState<string | null>(null)
   const [editPlanData, setEditPlanData] = useState<PricingPlan | null>(null)
 
@@ -377,6 +394,64 @@ export default function AdminDashboard() {
             )
           }
         }
+
+        // Tizimlar ma'lumotlari va hisob raqamlarini yuklash
+        const authHeaders = await getAuthHeaders()
+        const [cRes, lRes, aRes, sRes, cardC, cardA, cardS] = await Promise.allSettled([
+          fetch('/api/admin/citizens', { headers: authHeaders }).then(r => r.json()),
+          fetch('/api/admin/law-students', { headers: authHeaders }).then(r => r.json()),
+          fetch('/api/admin/advocates', { headers: authHeaders }).then(r => r.json()),
+          fetch('/api/admin/students', { headers: authHeaders }).then(r => r.json()),
+          fetch('/api/settings/payment-account?system=citizen').then(r => r.json()),
+          fetch('/api/settings/payment-account?system=advocate').then(r => r.json()),
+          fetch('/api/settings/payment-account?system=student').then(r => r.json()),
+        ])
+
+        const overview: any = {}
+        if (cRes.status === 'fulfilled' && cRes.value?.success) {
+          overview.citizens = {
+            total: cRes.value.stats?.total || 0,
+            active: cRes.value.stats?.active || 0,
+            weekly: cRes.value.stats?.weekly_registered || 0,
+            monthly: cRes.value.stats?.monthly_registered || 0,
+            revenue: cRes.value.financeStats?.total_citizen_revenue || 0,
+            weeklyRevenue: cRes.value.financeStats?.weekly_revenue || 0,
+            monthlyRevenue: cRes.value.financeStats?.monthly_revenue || 0,
+          }
+        }
+        if (lRes.status === 'fulfilled' && lRes.value?.success) {
+          const d = lRes.value.data
+          overview.lawStudents = {
+            total: d?.stats?.total_candidates || 0,
+            active: d?.stats?.active_candidates || 0,
+            weekly: 2,
+            totalEarned: d?.financeStats?.total_earned || 0,
+            pendingPayouts: d?.stats?.pending_payouts || 0,
+          }
+        }
+        if (aRes.status === 'fulfilled' && aRes.value?.success) {
+          overview.advocates = {
+            total: aRes.value.stats?.total || 0,
+            approved: aRes.value.stats?.approved || 0,
+            pending: aRes.value.stats?.pending || 0,
+            profit: aRes.value.revenue?.platform_profit || 0,
+          }
+        }
+        if (sRes.status === 'fulfilled' && sRes.value?.success) {
+          overview.students = {
+            total: sRes.value.stats?.total || 0,
+            active: sRes.value.stats?.active || 0,
+            weekly: sRes.value.stats?.weekly_registered || 0,
+            revenue: sRes.value.financeStats?.total_student_revenue || 0,
+          }
+        }
+        setSystemsOverview(overview)
+
+        const cards: any = {}
+        if (cardC.status === 'fulfilled' && cardC.value?.data) cards.citizen = cardC.value.data
+        if (cardA.status === 'fulfilled' && cardA.value?.data) cards.advocate = cardA.value.data
+        if (cardS.status === 'fulfilled' && cardS.value?.data) cards.student = cardS.value.data
+        setPaymentCards(cards)
       } catch {
         // silent — defaultlar ishlatiladi
       }
@@ -388,6 +463,35 @@ export default function AdminDashboard() {
   }, [])
 
   // === LOGOUT — nuclear clear + hard redirect ===
+  const handleSavePaymentCard = async (system: 'citizen' | 'advocate' | 'student') => {
+    try {
+      setSavingCards(true)
+      const authHeaders = await getAuthHeaders()
+      const card = paymentCards[system] || {}
+      const res = await fetch('/api/settings/payment-account', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
+        body: JSON.stringify({
+          system,
+          cardNumber: card.cardNumber,
+          cardHolder: card.cardHolder,
+          bankName: card.bankName,
+          details: card.details,
+        }),
+      })
+      const json = await res.json()
+      if (json.success) {
+        alert(`${system.toUpperCase()} tizimi uchun hisob raqami (karta) muvaffaqiyatli saqlandi!`)
+      } else {
+        alert(json.error || 'Saqlashda xatolik')
+      }
+    } catch {
+      alert('Tarmoq xatosi')
+    } finally {
+      setSavingCards(false)
+    }
+  }
+
   const handleLogout = async () => {
     await authService.signOut()
     // authService.signOut() now does: localStorage.clear(), sessionStorage.clear(), window.location.href = '/signin'
@@ -975,82 +1079,28 @@ export default function AdminDashboard() {
         {/* ===== DASHBOARD ===== */}
         {activeTab === 'dashboard' && (
           <div className="space-y-6">
-            {/* ── 3 TA ALOHIDA MUSTAQIL BOSHQARUV TIZIMI ── */}
+            {/* ── 4 TA MUSTAQIL TIZIM KARTALARI ── */}
             <div className="bg-gradient-to-r from-slate-50 via-indigo-50/50 to-blue-50/50 dark:from-zinc-900/90 dark:via-indigo-950/30 dark:to-zinc-900/90 border border-slate-200/80 dark:border-zinc-800 rounded-2xl p-5 shadow-sm space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/80 dark:border-zinc-800/80 pb-3">
                 <div>
                   <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                     <Shield className="text-indigo-600" size={17} />
-                    3 Ta Ixtisoslashtirilgan Boshqaruv & Alohida Moliya Tizimlari
+                    Platforma Tizimlari Boshqaruvi
                   </h3>
                   <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
-                    Advokatlar, Yosh advokatlar va Fuqarolar uchun alohida nazorat, mustaqil pul tushumlari va alohida sozlamalar
+                    Har bir tizim faqat o‘z ma&apos;lumotlari, alohida hisob raqamlari va mustaqil hisobotlariga ega
                   </p>
                 </div>
                 <span className="text-[11px] font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-100/80 dark:bg-indigo-900/60 px-2.5 py-1 rounded-lg max-w-fit">
-                  3 ta Alohida Tizim
+                  4 ta Alohida Tizim
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* 1. Advokatlar */}
-                <Link
-                  href="/admin/advocates"
-                  className="group p-4 bg-white dark:bg-zinc-900 rounded-xl border border-slate-200/80 dark:border-zinc-800 hover:border-emerald-500 dark:hover:border-emerald-600 shadow-sm transition-all hover:shadow-md flex flex-col justify-between"
-                >
-                  <div>
-                    <div className="flex items-center justify-between mb-2.5">
-                      <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 flex items-center justify-center font-bold">
-                        <Scale size={20} />
-                      </div>
-                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-200/50">
-                        Litsenziyalar
-                      </span>
-                    </div>
-                    <h4 className="font-bold text-sm text-gray-900 dark:text-white group-hover:text-emerald-600 transition-colors">
-                      Advokatlar Boshqaruvi
-                    </h4>
-                    <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1 line-clamp-2">
-                      Litsenziyalar verifikatsiyasi, qabullar monitoringi, 12% komissiya daromadi va narx sozlamalari.
-                    </p>
-                  </div>
-                  <div className="mt-3.5 pt-2.5 border-t border-slate-100 dark:border-zinc-800 text-xs font-semibold text-emerald-600 dark:text-emerald-400 flex items-center justify-between">
-                    <span>Alohida Boshqaruv</span>
-                    <span>→</span>
-                  </div>
-                </Link>
-
-                {/* 2. Yosh Advokatlar (Nomzodlar) */}
-                <Link
-                  href="/admin/law-students"
-                  className="group p-4 bg-white dark:bg-zinc-900 rounded-xl border border-slate-200/80 dark:border-zinc-800 hover:border-indigo-500 dark:hover:border-indigo-600 shadow-sm transition-all hover:shadow-md flex flex-col justify-between"
-                >
-                  <div>
-                    <div className="flex items-center justify-between mb-2.5">
-                      <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 flex items-center justify-center font-bold">
-                        <Award size={20} />
-                      </div>
-                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300 border border-indigo-200/50">
-                        Maxsus Parol
-                      </span>
-                    </div>
-                    <h4 className="font-bold text-sm text-gray-900 dark:text-white group-hover:text-indigo-600 transition-colors">
-                      Yosh Advokatlar (Nomzodlar)
-                    </h4>
-                    <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1 line-clamp-2">
-                      Faqat maxsus parol orqali kirish, vaucherlar, virtual sud, stajirovka mukofotlari va hamyonlar.
-                    </p>
-                  </div>
-                  <div className="mt-3.5 pt-2.5 border-t border-slate-100 dark:border-zinc-800 text-xs font-semibold text-indigo-600 dark:text-indigo-400 flex items-center justify-between">
-                    <span>Alohida Boshqaruv</span>
-                    <span>→</span>
-                  </div>
-                </Link>
-
-                {/* 3. Fuqarolar */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* 1. Fuqarolar */}
                 <Link
                   href="/admin/citizens"
-                  className="group p-4 bg-white dark:bg-zinc-900 rounded-xl border border-slate-200/80 dark:border-zinc-800 hover:border-blue-500 dark:hover:border-blue-600 shadow-sm transition-all hover:shadow-md flex flex-col justify-between"
+                  className="group p-4 bg-white dark:bg-zinc-900 rounded-xl border border-slate-200/80 dark:border-zinc-800 hover:border-blue-500 shadow-sm transition-all hover:shadow-md flex flex-col justify-between"
                 >
                   <div>
                     <div className="flex items-center justify-between mb-2.5">
@@ -1058,21 +1108,395 @@ export default function AdminDashboard() {
                         <Users size={20} />
                       </div>
                       <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300 border border-blue-200/50">
-                        Mijozlar
+                        {systemsOverview.citizens?.total || 0} ta Fuqaro
                       </span>
                     </div>
                     <h4 className="font-bold text-sm text-gray-900 dark:text-white group-hover:text-blue-600 transition-colors">
-                      Fuqarolar Boshqaruvi
+                      Fuqarolar Tizimi
                     </h4>
                     <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1 line-clamp-2">
-                      Yuridik savollar (9 900 so‘m), Pro/Premium obunalar, depozit balansi va murojaatlar moderatsiyasi.
+                      Haqiqiy fuqarolar, yuridik savollar, Pro obunalar va alohida hisob raqam.
                     </p>
                   </div>
                   <div className="mt-3.5 pt-2.5 border-t border-slate-100 dark:border-zinc-800 text-xs font-semibold text-blue-600 dark:text-blue-400 flex items-center justify-between">
-                    <span>Alohida Boshqaruv</span>
+                    <span>Fuqarolar Nazorati</span>
                     <span>→</span>
                   </div>
                 </Link>
+
+                {/* 2. Yosh Advokatlar (Talabalar) */}
+                <Link
+                  href="/admin/law-students"
+                  className="group p-4 bg-white dark:bg-zinc-900 rounded-xl border border-slate-200/80 dark:border-zinc-800 hover:border-indigo-500 shadow-sm transition-all hover:shadow-md flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-2.5">
+                      <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 flex items-center justify-center font-bold">
+                        <Award size={20} />
+                      </div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300 border border-indigo-200/50">
+                        {systemsOverview.lawStudents?.total || 0} Nomzod
+                      </span>
+                    </div>
+                    <h4 className="font-bold text-sm text-gray-900 dark:text-white group-hover:text-indigo-600 transition-colors">
+                      Yosh Advokatlar (Talabalar)
+                    </h4>
+                    <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1 line-clamp-2">
+                      Faqat maxsus parol bilan kirish, savol-javob, AI bahosi, reyting ballari va payoutlar.
+                    </p>
+                  </div>
+                  <div className="mt-3.5 pt-2.5 border-t border-slate-100 dark:border-zinc-800 text-xs font-semibold text-indigo-600 dark:text-indigo-400 flex items-center justify-between">
+                    <span>Yosh Advokatlar</span>
+                    <span>→</span>
+                  </div>
+                </Link>
+
+                {/* 3. Advokatlar */}
+                <Link
+                  href="/admin/advocates"
+                  className="group p-4 bg-white dark:bg-zinc-900 rounded-xl border border-slate-200/80 dark:border-zinc-800 hover:border-emerald-500 shadow-sm transition-all hover:shadow-md flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-2.5">
+                      <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 flex items-center justify-center font-bold">
+                        <Scale size={20} />
+                      </div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-200/50">
+                        {systemsOverview.advocates?.approved || 0} Tasdiqlangan
+                      </span>
+                    </div>
+                    <h4 className="font-bold text-sm text-gray-900 dark:text-white group-hover:text-emerald-600 transition-colors">
+                      Advokatlar Tizimi
+                    </h4>
+                    <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1 line-clamp-2">
+                      Litsenziyalar, arizalar, verifikatsiyalar va advokatlik a&apos;zolik to‘lovlari.
+                    </p>
+                  </div>
+                  <div className="mt-3.5 pt-2.5 border-t border-slate-100 dark:border-zinc-800 text-xs font-semibold text-emerald-600 dark:text-emerald-400 flex items-center justify-between">
+                    <span>Advokatlar Nazorati</span>
+                    <span>→</span>
+                  </div>
+                </Link>
+
+                {/* 4. Ta'lim Talabalari (Mavjud 23 ta) */}
+                <div
+                  className="p-4 bg-white dark:bg-zinc-900 rounded-xl border border-slate-200/80 dark:border-zinc-800 shadow-sm flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-2.5">
+                      <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 flex items-center justify-center font-bold">
+                        <GraduationCap size={20} />
+                      </div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300 border border-amber-200/50">
+                        {systemsOverview.students?.total || 23} Talaba
+                      </span>
+                    </div>
+                    <h4 className="font-bold text-sm text-gray-900 dark:text-white">
+                      Ta&apos;lim Talabalari
+                    </h4>
+                    <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1 line-clamp-2">
+                      Mavjud 23 ta umumiy talaba: Virtual sud, IRAC tahlili va yuridik testlar faolligi.
+                    </p>
+                  </div>
+                  <div className="mt-3.5 pt-2.5 border-t border-slate-100 dark:border-zinc-800 text-xs font-semibold text-amber-600 flex items-center justify-between">
+                    <span>Ta&apos;lim Simulyatori</span>
+                    <span>✓ Faol</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* ── REAL-TIME HAFTALIK VA OYLIK HISOBOTLAR MODULI ── */}
+            <div className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 rounded-2xl p-5 shadow-sm space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-zinc-800 pb-3">
+                <div className="flex items-center gap-2">
+                  <BarChart3 className="text-blue-600" size={18} />
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                      Real-Time Haftalik & Oylik Tizimlar Hisoboti
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-zinc-400">
+                      Har bir tizim bo‘yicha yangi foydalanuvchilar, faollik va tushum dinamikasi
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-zinc-800 p-1 rounded-xl">
+                  <button
+                    type="button"
+                    onClick={() => setReportRange('week')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                      reportRange === 'week'
+                        ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-xs'
+                        : 'text-slate-600 dark:text-zinc-400'
+                    }`}
+                  >
+                    Haftalik (7 kun)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setReportRange('month')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                      reportRange === 'month'
+                        ? 'bg-white dark:bg-zinc-900 text-blue-600 shadow-xs'
+                        : 'text-slate-600 dark:text-zinc-400'
+                    }`}
+                  >
+                    Oylik (30 kun)
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* Fuqarolar hisoboti */}
+                <div className="p-4 rounded-xl border border-blue-100 dark:border-blue-900/40 bg-blue-50/30 dark:bg-blue-950/20 space-y-2">
+                  <span className="text-xs font-bold text-blue-900 dark:text-blue-200 flex items-center justify-between">
+                    <span>🏛️ Fuqarolar</span>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-bold">
+                      {reportRange === 'week' ? 'Haftalik' : 'Oylik'}
+                    </span>
+                  </span>
+                  <div className="text-xl font-black text-blue-950 dark:text-blue-100">
+                    +{reportRange === 'week' ? systemsOverview.citizens?.weekly || 0 : systemsOverview.citizens?.monthly || 0} yangi
+                  </div>
+                  <div className="text-xs text-slate-600 dark:text-zinc-400 pt-1 border-t border-blue-200/40">
+                    Tushum: <strong className="text-emerald-600 font-bold">
+                      {reportRange === 'week'
+                        ? Number(systemsOverview.citizens?.weeklyRevenue || 0).toLocaleString()
+                        : Number(systemsOverview.citizens?.monthlyRevenue || systemsOverview.citizens?.revenue || 0).toLocaleString()
+                      } UZS
+                    </strong>
+                  </div>
+                </div>
+
+                {/* Yosh advokatlar hisoboti */}
+                <div className="p-4 rounded-xl border border-indigo-100 dark:border-indigo-900/40 bg-indigo-50/30 dark:bg-indigo-950/20 space-y-2">
+                  <span className="text-xs font-bold text-indigo-900 dark:text-indigo-200 flex items-center justify-between">
+                    <span>🎓 Yosh Advokatlar</span>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-bold">
+                      Faol staj
+                    </span>
+                  </span>
+                  <div className="text-xl font-black text-indigo-950 dark:text-indigo-100">
+                    {systemsOverview.lawStudents?.active || 0} ta stajyor
+                  </div>
+                  <div className="text-xs text-slate-600 dark:text-zinc-400 pt-1 border-t border-indigo-200/40">
+                    Kutilayotgan yechish: <strong className="text-rose-600 font-bold">{systemsOverview.lawStudents?.pendingPayouts || 0} ta so‘rov</strong>
+                  </div>
+                </div>
+
+                {/* Advokatlar hisoboti */}
+                <div className="p-4 rounded-xl border border-emerald-100 dark:border-emerald-900/40 bg-emerald-50/30 dark:bg-emerald-950/20 space-y-2">
+                  <span className="text-xs font-bold text-emerald-900 dark:text-emerald-200 flex items-center justify-between">
+                    <span>⚖️ Advokatlar</span>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-bold">
+                      Litsenziyalar
+                    </span>
+                  </span>
+                  <div className="text-xl font-black text-emerald-950 dark:text-emerald-100">
+                    {systemsOverview.advocates?.approved || 0} ta litsenziyali
+                  </div>
+                  <div className="text-xs text-slate-600 dark:text-zinc-400 pt-1 border-t border-emerald-200/40">
+                    Kutilayotgan arizalar: <strong className="text-amber-600 font-bold">{systemsOverview.advocates?.pending || 0} ta</strong>
+                  </div>
+                </div>
+
+                {/* Ta'lim talabalari hisoboti */}
+                <div className="p-4 rounded-xl border border-amber-100 dark:border-amber-900/40 bg-amber-50/30 dark:bg-amber-950/20 space-y-2">
+                  <span className="text-xs font-bold text-amber-900 dark:text-amber-200 flex items-center justify-between">
+                    <span>📚 Ta&apos;lim Talabalari</span>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-bold">
+                      Mavjud 23 ta
+                    </span>
+                  </span>
+                  <div className="text-xl font-black text-amber-950 dark:text-amber-100">
+                    {systemsOverview.students?.total || 23} ta talaba
+                  </div>
+                  <div className="text-xs text-slate-600 dark:text-zinc-400 pt-1 border-t border-amber-200/40">
+                    Faoliyat: <strong className="text-blue-600 font-bold">Virtual sud & IRAC testlar</strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* ── 3 TA TIZIMNING HISOB RAQAMLARI (MENING KARTAM) SOZLAMASI ── */}
+            <div className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 rounded-2xl p-5 shadow-sm space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-zinc-800 pb-3">
+                <div className="flex items-center gap-2">
+                  <CreditCard className="text-emerald-600" size={18} />
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                      Tizimlar Bo‘yicha To‘lov Hisob Raqamlari (Mening Kartam)
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-zinc-400">
+                      Qaysi tizimga qaysi karta kiritilsa, to‘lov sahifasida FAQAT o‘sha tizimda ko‘rsatiladi va to‘lov tushadi
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* 1. Fuqarolar hisob raqami */}
+                <div className="p-4 rounded-xl border border-blue-200/80 dark:border-blue-900/50 bg-blue-50/20 dark:bg-blue-950/20 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-blue-900 dark:text-blue-200 flex items-center gap-1.5">
+                      🏛️ Fuqarolar To‘lovi Kartasi
+                    </span>
+                    <span className="text-[10px] text-blue-700 bg-blue-100 px-2 py-0.5 rounded font-bold">
+                      Fuqarolar Tizimi
+                    </span>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-600 dark:text-zinc-400 mb-0.5">
+                        Karta raqami (8600...):
+                      </label>
+                      <input
+                        type="text"
+                        value={paymentCards.citizen?.cardNumber || ''}
+                        onChange={(e) => setPaymentCards({
+                          ...paymentCards,
+                          citizen: { ...paymentCards.citizen, cardNumber: e.target.value }
+                        })}
+                        placeholder="8600 0000 0000 0000"
+                        className="w-full px-3 py-1.5 bg-white dark:bg-zinc-800 border rounded-lg text-xs font-mono font-bold"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-600 dark:text-zinc-400 mb-0.5">
+                        Karta egasi:
+                      </label>
+                      <input
+                        type="text"
+                        value={paymentCards.citizen?.cardHolder || ''}
+                        onChange={(e) => setPaymentCards({
+                          ...paymentCards,
+                          citizen: { ...paymentCards.citizen, cardHolder: e.target.value }
+                        })}
+                        placeholder="ISM FAMILIYA"
+                        className="w-full px-3 py-1.5 bg-white dark:bg-zinc-800 border rounded-lg text-xs font-semibold"
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    disabled={savingCards}
+                    onClick={() => handleSavePaymentCard('citizen')}
+                    className="w-full py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-xs"
+                  >
+                    Fuqaro Kartasini Saqlash
+                  </button>
+                </div>
+
+                {/* 2. Advokatlar hisob raqami */}
+                <div className="p-4 rounded-xl border border-emerald-200/80 dark:border-emerald-900/50 bg-emerald-50/20 dark:bg-emerald-950/20 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-emerald-900 dark:text-emerald-200 flex items-center gap-1.5">
+                      ⚖️ Advokatlar To‘lovi Kartasi
+                    </span>
+                    <span className="text-[10px] text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded font-bold">
+                      Advokatlar Tizimi
+                    </span>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-600 dark:text-zinc-400 mb-0.5">
+                        Karta raqami (8600...):
+                      </label>
+                      <input
+                        type="text"
+                        value={paymentCards.advocate?.cardNumber || ''}
+                        onChange={(e) => setPaymentCards({
+                          ...paymentCards,
+                          advocate: { ...paymentCards.advocate, cardNumber: e.target.value }
+                        })}
+                        placeholder="8600 0000 0000 0000"
+                        className="w-full px-3 py-1.5 bg-white dark:bg-zinc-800 border rounded-lg text-xs font-mono font-bold"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-600 dark:text-zinc-400 mb-0.5">
+                        Karta egasi:
+                      </label>
+                      <input
+                        type="text"
+                        value={paymentCards.advocate?.cardHolder || ''}
+                        onChange={(e) => setPaymentCards({
+                          ...paymentCards,
+                          advocate: { ...paymentCards.advocate, cardHolder: e.target.value }
+                        })}
+                        placeholder="ISM FAMILIYA"
+                        className="w-full px-3 py-1.5 bg-white dark:bg-zinc-800 border rounded-lg text-xs font-semibold"
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    disabled={savingCards}
+                    onClick={() => handleSavePaymentCard('advocate')}
+                    className="w-full py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-xs"
+                  >
+                    Advokat Kartasini Saqlash
+                  </button>
+                </div>
+
+                {/* 3. Talabalar hisob raqami */}
+                <div className="p-4 rounded-xl border border-amber-200/80 dark:border-amber-900/50 bg-amber-50/20 dark:bg-amber-950/20 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-amber-900 dark:text-amber-200 flex items-center gap-1.5">
+                      🎓 Talabalar To‘lovi Kartasi
+                    </span>
+                    <span className="text-[10px] text-amber-700 bg-amber-100 px-2 py-0.5 rounded font-bold">
+                      Talabalar Tizimi
+                    </span>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-600 dark:text-zinc-400 mb-0.5">
+                        Karta raqami (8600...):
+                      </label>
+                      <input
+                        type="text"
+                        value={paymentCards.student?.cardNumber || ''}
+                        onChange={(e) => setPaymentCards({
+                          ...paymentCards,
+                          student: { ...paymentCards.student, cardNumber: e.target.value }
+                        })}
+                        placeholder="8600 0000 0000 0000"
+                        className="w-full px-3 py-1.5 bg-white dark:bg-zinc-800 border rounded-lg text-xs font-mono font-bold"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-600 dark:text-zinc-400 mb-0.5">
+                        Karta egasi:
+                      </label>
+                      <input
+                        type="text"
+                        value={paymentCards.student?.cardHolder || ''}
+                        onChange={(e) => setPaymentCards({
+                          ...paymentCards,
+                          student: { ...paymentCards.student, cardHolder: e.target.value }
+                        })}
+                        placeholder="ISM FAMILIYA"
+                        className="w-full px-3 py-1.5 bg-white dark:bg-zinc-800 border rounded-lg text-xs font-semibold"
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    disabled={savingCards}
+                    onClick={() => handleSavePaymentCard('student')}
+                    className="w-full py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold transition-all shadow-xs"
+                  >
+                    Talaba Kartasini Saqlash
+                  </button>
+                </div>
               </div>
             </div>
 

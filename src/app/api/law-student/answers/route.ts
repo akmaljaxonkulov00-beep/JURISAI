@@ -50,9 +50,16 @@ export async function POST(request: NextRequest) {
       legalBasis: cleanBasis,
     })
 
-    const studentName = auth.user.email?.split('@')[0] || 'Talaba'
+    // 3. Talabaning haqiqiy ism-sharifini profilidan olish
+    const { data: studentProf } = await admin
+      .from('law_student_profiles')
+      .select('full_name, reputation_score, answers_count, approved_answers_count, level')
+      .eq('user_id', auth.user.id)
+      .maybeSingle()
 
-    // 3. Javobni saqlash
+    const studentName = studentProf?.full_name || (auth.user as any)?.name || auth.user.email?.split('@')[0] || 'Yosh Advokat'
+
+    // 4. Javobni saqlash (AI bahosi bilan)
     const { data: answer, error: ansErr } = await admin
       .from('legal_answers')
       .insert({
@@ -65,6 +72,8 @@ export async function POST(request: NextRequest) {
         status: 'approved',
         ai_evaluation: aiEval,
         ai_score: aiEval.score,
+        reward_amount: 0, // Har bir javobga to'g'ridan-to'g'ri pul berilmaydi, ball yig'iladi
+        reward_status: 'pending',
         created_at: new Date().toISOString(),
       })
       .select()
@@ -74,7 +83,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: ansErr?.message }, { status: 500 })
     }
 
-    // 4. Savolni 'answered' qilish va lockni yopish
+    // 5. Savolni 'answered' qilish va lockni yopish
     await admin
       .from('legal_questions')
       .update({
@@ -86,48 +95,82 @@ export async function POST(request: NextRequest) {
       })
       .eq('id', questionId)
 
-    // 5. Mukofot ajratish (5 000 - 15 000 UZS oralig'ida sifatiga qarab)
-    let rewardAmount = 5000
-    if (aiEval.score >= 85) rewardAmount = 15000
-    else if (aiEval.score >= 70) rewardAmount = 10000
+    // 6. Ballar jamg'arish (Har bir javob uchun AI bahosiga qarab ball to'planadi)
+    // Masalan: AI 85 ball bergan bo'lsa, talabaga +85 reyting bali yig'iladi.
+    const earnedPoints = aiEval.score || 50
+    const currentScore = Number(studentProf?.reputation_score || 0)
+    const newTotalScore = currentScore + earnedPoints
 
-    if (aiEval.isEligibleForReward) {
-      await creditStudentReward({
-        studentId: auth.user.id,
-        questionId,
-        answerId: answer.id,
-        amount: rewardAmount,
-        aiScore: aiEval.score,
-      })
-    }
+    // Darajani aniqlash
+    let newLevel = studentProf?.level || 'beginner'
+    if (newTotalScore >= 500) newLevel = 'expert'
+    else if (newTotalScore >= 300) newLevel = 'advanced'
+    else if (newTotalScore >= 150) newLevel = 'skilled'
+    else if (newTotalScore >= 60) newLevel = 'contributor'
 
-    // 6. Talaba profilidagi answers_count ni oshirish
-    try {
-      const { data: prof } = await admin
-        .from('law_student_profiles')
-        .select('answers_count, approved_answers_count')
-        .eq('user_id', auth.user.id)
+    // Ball chegarasi (Har 100 ballga yetganda daraja pul mukofoti ochiladi)
+    const prevThresholdCount = Math.floor(currentScore / 100)
+    const newThresholdCount = Math.floor(newTotalScore / 100)
+    const thresholdsAchieved = newThresholdCount - prevThresholdCount
+
+    let thresholdBonus = 0
+    if (thresholdsAchieved > 0) {
+      thresholdBonus = thresholdsAchieved * 50000 // Har 100 ballga 50 000 UZS
+
+      const { data: wallet } = await admin
+        .from('student_wallets')
+        .select('*')
+        .eq('student_id', auth.user.id)
         .maybeSingle()
 
-      if (prof) {
+      if (wallet) {
         await admin
-          .from('law_student_profiles')
+          .from('student_wallets')
           .update({
-            answers_count: (prof.answers_count || 0) + 1,
-            approved_answers_count: (prof.approved_answers_count || 0) + 1,
+            balance: Number(wallet.balance || 0) + thresholdBonus,
+            total_earned: Number(wallet.total_earned || 0) + thresholdBonus,
             updated_at: new Date().toISOString(),
           })
-          .eq('user_id', auth.user.id)
+          .eq('student_id', auth.user.id)
+      } else {
+        await admin.from('student_wallets').insert({
+          student_id: auth.user.id,
+          balance: thresholdBonus,
+          total_earned: thresholdBonus,
+          total_withdrawn: 0,
+          updated_at: new Date().toISOString(),
+        })
       }
-    } catch {}
+    }
+
+    // Profilni yangilash
+    if (studentProf) {
+      await admin
+        .from('law_student_profiles')
+        .update({
+          answers_count: (studentProf.answers_count || 0) + 1,
+          approved_answers_count: (studentProf.approved_answers_count || 0) + 1,
+          reputation_score: newTotalScore,
+          level: newLevel,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('user_id', auth.user.id)
+    }
+
+    const message = thresholdBonus > 0
+      ? `Javobingiz qabul qilindi! AI Bahosi: ${aiEval.score} ball. Tabriklaymiz, ${newTotalScore} ballga yetdingiz va hisobingizga +${thresholdBonus.toLocaleString()} so'm daraja bonusi qo'shildi!`
+      : `Javobingiz qabul qilindi! AI Bahosi: ${aiEval.score} ball (+${earnedPoints} reyting bali). Fuqaro javobingizni baholaganda qo‘shimcha ballar beriladi.`
 
     return NextResponse.json({
       success: true,
-      message: `Javobingiz muvaffaqiyatli qabul qilindi! AI Bahosi: ${aiEval.score} ball. Hisobingizga +${rewardAmount.toLocaleString()} so'm mukofot qo'shildi.`,
+      message,
       data: {
         answer,
         evaluation: aiEval,
-        rewardAmount,
+        earnedPoints,
+        newTotalScore,
+        newLevel,
+        thresholdBonus,
       },
     })
   } catch (error: any) {

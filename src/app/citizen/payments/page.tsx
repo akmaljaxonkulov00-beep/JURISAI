@@ -25,17 +25,26 @@ export default function CitizenPaymentsPage() {
   const [loading, setLoading] = useState(true)
   const [purchasing, setPurchasing] = useState<string | null>(null)
   const [successMsg, setSuccessMsg] = useState<string | null>(null)
+  const [paymentAccount, setPaymentAccount] = useState<{
+    cardNumber: string
+    cardHolder: string
+    bankName: string
+    details: string
+  } | null>(null)
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     async function loadPaymentsData() {
       try {
         const headers = await getAuthHeaders()
-        const [uRes, aRes] = await Promise.all([
+        const [uRes, aRes, accRes] = await Promise.all([
           fetch('/api/citizen/usage', { headers, credentials: 'include' }).then(r => r.json()).catch(() => ({})),
           fetch('/api/appointments', { headers, credentials: 'include' }).then(r => r.json()).catch(() => ({})),
+          fetch('/api/settings/payment-account?system=citizen').then(r => r.json()).catch(() => ({})),
         ])
 
         if (uRes?.success && uRes?.data) setUsage(uRes.data)
+        if (accRes?.success && accRes?.data) setPaymentAccount(accRes.data)
         if (aRes?.success && aRes?.data) {
           const paidApps = aRes.data.filter((a: any) => a.payment_status === 'paid' || a.amount > 0)
           setTransactions(paidApps)
@@ -48,6 +57,12 @@ export default function CitizenPaymentsPage() {
     }
     loadPaymentsData()
   }, [])
+
+  const copyCard = (num: string) => {
+    navigator.clipboard.writeText(num.replace(/\s+/g, ''))
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
 
   const handleBuyPackage = async (packageType: 'single' | 'pack5' | 'monthly') => {
     setPurchasing(packageType)
@@ -96,6 +111,59 @@ export default function CitizenPaymentsPage() {
           <div className="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-sm flex items-center gap-2">
             <CheckCircle className="w-5 h-5 text-emerald-600" />
             <span>{successMsg}</span>
+          </div>
+        )}
+
+        {/* ── FUQAROLAR TIZIMI HISOB RAQAMI (KARTA REKVIZITLARI) ── */}
+        {paymentAccount && paymentAccount.cardNumber && (
+          <div className="bg-gradient-to-br from-[#0B1728] via-[#102244] to-[#1E3A8A] text-white p-6 sm:p-7 rounded-3xl border border-blue-500/30 shadow-xl space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
+              <div>
+                <span className="text-xs uppercase font-bold tracking-widest text-blue-300 flex items-center gap-2">
+                  <CreditCard className="w-4 h-4 text-emerald-400" /> Fuqarolar To‘lov Rekviziti
+                </span>
+                <p className="text-xs text-gray-300 mt-0.5">
+                  Savol sotib olish, Pro obuna va konsultatsiya to‘lovlarini ushbu hisob raqamga o‘tkazing:
+                </p>
+              </div>
+              <span className="text-[11px] font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 px-3 py-1 rounded-full max-w-fit">
+                Rasmiy Hisob
+              </span>
+            </div>
+
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-1">
+              <div className="space-y-1">
+                <span className="text-[11px] text-gray-400 uppercase tracking-wider block">Karta raqami:</span>
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl sm:text-3xl font-mono font-black tracking-wider text-amber-300">
+                    {paymentAccount.cardNumber}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => copyCard(paymentAccount.cardNumber)}
+                    className="px-3 py-1.5 rounded-lg bg-white/15 hover:bg-white/25 text-xs font-bold transition-all text-white border border-white/10"
+                  >
+                    {copied ? 'Nusxa olindi!' : 'Nusxa olish'}
+                  </button>
+                </div>
+              </div>
+
+              <div className="sm:text-right space-y-0.5">
+                <span className="text-[11px] text-gray-400 uppercase tracking-wider block">Karta egasi:</span>
+                <span className="text-sm font-bold text-white block">
+                  {paymentAccount.cardHolder || 'JURISAI FUQAROLAR XIZMATI'}
+                </span>
+                <span className="text-xs text-blue-300 block">
+                  {paymentAccount.bankName || 'Milliy Bank'}
+                </span>
+              </div>
+            </div>
+
+            {paymentAccount.details && (
+              <p className="text-xs text-gray-300 pt-2 border-t border-white/10 italic">
+                ℹ️ Izoh: {paymentAccount.details}
+              </p>
+            )}
           </div>
         )}
 

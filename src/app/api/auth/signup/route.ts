@@ -33,7 +33,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Ism, email va parol kiritilishi shart' }, { status: 400 })
     }
 
+    if (String(password).length < 6) {
+      return NextResponse.json({ error: 'Parol kamida 6 ta belgidan iborat bo‘lishi kerak' }, { status: 400 })
+    }
+
     const cleanEmail = email.toLowerCase().trim()
+    const cleanPhone = (phone || '').trim()
+    const cleanCity = (city || '').trim()
+
     let validatedRole: PlatformRole = resolvePlatformRole(requestedRole)
     if (validatedRole === 'admin') {
       validatedRole = 'student' // Admin faqat tizim ichida beriladi
@@ -41,7 +48,44 @@ export async function POST(request: NextRequest) {
 
     const admin = getSupabaseAdmin()
 
-    // ── 1. ADVOKAT UCHUN TEKSHIRUV: Litsenziya ma'lumotlari majburiy ──
+    // ── 0. Bitta email bilan faqat 1 ta rolga kirish tekshiruvi ──
+    const { data: existingUser } = await admin
+      .from('registered_users')
+      .select('id, email, role')
+      .eq('email', cleanEmail)
+      .maybeSingle()
+
+    if (existingUser) {
+      return NextResponse.json(
+        {
+          error: `Ushbu email (${cleanEmail}) allaqachon ro‘yxatdan o‘tgan. Bitta email bilan bir nechta rolga a'zo bo‘lish mumkin emas. Mavjud hisobingiz bilan tizimga kiring.`,
+        },
+        { status: 409 }
+      )
+    }
+
+    // Telefon raqami barcha rollar uchun majburiy
+    if (!cleanPhone || cleanPhone.length < 7) {
+      return NextResponse.json(
+        { error: 'Aniq telefon raqamingizni kiriting (masalan: +998 90 123 45 67)' },
+        { status: 400 }
+      )
+    }
+
+    // ── 1. FUQARO UCHUN TEKSHIRUV: Shahar/Viloyat majburiy ──
+    if (validatedRole === 'citizen') {
+      if (!cleanCity) {
+        return NextResponse.json(
+          { error: 'Fuqaro sifatida ro‘yxatdan o‘tish uchun shahar yoki viloyatingizni kiritishingiz shart.' },
+          { status: 400 }
+        )
+      }
+    }
+
+    // ── 2. TA'LIM TALABASI UCHUN TEKSHIRUV (OTM majburiy emas, ixtiyoriy) ──
+    // Talaba OTM kiritmasdan ham ro'yxatdan o'ta oladi.
+
+    // ── 3. ADVOKAT UCHUN TEKSHIRUV: Litsenziya ma'lumotlari majburiy ──
     if (validatedRole === 'advocate') {
       if (!licenseNumber?.trim() || !barAssociation?.trim()) {
         return NextResponse.json(
@@ -52,11 +96,23 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         )
       }
+      if (!cleanCity) {
+        return NextResponse.json(
+          { error: 'Advokat faoliyat ko‘rsatadigan shahar/viloyat kiritilishi shart.' },
+          { status: 400 }
+        )
+      }
     }
 
-    // ── 2. ADVOKAT BO‘LMOQCHI BO‘LGAN TALABA (YOSH ADVOKAT): Maxsus parol majburiy ──
+    // ── 4. ADVOKAT BO‘LMOQCHI BO‘LGAN TALABA (YOSH ADVOKAT): Maxsus parol va OTM majburiy ──
     let inviteRecord: any = null
     if (validatedRole === 'law_student') {
+      if (!university?.trim()) {
+        return NextResponse.json(
+          { error: 'Yuridik fakultet yoki OTM nomini kiriting.' },
+          { status: 400 }
+        )
+      }
       const cleanCode = (specialCode || '').trim().toUpperCase()
       if (!cleanCode) {
         return NextResponse.json(
@@ -79,7 +135,7 @@ export async function POST(request: NextRequest) {
       if (inv && inv.status !== 'claimed') {
         inviteRecord = inv
       } else if (MASTER_CODES.includes(cleanCode)) {
-        inviteRecord = { university: university || 'TDYU', faculty: 'Yurisprudensiya', study_year: 3 }
+        inviteRecord = { university: university || 'TDYU', faculty: body.faculty || 'Yurisprudensiya', study_year: body.studyYear || 3 }
       } else {
         return NextResponse.json(
           {

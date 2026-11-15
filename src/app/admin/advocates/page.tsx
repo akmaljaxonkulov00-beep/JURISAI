@@ -186,9 +186,25 @@ export default function AdminAdvocatesPage() {
         headers: { 'Content-Type': 'application/json', ...authHeaders },
         body: JSON.stringify({ settings }),
       })
+
+      // Advokatlar hisob raqamini alohida saqlash
+      if ((settings as any).payment_card_number) {
+        await fetch('/api/settings/payment-account', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...authHeaders },
+          body: JSON.stringify({
+            system: 'advocate',
+            cardNumber: (settings as any).payment_card_number,
+            cardHolder: (settings as any).payment_card_holder,
+            bankName: (settings as any).payment_card_bank,
+            details: 'Advokatlar to‘lovi va litsenziya xizmatlari uchun',
+          }),
+        })
+      }
+
       const data = await res.json()
       if (data.success) {
-        alert('Advokatlar nastroykasi muvaffaqiyatli saqlandi!')
+        alert('Advokatlar nastroykasi va hisob raqami muvaffaqiyatli saqlandi!')
       } else {
         alert(data.error || 'Xatolik')
       }
@@ -815,6 +831,61 @@ export default function AdminAdvocatesPage() {
                     />
                     <span>Oflayn (Advokatlik byurosida) qabullarga ruxsat berish</span>
                   </label>
+                </div>
+
+                {/* ── ALOHIDA ADVOKATLAR TIZIMI HISOB RAQAMI (KARTA) ── */}
+                <div className="p-4 bg-emerald-50/60 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/50 rounded-2xl space-y-3">
+                  <div className="flex items-center gap-2">
+                    <CreditCard size={17} className="text-emerald-600 dark:text-emerald-400" />
+                    <h4 className="text-xs font-bold text-emerald-950 dark:text-emerald-200 uppercase tracking-wider">
+                      Advokatlar Tizimi Hisob Raqami (Mening Kartam)
+                    </h4>
+                  </div>
+                  <p className="text-[11px] text-emerald-800/80 dark:text-emerald-300">
+                    Advokatlar a‘zolik badali, verifikatsiya to‘lovi va litsenziya xizmatlari tushadigan karta raqami:
+                  </p>
+
+                  <div className="space-y-2.5 pt-1">
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-700 dark:text-zinc-300 mb-1">
+                        Karta raqami (8600...) *
+                      </label>
+                      <input
+                        type="text"
+                        value={(settings as any).payment_card_number || ''}
+                        onChange={e => setSettings({ ...settings, payment_card_number: e.target.value } as any)}
+                        placeholder="8600 0000 0000 0000"
+                        className="w-full h-9 px-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-800 text-slate-900 dark:text-white font-mono font-bold"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-[11px] font-semibold text-slate-700 dark:text-zinc-300 mb-1">
+                          Karta egasi *
+                        </label>
+                        <input
+                          type="text"
+                          value={(settings as any).payment_card_holder || ''}
+                          onChange={e => setSettings({ ...settings, payment_card_holder: e.target.value } as any)}
+                          placeholder="ISM FAMILIYA"
+                          className="w-full h-9 px-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-800 text-slate-900 dark:text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-semibold text-slate-700 dark:text-zinc-300 mb-1">
+                          Bank / Izoh
+                        </label>
+                        <input
+                          type="text"
+                          value={(settings as any).payment_card_bank || ''}
+                          onChange={e => setSettings({ ...settings, payment_card_bank: e.target.value } as any)}
+                          placeholder="Kapitalbank, Uzcard"
+                          className="w-full h-9 px-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-800 text-slate-900 dark:text-white"
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </form>

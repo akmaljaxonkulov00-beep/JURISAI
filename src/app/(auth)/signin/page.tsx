@@ -224,9 +224,23 @@ function SignInContent() {
         }
       } else {
         if (!name.trim()) {
-          setError('Ism kiritilishi shart')
+          setError('To‘liq ismingizni kiriting')
           setIsSubmitting(false)
           return
+        }
+
+        if (!phone.trim() || phone.trim().length < 7) {
+          setError('Aniq telefon raqamingizni kiriting')
+          setIsSubmitting(false)
+          return
+        }
+
+        if (selectedRole === 'citizen') {
+          if (!city.trim()) {
+            setError('Shahar yoki viloyatingizni kiriting')
+            setIsSubmitting(false)
+            return
+          }
         }
 
         if (selectedRole === 'advocate') {
@@ -238,6 +252,11 @@ function SignInContent() {
         }
 
         if (selectedRole === 'law_student') {
+          if (!university.trim()) {
+            setError('Yuridik OTM nomini kiriting')
+            setIsSubmitting(false)
+            return
+          }
           if (!specialCode.trim()) {
             setError("Advokat bo‘lmoqchi bo‘lgan talabalar (Yosh advokatlar) faqat maxsus taklifnoma paroli orqali ro'yxatdan o'tishlari mumkin. Parolni kiriting.")
             setIsSubmitting(false)
@@ -275,6 +294,27 @@ function SignInContent() {
     }
   }
 
+  /* ── Quick Demo Login ── */
+  const handleQuickDemoLogin = async (demoEmail: string) => {
+    setEmail(demoEmail)
+    setPassword('juristiv2026!')
+    setIsSubmitting(true)
+    setError('')
+    try {
+      const result = await authService.signIn(demoEmail, 'juristiv2026!')
+      if (result.success && result.data) {
+        const role = (result.data as any)?.platformRole || result.data.role
+        router.push(getRoleDashboardPath(role))
+      } else {
+        setError(result.error || 'Kirishda xatolik')
+      }
+    } catch {
+      setError('Kirishda xatolik yuz berdi')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
   /* ── Google ── */
   const handleGoogleLogin = async () => {
     setIsGoogleLoading(true)
@@ -293,7 +333,12 @@ function SignInContent() {
         }
         localStorage.setItem('preferred_auth_role', selectedRole)
       } else {
-        localStorage.removeItem('preferred_auth_role')
+        // Agar talaba tanlangan tursa, Google orqali kirganda ham student rolini saqlash
+        if (selectedRole === 'student') {
+          localStorage.setItem('preferred_auth_role', 'student')
+        } else {
+          localStorage.removeItem('preferred_auth_role')
+        }
       }
       const result = await authService.signInWithGoogle()
       if (result.success && result.data) {
@@ -879,15 +924,15 @@ function SignInContent() {
                     </div>
                   )}
 
-                  {/* Umumiy talaba uchun maydon */}
+                  {/* Umumiy talaba uchun maydon (ixtiyoriy) */}
                   {selectedRole === 'student' && (
                     <div className="space-y-2">
                       <AuthInput
-                        label="Ta'lim muassasasi (OTM)"
+                        label="Ta'lim muassasasi (OTM) (ixtiyoriy)"
                         type="text"
                         value={university}
                         onChange={setUniversity}
-                        placeholder="Universitet yoki litsey nomi"
+                        placeholder="Universitet yoki litsey nomi (ixtiyoriy)"
                         icon={<span className="text-xs">🏫</span>}
                       />
                     </div>
@@ -1067,6 +1112,60 @@ function SignInContent() {
                 )}
               </button>
             </form>
+
+            {/* Quick Demo Accounts Access */}
+            {mode === 'login' && (
+              <div className="mt-5 pt-4 border-t border-slate-100 dark:border-slate-800">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[12px] font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                    <span>⚡</span> Tezkor kirish hisoblari:
+                  </span>
+                  <span className="text-[10px] text-slate-400 font-mono bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">
+                    parol: juristiv2026!
+                  </span>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleQuickDemoLogin('fuqaro@juristiv.uz')}
+                    className="p-2 rounded-xl border border-blue-200 dark:border-blue-900/60 bg-blue-50/70 dark:bg-blue-950/30 hover:bg-blue-100/80 dark:hover:bg-blue-900/40 text-left transition-all group"
+                  >
+                    <div className="font-semibold text-xs text-blue-900 dark:text-blue-200 flex items-center gap-1">
+                      <span>🏛️</span> Fuqaro
+                    </div>
+                    <div className="text-[10px] text-blue-700 dark:text-blue-400 truncate mt-0.5">
+                      fuqaro@juristiv.uz
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleQuickDemoLogin('talaba@juristiv.uz')}
+                    className="p-2 rounded-xl border border-indigo-200 dark:border-indigo-900/60 bg-indigo-50/70 dark:bg-indigo-950/30 hover:bg-indigo-100/80 dark:hover:bg-indigo-900/40 text-left transition-all group"
+                  >
+                    <div className="font-semibold text-xs text-indigo-900 dark:text-indigo-200 flex items-center gap-1">
+                      <span>🎓</span> Talaba
+                    </div>
+                    <div className="text-[10px] text-indigo-700 dark:text-indigo-400 truncate mt-0.5">
+                      talaba@juristiv.uz
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleQuickDemoLogin('advokat@juristiv.uz')}
+                    className="p-2 rounded-xl border border-emerald-200 dark:border-emerald-900/60 bg-emerald-50/70 dark:bg-emerald-950/30 hover:bg-emerald-100/80 dark:hover:bg-emerald-900/40 text-left transition-all group"
+                  >
+                    <div className="font-semibold text-xs text-emerald-900 dark:text-emerald-200 flex items-center gap-1">
+                      <span>⚖️</span> Advokat
+                    </div>
+                    <div className="text-[10px] text-emerald-700 dark:text-emerald-400 truncate mt-0.5">
+                      advokat@juristiv.uz
+                    </div>
+                  </button>
+                </div>
+              </div>
+            )}
 
 
 

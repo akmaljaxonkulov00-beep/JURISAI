@@ -229,9 +229,25 @@ export default function AdminCitizensPage() {
           settings,
         }),
       })
+
+      // Alohida hisob raqamni ham sinxron saqlash
+      if ((settings as any).payment_card_number) {
+        await fetch('/api/settings/payment-account', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...authHeaders },
+          body: JSON.stringify({
+            system: 'citizen',
+            cardNumber: (settings as any).payment_card_number,
+            cardHolder: (settings as any).payment_card_holder,
+            bankName: (settings as any).payment_card_bank,
+            details: 'Fuqarolar savol va obunalari to‘lovi uchun',
+          }),
+        })
+      }
+
       const data = await res.json()
       if (data.success) {
-        alert('Fuqarolar tizimi nastroykalari saqlandi!')
+        alert('Fuqarolar tizimi nastroykalari va hisob raqami saqlandi!')
       }
     } catch (err) {
       console.error('Nastroykalarni saqlashda xatolik:', err)
@@ -257,16 +273,30 @@ export default function AdminCitizensPage() {
       </AdminNavigationHeader>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        {/* Alohida Fuqaro Metrikalari */}
+        {/* Real-time Haftalik va Oylik Hisobotlar & Asosiy Metrikalar */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="p-4 bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 rounded-2xl shadow-sm">
             <div className="flex items-center justify-between text-xs text-slate-500 dark:text-zinc-400">
-              <span>Jami Fuqarolar</span>
+              <span>Haqiqiy Fuqarolar</span>
               <Users size={16} className="text-blue-600 dark:text-blue-400" />
             </div>
             <div className="text-2xl font-black mt-2 text-blue-900 dark:text-blue-200">{stats.total}</div>
-            <div className="text-[11px] text-emerald-600 font-semibold mt-1">
-              {stats.active} ta faol mijoz
+            <div className="text-[11px] text-emerald-600 font-semibold mt-1 flex items-center justify-between">
+              <span>{stats.active} ta faol fuqaro</span>
+              <span className="text-slate-400 font-normal">Bu hafta: +{(stats as any).weekly_registered || 0}</span>
+            </div>
+          </div>
+
+          <div className="p-4 bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 rounded-2xl shadow-sm">
+            <div className="flex items-center justify-between text-xs text-slate-500 dark:text-zinc-400">
+              <span>Haftalik & Oylik Tushum</span>
+              <TrendingUp size={16} className="text-emerald-500 dark:text-emerald-400" />
+            </div>
+            <div className="text-2xl font-black mt-2 text-emerald-900 dark:text-emerald-200">
+              {Number((financeStats as any).weekly_revenue || 0).toLocaleString('uz-UZ')} <span className="text-xs font-semibold">so‘m (hafta)</span>
+            </div>
+            <div className="text-[11px] text-slate-500 font-medium mt-1">
+              Oylik: {Number((financeStats as any).monthly_revenue || financeStats.total_citizen_revenue || 0).toLocaleString('uz-UZ')} so‘m
             </div>
           </div>
 
@@ -285,27 +315,14 @@ export default function AdminCitizensPage() {
 
           <div className="p-4 bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 rounded-2xl shadow-sm">
             <div className="flex items-center justify-between text-xs text-slate-500 dark:text-zinc-400">
-              <span>Fuqarolar Tushumi (Moliya)</span>
-              <DollarSign size={16} className="text-emerald-600 dark:text-emerald-400" />
-            </div>
-            <div className="text-2xl font-black mt-2 text-emerald-900 dark:text-emerald-200">
-              {financeStats.total_citizen_revenue.toLocaleString('uz-UZ')} <span className="text-xs font-semibold">so‘m</span>
-            </div>
-            <div className="text-[11px] text-slate-500 font-medium mt-1">
-              {financeStats.questions_revenue.toLocaleString('uz-UZ')} so‘m savollardan
-            </div>
-          </div>
-
-          <div className="p-4 bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 rounded-2xl shadow-sm">
-            <div className="flex items-center justify-between text-xs text-slate-500 dark:text-zinc-400">
-              <span>Yuridik Murojaatlar</span>
+              <span>Yuridik Savollar</span>
               <MessageSquare size={16} className="text-indigo-600 dark:text-indigo-400" />
             </div>
             <div className="text-2xl font-black mt-2 text-indigo-900 dark:text-indigo-200">
               {stats.total_questions}
             </div>
             <div className="text-[11px] text-indigo-600 font-semibold mt-1">
-              {stats.unresolved_questions} ta javob kutayotgan savol
+              Bu hafta berilgan: {(stats as any).weekly_questions || 0} ta
             </div>
           </div>
         </div>
@@ -702,6 +719,60 @@ export default function AdminCitizensPage() {
                     className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-blue-500"
                   />
                   <p className="text-[11px] text-slate-400">To‘liq advokat ko‘rigi, shaxsiy menejer va sud hujjati shablonlari narxi.</p>
+                </div>
+              </div>
+
+              {/* ── ALOHIDA FUQAROLAR TIZIMI HISOB RAQAMI (KARTA REKVIZITLARI) ── */}
+              <div className="p-4 bg-blue-50/60 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/50 rounded-2xl space-y-3">
+                <div className="flex items-center gap-2">
+                  <CreditCard size={17} className="text-blue-600 dark:text-blue-400" />
+                  <h4 className="text-xs font-bold text-blue-950 dark:text-blue-200 uppercase tracking-wider">
+                    Fuqarolar Tizimi Hisob Raqami (Mening Kartam)
+                  </h4>
+                </div>
+                <p className="text-[11px] text-blue-800/80 dark:text-blue-300">
+                  Fuqarolar savol sotib olish, Pro/Premium obuna va xizmatlar to‘lovi qilganda ko‘rsatiladigan rasmiy hisob raqami:
+                </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-700 dark:text-zinc-300 mb-1">
+                      Karta raqami (8600...) *
+                    </label>
+                    <input
+                      type="text"
+                      value={(settings as any).payment_card_number || ''}
+                      onChange={(e) => setSettings({ ...settings, payment_card_number: e.target.value } as any)}
+                      placeholder="8600 0000 0000 0000"
+                      className="w-full px-3 py-2 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs font-mono font-bold focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-700 dark:text-zinc-300 mb-1">
+                      Karta egasining ismi *
+                    </label>
+                    <input
+                      type="text"
+                      value={(settings as any).payment_card_holder || ''}
+                      onChange={(e) => setSettings({ ...settings, payment_card_holder: e.target.value } as any)}
+                      placeholder="ISM FAMILIYA"
+                      className="w-full px-3 py-2 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-700 dark:text-zinc-300 mb-1">
+                      Bank nomi / Izoh
+                    </label>
+                    <input
+                      type="text"
+                      value={(settings as any).payment_card_bank || ''}
+                      onChange={(e) => setSettings({ ...settings, payment_card_bank: e.target.value } as any)}
+                      placeholder="Milliy Bank, Click/Payme"
+                      className="w-full px-3 py-2 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
                 </div>
               </div>
 

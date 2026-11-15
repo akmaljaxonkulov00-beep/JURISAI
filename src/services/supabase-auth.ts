@@ -429,6 +429,11 @@ export async function signIn(
   password: string
 ): Promise<{ success: boolean; data?: AuthUser; error?: string }> {
   const normalizedEmail = String(email || '').toLowerCase().trim()
+  if (!normalizedEmail || !password) {
+    return { success: false, error: 'Email va parol kiritilishi shart' }
+  }
+
+  // Maxsus demo hisoblar tekshiruvi (fuqaro, talaba, advokat)
   const demo = DEMO_ACCOUNTS[normalizedEmail]
   if (demo && (password === demo.password || password === 'juristiv2026!')) {
     sessionStorage.setItem('auth_token', demo.token)

@@ -37,12 +37,22 @@ export async function GET(request: NextRequest) {
       enable_discount_mode: true,
     }
 
-    // Faqat UMUMIY TALABALAR (role = 'student' yoki 'STUDENT')
+    // Faqat UMUMIY TA'LIM TALABALARI (role = 'student' yoki eski 'USER')
     // Advokatlar, Yosh advokatlar (law_student), fuqarolar va adminlar bu yerga kirmaydi!
     const studentUsers = allUsers.filter((u: any) => {
-      const r = (u.role || '').toLowerCase()
-      return r === 'student'
+      const r = (u.role || '').toLowerCase().trim()
+      if (r === 'admin' || r === 'super_admin' || r === 'advocate' || r === 'law_student' || r === 'citizen') {
+        return false
+      }
+      return r === 'student' || r === 'user' || !r
     })
+
+    const nowMs = Date.now()
+    const weekAgoMs = nowMs - 7 * 24 * 60 * 60 * 1000
+    const monthAgoMs = nowMs - 30 * 24 * 60 * 60 * 1000
+
+    const weekStudents = studentUsers.filter((s: any) => new Date(s.created_at).getTime() >= weekAgoMs)
+    const monthStudents = studentUsers.filter((s: any) => new Date(s.created_at).getTime() >= monthAgoMs)
 
     let filteredStudents = studentUsers.map((u: any) => ({
       id: u.id,
@@ -91,6 +101,8 @@ export async function GET(request: NextRequest) {
       blocked: studentUsers.filter((s: any) => s.blocked).length,
       paid_subscribers: paidStudentCount,
       avg_score: 76,
+      weekly_registered: weekStudents.length,
+      monthly_registered: monthStudents.length,
     }
 
     return NextResponse.json({

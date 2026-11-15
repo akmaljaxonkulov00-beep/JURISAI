@@ -241,9 +241,25 @@ export default function AdminLawStudentsPage() {
           settings,
         }),
       })
+
+      // Yosh advokatlar hisob raqamini alohida saqlash
+      if ((settings as any).payment_card_number) {
+        await fetch('/api/settings/payment-account', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...authHeaders },
+          body: JSON.stringify({
+            system: 'student',
+            cardNumber: (settings as any).payment_card_number,
+            cardHolder: (settings as any).payment_card_holder,
+            bankName: (settings as any).payment_card_bank,
+            details: 'Yosh advokatlar tizimi uchun to‘lov hisob raqami',
+          }),
+        })
+      }
+
       const data = await res.json()
       if (data.success) {
-        alert('Yosh advokatlar tizimi nastroykalari saqlandi!')
+        alert('Yosh advokatlar tizimi nastroykalari va hisob raqami saqlandi!')
       }
     } catch (err) {
       console.error('Nastroykalarni saqlashda xatolik:', err)
@@ -778,6 +794,60 @@ export default function AdminLawStudentsPage() {
                     className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-indigo-500"
                   />
                   <p className="text-[11px] text-slate-400">Yaratilgan vaucher paroli necha kun davomida ro‘yxatdan o‘tishga yaroqli bo‘ladi.</p>
+                </div>
+              </div>
+
+              {/* ── ALOHIDA YOSH ADVOKATLAR TIZIMI HISOB RAQAMI ── */}
+              <div className="p-4 bg-indigo-50/60 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-900/50 rounded-2xl space-y-3">
+                <div className="flex items-center gap-2">
+                  <CreditCard size={17} className="text-indigo-600 dark:text-indigo-400" />
+                  <h4 className="text-xs font-bold text-indigo-950 dark:text-indigo-200 uppercase tracking-wider">
+                    Yosh Advokatlar Tizimi Hisob Raqami (Mening Kartam)
+                  </h4>
+                </div>
+                <p className="text-[11px] text-indigo-800/80 dark:text-indigo-300">
+                  Yosh advokatlar (stajyor talabalar) a‘zolik va test to‘lovlari tushadigan karta rekvizitlari:
+                </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-700 dark:text-zinc-300 mb-1">
+                      Karta raqami (8600...) *
+                    </label>
+                    <input
+                      type="text"
+                      value={(settings as any).payment_card_number || ''}
+                      onChange={(e) => setSettings({ ...settings, payment_card_number: e.target.value } as any)}
+                      placeholder="8600 0000 0000 0000"
+                      className="w-full px-3 py-2 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs font-mono font-bold focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-700 dark:text-zinc-300 mb-1">
+                      Karta egasining ismi *
+                    </label>
+                    <input
+                      type="text"
+                      value={(settings as any).payment_card_holder || ''}
+                      onChange={(e) => setSettings({ ...settings, payment_card_holder: e.target.value } as any)}
+                      placeholder="ISM FAMILIYA"
+                      className="w-full px-3 py-2 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-700 dark:text-zinc-300 mb-1">
+                      Bank nomi / Izoh
+                    </label>
+                    <input
+                      type="text"
+                      value={(settings as any).payment_card_bank || ''}
+                      onChange={(e) => setSettings({ ...settings, payment_card_bank: e.target.value } as any)}
+                      placeholder="Ipoteka Bank, Click"
+                      className="w-full px-3 py-2 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
                 </div>
               </div>
 

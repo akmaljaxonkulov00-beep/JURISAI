@@ -264,27 +264,35 @@ export default function LawStudentDashboard() {
           )}
         </div>
 
-        {/* Wallet & Rewards Highlight */}
-        <div className="bg-gradient-to-r from-emerald-900 via-teal-900 to-cyan-950 text-white p-6 rounded-2xl shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4 border border-emerald-700/30">
-          <div className="space-y-1">
-            <span className="text-xs uppercase font-bold tracking-wider text-emerald-300 flex items-center gap-1.5">
-              <CreditCard className="w-4 h-4" /> Talaba Shaxsiy Hamyoni
+        {/* Wallet & Points Highlight */}
+        <div className="bg-gradient-to-r from-indigo-900 via-blue-900 to-slate-900 text-white p-6 rounded-2xl shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4 border border-indigo-700/30">
+          <div className="space-y-1.5">
+            <span className="text-xs uppercase font-bold tracking-wider text-indigo-300 flex items-center gap-1.5">
+              <Award className="w-4 h-4 text-amber-400" /> Ballar & Reyting Tizimi
             </span>
-            <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-extrabold">{Number(wallet?.balance || 0).toLocaleString()} UZS</span>
-              <span className="text-xs text-emerald-200">(Jami ishlangan: {Number(wallet?.total_earned || 0).toLocaleString()} UZS)</span>
+            <div className="flex flex-wrap items-baseline gap-3">
+              <span className="text-3xl font-extrabold text-amber-400">{profile?.reputation_score || 0} Ball</span>
+              <span className="text-sm text-gray-300">
+                (Daraja: <strong className="text-white capitalize">{profile?.level || 'Boshlang‘ich nomzod'}</strong>)
+              </span>
             </div>
-            <p className="text-xs text-emerald-100">
-              AI mezonlari bo‘yicha 70+ ball to‘plagan har bir javob uchun 5 000 - 15 000 so‘m kafolatlangan mukofot beriladi.
+            <p className="text-xs text-gray-300 max-w-xl">
+              Har bir javobingiz AI mezonlari va fuqarolar baholari asosida tahlil qilinadi va umumiy ballaringizga qo‘shiladi. Ballaringiz kerakli darajaga (har 100 ballga) yetganda pul mukofoti ochiladi. Pulni yechib olganingizda pul balansingiz 0 bo‘ladi, lekin to‘plagan ballaringiz va reytingingiz saqlanib davom etaveradi!
             </p>
           </div>
-          <Link
-            href="/law-student/wallet"
-            className="px-5 py-2.5 rounded-xl bg-white text-emerald-900 hover:bg-emerald-50 text-xs font-bold transition-all shadow-md flex items-center gap-2 whitespace-nowrap"
-          >
-            <CreditCard className="w-4 h-4" />
-            Hamyon va Pul yechish
-          </Link>
+          <div className="flex flex-col sm:flex-row items-center gap-3">
+            <div className="px-4 py-2 rounded-xl bg-white/10 backdrop-blur-sm border border-white/10 text-center">
+              <span className="text-[10px] text-gray-300 uppercase block">Yechishga tayyor:</span>
+              <span className="text-lg font-extrabold text-emerald-400">{Number(wallet?.balance || 0).toLocaleString()} UZS</span>
+            </div>
+            <Link
+              href="/law-student/wallet"
+              className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow-md flex items-center gap-2 whitespace-nowrap"
+            >
+              <CreditCard className="w-4 h-4" />
+              Pulni yechish
+            </Link>
+          </div>
         </div>
 
         {/* Statistics Grid */}

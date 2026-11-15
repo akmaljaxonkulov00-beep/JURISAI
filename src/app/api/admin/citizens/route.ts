@@ -34,19 +34,33 @@ export async function GET(request: NextRequest) {
     const users = usersRes.status === 'fulfilled' && usersRes.value.data ? usersRes.value.data : []
     const questions = questionsRes.status === 'fulfilled' && questionsRes.value.data ? questionsRes.value.data : []
     const profiles = profilesRes.status === 'fulfilled' && profilesRes.value.data ? profilesRes.value.data : []
-    const settings = (settingsRes.status === 'fulfilled' && settingsRes.value.data?.value) || {
+    const defaultSettings = {
       free_questions_monthly: 2,
       question_price: 9900,
       express_surcharge: 15000,
       pro_monthly_price: 79000,
       premium_monthly_price: 149000,
       enable_paid_questions: true,
+      payment_card_number: '',
+      payment_card_holder: '',
+      payment_card_bank: 'Fuqarolar savol va obunalari to‘lovi uchun',
     }
 
-    // Faqat FUQAROLARNI ajratib olish (advokat, talaba, nomzod, adminlar aralashmasin!)
+    const settings = {
+      ...defaultSettings,
+      ...((settingsRes.status === 'fulfilled' && settingsRes.value.data?.value) || {}),
+    }
+
+    // Faqat HAQIQIY FUQAROLARNI ajratib olish:
+    // 1) role === 'citizen'
+    // 2) yoki citizen_profiles jadvalida user_id mavjud bo'lganlar
+    // TALABALAR (user, student, law_student) va ADVOKATLAR aslo fuqaro emas!
+    const citizenProfileUserIds = new Set(profiles.map((p: any) => p.user_id))
     const allCitizens = users.filter((u: any) => {
-      const r = (u.role || '').toLowerCase()
-      return r === 'citizen' || r === 'user' || (!r && u.role !== 'advocate' && u.role !== 'student' && u.role !== 'law_student' && u.role !== 'admin')
+      const r = (u.role || '').toLowerCase().trim()
+      if (r === 'citizen') return true
+      if (citizenProfileUserIds.has(u.id)) return true
+      return false
     })
 
     let filteredCitizens = [...allCitizens]
@@ -77,6 +91,17 @@ export async function GET(request: NextRequest) {
       profileMap.set(p.user_id, p)
     }
 
+    // Vaqt oraliqlari (Haftalik va Oylik)
+    const nowMs = Date.now()
+    const weekAgoMs = nowMs - 7 * 24 * 60 * 60 * 1000
+    const monthAgoMs = nowMs - 30 * 24 * 60 * 60 * 1000
+
+    const weekCitizens = allCitizens.filter((c: any) => new Date(c.created_at).getTime() >= weekAgoMs)
+    const monthCitizens = allCitizens.filter((c: any) => new Date(c.created_at).getTime() >= monthAgoMs)
+
+    const weekQuestions = questions.filter((q: any) => new Date(q.created_at).getTime() >= weekAgoMs)
+    const monthQuestions = questions.filter((q: any) => new Date(q.created_at).getTime() >= monthAgoMs)
+
     // Alohida Fuqarolar Pul Tushumi (Moliya) hisobi
     const totalDeposits = allCitizens.reduce((acc: number, c: any) => acc + Number(c.balance || 0), 0)
     const paidQuestions = questions.filter((q: any) => q.is_paid_question)
@@ -86,12 +111,20 @@ export async function GET(request: NextRequest) {
     const subscriptionsRevenue = (proUsersCount * Number(settings.pro_monthly_price || 79000)) +
                                  (premiumUsersCount * Number(settings.premium_monthly_price || 149000))
 
+    const weekPaidQuestions = weekQuestions.filter((q: any) => q.is_paid_question)
+    const weekRevenue = weekPaidQuestions.length * Number(settings.question_price || 9900)
+
+    const monthPaidQuestions = monthQuestions.filter((q: any) => q.is_paid_question)
+    const monthRevenue = monthPaidQuestions.length * Number(settings.question_price || 9900)
+
     const financeStats = {
       total_citizen_revenue: questionsRevenue + subscriptionsRevenue,
       questions_revenue: questionsRevenue,
       subscriptions_revenue: subscriptionsRevenue,
       total_balance_held: totalDeposits,
       paid_questions_count: paidQuestions.length,
+      weekly_revenue: weekRevenue,
+      monthly_revenue: monthRevenue,
     }
 
     const stats = {
@@ -102,6 +135,10 @@ export async function GET(request: NextRequest) {
       premium: premiumUsersCount,
       total_questions: questions.length,
       unresolved_questions: questions.filter((q: any) => q.status === 'open' || q.status === 'pending').length,
+      weekly_registered: weekCitizens.length,
+      monthly_registered: monthCitizens.length,
+      weekly_questions: weekQuestions.length,
+      monthly_questions: monthQuestions.length,
     }
 
     return NextResponse.json({
