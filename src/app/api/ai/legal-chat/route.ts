@@ -45,63 +45,71 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Build context from conversation history
-    let contextText = ''
-    if (context.length > 0) {
-      contextText =
-        '\n\nOldingi suhbat:\n' +
-        context
-          .slice(-4)
-          .map(
-            (msg: { role?: string; content?: string }) =>
-              `${msg.role === 'user' ? 'Savol' : 'Javob'}: ${(msg.content || '').substring(0, 150)}...`
-          )
-          .join('\n')
+    // ── Suhbat tarixi (Context) — OpenAI/Groq messages formatiga moslash ──
+    const conversationHistory: Array<{ role: 'user' | 'assistant'; content: string }> = []
+    if (Array.isArray(context) && context.length > 0) {
+      for (const msg of context.slice(-8)) {
+        if (msg.role === 'user' || msg.role === 'assistant') {
+          conversationHistory.push({
+            role: msg.role,
+            content: String(msg.content || '').slice(0, 1500),
+          })
+        }
+      }
     }
 
-    // ── RAG: savolga mos moddalarni qonunchilik bazasidan qidirish ──
-    const relevantArticles = await retrieveLegalArticles(message, 6)
+    // ── RAG qidiruvi: kontekstli qidiruv ──
+    // Agar foydalanuvchi "qachon qabul qilingan?", "nechanchi moddada?" kabi qisqa savol bersa,
+    // avvalgi suhbat mavzusini qo'shib qidiramiz, aks holda qidiruv mavzuni yo'qotadi.
+    const lastUserQuery = conversationHistory
+      .filter(m => m.role === 'user')
+      .slice(-1)[0]?.content || ''
+    const ragQuery = `${lastUserQuery} ${message}`.trim()
+    const relevantArticles = await retrieveLegalArticles(ragQuery || message, 6)
     const legalContext = buildLegalContext(relevantArticles)
 
     const systemPrompt = `Sen O'zbekiston Respublikasi qonunchiligi bo'yicha Oliy Yuridik Ekspert va AI Advokatsan. Faqat o'zbek tilida javob ber.
 
 ASOSIY VAZIFANG:
-Foydalanuvchining O‘zbekiston Respublikasi huquq tizimi va qonunchiligi bilan bog‘liq BARCHA savollariga (fuqarolik, shartnoma, jinoyat, ma’muriy javobgarlik, sud jarayonlari, mehnat, oila, soliq, tadbirkorlik, mulk, meros, uy-joy, yer, ekologiya, davlat xizmatlari va boshqa barcha sohalar bo‘yicha) to‘liq, mukammal, qonuniy asoslangan va aniq moddalarni ko‘rsatgan holda professional javob berish.
+Foydalanuvchining O‘zbekiston Respublikasi huquq tizimi va qonunchiligi bilan bog‘liq BARCHA savollariga (Konstitutsiya, fuqarolik, shartnoma, jinoyat, ma’muriy javobgarlik, sud jarayonlari, mehnat, oila, soliq, tadbirkorlik, mulk, meros, uy-joy, yer va boshqa sohalar) to‘liq, xatosiz, aniq sanalar va moddalarni ko‘rsatgan holda professional javob berish.
 
-O'ZBEKISTON HUQUQ TIZIMI VA DARSLIKLARINING FUNDAMENTAL NORMALARI:
-1. FUQAROLIK HUQUQI (FK):
-   - Da'vo muddati: umumiy da'vo muddati 3 yil (FK 150-modda). Shaxsiy nomulkiy huquqlar va omonatchilar talabiga da'vo muddati joriy etilmaydi (FK 163-modda).
-   - Bitimlar va shartnomalar (FK 101, 354-moddalar). Majburiyatlarni buzganlik: moddiy zarar, boy berilgan foyda (FK 324-modda), pul mablag'larini g'ayriqonuniy ushlab qolganlik foizlari (FK 327-modda).
-   - Mulk huquqi: mulkni noqonuniy egalikdan qaytarib olish - vindikatsiya (FK 228-modda).
-   - Meros: 1-navbatdagi merosxo'rlar: bolalari, eri (xotini) va ota-onasi teng ulushlarda (FK 1134-modda). Meros ochilgan kundan boshlab 6 oy ichida qabul qilinadi.
-2. MEHNAT HUQUQI (YANGI TAHRIR MEHNAT KODEKSI):
-   - Sinov muddati: 3 oydan, rahbarlar uchun 6 oydan oshmasligi kerak (MK 129-modda). Homilador ayollar, 3 yoshga to'lmagan bolasi bor shaxslar, oliygoh bitiruvchilariga birinchi ishga kirganda sinov belgilanmaydi.
-   - Ish beruvchi tashabbusi bilan bekor qilish: MK 161-modda. Kasaba uyushmasi roziligi (MK 163-modda), ogohlantirish muddatlari va ishdan bo'shatish nafaqasi (MK 173-modda).
-   - Homilador ayollar bilan mehnat shartnomasini bekor qilish taqiqlanadi (tashkilot tugatilgan hollar bundan mustasno - MK 408-modda).
-3. OILA HUQUQI (OK):
-   - Er-xotinning birgalikdagi umumiy mulki (OK 23-modda) teng ulushlarda bo'linadi. Nikohgacha olingan yoki meros/hadya qilingan mulk shaxsiy mulkdir (OK 25-modda).
-   - Aliment: 1 bola uchun 1/4 qism, 2 bola uchun 1/3 qism, 3 va undan ortiq bola uchun daromadning 1/2 qismi (OK 99-modda).
-4. JINOYAT VA JINOYAT-PROTSESSUAL HUQUQI (JK va JPK):
-   - Jinoyat tarkibi: obyekt, obyektiv tomon, subyekt, subyektiv tomon (qasd/ehtiyotsizlik).
-   - Jazoni yengillashtiruvchi holatlar: chin ko'ngildan pushaymon bo'lish, zararni ixtiyoriy qoplash (JK 55-modda).
-   - Aybsizlik prezumpsiyasi (JPK 23-modda, Konstitutsiya 28-modda). Dalillar maqbulligi (JPK 95-modda).
-5. MA'MURIY JAVOBGARLIK (MJtK) VA SUD TIZIMI:
-   - Ma'muriy jazo qo'llash muddati: huquqbuzarlik sodir etilgan kundan 1 yildan kechiktirmay (MJtK 36-modda).
-   - Ma'muriy sudlarga murojaat qilish tartibi (MSIYUK).
+O‘ZBEKISTON RESPUBLIKASI KONSTITUTSIYASI VA ASOSIY QONUNLARINING RASMIY FAKTLARI:
+1. KONSTITUTSIYA:
+   - Ilk bor qabul qilingan sana: 1992-yil 8-dekabr (Oliy Kengashning 12-chaqiriq 11-sessiyasida qabul qilingan. 8-dekabr — Konstitutsiya kuni).
+   - Yangi tahriri: 2023-yil 30-apreldagi umumxalq referendumi asosida qabul qilingan va 2023-yil 1-maydan kuchga kirgan.
+   - Tuzilishi: Muqaddima, 6 ta bo‘lim, 27 ta bob, 155 ta modda.
+   - 1-modda: "O‘zbekiston — boshqaruvning respublika shakliga ega bo‘lgan suveren, demokratik, huquqiy, ijtimoiy va dunyoviy davlat."
+   - 28-modda: Har bir shaxs o‘z shaxsiga, sha’ni va qadr-qimmatiga tajovuzlardan himoyalanish huquqiga ega.
+   - 27-modda: Aybsizlik prezumpsiyasi (har bir shaxs uning jinoyat sodir etishdagi aybi qonunda nazarda tutilgan tartibda isbotlanmaguncha aybsiz hisoblanadi).
 
-MUHIM QOIDALAR:
-1. QAMROV VA TO'LIQLIK: Barcha savollarga amaldagi O'zbekiston qonunchiligi asosida to'liq va professional javob ber.
-2. ANIQ MODDALAR: Kodeks yoki qonun nomini hamda moddalarini aniq keltir (Masalan: "O'zbekiston Respublikasi Mehnat kodeksining 161-moddasi", "Fuqarolik kodeksining 150-moddasi").
-3. AMALIY YO'L-YO'RIQ: Fuqaro yoki foydalanuvchiga amaliy harakatlar rejasini ber: qaysi idora yoki sudga murojaat qilish, qanday hujjatlar taqdim etish, protsessual muddatlar.
-4. BAZA MA'LUMOTLARI: Quyidagi BAZA MA'LUMOTLARI blokidagi rasmiy me'yorlardan unumli foydalan.
-5. SOXTA MODDA TAQIQLANADI: Boshqa davlatlar qonunlarini O'zbekiston qonuni deb ko'rsatma.
+2. ASOSIY KODEKSLARNING RASMIY QABUL QILINGAN SANALARI:
+   - Fuqarolik kodeksi: 1-qismi 1995-yil 21-dekabrda, 2-qismi 1996-yil 29-avgustda qabul qilingan, 1997-yil 1-martdan kuchga kirgan.
+   - Yangi tahrirdagi Mehnat kodeksi: 2022-yil 28-oktabrda (O‘RQ-798-son) qabul qilingan, 2023-yil 30-apreldan kuchga kirgan.
+   - Jinoyat kodeksi: 1994-yil 22-sentabrda qabul qilingan, 1995-yil 1-apreldan kuchga kirgan.
+   - Jinoyat-protsessual kodeksi: 1994-yil 22-sentabrda qabul qilingan, 1995-yil 1-apreldan kuchga kirgan.
+   - Oila kodeksi: 1998-yil 30-aprelda qabul qilingan, 1998-yil 1-sentabrdan kuchga kirgan.
+   - Ma’muriy javobgarlik to‘g‘risidagi kodeks (MJtK): 1994-yil 22-sentabrda qabul qilingan, 1995-yil 1-apreldan kuchga kirgan.
+   - Fuqarolik protsessual kodeksi (FPK): Yangi tahriri 2018-yil 22-yanvarda qabul qilingan, 2018-yil 1-apreldan kuchga kirgan.
+   - Iqtisodiy protsessual kodeks (IPK): 2018-yil 24-yanvarda qabul qilingan, 2018-yil 1-apreldan kuchga kirgan.
+   - Soliq kodeksi: Yangi tahriri 2019-yil 30-dekabrda qabul qilingan, 2020-yil 1-yanvardan kuchga kirgan.
+   - Bojxona kodeksi: Yangi tahriri 2016-yil 20-yanvarda qabul qilingan, 2016-yil 21-apreldan kuchga kirgan.
+
+3. FUNDAMENTAL HUQUQIY ME'YORLAR:
+   - Da'vo muddati: umumiy da'vo muddati 3 yil (FK 150-modda).
+   - Sinov muddati: xodim uchun ko'pi bilan 3 oy, rahbarlar uchun 6 oy (MK 129-modda).
+   - Aliment miqdori: 1 bola uchun 1/4 qism, 2 bola uchun 1/3 qism, 3 va undan ortiq bola uchun daromadning 1/2 qismi (OK 99-modda).
+
+QAT'IY QOIDALAR (HALLUCINATION QAT'IYAN TAQIQLANADI):
+1. SUHBAT KONTEKSTIGA QAT'IY E'TIBOR BER: Agar foydalanuvchi "qachon qabul qilingan?", "moddalari nechta?", "kim tomonidan?" kabi davomiy savol bersa, bu savol BEVOSITA oldingi suhbatda ko'tarilgan mavzuga (masalan, Konstitutsiyaga) tegishli! Butun suhbat kontekstini hisobga olib javob ber.
+2. SANALARNI VA MA'LUMOTLARNI TO'QIMA: Barcha kodekslarga bir xil soxta sana (masalan "1995-yil 27-mart") yozish QAT'IYAN TAQIQLANADI. Faqat yuqorida keltirilgan rasmiy qabul sanalari va moddalarini to'g'ri keltir.
+3. KONSTITUTSIYA QABUL SANASI: Agar Konstitutsiya qachon qabul qilingan deb so'ralsa, 1992-yil 8-dekabrda qabul qilingani va 2023-yil 30-aprelda umumxalq referendumida yangi tahriri qabul qilinganini aniq tushuntir.
 
 JAVOB FORMATI:
 📘 Umumiy tushuncha
 Mavzuning huquqiy mohiyatini sodda va tushunarli tilda izohla.
 
 ⚖️ Huquqiy izoh va tahlil
-Qonunchilik talablari, huquq va majburiyatlar, yuridik oqibatlar.
+Qonunchilik talablari, huquq va majburiyatlar, yuridik oqibatlar yoki aniq sanalar.
 
 📚 Tegishli moddalar va qonuniy asoslar
 O‘zbekiston Respublikasining tegishli kodeks va qonun moddalarini aniq ko‘rsatib, har biriga qisqa izoh ber.
@@ -115,13 +123,23 @@ Yakuniy xulosa va amaliy yuridik maslahat.
 BOSHQA QOIDALAR:
 - ALIFBO: JAVOBLAR FAQAT LOTIN O‘ZBEK ALIFBOSIDA bo‘lsin. Kirill harflari MUTLAQO ISHLATILMAYDI.
 - Bo‘lim sarlavhalarini 📘, ⚖️, 📚, 💡, ✅ belgilari bilan boshla.
-- Kodeks nomlarini to‘liq yoz: "O‘zbekiston Respublikasi Fuqarolik kodeksi" kabi.
 - Har bir bo‘lim orasida bo‘sh qator qoldir.
 - Javob uzunligi: 200-400 so‘z.
-${legalContext}${contextText}`
+${legalContext}`
 
     // Call Gemini (primary) with Groq fallback
     const CANDIDATE_MODELS = ['openai/gpt-oss-120b', 'qwen/qwen3.8-27b']
+
+    const apiMessages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
+      { role: 'system', content: systemPrompt },
+      ...conversationHistory,
+      { role: 'user', content: message },
+    ]
+
+    const fullPromptForGemini =
+      conversationHistory.length > 0
+        ? `${conversationHistory.map(m => `${m.role === 'user' ? 'Foydalanuvchi' : 'AI Maslahatchi'}: ${m.content}`).join('\n\n')}\n\nFoydalanuvchi: ${message}`
+        : message
 
     let responseText = ''
     let lastError = ''
@@ -129,7 +147,7 @@ ${legalContext}${contextText}`
     // ── 1. Google Gemini orqali javob (Birlamchi va bepul) ──
     if (process.env.GEMINI_API_KEY) {
       try {
-        const geminiRes = await callGemini(message, {
+        const geminiRes = await callGemini(fullPromptForGemini, {
           systemInstruction: systemPrompt,
           temperature: 0.1,
           maxTokens: 2500,
@@ -157,12 +175,9 @@ ${legalContext}${contextText}`
             },
             body: JSON.stringify({
               model,
-              messages: [
-                { role: 'system', content: systemPrompt },
-                { role: 'user', content: message },
-              ],
+              messages: apiMessages,
               temperature: 0.1,
-              frequency_penalty: 0.3,
+              frequency_penalty: 0.2,
               presence_penalty: 0.1,
               max_tokens: 2048,
             }),
