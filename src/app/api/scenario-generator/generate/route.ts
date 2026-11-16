@@ -198,7 +198,7 @@ Diqqat markazlari: ${focusAreas.join(', ') || 'Umumiy huquqiy tahlil'}
 Qo‘shimcha talablar: ${additionalRequirements || 'Standart professional amaliyot'}.
 Bo‘limlarni ixcham, tizimli va to‘liq JSON ko‘rinishida tuz.`
 
-    const CANDIDATE_GROQ_MODELS = ['openai/gpt-oss-120b', 'openai/gpt-oss-20b', 'qwen/qwen3.8-27b']
+    const CANDIDATE_GROQ_MODELS = ['qwen/qwen3.8-27b', 'openai/gpt-oss-120b']
 
     let contentStr = ''
     let lastError = ''

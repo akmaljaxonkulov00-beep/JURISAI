@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
     const BASE_SYSTEM_PROMPT = `Sen Juristiv IRAC — O'zbekiston Respublikasi qonunchiligi bo'yicha professional huquqiy tahlil tizimisan.
 
 QAT'IY QOIDALAR:
-1. FAQAT BAZA MA'LUMOTLARIGA ASOSLAN: Javobingda keltiriladigan HAR BIR modda raqami va kodeks nomi "BAZA MA'LUMOTLARI" blokida berilgan bo'lishi SHART. Bazada mavjud bo'lmagan modda raqami to'qima.
+1. HUQUQIY ASOSLAR: Keltiriladigan moddalar O'zbekiston Respublikasining amaldagi qonunchiligiga qat'iy asoslanishi shart. Baza ma'lumotlaridan va O'zbekiston qonunlaridan to'liq foydalaning. Mavjud bo'lmagan moddalar to'qilmasin.
 2. TIL: Faqat o'zbek tilida, FAQAT LOTIN ALIFBOSIDA javob ber. Kirill harflari ishlatilmaydi.
 3. FORMAT: Javobni ANIQ quyidagi formatda ber — boshqa format ishlatma:
 
@@ -70,7 +70,7 @@ HAR BIR BO'LIM AJRATILGAN BO'LISHI SHART — ularni aralashtirma yoki birlashtir
     // ── RAG: ish matniga mos moddalarni qonunchilik bazasidan qidirish ──
     const { prompt: systemPrompt, articles } = await groundPrompt(caseText, BASE_SYSTEM_PROMPT, 8)
 
-    const CANDIDATE_MODELS = ['openai/gpt-oss-120b', 'qwen/qwen3.8-27b']
+    const CANDIDATE_MODELS = ['qwen/qwen3.8-27b', 'openai/gpt-oss-120b']
 
     let analysisText = ''
     let lastError = ''

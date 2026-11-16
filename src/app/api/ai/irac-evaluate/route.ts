@@ -3,6 +3,7 @@ import { requireUser } from '@/lib/server-auth'
 import { checkAndIncrement, usageMessage } from '@/lib/usage-limits'
 import { retrieveLegalArticles, buildLegalContext } from '@/lib/legal-rag'
 import { ensureUzbekLatin } from '@/lib/uz-latin'
+import { callGemini } from '@/lib/gemini'
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
@@ -32,7 +33,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (!GROQ_API_KEY) {
+    if (!GROQ_API_KEY && !process.env.GEMINI_API_KEY) {
       return NextResponse.json({ error: 'AI xizmati sozlanmagan' }, { status: 500 })
     }
 
@@ -109,51 +110,72 @@ ${conclusion || '(kiritilmagan)'}
 
 Iltimos, har bir bo'limni xolisona tekshirib, ko'rsatilgan JSON formatida javob bering.`
 
-    const CANDIDATE_MODELS = ['openai/gpt-oss-120b', 'qwen/qwen3.8-27b']
-
     let aiContent = ''
     let lastError = ''
 
-    for (const model of CANDIDATE_MODELS) {
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 18000)
-
+    // ── 1. Google Gemini orqali baholash (Birlamchi va barqaror) ──
+    if (process.env.GEMINI_API_KEY) {
       try {
-        const response = await fetch(GROQ_API_URL, {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${GROQ_API_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model,
-            messages: [
-              { role: 'system', content: systemPrompt },
-              { role: 'user', content: userPrompt },
-            ],
-            temperature: 0.2,
-            max_tokens: 2500,
-            response_format: { type: 'json_object' },
-          }),
-          signal: controller.signal,
+        const geminiRes = await callGemini(userPrompt, {
+          systemInstruction: systemPrompt,
+          temperature: 0.15,
+          maxTokens: 2500,
+          responseJson: true,
         })
-
-        clearTimeout(timeoutId)
-
-        if (response.ok) {
-          const data = await response.json()
-          const raw = data.choices?.[0]?.message?.content || ''
-          if (raw.trim()) {
-            aiContent = ensureUzbekLatin(raw)
-            break
-          }
-        } else {
-          const errText = await response.text().catch(() => '')
-          lastError = `Model ${model} error: ${errText.slice(0, 150)}`
+        if (geminiRes && geminiRes.trim()) {
+          aiContent = ensureUzbekLatin(geminiRes)
         }
-      } catch (e: any) {
-        clearTimeout(timeoutId)
-        lastError = e.name === 'AbortError' ? 'AI timeout (25s)' : e.message
+      } catch (geminiErr: any) {
+        console.warn('Gemini IRAC Evaluate urinishi xatoligi, Groq’ga o‘tilmoqda:', geminiErr.message)
+        lastError = geminiErr.message
+      }
+    }
+
+    // ── 2. Zaxira: Groq API ──
+    if (!aiContent && GROQ_API_KEY) {
+      const CANDIDATE_MODELS = ['qwen/qwen3.8-27b', 'openai/gpt-oss-120b']
+
+      for (const model of CANDIDATE_MODELS) {
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 15000)
+
+        try {
+          const response = await fetch(GROQ_API_URL, {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${GROQ_API_KEY}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model,
+              messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: userPrompt },
+              ],
+              temperature: 0.15,
+              max_tokens: 2500,
+              response_format: { type: 'json_object' },
+            }),
+            signal: controller.signal,
+          })
+
+          clearTimeout(timeoutId)
+
+          if (response.ok) {
+            const data = await response.json()
+            const raw = data.choices?.[0]?.message?.content || ''
+            if (raw.trim()) {
+              aiContent = ensureUzbekLatin(raw)
+              break
+            }
+          } else {
+            const errText = await response.text().catch(() => '')
+            lastError = `Model ${model} error: ${errText.slice(0, 150)}`
+          }
+        } catch (e: any) {
+          clearTimeout(timeoutId)
+          lastError = e.name === 'AbortError' ? 'AI timeout (15s)' : e.message
+        }
       }
     }
 

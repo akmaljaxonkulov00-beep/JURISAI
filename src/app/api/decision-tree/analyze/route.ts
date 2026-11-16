@@ -3,6 +3,7 @@ import { requireUser } from '@/lib/server-auth'
 import { checkAndIncrement, usageMessage } from '@/lib/usage-limits'
 import { retrieveLegalArticles, buildLegalContext, RAGArticle } from '@/lib/legal-rag'
 import { ensureUzbekLatin } from '@/lib/uz-latin'
+import { callGemini } from '@/lib/gemini'
 import { DecisionNode, CaseAnalysis, ApplicableLawRef } from '@/types/decision-tree'
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY
@@ -34,9 +35,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (!GROQ_API_KEY) {
+    if (!GROQ_API_KEY && !process.env.GEMINI_API_KEY) {
       return NextResponse.json(
-        { success: false, error: 'AI xizmati sozlanmagan (GROQ_API_KEY yo‘q)' },
+        { success: false, error: 'AI xizmati sozlanmagan' },
         { status: 500 }
       )
     }
@@ -184,53 +185,74 @@ ISH MA'LUMOTLARI:
 Ushbu ishni to'liq tahlil qilib, belgilangan JSON schema formatida qaytaring.
 `
 
-    // Multi-model fallback sequence for maximum reliability
-    const candidateModels = ['openai/gpt-oss-120b', 'qwen/qwen3.8-27b']
-
     let aiContent = ''
     let lastError = ''
 
-    for (const modelName of candidateModels) {
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 20000)
-
+    // ── 1. Google Gemini orqali tahlil (Birlamchi va barqaror) ──
+    if (process.env.GEMINI_API_KEY) {
       try {
-        const aiRes = await fetch(GROQ_API_URL, {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${GROQ_API_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: modelName,
-            messages: [
-              { role: 'system', content: systemPrompt },
-              { role: 'user', content: userPrompt },
-            ],
-            temperature: 0.2,
-            max_tokens: 3500,
-          }),
-          signal: controller.signal,
+        const geminiRes = await callGemini(userPrompt, {
+          systemInstruction: systemPrompt,
+          temperature: 0.2,
+          maxTokens: 4000,
+          responseJson: true,
         })
-
-        clearTimeout(timeoutId)
-
-        if (aiRes.ok) {
-          const aiData = await aiRes.json()
-          aiContent = aiData.choices?.[0]?.message?.content || ''
-          if (aiContent.trim()) {
-            break // Success
-          }
-        } else {
-          const errText = await aiRes.text().catch(() => '')
-          lastError = `Model ${modelName} error (${aiRes.status}): ${errText.slice(0, 200)}`
-          console.warn('Groq model attempt failed:', lastError)
+        if (geminiRes && geminiRes.trim()) {
+          aiContent = geminiRes
         }
-      } catch (fetchErr: any) {
-        clearTimeout(timeoutId)
-        lastError =
-          fetchErr.name === 'AbortError' ? 'AI so‘rovi vaqti tugadi (timeout)' : fetchErr.message
-        console.warn(`Groq fetch error with ${modelName}:`, lastError)
+      } catch (geminiErr: any) {
+        console.warn('Gemini Decision Tree xatosi, Groq’ga o‘tilmoqda:', geminiErr.message)
+        lastError = geminiErr.message
+      }
+    }
+
+    // ── 2. Zaxira: Groq API ──
+    if (!aiContent && GROQ_API_KEY) {
+      const candidateModels = ['qwen/qwen3.8-27b', 'openai/gpt-oss-120b']
+
+      for (const modelName of candidateModels) {
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 15000)
+
+        try {
+          const aiRes = await fetch(GROQ_API_URL, {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${GROQ_API_KEY}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: modelName,
+              messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: userPrompt },
+              ],
+              temperature: 0.2,
+              max_tokens: 3500,
+              response_format: { type: 'json_object' },
+            }),
+            signal: controller.signal,
+          })
+
+          clearTimeout(timeoutId)
+
+          if (aiRes.ok) {
+            const aiData = await aiRes.json()
+            aiContent = aiData.choices?.[0]?.message?.content || ''
+            if (aiContent.trim()) {
+              break // Success
+            }
+          } else {
+            const errText = await aiRes.text().catch(() => '')
+            lastError = `Model ${modelName} error (${aiRes.status}): ${errText.slice(0, 200)}`
+            console.warn('Groq model attempt failed:', lastError)
+          }
+        } catch (fetchErr: any) {
+          clearTimeout(timeoutId)
+          lastError =
+            fetchErr.name === 'AbortError' ? 'AI so‘rovi vaqti tugadi (timeout)' : fetchErr.message
+          console.warn(`Groq fetch error with ${modelName}:`, lastError)
+        }
       }
     }
 
