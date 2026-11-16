@@ -1,15 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
 import { isAdminRole } from '@/lib/roles'
-
-// Telegram service import with error handling
-let telegramService: { sendCustomNotification: (text: string) => Promise<unknown> } | null = null
-try {
-  const { telegramService: ts } = require('@/lib/telegram')
-  telegramService = ts
-} catch (error) {
-  console.warn('Telegram service not available:', error)
-}
+import { telegramService } from '@/lib/telegram'
 
 export async function POST(request: NextRequest) {
   try {

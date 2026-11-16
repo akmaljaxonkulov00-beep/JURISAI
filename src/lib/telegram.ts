@@ -2,4 +2,5 @@
 export const telegramService = {
   sendMessage: async (..._args: unknown[]) => {},
   sendNotification: async (..._args: unknown[]) => {},
+  sendCustomNotification: async (..._args: unknown[]) => {},
 }

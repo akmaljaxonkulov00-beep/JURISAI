@@ -71,22 +71,45 @@ let _cachedFlatArticles: RAGArticle[] | null = null
 export function getFlatLocalArticles(): RAGArticle[] {
   if (_cachedFlatArticles) return _cachedFlatArticles
   try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     let codes: any = null
+
+    // 1. Fayl tizimi (fs) orqali to'g'ridan-to'g'ri o'qish (Turbopack va Webpack uchun xavfsiz va tezkor)
     try {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
-      codes = require('@/data/full-legal-codes.json')
+      const fs = require('fs')
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const path = require('path')
+
+      const candidatePaths = [
+        path.join(process.cwd(), 'src/data/full-legal-codes.json'),
+        typeof __dirname !== 'undefined' ? path.join(__dirname, '../data/full-legal-codes.json') : '',
+        typeof __dirname !== 'undefined' ? path.join(__dirname, '../../data/full-legal-codes.json') : '',
+      ].filter(Boolean)
+
+      for (const p of candidatePaths) {
+        if (fs.existsSync(p)) {
+          const raw = fs.readFileSync(p, 'utf8')
+          codes = JSON.parse(raw)
+          break
+        }
+      }
     } catch {
+      // fs muvaffaqiyatsiz bo'lsa require'ga o'tamiz
+    }
+
+    // 2. Nisbiy require zaxira usuli
+    if (!codes) {
       try {
         // eslint-disable-next-line @typescript-eslint/no-require-imports
-        const path = require('path')
-        codes = require(path.join(process.cwd(), 'src/data/full-legal-codes.json'))
-      } catch {
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
         codes = require('../data/full-legal-codes.json')
+      } catch {
+        // Zaxira ham bo'lmasa bo'sh ro'yxat
       }
     }
-    const list = Array.isArray(codes) ? codes : Object.values(codes)
+
+    if (!codes) return []
+
+    const list = Array.isArray(codes) ? codes : Object.values(codes as any)
     const result: RAGArticle[] = []
     for (const c of list as any[]) {
       if (Array.isArray(c?.articles)) {
@@ -125,30 +148,30 @@ export function detectTargetCode(text: string): string | null {
   if (!text) return null
   const t = text.toLowerCase().replace(APOSTROPHES, '')
 
-  // 1. Maxsus qisqartmalar (aniq so'z chegarasi bilan)
-  if (/\b(jk|j\.k)\b/.test(t) || /(?:^|\W)jk(?:$|\W)/.test(t)) {
-    if (/\b(jpk|j\.p\.k)\b/.test(t) || t.includes('protsess')) return 'criminal_procedure_code'
-    if (/\b(jik|j\.i\.k)\b/.test(t) || t.includes('ijro')) return 'criminal_executive_code'
+  // 1. Maxsus qisqartmalar (harflar va raqamlar birga yozilganda ham, masalan: jk45, mjtk131, fk10)
+  if (/(?:^|\W)(jk|j\.k)(?:\d+|\W|$)/.test(t)) {
+    if (/(?:^|\W)(jpk|j\.p\.k)(?:\d+|\W|$)/.test(t) || t.includes('protsess')) return 'criminal_procedure_code'
+    if (/(?:^|\W)(jik|j\.i\.k)(?:\d+|\W|$)/.test(t) || t.includes('ijro')) return 'criminal_executive_code'
     return 'criminal_code'
   }
-  if (/\b(jpk|j\.p\.k)\b/.test(t)) return 'criminal_procedure_code'
-  if (/\b(jik|j\.i\.k)\b/.test(t)) return 'criminal_executive_code'
-  if (/\b(mjtk|mjt|m\.j\.t\.k)\b/.test(t) || t.includes('mamuriy javobgar')) return 'admin_code'
-  if (/\b(msiyuk|msiuk|m\.s\.i\.y\.u\.k)\b/.test(t) || t.includes('mamuriy sud')) return 'administrative_court_code'
-  if (/\b(fk|f\.k)\b/.test(t) || /(?:^|\W)fk(?:$|\W)/.test(t)) {
-    if (/\b(fpk|f\.p\.k)\b/.test(t) || t.includes('protsess')) return 'civil_procedure_code'
+  if (/(?:^|\W)(jpk|j\.p\.k)(?:\d+|\W|$)/.test(t)) return 'criminal_procedure_code'
+  if (/(?:^|\W)(jik|j\.i\.k)(?:\d+|\W|$)/.test(t)) return 'criminal_executive_code'
+  if (/(?:^|\W)(mjtk|mjt|m\.j\.t\.k)(?:\d+|\W|$)/.test(t) || t.includes('mamuriy javobgar')) return 'admin_code'
+  if (/(?:^|\W)(msiyuk|msiuk|m\.s\.i\.y\.u\.k)(?:\d+|\W|$)/.test(t) || t.includes('mamuriy sud')) return 'administrative_court_code'
+  if (/(?:^|\W)(fk|f\.k)(?:\d+|\W|$)/.test(t)) {
+    if (/(?:^|\W)(fpk|f\.p\.k)(?:\d+|\W|$)/.test(t) || t.includes('protsess')) return 'civil_procedure_code'
     return 'civil_code'
   }
-  if (/\b(fpk|f\.p\.k|gpk)\b/.test(t)) return 'civil_procedure_code'
-  if (/\b(mk|m\.k)\b/.test(t) || /(?:^|\W)mk(?:$|\W)/.test(t)) return 'labor_code'
-  if (/\b(ok|o\.k)\b/.test(t) || /(?:^|\W)ok(?:$|\W)/.test(t)) return 'family_code'
-  if (/\b(ipk|i\.p\.k)\b/.test(t)) return 'economic_procedure_code'
-  if (/\b(bk|b\.k)\b/.test(t) || /(?:^|\W)bk(?:$|\W)/.test(t)) return 'customs_code'
-  if (/\b(sk|s\.k)\b/.test(t) || /(?:^|\W)sk(?:$|\W)/.test(t)) return 'tax_code'
-  if (/\b(ujk|u\.j\.k)\b/.test(t)) return 'housing_code'
-  if (/\b(yk|y\.k)\b/.test(t) || /(?:^|\W)yk(?:$|\W)/.test(t)) return 'land_code'
-  if (/\b(shk|sh\.k)\b/.test(t)) return 'urban_planning_code'
-  if (/\b(tk|t\.k)\b/.test(t) || t.includes('tadbirkorlik')) return 'entrepreneurship_code'
+  if (/(?:^|\W)(fpk|f\.p\.k|gpk)(?:\d+|\W|$)/.test(t)) return 'civil_procedure_code'
+  if (/(?:^|\W)(mk|m\.k)(?:\d+|\W|$)/.test(t)) return 'labor_code'
+  if (/(?:^|\W)(ok|o\.k)(?:\d+|\W|$)/.test(t)) return 'family_code'
+  if (/(?:^|\W)(ipk|i\.p\.k)(?:\d+|\W|$)/.test(t)) return 'economic_procedure_code'
+  if (/(?:^|\W)(bk|b\.k)(?:\d+|\W|$)/.test(t)) return 'customs_code'
+  if (/(?:^|\W)(sk|s\.k)(?:\d+|\W|$)/.test(t)) return 'tax_code'
+  if (/(?:^|\W)(ujk|u\.j\.k)(?:\d+|\W|$)/.test(t)) return 'housing_code'
+  if (/(?:^|\W)(yk|y\.k)(?:\d+|\W|$)/.test(t)) return 'land_code'
+  if (/(?:^|\W)(shk|sh\.k)(?:\d+|\W|$)/.test(t)) return 'urban_planning_code'
+  if (/(?:^|\W)(tk|t\.k)(?:\d+|\W|$)/.test(t) || t.includes('tadbirkorlik')) return 'entrepreneurship_code'
 
   // 2. To'liq so'zlar va iboralar
   if (t.includes('konstitutsiya') || t.includes('bosh qomus') || t.includes('asosiy qonun')) return 'constitution'
@@ -187,7 +210,7 @@ export function extractArticleNumber(text: string, targetCode?: string | null): 
   m = text.match(/modda[a-z]*\s*(\d{1,4})\b/i)
   if (m) return m[1]
   if (targetCode) {
-    m = text.match(/(?:jk|fk|mk|ok|mjtk|jpk|fpk|ipk|sk|bk|ujk|yk|jik|shk|tk|konstitutsiya|kodeks)\s*[-–—:]?\s*(\d{1,4})\b/i)
+    m = text.match(/(?:jk|fk|mk|ok|mjtk|mjt|jpk|fpk|ipk|sk|bk|ujk|yk|jik|shk|tk|konstitutsiya|kodeks)\s*[-–—:]?\s*(\d{1,4})\b/i)
     if (m) return m[1]
     m = text.match(/\b(\d{1,4})\b/)
     if (m) return m[1]
