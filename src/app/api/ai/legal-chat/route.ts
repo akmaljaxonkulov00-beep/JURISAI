@@ -73,7 +73,23 @@ export async function POST(request: NextRequest) {
 
 SENING HUQUQIY BILIM DOIRANG VA VAZIFALARING:
 1. UNIVERSAL HUQUQIY QAMROV (Faqat 21 ta kodeks bilan cheklanmaysan!):
-   - O‘zbekiston Respublikasi Konstitutsiyasi (yangi tahriri: 2023-yil 30-aprel referendumi, 1-maydan kuchga kirgan; ilk tahriri: 1992-yil 8-dekabr).
+   - O‘zbekiston Respublikasi Konstitutsiyasi:
+     • Ilk tahrir: 1992-yil 8-dekabrda 12-chaqiriq Oliy Kengashning 11-sessiyasida qabul qilingan (Oliy Sovet yoki referendum emas, Oliy Kengash sessiyasida!).
+     • Yangi tahrir: 2023-yil 30-aprelda o‘tkazilgan umumxalq referendumida qabul qilingan va 2023-yil 1-maydan kuchga kirgan.
+     • Tuzilishi: Muqaddima, 6 ta bo‘lim, 27 ta bob, 155 ta modda (MUTLAQO 14 bo‘lim yoki 150 modda EMAS, aniq 6 ta bo‘lim va 155 ta modda!).
+     • 6 ta bo‘limi:
+       1-bo‘lim: Asosiy prinsiplar (1–18 moddalar).
+       2-bo‘lim: Inson va fuqaroning asosiy huquqlari, erkinliklari va burchlari (19–53 moddalar).
+       3-bo‘lim: Jamiyat va shaxs (54–82 moddalar).
+       4-bo‘lim: Ma’muriy-hududiy va davlat tuzilishi (83–90 moddalar).
+       5-bo‘lim: Davlat hokimiyatining tashkil etilishi (91–153 moddalar).
+       6-bo‘lim: Konstitutsiyaga o‘zgartirish kiritish tartibi (154–155 moddalar).
+     • Asosiy tamoyillar:
+       1-modda: O‘zbekiston — boshqaruvning respublika shakliga ega bo‘lgan suveren, demokratik, huquqiy, ijtimoiy va dunyoviy davlat.
+       7-modda: Xalq davlat hokimiyatining birdan-bir manbaidir ("quvvat manbai" deb hech qachon yozma!).
+       11-modda: Davlat hokimiyatining qonun chiqaruvchi (Oliy Majlis: Qonunchilik palatasi va Senat), ijro etuvchi (Vazirlar Mahkamasi) va sud hokimiyatiga bo‘linishi.
+       13-modda: Inson, uning hayoti, erkinligi, sha’ni va qadr-qimmati oliy qadriyatdir.
+       15-modda: Konstitutsiya va qonunlarning so‘zsiz ustunligi.
    - Barcha amaldagi kodekslar: Fuqarolik, Jinoyat, Mehnat, Oila, Ma’muriy javobgarlik, Fuqarolik protsessual, Jinoyat-protsessual, Iqtisodiy protsessual, Ma’muriy sud ishlarini yuritish, Soliq, Bojxona, Budjet, Uy-joy, Yer, Shaharsozlik va boshqalar.
    - Barcha maxsus qonunlar: "Davlat xaridlari to‘g‘risida", "Iste’molchilarning huquqlarini himoya qilish to‘g‘risida", "Raqobat to‘g‘risida", "Advokatura to‘g‘risida", "Notariat to‘g‘risida", "Sud hujjatlari va boshqa organlar hujjatlarini ijro etish to‘g‘risida" (MIB), "To‘lovga qobiliyatsizlik to‘g‘risida", "Tadbirkorlik faoliyati erkinligining kafolatlari to‘g‘risida", "Garov to‘g‘risida", "Sug‘urta faoliyati to‘g‘risida", "Jismoniy va yuridik shaxslarning murojaatlari to‘g‘risida", "Korrupsiyaga qarshi kurashish to‘g‘risida", "Elektron tijorat to‘g‘risida" va Lex.uz dagi barcha amaldagi qonunlar.
    - O‘zbekiston Respublikasi Prezidenti farmonlari va qarorlari, Vazirlar Mahkamasi qarorlari, Oliy Sud Plenumi tushuntirishlari, davlat va huquq nazariyasi, sud amaliyoti hamda yuridik mantiq.

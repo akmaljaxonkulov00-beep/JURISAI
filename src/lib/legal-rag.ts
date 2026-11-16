@@ -121,11 +121,22 @@ export function searchLocalArticles(message: string, limit = 6): RAGArticle[] {
     }
 
     // 2. Kodeks nomi matnda bo'lsa
+    if (codeNorm.includes('konstitutsiya') && message.toLowerCase().includes('konstitutsiya')) {
+      score += 25
+      if (['1', '2', '7', '13', '15', '20', '28'].includes(artNum)) score += 35
+    }
     if (codeNorm.includes('fuqaro') && message.toLowerCase().includes('fuqaro')) score += 15
     if (codeNorm.includes('jinoyat') && message.toLowerCase().includes('jinoyat')) score += 15
     if (codeNorm.includes('mehnat') && (message.toLowerCase().includes('mehnat') || message.toLowerCase().includes('ishdan') || message.toLowerCase().includes('xodim'))) score += 15
     if (codeNorm.includes('oila') && (message.toLowerCase().includes('oila') || message.toLowerCase().includes('nikoh') || message.toLowerCase().includes('aliment'))) score += 15
     if (codeNorm.includes('ma’muriy') && message.toLowerCase().includes('ma’muriy')) score += 15
+    if (codeNorm.includes('soliq') && message.toLowerCase().includes('soliq')) score += 15
+    if (codeNorm.includes('bojxona') && message.toLowerCase().includes('bojxona')) score += 15
+    if (codeNorm.includes('sud') && (message.toLowerCase().includes('sud') || message.toLowerCase().includes('protsessual'))) score += 15
+    if (codeNorm.includes('uy-joy') && message.toLowerCase().includes('uy-joy')) score += 15
+    if (codeNorm.includes('yer') && message.toLowerCase().includes('yer')) score += 15
+    if (codeNorm.includes('saylov') && message.toLowerCase().includes('saylov')) score += 15
+    if (codeNorm.includes('tadbirkor') && message.toLowerCase().includes('tadbirkor')) score += 15
 
     // 3. Kalit so'zlar sarlavhada va mazmunda
     for (const kw of normalizedKeywords) {
