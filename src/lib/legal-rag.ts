@@ -117,11 +117,90 @@ export function getFlatLocalArticles(): RAGArticle[] {
   }
 }
 
+/**
+ * O'zbekiston qonun kodekslari va rasmiy hujjat qisqartmalarini aniqlash.
+ * Masalan: "jk 45 modda" -> "criminal_code", "mjtk 131" -> "admin_code"
+ */
+export function detectTargetCode(text: string): string | null {
+  if (!text) return null
+  const t = text.toLowerCase().replace(APOSTROPHES, '')
+
+  // 1. Maxsus qisqartmalar (aniq so'z chegarasi bilan)
+  if (/\b(jk|j\.k)\b/.test(t) || /(?:^|\W)jk(?:$|\W)/.test(t)) {
+    if (/\b(jpk|j\.p\.k)\b/.test(t) || t.includes('protsess')) return 'criminal_procedure_code'
+    if (/\b(jik|j\.i\.k)\b/.test(t) || t.includes('ijro')) return 'criminal_executive_code'
+    return 'criminal_code'
+  }
+  if (/\b(jpk|j\.p\.k)\b/.test(t)) return 'criminal_procedure_code'
+  if (/\b(jik|j\.i\.k)\b/.test(t)) return 'criminal_executive_code'
+  if (/\b(mjtk|mjt|m\.j\.t\.k)\b/.test(t) || t.includes('mamuriy javobgar')) return 'admin_code'
+  if (/\b(msiyuk|msiuk|m\.s\.i\.y\.u\.k)\b/.test(t) || t.includes('mamuriy sud')) return 'administrative_court_code'
+  if (/\b(fk|f\.k)\b/.test(t) || /(?:^|\W)fk(?:$|\W)/.test(t)) {
+    if (/\b(fpk|f\.p\.k)\b/.test(t) || t.includes('protsess')) return 'civil_procedure_code'
+    return 'civil_code'
+  }
+  if (/\b(fpk|f\.p\.k|gpk)\b/.test(t)) return 'civil_procedure_code'
+  if (/\b(mk|m\.k)\b/.test(t) || /(?:^|\W)mk(?:$|\W)/.test(t)) return 'labor_code'
+  if (/\b(ok|o\.k)\b/.test(t) || /(?:^|\W)ok(?:$|\W)/.test(t)) return 'family_code'
+  if (/\b(ipk|i\.p\.k)\b/.test(t)) return 'economic_procedure_code'
+  if (/\b(bk|b\.k)\b/.test(t) || /(?:^|\W)bk(?:$|\W)/.test(t)) return 'customs_code'
+  if (/\b(sk|s\.k)\b/.test(t) || /(?:^|\W)sk(?:$|\W)/.test(t)) return 'tax_code'
+  if (/\b(ujk|u\.j\.k)\b/.test(t)) return 'housing_code'
+  if (/\b(yk|y\.k)\b/.test(t) || /(?:^|\W)yk(?:$|\W)/.test(t)) return 'land_code'
+  if (/\b(shk|sh\.k)\b/.test(t)) return 'urban_planning_code'
+  if (/\b(tk|t\.k)\b/.test(t) || t.includes('tadbirkorlik')) return 'entrepreneurship_code'
+
+  // 2. To'liq so'zlar va iboralar
+  if (t.includes('konstitutsiya') || t.includes('bosh qomus') || t.includes('asosiy qonun')) return 'constitution'
+  if (t.includes('jinoyat')) {
+    if (t.includes('protsess')) return 'criminal_procedure_code'
+    if (t.includes('ijro')) return 'criminal_executive_code'
+    return 'criminal_code'
+  }
+  if (t.includes('fuqarolik')) {
+    if (t.includes('protsess')) return 'civil_procedure_code'
+    return 'civil_code'
+  }
+  if (t.includes('mehnat')) return 'labor_code'
+  if (t.includes('oila')) return 'family_code'
+  if (t.includes('mamuriy')) return 'admin_code'
+  if (t.includes('soliq')) return 'tax_code'
+  if (t.includes('bojxona')) return 'customs_code'
+  if (t.includes('iqtisodiy')) return 'economic_procedure_code'
+  if (t.includes('uy-joy') || t.includes('uy joy')) return 'housing_code'
+  if (t.includes('saylov')) return 'electoral_code'
+  if (t.includes('budjet') || t.includes('byudjet')) return 'budget_code'
+  if (t.includes('shaharsozlik')) return 'urban_planning_code'
+  if (t.includes('havo')) return 'air_code'
+  if (t.includes('suv')) return 'water_code'
+
+  return null
+}
+
+/**
+ * Matndan modda raqamini ajratib oladi.
+ */
+export function extractArticleNumber(text: string, targetCode?: string | null): string | null {
+  if (!text) return null
+  let m = text.match(/(\d{1,4})\s*[-–—]?\s*modda/i)
+  if (m) return m[1]
+  m = text.match(/modda[a-z]*\s*(\d{1,4})\b/i)
+  if (m) return m[1]
+  if (targetCode) {
+    m = text.match(/(?:jk|fk|mk|ok|mjtk|jpk|fpk|ipk|sk|bk|ujk|yk|jik|shk|tk|konstitutsiya|kodeks)\s*[-–—:]?\s*(\d{1,4})\b/i)
+    if (m) return m[1]
+    m = text.match(/\b(\d{1,4})\b/)
+    if (m) return m[1]
+  }
+  return null
+}
+
 export function searchLocalArticles(message: string, limit = 6): RAGArticle[] {
   const articles = getFlatLocalArticles()
   if (!articles || articles.length === 0) return []
 
-  const numMatch = message.match(/(\d{1,4})\s*[-–—]?\s*modda/i)
+  const targetCode = detectTargetCode(message)
+  const targetNum = extractArticleNumber(message, targetCode)
   const rawKeywords = extractKeywords(message)
   const normalizedKeywords = rawKeywords.map(k => k.toLowerCase().replace(APOSTROPHES, ''))
 
@@ -135,32 +214,33 @@ export function searchLocalArticles(message: string, limit = 6): RAGArticle[] {
     const codeNorm = art.code_name.toLowerCase().replace(APOSTROPHES, '')
 
     // 1. Aniq modda raqami
-    if (numMatch && numMatch[1] === artNum) {
-      score += 100
+    if (targetNum && artNum === targetNum) {
+      if (targetCode) {
+        if (art.code_id === targetCode) {
+          score += 500 // Foydalanuvchi so'ragan aynan shu kodeksning moddasi
+        } else {
+          score -= 200 // Boshqa kodekslardagi shu raqamli moddalarni chetlatish
+        }
+      } else {
+        score += 100
+      }
     }
 
-    // 2. Kodeks nomi matnda bo'lsa
-    if (codeNorm.includes('konstitutsiya') && message.toLowerCase().includes('konstitutsiya')) {
+    // 2. Kodeks nomi mosligi
+    if (targetCode && art.code_id === targetCode) {
+      score += 40
+    }
+
+    // 3. Konstitutsiya maxsus ustunligi
+    if (codeNorm.includes('konstitutsiya') && (message.toLowerCase().includes('konstitutsiya') || targetCode === 'constitution')) {
       score += 25
       if (['1', '2', '7', '13', '15', '20', '28'].includes(artNum)) score += 35
     }
-    if (codeNorm.includes('fuqaro') && message.toLowerCase().includes('fuqaro')) score += 15
-    if (codeNorm.includes('jinoyat') && message.toLowerCase().includes('jinoyat')) score += 15
-    if (codeNorm.includes('mehnat') && (message.toLowerCase().includes('mehnat') || message.toLowerCase().includes('ishdan') || message.toLowerCase().includes('xodim'))) score += 15
-    if (codeNorm.includes('oila') && (message.toLowerCase().includes('oila') || message.toLowerCase().includes('nikoh') || message.toLowerCase().includes('aliment'))) score += 15
-    if (codeNorm.includes('ma’muriy') && message.toLowerCase().includes('ma’muriy')) score += 15
-    if (codeNorm.includes('soliq') && message.toLowerCase().includes('soliq')) score += 15
-    if (codeNorm.includes('bojxona') && message.toLowerCase().includes('bojxona')) score += 15
-    if (codeNorm.includes('sud') && (message.toLowerCase().includes('sud') || message.toLowerCase().includes('protsessual'))) score += 15
-    if (codeNorm.includes('uy-joy') && message.toLowerCase().includes('uy-joy')) score += 15
-    if (codeNorm.includes('yer') && message.toLowerCase().includes('yer')) score += 15
-    if (codeNorm.includes('saylov') && message.toLowerCase().includes('saylov')) score += 15
-    if (codeNorm.includes('tadbirkor') && message.toLowerCase().includes('tadbirkor')) score += 15
 
-    // 3. Kalit so'zlar sarlavhada va mazmunda
+    // 4. Kalit so'zlar sarlavhada va mazmunda
     for (const kw of normalizedKeywords) {
-      if (titleNorm.includes(kw)) score += 20
-      if (contentNorm.includes(kw)) score += 5
+      if (titleNorm.includes(kw)) score += 25
+      if (contentNorm.includes(kw)) score += 6
     }
 
     // Faqat yetarli darajada mos kelgan (kamida 15 ball to‘plagan) moddalarni olamiz
@@ -746,6 +826,7 @@ export interface CitationValidation {
 const CODE_PREFIX_ALIASES: Record<string, string> = {
   jk: 'criminal_code',
   jpk: 'criminal_procedure_code',
+  jik: 'criminal_executive_code',
   fk: 'civil_code',
   gpk: 'civil_procedure_code',
   fpk: 'civil_procedure_code',
@@ -753,6 +834,14 @@ const CODE_PREFIX_ALIASES: Record<string, string> = {
   sk: 'tax_code',
   ok: 'family_code',
   mjtk: 'admin_code',
+  msiyuk: 'administrative_court_code',
+  msiuk: 'administrative_court_code',
+  ipk: 'economic_procedure_code',
+  bk: 'customs_code',
+  ujk: 'housing_code',
+  yk: 'land_code',
+  shk: 'urban_planning_code',
+  tk: 'entrepreneurship_code',
   konstitutsiya: 'constitution',
   'jinoyat kodeksi': 'criminal_code',
   'jinoyat-protsessual kodeksi': 'criminal_procedure_code',
@@ -770,7 +859,7 @@ const CODE_PREFIX_PATTERN =
   "Ma'muriy javobgarlik to'g'risidagi kodeksi|Ma'muriy javobgarlik to'g'risidagi kodeks|" +
   'Jinoyat-protsessual kodeksi|Jinoyat protsessual kodeksi|Fuqarolik protsessual kodeksi|' +
   'Fuqarolik kodeksi|Mehnat kodeksi|Soliq kodeksi|Oila kodeksi|Jinoyat kodeksi|Konstitutsiya|' +
-  'JPK|GPK|FPK|MJtK|JK|FK|MK|SK|OK'
+  'MSIYUK|MSIUK|JIK|UJK|YK|IPK|BK|JPK|GPK|FPK|MJtK|JK|FK|MK|SK|OK|TK|SHK'
 
 const CITATION_RE = new RegExp(
   '(' + CODE_PREFIX_PATTERN + ')?\\s*(?:ning)?\\s*(\\d{1,4})\\s*[-–—]?\\s*modda',

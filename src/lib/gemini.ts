@@ -11,9 +11,10 @@ const apiKey = process.env.GEMINI_API_KEY;
 const GEMINI_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/models'
 
 const CANDIDATE_GEMINI_MODELS = [
+  'gemini-flash-lite-latest',
   'gemini-3.5-flash-lite',
   'gemini-3.5-flash',
-  'gemini-flash-latest',
+  'gemini-3-flash-preview',
 ]
 
 /**
@@ -94,8 +95,8 @@ async function postJson(url: string, bodyObj: any): Promise<any> {
       })
     })
 
-    req.setTimeout(6000, () => {
-      req.destroy(new Error('Gemini so‘rov vaqti tugadi (6s timeout)'))
+    req.setTimeout(8000, () => {
+      req.destroy(new Error('Gemini so‘rov vaqti tugadi (8s timeout)'))
     })
 
     req.on('error', (err: Error) => reject(err))
@@ -159,9 +160,11 @@ export async function callGemini(prompt: string, options: GeminiOptions = {}): P
   }
 
   let lastError: Error | null = null
+  let attempts = 0
 
   // Candidate Gemini modellari bo'yicha ketma-ket urinib ko'rish
   for (const model of CANDIDATE_GEMINI_MODELS) {
+    attempts++
     try {
       const url = `${GEMINI_BASE_URL}/${model}:generateContent?key=${activeKey}`
       const data = await postJson(url, requestBody)
@@ -173,8 +176,8 @@ export async function callGemini(prompt: string, options: GeminiOptions = {}): P
     } catch (err: any) {
       console.warn(`Gemini model [${model}] bilan xatolik yuz berdi:`, err.message)
       lastError = err
-      // Agar 503 (bandlik) yoki 429 (kvota) bo'lsa, foydalanuvchini kuttirmasdan zaxira provayderga (Groq) darhol o'tish
-      if (err.message.includes('503') || err.message.includes('429')) {
+      // Agar ketma-ket 2 ta model 429 bergan bo'lsa, zaxira provayderga (Groq) o'tish
+      if (err.message.includes('429') && attempts >= 2) {
         break
       }
     }

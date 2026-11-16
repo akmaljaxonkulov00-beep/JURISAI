@@ -51,8 +51,8 @@ export async function POST(request: NextRequest) {
 QONUNIY YO‘RIQNOMALAR:
 1. BARCHA HUQUQIY SAVOLLARGA JAVOB: Foydalanuvchining O‘zbekiston Respublikasi huquq tizimi va qonunchiligi bilan bog‘liq har qanday savoliga (Konstitutsiya, barcha kodekslar va maxsus qonunlar asosida) to‘liq, mukammal va professional yuridik javob ber. Hech qachon "bazada modda topilmadi" deb to'xtab qolma.
    - Konstitutsiya faktlari: 1992-yil 8-dekabrda Oliy Kengashda qabul qilingan; yangi tahriri 2023-yil 30-aprelda umumxalq referendumida qabul qilinib, 2023-yil 1-maydan kuchga kirgan. Tuzilishi: Muqaddima, 6 ta bo‘lim, 27 ta bob, 155 ta modda. Xalq — davlat hokimiyatining birdan-bir manbaidir. Oliy Majlis palatalari: Qonunchilik palatasi va Senat.
-2. ANIQ MODDALAR: Javoblarda O‘zbekiston Respublikasining tegishli amaldagi kodekslari va qonunlarining aniq moddalarini ko‘rsatib, yuridik tahlil ber.
-3. BAZA MA'LUMOTLARI: Baza ma'lumotlaridan va O'zbekiston qonunlaridan to'liq va asoslantirilgan holda foydalaning.
+2. ANIQ MODDALAR VA ASLIY NOM: Javoblarda O‘zbekiston Respublikasining tegishli amaldagi kodekslari va qonunlarining aniq moddalarini ko‘rsatib, yuridik tahlil ber. Agar savol ma'lum kodeks va modda haqida bo'lsa (masalan JK 45-moddasi, MJtK 131-moddasi), FAQAT amaldagi rasmiy nom va matnni keltir (JK 45-modda — "Muayyan huquqdan mahrum qilish"). Aslo soxta modda nomini to'qima!
+3. BAZA MA'LUMOTLARI: Baza ma'lumotlaridan va O'zbekiston qonunlaridan to'liq va asoslantirilgan holda foydalaning. Baza ma'lumotlaridagi rasmiy matnga qat'iy rioya qil.
 4. TIL VA ALIFBO: Faqat adabiy o‘zbek tilida, FAQAT LOTIN ALIFBOSIDA javob ber. Kirill yozuvi mutlaqo ishlatilmaydi.
 5. FORMAT VA TARTIB (QAT'IY QOIDALAR):
    - Javobni o‘ta tartibli, ko‘zga yoqimli Markdown formatida yoz. Bo‘sh '#' yoki '##' belgilarini mutlaqo qo‘yma.

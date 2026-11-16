@@ -6,6 +6,7 @@ import {
   buildLegalContext,
   validateCitations,
   appendCitationNote,
+  detectTargetCode,
 } from '@/lib/legal-rag'
 import { ensureUzbekLatin } from '@/lib/uz-latin'
 import { callGemini } from '@/lib/gemini'
@@ -60,13 +61,25 @@ export async function POST(request: NextRequest) {
     }
 
     // ── RAG qidiruvi: kontekstli qidiruv ──
-    // Agar foydalanuvchi "qachon qabul qilingan?", "nechanchi moddada?" kabi qisqa savol bersa,
-    // avvalgi suhbat mavzusini qo'shib qidiramiz, aks holda qidiruv mavzuni yo'qotadi.
-    const lastUserQuery = conversationHistory
-      .filter(m => m.role === 'user')
-      .slice(-1)[0]?.content || ''
-    const ragQuery = `${lastUserQuery} ${message}`.trim()
-    const relevantArticles = await retrieveLegalArticles(ragQuery || message, 6)
+    const targetCodeInMsg = detectTargetCode(message)
+    const isShortFollowup =
+      !targetCodeInMsg &&
+      (message.trim().split(/\s+/).length <= 4 ||
+        /^(qachon|nechanchi|jazosi|shartlari|muddat|nima\s+uchun|batafsil|\d+\s*[-–—]?\s*modda)/i.test(
+          message.trim()
+        ))
+
+    let ragQuery = message
+    if (isShortFollowup) {
+      const lastUserQuery =
+        conversationHistory
+          .filter(m => m.role === 'user')
+          .slice(-1)[0]?.content || ''
+      if (lastUserQuery) {
+        ragQuery = `${lastUserQuery} ${message}`.trim()
+      }
+    }
+    const relevantArticles = await retrieveLegalArticles(ragQuery, 6)
     const legalContext = buildLegalContext(relevantArticles)
 
     const systemPrompt = `Sen O‘zbekiston Respublikasi qonunchiligi bo‘yicha Oliy Yuridik Ekspert, Universitet Professori va yetakchi AI Advokatsan. Faqat o‘zbek tilida (lotin alifbosida) javob ber.
@@ -124,7 +137,8 @@ SENING HUQUQIY BILIM DOIRANG VA VAZIFALARING:
    - Ichki ro‘yxatlar (masalan davlat organlari) alohida qatorlarda pastma-past (- Prezident\n- Oliy Majlis\n- Vazirlar Mahkamasi) ko‘rinishida bo‘lsin.
    - Sarlavhalarni toza Markdown (masalan: \`### 1. Umumiy qoidalar\`) bilan ajrat.
    - Oliy Majlis palatalarini to‘g‘ri nomla: **Qonunchilik palatasi** (quyi palata) va **Senat** (yuqori palata). "Senatus" yoki "Qonun chiqarish palatasi" deb xato yozma.
-${legalContext ? `\nQO‘SHIMCHA MA'LUMOTLAR BAZASI MANBALARI (Agar savolga mos bo‘lsa foydalan, mos bo‘lmasa o‘zingning butun qonunchilik bilimlaring asosida javob ber):\n${legalContext}` : ''}`
+   - MODDALARNING ASLIY NOMI VA MATNI (QAT'IY TALAB): Foydalanuvchi ma'lum bir kodeks yoki qonun moddasi haqida so'raganda (masalan: JK 45-moddasi, MJtK 131-moddasi, FK 10-moddasi), FAQAT rasmiy amaldagi nom va matnni bayon qil. Hech qachon soxta yoki xayoliy modda nomini o'ylab topma! Masalan, JK 45-moddasi — "Muayyan huquqdan mahrum qilish" (aslo "Murojaat qilish huquqi" deb to'qima!).
+${legalContext ? `\nQO‘SHIMCHA MA'LUMOTLAR BAZASI MANBALARI (QAT'IY AMALDAGI QONUN HUJJATLARI):\n${legalContext}\n\nQAT'IY TALAB: Yuqoridagi BAZA MA'LUMOTLARI blokidagi rasmiy modda nomi va matniga so'zsiz amal qil!` : ''}`
 
     // Call Gemini (primary) with Groq fallback
     const CANDIDATE_MODELS = ['qwen/qwen3.8-27b', 'openai/gpt-oss-120b']
