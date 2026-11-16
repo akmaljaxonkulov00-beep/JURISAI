@@ -66,6 +66,82 @@ function makeSupabase() {
   })
 }
 
+let _cachedFlatArticles: RAGArticle[] | null = null
+
+export function getFlatLocalArticles(): RAGArticle[] {
+  if (_cachedFlatArticles) return _cachedFlatArticles
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const codes = require('@/data/full-legal-codes.json')
+    const list = Array.isArray(codes) ? codes : Object.values(codes)
+    const result: RAGArticle[] = []
+    for (const c of list as any[]) {
+      if (Array.isArray(c?.articles)) {
+        for (const a of c.articles) {
+          result.push({
+            code_id: c.id || '',
+            code_name: c.name || CATEGORY_DISPLAY[c.id] || c.shortName || 'O‘zbekiston Qonunchiligi',
+            article_number: String(a.number || a.article_number || ''),
+            title: String(a.title || ''),
+            content: String(a.content || ''),
+            chapter: String(a.chapter || ''),
+            penalties: String(a.penalties || ''),
+          })
+        }
+      }
+    }
+    _cachedFlatArticles = result
+    return result
+  } catch (err) {
+    console.warn('[legal-rag] Failed to load local full-legal-codes.json:', err)
+    return []
+  }
+}
+
+export function searchLocalArticles(message: string, limit = 6): RAGArticle[] {
+  const articles = getFlatLocalArticles()
+  if (!articles || articles.length === 0) return []
+
+  const numMatch = message.match(/(\d{1,4})\s*[-–—]?\s*modda/i)
+  const rawKeywords = extractKeywords(message)
+  const normalizedKeywords = rawKeywords.map(k => k.toLowerCase().replace(APOSTROPHES, ''))
+
+  const scored: Array<{ article: RAGArticle; score: number }> = []
+
+  for (const art of articles) {
+    let score = 0
+    const artNum = art.article_number
+    const titleNorm = art.title.toLowerCase().replace(APOSTROPHES, '')
+    const contentNorm = art.content.toLowerCase().replace(APOSTROPHES, '')
+    const codeNorm = art.code_name.toLowerCase().replace(APOSTROPHES, '')
+
+    // 1. Aniq modda raqami
+    if (numMatch && numMatch[1] === artNum) {
+      score += 100
+    }
+
+    // 2. Kodeks nomi matnda bo'lsa
+    if (codeNorm.includes('fuqaro') && message.toLowerCase().includes('fuqaro')) score += 15
+    if (codeNorm.includes('jinoyat') && message.toLowerCase().includes('jinoyat')) score += 15
+    if (codeNorm.includes('mehnat') && (message.toLowerCase().includes('mehnat') || message.toLowerCase().includes('ishdan') || message.toLowerCase().includes('xodim'))) score += 15
+    if (codeNorm.includes('oila') && (message.toLowerCase().includes('oila') || message.toLowerCase().includes('nikoh') || message.toLowerCase().includes('aliment'))) score += 15
+    if (codeNorm.includes('ma’muriy') && message.toLowerCase().includes('ma’muriy')) score += 15
+
+    // 3. Kalit so'zlar sarlavhada va mazmunda
+    for (const kw of normalizedKeywords) {
+      if (titleNorm.includes(kw)) score += 20
+      if (contentNorm.includes(kw)) score += 5
+    }
+
+    if (score > 0) {
+      scored.push({ article: art, score })
+    }
+  }
+
+  scored.sort((a, b) => b.score - a.score)
+  return scored.slice(0, limit).map(s => s.article)
+}
+
 /** O'zbekcha apostrof variantlari (' , ‘ , ’ , ʻ) */
 const APOSTROPHES = /['‘’ʻ`]/g
 
@@ -372,6 +448,17 @@ function scoreRow(
  *     va foydalanuvchi yozuv xatolari uchun ishonchli natija beradi.
  */
 export async function retrieveLegalArticles(message: string, limit = 6): Promise<RAGArticle[]> {
+  // 1. Zudlik bilan xotiradagi (4407 ta O'zbekiston qonun moddalari) bazadan tezkor qidiruv (1-2 ms):
+  try {
+    const localMatches = searchLocalArticles(message, limit)
+    if (localMatches && localMatches.length > 0) {
+      return localMatches
+    }
+  } catch (localErr) {
+    console.warn('[legal-rag] local search error, falling back to supabase:', localErr)
+  }
+
+  // 2. Zaxira: Supabase bazasi orqali qidirish
   try {
     const supabase = makeSupabase()
     if (!supabase) return []

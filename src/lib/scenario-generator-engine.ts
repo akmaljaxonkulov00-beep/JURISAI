@@ -81,28 +81,23 @@ export function evaluateScenarioPerformance(
   const totalXp = actionLogs.reduce((acc, a) => acc + (a.xp_earned || 0), 0)
 
   const decisionQuality = Math.round((optimalCount / totalSteps) * 100)
+  const evidenceActionsCount = actionLogs.filter(
+    a =>
+      a.action_type === 'request_evidence' ||
+      a.action_type === 'inspect_document' ||
+      a.action_type === 'question_witness'
+  ).length
   const evidenceUsage = Math.min(
     100,
-    Math.round(
-      actionLogs.filter(
-        a =>
-          a.action_type === 'request_evidence' ||
-          a.action_type === 'inspect_document' ||
-          a.action_type === 'question_witness'
-      ).length *
-        35 +
-        30
-    )
+    evidenceActionsCount > 0 ? Math.round(evidenceActionsCount * 30 + 15) : 10
   )
+
+  const legalActionsCount = actionLogs.filter(
+    a => a.action_type === 'cite_article' || a.action_type === 'court_application'
+  ).length
   const legalAnalysis = Math.min(
     100,
-    Math.round(
-      actionLogs.filter(
-        a => a.action_type === 'cite_article' || a.action_type === 'court_application'
-      ).length *
-        35 +
-        40
-    )
+    legalActionsCount > 0 ? Math.round(legalActionsCount * 30 + 20) : 15
   )
   const strategyScore = Math.round(
     decisionQuality * 0.5 + evidenceUsage * 0.25 + legalAnalysis * 0.25

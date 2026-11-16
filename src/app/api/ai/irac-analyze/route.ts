@@ -70,7 +70,7 @@ HAR BIR BO'LIM AJRATILGAN BO'LISHI SHART — ularni aralashtirma yoki birlashtir
     // ── RAG: ish matniga mos moddalarni qonunchilik bazasidan qidirish ──
     const { prompt: systemPrompt, articles } = await groundPrompt(caseText, BASE_SYSTEM_PROMPT, 8)
 
-    const CANDIDATE_MODELS = ['openai/gpt-oss-120b', 'openai/gpt-oss-20b', 'qwen/qwen3.8-27b']
+    const CANDIDATE_MODELS = ['openai/gpt-oss-120b', 'qwen/qwen3.8-27b']
 
     let analysisText = ''
     let lastError = ''
@@ -98,7 +98,7 @@ HAR BIR BO'LIM AJRATILGAN BO'LISHI SHART — ularni aralashtirma yoki birlashtir
     if (!analysisText) {
       for (const model of CANDIDATE_MODELS) {
         const controller = new AbortController()
-        const timeoutId = setTimeout(() => controller.abort(), 25000)
+        const timeoutId = setTimeout(() => controller.abort(), 18000)
 
         try {
           const response = await fetch(GROQ_API_URL, {

@@ -101,41 +101,10 @@ export async function POST(request: NextRequest) {
     const newTotalScore = currentScore + earnedStars
     const currentApprovedCount = Number(studentProf?.approved_answers_count || 0) + (earnedStars >= 4 ? 1 : 0)
 
-    // Kvota tizimi: Kamida 7 ta sifatli (4-5 ballik) javoblar soniga yetganda mukofot ochiladi!
-    // Har bir javob uchun alohida pul to'lanmaydi!
-    const prevQuotaCount = Math.floor((studentProf?.approved_answers_count || 0) / 7)
-    const newQuotaCount = Math.floor(currentApprovedCount / 7)
-    const quotaAchieved = newQuotaCount > prevQuotaCount
-
-    let quotaBonus = 0
-    if (quotaAchieved) {
-      quotaBonus = 100000 // 7 ta sifatli javob kvotasi uchun 100 000 UZS mukofot
-
-      const { data: wallet } = await admin
-        .from('student_wallets')
-        .select('*')
-        .eq('student_id', auth.user.id)
-        .maybeSingle()
-
-      if (wallet) {
-        await admin
-          .from('student_wallets')
-          .update({
-            balance: Number(wallet.balance || 0) + quotaBonus,
-            total_earned: Number(wallet.total_earned || 0) + quotaBonus,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('student_id', auth.user.id)
-      } else {
-        await admin.from('student_wallets').insert({
-          student_id: auth.user.id,
-          balance: quotaBonus,
-          total_earned: quotaBonus,
-          total_withdrawn: 0,
-          updated_at: new Date().toISOString(),
-        })
-      }
-    }
+    // Talabaning tasdiqlangan javoblari soni va to'plagan umumiy ballari
+    // Eslatma: Pul mukofoti fuqaro tomonidan javob o'qilib, 1-5 ballik baho qo'yilganda
+    // fuqaro to'lovidan ramziy rag'bat sifatida ajratiladi (/api/answers/[id]/citizen-rate).
+    // Bu yerda esa talabaning professional reytingi va saviyaviy darajasi yangilanadi.
 
     // Darajani aniqlash (1-5 ballik yig'indi bo'yicha)
     let newLevel = studentProf?.level || 'beginner'

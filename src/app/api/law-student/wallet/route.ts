@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
         pendingBalance: Number(wallet?.pending_balance || 0),
         totalEarned: Number(wallet?.total_earned || 0),
         totalWithdrawn: Number(wallet?.total_withdrawn || 0),
-        minPayout: 100000,
+        minPayout: 50000,
       },
       payouts: payouts || [],
       rewards: rewards || [],
@@ -74,9 +74,9 @@ export async function POST(request: NextRequest) {
     const { amount, cardNumber, cardHolderName } = body
 
     const numAmount = Number(amount)
-    if (isNaN(numAmount) || numAmount < 100000) {
+    if (isNaN(numAmount) || numAmount < 50000) {
       return NextResponse.json(
-        { success: false, error: "Minimal pul yechish miqdori: 100 000 so'm" },
+        { success: false, error: "Minimal pul yechish miqdori: 50 000 so'm" },
         { status: 400 }
       )
     }

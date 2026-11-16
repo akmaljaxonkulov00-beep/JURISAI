@@ -12,7 +12,7 @@ import { callGemini } from '@/lib/gemini'
 
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
 
-const CANDIDATE_MODELS = ['openai/gpt-oss-120b', 'openai/gpt-oss-20b', 'qwen/qwen3.8-27b']
+const CANDIDATE_MODELS = ['openai/gpt-oss-120b', 'qwen/qwen3.8-27b']
 
 /**
  * Universal Court AI: Google Gemini birlamchi, Groq zaxira.
@@ -56,7 +56,7 @@ async function callGroqJson(
   let lastError = ''
   for (const model of CANDIDATE_MODELS) {
     const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 25000)
+    const timeoutId = setTimeout(() => controller.abort(), 18000)
 
     try {
       const res = await fetch(GROQ_API_URL, {

@@ -34,6 +34,8 @@ import {
   CheckCircle,
   GitBranch,
   Clapperboard,
+  Trophy,
+  Sparkles,
 } from 'lucide-react'
 import UsageLimitIndicator from '@/components/ai/UsageLimitIndicator'
 import ActivityHistoryModal from '@/components/dashboard/ActivityHistoryModal'
@@ -56,7 +58,8 @@ interface Achievement {
   id: string
   title: string
   description: string
-  icon: string
+  icon?: string
+  type?: string
   unlockedAt: string
   rarity: 'common' | 'rare' | 'epic' | 'legendary'
 }
@@ -219,30 +222,59 @@ export default function Dashboard() {
     }
   }
 
+  const getAchievementIcon = (type?: string, rarity?: string, title?: string) => {
+    const key = `${type || ''} ${title || ''}`.toLowerCase()
+    if (key.includes('kazus') || key.includes('case_solver')) {
+      return <Scale className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+    }
+    if (key.includes('qaror') || key.includes('tree') || key.includes('strategi')) {
+      return <GitBranch className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+    }
+    if (key.includes('sud') || key.includes('court') || key.includes('amaliyot')) {
+      return <Gavel className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+    }
+    if (key.includes('senariy') || key.includes('scenario')) {
+      return <Clapperboard className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+    }
+    if (key.includes('qadam') || key.includes('first_step')) {
+      return <Sparkles className="w-5 h-5 text-amber-500" />
+    }
+    if (
+      key.includes('level') ||
+      key.includes('mutaxassis') ||
+      key.includes('master') ||
+      rarity === 'epic' ||
+      rarity === 'legendary'
+    ) {
+      return <Trophy className="w-5 h-5 text-yellow-500" />
+    }
+    return <Award className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+  }
+
   const getActivityIcon = (type: string) => {
     switch (type) {
       case 'case_completed':
         return (
-          <div className="w-5 h-5 rounded-full bg-green-50 dark:bg-green-900/20 flex items-center justify-center">
-            <CheckCircle className="w-3 h-3 text-white" />
+          <div className="w-7 h-7 rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+            <CheckCircle className="w-4 h-4" />
           </div>
         )
       case 'achievement_unlocked':
         return (
-          <div className="w-5 h-5 rounded-full bg-orange-500 flex items-center justify-center">
-            <Award className="w-3 h-3 text-white" />
+          <div className="w-7 h-7 rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+            <Award className="w-4 h-4" />
           </div>
         )
       case 'daily_streak':
         return (
-          <div className="w-5 h-5 rounded-full bg-orange-500 flex items-center justify-center">
-            <Zap className="w-3 h-3 text-white" />
+          <div className="w-7 h-7 rounded-xl bg-orange-500/15 text-orange-600 dark:text-orange-400 flex items-center justify-center">
+            <Zap className="w-4 h-4" />
           </div>
         )
       default:
         return (
-          <div className="w-5 h-5 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center">
-            <FileText className="w-3 h-3 text-white" />
+          <div className="w-7 h-7 rounded-xl bg-blue-500/15 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+            <FileText className="w-4 h-4" />
           </div>
         )
     }
@@ -568,8 +600,8 @@ export default function Dashboard() {
                     className={`p-3.5 rounded-xl border transition-all hover:shadow-sm dark:shadow-gray-900/50 ${getRarityColor(achievement.rarity)}`}
                   >
                     <div className="flex items-start space-x-3">
-                      <div className="w-9 h-9 rounded-lg bg-white/60 flex items-center justify-center text-lg">
-                        {achievement.icon}
+                      <div className="w-10 h-10 rounded-xl bg-white dark:bg-zinc-800 shadow-xs border border-black/5 dark:border-white/10 flex items-center justify-center flex-shrink-0">
+                        {getAchievementIcon(achievement.type || achievement.id, achievement.rarity, achievement.title)}
                       </div>
                       <div className="flex-1 min-w-0">
                         <h4 className="font-semibold text-sm text-gray-900 dark:text-white">

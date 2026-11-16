@@ -153,9 +153,9 @@ const FEATURES = [
 ]
 
 const STATS = [
-  { value: '4,000+', label: 'Qonun moddalari' },
+  { value: '4,400+', label: 'Qonun moddalari' },
+  { value: '21 ta', label: 'Amaldagi kodekslar' },
   { value: '100%', label: 'O‘zbekiston qonunchiligiga asoslangan' },
-  { value: 'Real-time', label: 'Multiplayer sud zali' },
   { value: '24/7', label: 'AI huquqiy yordam' },
 ]
 

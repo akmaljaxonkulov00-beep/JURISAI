@@ -77,8 +77,8 @@ export default function LawStudentWalletPage() {
       return
     }
 
-    if (payoutAmount < 100000) {
-      setPayoutError('Minimal yechib olish miqdori: 100 000 so‘m')
+    if (payoutAmount < 50000) {
+      setPayoutError('Minimal yechib olish miqdori: 50 000 so‘m')
       return
     }
 
@@ -190,7 +190,7 @@ export default function LawStudentWalletPage() {
                 {Number(wallet?.balance || 0).toLocaleString()} <span className="text-xl">UZS</span>
               </h2>
               <p className="text-xs text-emerald-100">
-                Yechib olish uchun minimal chegara: 100 000 UZS
+                Yechib olish uchun minimal chegara: 50 000 UZS
               </p>
             </div>
           </div>
@@ -241,7 +241,7 @@ export default function LawStudentWalletPage() {
                 Mukofotlash mexanizmi qanday ishlaydi?
               </h4>
               <p className="text-xs text-gray-600 dark:text-gray-300">
-                Har bir fuqaro savoliga yozilgan javobingiz AI qattiqqol ekspertizasi va fuqaro tomonidan 1 dan 5 yulduzgacha baholanadi. Kamida 7 ta sifatli (yuqori baholangan) javob kvotasi to‘lganda, hisobingizga 100 000 UZS mukofot ajratiladi. Pul yechilgach balans 0 bo‘ladi, to‘plangan reyting va ballaringiz esa o‘chmasdan davom etadi!
+                Har bir fuqaro savoliga yozgan javobingiz fuqaro tomonidan 1 dan 5 yulduzgacha baholanadi. Fuqaroning qo‘ygan bahosiga asosan sizga ramziy rag‘batlantirish mablag‘i hisoblanadi (5 yulduz uchun 5 000 so‘m, 4 yulduz uchun 3 000 so‘m, 3 yulduz uchun 1 000 so‘m). Bu doimiy oylik maosh emas, balki talabalarning qiziqishi va amaliy ko‘nikmalarini rag‘batlantirishdir. Fuqarolar to‘lovining asosiy qismi platformada qoladi. Mablag‘ni istalgan payt kartangizga yechib olishingiz mumkin.
               </p>
             </div>
           </div>
@@ -408,7 +408,7 @@ export default function LawStudentWalletPage() {
                     required
                   />
                   <p className="text-[11px] text-gray-400 mt-1">
-                    Minimal summa: 100 000 UZS. Mavjud: {Number(wallet?.balance || 0).toLocaleString()} UZS
+                    Minimal summa: 50 000 UZS. Mavjud: {Number(wallet?.balance || 0).toLocaleString()} UZS
                   </p>
                 </div>
 

@@ -185,14 +185,14 @@ Ushbu ishni to'liq tahlil qilib, belgilangan JSON schema formatida qaytaring.
 `
 
     // Multi-model fallback sequence for maximum reliability
-    const candidateModels = ['openai/gpt-oss-120b', 'openai/gpt-oss-20b', 'qwen/qwen3.8-27b']
+    const candidateModels = ['openai/gpt-oss-120b', 'qwen/qwen3.8-27b']
 
     let aiContent = ''
     let lastError = ''
 
     for (const modelName of candidateModels) {
       const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 28000)
+      const timeoutId = setTimeout(() => controller.abort(), 20000)
 
       try {
         const aiRes = await fetch(GROQ_API_URL, {

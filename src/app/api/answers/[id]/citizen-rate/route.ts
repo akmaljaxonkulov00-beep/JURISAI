@@ -101,15 +101,17 @@ export async function POST(
         else if (newScore >= 150) level = 'skilled'
         else if (newScore >= 60) level = 'contributor'
 
-        // Agar yangi chegaraga yetgan bo'lsa (masalan har 100 ballga yetganda pul balansi qo'shiladi):
-        // 100 ballga yetganda 50 000 UZS mukofot
-        const prevThresholdCount = Math.floor(currentScore / 100)
-        const newThresholdCount = Math.floor(newScore / 100)
-        const thresholdsAchieved = newThresholdCount - prevThresholdCount
+        // Fuqaro qo'ygan 1-5 yulduzli bahoga asoslangan ramziy rag'batlantirish:
+        // Bu oylik emas, balki talabaning qiziqishi va bilimini oshirish uchun beriladigan rag'bat.
+        // Fuqaro to'lagan pulning asosiy qismi platformada qoladi.
+        // 5 yulduz (A'lo) = 5 000 UZS
+        // 4 yulduz (Yaxshi) = 3 000 UZS
+        // 3 yulduz (Qoniqarli) = 1 000 UZS
+        // 1-2 yulduz = 0 UZS
+        const studentRewardAmount =
+          numericRating === 5 ? 5000 : numericRating === 4 ? 3000 : numericRating === 3 ? 1000 : 0
 
-        if (thresholdsAchieved > 0) {
-          const rewardBonus = thresholdsAchieved * 50000 // Har bir bosqich uchun 50 000 UZS
-
+        if (studentRewardAmount > 0) {
           const { data: wallet } = await admin
             .from('student_wallets')
             .select('*')
@@ -120,20 +122,31 @@ export async function POST(
             await admin
               .from('student_wallets')
               .update({
-                balance: Number(wallet.balance || 0) + rewardBonus,
-                total_earned: Number(wallet.total_earned || 0) + rewardBonus,
+                balance: Number(wallet.balance || 0) + studentRewardAmount,
+                total_earned: Number(wallet.total_earned || 0) + studentRewardAmount,
                 updated_at: now,
               })
               .eq('student_id', answer.author_id)
           } else {
             await admin.from('student_wallets').insert({
               student_id: answer.author_id,
-              balance: rewardBonus,
-              total_earned: rewardBonus,
+              balance: studentRewardAmount,
+              total_earned: studentRewardAmount,
               total_withdrawn: 0,
               updated_at: now,
             })
           }
+
+          // Mukofot yozuvini kiritish
+          await admin.from('student_rewards').insert({
+            student_id: answer.author_id,
+            question_id: answer.question_id,
+            answer_id: answerId,
+            amount: studentRewardAmount,
+            ai_score: numericRating,
+            notes: `Fuqaroning ${numericRating} yulduzli bahosi uchun ramziy rag‘batlantirish`,
+            created_at: now,
+          })
         }
 
         await admin

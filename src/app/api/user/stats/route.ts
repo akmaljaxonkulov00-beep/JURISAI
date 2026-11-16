@@ -148,7 +148,7 @@ export async function GET(request: NextRequest) {
     // 5. Fetch achievements
     const { data: achData } = await supabase
       .from('achievements')
-      .select('id, title, achievement_type, rarity, unlocked_at')
+      .select('id, title, description, achievement_type, rarity, unlocked_at')
       .eq('user_id', auth.user.id)
       .order('unlocked_at', { ascending: false })
       .limit(50)
@@ -336,6 +336,7 @@ export async function GET(request: NextRequest) {
     const achievementList = achievements.map(a => ({
       id: String(a.id || ''),
       title: String(a.title || ''),
+      description: String(a.description || ''),
       type: String(a.achievement_type || ''),
       rarity: String(a.rarity || 'common').toLowerCase(),
       unlockedAt: String(a.unlocked_at || ''),

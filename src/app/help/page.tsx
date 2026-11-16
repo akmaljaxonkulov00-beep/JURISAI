@@ -46,64 +46,70 @@ export default function Help() {
 
   const faqs: FAQ[] = [
     {
-      question: "JURISTIV ga qanday ro'yxatdan o'taman?",
+      question: "JURISTIV nima va platforma kimlar uchun mo‘ljallangan?",
       answer:
-        "Bosh sahifadagi \"Ro'yxatdan o'tish\" tugmasini bosing, email va parolingizni kiriting. Google orqali ham tezda ro'yxatdan o'tishingiz mumkin.",
+        "JURISTIV — O‘zbekiston Respublikasi qonunchiligiga to‘liq asoslangan yetakchi LegalTech platformasi. U fuqarolar uchun tezkor yuridik ko‘mak, huquqshunoslik talabalari uchun amaliy tayyorgarlik (IRAC, Virtual Sud), advokatlar uchun esa raqamli amaliyot va shogirdlar bilan ishlash tizimini taqdim etadi.",
       category: 'getting-started',
     },
     {
-      question: 'Platformadan bepul foydalana olamanmi?',
+      question: 'Platformadan bepul foydalanish imkoniyati bormi?',
       answer:
-        "Ha! Bepul reja bilan to'liq qonunlar bazasi, 10 ta AI chat so'rovi, 3 ta IRAC tahlili, 3 ta hujjat generator va 5 ta ovozli yozuvdan foydalanishingiz mumkin. Standart (45 000 so'm/oy) va Pro (140 000 so'm/oy) rejalariga o'tish orqali cheksiz imkoniyatlarga ega bo'lasiz.",
+        "Ha! Ro‘yxatdan o‘tgan har bir foydalanuvchi O‘zbekistonning 21 ta kodeksi va qonunlar bazasidan bepul foydalanishi, boshlang‘ich AI tahlillarini sinab ko‘rishi hamda fuqarolar oylik 2 ta bepul huquqiy savol berishi mumkin. Qo‘shimcha cheksiz imkoniyatlar uchun Premium tariflar mavjud.",
       category: 'getting-started',
+    },
+    {
+      question: 'Virtual Sud (Sud simulyatsiyasi) qanday ishlaydi?',
+      answer:
+        "Virtual Sudda siz sudya, davlat ayblovchisi (prokuror) yoki himoyachi (advokat) rollarini tanlaysiz. AI boshqa ishtirokchilarni boshqaradi va O‘zbekiston Respublikasining JPK, FPK yoki IPK normalariga asosan jarayon olib boradi. Shuningdek, Multiplayer rejimida boshqa talabalar bilan jonli sud majlisida bellashishingiz mumkin.",
+      category: 'features',
+    },
+    {
+      question: 'Kazus Yechish (IRAC) qanday baholanadi?',
+      answer:
+        "IRAC (Issue, Rule, Application, Conclusion) xalqaro yuridik metodologiyasi asosida ishlaydi. AI sizning har bir bo‘limingizni O‘zbekiston amaldagi kodekslariga mosligini tahlil qilib, xolis 100 ballik tizimda baholaydi va kuchli hamda zaif tomonlaringizni ko‘rsatadi.",
+      category: 'features',
+    },
+    {
+      question: 'Qarorlar Daraxti (Decision Tree) qanday vazifani bajaradi?',
+      answer:
+        "Qarorlar Daraxti har qanday fuqarolik, iqtisodiy yoki mehnat nizosi bo‘yicha mumkin bo‘lgan barcha yuridik strategiyalarni, sud xatarlarini (Risk Assessment), ehtimoliy sarf-xarajatlar va aniq keyingi qadamlarni vizual ko‘rinishda shakllantiradi.",
+      category: 'features',
+    },
+    {
+      question: 'Senariy Generator nima va undan qanday foydalaniladi?',
+      answer:
+        "Interaktiv huquqiy senariylar generatori hayotiy kazuslarni bosqichma-bosqich yechish imkonini beradi. Har bir qaroringiz yuridik oqibatlarga olib keladi va yakunda AI harakatlaringiz sifatini baholaydi.",
+      category: 'features',
+    },
+    {
+      question: "Fuqarolar qanday qilib savol berishadi va javob olishadi?",
+      answer:
+        "Fuqarolar o‘z muammolarini yozib savol qoldirishadi. Talaba huquqshunoslar va advokatlar ushbu savollarga qonuniy asoslangan javob qaytarishadi. Fuqaro javob sifatini 1 dan 5 yulduzgacha baholaydi.",
+      category: 'community',
+    },
+    {
+      question: "Advokat bo‘lmoqchi talabalarga mukofot qanday hisoblanadi?",
+      answer:
+        "Fuqaro savollariga sifatli javob yozgan talabalarga fuqaroning bahosiga ko‘ra ramziy rag‘batlantirish mablag‘i hisoblanadi (5 yulduz uchun 5 000 UZS, 4 yulduz uchun 3 000 UZS, 3 yulduz uchun 1 000 UZS). To‘plangan rag‘bat mablag‘larini talabalar o‘z plastik kartalariga yechib olishlari mumkin.",
+      category: 'community',
+    },
+    {
+      question: "To'lovlar qanday amalga oshiriladi?",
+      answer:
+        "Platformada to‘lovlar Uzcard, Humo va milliy to‘lov tizimlari orqali onlayn va xavfsiz tarzda amalga oshiriladi. Hisob-kitoblar va kvitansiyalar shaxsiy kabinetda saqlanadi.",
+      category: 'billing',
     },
     {
       question: "Parolimni unutib qo'ydim, nima qilishim kerak?",
       answer:
-        'Sign in sahifasidagi "Parolni unutdingizmi?" tugmasini bosing, emailingizni kiriting va parolni tiklash havolasini oling.',
+        'Kirish sahifasidagi "Parolni unutdingizmi?" tugmasini bosing, emailingizni kiriting va bir daqiqada parolni tiklash havolasini oling.',
       category: 'account',
     },
     {
-      question: "Hisob ma'lumotlarimni qanday yangilayman?",
+      question: "Shaxsiy ma'lumotlarim xavfsizligi qanday ta'minlanadi?",
       answer:
-        "Sozlamalar sahifasida ism, familiya, email, telefon raqami va boshqa ma'lumotlaringizni yangilashingiz mumkin.",
+        "Foydalanuvchilarning barcha ma'lumotlari zamonaviy shifrlash standartlari asosida himoyalanadi. Shaxsiy yozishmalar va hujjatlar uchinchi shaxslarga berilmaydi.",
       category: 'account',
-    },
-    {
-      question: 'IRAC tahlili nima va qanday ishlaydi?',
-      answer:
-        'IRAC (Issue, Rule, Application, Conclusion) - bu huquqiy keyslarni tahlil qilishning professional usuli. AI yordamida keyslaringizni tahlil qiling va natijalarni oling.',
-      category: 'features',
-    },
-    {
-      question: 'AI yordamchi qanday tillarda ishlaydi?',
-      answer:
-        "AI yordamchi o'zbek, rus va ingliz tillarida ishlaydi. Til sozlamalarini profil sahifasida o'zgartirishingiz mumkin.",
-      category: 'features',
-    },
-    {
-      question: "Premium rejaga qanday o'taman?",
-      answer:
-        "Premium sahifasida o'zingizga mos rejani tanlang va to'lovni amalga oshiring. To'lovdan so'ng barcha Premium imkoniyatlari ochiladi.",
-      category: 'billing',
-    },
-    {
-      question: "To'lov qanday amalga oshiriladi?",
-      answer:
-        "Hozirda to'lovlar bank o'tkazmasi orqali amalga oshiriladi. Tez orada karta orqali to'lov imkoniyati qo'shiladi.",
-      category: 'billing',
-    },
-    {
-      question: 'Jamoat forumida qanday qatnashaman?',
-      answer:
-        'Jamiyat sahifasida forum, munozaralar va tajriba almashish imkoniyatlari mavjud. Savol berishingiz va boshqalarga yordam berishingiz mumkin.',
-      category: 'community',
-    },
-    {
-      question: 'Qonunlar bazasini qanday ishlataman?',
-      answer:
-        "Qonunlar bazasi sahifasida o'zbekiston qonunlari, kodekslari va me'yoriy hujjatlarni qidirishingiz, filtrlab ko'rishingiz va saqlashingiz mumkin.",
-      category: 'features',
     },
   ]
 
@@ -255,7 +261,7 @@ export default function Help() {
               </div>
               <h3 className="font-semibold text-gray-800 dark:text-white mb-1">Telefon</h3>
               <p className="text-sm text-gray-500 dark:text-gray-400 dark:text-zinc-500">
-                {settings.contactPhone || '+998 90 123 45 67'}
+                {settings.contactPhone || '+998 71 200 00 00'}
               </p>
               <p className="text-xs text-gray-400 dark:text-gray-500 dark:text-zinc-500 mt-1">
                 09:00 - 18:00

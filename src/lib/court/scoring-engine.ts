@@ -42,27 +42,51 @@ export function calculateSessionScore(
     }
   }
 
-  // 2. Bazaviy ballarni shakllantirish (real ishtirok hajmiga bog'liq)
-  const participationFactor = userActionsCount === 0 ? 0.75 : Math.min(1, Math.max(0.6, userActionsCount / 4))
+  // 2. Bazaviy ballarni shakllantirish (haqqoniy va xolis mezonlar asosida)
+  const participationFactor =
+    userActionsCount === 0
+      ? 0.1
+      : userActionsCount === 1
+        ? 0.35
+        : userActionsCount === 2
+          ? 0.6
+          : userActionsCount === 3
+            ? 0.8
+            : 1.0
+
   let legalReasoning = Math.min(
     100,
-    Math.max(10, Math.round((40 + scoring.legalReasoning * 0.6) * participationFactor - procedural_violations.length * 8))
+    Math.max(
+      0,
+      Math.round((20 + scoring.legalReasoning * 0.8) * participationFactor - procedural_violations.length * 10)
+    )
   )
   let argumentQuality = Math.min(
     100,
-    Math.max(10, Math.round((30 + scoring.argument * 0.7) * participationFactor))
+    Math.max(0, Math.round((20 + scoring.argument * 0.8) * participationFactor))
   )
   let evidenceUsage = Math.min(
     100,
-    Math.max(10, evidenceEvents.length > 0 ? 55 + scoring.evidence : Math.round(25 * participationFactor))
+    Math.max(
+      0,
+      evidenceEvents.length > 0
+        ? Math.round((40 + scoring.evidence * 0.6) * participationFactor)
+        : Math.round(15 * participationFactor)
+    )
   )
   let proceduralCorrectness = Math.min(
     100,
-    Math.max(15, scoring.etiquette - procedural_violations.length * 10)
+    Math.max(0, Math.round((scoring.etiquette || 80) * participationFactor - procedural_violations.length * 15))
   )
   let strategy = Math.min(
     100,
-    Math.max(10, Math.round((30 + (userActionsCount >= 4 ? 35 : userActionsCount * 8)) * participationFactor))
+    Math.max(
+      0,
+      Math.round(
+        (20 + (userActionsCount >= 4 ? 40 : userActionsCount * 10) + scoring.argument * 0.4) *
+          participationFactor
+      )
+    )
   )
 
   let impartiality: number | undefined = undefined

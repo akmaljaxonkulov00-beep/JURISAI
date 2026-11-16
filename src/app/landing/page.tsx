@@ -81,12 +81,12 @@ export default function LandingPage() {
 
   const STATS = useMemo(
     () => [
-      { value: '10,000+', label: t('landingStatsUsers') },
-      { value: '5,000+', label: t('landingStatsDocs') },
-      { value: '95%', label: t('landingStatsAccuracy') },
-      { value: '24/7', label: t('landingStatsSupport') },
+      { value: '4,400+', label: 'Qonun moddalari' },
+      { value: '21 ta', label: 'Amaldagi kodekslar' },
+      { value: '100%', label: 'O‘zbekiston qonunchiligi' },
+      { value: '24/7', label: 'Tezkor AI ko‘mak' },
     ],
-    [t]
+    []
   )
 
   const ADVANTAGES = useMemo(
@@ -185,7 +185,7 @@ export default function LandingPage() {
                 href="/signin"
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 text-base font-semibold text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all"
               >
-                {t('landingDemo')}
+                Tizimga kirish
               </Link>
             </div>
 
@@ -416,9 +416,9 @@ export default function LandingPage() {
                 {t('landingContact')}
               </h3>
               <ul className="space-y-2 text-sm">
-                <li>info@juristiv.uz</li>
-                <li>+998 90 123 45 67</li>
-                <li>Toshkent, O&apos;zbekiston</li>
+                <li>support@juristiv.uz</li>
+                <li>Telegram: @juristiv_support</li>
+                <li>Toshkent shahri, O‘zbekiston</li>
               </ul>
             </div>
           </div>

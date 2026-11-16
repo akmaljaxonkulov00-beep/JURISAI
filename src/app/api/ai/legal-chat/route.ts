@@ -68,19 +68,33 @@ export async function POST(request: NextRequest) {
 ASOSIY VAZIFANG:
 Foydalanuvchining O‘zbekiston Respublikasi huquq tizimi va qonunchiligi bilan bog‘liq BARCHA savollariga (fuqarolik, shartnoma, jinoyat, ma’muriy javobgarlik, sud jarayonlari, mehnat, oila, soliq, tadbirkorlik, mulk, meros, uy-joy, yer, ekologiya, davlat xizmatlari va boshqa barcha sohalar bo‘yicha) to‘liq, mukammal, qonuniy asoslangan va aniq moddalarni ko‘rsatgan holda professional javob berish.
 
-QONUNIY ASOSLAR VA MANBALAR:
-O‘zbekiston Respublikasining barcha amaldagi qonun hujjatlariga tayangan holda ish ko‘r:
-- O‘zbekiston Respublikasi Konstitutsiyasi (yangi tahrir)
-- 21 ta amaldagi Kodeks: Fuqarolik kodeksi (FK), Jinoyat kodeksi (JK), Mehnat kodeksi (MK), Fuqarolik protsessual kodeksi (FPK), Jinoyat-protsessual kodeksi (JPK), Ma’muriy javobgarlik to‘g‘risidagi kodeks (MJtK), Ma’muriy sud ishlarini yuritish to‘g‘risidagi kodeks (MSIYUK), Oila kodeksi (OK), Soliq kodeksi (SK), Iqtisodiy protsessual kodeks (IPK), Bojxona kodeksi (BK), Budjet kodeksi (BK), Shaharsozlik kodeksi (ShK), Yer kodeksi (YK), Uy-joy kodeksi (UJK), Saylov kodeksi (SK), Havo kodeksi (HK), Jinoyat-ijroiya kodeksi (JIK), Suv kodeksi (SK), Tadbirkorlik kodeksi (TK)
-- O‘zbekiston Respublikasi Qonunlari, Prezident farmon va qarorlari, Vazirlar Mahkamasi qarorlari (Lex.uz)
-- O‘zbekiston Respublikasi Oliy sudi Plenumi qarorlari.
+O'ZBEKISTON HUQUQ TIZIMI VA DARSLIKLARINING FUNDAMENTAL NORMALARI:
+1. FUQAROLIK HUQUQI (FK):
+   - Da'vo muddati: umumiy da'vo muddati 3 yil (FK 150-modda). Shaxsiy nomulkiy huquqlar va omonatchilar talabiga da'vo muddati joriy etilmaydi (FK 163-modda).
+   - Bitimlar va shartnomalar (FK 101, 354-moddalar). Majburiyatlarni buzganlik: moddiy zarar, boy berilgan foyda (FK 324-modda), pul mablag'larini g'ayriqonuniy ushlab qolganlik foizlari (FK 327-modda).
+   - Mulk huquqi: mulkni noqonuniy egalikdan qaytarib olish - vindikatsiya (FK 228-modda).
+   - Meros: 1-navbatdagi merosxo'rlar: bolalari, eri (xotini) va ota-onasi teng ulushlarda (FK 1134-modda). Meros ochilgan kundan boshlab 6 oy ichida qabul qilinadi.
+2. MEHNAT HUQUQI (YANGI TAHRIR MEHNAT KODEKSI):
+   - Sinov muddati: 3 oydan, rahbarlar uchun 6 oydan oshmasligi kerak (MK 129-modda). Homilador ayollar, 3 yoshga to'lmagan bolasi bor shaxslar, oliygoh bitiruvchilariga birinchi ishga kirganda sinov belgilanmaydi.
+   - Ish beruvchi tashabbusi bilan bekor qilish: MK 161-modda. Kasaba uyushmasi roziligi (MK 163-modda), ogohlantirish muddatlari va ishdan bo'shatish nafaqasi (MK 173-modda).
+   - Homilador ayollar bilan mehnat shartnomasini bekor qilish taqiqlanadi (tashkilot tugatilgan hollar bundan mustasno - MK 408-modda).
+3. OILA HUQUQI (OK):
+   - Er-xotinning birgalikdagi umumiy mulki (OK 23-modda) teng ulushlarda bo'linadi. Nikohgacha olingan yoki meros/hadya qilingan mulk shaxsiy mulkdir (OK 25-modda).
+   - Aliment: 1 bola uchun 1/4 qism, 2 bola uchun 1/3 qism, 3 va undan ortiq bola uchun daromadning 1/2 qismi (OK 99-modda).
+4. JINOYAT VA JINOYAT-PROTSESSUAL HUQUQI (JK va JPK):
+   - Jinoyat tarkibi: obyekt, obyektiv tomon, subyekt, subyektiv tomon (qasd/ehtiyotsizlik).
+   - Jazoni yengillashtiruvchi holatlar: chin ko'ngildan pushaymon bo'lish, zararni ixtiyoriy qoplash (JK 55-modda).
+   - Aybsizlik prezumpsiyasi (JPK 23-modda, Konstitutsiya 28-modda). Dalillar maqbulligi (JPK 95-modda).
+5. MA'MURIY JAVOBGARLIK (MJtK) VA SUD TIZIMI:
+   - Ma'muriy jazo qo'llash muddati: huquqbuzarlik sodir etilgan kundan 1 yildan kechiktirmay (MJtK 36-modda).
+   - Ma'muriy sudlarga murojaat qilish tartibi (MSIYUK).
 
 MUHIM QOIDALAR:
-1. QAMROV VA TO'LIQLIK: Baza ma'lumotlarida modda bo'lishi yoki bo'lmasligidan qat'i nazar, O'zbekiston huquq tizimi bo'yicha barcha savollarga amaldagi qonunchilik asosida to'liq va professional javob ber. Hech qachon "bazada modda topilmadi" deb cheklanma yoki javob berishdan bosh tortma.
-2. ANIQ MODDALAR: Tahlilda tegishli kodeks yoki qonun nomini hamda moddalarini aniq keltir (Masalan: "O'zbekiston Respublikasi Mehnat kodeksining 161-moddasi", "Fuqarolik kodeksining 354-moddasi", "Jinoyat kodeksining 168-moddasi").
-3. AMALIY YO'L-YO'RIQ: Foydalanuvchiga amaliy harakatlar rejasini ber: qaysi idora yoki sudga murojaat qilish, qanday hujjatlar taqdim etish, protsessual muddatlar.
-4. BAZA MA'LUMOTLARI: Quyidagi BAZA MA'LUMOTLARI blokidagi rasmiy tasdiqlangan me'yorlardan foydalan. Baza bo'sh bo'lsa ham, O'zbekiston qonunchiligi bo'yicha to'liq asoslangan holda javob ber.
-5. SOXTA MODDA TAQIQLANADI: Hech qachon mavjud bo'lmagan xayoliy modda yoki normani to'qima. Faqat amaldagi O'zbekiston qonunlariga tayangan holda asosli javob ber.
+1. QAMROV VA TO'LIQLIK: Barcha savollarga amaldagi O'zbekiston qonunchiligi asosida to'liq va professional javob ber.
+2. ANIQ MODDALAR: Kodeks yoki qonun nomini hamda moddalarini aniq keltir (Masalan: "O'zbekiston Respublikasi Mehnat kodeksining 161-moddasi", "Fuqarolik kodeksining 150-moddasi").
+3. AMALIY YO'L-YO'RIQ: Fuqaro yoki foydalanuvchiga amaliy harakatlar rejasini ber: qaysi idora yoki sudga murojaat qilish, qanday hujjatlar taqdim etish, protsessual muddatlar.
+4. BAZA MA'LUMOTLARI: Quyidagi BAZA MA'LUMOTLARI blokidagi rasmiy me'yorlardan unumli foydalan.
+5. SOXTA MODDA TAQIQLANADI: Boshqa davlatlar qonunlarini O'zbekiston qonuni deb ko'rsatma.
 
 JAVOB FORMATI:
 📘 Umumiy tushuncha
@@ -107,7 +121,7 @@ BOSHQA QOIDALAR:
 ${legalContext}${contextText}`
 
     // Call Gemini (primary) with Groq fallback
-    const CANDIDATE_MODELS = ['openai/gpt-oss-120b', 'openai/gpt-oss-20b', 'qwen/qwen3.8-27b']
+    const CANDIDATE_MODELS = ['openai/gpt-oss-120b', 'qwen/qwen3.8-27b']
 
     let responseText = ''
     let lastError = ''
@@ -132,7 +146,7 @@ ${legalContext}${contextText}`
     if (!responseText) {
       for (const model of CANDIDATE_MODELS) {
         const controller = new AbortController()
-        const timeoutId = setTimeout(() => controller.abort(), 25000)
+        const timeoutId = setTimeout(() => controller.abort(), 15000)
 
         try {
           const response = await fetch(GROQ_API_URL, {
