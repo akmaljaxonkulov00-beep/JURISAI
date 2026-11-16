@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import PageHeader from '@/components/layout/PageHeader'
 import AppSidebar from '@/components/layout/AppSidebar'
 import {
@@ -307,9 +309,35 @@ export default function AIChatPage() {
                     </div>
 
                     {/* Content */}
-                    <div className="whitespace-pre-wrap text-sm leading-relaxed space-y-2">
-                      {msg.content}
-                    </div>
+                    {msg.role === 'user' ? (
+                      <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                        {msg.content}
+                      </div>
+                    ) : (
+                      <div className="text-sm leading-relaxed text-slate-800 dark:text-zinc-200">
+                        <ReactMarkdown
+                          remarkPlugins={[remarkGfm]}
+                          components={{
+                            h1: ({ ...props }) => <h1 className="text-lg font-bold mt-4 mb-2 text-slate-900 dark:text-zinc-100 border-b pb-1" {...props} />,
+                            h2: ({ ...props }) => <h2 className="text-base font-bold mt-3 mb-2 text-slate-900 dark:text-zinc-100" {...props} />,
+                            h3: ({ ...props }) => <h3 className="text-sm font-bold mt-3 mb-1.5 text-blue-700 dark:text-blue-400" {...props} />,
+                            p: ({ ...props }) => <p className="mb-2.5 leading-relaxed last:mb-0" {...props} />,
+                            ul: ({ ...props }) => <ul className="list-disc pl-5 my-2 space-y-1.5" {...props} />,
+                            ol: ({ ...props }) => <ol className="list-decimal pl-5 my-2 space-y-2" {...props} />,
+                            li: ({ ...props }) => <li className="leading-relaxed pl-1" {...props} />,
+                            strong: ({ ...props }) => <strong className="font-semibold text-slate-900 dark:text-zinc-100" {...props} />,
+                            blockquote: ({ ...props }) => (
+                              <blockquote className="border-l-3 border-blue-500 pl-3 my-2 italic text-slate-600 dark:text-zinc-400 bg-slate-50 dark:bg-zinc-800/40 py-1 rounded-r" {...props} />
+                            ),
+                            code: ({ ...props }) => (
+                              <code className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-zinc-800 text-blue-600 dark:text-blue-400 text-xs font-mono" {...props} />
+                            ),
+                          }}
+                        >
+                          {msg.content}
+                        </ReactMarkdown>
+                      </div>
+                    )}
 
                     {/* Sources (if any) */}
                     {msg.sources && msg.sources.length > 0 && (

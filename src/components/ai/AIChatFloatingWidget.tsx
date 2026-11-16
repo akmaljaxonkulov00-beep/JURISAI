@@ -16,6 +16,7 @@ import {
 } from 'lucide-react'
 import { useSpeechToText } from '@/hooks/useSpeechToText'
 import { getUserIdentityPayload } from '@/lib/client-user'
+import { cleanAndFormatLegalText } from '@/lib/legal-text-formatter'
 
 interface ChatMessage {
   id: string
@@ -190,7 +191,8 @@ function mergeBlocks(blocks: string[]): string[] {
 
 // Natural text renderer with section support
 function renderText(text: string): React.ReactNode {
-  const rawBlocks = text.split(/\n\s*\n/).filter(Boolean)
+  const formatted = cleanAndFormatLegalText(text)
+  const rawBlocks = formatted.split(/\n\s*\n/).filter(Boolean)
   const blocks = mergeBlocks(rawBlocks)
 
   return blocks.map((block, bi) => {
@@ -233,6 +235,52 @@ function renderText(text: string): React.ReactNode {
       )
     }
 
+    // Heading block (starts with ### or ## or #)
+    if (/^#{1,3}\s+/.test(trimmed)) {
+      const headingText = trimmed.replace(/^#{1,3}\s+/, '')
+      return (
+        <h4 key={bi} className="text-sm font-bold text-blue-700 dark:text-blue-400 mt-3 mb-1">
+          {renderBold(headingText)}
+        </h4>
+      )
+    }
+
+    // Numbered list block (starts with \d+\.)
+    if (/^\d+\./.test(trimmed)) {
+      const lines = trimmed.split('\n').filter(l => l.trim())
+      return (
+        <div key={bi} className="space-y-2 my-2">
+          {lines.map((line, li) => {
+            const numMatch = line.trim().match(/^(\d+)\.\s*(.*)/)
+            if (numMatch) {
+              return (
+                <div key={li} className="flex items-start gap-2 text-sm text-gray-800 dark:text-zinc-200 leading-relaxed">
+                  <span className="flex-shrink-0 font-bold text-blue-600 dark:text-blue-400 text-xs mt-0.5 min-w-[1.25rem]">
+                    {numMatch[1]}.
+                  </span>
+                  <div>{renderBold(numMatch[2])}</div>
+                </div>
+              )
+            }
+            if (line.trim().startsWith('-') || line.trim().startsWith('*') || line.trim().startsWith('•')) {
+              const bulletText = line.trim().replace(/^[-*•]\s*/, '')
+              return (
+                <div key={li} className="flex items-start gap-2 pl-5 text-sm text-gray-700 dark:text-zinc-300 leading-relaxed">
+                  <span className="flex-shrink-0 text-blue-500">•</span>
+                  <div>{renderBold(bulletText)}</div>
+                </div>
+              )
+            }
+            return (
+              <p key={li} className="text-sm text-gray-700 dark:text-zinc-300 leading-relaxed">
+                {renderBold(line.trim())}
+              </p>
+            )
+          })}
+        </div>
+      )
+    }
+
     // Blockquote block (starts with >)
     if (trimmed.startsWith('>')) {
       const lines = trimmed.split('\n').filter(l => l.trim())
@@ -257,21 +305,21 @@ function renderText(text: string): React.ReactNode {
       )
     }
 
-    // Bullet list block (starts with •)
-    if (/^[•]/.test(trimmed)) {
+    // Bullet list block (starts with • or - or *)
+    if (/^[•\-*]/.test(trimmed)) {
       const lines = trimmed.split('\n').filter(l => l.trim())
       return (
-        <div key={bi} className="space-y-1 my-2">
+        <div key={bi} className="space-y-1.5 my-2">
           {lines.map((line, li) => {
-            const l = line.trim().replace(/^•\s*/, '')
+            const l = line.trim().replace(/^[•\-*]\s*/, '')
             if (!l) return null
             return (
               <div
                 key={li}
-                className="flex gap-1.5 text-sm text-gray-700 dark:text-zinc-300 leading-relaxed"
+                className="flex items-start gap-2 text-sm text-gray-700 dark:text-zinc-300 leading-relaxed"
               >
-                <span className="flex-shrink-0 text-gray-400 dark:text-zinc-500">•</span>
-                <span>{renderBold(l)}</span>
+                <span className="flex-shrink-0 text-blue-500">•</span>
+                <div>{renderBold(l)}</div>
               </div>
             )
           })}

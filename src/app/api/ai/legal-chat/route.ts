@@ -9,6 +9,7 @@ import {
 } from '@/lib/legal-rag'
 import { ensureUzbekLatin } from '@/lib/uz-latin'
 import { callGemini } from '@/lib/gemini'
+import { cleanAndFormatLegalText } from '@/lib/legal-text-formatter'
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
@@ -96,6 +97,14 @@ SENING HUQUQIY BILIM DOIRANG VA VAZIFALARING:
 4. TIL VA IMISLO QOIDALARI:
    - Faqat O‘zbek lotin alifbosida yoz. Kirill alifbosidan mutlaqo foydalanma.
    - Tushunarli, ravon, ishonchli va yuridik jihatdan benuqson tilda javob ber.
+
+5. TARTIB, FORMAT VA ESTETIKA (QAT'IY QOIDALAR):
+   - Har bir javobingni o‘ta TARTIBLI, chiroyli, ko‘zga yoqimli va o‘qish uchun qulay Markdown formatida yoz.
+   - Raqamli bandlar (1., 2., 3.) va ro‘yxatlar (- yoki •) HECH QACHON bir qatorda yopishtirib yozilmasin!
+   - Har bir raqamli band MUTLAQO ALOHIDA YANGI QATORDAN boshlansin va bandlar orasida bo‘sh qator (\n\n) qoldirilsin.
+   - Ichki ro‘yxatlar (masalan davlat organlari) alohida qatorlarda pastma-past (- Prezident\n- Oliy Majlis\n- Vazirlar Mahkamasi) ko‘rinishida bo‘lsin.
+   - Sarlavhalarni toza Markdown (masalan: \`### 1. Umumiy qoidalar\`) bilan ajrat.
+   - Oliy Majlis palatalarini to‘g‘ri nomla: **Qonunchilik palatasi** (quyi palata) va **Senat** (yuqori palata). "Senatus" yoki "Qonun chiqarish palatasi" deb xato yozma.
 ${legalContext ? `\nQO‘SHIMCHA MA'LUMOTLAR BAZASI MANBALARI (Agar savolga mos bo‘lsa foydalan, mos bo‘lmasa o‘zingning butun qonunchilik bilimlaring asosida javob ber):\n${legalContext}` : ''}`
 
     // Call Gemini (primary) with Groq fallback
@@ -184,8 +193,8 @@ ${legalContext ? `\nQO‘SHIMCHA MA'LUMOTLAR BAZASI MANBALARI (Agar savolga mos 
       )
     }
 
-    // ── Lotin alifbosi kafolati: kirillcha aralashsa transliteratsiya qilinadi ──
-    responseText = ensureUzbekLatin(responseText)
+    // ── Lotin alifbosi kafolati va tartibli Markdown formatlash ──
+    responseText = cleanAndFormatLegalText(ensureUzbekLatin(responseText))
 
     // Clean up: trim if extremely long (over 3000 chars)
     if (responseText.length > 3000) {

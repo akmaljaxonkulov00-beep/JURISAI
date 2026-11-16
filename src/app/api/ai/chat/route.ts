@@ -9,6 +9,7 @@ import {
 } from '@/lib/legal-rag'
 import { ensureUzbekLatin } from '@/lib/uz-latin'
 import { callGemini, UZBEK_LEGAL_SYSTEM_INSTRUCTION } from '@/lib/gemini'
+import { cleanAndFormatLegalText } from '@/lib/legal-text-formatter'
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
@@ -52,7 +53,11 @@ QONUNIY YO‘RIQNOMALAR:
 2. ANIQ MODDALAR: Javoblarda O‘zbekiston Respublikasining tegishli amaldagi kodekslari va qonunlarining aniq moddalarini ko‘rsatib, yuridik tahlil ber (Masalan: "O‘zbekiston Respublikasi Jinoyat kodeksining 168-moddasi", "Mehnat kodeksining 161-moddasi", "Fuqarolik kodeksining 354-moddasi").
 3. BAZA MA'LUMOTLARI: Quyidagi BAZA MA'LUMOTLARI bloki rasmiy manba sifatida berilgan bo‘lsa, undan foydalan; agar savol bo‘yicha bazada modda bo‘lmasa ham, O‘zbekiston amaldagi qonunchiligi asosida to‘liq va aniq huquqiy yechim ber.
 4. TIL VA ALIFBO: Faqat adabiy o‘zbek tilida, FAQAT LOTIN ALIFBOSIDA javob ber. Kirill yozuvi mutlaqo ishlatilmaydi.
-5. FORMAT: Toza Markdown (## sarlavhalar, **qalin**, • ro‘yxatlar).
+5. FORMAT VA TARTIB (QAT'IY QOIDALAR):
+   - Javobni o‘ta tartibli, ko‘zga yoqimli Markdown formatida yoz.
+   - Har bir raqamli band (1., 2., 3.) yoki ro‘yxat bandi (- yoki •) MUTLAQO ALOHIDA YANGI QATORDAN boshlansin. Hech qachon bir nechta bandlarni bitta qatorga yopishtirib yozma.
+   - Bandlar orasida bo‘sh qator (\n\n) qoldir.
+   - Oliy Majlis palatalari: Qonunchilik palatasi (quyi palata) va Senat (yuqori palata). "Senatus" deb xato yozma.
 6. Qisqa va lo‘nda bo‘l: odatda 150-300 so‘z. Foydalanuvchi "batafsil" desa 350-500 so‘z.${legalContext}`
 
     let aiResponse = ''
@@ -65,7 +70,7 @@ QONUNIY YO‘RIQNOMALAR:
           { maxTokens: 2048, temperature: 0.2 }
         )
         if (geminiResult?.trim()) {
-          aiResponse = ensureUzbekLatin(geminiResult)
+          aiResponse = cleanAndFormatLegalText(ensureUzbekLatin(geminiResult))
         }
       } catch (geminiErr) {
         console.warn("[chat] Gemini xatosi, Groq'ga o'tilmoqda:", geminiErr)
@@ -124,7 +129,7 @@ QONUNIY YO‘RIQNOMALAR:
       }
 
       const groqData = await groqResp.json()
-      aiResponse = ensureUzbekLatin(groqData.choices[0]?.message?.content || 'Javob olinmadi')
+      aiResponse = cleanAndFormatLegalText(ensureUzbekLatin(groqData.choices[0]?.message?.content || 'Javob olinmadi'))
     }
 
     // ── Modda iqtiboslari validatsiyasi ──
