@@ -78,12 +78,18 @@ export function getFlatLocalArticles(): RAGArticle[] {
     for (const c of list as any[]) {
       if (Array.isArray(c?.articles)) {
         for (const a of c.articles) {
+          const content = String(a.content || '')
+          const title = String(a.title || '')
+          // Filter out dummy placeholders so they never mislead AI
+          if (content.includes('ushbu moddada belgilanadi') || title.includes("bo'yicha konstitutsiyaviy normalar")) {
+            continue
+          }
           result.push({
             code_id: c.id || '',
             code_name: c.name || CATEGORY_DISPLAY[c.id] || c.shortName || 'O‘zbekiston Qonunchiligi',
             article_number: String(a.number || a.article_number || ''),
-            title: String(a.title || ''),
-            content: String(a.content || ''),
+            title,
+            content,
             chapter: String(a.chapter || ''),
             penalties: String(a.penalties || ''),
           })

@@ -441,6 +441,12 @@ export default function AIChatFloatingWidget() {
       })
     )
 
+    const currentSession = sessions.find(s => s.id === activeSessionId)
+    const context = (currentSession?.messages || []).slice(-8).map(m => ({
+      role: m.role,
+      content: m.content,
+    }))
+
     const userText = input.trim()
     setInput('')
     setLoading(true)
@@ -449,7 +455,7 @@ export default function AIChatFloatingWidget() {
       const res = await fetch('/api/ai/legal-chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userText, ...getUserIdentityPayload() }),
+        body: JSON.stringify({ message: userText, context, ...getUserIdentityPayload() }),
       })
 
       const data = await res.json()

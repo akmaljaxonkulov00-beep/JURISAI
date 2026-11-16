@@ -127,9 +127,7 @@ export async function POST(request: NextRequest) {
         .eq('user_id', auth.user.id)
     }
 
-    const message = quotaBonus > 0
-      ? `Javobingiz qabul qilindi! AI Bahosi: ${earnedStars} / 5 yulduz. Tabriklaymiz, 7 ta sifatli javob kvotasini to‘ldirdingiz va hisobingizga +${quotaBonus.toLocaleString()} so'm kvota mukofoti qo‘shildi!`
-      : `Javobingiz qabul qilindi! AI Qattiqqol Bahosi: ${earnedStars} / 5 yulduz (+${earnedStars} reyting bali). Fuqaro javobingizni baholaganda qo‘shimcha ballar qo‘shiladi.`
+    const message = `Javobingiz qabul qilindi! AI Bahosi: ${earnedStars} / 5 ball (+${earnedStars} reyting bali). Fuqaro javobingizni baholaganda reyting va rag‘bat hisobingizga qo‘shiladi.`
 
     return NextResponse.json({
       success: true,
@@ -140,7 +138,6 @@ export async function POST(request: NextRequest) {
         earnedPoints: earnedStars,
         newTotalScore,
         newLevel,
-        quotaBonus,
       },
     })
   } catch (error: any) {

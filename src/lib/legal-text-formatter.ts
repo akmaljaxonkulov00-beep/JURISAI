@@ -16,6 +16,7 @@ export function cleanAndFormatLegalText(text: string): string {
 
   // 3. Sarlavhalar oldida bo'sh qator tashlash va bo'sh '#' belgilarini tozalash:
   res = res.replace(/^[ \t]*#{1,6}[ \t]*$/gm, '')
+  res = res.replace(/(^|\n)[ \t]*#{1,6}[ \t]*(?=\n|$)/g, '$1')
   res = res.replace(/([^\n])(#{1,4}\s+)/g, '$1\n\n$2')
 
   // 4. Konstitutsiyaviy va rasmiy davlat atamalarini kafolatlash:
@@ -23,7 +24,9 @@ export function cleanAndFormatLegalText(text: string): string {
   res = res.replace(/\bQonun chiqarish palatasi\b/gi, 'Qonunchilik palatasi')
   res = res.replace(/\bOliy Sovet\b/gi, 'Oliy Kengash')
   res = res.replace(/\b[Qq]uvvat manbai\b/g, 'davlat hokimiyatining birdan-bir manbai')
-  res = res.replace(/14\s+bo[‘']?limdan?\s+va\s+150\s+moddadan?/gi, '6 ta bo‘lim, 27 ta bob va 155 ta moddadan')
+  res = res.replace(/14\s+bo[‘']?limdan?\s+va\s+150\s+moddadan?/gi, '6 ta bo‘lim, 27 ta bob va 155 ta modda')
+  res = res.replace(/Diqqat:\s*Konstitutsiyada\s*14\s*bo[‘']?lim.*?(?=\n\n|$)/gi, '')
+  res = res.replace(/\*?Eslatma:\*?\s*Qonunda\s*"?quvvat manbai"?.*?(?=\n\n|$)/gi, '')
 
   // 5. Ortiqcha uch yoki undan ortiq bo'sh qatorlarni ikkitaga keltirish:
   res = res.replace(/\n{3,}/g, '\n\n')

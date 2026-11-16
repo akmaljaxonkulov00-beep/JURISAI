@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
 
 QONUNIY YO‘RIQNOMALAR:
 1. BARCHA HUQUQIY SAVOLLARGA JAVOB: Foydalanuvchining O‘zbekiston Respublikasi huquq tizimi va qonunchiligi bilan bog‘liq har qanday savoliga (Konstitutsiya, barcha kodekslar va maxsus qonunlar asosida) to‘liq, mukammal va professional yuridik javob ber. Hech qachon "bazada modda topilmadi" deb to'xtab qolma.
-   - Konstitutsiya faktlari: 1992-yil 8-dekabrda Oliy Kengashda qabul qilingan; yangi tahriri 2023-yil 30-aprelda umumxalq referendumida qabul qilinib, 2023-yil 1-maydan kuchga kirgan. Tuzilishi: Muqaddima, 6 ta bo‘lim, 27 ta bob, 155 ta modda (14 bo‘lim yoki 150 modda EMAS!). Xalq — davlat hokimiyatining birdan-bir manbaidir. Oliy Majlis palatalari: Qonunchilik palatasi va Senat.
+   - Konstitutsiya faktlari: 1992-yil 8-dekabrda Oliy Kengashda qabul qilingan; yangi tahriri 2023-yil 30-aprelda umumxalq referendumida qabul qilinib, 2023-yil 1-maydan kuchga kirgan. Tuzilishi: Muqaddima, 6 ta bo‘lim, 27 ta bob, 155 ta modda. Xalq — davlat hokimiyatining birdan-bir manbaidir. Oliy Majlis palatalari: Qonunchilik palatasi va Senat.
 2. ANIQ MODDALAR: Javoblarda O‘zbekiston Respublikasining tegishli amaldagi kodekslari va qonunlarining aniq moddalarini ko‘rsatib, yuridik tahlil ber.
 3. BAZA MA'LUMOTLARI: Baza ma'lumotlaridan va O'zbekiston qonunlaridan to'liq va asoslantirilgan holda foydalaning.
 4. TIL VA ALIFBO: Faqat adabiy o‘zbek tilida, FAQAT LOTIN ALIFBOSIDA javob ber. Kirill yozuvi mutlaqo ishlatilmaydi.
@@ -85,6 +85,7 @@ QONUNIY YO‘RIQNOMALAR:
         return NextResponse.json({ error: 'AI service not configured' }, { status: 500 })
       }
       const CANDIDATES = ['qwen/qwen3.8-27b', 'openai/gpt-oss-120b']
+      let groqErrText = ''
       for (const model of CANDIDATES) {
         try {
           const groqResp = await fetch(GROQ_API_URL, {
@@ -108,29 +109,28 @@ QONUNIY YO‘RIQNOMALAR:
             const data = await groqResp.json()
             const text = data.choices?.[0]?.message?.content || ''
             if (text.trim()) {
-              aiResponse = text.trim()
+              aiResponse = cleanAndFormatLegalText(ensureUzbekLatin(text.trim()))
               break
             }
+          } else {
+            groqErrText = await groqResp.text().catch(() => '')
           }
-        } catch (e) {
+        } catch (e: any) {
+          groqErrText = e?.message || 'Network error'
           console.warn('[chat] Groq error:', e)
         }
       }
 
-      if (!groqResp.ok) {
-        const errorText = await groqResp.text()
-        console.error('Groq API error:', errorText)
+      if (!aiResponse) {
+        console.error('Groq API error:', groqErrText)
         return NextResponse.json(
           {
             error: 'AI service error',
-            details: groqResp.status === 401 ? 'API key invalid' : 'Unknown error',
+            details: 'AI xizmatiga ulanib bo‘lmadi',
           },
-          { status: groqResp.status }
+          { status: 503 }
         )
       }
-
-      const groqData = await groqResp.json()
-      aiResponse = cleanAndFormatLegalText(ensureUzbekLatin(groqData.choices[0]?.message?.content || 'Javob olinmadi'))
     }
 
     // ── Modda iqtiboslari validatsiyasi ──

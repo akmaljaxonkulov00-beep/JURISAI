@@ -440,21 +440,6 @@ export default function SignUpPage() {
           </div>
         )}
 
-        {/* ── UMUMIY TALABA MAYDONI (Ixtiyoriy) ── */}
-        {selectedRole === 'student' && (
-          <div>
-            <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
-              Ta'lim muassasasi (Universitet, litsey) (ixtiyoriy)
-            </label>
-            <input
-              type="text"
-              value={university}
-              onChange={e => setUniversity(e.target.value)}
-              className="w-full px-3.5 py-2.5 border rounded-xl bg-white dark:bg-gray-800 text-sm focus:ring-2 focus:ring-blue-500"
-              placeholder="Universitet yoki kollej nomi (ixtiyoriy)"
-            />
-          </div>
-        )}
 
         {/* Parol Maydonlari */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

@@ -3359,933 +3359,1088 @@
     "articles": [
       {
         "number": "1",
-        "title": "O'zbekiston - suveren respublika",
-        "content": "O'zbekiston - suveren demokratik respublika. 'O'zbekiston' va 'O'zbekiston Respublikasi' degan nomlar bir ma'noni anglatadi. Davlat o'zining hududiy yaxlitligini va konstitutsiyaviy tuzumini himoya qiladi.",
-        "category": "1-bob. Davlat tuzumi"
+        "article_number": "1",
+        "title": "O‘zbekiston — suveren, demokratik, huquqiy, ijtimoiy va dunyoviy davlat",
+        "content": "1-modda. Oʻzbekiston — boshqaruvning respublika shakliga ega boʻlgan suveren, demokratik, huquqiy, ijtimoiy va dunyoviy davlat. Davlatning “Oʻzbekiston Respublikasi” va “Oʻzbekiston” degan nomlari bir maʼnoni anglatadi.",
+        "category": "1-bo‘lim. Asosiy prinsiplar"
       },
       {
         "number": "2",
-        "title": "Davlat ramzlari",
-        "content": "O'zbekiston Respublikasining davlat ramzlari - Bayrog'i, Gerbi va Madhiyasi belgilangan tartibda tasdiqlanadi. Davlat ramzlari O'zbekiston Respublikasining suverenitetini ifodalaydi.",
-        "category": "1-bob. Davlat tuzumi"
+        "article_number": "2",
+        "title": "Davlat xalq irodasini ifoda etishi",
+        "content": "2-modda. Davlat xalq irodasini ifoda etib, uning manfaatlariga xizmat qiladi. Davlat organlari va mansabdor shaxslar jamiyat va fuqarolar oldida masʼuldirlar.",
+        "category": "1-bo‘lim. Asosiy prinsiplar"
       },
       {
         "number": "3",
-        "title": "3-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Davlat tuzumining asosiy prinsiplari ushbu moddada belgilanadi. O'zbekiston Respublikasi demokratik, huquqiy va ijtimoiy davlat hisoblanadi.",
-        "category": "1-bob. Davlat tuzumi"
+        "article_number": "3",
+        "title": "3-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "3-modda. Oʻzbekiston Respublikasi oʻzining milliy-davlat va maʼmuriy-hududiy tuzilishini, davlat hokimiyati organlarining tizimini belgilaydi, ichki va tashqi siyosatini amalga oshiradi.  Oʻzbekistonning davlat chegarasi va hududi daxlsiz va boʻlinmasdir.  Oʻzbekiston Respublikasining “ Oʻzbekiston Respublikasining maʼmuriy-hududiy tuzilishi toʻgʻrisida ”gi Qonuni .",
+        "category": "1-bo‘lim. Asosiy prinsiplar"
       },
       {
         "number": "4",
-        "title": "4-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Davlat tuzumining asosiy prinsiplari ushbu moddada belgilanadi. O'zbekiston Respublikasi demokratik, huquqiy va ijtimoiy davlat hisoblanadi.",
-        "category": "1-bob. Davlat tuzumi"
+        "article_number": "4",
+        "title": "4-modda. Oʻzbekiston Respublikasining davlat tili oʻzbek tilidir",
+        "content": "4-modda. Oʻzbekiston Respublikasining davlat tili oʻzbek tilidir.  Oʻzbekiston Respublikasining “Davlat tili haqida”gi Qonuni .  Oʻzbekiston Respublikasi oʻz hududida istiqomat qiluvchi millat va elatlarning tillari, urf-odatlari va anʼanalari hurmat qilinishini taʼminlaydi, ularning rivojlanishi uchun sharoit yaratadi.",
+        "category": "1-bo‘lim. Asosiy prinsiplar"
       },
       {
         "number": "5",
-        "title": "5-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Davlat tuzumining asosiy prinsiplari ushbu moddada belgilanadi. O'zbekiston Respublikasi demokratik, huquqiy va ijtimoiy davlat hisoblanadi.",
-        "category": "1-bob. Davlat tuzumi"
+        "article_number": "5",
+        "title": "5-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "5-modda. Oʻzbekiston Respublikasi qonun bilan tasdiqlanadigan oʻz davlat ramzlari — bayrogʻi, gerbi va madhiyasiga ega. Davlat ramzlari davlat himoyasidadir.  a href=\"/uz/docs/-100122\">“Oʻzbekiston Respublikasining Davlat bayrogʻi toʻgʻrisida” , “Oʻzbekiston Respublikasi Davlat gerbi toʻgʻrisida” va “Oʻzbekiston Respublikasining Davlat madhiyasi toʻgʻrisida”gi qonunlari.",
+        "category": "1-bo‘lim. Asosiy prinsiplar"
       },
       {
         "number": "6",
-        "title": "6-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Davlat tuzumining asosiy prinsiplari ushbu moddada belgilanadi. O'zbekiston Respublikasi demokratik, huquqiy va ijtimoiy davlat hisoblanadi.",
-        "category": "1-bob. Davlat tuzumi"
+        "article_number": "6",
+        "title": "6-modda. Oʻzbekiston Respublikasining poytaxti — Toshkent shahri",
+        "content": "6-modda. Oʻzbekiston Respublikasining poytaxti — Toshkent shahri. II bob. Xalq hokimiyatchiligi",
+        "category": "1-bo‘lim. Asosiy prinsiplar"
       },
       {
         "number": "7",
-        "title": "7-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Davlat tuzumining asosiy prinsiplari ushbu moddada belgilanadi. O'zbekiston Respublikasi demokratik, huquqiy va ijtimoiy davlat hisoblanadi.",
-        "category": "1-bob. Davlat tuzumi"
+        "article_number": "7",
+        "title": "Xalq davlat hokimiyatining birdan-bir manbaidir",
+        "content": "7-modda. Xalq davlat hokimiyatining birdan-bir manbaidir. Oʻzbekiston Respublikasida davlat hokimiyati xalq manfaatlarini koʻzlab va Oʻzbekiston Respublikasi Konstitutsiyasi hamda uning asosida qabul qilingan qonunlar vakolat bergan organlar tomonidangina amalga oshiriladi.  Konstitutsiyada nazarda tutilmagan tartibda davlat hokimiyati vakolatlarini oʻzlashtirish, hokimiyat organlari faoliyatini toʻxtatib qoʻyish yoki tugatish, hokimiyatning yangi va muvoziy tarkiblarini tuzish Konstitutsiyaga xilof hisoblanadi va qonunga binoan javobgarlikka tortishga asos boʻladi.  Oʻzbekiston Respublikasi Jinoyat kodeksining 159-moddasi .",
+        "category": "1-bo‘lim. Asosiy prinsiplar"
       },
       {
         "number": "8",
-        "title": "8-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Davlat tuzumining asosiy prinsiplari ushbu moddada belgilanadi. O'zbekiston Respublikasi demokratik, huquqiy va ijtimoiy davlat hisoblanadi.",
-        "category": "1-bob. Davlat tuzumi"
+        "article_number": "8",
+        "title": "8-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "8-modda. Oʻzbekiston xalqini millatidan qatʼi nazar, Oʻzbekiston Respublikasining fuqarolari tashkil etadi.  mazkur Konstitutsiyaning 22-moddasi .",
+        "category": "1-bo‘lim. Asosiy prinsiplar"
       },
       {
         "number": "9",
-        "title": "9-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Davlat tuzumining asosiy prinsiplari ushbu moddada belgilanadi. O'zbekiston Respublikasi demokratik, huquqiy va ijtimoiy davlat hisoblanadi.",
-        "category": "1-bob. Davlat tuzumi"
+        "article_number": "9",
+        "title": "9-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "9-modda. Jamiyat va davlat hayotining eng muhim masalalari xalq muhokamasiga taqdim etiladi, umumxalq ovoziga — referendumga qoʻyiladi. Oʻzbekiston Respublikasida referendum oʻtkazish tartibi qonun bilan belgilanadi.  Oʻzbekiston Respublikasining “ Oʻzbekiston Respublikasining referendumi toʻgʻrisida ”gi Qonuni .",
+        "category": "1-bo‘lim. Asosiy prinsiplar"
       },
       {
         "number": "10",
-        "title": "10-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Davlat tuzumining asosiy prinsiplari ushbu moddada belgilanadi. O'zbekiston Respublikasi demokratik, huquqiy va ijtimoiy davlat hisoblanadi.",
-        "category": "1-bob. Davlat tuzumi"
+        "article_number": "10",
+        "title": "10-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "10-modda. Oʻzbekiston xalqi nomidan faqat u saylagan Oʻzbekiston Respublikasi Oliy Majlisi va Prezidenti ish olib borishi mumkin.  mazkur Konstitutsiyaning 91 , 92 , 105 , 106-moddalari . Jamiyatning biron-bir qismi, siyosiy partiya, jamoat birlashmasi, ijtimoiy harakat yoki alohida shaxs Oʻzbekiston xalqi nomidan ish olib borishga haqli emas.",
+        "category": "1-bo‘lim. Asosiy prinsiplar"
       },
       {
         "number": "11",
-        "title": "11-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Davlat tuzumining asosiy prinsiplari ushbu moddada belgilanadi. O'zbekiston Respublikasi demokratik, huquqiy va ijtimoiy davlat hisoblanadi.",
-        "category": "1-bob. Davlat tuzumi"
+        "article_number": "11",
+        "title": "Davlat hokimiyatining uch tarmoqqa bo‘linishi",
+        "content": "11-modda. Oʻzbekiston Respublikasi davlat hokimiyatining tizimi — hokimiyatning qonun chiqaruvchi, ijro etuvchi va sud hokimiyatiga boʻlinishi prinsipiga asoslanadi.  mazkur Konstitutsiya 91-moddasining birinchi qismi, 114-moddasining birinchi qismi va 130-moddasi .",
+        "category": "1-bo‘lim. Asosiy prinsiplar"
       },
       {
         "number": "12",
-        "title": "12-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Davlat tuzumining asosiy prinsiplari ushbu moddada belgilanadi. O'zbekiston Respublikasi demokratik, huquqiy va ijtimoiy davlat hisoblanadi.",
-        "category": "1-bob. Davlat tuzumi"
+        "article_number": "12",
+        "title": "12-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "12-modda. Oʻzbekiston Respublikasida ijtimoiy hayot siyosiy institutlar, mafkuralar va fikrlarning xilma-xilligi asosida rivojlanadi. Hech qaysi mafkura davlat mafkurasi sifatida oʻrnatilishi mumkin emas.",
+        "category": "1-bo‘lim. Asosiy prinsiplar"
       },
       {
         "number": "13",
-        "title": "Inson huquqlari kafolatlari",
-        "content": "O'zbekiston Respublikasida inson huquqlari va erkinliklari Konstitutsiya va qonunlarga muvofiq kafolatlanadi. Har kim o'z huquqlari va erkinliklarini sud orqali himoya qilishga haqlidir. Inson huquqlari oliy qadriyat hisoblanadi.",
-        "category": "2-bob. Inson huquqlari"
+        "article_number": "13",
+        "title": "Inson, uning hayoti va erkinligi oliy qadriyat",
+        "content": "13-modda. Oʻzbekiston Respublikasida demokratiya umuminsoniy prinsiplarga asoslanadi, ularga koʻra inson, uning hayoti, erkinligi, shaʼni, qadr-qimmati va boshqa ajralmas huquqlari oliy qadriyat hisoblanadi.  mazkur Konstitutsiyaning 25 — 35-moddalari .  Demokratik huquq va erkinliklar Konstitutsiya va qonunlar bilan himoya qilinadi.  mazkur Konstitutsiyaning 54 — 58-moddalari .",
+        "category": "1-bo‘lim. Asosiy prinsiplar"
       },
       {
         "number": "14",
-        "title": "14-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Inson huquqlari va erkinliklari ushbu moddada belgilangan tartibda kafolatlanadi. Har kim o'z huquqlarini bilish va himoya qilish huquqiga ega.",
-        "category": "2-bob. Inson huquqlari"
+        "article_number": "14",
+        "title": "14-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "14-modda. Davlat oʻz faoliyatini inson farovonligini va jamiyatning barqaror rivojlanishini taʼminlash maqsadida qonuniylik, ijtimoiy adolat va birdamlik prinsiplari asosida amalga oshiradi. III bob. Konstitutsiya va qonunning ustunligi",
+        "category": "1-bo‘lim. Asosiy prinsiplar"
       },
       {
         "number": "15",
-        "title": "Konstitutsiyaviy qonunlarning ustunligi",
-        "content": "O'zbekiston Respublikasida O'zbekiston Respublikasi Konstitutsiyasi va qonunlarining ustunligi tan olinadi. Davlat, uning organlari, mansabdor shaxslari, jamoat birlashmalari, fuqarolar Konstitutsiya va qonunlarga muvofiq ish olib boradilar.",
-        "category": "2-bob. Inson huquqlari"
+        "article_number": "15",
+        "title": "Konstitutsiya va qonunlarning so‘zsiz ustunligi",
+        "content": "15-modda. Oʻzbekiston Respublikasida Oʻzbekiston Respublikasi Konstitutsiyasi va qonunlarining ustunligi soʻzsiz tan olinadi.  Oʻzbekiston Respublikasi “ Oʻzbekiston Respublikasining Konstitutsiyaviy sudi toʻgʻrisida”gi Qonunining 21-moddasi . Oldingi  tahrirga qarang. Oʻzbekiston Respublikasi Konstitutsiyasi mamlakatning butun hududida oliy yuridik kuchga ega, toʻgʻridan-toʻgʻri amal qiladi va yagona huquqiy makonning asosini tashkil etadi. Alohida hududlarda Oʻzbekiston Respublikasining Konstitutsiyaviy Qonuni bilan yagona huquqiy makon doirasida maxsus huquqiy rejim oʻrnatilishi mumkin. (15-moddaning ikkinchi qismi Oʻzbekiston Respublikasining 2026-yil 13-iyuldagi OʻRQ-1158-sonli Konstitutsiyaviy Qonuni tahririda — Qonunchilik maʼlumotlari milliy bazasi, 14.07.2026-y., 03/26/1158/0727-son. Kuchga kirish sanasi — 2026-yil 25-iyul)  Oʻzbekiston Respublikasining xalqaro shartnomalari xalqaro huquqning umumeʼtirof etilgan prinsip va normalari bilan bir qatorda Oʻzbekiston Respublikasi huquqiy tizimining tarkibiy qismidir.  Agar Oʻzbekiston Respublikasining xalqaro shartnomasida Oʻzbekiston Respublikasining qonunida nazarda tutilganidan boshqacha qoidalar belgilangan boʻlsa, Oʻzbekiston Respublikasining xalqaro shartnomasi qoidalari qoʻllaniladi.  Oʻzbekiston Respublikasining “ Oʻzbekiston Respublikasining xalqaro shartnomalari toʻgʻrisida ”gi Qonuni .  Davlat va uning organlari, boshqa tashkilotlar, mansabdor shaxslar, fuqarolik jamiyati institutlari hamda fuqarolar Konstitutsiya va qonunlarga muvofiq ish yuritadilar.",
+        "category": "1-bo‘lim. Asosiy prinsiplar"
       },
       {
         "number": "16",
-        "title": "16-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Inson huquqlari va erkinliklari ushbu moddada belgilangan tartibda kafolatlanadi. Har kim o'z huquqlarini bilish va himoya qilish huquqiga ega.",
-        "category": "2-bob. Inson huquqlari"
+        "article_number": "16",
+        "title": "16-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "16-modda. Ushbu Konstitutsiyaning birorta qoidasi Oʻzbekiston Respublikasining huquq va manfaatlariga, ushbu Konstitutsiyaning birinchi boʻlimida nazarda tutilgan asosiy prinsip va normalarga zarar yetkazadigan tarzda talqin etilishi mumkin emas. Oʻzbekiston Respublikasining qonunlari va boshqa normativ-huquqiy hujjatlari Oʻzbekiston Respublikasining Konstitutsiyasi asosida va uni ijro etish yuzasidan qabul qilinadi. Birorta qonun yoki boshqa normativ-huquqiy hujjat Konstitutsiyaning prinsip va normalariga zid boʻlishi mumkin emas.  Oʻzbekiston Respublikasi “Normativ-huquqiy hujjatlar toʻgʻrisida”gi Qonunining 8-moddasi . IV bob. Tashqi siyosat",
+        "category": "1-bo‘lim. Asosiy prinsiplar"
       },
       {
         "number": "17",
-        "title": "17-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Inson huquqlari va erkinliklari ushbu moddada belgilangan tartibda kafolatlanadi. Har kim o'z huquqlarini bilish va himoya qilish huquqiga ega.",
-        "category": "2-bob. Inson huquqlari"
+        "article_number": "17",
+        "title": "17-modda. Oʻzbekiston Respublikasi xalqaro munosabatlarning toʻla huquqli subyektidir",
+        "content": "17-modda. Oʻzbekiston Respublikasi xalqaro munosabatlarning toʻla huquqli subyektidir.  Oʻzbekistonning tashqi siyosati davlatlarning suveren tengligi, kuch ishlatmaslik yoki kuch bilan tahdid qilmaslik, chegaralarning buzilmasligi, davlatlarning hududiy yaxlitligi, nizolarni tinch yoʻl bilan hal etish, boshqa davlatlarning ichki ishlariga aralashmaslik prinsiplariga hamda xalqaro huquqning umumeʼtirof etilgan boshqa prinsip va normalariga asoslanadi.",
+        "category": "1-bo‘lim. Asosiy prinsiplar"
       },
       {
         "number": "18",
-        "title": "18-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Inson huquqlari va erkinliklari ushbu moddada belgilangan tartibda kafolatlanadi. Har kim o'z huquqlarini bilish va himoya qilish huquqiga ega.",
-        "category": "2-bob. Inson huquqlari"
+        "article_number": "18",
+        "title": "18-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "18-modda. Oʻzbekiston Respublikasi davlatlar va xalqaro tashkilotlar bilan ikki va koʻp tomonlama munosabatlarni har taraflama rivojlantirishga qaratilgan tinchliksevar tashqi siyosatni amalga oshiradi.  Oʻzbekiston Respublikasining “ Oʻzbekiston Respublikasining xalqaro shartnomalari toʻgʻrisida ”gi Qonuni ning 4-bobi (Oʻzbekiston Respublikasining xalqaro shartnomalarini bajarishga doir chora-tadbirlar).  Oʻzbekiston Respublikasi davlatning, xalqning oliy manfaatlaridan, uning farovonligi va xavfsizligidan kelib chiqqan holda ittifoqlar tuzishi, hamdoʻstliklarga va boshqa davlatlararo tuzilmalarga kirishi hamda ulardan chiqishi mumkin. IKKINCHI BOʻLIM. INSON VA FUQARONING ASOSIY HUQUQLARI, ERKINLIKLARI VA BURCHLARI V bob. Umumiy qoidalar",
+        "category": "1-bo‘lim. Asosiy prinsiplar"
       },
       {
         "number": "19",
-        "title": "19-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Inson huquqlari va erkinliklari ushbu moddada belgilangan tartibda kafolatlanadi. Har kim o'z huquqlarini bilish va himoya qilish huquqiga ega.",
-        "category": "2-bob. Inson huquqlari"
+        "article_number": "19",
+        "title": "19-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "19-modda. Oʻzbekiston Respublikasida insonning huquq va erkinliklari xalqaro huquqning umumeʼtirof etilgan normalariga binoan hamda ushbu Konstitutsiyaga muvofiq eʼtirof etiladi va kafolatlanadi. Inson huquq va erkinliklari har kimga tugʻilganidan boshlab tegishli boʻladi.  Oʻzbekiston Respublikasida barcha fuqarolar bir xil huquq va erkinliklarga ega boʻlib, jinsi, irqi, millati, tili, dini, eʼtiqodi, ijtimoiy kelib chiqishi, ijtimoiy mavqeyidan qatʼi nazar, qonun oldida tengdirlar.  mazkur Konstitutsiyaning 58-moddasi , Oʻzbekiston Respublikasining “Oʻzbekiston Respublikasining fuqaroligi toʻgʻrisida”gi Qonuni 4-moddasining toʻrtinchi qismi , Oʻzbekiston Respublikasi Maʼmuriy sud ishlarini yuritish toʻgʻrisidagi kodeksining 9-moddasi , Fuqarolik protsessual kodeksining 8-moddasi , Oila kodeksining 2 va 3-moddalari , Fuqarolik kodeksi 17-moddasining birinchi qismi , Mehnat kodeksining 4-moddasi , Jinoyat kodeksining 5-moddasi , Maʼmuriy javobgarlik toʻgʻrisidagi kodeksning 3-moddasi .  Imtiyozlar faqat qonunga muvofiq belgilanadi va ijtimoiy adolat prinsiplariga mos boʻlishi shart.",
+        "category": "2-bo‘lim. Inson va fuqaroning asosiy huquqlari, erkinliklari va burchlari"
       },
       {
         "number": "20",
-        "title": "20-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Inson huquqlari va erkinliklari ushbu moddada belgilangan tartibda kafolatlanadi. Har kim o'z huquqlarini bilish va himoya qilish huquqiga ega.",
-        "category": "2-bob. Inson huquqlari"
+        "article_number": "20",
+        "title": "20-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "20-modda. Oʻzbekiston Respublikasi fuqarosi va davlat bir-biriga nisbatan oʻzaro huquq va majburiyatlar bilan bogʻliqdir.  Insonning Konstitutsiya va qonunlarda mustahkamlab qoʻyilgan huquq va erkinliklari daxlsizdir hamda ulardan sud qarorisiz mahrum etishga yoki ularni cheklab qoʻyishga hech kim haqli emas.  Insonning huquq va erkinliklari bevosita amal qiladi. Insonning huquq va erkinliklari qonunlarning, davlat organlari, fuqarolarning oʻzini oʻzi boshqarish organlari, ularning mansabdor shaxslari faoliyatining mohiyati va mazmunini belgilaydi. Davlat organlari tomonidan insonga nisbatan qoʻllaniladigan huquqiy taʼsir choralari mutanosiblik prinsipiga asoslanishi va qonunlarda nazarda tutilgan maqsadlarga erishish uchun yetarli boʻlishi kerak.  Inson bilan davlat organlarining oʻzaro munosabatlarida yuzaga keladigan qonunchilikdagi barcha ziddiyatlar va noaniqliklar inson foydasiga talqin etiladi.",
+        "category": "2-bo‘lim. Inson va fuqaroning asosiy huquqlari, erkinliklari va burchlari"
       },
       {
         "number": "21",
-        "title": "21-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Inson huquqlari va erkinliklari ushbu moddada belgilangan tartibda kafolatlanadi. Har kim o'z huquqlarini bilish va himoya qilish huquqiga ega.",
-        "category": "2-bob. Inson huquqlari"
+        "article_number": "21",
+        "title": "21-modda. Har bir inson oʻz shaxsini erkin kamol toptirish huquqiga ega",
+        "content": "21-modda. Har bir inson oʻz shaxsini erkin kamol toptirish huquqiga ega. Hech kimga uning roziligisiz qonunchilikda belgilanmagan majburiyat yuklatilishi mumkin emas.  Inson oʻz huquq va erkinliklarini amalga oshirishda boshqa shaxslarning, jamiyat hamda davlatning huquqlari, erkinliklari va qonuniy manfaatlariga putur yetkazmasligi shart.  mazkur Konstitutsiyaning 66-moddasi .  Insonning huquq va erkinliklari faqat qonunga muvofiq va faqat konstitutsiyaviy tuzumni, aholining sogʻligʻini, ijtimoiy axloqni, boshqa shaxslarning huquq va erkinliklarini himoya qilish, jamoat xavfsizligini hamda jamoat tartibini taʼminlash maqsadida zarur boʻlgan doirada cheklanishi mumkin. VI bob. Fuqarolik",
+        "category": "2-bo‘lim. Inson va fuqaroning asosiy huquqlari, erkinliklari va burchlari"
       },
       {
         "number": "22",
-        "title": "22-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Inson huquqlari va erkinliklari ushbu moddada belgilangan tartibda kafolatlanadi. Har kim o'z huquqlarini bilish va himoya qilish huquqiga ega.",
-        "category": "2-bob. Inson huquqlari"
+        "article_number": "22",
+        "title": "22-modda. Oʻzbekiston Respublikasining butun hududida yagona fuqarolik oʻrnatiladi",
+        "content": "22-modda. Oʻzbekiston Respublikasining butun hududida yagona fuqarolik oʻrnatiladi. Oʻzbekiston Respublikasining fuqaroligi, unga qanday asoslarda ega boʻlganlikdan qatʼi nazar, hamma uchun tengdir.  Oʻzbekiston Respublikasining “Oʻzbekiston Respublikasining fuqaroligi toʻgʻrisida”gi Qonuni 4-moddasining uchinchi qismi . Qoraqalpogʻiston Respublikasining fuqarosi ayni vaqtda Oʻzbekiston Respublikasining fuqarosi hisoblanadi.  Oʻzbekiston Respublikasining “Oʻzbekiston Respublikasining fuqaroligi toʻgʻrisida”gi Qonuni 4-moddasining ikkinchi qismi .  Fuqarolikka ega boʻlish va uni yoʻqotish asoslari hamda tartibi qonun bilan belgilanadi.",
+        "category": "2-bo‘lim. Inson va fuqaroning asosiy huquqlari, erkinliklari va burchlari"
       },
       {
         "number": "23",
-        "title": "23-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Inson huquqlari va erkinliklari ushbu moddada belgilangan tartibda kafolatlanadi. Har kim o'z huquqlarini bilish va himoya qilish huquqiga ega.",
-        "category": "2-bob. Inson huquqlari"
+        "article_number": "23",
+        "title": "23-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "23-modda. Oʻzbekiston Respublikasi oʻz hududida ham, uning tashqarisida ham oʻz fuqarolarini himoya qilish va ularga homiylik koʻrsatishni kafolatlaydi.  Oʻzbekiston Respublikasi “Oʻzbekiston Respublikasining fuqaroligi toʻgʻrisida”gi Qonunining 10 va 11-moddalari . Oʻzbekiston Respublikasi fuqarosi Oʻzbekistondan tashqariga majburiy chiqarib yuborilishi yoki boshqa davlatga berib yuborilishi mumkin emas.  Davlat xorijda yashayotgan vatandoshlar bilan aloqalarni saqlab qolish hamda rivojlantirish toʻgʻrisida xalqaro huquq normalariga muvofiq gʻamxoʻrlik qiladi.",
+        "category": "2-bo‘lim. Inson va fuqaroning asosiy huquqlari, erkinliklari va burchlari"
       },
       {
         "number": "24",
-        "title": "24-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Inson huquqlari va erkinliklari ushbu moddada belgilangan tartibda kafolatlanadi. Har kim o'z huquqlarini bilish va himoya qilish huquqiga ega.",
-        "category": "2-bob. Inson huquqlari"
+        "article_number": "24",
+        "title": "24-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "24-modda. Oʻzbekiston Respublikasi hududidagi chet el fuqarolarining va fuqaroligi boʻlmagan shaxslarning huquq va erkinliklari xalqaro huquq normalariga muvofiq taʼminlanadi. Ular Oʻzbekiston Respublikasining Konstitutsiyasi, qonunlari va xalqaro shartnomalari bilan belgilangan burchlarni ado etadilar.  mazkur Konstitutsiyaning 60 — 64-moddalari . VII bob. Shaxsiy huquq va erkinliklar",
+        "category": "2-bo‘lim. Inson va fuqaroning asosiy huquqlari, erkinliklari va burchlari"
       },
       {
         "number": "25",
-        "title": "25-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Inson huquqlari va erkinliklari ushbu moddada belgilangan tartibda kafolatlanadi. Har kim o'z huquqlarini bilish va himoya qilish huquqiga ega.",
-        "category": "2-bob. Inson huquqlari"
+        "article_number": "25",
+        "title": "25-modda. Yashash huquqi har bir insonning ajralmas huquqidir va u qonun bilan muhofaza qilinadi",
+        "content": "25-modda. Yashash huquqi har bir insonning ajralmas huquqidir va u qonun bilan muhofaza qilinadi. Inson hayotiga suiqasd qilish eng ogʻir jinoyatdir.  Oʻzbekiston Respublikasi Jinoyat kodeksining 97 — 103 1 -moddalari . Oʻzbekiston Respublikasida oʻlim jazosi taqiqlanadi.",
+        "category": "2-bo‘lim. Inson va fuqaroning asosiy huquqlari, erkinliklari va burchlari"
       },
       {
         "number": "26",
-        "title": "26-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Inson huquqlari va erkinliklari ushbu moddada belgilangan tartibda kafolatlanadi. Har kim o'z huquqlarini bilish va himoya qilish huquqiga ega.",
-        "category": "2-bob. Inson huquqlari"
+        "article_number": "26",
+        "title": "26-modda. Insonning shaʼni va qadr-qimmati daxlsizdir",
+        "content": "26-modda. Insonning shaʼni va qadr-qimmati daxlsizdir. Hech narsa ularni kamsitish uchun asos boʻlishi mumkin emas.  Hech kim qiynoqqa solinishi, zoʻravonlikka, boshqa shafqatsiz, gʻayriinsoniy yoki inson qadr-qimmatini kamsituvchi muomalaga yoxud jazoga duchor etilishi mumkin emas.  Oʻzbekiston Respublikasi Jinoyat protsessual kodeksining 17-moddasi , 601-moddasining uchinchi qismi .  Hech kimda uning roziligisiz tibbiy va ilmiy tajribalar oʻtkazilishi mumkin emas.",
+        "category": "2-bo‘lim. Inson va fuqaroning asosiy huquqlari, erkinliklari va burchlari"
       },
       {
         "number": "27",
-        "title": "27-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Inson huquqlari va erkinliklari ushbu moddada belgilangan tartibda kafolatlanadi. Har kim o'z huquqlarini bilish va himoya qilish huquqiga ega.",
-        "category": "2-bob. Inson huquqlari"
+        "article_number": "27",
+        "title": "27-modda. Har kim erkinlik va shaxsiy daxlsizlik huquqiga ega",
+        "content": "27-modda. Har kim erkinlik va shaxsiy daxlsizlik huquqiga ega. Hech kim qonunga asoslanmagan holda hibsga olinishi, ushlab turilishi, qamoqqa olinishi, qamoqda saqlanishi yoki uning ozodligi boshqacha tarzda cheklanishi mumkin emas.  Oʻzbekiston Respublikasi Jinoyat-protsessual kodeksining 18 , 242 — 248 va 558-moddalari .  Hibsga olishga, qamoqqa olishga va qamoqda saqlashga faqat sudning qaroriga koʻra yoʻl qoʻyiladi. Shaxs sudning qarorisiz qirq sakkiz soatdan ortiq muddat ushlab turilishi mumkin emas. Shaxsni ushlash chogʻida unga tushunarli tilda uning huquqlari va ushlab turilishi asoslari tushuntirilishi shart.",
+        "category": "2-bo‘lim. Inson va fuqaroning asosiy huquqlari, erkinliklari va burchlari"
       },
       {
         "number": "28",
-        "title": "28-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Inson huquqlari va erkinliklari ushbu moddada belgilangan tartibda kafolatlanadi. Har kim o'z huquqlarini bilish va himoya qilish huquqiga ega.",
-        "category": "2-bob. Inson huquqlari"
+        "article_number": "28",
+        "title": "28-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "28-modda. Jinoyat sodir etganlikda ayblanayotgan shaxs uning aybi qonunda nazarda tutilgan tartibda oshkora sud muhokamasi yoʻli bilan isbotlanmaguncha va sudning qonuniy kuchga kirgan hukmi bilan aniqlanmaguncha aybsiz deb hisoblanadi. Ayblanuvchiga oʻzini himoya qilish uchun barcha imkoniyatlar taʼminlanadi.  Oʻzbekiston Respublikasi Jinoyat-protsessual kodeksining 23-moddasi .  Aybdorlikka oid barcha shubhalar, agar ularni bartaraf etish imkoniyatlari tugagan boʻlsa, gumon qilinuvchining, ayblanuvchining, sudlanuvchining yoki mahkumning foydasiga hal qilinishi kerak. Gumon qilinuvchi, ayblanuvchi yoki sudlanuvchi oʻzining aybsizligini isbotlashi shart emas va istalgan vaqtda sukut saqlash huquqidan foydalanishi mumkin. Hech kim oʻziga va yaqin qarindoshlariga qarshi guvohlik berishga majbur emas.  Agar shaxsning oʻz aybini tan olganligi unga qarshi yagona dalil boʻlsa, u aybdor deb topilishi yoki jazoga tortilishi mumkin emas.  Ozodlikdan mahrum etilgan shaxslar oʻziga nisbatan insoniy muomalada boʻlinishi hamda inson shaxsiga xos boʻlgan shaʼni va qadr-qimmati hurmat qilinishi huquqiga ega.  Shaxsning sudlanganligi va bundan kelib chiqadigan huquqiy oqibatlar uning qarindoshlari huquqlarini cheklash uchun asos boʻlishi mumkin emas.",
+        "category": "2-bo‘lim. Inson va fuqaroning asosiy huquqlari, erkinliklari va burchlari"
       },
       {
         "number": "29",
-        "title": "29-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Inson huquqlari va erkinliklari ushbu moddada belgilangan tartibda kafolatlanadi. Har kim o'z huquqlarini bilish va himoya qilish huquqiga ega.",
-        "category": "2-bob. Inson huquqlari"
+        "article_number": "29",
+        "title": "29-modda. Har kimga malakali yuridik yordam olish huquqi kafolatlanadi",
+        "content": "29-modda. Har kimga malakali yuridik yordam olish huquqi kafolatlanadi. Qonunda nazarda tutilgan hollarda yuridik yordam davlat hisobidan koʻrsatiladi. Har bir shaxs jinoyat protsessining har qanday bosqichida, shaxs ushlanganida esa uning harakatlanish erkinligi huquqi amalda cheklangan paytdan eʼtiboran oʻz tanloviga koʻra advokat yordamidan foydalanish huquqiga ega.  Gumon qilinuvchi, ayblanuvchi yoki sudlanuvchi ayblovning mohiyati va asoslari toʻgʻrisida xabardor qilinish, unga qarshi yoki uning foydasiga guvohlik berayotgan shaxslarning soʻroq qilinishini talab etish, tarjimon yordamidan foydalanish huquqiga ega. Qonunni buzgan holda olingan dalillardan odil sudlovni amalga oshirish chogʻida foydalanishga yoʻl qoʻyilmaydi.  Jinoyat uchun hukm qilingan har kim qonunda belgilangan tartibda hukmning yuqori turuvchi sud tomonidan qayta koʻrib chiqilishi huquqiga, shuningdek afv etish yoki jazoni yengillashtirish toʻgʻrisida iltimos qilish huquqiga ega.  Huquqbuzarliklardan jabrlanganlarning huquqlari qonun bilan muhofaza qilinadi. Davlat jabrlanganlarga himoyalanishni va odil sudlovdan foydalanishni taʼminlaydi, ularga yetkazilgan zararning oʻrni qoplanishi uchun shart-sharoitlar yaratadi.",
+        "category": "2-bo‘lim. Inson va fuqaroning asosiy huquqlari, erkinliklari va burchlari"
       },
       {
         "number": "30",
-        "title": "30-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Inson huquqlari va erkinliklari ushbu moddada belgilangan tartibda kafolatlanadi. Har kim o'z huquqlarini bilish va himoya qilish huquqiga ega.",
-        "category": "2-bob. Inson huquqlari"
+        "article_number": "30",
+        "title": "30-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "30-modda. Hech kim rasmiy eʼlon qilinmagan qonun asosida hukm qilinishi, jazoga tortilishi, mol-mulkidan yoki biron-bir huquqidan mahrum etilishi mumkin emas.  Hech kim ayni bir jinoyat uchun takroran hukm qilinishi mumkin emas.",
+        "category": "2-bo‘lim. Inson va fuqaroning asosiy huquqlari, erkinliklari va burchlari"
       },
       {
         "number": "31",
-        "title": "31-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Inson huquqlari va erkinliklari ushbu moddada belgilangan tartibda kafolatlanadi. Har kim o'z huquqlarini bilish va himoya qilish huquqiga ega.",
-        "category": "2-bob. Inson huquqlari"
+        "article_number": "31",
+        "title": "31-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "31-modda. Har bir inson shaxsiy hayotining daxlsizligi, shaxsiy va oilaviy sirga ega boʻlish, oʻz shaʼni va qadr-qimmatini himoya qilish huquqiga ega.  Oʻzbekiston Respublikasi Jinoyat protsessual kodeksining 17-moddasi , Oʻzbekiston Respublikasi Fuqarolik kodeksining 100-moddasi .  Har kim yozishmalari, telefon orqali soʻzlashuvlari, pochta, elektron va boshqa xabarlari sir saqlanishi huquqiga ega. Ushbu huquqning cheklanishiga faqat qonunga muvofiq va sudning qaroriga asosan yoʻl qoʻyiladi.  Oʻzbekiston Respublikasi Jinoyat-protsessual kodeksining 16 , 17 , 20 va 21-boblari . Har kim oʻz shaxsiga doir maʼlumotlarning himoya qilinishi huquqiga, shuningdek notoʻgʻri maʼlumotlarning tuzatilishini, oʻzi toʻgʻrisida qonunga xilof yoʻl bilan toʻplangan yoki huquqiy asoslarga ega boʻlmay qolgan maʼlumotlarning yoʻq qilinishini talab qilish huquqiga ega.  Har kim uy-joy daxlsizligi huquqiga ega. Hech kim uy-joyga unda yashovchi shaxslarning xohishiga qarshi kirishi mumkin emas. Uy-joyga kirishga, shuningdek unda olib qoʻyishni va koʻzdan kechirishni oʻtkazishga faqat qonunda nazarda tutilgan hollarda va tartibda yoʻl qoʻyiladi. Uy-joyda tintuv oʻtkazishga faqat qonunga muvofiq va sudning qaroriga asosan yoʻl qoʻyiladi.",
+        "category": "2-bo‘lim. Inson va fuqaroning asosiy huquqlari, erkinliklari va burchlari"
       },
       {
         "number": "32",
-        "title": "32-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Inson huquqlari va erkinliklari ushbu moddada belgilangan tartibda kafolatlanadi. Har kim o'z huquqlarini bilish va himoya qilish huquqiga ega.",
-        "category": "2-bob. Inson huquqlari"
+        "article_number": "32",
+        "title": "32-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "32-modda. Qonuniy asoslarda Oʻzbekiston Respublikasi hududida boʻlib turgan har kim mamlakat boʻylab erkin harakatlanish, turar va yashash joyini tanlash huquqiga ega, bundan qonunda belgilangan cheklovlar mustasno.  Har kim Oʻzbekistondan tashqariga erkin chiqish huquqiga ega, bundan qonunda belgilangan cheklovlar mustasno. Oʻzbekiston Respublikasi fuqarosi Oʻzbekistonga toʻsqinliksiz qaytish huquqiga ega.  Oʻzbekiston Respublikasining “Jazoni ijro etish muassasalaridan ozod qilingan ayrim toifadagi shaxslar ustidan maʼmuriy nazorat toʻgʻrisida”gi Qonuni .",
+        "category": "2-bo‘lim. Inson va fuqaroning asosiy huquqlari, erkinliklari va burchlari"
       },
       {
         "number": "33",
-        "title": "33-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Inson huquqlari va erkinliklari ushbu moddada belgilangan tartibda kafolatlanadi. Har kim o'z huquqlarini bilish va himoya qilish huquqiga ega.",
-        "category": "2-bob. Inson huquqlari"
+        "article_number": "33",
+        "title": "33-modda. Har kim fikrlash, soʻz va eʼtiqod erkinligi huquqiga ega",
+        "content": "33-modda. Har kim fikrlash, soʻz va eʼtiqod erkinligi huquqiga ega.  Har kim istalgan axborotni izlash, olish va tarqatish huquqiga ega.  Oʻzbekiston Respublikasining “Axborot olish kafolatlari va erkinligi toʻgʻrisida” gi va “Axborot erkinligi prinsiplari va kafolatlari toʻgʻrisida” gi qonunlari.  Davlat Internet jahon axborot tarmogʻidan foydalanishni taʼminlash uchun shart-sharoitlar yaratadi.  Axborotni izlash, olish va tarqatishga boʻlgan huquqni cheklashga faqat qonunga muvofiq hamda faqat konstitutsiyaviy tuzumni, aholining sogʻligʻini, ijtimoiy axloqni, boshqa shaxslarning huquq va erkinliklarini himoya qilish, jamoat xavfsizligini hamda jamoat tartibini taʼminlash, shuningdek davlat sirlari yoki qonun bilan qoʻriqlanadigan boshqa sir oshkor etilishining oldini olish maqsadida zarur boʻlgan doirada yoʻl qoʻyiladi.  Oʻzbekiston Respublikasining “Davlat sirlari toʻgʻrisida”gi Qonuni .",
+        "category": "2-bo‘lim. Inson va fuqaroning asosiy huquqlari, erkinliklari va burchlari"
       },
       {
         "number": "34",
-        "title": "34-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Inson huquqlari va erkinliklari ushbu moddada belgilangan tartibda kafolatlanadi. Har kim o'z huquqlarini bilish va himoya qilish huquqiga ega.",
-        "category": "2-bob. Inson huquqlari"
+        "article_number": "34",
+        "title": "34-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "34-modda. Davlat organlari va tashkilotlari, fuqarolarning oʻzini oʻzi boshqarish organlari, ularning mansabdor shaxslari har kimga oʻz huquqlari hamda qonuniy manfaatlariga daxldor boʻlgan hujjatlar, qarorlar va boshqa materiallar bilan tanishish imkoniyatini taʼminlashi shart.",
+        "category": "2-bo‘lim. Inson va fuqaroning asosiy huquqlari, erkinliklari va burchlari"
       },
       {
         "number": "35",
-        "title": "35-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Inson huquqlari va erkinliklari ushbu moddada belgilangan tartibda kafolatlanadi. Har kim o'z huquqlarini bilish va himoya qilish huquqiga ega.",
-        "category": "2-bob. Inson huquqlari"
+        "article_number": "35",
+        "title": "35-modda. Hamma uchun vijdon erkinligi kafolatlanadi",
+        "content": "35-modda. Hamma uchun vijdon erkinligi kafolatlanadi. Har kim xohlagan dinga eʼtiqod qilish yoki hech qaysi dinga eʼtiqod qilmaslik huquqiga ega. Diniy qarashlarni majburan singdirishga yoʻl qoʻyilmaydi.  Oʻzbekiston Respublikasining “Vijdon erkinligi va diniy tashkilotlar toʻgʻrisida”gi Qonuni . VIII bob. Siyosiy huquqlar",
+        "category": "2-bo‘lim. Inson va fuqaroning asosiy huquqlari, erkinliklari va burchlari"
       },
       {
         "number": "36",
-        "title": "Fuqarolarning huquq va erkinliklari",
-        "content": "Fuqarolarning asosiy huquq va erkinliklari ushbu moddada belgilanadi. O'zbekiston Respublikasi fuqarolari teng huquqqa ega.",
-        "category": "3-bob. Fuqarolarning asosiy huquqlari va erkinliklari"
+        "article_number": "36",
+        "title": "36-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "36-modda. Oʻzbekiston Respublikasining fuqarolari jamiyat va davlat ishlarini boshqarishda bevosita hamda oʻz vakillari orqali ishtirok etish huquqiga ega. Bunday ishtirok etish oʻzini oʻzi boshqarish, referendumlar oʻtkazish va davlat organlarini demokratik tarzda shakllantirish, shuningdek davlat organlarining faoliyati ustidan jamoatchilik nazorati vositasida amalga oshiriladi.  mazkur Konstitutsiyaning 9 va 128-moddalari .  Davlat organlarining faoliyati ustidan jamoatchilik nazoratini amalga oshirish tartibi qonun bilan belgilanadi.  Oʻzbekiston Respublikasining “Jamoatchilik nazorati toʻgʻrisida”gi Qonuni .",
+        "category": "2-bo‘lim. Inson va fuqaroning asosiy huquqlari, erkinliklari va burchlari"
       },
       {
         "number": "37",
-        "title": "37-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Fuqarolarning asosiy huquq va erkinliklari ushbu moddada belgilanadi. O'zbekiston Respublikasi fuqarolari teng huquqqa ega.",
-        "category": "3-bob. Fuqarolarning asosiy huquqlari va erkinliklari"
+        "article_number": "37",
+        "title": "37-modda. Oʻzbekiston Respublikasining fuqarolari davlat xizmatiga kirishda teng huquqqa egadirlar",
+        "content": "37-modda. Oʻzbekiston Respublikasining fuqarolari davlat xizmatiga kirishda teng huquqqa egadirlar. Davlat xizmatini oʻtash bilan bogʻliq cheklovlar qonun bilan belgilanadi.",
+        "category": "2-bo‘lim. Inson va fuqaroning asosiy huquqlari, erkinliklari va burchlari"
       },
       {
         "number": "38",
-        "title": "38-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Fuqarolarning asosiy huquq va erkinliklari ushbu moddada belgilanadi. O'zbekiston Respublikasi fuqarolari teng huquqqa ega.",
-        "category": "3-bob. Fuqarolarning asosiy huquqlari va erkinliklari"
+        "article_number": "38",
+        "title": "38-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "38-modda. Fuqarolar oʻz ijtimoiy faolliklarini Oʻzbekiston Respublikasi qonunlariga muvofiq mitinglar, yigʻilishlar va namoyishlar shaklida amalga oshirish huquqiga ega. Hokimiyat organlari faqat xavfsizlik nuqtai nazaridangina bunday tadbirlar oʻtkazilishini toʻxtatish yoki taqiqlash huquqiga ega.",
+        "category": "2-bo‘lim. Inson va fuqaroning asosiy huquqlari, erkinliklari va burchlari"
       },
       {
         "number": "39",
-        "title": "39-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Fuqarolarning asosiy huquq va erkinliklari ushbu moddada belgilanadi. O'zbekiston Respublikasi fuqarolari teng huquqqa ega.",
-        "category": "3-bob. Fuqarolarning asosiy huquqlari va erkinliklari"
+        "article_number": "39",
+        "title": "39-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "39-modda. Oʻzbekiston Respublikasi fuqarolari kasaba uyushmalariga, siyosiy partiyalarga va boshqa jamoat birlashmalariga uyushish, ommaviy harakatlarda ishtirok etish huquqiga egadirlar.  Oʻzbekiston Respublikasining “ Kasaba uyushmalari toʻgʻrisida ”gi, “ Siyosiy partiyalar toʻgʻrisida ”gi va “ Oʻzbekiston Respublikasida jamoat birlashmalari toʻgʻrisida ”gi qonunlari. Siyosiy partiyalarda, jamoat birlashmalarida, ommaviy harakatlarda, shuningdek davlat hokimiyati vakillik organlarida ozchilikni tashkil etuvchi muxolifatchi shaxslarning huquqlari, erkinliklari va qadr-qimmatini hech kim kamsitishi mumkin emas.  Oʻzbekiston Respublikasining “Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasi toʻgʻrisida”gi Konstitutsiyaviy qonuni 25 1 -moddasining oltinchi qismi , “Siyosiy partiyalar toʻgʻrisida”gi Qonuni 13 1 -moddasining oltinchi qismi .",
+        "category": "2-bo‘lim. Inson va fuqaroning asosiy huquqlari, erkinliklari va burchlari"
       },
       {
         "number": "40",
-        "title": "Mehnat qilish huquqi",
-        "content": "Fuqarolarning asosiy huquq va erkinliklari ushbu moddada belgilanadi. O'zbekiston Respublikasi fuqarolari teng huquqqa ega.",
-        "category": "3-bob. Fuqarolarning asosiy huquqlari va erkinliklari"
+        "article_number": "40",
+        "title": "40-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "40-modda. Har kim bevosita oʻzi va boshqalar bilan birgalikda davlat organlariga hamda tashkilotlariga, fuqarolarning oʻzini oʻzi boshqarish organlariga, mansabdor shaxslarga yoki xalq vakillariga arizalar, takliflar va shikoyatlar bilan murojaat qilish huquqiga ega.  Arizalar, takliflar va shikoyatlar qonunda belgilangan tartibda va muddatlarda koʻrib chiqilishi shart. IX bob. Iqtisodiy, ijtimoiy, madaniy va ekologik huquqlar",
+        "category": "2-bo‘lim. Inson va fuqaroning asosiy huquqlari, erkinliklari va burchlari"
       },
       {
         "number": "41",
-        "title": "41-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Fuqarolarning asosiy huquq va erkinliklari ushbu moddada belgilanadi. O'zbekiston Respublikasi fuqarolari teng huquqqa ega.",
-        "category": "3-bob. Fuqarolarning asosiy huquqlari va erkinliklari"
+        "article_number": "41",
+        "title": "41-modda. Har bir shaxs mulkdor boʻlishga haqli",
+        "content": "41-modda. Har bir shaxs mulkdor boʻlishga haqli.  Bank operatsiyalarining, omonatlarning va hisobvaraqlarning sir tutilishi, shuningdek meros huquqi qonun bilan kafolatlanadi.  Oʻzbekiston Respublikasining “Bank siri toʻgʻrisida”gi Qonuni , Oʻzbekiston Respublikasi Fuqarolik kodeksining V boʻlimi .",
+        "category": "2-bo‘lim. Inson va fuqaroning asosiy huquqlari, erkinliklari va burchlari"
       },
       {
         "number": "42",
-        "title": "42-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Fuqarolarning asosiy huquq va erkinliklari ushbu moddada belgilanadi. O'zbekiston Respublikasi fuqarolari teng huquqqa ega.",
-        "category": "3-bob. Fuqarolarning asosiy huquqlari va erkinliklari"
+        "article_number": "42",
+        "title": "42-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "42-modda. Har kim munosib mehnat qilish, kasb va faoliyat turini erkin tanlash, xavfsizlik va gigiyena talablariga javob beradigan qulay mehnat sharoitlarida ishlash, mehnati uchun hech qanday kamsitishlarsiz hamda mehnatga haq toʻlashning belgilangan eng kam miqdoridan kam boʻlmagan tarzda adolatli haq olish, shuningdek ishsizlikdan qonunda belgilangan tartibda himoyalanish huquqiga ega.  Mehnatga haq toʻlashning eng kam miqdori insonning munosib turmush darajasini taʼminlash zarurati hisobga olingan holda belgilanadi.  Homiladorligi yoki bolasi borligi sababli ayollarni ishga qabul qilishni rad etish, ishdan boʻshatish va ularning ish haqini kamaytirish taqiqlanadi.",
+        "category": "2-bo‘lim. Inson va fuqaroning asosiy huquqlari, erkinliklari va burchlari"
       },
       {
         "number": "43",
-        "title": "43-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Fuqarolarning asosiy huquq va erkinliklari ushbu moddada belgilanadi. O'zbekiston Respublikasi fuqarolari teng huquqqa ega.",
-        "category": "3-bob. Fuqarolarning asosiy huquqlari va erkinliklari"
+        "article_number": "43",
+        "title": "43-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "43-modda. Davlat fuqarolarning bandligini taʼminlash, ularni ishsizlikdan himoya qilish, shuningdek kambagʻallikni qisqartirish choralarini koʻradi.  Davlat fuqarolarning kasbiy tayyorgarligini va qayta tayyorlanishini tashkil etadi hamda ragʻbatlantiradi.",
+        "category": "2-bo‘lim. Inson va fuqaroning asosiy huquqlari, erkinliklari va burchlari"
       },
       {
         "number": "44",
-        "title": "44-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Fuqarolarning asosiy huquq va erkinliklari ushbu moddada belgilanadi. O'zbekiston Respublikasi fuqarolari teng huquqqa ega.",
-        "category": "3-bob. Fuqarolarning asosiy huquqlari va erkinliklari"
+        "article_number": "44",
+        "title": "44-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "44-modda. Sud qarori bilan tayinlangan jazoni ijro etish tartibidan yoxud qonunda nazarda tutilgan boshqa hollardan tashqari majburiy mehnat taqiqlanadi.  Oʻzbekiston Respublikasi Jinoyat kodeksining 46 , 82 1 , 83-moddalari , 88-moddasi birinchi qismining “b” bandi .  Bolalar mehnatining bolaning sogʻligʻiga, xavfsizligiga, axloqiga, aqliy va jismoniy rivojlanishiga xavf soluvchi, shu jumladan uning taʼlim olishiga toʻsqinlik qiluvchi har qanday shakllari taqiqlanadi.",
+        "category": "2-bo‘lim. Inson va fuqaroning asosiy huquqlari, erkinliklari va burchlari"
       },
       {
         "number": "45",
-        "title": "45-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Fuqarolarning asosiy huquq va erkinliklari ushbu moddada belgilanadi. O'zbekiston Respublikasi fuqarolari teng huquqqa ega.",
-        "category": "3-bob. Fuqarolarning asosiy huquqlari va erkinliklari"
+        "article_number": "45",
+        "title": "45-modda. Har kim dam olish huquqiga ega",
+        "content": "45-modda. Har kim dam olish huquqiga ega.  Yollanib ishlovchilarga dam olish huquqi ish vaqtining davomiyligini, dam olish va ishlanmaydigan bayram kunlarini, haq toʻlanadigan har yilgi mehnat taʼtilini belgilash orqali taʼminlanadi.  Oʻzbekiston Respublikasi Mehnat kodeksining 13-bobi (“Ish vaqti”) va 14-bobi (“Dam olish vaqti”).",
+        "category": "2-bo‘lim. Inson va fuqaroning asosiy huquqlari, erkinliklari va burchlari"
       },
       {
         "number": "46",
-        "title": "46-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Fuqarolarning asosiy huquq va erkinliklari ushbu moddada belgilanadi. O'zbekiston Respublikasi fuqarolari teng huquqqa ega.",
-        "category": "3-bob. Fuqarolarning asosiy huquqlari va erkinliklari"
+        "article_number": "46",
+        "title": "46-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "46-modda. Har kim qariganda, mehnat qobiliyatini yoʻqotganda, ishsizlikda, shuningdek boquvchisini yoʻqotganda va qonunda nazarda tutilgan boshqa hollarda ijtimoiy taʼminot huquqiga ega.  Oʻzbekiston Respublikasining “Fuqarolarning davlat pensiya taʼminoti toʻgʻrisida”gi Qonuni .  Qonunda belgilangan pensiyalar, nafaqalar va boshqa turdagi ijtimoiy yordamning miqdorlari rasman belgilangan eng kam isteʼmol xarajatlaridan oz boʻlishi mumkin emas.",
+        "category": "2-bo‘lim. Inson va fuqaroning asosiy huquqlari, erkinliklari va burchlari"
       },
       {
         "number": "47",
-        "title": "47-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Fuqarolarning asosiy huquq va erkinliklari ushbu moddada belgilanadi. O'zbekiston Respublikasi fuqarolari teng huquqqa ega.",
-        "category": "3-bob. Fuqarolarning asosiy huquqlari va erkinliklari"
+        "article_number": "47",
+        "title": "47-modda. Har kim uy-joyli boʻlish huquqiga ega",
+        "content": "47-modda. Har kim uy-joyli boʻlish huquqiga ega. Hech kim sudning qarorisiz va qonunga zid tarzda uy-joyidan mahrum etilishi mumkin emas. Uy-joyidan mahrum etilgan mulkdorga uy-joyning qiymati hamda u koʻrgan zararlarning oʻrni qonunda nazarda tutilgan hollarda va tartibda oldindan hamda teng qiymatda qoplanishi taʼminlanadi.  Davlat uy-joy qurilishini ragʻbatlantiradi va uy-joyga boʻlgan huquqning amalga oshirilishi uchun shart-sharoitlar yaratadi.  Aholining ijtimoiy jihatdan ehtiyojmand toifalarini uy-joy bilan taʼminlash tartibi qonun bilan belgilanadi.",
+        "category": "2-bo‘lim. Inson va fuqaroning asosiy huquqlari, erkinliklari va burchlari"
       },
       {
         "number": "48",
-        "title": "48-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Fuqarolarning asosiy huquq va erkinliklari ushbu moddada belgilanadi. O'zbekiston Respublikasi fuqarolari teng huquqqa ega.",
-        "category": "3-bob. Fuqarolarning asosiy huquqlari va erkinliklari"
+        "article_number": "48",
+        "title": "48-modda. Har kim sogʻligʻini saqlash va malakali tibbiy xizmatdan foydalanish huquqiga ega",
+        "content": "48-modda. Har kim sogʻligʻini saqlash va malakali tibbiy xizmatdan foydalanish huquqiga ega.  Oʻzbekiston Respublikasi “Fuqarolar sogʻligʻini saqlash toʻgʻrisida”gi Qonunining 13-moddasi .  Oʻzbekiston Respublikasi fuqarolari tibbiy yordamning kafolatlangan hajmini qonunda belgilangan tartibda davlat hisobidan olishga haqli.  Davlat sogʻliqni saqlash tizimini, uning davlat va nodavlat shakllarini, tibbiy sugʻurtaning har xil turlarini rivojlantirish, aholining sanitariya-epidemiologik osoyishtaligini taʼminlash choralarini koʻradi.  Davlat jismoniy tarbiya va sportni rivojlantirish, aholi oʻrtasida sogʻlom turmush tarzini shakllantirish uchun shart-sharoitlar yaratadi.",
+        "category": "2-bo‘lim. Inson va fuqaroning asosiy huquqlari, erkinliklari va burchlari"
       },
       {
         "number": "49",
-        "title": "49-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Fuqarolarning asosiy huquq va erkinliklari ushbu moddada belgilanadi. O'zbekiston Respublikasi fuqarolari teng huquqqa ega.",
-        "category": "3-bob. Fuqarolarning asosiy huquqlari va erkinliklari"
+        "article_number": "49",
+        "title": "49-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "49-modda. Har kim qulay atrof-muhitga, uning holati toʻgʻrisidagi ishonchli axborotga ega boʻlish huquqiga ega.  Davlat fuqarolarning ekologik huquqlarini taʼminlash va atrof-muhitga zararli taʼsir koʻrsatilishiga yoʻl qoʻymaslik maqsadida shaharsozlik faoliyati sohasida jamoatchilik nazoratini amalga oshirish uchun shart-sharoitlar yaratadi.  Shaharsozlik hujjatlarining loyihalari qonunda belgilangan tartibda jamoatchilik muhokamasidan oʻtkaziladi. Davlat barqaror rivojlanish prinsipiga muvofiq, atrof-muhitni yaxshilash, tiklash va muhofaza qilish, ekologik muvozanatni saqlash boʻyicha chora-tadbirlarni amalga oshiradi.  Davlat Orolboʻyi mintaqasining ekologik tizimini muhofaza qilish hamda tiklash, mintaqani ijtimoiy va iqtisodiy jihatdan rivojlantirish yuzasidan choralar koʻradi.",
+        "category": "2-bo‘lim. Inson va fuqaroning asosiy huquqlari, erkinliklari va burchlari"
       },
       {
         "number": "50",
-        "title": "Ta'lim olish huquqi",
-        "content": "Fuqarolarning asosiy huquq va erkinliklari ushbu moddada belgilanadi. O'zbekiston Respublikasi fuqarolari teng huquqqa ega.",
-        "category": "3-bob. Fuqarolarning asosiy huquqlari va erkinliklari"
+        "article_number": "50",
+        "title": "50-modda. Har kim taʼlim olish huquqiga ega",
+        "content": "50-modda. Har kim taʼlim olish huquqiga ega.  Davlat uzluksiz taʼlim tizimi, uning har xil turlari va shakllari, davlat va nodavlat taʼlim tashkilotlari rivojlanishini taʼminlaydi.  Davlat maktabgacha taʼlim va tarbiyani rivojlantirish uchun shart-sharoitlar yaratadi.  Davlat bepul umumiy oʻrta taʼlim va boshlangʻich professional taʼlim olishni kafolatlaydi. Umumiy oʻrta taʼlim majburiydir. Maktabgacha taʼlim va tarbiya, umumiy oʻrta taʼlim davlat nazoratidadir.  Oʻzbekiston Respublikasining “Taʼlim toʻgʻrisida”gi Qonuni . Taʼlim tashkilotlarida alohida taʼlim ehtiyojlariga ega boʻlgan bolalar uchun inklyuziv taʼlim va tarbiya taʼminlanadi.",
+        "category": "2-bo‘lim. Inson va fuqaroning asosiy huquqlari, erkinliklari va burchlari"
       },
       {
         "number": "51",
-        "title": "51-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Fuqarolarning asosiy huquq va erkinliklari ushbu moddada belgilanadi. O'zbekiston Respublikasi fuqarolari teng huquqqa ega.",
-        "category": "3-bob. Fuqarolarning asosiy huquqlari va erkinliklari"
+        "article_number": "51",
+        "title": "51-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "51-modda. Fuqarolar davlat taʼlim tashkilotlarida tanlov asosida davlat hisobidan oliy maʼlumot olishga haqli.  Oliy taʼlim tashkilotlari qonunga muvofiq akademik erkinlik, oʻzini oʻzi boshqarish, tadqiqotlar oʻtkazish va oʻqitish erkinligi huquqiga ega.",
+        "category": "2-bo‘lim. Inson va fuqaroning asosiy huquqlari, erkinliklari va burchlari"
       },
       {
         "number": "52",
-        "title": "52-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Fuqarolarning asosiy huquq va erkinliklari ushbu moddada belgilanadi. O'zbekiston Respublikasi fuqarolari teng huquqqa ega.",
-        "category": "3-bob. Fuqarolarning asosiy huquqlari va erkinliklari"
+        "article_number": "52",
+        "title": "52-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "52-modda. Oʻzbekiston Respublikasida oʻqituvchining mehnati jamiyat va davlatni rivojlantirish, sogʻlom, barkamol avlodni shakllantirish hamda tarbiyalash, xalqning maʼnaviy va madaniy salohiyatini saqlash hamda boyitishning asosi sifatida eʼtirof etiladi. Davlat oʻqituvchilarning shaʼni va qadr-qimmatini himoya qilish, ularning ijtimoiy va moddiy farovonligi, kasbiy jihatdan oʻsishi toʻgʻrisida gʻamxoʻrlik qiladi.",
+        "category": "2-bo‘lim. Inson va fuqaroning asosiy huquqlari, erkinliklari va burchlari"
       },
       {
         "number": "53",
-        "title": "53-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Fuqarolarning asosiy huquq va erkinliklari ushbu moddada belgilanadi. O'zbekiston Respublikasi fuqarolari teng huquqqa ega.",
-        "category": "3-bob. Fuqarolarning asosiy huquqlari va erkinliklari"
+        "article_number": "53",
+        "title": "53-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "53-modda. Har kimga ilmiy, texnikaviy va badiiy ijod erkinligi, madaniyat yutuqlaridan foydalanish huquqi kafolatlanadi. Intellektual mulk qonun bilan muhofaza qilinadi. Davlat jamiyatning madaniy, ilmiy va texnikaviy rivojlanishi haqida gʻamxoʻrlik qiladi. X bob. Inson hamda fuqaroning huquq va erkinliklari kafolatlari",
+        "category": "2-bo‘lim. Inson va fuqaroning asosiy huquqlari, erkinliklari va burchlari"
       },
       {
         "number": "54",
-        "title": "54-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Fuqarolarning asosiy huquq va erkinliklari ushbu moddada belgilanadi. O'zbekiston Respublikasi fuqarolari teng huquqqa ega.",
-        "category": "3-bob. Fuqarolarning asosiy huquqlari va erkinliklari"
+        "article_number": "54",
+        "title": "54-modda. Insonning huquq va erkinliklarini taʼminlash davlatning oliy maqsadidir",
+        "content": "54-modda. Insonning huquq va erkinliklarini taʼminlash davlatning oliy maqsadidir. Davlat inson hamda fuqaroning Konstitutsiya va qonunlarda mustahkamlangan huquqlari va erkinliklarini taʼminlaydi.",
+        "category": "3-bo‘lim. Jamiyat va shaxs"
       },
       {
         "number": "55",
-        "title": "55-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Fuqarolarning asosiy huquq va erkinliklari ushbu moddada belgilanadi. O'zbekiston Respublikasi fuqarolari teng huquqqa ega.",
-        "category": "3-bob. Fuqarolarning asosiy huquqlari va erkinliklari"
+        "article_number": "55",
+        "title": "55-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "55-modda. Har kim oʻz huquq va erkinliklarini qonunda taqiqlanmagan barcha usullar bilan himoya qilishga haqli. Har kimga oʻz huquq va erkinliklarini sud orqali himoya qilish, davlat organlarining hamda boshqa tashkilotlarning, ular mansabdor shaxslarining qonunga xilof qarorlari, harakatlari va harakatsizligi ustidan sudga shikoyat qilish huquqi kafolatlanadi.  Oʻzbekiston Respublikasi Maʼmuriy sud ishlarini yuritish toʻgʻrisidagi kodeksining 184 — 189-moddalari . Har kimga buzilgan huquq va erkinliklarini tiklash uchun uning ishi qonunda belgilangan muddatlarda vakolatli, mustaqil hamda xolis sud tomonidan koʻrib chiqilishi huquqi kafolatlanadi.  Har kim Oʻzbekiston Respublikasining qonunchiligiga va xalqaro shartnomalariga muvofiq, agar davlatning huquqiy himoyaga doir barcha ichki vositalaridan foydalanib boʻlingan boʻlsa, insonning huquq va erkinliklarini himoya qiluvchi xalqaro organlarga murojaat etishga haqli.  Har kim davlat organlarining yoxud ular mansabdor shaxslarining qonunga xilof qarorlari, harakatlari yoki harakatsizligi tufayli yetkazilgan zararning oʻrni davlat tomonidan qoplanishi huquqiga ega.",
+        "category": "3-bo‘lim. Jamiyat va shaxs"
       },
       {
         "number": "56",
-        "title": "56-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Fuqarolarning asosiy huquq va erkinliklari ushbu moddada belgilanadi. O'zbekiston Respublikasi fuqarolari teng huquqqa ega.",
-        "category": "3-bob. Fuqarolarning asosiy huquqlari va erkinliklari"
+        "article_number": "56",
+        "title": "56-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "56-modda. Inson huquqlari boʻyicha milliy institutlar inson huquqlari va erkinliklarini himoya qilishning mavjud shakllari hamda vositalarini toʻldiradi, fuqarolik jamiyatini rivojlantirishga va inson huquqlari madaniyatini yuksaltirishga koʻmaklashadi. Davlat inson huquqlari boʻyicha milliy institutlar faoliyatini tashkil etish uchun shart-sharoitlar yaratadi.",
+        "category": "3-bo‘lim. Jamiyat va shaxs"
       },
       {
         "number": "57",
-        "title": "57-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Fuqarolarning asosiy huquq va erkinliklari ushbu moddada belgilanadi. O'zbekiston Respublikasi fuqarolari teng huquqqa ega.",
-        "category": "3-bob. Fuqarolarning asosiy huquqlari va erkinliklari"
+        "article_number": "57",
+        "title": "57-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "57-modda. Mehnatga layoqatsiz va yolgʻiz keksalar, nogironligi boʻlgan shaxslar hamda aholining ijtimoiy jihatdan ehtiyojmand boshqa toifalarining huquqlari davlat himoyasidadir.  Davlat aholining ijtimoiy jihatdan ehtiyojmand toifalarining turmush sifatini oshirishga, jamiyat va davlat hayotida toʻlaqonli ishtirok etishi uchun ularga shart-sharoitlar yaratishga hamda ularning asosiy hayotiy ehtiyojlarini mustaqil ravishda taʼminlash imkoniyatlarini kengaytirishga qaratilgan choralarni koʻradi.  Davlat nogironligi boʻlgan shaxslarning ijtimoiy, iqtisodiy va madaniy sohalar obyektlari va xizmatlaridan toʻlaqonli foydalanishi uchun shart-sharoitlar yaratadi, ularning ishga joylashishiga, taʼlim olishiga koʻmaklashadi, ularga zarur boʻlgan axborotni toʻsqinliksiz olish imkoniyatini taʼminlaydi.",
+        "category": "3-bo‘lim. Jamiyat va shaxs"
       },
       {
         "number": "58",
-        "title": "58-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Fuqarolarning asosiy huquq va erkinliklari ushbu moddada belgilanadi. O'zbekiston Respublikasi fuqarolari teng huquqqa ega.",
-        "category": "3-bob. Fuqarolarning asosiy huquqlari va erkinliklari"
+        "article_number": "58",
+        "title": "58-modda. Xotin-qizlar va erkaklar teng huquqlidirlar",
+        "content": "58-modda. Xotin-qizlar va erkaklar teng huquqlidirlar.  Davlat xotin-qizlar va erkaklarga jamiyat hamda davlat ishlarini boshqarishda, shuningdek jamiyat va davlat hayotining boshqa sohalarida teng huquq va imkoniyatlarni taʼminlaydi.  Oʻzbekiston Respublikasining “Xotin-qizlar va erkaklar uchun teng huquq hamda imkoniyatlar kafolatlari toʻgʻrisida”gi Qonuni , Oʻzbekiston Respublikasining “Oʻzbekiston Respublikasining fuqaroligi toʻgʻrisida”gi Qonunining 4-moddasi , Mehnat kodeksi 4-moddasining birinchi qismi , Oila kodeksining 2-moddasi . XI bob. Fuqarolarning burchlari",
+        "category": "3-bo‘lim. Jamiyat va shaxs"
       },
       {
         "number": "59",
-        "title": "59-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Fuqarolarning asosiy huquq va erkinliklari ushbu moddada belgilanadi. O'zbekiston Respublikasi fuqarolari teng huquqqa ega.",
-        "category": "3-bob. Fuqarolarning asosiy huquqlari va erkinliklari"
+        "article_number": "59",
+        "title": "59-modda. Barcha fuqarolar Konstitutsiyada belgilab qoʻyilgan burchlarini bajaradilar",
+        "content": "59-modda. Barcha fuqarolar Konstitutsiyada belgilab qoʻyilgan burchlarini bajaradilar.",
+        "category": "3-bo‘lim. Jamiyat va shaxs"
       },
       {
         "number": "60",
-        "title": "60-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Fuqarolarning asosiy huquq va erkinliklari ushbu moddada belgilanadi. O'zbekiston Respublikasi fuqarolari teng huquqqa ega.",
-        "category": "3-bob. Fuqarolarning asosiy huquqlari va erkinliklari"
+        "article_number": "60",
+        "title": "60-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "60-modda. Fuqarolar Konstitutsiya va qonunlarga rioya etishga, boshqa insonlarning huquqlari, erkinliklari, shaʼni va qadr-qimmatini hurmat qilishga majburdirlar.",
+        "category": "3-bo‘lim. Jamiyat va shaxs"
       },
       {
         "number": "61",
-        "title": "61-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Jamiyat va shaxs o'rtasidagi munosabatlar ushbu moddada belgilanadi. Har kim jamiyat oldida majburiyatlarga ega.",
-        "category": "4-bob. Jamiyat va shaxs"
+        "article_number": "61",
+        "title": "61-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "61-modda. Fuqarolar Oʻzbekiston xalqining tarixiy, maʼnaviy, madaniy, ilmiy va tabiiy merosini asrab-avaylashi shart.  Tarixiy, maʼnaviy, madaniy, ilmiy va tabiiy meros davlat tomonidan muhofaza qilinadi.  Oʻzbekiston Respublikasi “ Madaniy meros obyektlarini muhofaza qilish va ulardan foydalanish toʻgʻrisida ”gi va “ Arxeologiya merosi obyektlarini muhofaza qilish va ulardan foydalanish toʻgʻrisida ”gi qonunlari, Oʻzbekiston Respublikasi Jinoyat kodeksining 132-moddasi , Maʼmuriy javobgarlik toʻgʻrisidagi kodeksining 46-moddasi .",
+        "category": "3-bo‘lim. Jamiyat va shaxs"
       },
       {
         "number": "62",
-        "title": "62-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Jamiyat va shaxs o'rtasidagi munosabatlar ushbu moddada belgilanadi. Har kim jamiyat oldida majburiyatlarga ega.",
-        "category": "4-bob. Jamiyat va shaxs"
+        "article_number": "62",
+        "title": "62-modda. Fuqarolar atrof tabiiy muhitga ehtiyotkorona munosabatda boʻlishga majburdirlar",
+        "content": "62-modda. Fuqarolar atrof tabiiy muhitga ehtiyotkorona munosabatda boʻlishga majburdirlar.  Oʻzbekiston Respublikasining “Tabiatni muhofaza qilish toʻgʻrisida”gi Qonuni 12-moddasining uchinichi qismi , Oʻzbekiston Respublikasi Maʼmuriy javobgarlik toʻgʻrisidagi kodeksining VIII bobi (“Ekologiya, atrof-muhitni muhofaza qilish va tabiatdan foydalanish sohasidagi huquqbuzarliklar uchun maʼmuriy javobgarlik”), Oʻzbekiston Respublikasi Jinoyat kodeksi maxsus qismining toʻrtinchi boʻlimi (“Ekologiya sohasidagi jinoyatlar”).",
+        "category": "3-bo‘lim. Jamiyat va shaxs"
       },
       {
         "number": "63",
-        "title": "63-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Jamiyat va shaxs o'rtasidagi munosabatlar ushbu moddada belgilanadi. Har kim jamiyat oldida majburiyatlarga ega.",
-        "category": "4-bob. Jamiyat va shaxs"
+        "article_number": "63",
+        "title": "63-modda. Fuqarolar qonun bilan belgilangan soliqlar va yigʻimlarni toʻlashi shart",
+        "content": "63-modda. Fuqarolar qonun bilan belgilangan soliqlar va yigʻimlarni toʻlashi shart.  Oʻzbekiston Respublikasi Soliq kodeksining 8 , 16 va 17-moddalari . Soliq va yigʻimlar adolatli boʻlishi hamda fuqarolarning konstitutsiyaviy huquqlarini amalga oshirishiga toʻsqinlik qilmasligi kerak.",
+        "category": "3-bo‘lim. Jamiyat va shaxs"
       },
       {
         "number": "64",
-        "title": "64-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Jamiyat va shaxs o'rtasidagi munosabatlar ushbu moddada belgilanadi. Har kim jamiyat oldida majburiyatlarga ega.",
-        "category": "4-bob. Jamiyat va shaxs"
+        "article_number": "64",
+        "title": "64-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "64-modda. Oʻzbekiston Respublikasini himoya qilish Oʻzbekiston Respublikasi har bir fuqarosining burchidir. Fuqarolar qonunda belgilangan tartibda harbiy yoki muqobil xizmatni oʻtashga majburdirlar. UCHINCHI BOʻLIM. JAMIYAT VA SHAXS XII bob. Jamiyatning iqtisodiy negizlari",
+        "category": "3-bo‘lim. Jamiyat va shaxs"
       },
       {
         "number": "65",
-        "title": "65-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Jamiyat va shaxs o'rtasidagi munosabatlar ushbu moddada belgilanadi. Har kim jamiyat oldida majburiyatlarga ega.",
-        "category": "4-bob. Jamiyat va shaxs"
+        "article_number": "65",
+        "title": "65-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "65-modda. Fuqarolar farovonligini oshirishga qaratilgan Oʻzbekiston iqtisodiyotining negizini xilma-xil shakllardagi mulk tashkil etadi. Davlat bozor munosabatlarini rivojlantirish va halol raqobat uchun shart-sharoitlar yaratadi, isteʼmolchilarning huquqlari ustuvorligini hisobga olgan holda iqtisodiy faoliyat, tadbirkorlik va mehnat qilish erkinligini kafolatlaydi.  Oʻzbekiston Respublikasida barcha mulk shakllarining teng huquqliligi va huquqiy jihatdan himoya qilinishi taʼminlanadi.  Oʻzbekiston Respublikasi Fuqarolik kodeksining 167-moddasi , “Oʻzbekiston Respublikasida mulkchilik toʻgʻrisida”gi Qonunning 5-moddasi .  Xususiy mulk daxlsizdir. Mulkdor oʻz mol-mulkidan qonunda nazarda tutilgan hollardan va tartibdan tashqari hamda sudning qaroriga asoslanmagan holda mahrum etilishi mumkin emas.  Oʻzbekiston Respublikasi Fuqarolik kodeksining 166 , 199 , 202 — 204-moddalari , Oʻzbekiston Respublikasining “Xususiy mulkni himoya qilish va mulkdorlar huquqlarining kafolatlari toʻgʻrisida”gi Qonuni .",
+        "category": "3-bo‘lim. Jamiyat va shaxs"
       },
       {
         "number": "66",
-        "title": "66-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Jamiyat va shaxs o'rtasidagi munosabatlar ushbu moddada belgilanadi. Har kim jamiyat oldida majburiyatlarga ega.",
-        "category": "4-bob. Jamiyat va shaxs"
+        "article_number": "66",
+        "title": "66-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "66-modda. Mulkdor oʻziga tegishli boʻlgan mol-mulkka oʻz xohishicha egalik qiladi, undan foydalanadi va uni tasarruf etadi. Mol-mulkdan foydalanish atrof-muhitga zarar yetkazmasligi, boshqa shaxslarning, jamiyat va davlatning huquqlarini hamda qonuniy manfaatlarini buzmasligi kerak.  Oʻzbekiston Respublikasi Fuqarolik kodeksining 164-moddasi .",
+        "category": "3-bo‘lim. Jamiyat va shaxs"
       },
       {
         "number": "67",
-        "title": "67-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Jamiyat va shaxs o'rtasidagi munosabatlar ushbu moddada belgilanadi. Har kim jamiyat oldida majburiyatlarga ega.",
-        "category": "4-bob. Jamiyat va shaxs"
+        "article_number": "67",
+        "title": "67-modda. Davlat qulay investitsiyaviy va ishbilarmonlik muhitini taʼminlaydi",
+        "content": "67-modda. Davlat qulay investitsiyaviy va ishbilarmonlik muhitini taʼminlaydi.  Tadbirkorlar qonunchilikka muvofiq har qanday faoliyatni amalga oshirishga va oʻz faoliyati yoʻnalishlarini mustaqil ravishda tanlashga haqli. Oʻzbekiston Respublikasi hududida iqtisodiy makon birligi, tovarlar, xizmatlar, mehnat resurslari va moliyaviy mablagʻlarning erkin harakatlanishi kafolatlanadi.  Monopol faoliyat qonun bilan tartibga solinadi va cheklanadi.",
+        "category": "3-bo‘lim. Jamiyat va shaxs"
       },
       {
         "number": "68",
-        "title": "68-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Jamiyat va shaxs o'rtasidagi munosabatlar ushbu moddada belgilanadi. Har kim jamiyat oldida majburiyatlarga ega.",
-        "category": "4-bob. Jamiyat va shaxs"
+        "article_number": "68",
+        "title": "68-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "68-modda. Yer, yer osti boyliklari, suv, oʻsimlik va hayvonot dunyosi hamda boshqa tabiiy resurslar umummilliy boylikdir, ulardan oqilona foydalanish zarur va ular davlat muhofazasidadir.  Oʻzbekiston Respublikasining Yer kodeksi , Oʻzbekiston Respublikasining “ Yer qaʼri toʻgʻrisida ”gi, “ Oʻsimlik dunyosini muhofaza qilish va undan foydalanish toʻgʻrisida ”gi, “ Hayvonot dunyosini muhofaza qilish va undan foydalanish toʻgʻrisida ”gi, “ Oʻrmon toʻgʻrisida ”gi, “ Atmosfera havosini muhofaza qilish toʻgʻrisida ”gi, “ Tabiatni muhofaza qilish toʻgʻrisida ”gi qonunlari.  Yer qonunda nazarda tutilgan hamda undan oqilona foydalanishni va uni umummilliy boylik sifatida muhofaza qilishni taʼminlovchi shartlar asosida va tartibda xususiy mulk boʻlishi mumkin. XIII bob. Fuqarolik jamiyati institutlari",
+        "category": "3-bo‘lim. Jamiyat va shaxs"
       },
       {
         "number": "69",
-        "title": "69-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Jamiyat va shaxs o'rtasidagi munosabatlar ushbu moddada belgilanadi. Har kim jamiyat oldida majburiyatlarga ega.",
-        "category": "4-bob. Jamiyat va shaxs"
+        "article_number": "69",
+        "title": "69-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "69-modda. Fuqarolik jamiyati institutlari, shu jumladan jamoat birlashmalari va boshqa nodavlat notijorat tashkilotlari, fuqarolarning oʻzini oʻzi boshqarish organlari, ommaviy axborot vositalari fuqarolik jamiyatining asosini tashkil etadi. Fuqarolik jamiyati institutlarining faoliyati qonunga muvofiq amalga oshiriladi.",
+        "category": "3-bo‘lim. Jamiyat va shaxs"
       },
       {
         "number": "70",
-        "title": "70-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Jamiyat va shaxs o'rtasidagi munosabatlar ushbu moddada belgilanadi. Har kim jamiyat oldida majburiyatlarga ega.",
-        "category": "4-bob. Jamiyat va shaxs"
+        "article_number": "70",
+        "title": "70-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "70-modda. Oʻzbekiston Respublikasida kasaba uyushmalari, siyosiy partiyalar, olimlarning jamiyatlari, xotin-qizlar tashkilotlari, faxriylar, yoshlar va nogironligi boʻlgan shaxslar tashkilotlari, ijodiy uyushmalar, ommaviy harakatlar hamda fuqarolarning boshqa birlashmalari jamoat birlashmalari sifatida eʼtirof etiladi.  Oʻzbekiston Respublikasining “ Nodavlat notijorat tashkilotlari toʻgʻrisida ”gi, “ Kasaba uyushmalari toʻgʻrisida ”gi, “ Siyosiy partiyalar toʻgʻrisida ”gi, “ Oʻzbekiston Respublikasida jamoat birlashmalari toʻgʻrisida ”gi qonunlari, Oʻzbekiston Respublikasi Fuqarolik kodeksining 74-moddasi . Jamoat birlashmalarini tarqatib yuborish, ularning faoliyatini taqiqlab yoki cheklab qoʻyish faqat sud qarori asosidagina amalga oshiriladi.  Oʻzbekiston Respublikasining “Nodavlat notijorat tashkilotlari toʻgʻrisida”gi Qonunining 35 va 36-moddalari , “Oʻzbekiston Respublikasida jamoat birlashmalari toʻgʻrisida”gi Qonunining 22-moddasi .",
+        "category": "3-bo‘lim. Jamiyat va shaxs"
       },
       {
         "number": "71",
-        "title": "71-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Jamiyat va shaxs o'rtasidagi munosabatlar ushbu moddada belgilanadi. Har kim jamiyat oldida majburiyatlarga ega.",
-        "category": "4-bob. Jamiyat va shaxs"
+        "article_number": "71",
+        "title": "71-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "71-modda. Konstitutsiyaviy tuzumni zoʻrlik bilan oʻzgartirishni maqsad qilib qoʻyuvchi, Oʻzbekistonning davlat suverenitetiga, hududiy yaxlitligiga va xavfsizligiga qarshi chiquvchi, urushni, ijtimoiy, milliy, irqiy hamda diniy adovatni targʻib qiluvchi, fuqarolarning konstitutsiyaviy huquqlari va erkinliklariga, aholining sogʻligʻiga, ijtimoiy axloqqa tajovuz qiluvchi siyosiy partiyalarning, boshqa nodavlat notijorat tashkilotlarining, shuningdek milliy va diniy belgilariga koʻra siyosiy partiyalarning, harbiylashtirilgan birlashmalarning tashkil etilishi va faoliyati taqiqlanadi. Maxfiy jamiyatlar va birlashmalar tashkil etish taqiqlanadi.  Nodavlat notijorat tashkilotlari toʻgʻrisida”gi Qonunning 25-moddasi birinchi qismining birinchi va ikkinchi xatboshilari , Oʻzbekiston Respublikasining “Oʻzbekiston Respublikasida jamoat birlashmalari toʻgʻrisida”gi Qonunining 3-moddasi , Oʻzbekiston Respublikasining Maʼmuriy javobgarlik toʻgʻrisidagi kodeksining 202 1 -moddasi , Oʻzbekiston Respublikasi Jinoyat kodeksining 216 va 216 1 -moddalari .",
+        "category": "3-bo‘lim. Jamiyat va shaxs"
       },
       {
         "number": "72",
-        "title": "72-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Jamiyat va shaxs o'rtasidagi munosabatlar ushbu moddada belgilanadi. Har kim jamiyat oldida majburiyatlarga ega.",
-        "category": "4-bob. Jamiyat va shaxs"
+        "article_number": "72",
+        "title": "72-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "72-modda. Davlat nodavlat notijorat tashkilotlarining huquqlari va qonuniy manfaatlariga rioya etilishini taʼminlaydi, ularga jamiyat hayotida ishtirok etish uchun teng huquqiy imkoniyatlar yaratadi. Davlat organlari va mansabdor shaxslarning nodavlat notijorat tashkilotlari faoliyatiga aralashishiga, shuningdek nodavlat notijorat tashkilotlarining davlat organlari va mansabdor shaxslar faoliyatiga aralashishiga yoʻl qoʻyilmaydi.  Nodavlat notijorat tashkilotlari toʻgʻrisida”gi Qonunning 4-moddasi .",
+        "category": "3-bo‘lim. Jamiyat va shaxs"
       },
       {
         "number": "73",
-        "title": "73-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Jamiyat va shaxs o'rtasidagi munosabatlar ushbu moddada belgilanadi. Har kim jamiyat oldida majburiyatlarga ega.",
-        "category": "4-bob. Jamiyat va shaxs"
+        "article_number": "73",
+        "title": "73-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "73-modda. Kasaba uyushmalari xodimlarning ijtimoiy-iqtisodiy huquqlarini va manfaatlarini ifoda etadilar va himoya qiladilar. Kasaba uyushmalariga aʼzo boʻlish ixtiyoriydir.  Oʻzbekiston Respublikasining “Kasaba uyushmalari toʻgʻrisida”gi Qonuni .",
+        "category": "3-bo‘lim. Jamiyat va shaxs"
       },
       {
         "number": "74",
-        "title": "74-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Jamiyat va shaxs o'rtasidagi munosabatlar ushbu moddada belgilanadi. Har kim jamiyat oldida majburiyatlarga ega.",
-        "category": "4-bob. Jamiyat va shaxs"
+        "article_number": "74",
+        "title": "74-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "74-modda. Siyosiy partiyalar turli ijtimoiy tabaqa va guruhlarning siyosiy irodasini ifodalaydilar va oʻzlarining demokratik yoʻl bilan saylab qoʻyilgan vakillari orqali davlat hokimiyatini tuzishda ishtirok etadilar. Siyosiy partiyalar oʻz faoliyatining moliyalashtirilishi manbalari haqida Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasiga yoki u vakolat bergan organga belgilangan tartibda oshkora hisobotlar taqdim etadilar.  Oʻzbekiston Respublikasining “Siyosiy partiyalar toʻgʻrisida”gi Qonuni .",
+        "category": "3-bo‘lim. Jamiyat va shaxs"
       },
       {
         "number": "75",
-        "title": "75-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Jamiyat va shaxs o'rtasidagi munosabatlar ushbu moddada belgilanadi. Har kim jamiyat oldida majburiyatlarga ega.",
-        "category": "4-bob. Jamiyat va shaxs"
+        "article_number": "75",
+        "title": "75-modda. Diniy tashkilotlar davlatdan ajratilgan hamda qonun oldida tengdirlar",
+        "content": "75-modda. Diniy tashkilotlar davlatdan ajratilgan hamda qonun oldida tengdirlar. Davlat diniy tashkilotlarning faoliyatiga aralashmaydi. Davlat qonunda belgilangan tartibda faoliyat koʻrsatayotgan diniy tashkilotlar faoliyatining erkinligini kafolatlaydi.  Oʻzbekiston Respublikasining “Vijdon erkinligi va diniy tashkilotlar toʻgʻrisida”gi Qonuni . XIV bob. Oila, bolalar va yoshlar",
+        "category": "3-bo‘lim. Jamiyat va shaxs"
       },
       {
         "number": "76",
-        "title": "76-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Jamiyat va shaxs o'rtasidagi munosabatlar ushbu moddada belgilanadi. Har kim jamiyat oldida majburiyatlarga ega.",
-        "category": "4-bob. Jamiyat va shaxs"
+        "article_number": "76",
+        "title": "76-modda. Oila jamiyatning asosiy boʻgʻinidir hamda u jamiyat va davlat muhofazasidadir",
+        "content": "76-modda. Oila jamiyatning asosiy boʻgʻinidir hamda u jamiyat va davlat muhofazasidadir.  Nikoh Oʻzbekiston xalqining anʼanaviy oilaviy qadriyatlariga, nikohlanuvchilarning ixtiyoriy roziligiga va teng huquqliligiga asoslanadi.  Oʻzbekiston Respublikasi Oila kodeksining 2 , 3 , 14 va 19-moddalari .  Davlat oilaning toʻlaqonli rivojlanishi uchun ijtimoiy, iqtisodiy, huquqiy va boshqa shart-sharoitlar yaratadi.",
+        "category": "3-bo‘lim. Jamiyat va shaxs"
       },
       {
         "number": "77",
-        "title": "77-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Jamiyat va shaxs o'rtasidagi munosabatlar ushbu moddada belgilanadi. Har kim jamiyat oldida majburiyatlarga ega.",
-        "category": "4-bob. Jamiyat va shaxs"
+        "article_number": "77",
+        "title": "77-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "77-modda. Ota-onalar va ularning oʻrnini bosuvchi shaxslar oʻz farzandlarini voyaga yetguniga qadar boqishi, ularning tarbiyasi, taʼlim olishi, sogʻlom, toʻlaqonli va har tomonlama kamol topishi xususida gʻamxoʻrlik qilishga majburdirlar.  Oʻzbekiston Respublikasi Oila kodeksining 73 va 96-moddalari , Oʻzbekiston Respublikasi Maʼmuriy javobgarlik toʻgʻrisidagi kodeksining 47 , 47 4 -moddalari , Oʻzbekiston Respublikasi Jinoyat kodeksining 122-moddasi .  Davlat va jamiyat yetim bolalarni hamda ota-onasining vasiyligidan mahrum boʻlgan bolalarni boqishni, tarbiyalashni, ularning taʼlim olishini, sogʻlom, toʻlaqonli va har tomonlama kamol topishini taʼminlaydi, shu maqsadda xayriya faoliyatini ragʻbatlantiradi.  Oʻzbekiston Respublikasi “Bola huquqlarining kafolatlari toʻgʻrisida”gi Qonunining 27 1 -moddasi , Oʻzbekiston Respublikasi Oila kodeksining 106-moddasi .",
+        "category": "3-bo‘lim. Jamiyat va shaxs"
       },
       {
         "number": "78",
-        "title": "78-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Jamiyat va shaxs o'rtasidagi munosabatlar ushbu moddada belgilanadi. Har kim jamiyat oldida majburiyatlarga ega.",
-        "category": "4-bob. Jamiyat va shaxs"
+        "article_number": "78",
+        "title": "78-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "78-modda. Farzandlar ota-onasining nasl-nasabi va fuqarolik holatidan qatʼi nazar, qonun oldida tengdirlar.  Bolaning huquqlari, erkinliklari va qonuniy manfaatlarini taʼminlash hamda himoya qilish, uning jismoniy, aqliy va madaniy jihatdan toʻlaqonli rivojlanishi uchun eng yaxshi shart-sharoitlarni yaratish davlatning majburiyatidir.  Onalik, otalik va bolalik davlat tomonidan muhofaza qilinadi. Davlat va jamiyat bolalarda hamda yoshlarda milliy va umuminsoniy qadriyatlarga sodiqlikni, mamlakatidan hamda xalqning boy madaniy merosidan faxrlanishni, vatanparvarlik va Vatanga boʻlgan mehr-muhabbat tuygʻularini shakllantirish toʻgʻrisida gʻamxoʻrlik qiladi.",
+        "category": "3-bo‘lim. Jamiyat va shaxs"
       },
       {
         "number": "79",
-        "title": "79-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Jamiyat va shaxs o'rtasidagi munosabatlar ushbu moddada belgilanadi. Har kim jamiyat oldida majburiyatlarga ega.",
-        "category": "4-bob. Jamiyat va shaxs"
+        "article_number": "79",
+        "title": "79-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "79-modda. Davlat yoshlarning shaxsiy, siyosiy, iqtisodiy, ijtimoiy, madaniy, ekologik huquqlari himoya qilinishini taʼminlaydi, ularning jamiyat va davlat hayotida faol ishtirok etishini ragʻbatlantiradi.  Davlat yoshlarning intellektual, ijodiy, jismoniy va axloqiy jihatdan shakllanishi hamda rivojlanishi uchun, ularning taʼlim olishga, sogʻligʻini saqlashga, uy-joyga, ishga joylashishga, bandlik va dam olishga boʻlgan huquqlarini amalga oshirish uchun shart-sharoitlar yaratadi.",
+        "category": "3-bo‘lim. Jamiyat va shaxs"
       },
       {
         "number": "80",
-        "title": "80-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Jamiyat va shaxs o'rtasidagi munosabatlar ushbu moddada belgilanadi. Har kim jamiyat oldida majburiyatlarga ega.",
-        "category": "4-bob. Jamiyat va shaxs"
+        "article_number": "80",
+        "title": "80-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "80-modda. Voyaga yetgan mehnatga layoqatli farzandlar oʻz ota-onalari haqida gʻamxoʻrlik qilishga majburdirlar.  Oʻzbekiston Respublikasi Oila kodeksining 109-moddasi , Oʻzbekiston Respublikasi Maʼmuriy javobgarlik toʻgʻrisidagi kodeksining 47 5 -moddasi , Oʻzbekiston Respublikasi Jinoyat kodeksining 123-moddasi . XV bob. Ommaviy axborot vositalari",
+        "category": "3-bo‘lim. Jamiyat va shaxs"
       },
       {
         "number": "81",
-        "title": "Oliy Majlis - oliy davlat vakillik organi",
-        "content": "Oliy Majlisning vakolatlari va tuzilishi ushbu moddada belgilanadi. Oliy Majlis ikki palatadan iborat.",
-        "category": "5-bob. Oliy Majlis"
+        "article_number": "81",
+        "title": "81-modda. Ommaviy axborot vositalari erkindir va qonunga muvofiq ish olib boradilar",
+        "content": "81-modda. Ommaviy axborot vositalari erkindir va qonunga muvofiq ish olib boradilar. Davlat ommaviy axborot vositalari faoliyatining erkinligini, ularning axborotni izlash, olish, undan foydalanish va uni tarqatishga boʻlgan huquqlari amalga oshirilishini kafolatlaydi.  Ommaviy axborot vositalari oʻzi taqdim etadigan axborotning ishonchliligi uchun javobgardir.  Oʻzbekiston Respublikasining “ Ommaviy axborot vositalari toʻgʻrisida ”gi, “ Axborot olish kafolatlari va erkinligi toʻgʻrisida ”gi va “ Jurnalistlik faoliyatini himoya qilish toʻgʻrisida ”gi qonunlari.",
+        "category": "3-bo‘lim. Jamiyat va shaxs"
       },
       {
         "number": "82",
-        "title": "82-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Oliy Majlisning vakolatlari va tuzilishi ushbu moddada belgilanadi. Oliy Majlis ikki palatadan iborat.",
-        "category": "5-bob. Oliy Majlis"
+        "article_number": "82",
+        "title": "82-modda. Senzuraga yoʻl qoʻyilmaydi",
+        "content": "82-modda. Senzuraga yoʻl qoʻyilmaydi. Ommaviy axborot vositalarining faoliyatiga toʻsqinlik qilish yoki aralashish qonunga muvofiq javobgarlikka sabab boʻladi. TOʻRTINCHI BOʻLIM. MAʼMURIY-HUDUDIY VA DAVLAT TUZILISHI XVI bob. Oʻzbekiston Respublikasining maʼmuriy-hududiy tuzilishi",
+        "category": "3-bo‘lim. Jamiyat va shaxs"
       },
       {
         "number": "83",
-        "title": "83-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Oliy Majlisning vakolatlari va tuzilishi ushbu moddada belgilanadi. Oliy Majlis ikki palatadan iborat.",
-        "category": "5-bob. Oliy Majlis"
+        "article_number": "83",
+        "title": "83-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "83-modda. Oʻzbekiston Respublikasi viloyatlar, tumanlar, shaharlar, shaharchalar, qishloqlar, ovullar, shuningdek Qoraqalpogʻiston Respublikasidan iborat.",
+        "category": "4-bo‘lim. Ma’muriy-hududiy va davlat tuzilishi"
       },
       {
         "number": "84",
-        "title": "84-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Oliy Majlisning vakolatlari va tuzilishi ushbu moddada belgilanadi. Oliy Majlis ikki palatadan iborat.",
-        "category": "5-bob. Oliy Majlis"
+        "article_number": "84",
+        "title": "84-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "84-modda. Qoraqalpogʻiston Respublikasi, viloyatlar, Toshkent shahrining chegaralarini oʻzgartirish, shuningdek viloyatlar, shaharlar, tumanlar tashkil qilish va ularni tugatish Oʻzbekiston Respublikasi Oliy Majlisining roziligi bilan amalga oshiriladi.  Oʻzbekiston Respublikasining “Oʻzbekiston Respublikasining maʼmuriy-hududiy tuzilishi toʻgʻrisida”gi Qonuni . XVII bob. Qoraqalpogʻiston Respublikasi",
+        "category": "4-bo‘lim. Ma’muriy-hududiy va davlat tuzilishi"
       },
       {
         "number": "85",
-        "title": "85-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Oliy Majlisning vakolatlari va tuzilishi ushbu moddada belgilanadi. Oliy Majlis ikki palatadan iborat.",
-        "category": "5-bob. Oliy Majlis"
+        "article_number": "85",
+        "title": "85-modda. Suveren Qoraqalpogʻiston Respublikasi Oʻzbekiston Respublikasi tarkibiga kiradi",
+        "content": "85-modda. Suveren Qoraqalpogʻiston Respublikasi Oʻzbekiston Respublikasi tarkibiga kiradi. Qoraqalpogʻiston Respublikasining suvereniteti Oʻzbekiston Respublikasi tomonidan muhofaza etiladi.",
+        "category": "4-bo‘lim. Ma’muriy-hududiy va davlat tuzilishi"
       },
       {
         "number": "86",
-        "title": "86-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Oliy Majlisning vakolatlari va tuzilishi ushbu moddada belgilanadi. Oliy Majlis ikki palatadan iborat.",
-        "category": "5-bob. Oliy Majlis"
+        "article_number": "86",
+        "title": "86-modda. Qoraqalpogʻiston Respublikasi oʻz Konstitutsiyasiga ega",
+        "content": "86-modda. Qoraqalpogʻiston Respublikasi oʻz Konstitutsiyasiga ega. Qoraqalpogʻiston Respublikasining Konstitutsiyasi Oʻzbekiston Respublikasining Konstitutsiyasiga zid boʻlishi mumkin emas.  mazkur Konstitutsiya 16-moddasining ikkinchi qismi , Oʻzbekiston Respublikasi “Normativ-huquqiy hujjatlar toʻgʻrisida”gi Qonunining 8-moddasi .",
+        "category": "4-bo‘lim. Ma’muriy-hududiy va davlat tuzilishi"
       },
       {
         "number": "87",
-        "title": "87-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Oliy Majlisning vakolatlari va tuzilishi ushbu moddada belgilanadi. Oliy Majlis ikki palatadan iborat.",
-        "category": "5-bob. Oliy Majlis"
+        "article_number": "87",
+        "title": "87-modda. Oʻzbekiston Respublikasi qonunlari Qoraqalpogʻiston Respublikasi hududida ham majburiydir",
+        "content": "87-modda. Oʻzbekiston Respublikasi qonunlari Qoraqalpogʻiston Respublikasi hududida ham majburiydir.",
+        "category": "4-bo‘lim. Ma’muriy-hududiy va davlat tuzilishi"
       },
       {
         "number": "88",
-        "title": "88-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Oliy Majlisning vakolatlari va tuzilishi ushbu moddada belgilanadi. Oliy Majlis ikki palatadan iborat.",
-        "category": "5-bob. Oliy Majlis"
+        "article_number": "88",
+        "title": "88-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "88-modda. Qoraqalpogʻiston Respublikasining hududi va chegaralari uning roziligisiz oʻzgartirilishi mumkin emas. Qoraqalpogʻiston Respublikasi oʻz maʼmuriy-hududiy tuzilishi masalalarini mustaqil hal qiladi.",
+        "category": "4-bo‘lim. Ma’muriy-hududiy va davlat tuzilishi"
       },
       {
         "number": "89",
-        "title": "89-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Oliy Majlisning vakolatlari va tuzilishi ushbu moddada belgilanadi. Oliy Majlis ikki palatadan iborat.",
-        "category": "5-bob. Oliy Majlis"
+        "article_number": "89",
+        "title": "89-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "89-modda. Qoraqalpogʻiston Respublikasi Oʻzbekiston Respublikasi tarkibidan Qoraqalpogʻiston Respublikasi xalqining umumiy referendumi asosida ajralib chiqish huquqiga ega.",
+        "category": "4-bo‘lim. Ma’muriy-hududiy va davlat tuzilishi"
       },
       {
         "number": "90",
-        "title": "90-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Oliy Majlisning vakolatlari va tuzilishi ushbu moddada belgilanadi. Oliy Majlis ikki palatadan iborat.",
-        "category": "5-bob. Oliy Majlis"
+        "article_number": "90",
+        "title": "90-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "90-modda. Oʻzbekiston Respublikasi bilan Qoraqalpogʻiston Respublikasining oʻzaro munosabatlari Oʻzbekiston Respublikasi va Qoraqalpogʻiston Respublikasi oʻrtasida Oʻzbekiston Respublikasi Konstitutsiyasi doirasida tuzilgan shartnomalar hamda bitimlar bilan tartibga solinadi. Oʻzbekiston Respublikasi va Qoraqalpogʻiston Respublikasi oʻrtasidagi nizolar murosaga keltiruvchi vositalar yordamida hal etiladi. BESHINCHI BOʻLIM. DAVLAT HOKIMIYATINING TASHKIL ETILISHI XVIII bob. Oʻzbekiston Respublikasi Oliy Majlisi",
+        "category": "4-bo‘lim. Ma’muriy-hududiy va davlat tuzilishi"
       },
       {
         "number": "91",
-        "title": "91-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Oliy Majlisning vakolatlari va tuzilishi ushbu moddada belgilanadi. Oliy Majlis ikki palatadan iborat.",
-        "category": "5-bob. Oliy Majlis"
+        "article_number": "91",
+        "title": "91-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "91-modda. Oʻzbekiston Respublikasining Oliy Majlisi oliy davlat vakillik organi boʻlib, qonun chiqaruvchi hokimiyatni amalga oshiradi.  Oʻzbekiston Respublikasi Oliy Majlisi ikki palatadan — Qonunchilik palatasi (quyi palata) va Senatdan (yuqori palata) iborat. Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasi va Senati vakolat muddati — besh yil.  Oʻzbekiston Respublikasining “Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasi toʻgʻrisida”gi Konstitutsiyaviy qonunining 2 va 5-moddalari , “Oʻzbekiston Respublikasi Oliy Majlisining Senati toʻgʻrisida”gi Konstitutsiyaviy qonunining 2 va 5-moddalari .",
+        "category": "5-bo‘lim. Davlat hokimiyatining tashkil etilishi"
       },
       {
         "number": "92",
-        "title": "92-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Oliy Majlisning vakolatlari va tuzilishi ushbu moddada belgilanadi. Oliy Majlis ikki palatadan iborat.",
-        "category": "5-bob. Oliy Majlis"
+        "article_number": "92",
+        "title": "92-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "92-modda. Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasi qonunga muvofiq saylanadigan bir yuz ellik deputatdan iborat.  Oʻzbekiston Respublikasi Oliy Majlisining Senati hududiy vakillik palatasi boʻlib, Senat aʼzolaridan (senatorlardan) iborat. Oʻzbekiston Respublikasi Oliy Majlisining Senati aʼzolari Qoraqalpogʻiston Respublikasi Joʻqorgʻi Kengesi, viloyatlar, tumanlar va shaharlar davlat hokimiyati vakillik organlari deputatlarining tegishli qoʻshma majlislarida mazkur deputatlar orasidan yashirin ovoz berish yoʻli bilan Qoraqalpogʻiston Respublikasi, viloyatlar va Toshkent shahridan teng miqdorda — toʻrt kishidan saylanadi. Oʻzbekiston Respublikasi Oliy Majlisi Senatining toʻqqiz nafar aʼzosi fan, sanʼat, adabiyot, ishlab chiqarish sohasida hamda davlat va jamiyat faoliyatining boshqa tarmoqlarida katta amaliy tajribaga ega boʻlgan hamda alohida xizmat koʻrsatgan eng obroʻli fuqarolar orasidan Oʻzbekiston Respublikasi Prezidenti tomonidan tayinlanadi.  Saylov kuni yigirma besh yoshga toʻlgan hamda kamida besh yil Oʻzbekiston Respublikasi hududida muqim yashayotgan Oʻzbekiston Respublikasi fuqarosi Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasi deputati, shuningdek Oʻzbekiston Respublikasi Oliy Majlisining Senati aʼzosi boʻlishi mumkin. Deputatlikka nomzodlarga qoʻyiladigan talablar qonun bilan belgilanadi. Ayni bir shaxs bir paytning oʻzida Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasi deputati va Senati aʼzosi boʻlishi mumkin emas.  Oʻzbekiston Respublikasining “Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasi toʻgʻrisida”gi Konstitutsiyaviy qonunining 2 va 6-moddalari , “Oʻzbekiston Respublikasi Oliy Majlisining Senati toʻgʻrisida”gi Konstitutsiyaviy qonunining 2 va 6-moddalari . Oʻzbekiston Respublikasi Oliy Majlisi Qonunchilik palatasining deputati bir vaqtning oʻzida Qoraqalpogʻiston Respublikasi Joʻqorgʻi Kengesining, viloyatlar, tumanlar, shaharlar davlat hokimiyati vakillik organlarining deputati boʻlishi mumkin emas.",
+        "category": "5-bo‘lim. Davlat hokimiyatining tashkil etilishi"
       },
       {
         "number": "93",
-        "title": "93-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Oliy Majlisning vakolatlari va tuzilishi ushbu moddada belgilanadi. Oliy Majlis ikki palatadan iborat.",
-        "category": "5-bob. Oliy Majlis"
+        "article_number": "93",
+        "title": "93-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "93-modda. Oʻzbekiston Respublikasi Oliy Majlisi Qonunchilik palatasi va Senatining birgalikdagi vakolatlari quyidagilardan iborat: 1) Oʻzbekiston Respublikasining Konstitutsiyasini qabul qilish, unga oʻzgartirish va qoʻshimchalar kiritish;  mazkur Konstitutsiyaning 154 va 155-moddalari . 2) Oʻzbekiston Respublikasining konstitutsiyaviy qonunlarini, qonunlarini qabul qilish, ularga oʻzgartirish va qoʻshimchalar kiritish;  Oʻzbekiston Respublikasining “Normativ-huquqiy hujjatlar toʻgʻrisida”gi Qonuni 9 va 10-moddalari . 3) xalqaro shartnomalarni ratifikatsiya va denonsatsiya qilish;  Oʻzbekiston Respublikasi “Oʻzbekiston Respublikasining xalqaro shartnomalari toʻgʻrisida”gi Qonunining 18-moddasi . 4) Oʻzbekiston Respublikasining referendumini oʻtkazish toʻgʻrisida va uni oʻtkazish sanasini tayinlash haqida qaror qabul qilish;  mazkur Konstitutsiyaning 9-moddasi , Oʻzbekiston Respublikasi “Oʻzbekiston Respublikasida referendum toʻgʻrisida”gi Qonunining 13-moddasi . 5) Oʻzbekiston Respublikasi ichki va tashqi siyosatining asosiy yoʻnalishlarini belgilash hamda davlat strategik dasturlarini qabul qilish; 6) Oʻzbekiston Respublikasi qonun chiqaruvchi, ijro etuvchi hamda sud hokimiyati organlarining tizimini va vakolatlarini belgilash; 7) Oʻzbekiston Respublikasi tarkibiga yangi davlat tuzilmalarini qabul qilish va ularning Oʻzbekiston Respublikasi tarkibidan chiqishi haqidagi qarorlarni tasdiqlash; 8) bojxona, valyuta va kredit ishlarini qonun yoʻli bilan tartibga solish; 9) Oʻzbekiston Respublikasi Vazirlar Mahkamasining taqdimiga binoan Oʻzbekiston Respublikasining Davlat budjetini qabul qilish, unga oʻzgartirish va qoʻshimchalar kiritish;  Oʻzbekiston Respublikasi Budjet kodeksining 97-moddasi . 10) Oʻzbekiston Respublikasi davlat qarzining eng yuqori miqdorini belgilash; 11) soliqlar va boshqa majburiy toʻlovlarni joriy qilish; 12) Oʻzbekiston Respublikasining maʼmuriy-hududiy tuzilishi masalalarini qonun yoʻli bilan tartibga solish, chegaralarini oʻzgartirish; 13) tumanlar, shaharlar, viloyatlarni tashkil etish, tugatish, ularning nomini hamda chegaralarini oʻzgartirish;  Oʻzbekiston Respublikasi “Oʻzbekiston Respublikasining maʼmuriy-hududiy tuzilishi toʻgʻrisida”gi Qonunining 16-moddasi , 22-moddasining birinchi qismi , 29 , 30 va 34-moddalari . 14) davlat mukofotlari va unvonlarini taʼsis etish;  Oʻzbekiston Respublikasi “Davlat mukofotlari toʻgʻrisida”gi Qonunining 13-moddasi . 15) Oʻzbekiston Respublikasi Markaziy saylov komissiyasini tuzish;  Oʻzbekiston Respublikasining Saylov kodeksi 12-moddasi . 16) Oʻzbekiston Respublikasi Oliy Majlisining Inson huquqlari boʻyicha vakilini va uning oʻrinbosarini saylash;  Oʻzbekiston Respublikasining “Oʻzbekiston Respublikasi Oliy Majlisining Inson huquqlari boʻyicha vakili (ombudsman) toʻgʻrisida”gi Qonuni 6 va 8-moddalari . 17) Oʻzbekiston Respublikasi Prezidentining Oʻzbekiston Respublikasiga hujum qilinganda yoki tajovuzdan bir-birini mudofaa qilish yuzasidan tuzilgan shartnoma majburiyatlarini bajarish zaruriyati tugʻilganda urush holati eʼlon qilish toʻgʻrisidagi farmonini tasdiqlash; 18) Oʻzbekiston Respublikasi Prezidentining umumiy yoki qisman safarbarlik eʼlon qilish, favqulodda holat joriy etish, uning amal qilishini uzaytirish yoki tugatish toʻgʻrisidagi farmonlarini tasdiqlash; 19) Oʻzbekiston Respublikasida korrupsiyaga qarshi kurashish toʻgʻrisidagi har yilgi milliy maʼruzani eshitish; 20) parlament tekshiruvini oʻtkazish;  Oʻzbekiston Respublikasining “Parlament nazorati toʻgʻrisida”gi Qonuni . 21) ushbu Konstitutsiya va qonunlarda nazarda tutilgan boshqa vakolatlarni amalga oshirish. Palatalarning birgalikdagi vakolatlariga kiradigan masalalar, qoida tariqasida, avval Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasida, soʻngra Senatida koʻrib chiqiladi.  Oʻzbekiston Respublikasining “Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasi toʻgʻrisida”gi Konstitutsiyaviy qonunining 8-moddasi , “Oʻzbekiston Respublikasi Oliy Majlisining Senati toʻgʻrisida”gi Konstitutsiyaviy qonunining 8-moddasi .",
+        "category": "5-bo‘lim. Davlat hokimiyatining tashkil etilishi"
       },
       {
         "number": "94",
-        "title": "94-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Oliy Majlisning vakolatlari va tuzilishi ushbu moddada belgilanadi. Oliy Majlis ikki palatadan iborat.",
-        "category": "5-bob. Oliy Majlis"
+        "article_number": "94",
+        "title": "94-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "94-modda. Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasi mutlaq vakolatlari quyidagilardan iborat: 1) Oʻzbekiston Respublikasi Davlat budjetining ijro etilishi ustidan nazoratni amalga oshirish; 2) Oʻzbekiston Respublikasi Hisob palatasining hisobotini koʻrib chiqish; 3) Oʻzbekiston Respublikasi Prezidentining taqdimiga binoan Oʻzbekiston Respublikasi Bosh vaziri nomzodini koʻrib chiqish va maʼqullash; 4) Oʻzbekiston Respublikasi Bosh vazirining mamlakatni ijtimoiy-iqtisodiy jihatdan rivojlantirishning dolzarb masalalari yuzasidan, shuningdek Vazirlar Mahkamasi aʼzolarining oʻz faoliyati masalalari yuzasidan hisobotlarini eshitish; 5) Oʻzbekiston Respublikasi Prezidentining taqdimiga binoan Oʻzbekiston Respublikasi Vazirlar Mahkamasi aʼzoligiga nomzodlarni koʻrib chiqish va maʼqullash; 6) Oʻzbekiston Respublikasi Vazirlar Mahkamasining mamlakat ijtimoiy-iqtisodiy hayotining eng muhim masalalari boʻyicha har yilgi maʼruzasini eshitish; 7) davlat organlarining mansabdor shaxslariga parlament soʻrovini yuborish va parlament nazoratining boshqa shakllarini amalga oshirish; 8) Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasi Spikeri va uning oʻrinbosarlarini, qoʻmitalarning raislari va ularning oʻrinbosarlarini saylash; 9) Oʻzbekiston Respublikasi Bosh prokurorining taqdimiga binoan Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasi deputatini daxlsizlik huquqidan mahrum etish toʻgʻrisidagi masalalarni hal etish; 10) oʻz faoliyatini tashkil etish va palataning ichki tartib-qoidalari bilan bogʻliq masalalar yuzasidan qarorlar qabul qilish; 11) siyosiy, ijtimoiy-iqtisodiy hayot sohasidagi u yoki bu masalalar yuzasidan, shuningdek davlatning ichki va tashqi siyosati masalalari yuzasidan qarorlar qabul qilish; 12) ushbu Konstitutsiya va qonunlarda nazarda tutilgan boshqa vakolatlarni amalga oshirish.  Oʻzbekiston Respublikasi “Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasi toʻgʻrisida”gi Konstitutsiyaviy qonunining 9-moddasi . Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasi oʻzini oʻzi tarqatib yuborish toʻgʻrisida deputatlar umumiy sonining kamida uchdan ikki qismidan iborat koʻpchilik ovozi bilan qaror qabul qilishi mumkin.",
+        "category": "5-bo‘lim. Davlat hokimiyatining tashkil etilishi"
       },
       {
         "number": "95",
-        "title": "95-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Oliy Majlisning vakolatlari va tuzilishi ushbu moddada belgilanadi. Oliy Majlis ikki palatadan iborat.",
-        "category": "5-bob. Oliy Majlis"
+        "article_number": "95",
+        "title": "95-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "95-modda. Oʻzbekiston Respublikasi Oliy Majlisining Senati mutlaq vakolatlari quyidagilardan iborat: 1) Oʻzbekiston Respublikasi Prezidentining taqdimiga binoan Oʻzbekiston Respublikasi Konstitutsiyaviy sudini, Oliy sudini, Sudyalar oliy kengashini, respublika korrupsiyaga qarshi kurashish organining rahbarini va respublika monopoliyaga qarshi organining rahbarini saylash; 2) Oʻzbekiston Respublikasi Prezidentining taqdimiga binoan Oʻzbekiston Respublikasi Bosh prokurori va Oʻzbekiston Respublikasi Hisob palatasi raisi lavozimlariga nomzodlarni koʻrib chiqish hamda maʼqullash; 3) Oʻzbekiston Respublikasi Prezidenti tomonidan taklif etilgan Oʻzbekiston Respublikasi Davlat xavfsizlik xizmati raisi lavozimiga nomzod yuzasidan maslahatlashuvlar oʻtkazish; 4) Oʻzbekiston Respublikasi Prezidentining taqdimiga binoan Oʻzbekiston Respublikasining chet davlatlardagi va xalqaro tashkilotlar huzuridagi diplomatik hamda boshqa vakolatxonalari rahbarlarini tayinlash va ularni lavozimidan ozod etish; 5) Oʻzbekiston Respublikasi Prezidentining taqdimiga binoan Oʻzbekiston Respublikasi Markaziy banki boshqaruvining raisini tayinlash va uni lavozimidan ozod etish; 6) Oʻzbekiston Respublikasi Prezidentining vazirliklarni va boshqa respublika ijro etuvchi hokimiyat organlarini tuzish hamda tugatish toʻgʻrisidagi farmonlarini tasdiqlash; 7) Oʻzbekiston Respublikasi Prezidentining taqdimiga binoan amnistiya toʻgʻrisidagi hujjatlarni qabul qilish; 8) Oʻzbekiston Respublikasi Bosh prokurorining, Oʻzbekiston Respublikasi Markaziy banki boshqaruvi raisining hisobotlarini eshitish; 9) Oʻzbekiston Respublikasining chet davlatlardagi va xalqaro tashkilotlar huzuridagi diplomatik hamda boshqa vakolatxonalari rahbarlarining oʻz faoliyati masalalari boʻyicha hisobotlarini eshitish; 10) davlat organlarining mansabdor shaxslariga parlament soʻrovini yuborish va parlament nazoratining boshqa shakllarini amalga oshirish; 11) mahalliy davlat hokimiyati vakillik organlariga oʻz faoliyatini amalga oshirishda koʻmaklashish; 12) mahalliy davlat hokimiyati vakillik organlarining qarorlarini, ular qonunchilik normalariga muvofiq boʻlmagan taqdirda, bekor qilish; 13) Oʻzbekiston Respublikasi Oliy Majlisining Senati Raisini va uning oʻrinbosarlarini, qoʻmitalarning raislari va ularning oʻrinbosarlarini saylash; 14) Oʻzbekiston Respublikasi Bosh prokurorining taqdimiga binoan Oʻzbekiston Respublikasi Oliy Majlisining Senati aʼzosini daxlsizlik huquqidan mahrum etish toʻgʻrisidagi masalalarni hal etish; 15) oʻz faoliyatini tashkil etish va palataning ichki tartib-qoidalari bilan bogʻliq masalalar yuzasidan qarorlar qabul qilish; 16) siyosiy, ijtimoiy-iqtisodiy hayot sohasidagi u yoki bu masalalar yuzasidan, shuningdek davlat ichki va tashqi siyosati masalalari yuzasidan qarorlar qabul qilish; 17) Qonunchilik palatasi tarqatib yuborilgan davrda Oʻzbekiston Respublikasi Oliy Majlisining qonunlarni qabul qilishga doir vakolatlarini bajarish, bundan Konstitutsiya va konstitutsiyaviy qonunlar mustasno; 18) ushbu Konstitutsiya va qonunlarda nazarda tutilgan boshqa vakolatlarni amalga oshirish.  Oʻzbekiston Respublikasining “Oʻzbekiston Respublikasi Oliy Majlisining Senati toʻgʻrisida”gi Konstitutsiyaviy qonunining 9-moddasi . Oʻzbekiston Respublikasi Oliy Majlisining Senati oʻzini oʻzi tarqatib yuborish toʻgʻrisida senatorlar umumiy sonining kamida uchdan ikki qismidan iborat koʻpchilik ovozi bilan qaror qabul qilishi mumkin.",
+        "category": "5-bo‘lim. Davlat hokimiyatining tashkil etilishi"
       },
       {
         "number": "96",
-        "title": "96-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Oliy Majlisning vakolatlari va tuzilishi ushbu moddada belgilanadi. Oliy Majlis ikki palatadan iborat.",
-        "category": "5-bob. Oliy Majlis"
+        "article_number": "96",
+        "title": "96-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "96-modda. Vakolat muddati tugagach, Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasi va Senati tegishincha yangi chaqiriq Qonunchilik palatasi va Senati ish boshlaguniga qadar oʻz faoliyatini davom ettirib turadi. Oʻzbekiston Respublikasi Oliy Majlisi Qonunchilik palatasi va Senatining birinchi majlislari tegishincha Qonunchilik palatasiga saylovdan keyin ikki oydan kechiktirmay va Senat tarkib topganidan keyin bir oydan kechiktirmay Markaziy saylov komissiyasi tomonidan chaqiriladi.  Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasi majlislari sessiyalar davrida oʻtkaziladi. Sessiyalar, qoida tariqasida, sentabrning birinchi ish kunidan boshlab kelgusi yilning iyun oyi oxirgi ish kuniga qadar oʻtkaziladi.  Oʻzbekiston Respublikasi Oliy Majlisining Senati majlislari zaruratga qarab, lekin yiliga kamida uch marta oʻtkaziladi. Oʻzbekiston Respublikasi Oliy Majlisi palatalarining majlislari, agar ular ishida barcha deputatlar, senatorlar umumiy sonining yarmidan koʻpi ishtirok etayotgan boʻlsa, vakolatli hisoblanadi. Konstitutsiyaviy qonunlarni qabul qilishda barcha deputatlar, senatorlar umumiy sonining kamida uchdan ikki qismi ishtirok etishi shart. Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasi va Senati majlislarida, shuningdek ularning organlari majlislarida Oʻzbekiston Respublikasi Prezidenti, Bosh vazir, Vazirlar Mahkamasining aʼzolari, Konstitutsiyaviy sud, Oliy sud, Sudyalar oliy kengashi raislari, Bosh prokuror, Markaziy bank boshqaruvining raisi ishtirok etishlari mumkin. Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasi va uning organlari majlislarida Senat Raisi, Oʻzbekiston Respublikasi Oliy Majlisining Senati va uning organlari majlislarida Qonunchilik palatasi Spikeri ishtirok etishi mumkin. Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasi va Senati alohida-alohida majlis oʻtkazadilar. Oʻzbekiston Respublikasi Oliy Majlisi Qonunchilik palatasi va Senatining qoʻshma majlislari Oʻzbekiston Respublikasi Prezidenti qasamyod qilganda, Oʻzbekiston Respublikasi Prezidenti mamlakat ijtimoiy-iqtisodiy hayotining, ichki va tashqi siyosatining eng muhim masalalari yuzasidan nutq soʻzlaganda, chet davlatlarning rahbarlari nutq soʻzlaganda oʻtkaziladi. Palatalarning kelishuviga binoan qoʻshma majlislar boshqa masalalar yuzasidan ham oʻtkazilishi mumkin.  Oʻzbekiston Respublikasining “Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasi toʻgʻrisida”gi Konstitutsiyaviy qonunining 10 va 11-moddalari , “Oʻzbekiston Respublikasi Oliy Majlisining Senati toʻgʻrisida”gi Konstitutsiyaviy qonunining 10 va 11-moddalari .",
+        "category": "5-bo‘lim. Davlat hokimiyatining tashkil etilishi"
       },
       {
         "number": "97",
-        "title": "97-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Oliy Majlisning vakolatlari va tuzilishi ushbu moddada belgilanadi. Oliy Majlis ikki palatadan iborat.",
-        "category": "5-bob. Oliy Majlis"
+        "article_number": "97",
+        "title": "97-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "97-modda. Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasi va Senati oʻz vakolatlariga kiritilgan masalalar yuzasidan qarorlar qabul qiladi. Oʻzbekiston Respublikasi Oliy Majlisi Qonunchilik palatasi va Senatining qarorlari Qonunchilik palatasi deputatlari yoki Senat aʼzolari umumiy sonining koʻpchilik ovozi bilan qabul qilinadi, ushbu Konstitutsiyada nazarda tutilgan hollar bundan mustasno.  mazkur Konstitutsiya 99-moddasining yettinchi va oʻninchi qismlari , 100-moddasining toʻrtinchi qismi , Oʻzbekiston Respublikasining “Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasi toʻgʻrisida”gi Konstitutsiyaviy qonunining 7-moddasi , 13-moddasining toʻrtinchi qismi , 29-moddasining uchinchi va toʻqqizinchi qismlari , 31-moddasining beshinchi qismi , 33-moddasining ikkinchi qismi , “Oʻzbekiston Respublikasi Oliy Majlisining Senati toʻgʻrisida”gi Konstitutsiyaviy qonunning 7-moddasi , 13-moddasining toʻrtinchi qismi , 24-moddasining uchinchi qismi , 28-moddasining ikkinchi qismi .",
+        "category": "5-bo‘lim. Davlat hokimiyatining tashkil etilishi"
       },
       {
         "number": "98",
-        "title": "98-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Oliy Majlisning vakolatlari va tuzilishi ushbu moddada belgilanadi. Oliy Majlis ikki palatadan iborat.",
-        "category": "5-bob. Oliy Majlis"
+        "article_number": "98",
+        "title": "98-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "98-modda. Qonunchilik tashabbusi huquqiga Oʻzbekiston Respublikasi Prezidenti, davlat hokimiyatining oliy vakillik organi orqali Qoraqalpogʻiston Respublikasi, Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasi deputatlari, Oʻzbekiston Respublikasi Vazirlar Mahkamasi ega. Oʻzbekiston Respublikasining Konstitutsiyaviy sudi, Oliy sudi va Bosh prokurori ham oʻz vakolatlari jumlasiga kiritilgan masalalar boʻyicha qonunchilik tashabbusi huquqiga egadir.  Qonunchilik tashabbusi huquqi qonun loyihasini qonunchilik tashabbusi huquqi subyektlari tomonidan Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasiga kiritish orqali amalga oshiriladi.  Oʻzbekiston Respublikasining “Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasi toʻgʻrisida”gi Konstitutsiyaviy qonunining 27-moddasi , “Qonunlar loyihalarini tayyorlash va Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasiga kiritish tartibi toʻgʻrisida”gi Qonunining 3 — 5-moddalari .  Oʻzbekiston Respublikasining saylov huquqiga ega boʻlgan, yuz ming nafardan kam boʻlmagan fuqarolari, Oʻzbekiston Respublikasi Oliy Majlisining Senati, Oʻzbekiston Respublikasi Oliy Majlisining Inson huquqlari boʻyicha vakili (ombudsman), Oʻzbekiston Respublikasi Markaziy saylov komissiyasi qonunchilik takliflarini qonunchilik tashabbusi tartibida Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasiga kiritishga haqli. Qonun loyihalarini, qonunchilik takliflarini kiritish va koʻrib chiqish tartibi qonun bilan belgilanadi.",
+        "category": "5-bo‘lim. Davlat hokimiyatining tashkil etilishi"
       },
       {
         "number": "99",
-        "title": "99-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Oliy Majlisning vakolatlari va tuzilishi ushbu moddada belgilanadi. Oliy Majlis ikki palatadan iborat.",
-        "category": "5-bob. Oliy Majlis"
+        "article_number": "99",
+        "title": "99-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "99-modda. Qonun Qonunchilik palatasi tomonidan qabul qilinib, Senat tomonidan maʼqullanib, Oʻzbekiston Respublikasi Prezidenti tomonidan imzolangach va qonunda belgilangan tartibda rasmiy manbalarda eʼlon qilingach, yuridik kuchga ega boʻladi.  Oʻzbekiston Respublikasi “Normativ-huquqiy hujjatlar toʻgʻrisida”gi Qonunining 6-bobi (“Normativ-huquqiy hujjatlarning eʼlon qilinishi, kuchga kirishi va amal qilishi”).  Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasi tomonidan qabul qilingan qonun qabul qilingan kundan eʼtiboran oʻn kundan kechiktirmay Oʻzbekiston Respublikasi Oliy Majlisining Senatiga yuboriladi.  Qonun Oʻzbekiston Respublikasi Oliy Majlisining Senati tomonidan oltmish kun ichida koʻrib chiqiladi va maʼqullangan taqdirda, imzolanishi va eʼlon qilinishi uchun Oʻzbekiston Respublikasi Prezidentiga oʻn kundan kechiktirmay yuboriladi. Agar Oʻzbekiston Respublikasi Oliy Majlisining Senati qonunni maʼqullash yoki rad etish toʻgʻrisida oltmish kun ichida qaror qabul qilmasa, Qonunchilik palatasi tomonidan qonun imzolanishi va eʼlon qilinishi uchun Oʻzbekiston Respublikasi Prezidentiga yuboriladi.  Oʻzbekiston Respublikasi Prezidenti qonunni oltmish kun ichida imzolaydi va eʼlon qiladi. Oʻzbekiston Respublikasi Oliy Majlisining Senati tomonidan rad etilgan qonun Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasiga qaytariladi. Agar Oʻzbekiston Respublikasi Oliy Majlisining Senati tomonidan rad etilgan qonunni qayta koʻrib chiqishda Qonunchilik palatasi deputatlar umumiy sonining uchdan ikki qismidan iborat koʻpchilik ovozi bilan qonunni yana maʼqullasa, qonun Oʻzbekiston Respublikasi Oliy Majlisi tomonidan qabul qilingan hisoblanadi hamda imzolanishi va eʼlon qilinishi uchun Oʻzbekiston Respublikasi Prezidentiga Qonunchilik palatasi tomonidan yuboriladi. Oʻzbekiston Respublikasi Oliy Majlisining Senati tomonidan rad etilgan qonun yuzasidan Qonunchilik palatasi va Senat yuzaga kelgan kelishmovchiliklarni bartaraf etish uchun Qonunchilik palatasi deputatlari va Senat aʼzolari orasidan tenglik asosida kelishuv komissiyasini tuzishi mumkin. Palatalar kelishuv komissiyasi takliflarini qabul qilganda qonun odatdagi tartibda koʻrib chiqilishi kerak.  Oʻzbekiston Respublikasi Oliy Majlisi Qonunchilik palatasining va Senatining 152-I, 112-I-sonli qarorlari bilan tasdiqlangan Oʻzbekiston Respublikasi Oliy Majlisi palatalarining kelishuv komissiyasini tuzish va uning faoliyatini tashkil etish tartibi .  Oʻzbekiston Respublikasi Prezidenti qonunni oʻz eʼtirozlari bilan Oʻzbekiston Respublikasi Oliy Majlisiga qaytarishga haqli.  Agar qonun avvalgi qabul qilingan tahririda tegishincha Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasi deputatlari va Senati aʼzolari umumiy sonining kamida uchdan ikki qismidan iborat koʻpchilik ovozi bilan maʼqullansa, qonun Oʻzbekiston Respublikasi Prezidenti tomonidan oʻn toʻrt kun ichida imzolanishi va eʼlon qilinishi kerak. Qonunlarning va boshqa normativ-huquqiy hujjatlarning eʼlon qilinishi ular qoʻllanilishining majburiy shartidir.  Oʻzbekiston Respublikasining “Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasi toʻgʻrisida”gi Konstitutsiyaviy qonunining 28 — 33-moddalari , “Oʻzbekiston Respublikasi Oliy Majlisining Senati toʻgʻrisida”gi Konstitutsiyaviy qonunining 23 — 28-moddalari , Oʻzbekiston Respublikasi “Normativ-huquqiy hujjatlar toʻgʻrisida”gi Qonunining 38 va 39-moddalari .",
+        "category": "5-bo‘lim. Davlat hokimiyatining tashkil etilishi"
       },
       {
         "number": "100",
-        "title": "100-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Oliy Majlisning vakolatlari va tuzilishi ushbu moddada belgilanadi. Oliy Majlis ikki palatadan iborat.",
-        "category": "5-bob. Oliy Majlis"
+        "article_number": "100",
+        "title": "100-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "100-modda. Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasi oʻz tarkibidan Qonunchilik palatasining Spikeri va uning oʻrinbosarlarini saylaydi.  Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasi Spikeri va uning oʻrinbosarlari yashirin ovoz berish orqali deputatlar umumiy sonining koʻpchilik ovozi bilan Qonunchilik palatasining vakolati muddatiga saylanadi. Ayni bir shaxs surunkasiga ikki muddatdan ortiq Oʻzbekiston Respublikasi Oliy Majlisi Qonunchilik palatasining Spikeri boʻlishi mumkin emas. Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasi Spikeri va uning oʻrinbosarlari yashirin ovoz berish orqali Qonunchilik palatasi deputatlari umumiy sonining uchdan ikki qismidan koʻprogʻining ovozi bilan qabul qilingan Qonunchilik palatasi qaroriga binoan muddatidan ilgari chaqirib olinishi mumkin.  Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasi Spikeri: 1) Qonunchilik palatasining majlislarini chaqiradi, ularda raislik qiladi; 2) Qonunchilik palatasi muhokamasiga kiritiladigan masalalarni tayyorlashga umumiy rahbarlik qiladi; 3) Qonunchilik palatasi qoʻmitalari va komissiyalarining faoliyatini muvofiqlashtirib boradi; 4) Oʻzbekiston Respublikasi qonunlarining va Qonunchilik palatasi qarorlarining ijrosi ustidan nazoratni tashkil etadi; 5) parlamentlararo aloqalarni amalga oshirish ishlariga hamda xalqaro parlament tashkilotlari ishi bilan bogʻliq Qonunchilik palatasi guruhlarining faoliyatiga rahbarlik qiladi; 6) Oʻzbekiston Respublikasi Oliy Majlisining Senati, boshqa davlat organlari, chet davlatlar, xalqaro va boshqa tashkilotlar bilan oʻzaro munosabatlarda Qonunchilik palatasi nomidan ish koʻradi; 7) Qonunchilik palatasi qarorlarini imzolaydi; 8) ushbu Konstitutsiya va qonun hujjatlarida nazarda tutilgan boshqa vakolatlarni amalga oshiradi. Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasi Spikeri farmoyishlar chiqaradi.  Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasi toʻgʻrisida”gi Oʻzbekiston Respublikasi Konstitutsiyaviy Qonunining 13 va 14-moddalari .",
+        "category": "5-bo‘lim. Davlat hokimiyatining tashkil etilishi"
       },
       {
         "number": "101",
-        "title": "O'zbekiston Respublikasi Prezidenti",
-        "content": "Prezidentning vakolatlari va maqomi ushbu moddada belgilanadi. Prezident davlat rahbari hisoblanadi.",
-        "category": "6-bob. O'zbekiston Respublikasi Prezidenti"
+        "article_number": "101",
+        "title": "101-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "101-modda. Oʻzbekiston Respublikasi Oliy Majlisining Senati oʻz tarkibidan Senat Raisi va uning oʻrinbosarlarini saylaydi. Senat Raisi Oʻzbekiston Respublikasi Prezidentining taqdimiga binoan saylanadi. Oʻzbekiston Respublikasi Oliy Majlisining Senati Raisi oʻrinbosarlaridan biri Qoraqalpogʻiston Respublikasining vakili boʻladi. Oʻzbekiston Respublikasi Oliy Majlisining Senati Raisi va uning oʻrinbosarlari yashirin ovoz berish orqali senatorlar umumiy sonining koʻpchilik ovozi bilan Senat vakolati muddatiga saylanadi. Ayni bir shaxs surunkasiga ikki muddatdan ortiq Oʻzbekiston Respublikasi Oliy Majlisi Senatining Raisi boʻlishi mumkin emas. Oʻzbekiston Respublikasi Oliy Majlisining Senati Raisi va uning oʻrinbosarlari yashirin ovoz berish orqali senatorlar umumiy sonining uchdan ikki qismidan koʻprogʻining ovozi bilan qabul qilingan Senat qaroriga binoan muddatidan ilgari chaqirib olinishi mumkin. Oʻzbekiston Respublikasi Oliy Majlisining Senati Raisi: 1) Senat majlislarini chaqiradi, ularda raislik qiladi; 2) Senat muhokamasiga kiritiladigan masalalarni tayyorlashga umumiy rahbarlik qiladi; 3) Senat qoʻmitalari va komissiyalarining faoliyatini muvofiqlashtirib boradi; 4) Oʻzbekiston Respublikasi qonunlarining va Senat qarorlarining ijrosi ustidan nazoratni tashkil etadi; 5) parlamentlararo aloqalarni amalga oshirish ishlariga hamda xalqaro parlament tashkilotlari ishi bilan bogʻliq Senat guruhlarining faoliyatiga rahbarlik qiladi; 6) Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasi, boshqa davlat organlari, chet davlatlar, xalqaro va boshqa tashkilotlar bilan oʻzaro munosabatlarda Senat nomidan ish koʻradi; 7) Senat qarorlarini imzolaydi; 8) ushbu Konstitutsiya va qonun hujjatlarida nazarda tutilgan boshqa vakolatlarni amalga oshiradi. Oʻzbekiston Respublikasi Oliy Majlisining Senati Raisi farmoyishlar chiqaradi.  Oʻzbekiston Respublikasining “Oʻzbekiston Respublikasi Oliy Majlisining Senati toʻgʻrisida”gi Konstitutsiyaviy qonunining 13 va 14-moddalari .",
+        "category": "5-bo‘lim. Davlat hokimiyatining tashkil etilishi"
       },
       {
         "number": "102",
-        "title": "102-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Prezidentning vakolatlari va maqomi ushbu moddada belgilanadi. Prezident davlat rahbari hisoblanadi.",
-        "category": "6-bob. O'zbekiston Respublikasi Prezidenti"
+        "article_number": "102",
+        "title": "102-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "102-modda. Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasi qonun loyihalarini tayyorlash ishini olib borish, Qonunchilik palatasi muhokamasiga kiritiladigan masalalarni dastlabki tarzda koʻrib chiqish va tayyorlash, Oʻzbekiston Respublikasi qonunlari hamda Qonunchilik palatasi tomonidan qabul qilinadigan qarorlarning ijrosini nazorat qilish uchun oʻz vakolatlari muddatiga Qonunchilik palatasi deputatlari orasidan qoʻmitalarni saylaydi. Oʻzbekiston Respublikasi Oliy Majlisining Senati Senat muhokamasiga kiritiladigan masalalarni dastlabki tarzda koʻrib chiqish va tayyorlash, Oʻzbekiston Respublikasi qonunlari hamda Senat tomonidan qabul qilinadigan qarorlarning ijrosini nazorat qilish uchun oʻz vakolatlari muddatiga senatorlar orasidan qoʻmitalarni saylaydi. Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasi va Senati, zarurat boʻlgan taqdirda, muayyan vazifalarni bajarish uchun deputatlar, senatorlar orasidan komissiyalar tuzadi.  Oʻzbekiston Respublikasining “Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasi toʻgʻrisida”gi Konstitutsiyaviy qonunining 17 — 22-moddalari , “Oʻzbekiston Respublikasi Oliy Majlisining Senati toʻgʻrisida”gi Konstitutsiyaviy qonunining 17 — 22-moddalari .",
+        "category": "5-bo‘lim. Davlat hokimiyatining tashkil etilishi"
       },
       {
         "number": "103",
-        "title": "103-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Prezidentning vakolatlari va maqomi ushbu moddada belgilanadi. Prezident davlat rahbari hisoblanadi.",
-        "category": "6-bob. O'zbekiston Respublikasi Prezidenti"
+        "article_number": "103",
+        "title": "103-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "103-modda. Mamlakatning xavfsizligi, barqaror rivojlanishi asoslariga salbiy taʼsir koʻrsatishi mumkin boʻlgan, inson huquqlari va erkinliklariga, jamiyat va davlat manfaatlariga tahdid soladigan faktlar va voqealarni oʻrganish maqsadida Oʻzbekiston Respublikasi Oliy Majlisi Qonunchilik palatasi va Senatining qoʻshma qarori bilan parlament tekshiruvi oʻtkazilishi mumkin.  Parlament tekshiruvini oʻtkazish uchun Oʻzbekiston Respublikasi Oliy Majlisi Qonunchilik palatasi deputatlari va Senati aʼzolari orasidan tenglik asosida maxsus komissiya tuzilib, u oʻz faoliyatini qonunga muvofiq amalga oshiradi.",
+        "category": "5-bo‘lim. Davlat hokimiyatining tashkil etilishi"
       },
       {
         "number": "104",
-        "title": "104-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Prezidentning vakolatlari va maqomi ushbu moddada belgilanadi. Prezident davlat rahbari hisoblanadi.",
-        "category": "6-bob. O'zbekiston Respublikasi Prezidenti"
+        "article_number": "104",
+        "title": "104-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "104-modda. Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasi deputatlariga va Senati aʼzolariga ularning deputatlik yoki senatorlik faoliyati bilan bogʻliq xarajatlar belgilangan tartibda qoplanadi.  Qonunchilik palatasi deputatlari hamda Senatda doimiy asosda ishlovchi Senat aʼzolari oʻz vakolatlari davrida ilmiy, ijodiy va pedagogik faoliyatdan tashqari haq toʻlanadigan boshqa turdagi faoliyat bilan shugʻullanishlari mumkin emas.  Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasi deputati va Senati aʼzosi daxlsizlik huquqidan foydalanadilar. Ular tegishincha Qonunchilik palatasi yoki Senatning roziligisiz jinoiy javobgarlikka tortilishi, ushlab turilishi, qamoqqa olinishi yoki sud tartibida beriladigan maʼmuriy jazo choralariga tortilishi mumkin emas.  Oʻzbekiston Respublikasining “Oʻzbekiston Respublikasi Oliy Majlisining Senati toʻgʻrisida”gi Konstitutsiyaviy qonunining 6-moddasi , “Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasi toʻgʻrisida”gi Konstitutsiyaviy qonunining 6-moddasi , “Oʻzbekiston Respublikasi Oliy Majlisi Qonunchilik palatasi deputatining va Senati aʼzosining maqomi toʻgʻrisida”gi Qonuni . XIX bob. Oʻzbekiston Respublikasining Prezidenti",
+        "category": "5-bo‘lim. Davlat hokimiyatining tashkil etilishi"
       },
       {
         "number": "105",
-        "title": "105-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Prezidentning vakolatlari va maqomi ushbu moddada belgilanadi. Prezident davlat rahbari hisoblanadi.",
-        "category": "6-bob. O'zbekiston Respublikasi Prezidenti"
+        "article_number": "105",
+        "title": "O‘zbekiston Respublikasi Prezidenti saylanishi",
+        "content": "105-modda. Oʻzbekiston Respublikasining Prezidenti davlat boshligʻidir va davlat hokimiyati organlarining kelishilgan holda faoliyat yuritishini hamda hamkorligini taʼminlaydi.",
+        "category": "5-bo‘lim. Davlat hokimiyatining tashkil etilishi"
       },
       {
         "number": "106",
-        "title": "106-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Prezidentning vakolatlari va maqomi ushbu moddada belgilanadi. Prezident davlat rahbari hisoblanadi.",
-        "category": "6-bob. O'zbekiston Respublikasi Prezidenti"
+        "article_number": "106",
+        "title": "106-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "106-modda. Oʻzbekiston Respublikasi Prezidenti lavozimiga oʻttiz besh yoshdan kichik boʻlmagan, davlat tilini yaxshi biladigan, bevosita saylovgacha kamida 10 yil Oʻzbekiston hududida muqim yashayotgan Oʻzbekiston Respublikasi fuqarosi saylanishi mumkin. Ayni bir shaxs surunkasiga ikki muddatdan ortiq Oʻzbekiston Respublikasining Prezidenti boʻlishi mumkin emas. Oʻzbekiston Respublikasining Prezidenti Oʻzbekiston Respublikasining fuqarolari tomonidan umumiy, teng va toʻgʻridan-toʻgʻri saylov huquqi asosida yashirin ovoz berish yoʻli bilan yetti yil muddatga saylanadi. Oʻzbekiston Respublikasining Prezidentini saylash tartibi qonun bilan belgilanadi.",
+        "category": "5-bo‘lim. Davlat hokimiyatining tashkil etilishi"
       },
       {
         "number": "107",
-        "title": "107-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Prezidentning vakolatlari va maqomi ushbu moddada belgilanadi. Prezident davlat rahbari hisoblanadi.",
-        "category": "6-bob. O'zbekiston Respublikasi Prezidenti"
+        "article_number": "107",
+        "title": "107-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "107-modda. Oʻzbekiston Respublikasi Prezidenti oʻz vazifasini bajarib turgan davrda boshqa haq toʻlanadigan lavozimni egallashi, vakillik organining deputati boʻlishi, tadbirkorlik faoliyati bilan shugʻullanishi mumkin emas. Oʻzbekiston Respublikasi Prezidentining shaxsi daxlsizdir va qonun bilan muhofaza etiladi.  Oʻzbekiston Respublikasining “Oʻzbekiston Respublikasi Prezidenti faoliyatining asosiy kafolatlari toʻgʻrisida”gi Qonuni , Oʻzbekiston Respublikasi Jinoyat kodeksining 158-moddasi .",
+        "category": "5-bo‘lim. Davlat hokimiyatining tashkil etilishi"
       },
       {
         "number": "108",
-        "title": "108-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Prezidentning vakolatlari va maqomi ushbu moddada belgilanadi. Prezident davlat rahbari hisoblanadi.",
-        "category": "6-bob. O'zbekiston Respublikasi Prezidenti"
+        "article_number": "108",
+        "title": "108-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "108-modda. Oʻzbekiston Respublikasi Prezidenti Oʻzbekiston Respublikasi Oliy Majlisi yigʻilishida quyidagi qasamyodni qabul qilgan paytdan boshlab oʻz lavozimiga kirishgan hisoblanadi: “Oʻzbekiston xalqiga sadoqat bilan xizmat qilishga, respublikaning Konstitutsiyasi va qonunlariga qatʼiy rioya etishga, fuqarolarning huquqlari va erkinliklariga kafolat berishga, Oʻzbekiston Respublikasi Prezidenti zimmasiga yuklatilgan vazifalarni vijdonan bajarishga tantanali qasamyod qilaman”.",
+        "category": "5-bo‘lim. Davlat hokimiyatining tashkil etilishi"
       },
       {
         "number": "109",
-        "title": "109-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Prezidentning vakolatlari va maqomi ushbu moddada belgilanadi. Prezident davlat rahbari hisoblanadi.",
-        "category": "6-bob. O'zbekiston Respublikasi Prezidenti"
+        "article_number": "109",
+        "title": "O‘zbekiston Respublikasi Prezidentining vakolatlari",
+        "content": "109-modda. Oʻzbekiston Respublikasining Prezidenti: 1) fuqarolarning huquqlari va erkinliklariga, Oʻzbekiston Respublikasining Konstitutsiyasi va qonunlariga rioya etilishining, Oʻzbekiston Respublikasi suvereniteti, xavfsizligi va hududiy yaxlitligining kafilidir, milliy-davlat tuzilishi masalalariga doir qarorlarni amalga oshirish yuzasidan zarur chora-tadbirlar koʻradi; 2) mamlakat ichkarisida va xalqaro munosabatlarda Oʻzbekiston Respublikasi nomidan ish koʻradi; 3) muzokaralar olib boradi hamda Oʻzbekiston Respublikasining shartnoma va bitimlarini imzolaydi, respublika tomonidan tuzilgan shartnomalarga, bitimlarga va uning qabul qilingan majburiyatlariga rioya etilishini taʼminlaydi;  Oʻzbekiston Respublikasining “Oʻzbekiston Respublikasining xalqaro shartnomalari toʻgʻrisida”gi Qonuni 13-moddasining birinchi qismi , 14-moddasi , 16-moddasining birinchi qismi , 19-moddasining birinchi qismi , 20-moddasining birinchi qismi . 4) oʻz huzurida akkreditatsiyadan oʻtgan diplomatik hamda boshqa vakillarning ishonch va chaqiruv yorliqlarini qabul qiladi; 5) Oʻzbekiston Respublikasining chet davlatlardagi va xalqaro tashkilotlar huzuridagi diplomatik hamda boshqa vakolatxonalarining rahbarlarini tayinlash uchun nomzodlarni Oʻzbekiston Respublikasi Oliy Majlisining Senatiga taqdim etadi;  Oʻzbekiston Respublikasining “Oʻzbekiston Respublikasi Oliy Majlisining Senati toʻgʻrisida”gi Konstitutsiyaviy qonuni 9-moddasi birinchi qismining 8-bandi. 6) Oʻzbekiston Respublikasi xalqiga hamda Oliy Majlisiga mamlakat ichki va tashqi siyosatini amalga oshirishning eng muhim masalalari yuzasidan murojaat qilish huquqiga ega;  Oʻzbekiston Respublikasining “Oʻzbekiston Respublikasi Oliy Majlisining Senati toʻgʻrisida”gi Konstitutsiyaviy qonuni 11-moddasi birinchi qismi , “Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasi toʻgʻrisida”gi Konstitutsiyaviy qonuni 11-moddasining birinchi qismi . 7) vazirliklarni va boshqa respublika ijro etuvchi hokimiyat organlarini tuzadi hamda tugatadi, shu masalalarga doir farmonlarni keyinchalik Oʻzbekiston Respublikasi Oliy Majlisining Senati tasdigʻiga kiritadi;  Oʻzbekiston Respublikasining “Oʻzbekiston Respublikasi Oliy Majlisining Senati toʻgʻrisida”gi Konstitutsiyaviy qonuni 8-moddasi birichi qismining 13-bandi , “Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasi toʻgʻrisida”gi Konstitutsiyaviy qonunining 8-moddasi birinchi qismining 13-bandi . 8) Senat Raisi lavozimiga saylash uchun nomzodni Oʻzbekiston Respublikasi Oliy Majlisining Senatiga taqdim etadi;  Oʻzbekiston Respublikasining “Oʻzbekiston Respublikasi Oliy Majlisining Senati toʻgʻrisida”gi Konstitutsiyaviy qonuni 13-moddasining birinchi qismi . 9) Oʻzbekiston Respublikasi Bosh vazirini, Oʻzbekiston Respublikasi Vazirlar Mahkamasi aʼzolarini Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasi maʼqullaganidan keyin lavozimga tayinlaydi va ularni lavozimidan ozod etadi;  Oʻzbekiston Respublikasining “Oʻzbekiston Respublikasi Oliy Majlisining Senati toʻgʻrisida”gi Konstitutsiyaviy qonuni 8-moddasi birinchi qismining 15-bandi , “Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasi toʻgʻrisida”gi Konstitutsiyaviy qonuni 8-moddasi birinchi qismining 15-bandi . 10) qoʻmitalar, agentliklar va boshqa respublika davlat organlari rahbarlarini qonunchilikka muvofiq lavozimga tayinlaydi va lavozimidan ozod etadi; 11) Oʻzbekiston Respublikasi Bosh prokurorini, Oʻzbekiston Respublikasi Hisob palatasi raisini Oʻzbekiston Respublikasi Oliy Majlisining Senati maʼqullaganidan keyin lavozimga tayinlaydi va ularni lavozimidan ozod etadi;  Oʻzbekiston Respublikasining “Oʻzbekiston Respublikasi Oliy Majlisining Senati toʻgʻrisida”gi Konstitutsiyaviy qonuni 9-moddasi birinchi qismining 6-bandi , Oʻzbekiston Respublikasining “Prokuratura toʻgʻrisida”gi Qonuni 12-moddasining birinchi va ikkinchi qismlari , Oʻzbekiston Respublikasi Prezidentining 2017-yil 10-avgustdagi PF-5147-sonli “Oʻzbekiston Respublikasi Hisob palatasi faoliyatini tubdan takomillashtirish chora-tadbirlari toʻgʻrisida”gi Farmoni . 12) Oʻzbekiston Respublikasi Oliy Majlisining Senati bilan maslahatlashuvlardan keyin Oʻzbekiston Respublikasi Davlat xavfsizlik xizmati raisini lavozimga tayinlaydi va uni lavozimidan ozod etadi; 13) Oʻzbekiston Respublikasi Oliy Majlisining Senatiga Oʻzbekiston Respublikasi Konstitutsiyaviy sudi, Oʻzbekiston Respublikasi Oliy sudi, Oʻzbekiston Respublikasi Sudyalar oliy kengashi tarkiblariga nomzodlarni, shuningdek Oʻzbekiston Respublikasi Markaziy banki boshqaruvining raisi, respublika korrupsiyaga qarshi kurashish organining rahbari va respublika monopoliyaga qarshi organining rahbari lavozimlariga nomzodlarni taqdim etadi;  Oʻzbekiston Respublikasining “Oʻzbekiston Respublikasi Oliy Majlisining Senati toʻgʻrisida”gi Konstitutsiyaviy qonuni 9-moddasi birinchi qismining 2 , 3 , 4 va 9-bandlari , Oʻzbekiston Respublikasining “Sudlar toʻgʻrisida” Qonuni 70-moddasining birinchi qismi . 14) Oʻzbekiston Respublikasi Sudyalar oliy kengashining taqdimiga binoan viloyatlar va Toshkent shahar sudlari raislarini va rais oʻrinbosarlarini, Oʻzbekiston Respublikasi Harbiy sudi raisini tayinlaydi va lavozimidan ozod etadi;  Oʻzbekiston Respublikasining “Sudlar toʻgʻrisida”gi Qonuni 70-moddasining ikkinchi qismi . 15) viloyatlar hokimlarini va Toshkent shahar hokimini tayinlaydi hamda lavozimidan ozod etadi. Konstitutsiyani, qonunlarni buzgan yoki hokim shaʼni va qadr-qimmatiga dogʻ tushiradigan xatti-harakat sodir etgan tuman va shahar hokimlarini Oʻzbekiston Respublikasi Prezidenti oʻz qarori bilan lavozimidan ozod etishga haqli;  Oʻzbekiston Respublikasining “Mahalliy davlat hokimiyati toʻgʻrisida”gi Qonuni 2-moddasining birinchi qismi . 16) respublika ijro etuvchi hokimiyat organlarining va hokimlarning hujjatlarini toʻxtatadi, bekor qiladi; Oʻzbekiston Respublikasi Vazirlar Mahkamasi majlislarida raislik qilishga haqli;  Oʻzbekiston Respublikasining “Mahalliy davlat hokimiyati toʻgʻrisida”gi Qonuni 26-moddasining ikkinchi qismi . 17) Oʻzbekiston Respublikasining qonunlarini imzolaydi va eʼlon qiladi; qonunni oʻz eʼtirozlari bilan takroran muhokama qilish va ovozga qoʻyish uchun Oʻzbekiston Respublikasi Oliy Majlisiga qaytarishga haqli;  Oʻzbekiston Respublikasining “Oʻzbekiston Respublikasi Oliy Majlisining Senati toʻgʻrisida”gi Konstitutsiyaviy qonunining 27-moddasi , “Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasi toʻgʻrisida”gi Konstitutsiyaviy qonunining 32-moddasi . 18) Oʻzbekiston Respublikasiga hujum qilinganda yoki tajovuzdan bir-birini mudofaa qilish yuzasidan tuzilgan shartnoma majburiyatlarini bajarish zaruriyati tugʻilganda urush holati, umumiy yoki qisman safarbarlik eʼlon qiladi va qabul qilgan qarorini uch kun ichida Oʻzbekiston Respublikasi Oliy Majlisi palatalarining tasdigʻiga kiritadi; 19) alohida hollarda (real tashqi xavf, ommaviy tartibsizliklar, yirik halokat, tabiiy ofat, epidemiyalar) fuqarolarning xavfsizligini taʼminlashni koʻzlab, Oʻzbekiston Respublikasining butun hududida yoki uning ayrim joylarida favqulodda holat joriy etadi va qabul qilgan qarorini uch kun ichida Oʻzbekiston Respublikasi Oliy Majlisining palatalari tasdigʻiga kiritadi. Favqulodda holat joriy etish shartlari va tartibi qonun bilan belgilanadi;  Oʻzbekiston Respublikasining “Oʻzbekiston Respublikasi Oliy Majlisi Senatining Reglamenti toʻgʻrisida”gi Qonunining 24-moddasi , “Oʻzbekiston Respublikasi Oliy Majlisi Qonunchilik palatasining Reglamenti toʻgʻrisida”gi Qonunning 26-moddasi . 20) Oʻzbekiston Respublikasi Qurolli Kuchlarining Oliy Bosh qoʻmondoni hisoblanadi, Qurolli Kuchlarning oliy qoʻmondonlarini tayinlaydi va lavozimidan ozod etadi, oliy harbiy unvonlar beradi;  Oʻzbekiston Respublikasining “Mudofaa toʻgʻrisida”gi Qonunining 8-moddasi . 21) Oʻzbekiston Respublikasining ordenlari, medallari va yorligʻi bilan mukofotlaydi, Oʻzbekiston Respublikasining malakaviy va faxriy unvonlarini beradi;  Oʻzbekiston Respublikasining “Davlat mukofotlari toʻgʻrisida”gi Qonuni 13-moddasining birinchi qismi . 22) Oʻzbekiston Respublikasining fuqaroligiga va siyosiy boshpana berishga oid masalalarni hal etadi;  Oʻzbekiston Respublikasining “Oʻzbekiston Respublikasining fuqaroligi toʻgʻrisida”gi Qonunining 4-moddasining sakkizinchi qismi . 23) amnistiya toʻgʻrisidagi hujjatlarni qabul qilish haqida Oʻzbekiston Respublikasi Oliy Majlisining Senatiga taqdimnomalar kiritadi va Oʻzbekiston Respublikasining sudlari tomonidan hukm qilingan shaxslarni afv etadi;  Oʻzbekiston Respublikasi Prezidentining 2018-yil 8-maydagi PF-5439-sonli “Oʻzbekiston Respublikasida afv etishni amalga oshirish tartibi toʻgʻrisidagi nizomni tasdiqlash haqida”gi Farmoni bilan tasdiqlangan Oʻzbekiston Respublikasida afv etishni amalga oshirish tartibi toʻgʻrisidagi nizomning 2-bandi . Oldingi  tahrirga qarang. 24) Oʻzbekiston Respublikasi Prezidenti huzuridagi Xavfsizlik kengashini tuzadi va unga boshchilik qiladi, shuningdek Oʻzbekiston Respublikasi Prezidenti huzuridagi maslahat-kengash organlarini hamda boshqa organlarni shakllantiradi; (109-modda birinchi qismining 24-bandi Oʻzbekiston Respublikasining 2026-yil 13-iyuldagi OʻRQ-1158-sonli Konstitutsiyaviy Qonuni tahririda — Qonunchilik maʼlumotlari milliy bazasi, 14.07.2026-y., 03/26/1158/0727-son. Kuchga kirish sanasi — 2026-yil 25-iyul)  Oʻzbekiston Respublikasining “Oʻzbekiston Respublikasi Davlat xavfsizlik xizmati toʻgʻrisida” Qonunining 16-moddasi . Oldingi  tahrirga qarang. 24 1 ) Oʻzbekiston Respublikasi Prezidenti oʻz vakolatlarini amalga oshirishni tashkiliy, huquqiy, tahliliy jihatdan taʼminlash maqsadida Oʻzbekiston Respublikasi Prezidenti Administratsiyasini shakllantiradi hamda uning Rahbarini tayinlaydi. Oʻzbekiston Respublikasi Prezidenti Administratsiyasining huquqiy maqomi, asosiy vazifalari, faoliyatini tashkil etish tartibi va vakolatlari qonun bilan belgilanadi; (109-moddaning birinchi qismi Oʻzbekiston Respublikasining 2026-yil 13-iyuldagi OʻRQ-1158-sonli Konstitutsiyaviy Qonuniga asosan 24 1 -band bilan toʻldirilgan — Qonunchilik maʼlumotlari milliy bazasi, 14.07.2026-y., 03/26/1158/0727-son. Kuchga kirish sanasi — 2026-yil 25-iyul) 25) ushbu Konstitutsiya va qonunlarda nazarda tutilgan boshqa vakolatlarni amalga oshiradi. Oʻzbekiston Respublikasi Prezidenti oʻz vakolatlarini bajarishni davlat organlariga yoki mansabdor shaxslarga topshirishga haqli emas.",
+        "category": "5-bo‘lim. Davlat hokimiyatining tashkil etilishi"
       },
       {
         "number": "110",
-        "title": "110-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Prezidentning vakolatlari va maqomi ushbu moddada belgilanadi. Prezident davlat rahbari hisoblanadi.",
-        "category": "6-bob. O'zbekiston Respublikasi Prezidenti"
+        "article_number": "110",
+        "title": "110-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "110-modda. Oʻzbekiston Respublikasining Prezidenti Konstitutsiyaga va qonunlarga asoslanib hamda ularni ijro etish yuzasidan respublikaning butun hududida majburiy kuchga ega boʻlgan farmonlar, qarorlar va farmoyishlar chiqaradi.  Oʻzbekiston Respublikasi “Normativ-huquqiy hujjatlar toʻgʻrisida”gi Qonunining 12-moddasi .",
+        "category": "5-bo‘lim. Davlat hokimiyatining tashkil etilishi"
       },
       {
         "number": "111",
-        "title": "111-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Prezidentning vakolatlari va maqomi ushbu moddada belgilanadi. Prezident davlat rahbari hisoblanadi.",
-        "category": "6-bob. O'zbekiston Respublikasi Prezidenti"
+        "article_number": "111",
+        "title": "111-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "111-modda. Qonunchilik palatasi yoki Senat tarkibida ularning normal faoliyatiga tahdid soluvchi hal qilib boʻlmaydigan ixtiloflar yuz berganda yoxud ular bir necha marta Oʻzbekiston Respublikasining Konstitutsiyasiga zid qarorlar qabul qilgan taqdirda, shuningdek Qonunchilik palatasi bilan Senat oʻrtasida Oʻzbekiston Respublikasi Oliy Majlisining normal faoliyatiga tahdid soluvchi hal qilib boʻlmaydigan ixtiloflar yuz berganda Oʻzbekiston Respublikasi Prezidentining Oʻzbekiston Respublikasi Konstitutsiyaviy sudi bilan bamaslahat qabul qilgan qarori asosida Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasi, Senati tarqatib yuborilishi mumkin. Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasi, Senati tarqatib yuborilgan taqdirda yangi saylov uch oy mobaynida oʻtkaziladi. Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasi va Senati favqulodda holat amal qilishi davrida tarqatib yuborilishi mumkin emas.  Oʻzbekiston Respublikasining “Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasi toʻgʻrisida”gi Konstitutsiyaviy qonunining 34-moddasi , Oʻzbekiston Respublikasining “Oʻzbekiston Respublikasi Oliy Majlisi Senati toʻgʻrisida”gi Konstitutsiyaviy qonunining 29-moddasi .",
+        "category": "5-bo‘lim. Davlat hokimiyatining tashkil etilishi"
       },
       {
         "number": "112",
-        "title": "112-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Prezidentning vakolatlari va maqomi ushbu moddada belgilanadi. Prezident davlat rahbari hisoblanadi.",
-        "category": "6-bob. O'zbekiston Respublikasi Prezidenti"
+        "article_number": "112",
+        "title": "112-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "112-modda. Oʻzbekiston Respublikasining amaldagi Prezidenti oʻz vazifalarini bajara olmaydigan holatlarda uning vazifa va vakolatlari vaqtincha Oʻzbekiston Respublikasi Oliy Majlisi Senati Raisining zimmasiga yuklatiladi, bunda uch oy muddat ichida qonunga toʻliq muvofiq holda Oʻzbekiston Respublikasi Prezidenti saylovi oʻtkaziladi.",
+        "category": "5-bo‘lim. Davlat hokimiyatining tashkil etilishi"
       },
       {
         "number": "113",
-        "title": "113-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Prezidentning vakolatlari va maqomi ushbu moddada belgilanadi. Prezident davlat rahbari hisoblanadi.",
-        "category": "6-bob. O'zbekiston Respublikasi Prezidenti"
+        "article_number": "113",
+        "title": "113-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "113-modda. Vakolati tugashi munosabati bilan isteʼfoga chiqqan Oʻzbekiston Respublikasi Prezidenti umrbod Oʻzbekiston Respublikasi Oliy Majlisi Senati aʼzosi lavozimini egallaydi. XX bob. Oʻzbekiston Respublikasi Vazirlar Mahkamasi",
+        "category": "5-bo‘lim. Davlat hokimiyatining tashkil etilishi"
       },
       {
         "number": "114",
-        "title": "114-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Prezidentning vakolatlari va maqomi ushbu moddada belgilanadi. Prezident davlat rahbari hisoblanadi.",
-        "category": "6-bob. O'zbekiston Respublikasi Prezidenti"
+        "article_number": "114",
+        "title": "114-modda. Oʻzbekiston Respublikasi Vazirlar Mahkamasi ijro etuvchi hokimiyatni amalga oshiradi",
+        "content": "114-modda. Oʻzbekiston Respublikasi Vazirlar Mahkamasi ijro etuvchi hokimiyatni amalga oshiradi. Oʻzbekiston Respublikasi Vazirlar Mahkamasi Oʻzbekiston Respublikasi Bosh vaziri, uning oʻrinbosarlari va vazirlardan iborat. Qoraqalpogʻiston Respublikasi hukumatining boshligʻi Vazirlar Mahkamasi tarkibiga oʻz lavozimi boʻyicha kiradi.  Vazirlar Mahkamasi oʻz faoliyatini ijro etuvchi hokimiyat faoliyatining Oʻzbekiston Respublikasi Prezidenti tomonidan belgilanadigan asosiy yoʻnalishlari doirasida amalga oshiradi.",
+        "category": "5-bo‘lim. Davlat hokimiyatining tashkil etilishi"
       },
       {
         "number": "115",
-        "title": "115-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Prezidentning vakolatlari va maqomi ushbu moddada belgilanadi. Prezident davlat rahbari hisoblanadi.",
-        "category": "6-bob. O'zbekiston Respublikasi Prezidenti"
+        "article_number": "115",
+        "title": "115-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "115-modda. Oʻzbekiston Respublikasi Vazirlar Mahkamasi: 1) samarali iqtisodiy, ijtimoiy, soliq va budjet siyosati amalga oshirilishi, ilm-fan, madaniyat, taʼlim, sogʻliqni saqlashni hamda iqtisodiyotning va ijtimoiy sohaning boshqa tarmoqlarini rivojlantirishga doir dasturlarning ishlab chiqilishi hamda bajarilishi uchun javobgar boʻladi; 2) barqaror iqtisodiy oʻsishni, makroiqtisodiy barqarorlikni taʼminlash, kambagʻallikni qisqartirish, aholi uchun munosib turmush sharoitlarini yaratish, oziq-ovqat xavfsizligini taʼminlash, qulay investitsiyaviy muhitni yaratish, hududlarni kompleks va barqaror rivojlantirish boʻyicha choralar koʻradi; 3) aholini, shu jumladan nogironligi boʻlgan shaxslarni ijtimoiy himoya qilish tizimining samarali faoliyat koʻrsatishini taʼminlaydi; 4) atrof-muhitni muhofaza qilish, tabiiy boyliklarni va biologik xilma-xillikni saqlash, iqlim oʻzgarishiga, epidemiyalarga, pandemiyalarga qarshi kurashish hamda ularning oqibatlarini yumshatish sohalarida yagona davlat siyosati amalga oshirilishini taʼminlaydi; 5) yoshlarga oid davlat siyosatining amalga oshirilishini taʼminlaydi, oilani qoʻllab-quvvatlash, mustahkamlash va himoya qilish, anʼanaviy oilaviy qadriyatlarni saqlash boʻyicha choralar koʻradi; 6) fuqarolik jamiyati institutlarini qoʻllab-quvvatlash chora-tadbirlarini amalga oshiradi, ijtimoiy-iqtisodiy rivojlantirish hamda ijtimoiy sheriklik dasturlarini ishlab chiqish va amalga oshirishda ularning ishtirok etishini taʼminlaydi; 7) fuqarolarning iqtisodiy, ijtimoiy hamda boshqa huquqlari va qonuniy manfaatlarini himoya qilish boʻyicha chora-tadbirlarni amalga oshiradi; 8) Oʻzbekiston Respublikasi Konstitutsiyasi va qonunlari, Oliy Majlis palatalari qarorlari, Oʻzbekiston Respublikasi Prezidenti farmonlari, qarorlari va farmoyishlari ijrosini taʼminlaydi; 9) ijro etuvchi hokimiyat organlari ishini muvofiqlashtiradi va yoʻnaltiradi, ularning faoliyati ustidan qonunda belgilangan tartibda nazoratni amalga oshiradi; 10) ijro etuvchi hokimiyat organlarining ishida ochiqlik va shaffoflikni, qonuniylik va samaradorlikni taʼminlash, ularning faoliyatida korrupsiya holatlariga qarshi kurashish, davlat xizmatlarining sifatini oshirish va ulardan foydalanish imkoniyatini kengaytirish boʻyicha choralar koʻradi; 11) Oʻzbekiston Respublikasi Oliy Majlisi Qonunchilik palatasiga mamlakat ijtimoiy-iqtisodiy hayotining eng muhim masalalari yuzasidan har yilgi maʼruzalarni taqdim etadi; 12) ushbu Konstitutsiya va qonunlarda nazarda tutilgan boshqa vakolatlarni amalga oshiradi.",
+        "category": "5-bo‘lim. Davlat hokimiyatining tashkil etilishi"
       },
       {
         "number": "116",
-        "title": "Vazirlar Mahkamasi",
-        "content": "Vazirlar Mahkamasining vakolatlari ushbu moddada belgilanadi. Vazirlar Mahkamasi ijro etuvchi hokimiyat organidir.",
-        "category": "7-bob. Vazirlar Mahkamasi"
+        "article_number": "116",
+        "title": "116-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "116-modda. Vazirlar Mahkamasi konstitutsiyaviy normalar doirasida va qonunchilikka muvofiq Oʻzbekiston Respublikasining butun hududidagi barcha organlar, korxonalar, muassasalar, tashkilotlar, mansabdor shaxslar va fuqarolar tomonidan bajarilishi majburiy boʻlgan qarorlar va farmoyishlar chiqaradi.  Vazirlar Mahkamasi oʻz faoliyatida Oʻzbekiston Respublikasi Oliy Majlisi va Oʻzbekiston Respublikasi Prezidenti oldida javobgardir.  Amaldagi Vazirlar Mahkamasi yangi saylangan Oʻzbekiston Respublikasi Oliy Majlisi oldida oʻz vakolatlarini zimmasidan soqit qiladi, biroq Vazirlar Mahkamasining yangi tarkibi shakllantirilguniga qadar Oʻzbekiston Respublikasi Prezidentining qaroriga muvofiq oʻz faoliyatini davom ettirib turadi.",
+        "category": "5-bo‘lim. Davlat hokimiyatining tashkil etilishi"
       },
       {
         "number": "117",
-        "title": "117-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Vazirlar Mahkamasining vakolatlari ushbu moddada belgilanadi. Vazirlar Mahkamasi ijro etuvchi hokimiyat organidir.",
-        "category": "7-bob. Vazirlar Mahkamasi"
+        "article_number": "117",
+        "title": "117-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "117-modda. Oʻzbekiston Respublikasi Bosh vaziri: 1) Vazirlar Mahkamasi faoliyatini tashkil etadi va unga rahbarlik qiladi, uning samarali ishlashi uchun shaxsan javobgar boʻladi; 2) Vazirlar Mahkamasining majlislarida raislik qiladi, uning qarorlarini imzolaydi; 3) xalqaro munosabatlarda Oʻzbekiston Respublikasi Vazirlar Mahkamasi nomidan ish koʻradi; 4) Oʻzbekiston Respublikasi qonunlarida nazarda tutilgan boshqa vazifalarni bajaradi.",
+        "category": "5-bo‘lim. Davlat hokimiyatining tashkil etilishi"
       },
       {
         "number": "118",
-        "title": "118-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Vazirlar Mahkamasining vakolatlari ushbu moddada belgilanadi. Vazirlar Mahkamasi ijro etuvchi hokimiyat organidir.",
-        "category": "7-bob. Vazirlar Mahkamasi"
+        "article_number": "118",
+        "title": "118-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "118-modda. Oʻzbekiston Respublikasi Bosh vaziri nomzodi Oʻzbekiston Respublikasi Oliy Majlisi palatalarining mansabdor shaxslari saylangandan va organlari shakllangandan soʻng bir oy ichida yoki Bosh vazir lavozimidan ozod etilganidan keyin yoxud Bosh vazir, Vazirlar Mahkamasining amaldagi tarkibi isteʼfoga chiqqanidan keyin bir oy ichida Qonunchilik palatasi koʻrib chiqishi va maʼqullashi uchun Oʻzbekiston Respublikasi Prezidenti tomonidan barcha siyosiy partiyalar fraksiyalari bilan maslahatlashuvlar oʻtkazilganidan soʻng taqdim etiladi.  Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasi Oʻzbekiston Respublikasi Prezidenti tomonidan taqdim etilgan Oʻzbekiston Respublikasi Bosh vaziri nomzodini taqdimnoma kiritilgan kundan eʼtiboran oʻn kun ichida koʻrib chiqadi. Bosh vazir lavozimiga nomzod Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasida uning nomzodi koʻrib chiqilayotganda Vazirlar Mahkamasining yaqin muddatga va uzoq istiqbolga moʻljallangan harakat dasturini taqdim etadi. Bosh vazir nomzodi uning uchun Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasi deputatlari umumiy sonining yarmidan koʻpi tomonidan ovoz berilgan taqdirda maʼqullangan hisoblanadi. Bosh vazir lavozimiga taqdim etilgan nomzod uch marta rad etilgan taqdirda, Oʻzbekiston Respublikasi Prezidenti Bosh vazirni tayinlaydi va Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasini tarqatib yuborishga haqli.  Oʻzbekiston Respublikasi Vazirlar Mahkamasining aʼzolari ularning nomzodlari Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasi tomonidan maʼqullanganidan keyin Oʻzbekiston Respublikasi Prezidenti tomonidan lavozimga tayinlanadi.  Oʻzbekiston Respublikasi Prezidenti Bosh vazirni, Oʻzbekiston Respublikasi Vazirlar Mahkamasining amaldagi tarkibini yoki aʼzosini isteʼfoga chiqarishga haqli.  Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasi Oʻzbekiston Respublikasi Vazirlar Mahkamasi aʼzosining oʻz faoliyatiga oid masalalar yuzasidan hisobotini eshitishga haqli. Vazirlar Mahkamasi aʼzosining hisobotini eshitish yakunlariga koʻra Qonunchilik palatasi uni isteʼfoga chiqarish toʻgʻrisidagi taklifni Oʻzbekiston Respublikasi Prezidentiga koʻrib chiqish uchun kiritishga haqli. Oʻzbekiston Respublikasi Vazirlar Mahkamasi aʼzolari parlament soʻrovlariga va Qonunchilik palatasi deputatining, Senat aʼzosining soʻrovlariga qonunda belgilangan tartibda javob berishi shart.  Vazirlar Mahkamasining faoliyatini tashkil etish tartibi va vakolat doirasi qonun bilan belgilanadi.",
+        "category": "5-bo‘lim. Davlat hokimiyatining tashkil etilishi"
       },
       {
         "number": "119",
-        "title": "119-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Vazirlar Mahkamasining vakolatlari ushbu moddada belgilanadi. Vazirlar Mahkamasi ijro etuvchi hokimiyat organidir.",
-        "category": "7-bob. Vazirlar Mahkamasi"
+        "article_number": "119",
+        "title": "119-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "119-modda. Oʻzbekiston Respublikasi Bosh vaziri va Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasi oʻrtasida ziddiyatlar doimiy tus olgan holda Qonunchilik palatasi deputatlari umumiy sonining kamida uchdan bir qismi tomonidan Oʻzbekiston Respublikasi Prezidenti nomiga rasman kiritilgan taklif boʻyicha Oʻzbekiston Respublikasi Oliy Majlisi Qonunchilik palatasining muhokamasiga Bosh vazirga nisbatan ishonchsizlik votumi bildirish haqidagi masala kiritiladi. Bosh vazirga nisbatan ishonchsizlik votumi, agar Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasi deputatlari umumiy sonining kamida uchdan ikki qismi ovoz bersa, qabul qilingan hisoblanadi. Bunday holatda Oʻzbekiston Respublikasi Prezidenti Bosh vazirni lavozimidan ozod etish toʻgʻrisida qaror qabul qiladi. Bunda Oʻzbekiston Respublikasi Vazirlar Mahkamasining butun tarkibi Bosh vazir bilan birga isteʼfoga chiqadi. XXI bob. Mahalliy davlat hokimiyati asoslari. Fuqarolarning oʻzini oʻzi boshqarish organlari",
+        "category": "5-bo‘lim. Davlat hokimiyatining tashkil etilishi"
       },
       {
         "number": "120",
-        "title": "120-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Vazirlar Mahkamasining vakolatlari ushbu moddada belgilanadi. Vazirlar Mahkamasi ijro etuvchi hokimiyat organidir.",
-        "category": "7-bob. Vazirlar Mahkamasi"
+        "article_number": "120",
+        "title": "120-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "120-modda. Viloyatlar, tumanlar va shaharlarda (tumanga boʻysunadigan shaharlardan tashqari) xalq deputatlari Kengashlari davlat hokimiyati vakillik organlaridir.  Oʻzbekiston Respublikasining “Mahalliy davlat hokimiyati toʻgʻrisida”gi Qonunining 1-moddasi . Xalq deputatlari Kengashiga uning deputatlari orasidan qonunga muvofiq saylanadigan rais boshchilik qiladi.  Viloyat, tuman, shahar hokimi lavozimini egallab turgan shaxs bir vaqtning oʻzida xalq deputatlari Kengashining raisi lavozimini egallashi mumkin emas.  Xalq deputatlari Kengashlarining vakolatlari muddati — besh yil. Ayni bir shaxs surunkasiga ikki muddatdan ortiq ayni bir viloyat, tuman, shahar xalq deputatlari Kengashining raisi etib saylanishi mumkin emas.  Xalq deputatlari Kengashlari deputatlari saylovi va xalq deputatlari Kengashlarining faoliyatini tashkil etish tartibi qonun bilan belgilanadi. Yangidan tashkil etilgan maʼmuriy-hududiy birliklarda xalq deputatlari Kengashlariga saylov xalq deputatlari Kengashlariga navbatdagi umumiy saylovlarga qadar qolgan davrdan oshmaydigan muddatga oʻtkaziladi.",
+        "category": "5-bo‘lim. Davlat hokimiyatining tashkil etilishi"
       },
       {
         "number": "121",
-        "title": "121-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Vazirlar Mahkamasining vakolatlari ushbu moddada belgilanadi. Vazirlar Mahkamasi ijro etuvchi hokimiyat organidir.",
-        "category": "7-bob. Vazirlar Mahkamasi"
+        "article_number": "121",
+        "title": "121-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "121-modda. Tegishli hududdagi ijro etuvchi hokimiyatga viloyat, tuman va shahar hokimi boshchilik qiladi.  Hokimlarning vakolatlari muddati — besh yil. Ayni bir shaxs surunkasiga ikki muddatdan ortiq ayni bir viloyat, tuman, shaharning hokimi etib tayinlanishi mumkin emas.  Oʻzbekiston Respublikasining “Mahalliy davlat hokimiyati toʻgʻrisida”gi Qonuni 2-moddasining oʻn birinchi qismi . Hokimlarning faoliyatini tashkil etish tartibi qonun bilan belgilanadi.",
+        "category": "5-bo‘lim. Davlat hokimiyatining tashkil etilishi"
       },
       {
         "number": "122",
-        "title": "122-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Vazirlar Mahkamasining vakolatlari ushbu moddada belgilanadi. Vazirlar Mahkamasi ijro etuvchi hokimiyat organidir.",
-        "category": "7-bob. Vazirlar Mahkamasi"
+        "article_number": "122",
+        "title": "122-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "122-modda. Xalq deputatlari Kengashlarining vakolatlari quyidagilardan iborat: 1) tegishli mahalliy budjetlarni koʻrib chiqish va qabul qilish, ularning ijro etilishi ustidan nazoratni amalga oshirish; 2) hududlarni ijtimoiy-iqtisodiy rivojlantirish va aholini ijtimoiy himoya qilish dasturlarini tasdiqlash; 3) hokimni lavozimga tasdiqlash, uning faoliyati toʻgʻrisidagi hisobotlarni eshitish; 4) ushbu Konstitutsiya va qonunlarda nazarda tutilgan boshqa vakolatlarni amalga oshirish.  Oʻzbekiston Respublikasi “Mahalliy davlat hokimiyati toʻgʻrisida”gi Qonunining 24-moddasi .",
+        "category": "5-bo‘lim. Davlat hokimiyatining tashkil etilishi"
       },
       {
         "number": "123",
-        "title": "123-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Vazirlar Mahkamasining vakolatlari ushbu moddada belgilanadi. Vazirlar Mahkamasi ijro etuvchi hokimiyat organidir.",
-        "category": "7-bob. Vazirlar Mahkamasi"
+        "article_number": "123",
+        "title": "123-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "123-modda. Viloyatlar, tumanlar, shaharlar hokimlarining vakolatlari quyidagilardan iborat: 1) Oʻzbekiston Respublikasining Konstitutsiyasi va qonunlarini, Oliy Majlis palatalarining qarorlarini, Oʻzbekiston Respublikasi Prezidentining farmonlari, qarorlari hamda farmoyishlarini, Vazirlar Mahkamasining, yuqori turuvchi hokimlarning va tegishli xalq deputatlari Kengashlarining qarorlarini bajarish; 2) hududlarni iqtisodiy, ijtimoiy, madaniy va ekologik jihatdan rivojlantirishni taʼminlashga qaratilgan chora-tadbirlarni amalga oshirish; 3) mahalliy budjetni shakllantirish va ijro etish; 4) ushbu Konstitutsiya va qonunlarda nazarda tutilgan boshqa vakolatlarni amalga oshirish.  Oʻzbekiston Respublikasi “Mahalliy davlat hokimiyati toʻgʻrisida”gi Qonunining 25-moddasi .",
+        "category": "5-bo‘lim. Davlat hokimiyatining tashkil etilishi"
       },
       {
         "number": "124",
-        "title": "124-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Vazirlar Mahkamasining vakolatlari ushbu moddada belgilanadi. Vazirlar Mahkamasi ijro etuvchi hokimiyat organidir.",
-        "category": "7-bob. Vazirlar Mahkamasi"
+        "article_number": "124",
+        "title": "124-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "124-modda. Viloyat va Toshkent shahar hokimi Oʻzbekiston Respublikasi Prezidenti tomonidan qonunga muvofiq tayinlanadi va lavozimidan ozod etiladi.  Oʻzbekiston Respublikasining “Mahalliy davlat hokimiyati toʻgʻrisida”gi Qonuni 2-moddasining birinchi qismi .  Tuman va shaharlarning hokimlari viloyat, Toshkent shahar hokimi tomonidan tayinlanadi va lavozimidan ozod etiladi hamda tegishli xalq deputatlari Kengashi tomonidan tasdiqlanadi.  Oʻzbekiston Respublikasining “Mahalliy davlat hokimiyati toʻgʻrisida”gi Qonuni 2-moddasining yettinchi qismi . Tumanga boʻysunadigan shaharlarning hokimlari tuman hokimi tomonidan tayinlanadi va lavozimidan ozod etiladi hamda xalq deputatlari tuman Kengashi tomonidan tasdiqlanadi.  Oʻzbekiston Respublikasining “Mahalliy davlat hokimiyati toʻgʻrisida”gi Qonuni 2-moddasining toʻqqizinchi qismi .",
+        "category": "5-bo‘lim. Davlat hokimiyatining tashkil etilishi"
       },
       {
         "number": "125",
-        "title": "125-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Vazirlar Mahkamasining vakolatlari ushbu moddada belgilanadi. Vazirlar Mahkamasi ijro etuvchi hokimiyat organidir.",
-        "category": "7-bob. Vazirlar Mahkamasi"
+        "article_number": "125",
+        "title": "125-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "125-modda. Viloyat, tuman va shahar hokimi oʻz vakolatlarini yakkaboshchilik asosida amalga oshiradi hamda oʻzi rahbarlik qilayotgan organlarning qarorlari va harakatlari uchun shaxsan javobgar boʻladi. Viloyat, tuman va shahar hokimi tegishli xalq deputatlari Kengashiga viloyatni, tumanni, shaharni ijtimoiy-iqtisodiy rivojlantirishning eng muhim va dolzarb masalalari yuzasidan hisobotlar taqdim etadi, ushbu hisobotlar boʻyicha xalq deputatlari Kengashi tomonidan tegishli qarorlar qabul qilinadi.",
+        "category": "5-bo‘lim. Davlat hokimiyatining tashkil etilishi"
       },
       {
         "number": "126",
-        "title": "126-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Vazirlar Mahkamasining vakolatlari ushbu moddada belgilanadi. Vazirlar Mahkamasi ijro etuvchi hokimiyat organidir.",
-        "category": "7-bob. Vazirlar Mahkamasi"
+        "article_number": "126",
+        "title": "126-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "126-modda. Xalq deputatlari Kengashi va hokim oʻz vakolatlari doirasida tegishli hududdagi barcha tashkilotlar, shuningdek mansabdor shaxslar va fuqarolar tomonidan bajarilishi majburiy boʻlgan qarorlar qabul qiladi.  Oʻzbekiston Respublikasining “Mahalliy davlat hokimiyati toʻgʻrisida”gi Qonuni 6-moddasining ikkinchi — toʻrtinchi qismlari .",
+        "category": "5-bo‘lim. Davlat hokimiyatining tashkil etilishi"
       },
       {
         "number": "127",
-        "title": "127-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Vazirlar Mahkamasining vakolatlari ushbu moddada belgilanadi. Vazirlar Mahkamasi ijro etuvchi hokimiyat organidir.",
-        "category": "7-bob. Vazirlar Mahkamasi"
+        "article_number": "127",
+        "title": "127-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "127-modda. Shaharchalar, qishloqlar va ovullarda, shuningdek shaharlar, shaharchalar, qishloqlar va ovullardagi mahallalarda fuqarolarning yigʻinlari oʻzini oʻzi boshqarish organlari boʻlib, ular raisni saylaydi.  Fuqarolarning oʻzini oʻzi boshqarish organlari davlat hokimiyati organlari tizimiga kirmaydi hamda mahalliy ahamiyatga molik masalalarni fuqarolarning manfaatlaridan, rivojlanishning tarixiy oʻziga xos xususiyatlaridan, shuningdek milliy qadriyatlardan, mahalliy urf-odatlar va anʼanalardan kelib chiqqan holda, qonunga muvofiq mustaqil ravishda hal etishga haqli. Davlat fuqarolarning oʻzini oʻzi boshqarish organlari faoliyatini amalga oshirishi uchun zarur shart-sharoitlar yaratadi, ularga qonunda belgilangan vakolatlarini amalga oshirishida koʻmaklashadi.  Fuqarolarning oʻzini oʻzi boshqarish organlari saylovi tartibi, ularning faoliyatini tashkil etish va vakolatlari qonun bilan belgilanadi.  Oʻzbekiston Respublikasining “ Fuqarolarning oʻzini oʻzi boshqarish organlari toʻgʻrisida ”gi, “ Fuqarolar yigʻini raisi saylovi toʻgʻrisida ”gi qonunlari. XXII bob. Saylov tizimi",
+        "category": "5-bo‘lim. Davlat hokimiyatining tashkil etilishi"
       },
       {
         "number": "128",
-        "title": "128-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Vazirlar Mahkamasining vakolatlari ushbu moddada belgilanadi. Vazirlar Mahkamasi ijro etuvchi hokimiyat organidir.",
-        "category": "7-bob. Vazirlar Mahkamasi"
+        "article_number": "128",
+        "title": "128-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "128-modda. Oʻzbekiston Respublikasining fuqarolari davlat hokimiyati vakillik organlariga saylash va saylanish huquqiga egadirlar. Har bir saylovchi bir ovozga ega. Ovoz berish huquqi, oʻz xohish-irodasini bildirish tengligi va erkinligi qonun bilan kafolatlanadi. Oʻzbekiston Respublikasi Prezidenti saylovi, Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasiga hamda Qoraqalpogʻiston Respublikasi Joʻqorgʻi Kengesiga, viloyatlar, tumanlar, shaharlar davlat hokimiyati vakillik organlariga saylov tegishincha ularning konstitutsiyaviy vakolat muddati tugaydigan yilda — oktabr oyi uchinchi oʻn kunligining birinchi yakshanbasida oʻtkaziladi, bundan ushbu Konstitutsiyada nazarda tutilgan muddatidan ilgari saylov oʻtkazish hollari mustasno. Saylovlar umumiy, teng va toʻgʻridan-toʻgʻri saylov huquqi asosida yashirin ovoz berish yoʻli bilan oʻtkaziladi. Oʻzbekiston Respublikasining oʻn sakkiz yoshga toʻlgan fuqarolari saylash huquqiga ega.  Oʻzbekiston Respublikasi Prezidenti muddatidan ilgari Oʻzbekiston Respublikasi Prezidenti saylovini tayinlashga haqli.  Oʻzbekiston Respublikasi Oliy Majlisining Senati aʼzolari Qoraqalpogʻiston Respublikasi Joʻqorgʻi Kengesi, viloyatlar, tumanlar va shaharlar davlat hokimiyati vakillik organlari deputatlarining tegishli qoʻshma majlislarida mazkur deputatlar saylanganidan soʻng bir oy ichida ular orasidan yashirin ovoz berish yoʻli bilan saylanadilar.  Sud tomonidan muomalaga layoqatsiz deb topilgan fuqarolar, shuningdek sud hukmi bilan ozodlikdan mahrum etish joylarida saqlanayotgan shaxslar saylanishi mumkin emas. Sud tomonidan muomalaga layoqatsiz deb topilgan fuqarolar, shuningdek ogʻir va oʻta ogʻir jinoyatlar sodir etganlik uchun sudning hukmiga koʻra ozodlikdan mahrum etish joylarida saqlanayotgan shaxslar saylovda ishtirok etish huquqidan faqat qonunga muvofiq hamda sudning qarori asosida mahrum etilishi mumkin. Boshqa har qanday hollarda fuqarolarning saylov huquqlarini toʻgʻridan-toʻgʻri yoki bilvosita cheklashga yoʻl qoʻyilmaydi. Oʻzbekiston Respublikasi fuqarosi bir vaqtning oʻzida ikkidan ortiq davlat hokimiyati vakillik organining deputati boʻlishi mumkin emas.  Saylov oʻtkazish tartibi qonun bilan belgilanadi.  Oʻzbekiston Respublikasining Saylov kodeksi .",
+        "category": "5-bo‘lim. Davlat hokimiyatining tashkil etilishi"
       },
       {
         "number": "129",
-        "title": "129-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Vazirlar Mahkamasining vakolatlari ushbu moddada belgilanadi. Vazirlar Mahkamasi ijro etuvchi hokimiyat organidir.",
-        "category": "7-bob. Vazirlar Mahkamasi"
+        "article_number": "129",
+        "title": "129-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "129-modda. Oʻzbekiston Respublikasi Prezidenti saylovini, Oʻzbekiston Respublikasi Oliy Majlisiga, viloyatlar, tumanlar, shaharlar davlat hokimiyati vakillik organlariga saylovlarni, shuningdek Oʻzbekiston Respublikasining referendumini tashkil etish va oʻtkazish uchun Oʻzbekiston Respublikasi Oliy Majlisi tomonidan faoliyatining asosiy prinsiplari mustaqillik, qonuniylik, kollegiallik, oshkoralik va adolatlilikdan iborat boʻlgan Oʻzbekiston Respublikasi Markaziy saylov komissiyasi tuziladi. Oʻzbekiston Respublikasi Markaziy saylov komissiyasi saylov komissiyalari tizimiga boshchilik qiladi, oʻz faoliyatini doimiy asosda amalga oshiradi hamda oʻz faoliyatida Oʻzbekiston Respublikasining Konstitutsiyasiga va qonunlariga amal qiladi. Oʻzbekiston Respublikasi Markaziy saylov komissiyasining aʼzolari Qoraqalpogʻiston Respublikasi Joʻqorgʻi Kengesining, xalq deputatlari viloyatlar va Toshkent shahar Kengashlarining tavsiyasi boʻyicha Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasi va Senati tomonidan saylanadi. Oʻzbekiston Respublikasi Markaziy saylov komissiyasining raisi Oʻzbekiston Respublikasi Prezidentining taqdimiga binoan komissiya aʼzolari orasidan besh yillik muddatga komissiya majlisida saylanadi. Ayni bir shaxs surunkasiga ikki muddatdan ortiq Oʻzbekiston Respublikasi Markaziy saylov komissiyasining raisi etib saylanishi mumkin emas. XXIII bob. Sud hokimiyati",
+        "category": "5-bo‘lim. Davlat hokimiyatining tashkil etilishi"
       },
       {
         "number": "130",
-        "title": "130-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Vazirlar Mahkamasining vakolatlari ushbu moddada belgilanadi. Vazirlar Mahkamasi ijro etuvchi hokimiyat organidir.",
-        "category": "7-bob. Vazirlar Mahkamasi"
+        "article_number": "130",
+        "title": "130-modda. Oʻzbekiston Respublikasida odil sudlov faqat sud tomonidan amalga oshiriladi",
+        "content": "130-modda. Oʻzbekiston Respublikasida odil sudlov faqat sud tomonidan amalga oshiriladi. Oʻzbekiston Respublikasida sud hokimiyati qonun chiqaruvchi va ijro etuvchi hokimiyatdan, siyosiy partiyalardan, fuqarolik jamiyatining boshqa institutlaridan mustaqil holda ish yuritadi.  Oʻzbekiston Respublikasi “Sudlar toʻgʻrisida”gi Qonunining 9-moddasi .",
+        "category": "5-bo‘lim. Davlat hokimiyatining tashkil etilishi"
       },
       {
         "number": "131",
-        "title": "Sud hokimiyatining mustaqilligi",
-        "content": "Sud hokimiyatining tuzilishi va vakolatlari ushbu moddada belgilanadi. Sudyalar mustaqil bo'lib, faqat qonunga bo'ysunadilar.",
-        "category": "8-bob. Sud hokimiyati"
+        "article_number": "131",
+        "title": "131-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "131-modda. Oʻzbekiston Respublikasida sud tizimi va sudlar faoliyatining tartibi qonun bilan belgilanadi.  Oʻzbekiston Respublikasining “ Sudlar toʻgʻrisida ”gi, “ Oʻzbekiston Respublikasining Konstitutsiyaviy sudi toʻgʻrisida ”gi qonunlariga qarang. Oldingi  tahrirga qarang. Maxsus huquqiy rejim oʻrnatilgan hududda faoliyati Oʻzbekiston Respublikasining Konstitutsiyaviy Qonuni bilan belgilanadigan ixtisoslashgan sudlar tuzilishi mumkin. (131-modda Oʻzbekiston Respublikasining 2026-yil 13-iyuldagi OʻRQ-1158-sonli Konstitutsiyaviy Qonuniga asosan ikkinchi qism bilan toʻldirilgan — Qonunchilik maʼlumotlari milliy bazasi, 14.07.2026-y., 03/26/1158/0727-son. Kuchga kirish sanasi — 2026-yil 25-iyul) Favqulodda sudlar tuzishga yoʻl qoʻyilmaydi.",
+        "category": "5-bo‘lim. Davlat hokimiyatining tashkil etilishi"
       },
       {
         "number": "132",
-        "title": "132-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Sud hokimiyatining tuzilishi va vakolatlari ushbu moddada belgilanadi. Sudyalar mustaqil bo'lib, faqat qonunga bo'ysunadilar.",
-        "category": "8-bob. Sud hokimiyati"
+        "article_number": "132",
+        "title": "132-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "132-modda. Oʻzbekiston Respublikasi Konstitutsiyaviy sudi qonun chiqaruvchi va ijro etuvchi hokimiyat hujjatlarining Konstitutsiyaga muvofiqligi toʻgʻrisidagi ishlarni koʻradi. Konstitutsiyaviy sud Oʻzbekiston Respublikasi Prezidentining taqdimiga binoan Oʻzbekiston Respublikasi Oliy Majlisining Senati tomonidan Oʻzbekiston Respublikasi Sudyalar oliy kengashi tavsiya etgan siyosat va huquq sohasidagi mutaxassislar orasidan, Qoraqalpogʻiston Respublikasi vakilini qoʻshgan holda saylanadi. Konstitutsiyaviy sudning sudyalari qayta saylanish huquqisiz oʻn yillik muddatga saylanadi. Oʻzbekiston Respublikasi Konstitutsiyaviy sudi oʻz tarkibidan Oʻzbekiston Respublikasi Konstitutsiyaviy sudining raisini va uning oʻrinbosarini besh yillik muddatga saylaydi.  Oʻzbekiston Respublikasining Konstitutsiyaviy sudi toʻgʻrisida”gi Konstitutsiyaviy Qonunning 6-moddasi .",
+        "category": "5-bo‘lim. Davlat hokimiyatining tashkil etilishi"
       },
       {
         "number": "133",
-        "title": "133-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Sud hokimiyatining tuzilishi va vakolatlari ushbu moddada belgilanadi. Sudyalar mustaqil bo'lib, faqat qonunga bo'ysunadilar.",
-        "category": "8-bob. Sud hokimiyati"
+        "article_number": "133",
+        "title": "133-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "133-modda. Oʻzbekiston Respublikasi Konstitutsiyaviy sudi: 1) Oʻzbekiston Respublikasi qonunlarining va Oʻzbekiston Respublikasi Oliy Majlisi palatalari qarorlarining, Oʻzbekiston Respublikasi Prezidenti farmonlari, qarorlari va farmoyishlarining, hukumat, mahalliy davlat hokimiyati organlari qarorlarining, Oʻzbekiston Respublikasi davlatlararo shartnomaviy va boshqa majburiyatlarining Oʻzbekiston Respublikasining Konstitutsiyasiga muvofiqligini aniqlaydi; 2) Oʻzbekiston Respublikasining Prezidenti tomonidan imzolanguniga qadar — Oʻzbekiston Respublikasi konstitutsiyaviy qonunlarining, ratifikatsiya qilish toʻgʻrisidagi Oʻzbekiston Respublikasi qonunlari Oʻzbekiston Respublikasining Prezidenti tomonidan imzolanguniga qadar — Oʻzbekiston Respublikasi xalqaro shartnomalarining Oʻzbekiston Respublikasi Konstitutsiyasiga muvofiqligini aniqlaydi; 3) referendumga chiqarilayotgan masalalarning Oʻzbekiston Respublikasi Konstitutsiyasiga muvofiqligi toʻgʻrisida xulosa beradi; 4) Qoraqalpogʻiston Respublikasi Konstitutsiyasining Oʻzbekiston Respublikasining Konstitutsiyasiga, Qoraqalpogʻiston Respublikasi qonunlarining Oʻzbekiston Respublikasining qonunlariga muvofiqligi toʻgʻrisida xulosa beradi; 5) Oʻzbekiston Respublikasining Konstitutsiyasi va qonunlari normalariga sharh beradi; 6) Oʻzbekiston Respublikasi Oliy sudining muayyan ishda qoʻllanilishi lozim boʻlgan normativ-huquqiy hujjatlarning Oʻzbekiston Respublikasining Konstitutsiyasiga muvofiqligi toʻgʻrisida sudlar tashabbusi bilan kiritilgan murojaatini koʻrib chiqadi; 7) konstitutsiyaviy sudlov ishlarini yuritish amaliyotini umumlashtirish natijalari yuzasidan har yili Oʻzbekiston Respublikasi Oliy Majlisi palatalariga va Oʻzbekiston Respublikasi Prezidentiga mamlakatdagi konstitutsiyaviy qonuniylikning holati toʻgʻrisida axborot taqdim etadi; 8) Oʻzbekiston Respublikasining Konstitutsiyasi va qonunlari bilan berilgan vakolati doirasida boshqa ishlarni koʻrib chiqadi. Fuqarolar va yuridik shaxslar, agar sud orqali himoya qilishning boshqa barcha vositalaridan foydalanib boʻlingan boʻlsa, sudda koʻrib chiqilishi tugallangan muayyan ishda sud tomonidan oʻziga nisbatan qoʻllanilgan qonunning Konstitutsiyaga muvofiqligi toʻgʻrisidagi shikoyat bilan Oʻzbekiston Respublikasi Konstitutsiyaviy sudiga murojaat qilishga haqli. Konstitutsiyaviy sudning qarori rasmiy eʼlon qilingan kundan eʼtiboran kuchga kiradi. Konstitutsiyaviy sudning qarori qatʼiy va uning ustidan shikoyat qilinishi mumkin emas.  Oʻzbekiston Respublikasining “Oʻzbekiston Respublikasining Konstitutsiyaviy sudi toʻgʻrisida”gi Konstitutsiyaviy Qonunining 4 , 8 va 72-moddalari . Konstitutsiyaviy sudni tashkil etish va uning faoliyati tartibi qonun bilan belgilanadi.",
+        "category": "5-bo‘lim. Davlat hokimiyatining tashkil etilishi"
       },
       {
         "number": "134",
-        "title": "134-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Sud hokimiyatining tuzilishi va vakolatlari ushbu moddada belgilanadi. Sudyalar mustaqil bo'lib, faqat qonunga bo'ysunadilar.",
-        "category": "8-bob. Sud hokimiyati"
+        "article_number": "134",
+        "title": "134-modda. Oldingi  tahrirga qarang",
+        "content": "134-modda. Oldingi  tahrirga qarang. Oʻzbekiston Respublikasi Oliy sudi fuqarolik, jinoiy, iqtisodiy va maʼmuriy sud ishlarini yuritish sohasida sud hokimiyatining oliy organi hisoblanadi, bundan maxsus huquqiy rejim oʻrnatishni nazarda tutuvchi Oʻzbekiston Respublikasining Konstitutsiyaviy Qonuni bilan belgilanadigan hollar mustasno. (134-moddaning birinchi qismi Oʻzbekiston Respublikasining 2026-yil 13-iyuldagi OʻRQ-1158-sonli Konstitutsiyaviy Qonuni tahririda — Qonunchilik maʼlumotlari milliy bazasi, 14.07.2026-y., 03/26/1158/0727-son. Kuchga kirish sanasi — 2026-yil 25-iyul) Oʻzbekiston Respublikasi Oliy sudi tomonidan qabul qilingan hujjatlar qatʼiy hisoblanadi va Oʻzbekiston Respublikasining butun hududida bajarilishi majburiydir. Oʻzbekiston Respublikasi Oliy sudi quyi sudlarning sudlov faoliyati ustidan nazorat olib borish huquqiga ega.  Oʻzbekiston Respublikasining “Sudlar toʻgʻrisida”gi Qonunining 18 — 31-moddalari .  Oʻzbekiston Respublikasi Oliy sudining raisi va uning oʻrinbosarlari Oʻzbekiston Respublikasi Prezidentining taqdimiga binoan Oʻzbekiston Respublikasi Oliy Majlisining Senati tomonidan besh yillik muddatga saylanadi. Ayni bir shaxs surunkasiga ikki muddatdan ortiq Oʻzbekiston Respublikasi Oliy sudining raisi, rais oʻrinbosari etib saylanishi mumkin emas.",
+        "category": "5-bo‘lim. Davlat hokimiyatining tashkil etilishi"
       },
       {
         "number": "135",
-        "title": "135-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Sud hokimiyatining tuzilishi va vakolatlari ushbu moddada belgilanadi. Sudyalar mustaqil bo'lib, faqat qonunga bo'ysunadilar.",
-        "category": "8-bob. Sud hokimiyati"
+        "article_number": "135",
+        "title": "135-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "135-modda. Oʻzbekiston Respublikasi Sudyalar oliy kengashi sudyalar hamjamiyatining mustaqil organi boʻlib, u sudyalar korpusining shakllantirilishini, sud hokimiyati mustaqilligining konstitutsiyaviy prinsipiga rioya etilishini taʼminlaydi. Oʻzbekiston Respublikasi Sudyalar oliy kengashi raisi va uning oʻrinbosari Oʻzbekiston Respublikasi Prezidentining taqdimiga binoan Oʻzbekiston Respublikasi Oliy Majlisining Senati tomonidan besh yillik muddatga saylanadi. Ayni bir shaxs surunkasiga ikki muddatdan ortiq Oʻzbekiston Respublikasi Sudyalar oliy kengashining raisi, rais oʻrinbosari etib saylanishi mumkin emas. Oʻzbekiston Respublikasi Sudyalar oliy kengashini tashkil etish va uning faoliyati tartibi qonun bilan belgilanadi.  Oʻzbekiston Respublikasining “Oʻzbekiston Respublikasi Sudyalar oliy kengashi toʻgʻrisida”gi Qonuni .",
+        "category": "5-bo‘lim. Davlat hokimiyatining tashkil etilishi"
       },
       {
         "number": "136",
-        "title": "136-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Sud hokimiyatining tuzilishi va vakolatlari ushbu moddada belgilanadi. Sudyalar mustaqil bo'lib, faqat qonunga bo'ysunadilar.",
-        "category": "8-bob. Sud hokimiyati"
+        "article_number": "136",
+        "title": "136-modda. Sudyalar mustaqildirlar, faqat Konstitutsiya va qonunga boʻysunadilar",
+        "content": "136-modda. Sudyalar mustaqildirlar, faqat Konstitutsiya va qonunga boʻysunadilar. Sudyalarning odil sudlovni amalga oshirishga doir faoliyatiga har qanday tarzda aralashishga yoʻl qoʻyilmaydi va bunday aralashish qonunga muvofiq javobgarlikka sabab boʻladi. Sudyalar muayyan ishlar boʻyicha hisobdor boʻlmaydi.  Oʻzbekiston Respublikasi Jinoyat kodeksining 236-moddasi . Sudyalar daxlsizdir.  Oʻzbekiston Respublikasi “Sudlar toʻgʻrisida”gi Qonunining 63 — 66-moddalari .  Davlat sudyaning va uning oila aʼzolarining xavfsizligini taʼminlaydi. Sudyani muayyan ishning muhokamasidan chetlashtirishga, uning vakolatlarini bekor qilishga yoki toʻxtatib turishga, boshqa lavozimga oʻtkazishga faqat qonunda belgilangan tartibda va asoslarga koʻra yoʻl qoʻyiladi. Sudning qayta tashkil etilishi yoki tugatilishi sudyani lavozimidan ozod etish uchun asos boʻlib xizmat qilishi mumkin emas.  Oʻzbekiston Respublikasi “Sudlar toʻgʻrisida”gi Qonunining 78 va 79-moddalari . Sudyalar senator, davlat hokimiyati vakillik organlarining deputati boʻlishi mumkin emas. Sudyalar siyosiy partiyalarning aʼzosi boʻlishi, siyosiy harakatlarda ishtirok etishi, shuningdek ilmiy, ijodiy va pedagogik faoliyatdan tashqari haq toʻlanadigan boshqa faoliyat turlari bilan shugʻullanishi mumkin emas.",
+        "category": "5-bo‘lim. Davlat hokimiyatining tashkil etilishi"
       },
       {
         "number": "137",
-        "title": "137-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Sud hokimiyatining tuzilishi va vakolatlari ushbu moddada belgilanadi. Sudyalar mustaqil bo'lib, faqat qonunga bo'ysunadilar.",
-        "category": "8-bob. Sud hokimiyati"
+        "article_number": "137",
+        "title": "137-modda. Hamma sudlarda ishlar ochiq koʻriladi",
+        "content": "137-modda. Hamma sudlarda ishlar ochiq koʻriladi. Ishlarni yopiq majlisda tinglashga qonunda belgilangan hollardagina yoʻl qoʻyiladi.",
+        "category": "5-bo‘lim. Davlat hokimiyatining tashkil etilishi"
       },
       {
         "number": "138",
-        "title": "138-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Sud hokimiyatining tuzilishi va vakolatlari ushbu moddada belgilanadi. Sudyalar mustaqil bo'lib, faqat qonunga bo'ysunadilar.",
-        "category": "8-bob. Sud hokimiyati"
+        "article_number": "138",
+        "title": "138-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "138-modda. Sud hokimiyatining hujjatlari barcha davlat organlari va boshqa tashkilotlar, mansabdor shaxslar hamda fuqarolar uchun majburiydir.",
+        "category": "5-bo‘lim. Davlat hokimiyatining tashkil etilishi"
       },
       {
         "number": "139",
-        "title": "139-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Sud hokimiyatining tuzilishi va vakolatlari ushbu moddada belgilanadi. Sudyalar mustaqil bo'lib, faqat qonunga bo'ysunadilar.",
-        "category": "8-bob. Sud hokimiyati"
+        "article_number": "139",
+        "title": "139-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "139-modda. Oʻzbekiston Respublikasida sud ishlarini yuritish oʻzbek tilida, qoraqalpoq tilida yoki muayyan joydagi koʻpchilik aholi soʻzlashadigan tilda yoxud qonunga muvofiq boshqa tilda olib boriladi. Sud ishlari olib borilayotgan tilni bilmaydigan sudda qatnashuvchi shaxslarning tarjimon orqali ish materiallari bilan toʻla tanishish va sud ishlarida ishtirok etish huquqi hamda sudda ona tilida soʻzlash huquqi taʼminlanadi.",
+        "category": "5-bo‘lim. Davlat hokimiyatining tashkil etilishi"
       },
       {
         "number": "140",
-        "title": "140-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Sud hokimiyatining tuzilishi va vakolatlari ushbu moddada belgilanadi. Sudyalar mustaqil bo'lib, faqat qonunga bo'ysunadilar.",
-        "category": "8-bob. Sud hokimiyati"
+        "article_number": "140",
+        "title": "140-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "140-modda. Sudlarning faoliyatini moliyalashtirish faqat Oʻzbekiston Respublikasining Davlat budjetidan amalga oshiriladi hamda u odil sudlovni toʻliq va mustaqil amalga oshirish imkoniyatini taʼminlashi kerak. XXIV bob. Advokatura",
+        "category": "5-bo‘lim. Davlat hokimiyatining tashkil etilishi"
       },
       {
         "number": "141",
-        "title": "Mahalliy davlat hokimiyati organlari",
-        "content": "Mahalliy davlat hokimiyati organlarining vakolatlari ushbu moddada belgilanadi. Mahalliy hokimiyat organlari o'z hududida davlat boshqaruvini amalga oshiradi.",
-        "category": "9-bob. Mahalliy davlat hokimiyati"
+        "article_number": "141",
+        "title": "141-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "141-modda. Jismoniy va yuridik shaxslarga malakali yuridik yordam koʻrsatish uchun advokatura faoliyat koʻrsatadi. Advokatura faoliyati qonuniylik, mustaqillik va oʻzini oʻzi boshqarish prinsiplariga asoslanadi.  Advokaturani tashkil etish va uning faoliyati tartibi qonun bilan belgilanadi.",
+        "category": "5-bo‘lim. Davlat hokimiyatining tashkil etilishi"
       },
       {
         "number": "142",
-        "title": "142-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Mahalliy davlat hokimiyati organlarining vakolatlari ushbu moddada belgilanadi. Mahalliy hokimiyat organlari o'z hududida davlat boshqaruvini amalga oshiradi.",
-        "category": "9-bob. Mahalliy davlat hokimiyati"
+        "article_number": "142",
+        "title": "142-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "142-modda. Advokat oʻz kasbiy vazifalarini amalga oshirayotganda uning faoliyatiga aralashishga yoʻl qoʻyilmaydi. Advokatga oʻz himoyasidagi shaxs bilan moneliksiz va xoli uchrashish, maslahatlar berish uchun shart-sharoitlar taʼminlanadi. Advokat, uning shaʼni, qadr-qimmati va kasbiy faoliyati davlat himoyasida boʻladi va qonun bilan muhofaza qilinadi. XXV bob. Prokuratura",
+        "category": "5-bo‘lim. Davlat hokimiyatining tashkil etilishi"
       },
       {
         "number": "143",
-        "title": "143-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Mahalliy davlat hokimiyati organlarining vakolatlari ushbu moddada belgilanadi. Mahalliy hokimiyat organlari o'z hududida davlat boshqaruvini amalga oshiradi.",
-        "category": "9-bob. Mahalliy davlat hokimiyati"
+        "article_number": "143",
+        "title": "143-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "143-modda. Oʻzbekiston Respublikasi hududida qonunlarning aniq va bir xilda bajarilishi ustidan nazoratni Oʻzbekiston Respublikasining Bosh prokurori va unga boʻysunuvchi prokurorlar amalga oshiradi.  Oʻzbekiston Respublikasi “Prokuratura toʻgʻrisida”gi Qonunining 10 , 12 , 15 — 17-moddalari .",
+        "category": "5-bo‘lim. Davlat hokimiyatining tashkil etilishi"
       },
       {
         "number": "144",
-        "title": "144-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Mahalliy davlat hokimiyati organlarining vakolatlari ushbu moddada belgilanadi. Mahalliy hokimiyat organlari o'z hududida davlat boshqaruvini amalga oshiradi.",
-        "category": "9-bob. Mahalliy davlat hokimiyati"
+        "article_number": "144",
+        "title": "144-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "144-modda. Prokuratura organlarining yagona markazlashtirilgan tizimiga Oʻzbekiston Respublikasining Bosh prokurori boshchilik qiladi.  Qoraqalpogʻiston Respublikasining prokurori Oʻzbekiston Respublikasining Bosh prokurori bilan kelishilgan holda Qoraqalpogʻiston Respublikasining oliy vakillik organi tomonidan tayinlanadi. Viloyatlarning prokurorlari, tuman va shahar prokurorlari Oʻzbekiston Respublikasining Bosh prokurori tomonidan tayinlanadi. Oʻzbekiston Respublikasi Bosh prokurorining, Qoraqalpogʻiston Respublikasi prokurorining, viloyat, tuman va shahar prokurorlarining vakolat muddati — besh yil. Ayni bir shaxs surunkasiga ikki muddatdan ortiq Oʻzbekiston Respublikasining Bosh prokurori lavozimini egallashi mumkin emas.  Oʻzbekiston Respublikasi “Prokuratura toʻgʻrisida”gi Qonunining 11-moddasi , 12-moddasining birinchi qismi , 15-moddasining birinchi qismi , 16-moddasining birinchi qismi , 17-moddasining birinchi qismi .",
+        "category": "5-bo‘lim. Davlat hokimiyatining tashkil etilishi"
       },
       {
         "number": "145",
-        "title": "145-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Mahalliy davlat hokimiyati organlarining vakolatlari ushbu moddada belgilanadi. Mahalliy hokimiyat organlari o'z hududida davlat boshqaruvini amalga oshiradi.",
-        "category": "9-bob. Mahalliy davlat hokimiyati"
+        "article_number": "145",
+        "title": "145-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "145-modda. Oʻzbekiston Respublikasining prokuratura organlari oʻz vakolatlarini boshqa davlat organlaridan, oʻzga tashkilotlardan, mansabdor shaxslardan mustaqil ravishda, faqat Oʻzbekiston Respublikasining Konstitutsiyasiga va qonunlariga boʻysungan holda amalga oshiradi. Prokurorlar oʻz vakolatlari davrida siyosiy partiyalarga va siyosiy maqsadlarni koʻzlovchi boshqa jamoat birlashmalariga aʼzolikni toʻxtatib turadilar. Prokuratura organlarini tashkil etish, ularning vakolatlari va faoliyat koʻrsatish tartibi qonun bilan belgilanadi.",
+        "category": "5-bo‘lim. Davlat hokimiyatining tashkil etilishi"
       },
       {
         "number": "146",
-        "title": "146-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Mahalliy davlat hokimiyati organlarining vakolatlari ushbu moddada belgilanadi. Mahalliy hokimiyat organlari o'z hududida davlat boshqaruvini amalga oshiradi.",
-        "category": "9-bob. Mahalliy davlat hokimiyati"
+        "article_number": "146",
+        "title": "146-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "146-modda. Oʻzbekiston Respublikasi hududida jinoyatchilikka qarshi kurash boʻyicha tezkor-qidiruv, tergov va boshqa maxsus vazifalarni mustaqil ravishda bajaruvchi xususiy tashkilotlar, jamoat birlashmalari va ularning boʻlinmalarini tuzish hamda ularning faoliyat koʻrsatishi taqiqlanadi. Qonuniylik va huquqiy tartibotni, fuqarolarning huquqlari va erkinliklarini himoya qilishda huquqni muhofaza qiluvchi organlarga jamoat tashkilotlari va fuqarolar yordam koʻrsatishlari mumkin. XXVI bob. Moliya, pul va bank tizimi",
+        "category": "5-bo‘lim. Davlat hokimiyatining tashkil etilishi"
       },
       {
         "number": "147",
-        "title": "147-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Mahalliy davlat hokimiyati organlarining vakolatlari ushbu moddada belgilanadi. Mahalliy hokimiyat organlari o'z hududida davlat boshqaruvini amalga oshiradi.",
-        "category": "9-bob. Mahalliy davlat hokimiyati"
+        "article_number": "147",
+        "title": "147-modda. Oʻzbekiston Respublikasi oʻzining yagona moliya, pul va bank tizimiga ega",
+        "content": "147-modda. Oʻzbekiston Respublikasi oʻzining yagona moliya, pul va bank tizimiga ega.",
+        "category": "5-bo‘lim. Davlat hokimiyatining tashkil etilishi"
       },
       {
         "number": "148",
-        "title": "148-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Mahalliy davlat hokimiyati organlarining vakolatlari ushbu moddada belgilanadi. Mahalliy hokimiyat organlari o'z hududida davlat boshqaruvini amalga oshiradi.",
-        "category": "9-bob. Mahalliy davlat hokimiyati"
+        "article_number": "148",
+        "title": "148-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "148-modda. Oʻzbekiston Respublikasining Davlat budjeti respublika budjetidan, Qoraqalpogʻiston Respublikasi budjetidan va mahalliy budjetlardan iboratdir. Oʻzbekiston Respublikasining Davlat budjetini shakllantirish hamda ijro etish tartib-taomillari ochiqlik va shaffoflik prinsiplari asosida amalga oshiriladi.  Oʻzbekiston Respublikasi Budjet kodeksi . Fuqarolar va fuqarolik jamiyati institutlari Oʻzbekiston Respublikasi Davlat budjetining shakllantirilishi hamda ijro etilishi ustidan jamoatchilik nazoratini amalga oshiradi. Fuqarolarning hamda fuqarolik jamiyati institutlarining budjet jarayonida ishtirok etishi tartibi va shakllari qonun bilan belgilanadi.",
+        "category": "5-bo‘lim. Davlat hokimiyatining tashkil etilishi"
       },
       {
         "number": "149",
-        "title": "149-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Mahalliy davlat hokimiyati organlarining vakolatlari ushbu moddada belgilanadi. Mahalliy hokimiyat organlari o'z hududida davlat boshqaruvini amalga oshiradi.",
-        "category": "9-bob. Mahalliy davlat hokimiyati"
+        "article_number": "149",
+        "title": "149-modda. Oʻzbekiston Respublikasi hududida yagona soliq tizimi amal qiladi",
+        "content": "149-modda. Oʻzbekiston Respublikasi hududida yagona soliq tizimi amal qiladi. Soliqlarni joriy qilish huquqi Oʻzbekiston Respublikasining Oliy Majlisiga tegishlidir.  mazkur Konstitutsiyaning 93-moddasi birinchi qismining 11-bandi , Oʻzbekiston Respublikasi Soliq kodeksining 11-moddasi .",
+        "category": "5-bo‘lim. Davlat hokimiyatining tashkil etilishi"
       },
       {
         "number": "150",
-        "title": "150-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Mahalliy davlat hokimiyati organlarining vakolatlari ushbu moddada belgilanadi. Mahalliy hokimiyat organlari o'z hududida davlat boshqaruvini amalga oshiradi.",
-        "category": "9-bob. Mahalliy davlat hokimiyati"
+        "article_number": "150",
+        "title": "150-modda. Oʻzbekiston Respublikasining pul birligi soʻmdir",
+        "content": "150-modda. Oʻzbekiston Respublikasining pul birligi soʻmdir. Soʻm Oʻzbekiston Respublikasining butun hududida yagona cheklanmagan qonuniy toʻlov vositasidir.  Oʻzbekiston Respublikasi Markaziy banki Oʻzbekiston Respublikasining hududida qonuniy toʻlov vositalari sifatida pul belgilarini muomalaga kiritishda va ularni muomaladan chiqarishda mutlaq huquqqa egadir.",
+        "category": "5-bo‘lim. Davlat hokimiyatining tashkil etilishi"
       },
       {
         "number": "151",
-        "title": "Konstitutsiyani qabul qilish va o'zgartirish",
-        "content": "Yakunlovchi qoidalar ushbu moddada belgilanadi. Konstitutsiya qoidalari O'zbekiston Respublikasining butun hududida amal qiladi.",
-        "category": "10-bob. Yakunlovchi qoidalar"
+        "article_number": "151",
+        "title": "151-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "151-modda. Oʻzbekiston Respublikasining bank tizimi Oʻzbekiston Respublikasi Markaziy bankidan va banklardan iboratdir. Oʻzbekiston Respublikasi Markaziy banki pul-kredit va valyuta siyosatini ishlab chiqadi hamda amalga oshiradi. Oldingi  tahrirga qarang. Oʻzbekiston Respublikasi Markaziy banki mamlakatda banklar faoliyatini tartibga solishni amalga oshiradi, bank va toʻlov tizimlarining barqaror faoliyat koʻrsatishini taʼminlaydi, bundan Oʻzbekiston Respublikasining Konstitutsiyaviy Qonuni bilan maxsus huquqiy rejim oʻrnatilgan hudud mustasno. (151-moddaning uchinchi qismi Oʻzbekiston Respublikasining 2026-yil 13-iyuldagi OʻRQ-1158-sonli Konstitutsiyaviy Qonuni tahririda — Qonunchilik maʼlumotlari milliy bazasi, 14.07.2026-y., 03/26/1158/0727-son. Kuchga kirish sanasi — 2026-yil 25-iyul) Oʻzbekiston Respublikasi Markaziy banki oʻz vazifalarini bajarishda mustaqildir. Oʻzbekiston Respublikasi Markaziy bankining faoliyatini tashkil etish tartibi qonun bilan belgilanadi.  Oʻzbekiston Respublikasining “ Banklar va bank faoliyati toʻgʻrisida ”gi, “ Nobank kredit tashkilotlari va mikromoliyalashtirish faoliyati toʻgʻrisida ”gi, “ Oʻzbekiston Respublikasining Markaziy banki toʻgʻrisida ”gi qonunlari. XXVII bob. Mudofaa va xavfsizlik",
+        "category": "5-bo‘lim. Davlat hokimiyatining tashkil etilishi"
       },
       {
         "number": "152",
-        "title": "152-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Yakunlovchi qoidalar ushbu moddada belgilanadi. Konstitutsiya qoidalari O'zbekiston Respublikasining butun hududida amal qiladi.",
-        "category": "10-bob. Yakunlovchi qoidalar"
+        "article_number": "152",
+        "title": "152-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "152-modda. Oʻzbekiston Respublikasi Qurolli Kuchlari Oʻzbekiston Respublikasining davlat suverenitetini va hududiy yaxlitligini, aholining tinch hayoti va xavfsizligini himoya qilish uchun tuziladi. Qurolli Kuchlarning tuzilishi va ularni tashkil etish qonun bilan belgilanadi.  Oʻzbekiston Respublikasining “Mudofaa toʻgʻrisida”gi Qonuni .",
+        "category": "5-bo‘lim. Davlat hokimiyatining tashkil etilishi"
       },
       {
         "number": "153",
-        "title": "153-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Yakunlovchi qoidalar ushbu moddada belgilanadi. Konstitutsiya qoidalari O'zbekiston Respublikasining butun hududida amal qiladi.",
-        "category": "10-bob. Yakunlovchi qoidalar"
+        "article_number": "153",
+        "title": "153-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "153-modda. Oʻzbekiston Respublikasi oʻz xavfsizligini taʼminlash uchun yetarli darajada Qurolli Kuchlariga ega. OLTINCHI BOʻLIM. KONSTITUTSIYANI OʻZGARTIRISH TARTIBI",
+        "category": "5-bo‘lim. Davlat hokimiyatining tashkil etilishi"
       },
       {
         "number": "154",
-        "title": "154-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Yakunlovchi qoidalar ushbu moddada belgilanadi. Konstitutsiya qoidalari O'zbekiston Respublikasining butun hududida amal qiladi.",
-        "category": "10-bob. Yakunlovchi qoidalar"
+        "article_number": "154",
+        "title": "154-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "154-modda. Oʻzbekiston Respublikasining Konstitutsiyasiga oʻzgartirish va qoʻshimchalar tegishincha Oʻzbekiston Respublikasi Oliy Majlisining Qonunchilik palatasi deputatlari va Senati aʼzolari umumiy sonining kamida uchdan ikki qismidan iborat koʻpchiligi tomonidan qabul qilingan konstitutsiyaviy qonun yoki Oʻzbekiston Respublikasining referendumi bilan kiritiladi.  Oʻzbekiston Respublikasining “Oʻzbekiston Respublikasining referendumi toʻgʻrisida”gi Qonuni . Ushbu Konstitutsiya 1-moddasining va ushbu modda ikkinchi qismining qoidalari qayta koʻrib chiqilishi mumkin emas. Oʻzbekiston Respublikasining Konstitutsiyasiga oʻzgartirish va qoʻshimchalar kiritish toʻgʻrisidagi konstitutsiyaviy qonunda uning normalarini, shuningdek Konstitutsiyaning normalarini qoʻllashning oʻziga xos xususiyatlari nazarda tutilishi mumkin.",
+        "category": "6-bo‘lim. Konstitutsiyaga o‘zgartirish kiritish tartibi"
       },
       {
         "number": "155",
-        "title": "155-modda bo'yicha konstitutsiyaviy normalar",
-        "content": "Yakunlovchi qoidalar ushbu moddada belgilanadi. Konstitutsiya qoidalari O'zbekiston Respublikasining butun hududida amal qiladi.",
-        "category": "10-bob. Yakunlovchi qoidalar"
+        "article_number": "155",
+        "title": "155-modda bo‘yicha konstitutsiyaviy norma",
+        "content": "155-modda. Oʻzbekiston Respublikasi Oliy Majlisi tegishli taklif kiritilgandan keyin olti oy mobaynida Konstitutsiyaga oʻzgartirish va qoʻshimchalar kiritish toʻgʻrisida keng va har taraflama muhokamani hisobga olgan holda konstitutsiyaviy qonun qabul qilishi mumkin. Agar Oʻzbekiston Respublikasi Oliy Majlisi Konstitutsiyani oʻzgartirish toʻgʻrisidagi taklifni rad etsa, taklif bir yil oʻtgandan keyingina qayta kiritilishi mumkin. (Qonunchilik maʼlumotlari milliy bazasi, 01.05.2023-y., 03/23/837/0241-son; 14.07.2026-y., 03/26/1158/0727-son)",
+        "category": "6-bo‘lim. Konstitutsiyaga o‘zgartirish kiritish tartibi"
       }
     ]
   },

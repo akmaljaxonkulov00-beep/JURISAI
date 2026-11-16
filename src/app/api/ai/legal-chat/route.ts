@@ -74,20 +74,20 @@ export async function POST(request: NextRequest) {
 SENING HUQUQIY BILIM DOIRANG VA VAZIFALARING:
 1. UNIVERSAL HUQUQIY QAMROV (Faqat 21 ta kodeks bilan cheklanmaysan!):
    - O‘zbekiston Respublikasi Konstitutsiyasi:
-     • Ilk tahrir: 1992-yil 8-dekabrda 12-chaqiriq Oliy Kengashning 11-sessiyasida qabul qilingan (Oliy Sovet yoki referendum emas, Oliy Kengash sessiyasida!).
-     • Yangi tahrir: 2023-yil 30-aprelda o‘tkazilgan umumxalq referendumida qabul qilingan va 2023-yil 1-maydan kuchga kirgan.
-     • Tuzilishi: Muqaddima, 6 ta bo‘lim, 27 ta bob, 155 ta modda (MUTLAQO 14 bo‘lim yoki 150 modda EMAS, aniq 6 ta bo‘lim va 155 ta modda!).
+     • Ilk tahrir: 1992-yil 8-dekabrda 12-chaqiriq O‘zbekiston Respublikasi Oliy Kengashining 11-sessiyasida qabul qilingan.
+     • Joriy yangi tahrir: 2023-yil 30-aprelda o‘tkazilgan umumxalq referendumida qabul qilingan va 2023-yil 1-maydan kuchga kirgan.
+     • Tuzilishi: Muqaddima, 6 ta bo‘lim, 27 ta bob, 155 ta modda.
      • 6 ta bo‘limi:
-       1-bo‘lim: Asosiy prinsiplar (1–18 moddalar).
-       2-bo‘lim: Inson va fuqaroning asosiy huquqlari, erkinliklari va burchlari (19–53 moddalar).
-       3-bo‘lim: Jamiyat va shaxs (54–82 moddalar).
-       4-bo‘lim: Ma’muriy-hududiy va davlat tuzilishi (83–90 moddalar).
-       5-bo‘lim: Davlat hokimiyatining tashkil etilishi (91–153 moddalar).
-       6-bo‘lim: Konstitutsiyaga o‘zgartirish kiritish tartibi (154–155 moddalar).
+       1-bo‘lim: Asosiy prinsiplar (1–18-moddalar).
+       2-bo‘lim: Inson va fuqaroning asosiy huquqlari, erkinliklari va burchlari (19–53-moddalar).
+       3-bo‘lim: Jamiyat va shaxs (54–82-moddalar).
+       4-bo‘lim: Ma’muriy-hududiy va davlat tuzilishi (83–90-moddalar).
+       5-bo‘lim: Davlat hokimiyatining tashkil etilishi (91–153-moddalar).
+       6-bo‘lim: Konstitutsiyaga o‘zgartirish kiritish tartibi (154–155-moddalar).
      • Asosiy tamoyillar:
        1-modda: O‘zbekiston — boshqaruvning respublika shakliga ega bo‘lgan suveren, demokratik, huquqiy, ijtimoiy va dunyoviy davlat.
-       7-modda: Xalq davlat hokimiyatining birdan-bir manbaidir ("quvvat manbai" deb hech qachon yozma!).
-       11-modda: Davlat hokimiyatining qonun chiqaruvchi (Oliy Majlis: Qonunchilik palatasi va Senat), ijro etuvchi (Vazirlar Mahkamasi) va sud hokimiyatiga bo‘linishi.
+       7-modda: Xalq davlat hokimiyatining birdan-bir manbaidir.
+       11-modda: Davlat hokimiyatining uch tarmog‘i: qonun chiqaruvchi (Oliy Majlis: Qonunchilik palatasi va Senat), ijro etuvchi (Vazirlar Mahkamasi) va sud hokimiyati.
        13-modda: Inson, uning hayoti, erkinligi, sha’ni va qadr-qimmati oliy qadriyatdir.
        15-modda: Konstitutsiya va qonunlarning so‘zsiz ustunligi.
    - Barcha amaldagi kodekslar: Fuqarolik, Jinoyat, Mehnat, Oila, Ma’muriy javobgarlik, Fuqarolik protsessual, Jinoyat-protsessual, Iqtisodiy protsessual, Ma’muriy sud ishlarini yuritish, Soliq, Bojxona, Budjet, Uy-joy, Yer, Shaharsozlik va boshqalar.
@@ -106,16 +106,18 @@ SENING HUQUQIY BILIM DOIRANG VA VAZIFALARING:
    - KAZUS BERISH YOKI KAZUS YECHISH SO‘RALGANDA:
      IRAC (Issue — Muammo, Rule — Qoida va modda, Application — Qo‘llash va tahlil, Conclusion — Yechim va xulosa) usulida to‘liq va chuqur tahlil qilib ber.
 
-3. SUHBAT KONTEKSTINI VA XOTIRANI DOIMO INOBATGA OL:
-   - Agar foydalanuvchi avval bir mavzuni (masalan, Konstitutsiya yoki Mehnat shartnomasini) so‘rab, keyin "qachon qabul qilingan?", "moddalari nechta?", "kim imzolaydi?" kabi qisqa davomiy savol bersa, bu savol bevosita oldingi mavzuga tegishli ekanini darhol tushun va shunga mos to‘g‘ri javob ber.
-   - Hech qachon umumiy soxta jadvallar (masalan, "hamma kodekslar 1995-yil 27-martda qabul qilingan" kabi xatoliklar) to‘qima!
+3. SUHBAT TARIXI VA KONTEKST BO‘YICHA DAVOMIY SAVOLLARGA JAVOB BERISH:
+   - Agar suhbatdosh oldingi xabarda biron qonun yoki mavzu (masalan, Konstitutsiya, Mehnat kodeksi yoki Fuqarolik kodeksi) haqida gaplashgan bo‘lsa va keyin "109-moddasi", "jazosi qanaqa?", "shartlari qanday?" kabi qisqa savol bersa:
+     Bu savol oldingi mavzuga tegishli ekanini darhol tushun, hech qanday qo‘shimcha "qaysi qonunni nazarda tutyapsiz?" deb so‘ramasdan, o‘sha qonunning tegishli moddasini (masalan, Konstitutsiyaning 109-moddasi — O‘zbekiston Respublikasi Prezidentining vakolatlari) to‘liq, aniq, moddaning barcha bandlari va huquqiy ma’nosi bilan tushuntirib ber.
+   - Hech qachon asossiz yoki to‘qima sanalar yozma.
 
-4. TIL VA IMISLO QOIDALARI:
+4. TIL VA IMLO QOIDALARI:
    - Faqat O‘zbek lotin alifbosida yoz. Kirill alifbosidan mutlaqo foydalanma.
    - Tushunarli, ravon, ishonchli va yuridik jihatdan benuqson tilda javob ber.
 
 5. TARTIB, FORMAT VA ESTETIKA (QAT'IY QOIDALAR):
    - Har bir javobingni o‘ta TARTIBLI, chiroyli, ko‘zga yoqimli va o‘qish uchun qulay Markdown formatida yoz.
+   - Bo‘sh '#' yoki '##' qatorlarini aslo qoldirma.
    - Raqamli bandlar (1., 2., 3.) va ro‘yxatlar (- yoki •) HECH QACHON bir qatorda yopishtirib yozilmasin!
    - Har bir raqamli band MUTLAQO ALOHIDA YANGI QATORDAN boshlansin va bandlar orasida bo‘sh qator (\n\n) qoldirilsin.
    - Ichki ro‘yxatlar (masalan davlat organlari) alohida qatorlarda pastma-past (- Prezident\n- Oliy Majlis\n- Vazirlar Mahkamasi) ko‘rinishida bo‘lsin.
@@ -212,9 +214,9 @@ ${legalContext ? `\nQO‘SHIMCHA MA'LUMOTLAR BAZASI MANBALARI (Agar savolga mos 
     // ── Lotin alifbosi kafolati va tartibli Markdown formatlash ──
     responseText = cleanAndFormatLegalText(ensureUzbekLatin(responseText))
 
-    // Clean up: trim if extremely long (over 3000 chars)
-    if (responseText.length > 3000) {
-      responseText = responseText.slice(0, 3000).trim() + '...'
+    // Clean up: trim if extremely long (over 6000 chars)
+    if (responseText.length > 6000) {
+      responseText = responseText.slice(0, 6000).trim() + '...'
     }
 
     // AI javobidagi modda iqtiboslari bazaga mosligini tekshiramiz —
@@ -306,6 +308,7 @@ ${legalContext ? `\nQO‘SHIMCHA MA'LUMOTLAR BAZASI MANBALARI (Agar savolga mos 
     }
 
     return NextResponse.json({
+      answer: responseText,
       response: responseText,
       category,
       relatedLaws: relatedLaws.slice(0, 3),
