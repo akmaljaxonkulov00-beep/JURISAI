@@ -62,7 +62,7 @@ QONUNIY YO‘RIQNOMALAR:
       try {
         const geminiResult = await callGemini(
           `${chatSystemPrompt}\n\nFOYDALANUVCHI SAVOLI: ${message}`,
-          { maxTokens: 2048, temperature: 0.1 }
+          { maxTokens: 2048, temperature: 0.2 }
         )
         if (geminiResult?.trim()) {
           aiResponse = ensureUzbekLatin(geminiResult)
@@ -78,22 +78,38 @@ QONUNIY YO‘RIQNOMALAR:
         console.error('[chat] Na Gemini, na Groq sozlanmagan')
         return NextResponse.json({ error: 'AI service not configured' }, { status: 500 })
       }
-      const groqResp = await fetch(GROQ_API_URL, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${GROQ_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'openai/gpt-oss-120b',
-          messages: [
-            { role: 'system', content: chatSystemPrompt },
-            { role: 'user', content: message },
-          ],
-          temperature: 0.1,
-          max_tokens: 2048,
-        }),
-      })
+      const CANDIDATES = ['qwen/qwen3.8-27b', 'openai/gpt-oss-120b']
+      for (const model of CANDIDATES) {
+        try {
+          const groqResp = await fetch(GROQ_API_URL, {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${GROQ_API_KEY}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model,
+              messages: [
+                { role: 'system', content: chatSystemPrompt },
+                { role: 'user', content: message },
+              ],
+              temperature: 0.2,
+              max_tokens: 2048,
+            }),
+          })
+
+          if (groqResp.ok) {
+            const data = await groqResp.json()
+            const text = data.choices?.[0]?.message?.content || ''
+            if (text.trim()) {
+              aiResponse = text.trim()
+              break
+            }
+          }
+        } catch (e) {
+          console.warn('[chat] Groq error:', e)
+        }
+      }
 
       if (!groqResp.ok) {
         const errorText = await groqResp.text()

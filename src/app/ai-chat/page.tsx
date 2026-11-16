@@ -198,11 +198,11 @@ export default function AIChatPage() {
               <div className="flex items-center space-x-2">
                 <h1 className="text-lg font-bold text-slate-900 dark:text-zinc-50">AI Yuridik Konsultant</h1>
                 <span className="px-2 py-0.5 text-xs font-semibold bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300 rounded-full">
-                  Gemini 3 Pro + RAG
+                  Gemini & Lex.uz
                 </span>
               </div>
               <p className="text-xs text-slate-500 dark:text-zinc-400">
-                O‘zbekiston Respublikasining 11 ta kodeksi va 5000+ moddalari asosida
+                O‘zbekiston Respublikasi Konstitutsiyasi, barcha kodekslar va to‘liq qonunchilik tizimi asosida
               </p>
             </div>
           </div>

@@ -133,7 +133,8 @@ export function searchLocalArticles(message: string, limit = 6): RAGArticle[] {
       if (contentNorm.includes(kw)) score += 5
     }
 
-    if (score > 0) {
+    // Faqat yetarli darajada mos kelgan (kamida 15 ball to‘plagan) moddalarni olamiz
+    if (score >= 15) {
       scored.push({ article: art, score })
     }
   }
@@ -587,13 +588,7 @@ export async function retrieveLegalArticles(message: string, limit = 6): Promise
     }
 
     if (candidateIds.size === 0) {
-      // Bo'sh javobdan yaxshiroq — dastlabki moddalar
-      const { data } = await supabase
-        .from('articles')
-        .select('*')
-        .order('article_number_int', { ascending: true, nullsFirst: false })
-        .limit(limit)
-      return mapRows(data || [], codeNames)
+      return []
     }
 
     // Tanlangan nomzodlarning to'liq matnini yuklash.
@@ -780,44 +775,76 @@ export function extractCitations(text: string): CitationRef[] {
  */
 export async function validateCitations(text: string): Promise<CitationValidation> {
   const supabase = makeSupabase()
+  const localArticles = getFlatLocalArticles()
   const valid: CitationValidation['valid'] = []
   const invalid: CitationRef[] = []
 
   const refs = extractCitations(text)
   if (refs.length === 0) return { valid, invalid }
-  if (!supabase) return { valid, invalid }
 
   for (const ref of refs) {
     try {
       const codeId = ref.code ? CODE_PREFIX_ALIASES[ref.code.toLowerCase()] || null : null
-      let query = supabase
-        .from('articles')
-        .select('code_id, article_number, title')
-        .eq('article_number', String(ref.article))
-      if (codeId) query = query.eq('code_id', codeId)
-      query = query.limit(2)
 
-      const { data } = await query
-      const rows = (data || []) as RagRow[]
-      if (rows.length === 0) {
-        invalid.push(ref)
+      // Agar havola aniq ma'lum bo'lgan kodeks prefiksi bo'lmasa (masalan, "qonun 18-modda",
+      // "farmon", "nizom"), uni asossiz ravishda xato deb belgilamaymiz:
+      if (!codeId && ref.code) {
         continue
       }
-      // Kodeks nomi keltirilgan bo'lsa — mos tushgan qatorni olamiz
-      const hit = codeId ? rows.find((r: RagRow) => r.code_id === codeId) : rows[0]
-      if (!hit) {
-        invalid.push(ref)
-        continue
+
+      // 1. Avval mahalliy 4407 ta moddadan tekshiramiz:
+      if (localArticles.length > 0) {
+        const localHit = localArticles.find(a => {
+          const numMatch = a.article_number === String(ref.article)
+          if (!numMatch) return false
+          if (codeId) return a.code_id === codeId
+          return true
+        })
+
+        if (localHit) {
+          valid.push({
+            code: localHit.code_id,
+            codeName: localHit.code_name,
+            article: ref.article,
+            title: localHit.title || '',
+          })
+          continue
+        }
       }
-      const codeName = CATEGORY_DISPLAY[hit.code_id as string] || hit.code_id || ''
-      valid.push({
-        code: hit.code_id || '',
-        codeName: String(codeName),
-        article: ref.article,
-        title: hit.title || '',
-      })
+
+      // 2. Agar Supabase mavjud bo'lsa, undan tekshiramiz:
+      if (supabase) {
+        let query = supabase
+          .from('articles')
+          .select('code_id, article_number, title')
+          .eq('article_number', String(ref.article))
+        if (codeId) query = query.eq('code_id', codeId)
+        query = query.limit(2)
+
+        const { data } = await query
+        const rows = (data || []) as RagRow[]
+        if (rows.length > 0) {
+          const hit = codeId ? rows.find((r: RagRow) => r.code_id === codeId) : rows[0]
+          if (hit) {
+            const codeName = CATEGORY_DISPLAY[hit.code_id as string] || hit.code_id || ''
+            valid.push({
+              code: hit.code_id || '',
+              codeName: String(codeName),
+              article: ref.article,
+              title: hit.title || '',
+            })
+            continue
+          }
+        }
+      }
+
+      // Faqatgina aniq kodeks prefiksi bo'lib (masalan JK, MK, FK), na mahalliy bazada,
+      // na Supabaseda topilmagan bo'lsagina invalid deb belgilaymiz:
+      if (codeId) {
+        invalid.push(ref)
+      }
     } catch {
-      // Tekshiruv xatosi javobni buzmasin — o'tkazib yuboramiz
+      // Tekshiruv xatosi javobni buzmasin
     }
   }
 
