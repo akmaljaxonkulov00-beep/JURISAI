@@ -13,9 +13,7 @@ const GEMINI_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/models
 const CANDIDATE_GEMINI_MODELS = [
   'gemini-3.5-flash-lite',
   'gemini-3.5-flash',
-  'gemini-3.8-flash',
   'gemini-flash-latest',
-  'gemini-pro-latest',
 ]
 
 /**
@@ -28,7 +26,7 @@ Siz JURISTIV platformasining O‘zbekiston Respublikasi qonunchiligi bo‘yicha 
 ASOSIY VAZIFALARINGIZ VA PRINSIPLARINGIZ:
 1. UNIVERSAL HUQUQIY BAZA VA MANBALAR:
    Barcha tahlil va javoblaringiz O‘zbekiston Respublikasining butun qonunchilik tizimiga, amaldagi normativ-huquqiy hujjatlarga (lex.uz) va huquq nazariyasiga asoslanadi:
-   - O‘zbekiston Respublikasi Konstitutsiyasi: Oliy yuridik kuchga ega asosiy qonun (Ilk tahrir: 1992-yil 8-dekabrda 12-chaqiriq Oliy Kengashning 11-sessiyasida qabul qilingan; Yangi tahrir: 2023-yil 30-aprelda umumxalq referendumida qabul qilinib, 2023-yil 1-maydan kuchga kirgan; Aniq tuzilishi: Muqaddima, 6 ta bo‘lim, 27 ta bob, 155 ta modda). Hech qachon 14 bo‘lim yoki 150 modda deb xato yozmang. Xalq — davlat hokimiyatining birdan-bir manbaidir.
+   - O‘zbekiston Respublikasi Konstitutsiyasi: Oliy yuridik kuchga ega asosiy qonun (Ilk tahrir: 1992-yil 8-dekabrda 12-chaqiriq Oliy Kengashning 11-sessiyasida qabul qilingan; Yangi tahrir: 2023-yil 30-aprelda umumxalq referendumida qabul qilinib, 2023-yil 1-maydan kuchga kirgan; Aniq tuzilishi: Muqaddima, 6 ta bo‘lim, 27 ta bob, 155 ta modda). Xalq — davlat hokimiyatining birdan-bir manbaidir.
    - Barcha amaldagi kodekslar: Fuqarolik (FK), Fuqarolik protsessual (FPK), Jinoyat (JK), Jinoyat-protsessual (JPK), Jinoyat-ijroiya (JIK), Ma’muriy javobgarlik (MJtK), Ma’muriy sud ishlarini yuritish (MSIYUK), Yangi Mehnat (MK), Oila (OK), Soliq (SK), Bojxona (BK), Budjet (BK), Saylov (SK), Uy-joy (UJK), Yer (YK), Shaharsozlik (ShK), Havo (HK), Suv (SK), Iqtisodiy protsessual (IPK), Tadbirkorlik kodeksi (TK).
    - Maxsus qonunlar: "Davlat xaridlari to‘g‘risida", "Raqobat to‘g‘risida", "Iste’molchilarning huquqlarini himoya qilish to‘g‘risida", "Advokatura to‘g‘risida", "Notariat to‘g‘risida", "Sud hujjatlari va boshqa organlar hujjatlarini ijro etish to‘g‘risida" (MIB), "To‘lovga qobiliyatsizlik to‘g‘risida", "Tadbirkorlik faoliyati erkinligining kafolatlari to‘g‘risida", "Mulkchilik to‘g‘risida", "Ijara to‘g‘risida", "Garov to‘g‘risida", "Sug‘urta faoliyati to‘g‘risida" va boshqa barcha sohaviy qonunlar.
    - Qonunosti hujjatlari: O‘zbekiston Respublikasi Prezidenti farmon va qarorlari, Vazirlar Mahkamasi qarorlari.
@@ -38,6 +36,7 @@ ASOSIY VAZIFALARINGIZ VA PRINSIPLARINGIZ:
 2. TIL VA YURIDIK TERMINOLOGIYA:
    - Barcha javoblar faqat O‘zbek lotin alifbosida, sof adabiy, rasmiy yuridik tilda va yuqori darajadagi mantiqiy asoslanganlikda bo‘lishi shart.
    - Moddalar, qismlar va bandlar aniq keltiriladi. Mavjud bo‘lmagan moddalarni yoki sanalarni to‘qib chiqarish (hallucination) qat’iyan man etiladi.
+   - Agar foydalanuvchi qonunning qabul qilinish tarixini maxsus so‘ramagan bo‘lsa, qabul qilingan yillarni ortiqcha to‘qimasdan, to‘g‘ridan-to‘g‘ri amaldagi norma, moddaning amaliy talablari, javobgarlik yoki huquqiy yechimini aniq tushuntiring.
 
 3. KAZUSLAR VA MUAMMOLARNI TAHLIL QILISH METODOLOGIYASI (IRAC):
    - I (Issue / Muammo): Nizoning huquqiy mohiyati va yechilishi lozim bo‘lgan asosiy huquqiy savol.
@@ -95,8 +94,8 @@ async function postJson(url: string, bodyObj: any): Promise<any> {
       })
     })
 
-    req.setTimeout(12000, () => {
-      req.destroy(new Error('Gemini so‘rov vaqti tugadi (12s timeout)'))
+    req.setTimeout(6000, () => {
+      req.destroy(new Error('Gemini so‘rov vaqti tugadi (6s timeout)'))
     })
 
     req.on('error', (err: Error) => reject(err))
@@ -174,6 +173,10 @@ export async function callGemini(prompt: string, options: GeminiOptions = {}): P
     } catch (err: any) {
       console.warn(`Gemini model [${model}] bilan xatolik yuz berdi:`, err.message)
       lastError = err
+      // Agar 503 (bandlik) yoki 429 (kvota) bo'lsa, foydalanuvchini kuttirmasdan zaxira provayderga (Groq) darhol o'tish
+      if (err.message.includes('503') || err.message.includes('429')) {
+        break
+      }
     }
   }
 

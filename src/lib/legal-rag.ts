@@ -72,7 +72,20 @@ export function getFlatLocalArticles(): RAGArticle[] {
   if (_cachedFlatArticles) return _cachedFlatArticles
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const codes = require('@/data/full-legal-codes.json')
+    let codes: any = null
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      codes = require('@/data/full-legal-codes.json')
+    } catch {
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        const path = require('path')
+        codes = require(path.join(process.cwd(), 'src/data/full-legal-codes.json'))
+      } catch {
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        codes = require('../data/full-legal-codes.json')
+      }
+    }
     const list = Array.isArray(codes) ? codes : Object.values(codes)
     const result: RAGArticle[] = []
     for (const c of list as any[]) {

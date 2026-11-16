@@ -14,10 +14,10 @@ export function cleanAndFormatLegalText(text: string): string {
   res = res.replace(/([:;.])\s+[*•]\s+/g, '$1\n- ')
   res = res.replace(/;\s+[*•]\s+/g, ';\n- ')
 
-  // 3. Sarlavhalar oldida bo'sh qator tashlash va bo'sh '#' belgilarini tozalash:
-  res = res.replace(/^[ \t]*#{1,6}[ \t]*$/gm, '')
-  res = res.replace(/(^|\n)[ \t]*#{1,6}[ \t]*(?=\n|$)/g, '$1')
-  res = res.replace(/([^\n])(#{1,4}\s+)/g, '$1\n\n$2')
+  // 3. Sarlavhalar oldida bo'sh qator tashlash va bo'sh '#' belgilarini tozalash (Windows \r\n mosligi bilan):
+  res = res.replace(/^[ \t\r]*#{1,6}[ \t\r]*$/gm, '')
+  res = res.replace(/(^|\r?\n)[ \t\r]*#{1,6}[ \t\r]*(?=\r?\n|$)/g, '$1')
+  res = res.replace(/([^\r\n])(#{1,4}\s+)/g, '$1\n\n$2')
 
   // 4. Konstitutsiyaviy va rasmiy davlat atamalarini kafolatlash:
   res = res.replace(/\bSenatus\b/gi, 'Senat')
