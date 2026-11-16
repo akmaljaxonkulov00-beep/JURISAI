@@ -90,7 +90,7 @@ export default function Help() {
     {
       question: "Advokat bo‘lmoqchi talabalarga mukofot qanday hisoblanadi?",
       answer:
-        "Fuqaro savollariga sifatli javob yozgan talabalarga fuqaroning bahosiga ko‘ra ramziy rag‘batlantirish mablag‘i hisoblanadi (5 yulduz uchun 5 000 UZS, 4 yulduz uchun 3 000 UZS, 3 yulduz uchun 1 000 UZS). To‘plangan rag‘bat mablag‘larini talabalar o‘z plastik kartalariga yechib olishlari mumkin.",
+        "Har bir javob uchun alohida pul to‘lanmaydi. Talaba fuqaro savollariga javob beradi va fuqaro 1 dan 5 yulduzgacha baho (ball) qo‘yadi. Ushbu ballar talaba profilida jamlanib boradi. Har 50 ball to‘planganda, talabaning qiziqishi va faolligini rag‘batlantirish uchun hisobiga 20 000 UZS ramziy rag‘batlantirish bonusi ajratiladi. Fuqarolar to‘lovining asosiy qismi platformada qoladi.",
       category: 'community',
     },
     {

@@ -241,7 +241,7 @@ export default function LawStudentWalletPage() {
                 Mukofotlash mexanizmi qanday ishlaydi?
               </h4>
               <p className="text-xs text-gray-600 dark:text-gray-300">
-                Har bir fuqaro savoliga yozgan javobingiz fuqaro tomonidan 1 dan 5 yulduzgacha baholanadi. Fuqaroning qo‘ygan bahosiga asosan sizga ramziy rag‘batlantirish mablag‘i hisoblanadi (5 yulduz uchun 5 000 so‘m, 4 yulduz uchun 3 000 so‘m, 3 yulduz uchun 1 000 so‘m). Bu doimiy oylik maosh emas, balki talabalarning qiziqishi va amaliy ko‘nikmalarini rag‘batlantirishdir. Fuqarolar to‘lovining asosiy qismi platformada qoladi. Mablag‘ni istalgan payt kartangizga yechib olishingiz mumkin.
+                Har bir javob uchun alohida pul to‘lanmaydi! Siz fuqaro savollariga javob berasiz, fuqaro javobingizni 1 dan 5 yulduzgacha baholaydi. Ushbu yulduzchalar hisobingizda ball sifatida jamlanib boradi. To‘plangan ballaringiz har 50 ballik marraga yetganda, qiziqishingiz va faolligingizni rag‘batlantirish uchun hisobingizga kichik rag‘batlantirish bonusi (20 000 UZS) taqdim etiladi. Bu oylik maosh emas, ramziy rag‘batdir. Fuqarolar to‘lovining asosiy qismi platformada qoladi.
               </p>
             </div>
           </div>

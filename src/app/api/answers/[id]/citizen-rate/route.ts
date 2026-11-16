@@ -79,8 +79,10 @@ export async function POST(
     }
 
     // 3. Agar javob muallifi talaba (law_student) bo'lsa:
-    // Bahoga qarab ball hisoblash: 5 yulduz = 25 ball, 4 = 15 ball, 3 = 10 ball, 2 = 5 ball
-    const bonusPoints = numericRating === 5 ? 25 : numericRating === 4 ? 15 : numericRating === 3 ? 10 : 5
+    // Fuqaroning 1-5 yulduzli bahosi to'g'ridan-to'g'ri ball (yulduzcha) sifatida jamlanadi:
+    // 5 yulduz = +5 ball, 4 yulduz = +4 ball, 3 yulduz = +3 ball, 2 yulduz = +1 ball, 1 yulduz = 0 ball
+    const earnedPoints =
+      numericRating === 5 ? 5 : numericRating === 4 ? 4 : numericRating === 3 ? 3 : numericRating === 2 ? 1 : 0
 
     if (answer.author_id) {
       // Talabaning profili
@@ -92,26 +94,28 @@ export async function POST(
 
       if (profile) {
         const currentScore = Number(profile.reputation_score || 0)
-        const newScore = currentScore + bonusPoints
+        const newScore = currentScore + earnedPoints
 
         // Yangi daraja (Tier) hisoblash:
         let level = profile.level || 'beginner'
-        if (newScore >= 500) level = 'expert'
-        else if (newScore >= 300) level = 'advanced'
-        else if (newScore >= 150) level = 'skilled'
-        else if (newScore >= 60) level = 'contributor'
+        if (newScore >= 250) level = 'expert'
+        else if (newScore >= 150) level = 'advanced'
+        else if (newScore >= 75) level = 'skilled'
+        else if (newScore >= 30) level = 'contributor'
 
-        // Fuqaro qo'ygan 1-5 yulduzli bahoga asoslangan ramziy rag'batlantirish:
-        // Bu oylik emas, balki talabaning qiziqishi va bilimini oshirish uchun beriladigan rag'bat.
-        // Fuqaro to'lagan pulning asosiy qismi platformada qoladi.
-        // 5 yulduz (A'lo) = 5 000 UZS
-        // 4 yulduz (Yaxshi) = 3 000 UZS
-        // 3 yulduz (Qoniqarli) = 1 000 UZS
-        // 1-2 yulduz = 0 UZS
-        const studentRewardAmount =
-          numericRating === 5 ? 5000 : numericRating === 4 ? 3000 : numericRating === 3 ? 1000 : 0
+        // DIQQAT: HAR BIR JAVOB UCHUN PUL BERILMAYDI!
+        // Fuqaro qo'ygan 1-5 ballar talabaning hisobida yig'ilib boradi.
+        // Faqatgina talaba juda ko'p savollarga sifatli javob berib, ballari har 50 ballik
+        // marraga (masalan 50, 100, 150 ball) yetgandagina, talabaning amaliyotga qiziqishini
+        // rag'batlantirish uchun ramziy rag'bat (20 000 UZS) hisoblanadi.
+        // Fuqarolardan tushgan pulning asosiy qismi platformada qoladi.
+        const prevThresholdCount = Math.floor(currentScore / 50)
+        const newThresholdCount = Math.floor(newScore / 50)
+        const milestonesReached = newThresholdCount - prevThresholdCount
 
-        if (studentRewardAmount > 0) {
+        if (milestonesReached > 0) {
+          const rewardAmount = milestonesReached * 20000 // Har 50 ball to'planganda 20 000 UZS ramziy rag'bat
+
           const { data: wallet } = await admin
             .from('student_wallets')
             .select('*')
@@ -122,29 +126,29 @@ export async function POST(
             await admin
               .from('student_wallets')
               .update({
-                balance: Number(wallet.balance || 0) + studentRewardAmount,
-                total_earned: Number(wallet.total_earned || 0) + studentRewardAmount,
+                balance: Number(wallet.balance || 0) + rewardAmount,
+                total_earned: Number(wallet.total_earned || 0) + rewardAmount,
                 updated_at: now,
               })
               .eq('student_id', answer.author_id)
           } else {
             await admin.from('student_wallets').insert({
               student_id: answer.author_id,
-              balance: studentRewardAmount,
-              total_earned: studentRewardAmount,
+              balance: rewardAmount,
+              total_earned: rewardAmount,
               total_withdrawn: 0,
               updated_at: now,
             })
           }
 
-          // Mukofot yozuvini kiritish
+          // Mukofot yozuvini kiritish (50 ballik marra bosqichi uchun)
           await admin.from('student_rewards').insert({
             student_id: answer.author_id,
             question_id: answer.question_id,
             answer_id: answerId,
-            amount: studentRewardAmount,
+            amount: rewardAmount,
             ai_score: numericRating,
-            notes: `Fuqaroning ${numericRating} yulduzli bahosi uchun ramziy rag‘batlantirish`,
+            notes: `Fuqarolardan to‘plangan ${newScore} ball marrasi (har 50 ball uchun 20 000 UZS ramziy rag‘bat)`,
             created_at: now,
           })
         }
@@ -162,9 +166,9 @@ export async function POST(
 
     return NextResponse.json({
       success: true,
-      message: 'Bahoyingiz qabul qilindi! Talaba reytingi oshirildi.',
+      message: 'Bahoyingiz qabul qilindi! Talaba reytingi va ballari oshirildi.',
       rating: numericRating,
-      bonusPoints,
+      earnedPoints,
     })
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 })
