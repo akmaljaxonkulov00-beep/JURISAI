@@ -38,6 +38,26 @@ const PROTECTED_PREFIXES = [
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
+  // Vaqtinchalik to'xtatilgan yo'nalishlar (Faqat talabalar tizimi faol: /dashboard)
+  const PAUSED_PREFIXES = [
+    '/citizen',
+    '/advocate',
+    '/law-student',
+    '/questions',
+    '/lawyer-dashboard',
+    '/lawyer-login',
+    '/lawyer-register',
+    '/demo-lawyer',
+  ]
+  const isPaused = PAUSED_PREFIXES.some(
+    prefix => pathname === prefix || pathname.startsWith(`${prefix}/`)
+  )
+  if (isPaused) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/dashboard'
+    return NextResponse.redirect(url)
+  }
+
   // Tekshirish kerak bo‘lgan ichki sahifalar
   const isProtected = PROTECTED_PREFIXES.some(
     prefix => pathname === prefix || pathname.startsWith(`${prefix}/`)

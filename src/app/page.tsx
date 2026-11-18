@@ -28,33 +28,9 @@ import {
 
 const AUDIENCES = [
   {
-    id: 'citizen',
-    title: 'Fuqarolar uchun',
-    badge: 'Tezkor va ommabop',
-    badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
-    icon: UserCheck,
-    description:
-      'Kundalik hayotdagi huquqiy savollarga tushunarli javob oling, huquqlaringizni himoya qiling va litsenziyalangan advokatlar yordamidan foydalaning.',
-    features: [
-      '24/7 AI konsultatsiya — savollaringizga amaldagi qonunchilik asosida javob',
-      'Malakali va litsenziyaga ega advokatlar katalogi',
-      'Rasmiy arizalar, daʼvo va shartnomalar konstruktori',
-      'Huquqiy xavflarni oldindan baholash (Risk Assessment)',
-    ],
-    primaryAction: {
-      label: 'Huquqiy savol berish',
-      href: '/signin',
-    },
-    secondaryAction: {
-      label: 'Advokat topish',
-      href: '/signin',
-    },
-    border: 'border-emerald-200 dark:border-emerald-800/40',
-  },
-  {
     id: 'law_student',
-    title: 'Yosh huquqshunoslar & talabalar',
-    badge: 'Amaliy tajriba & IRAC',
+    title: 'Bo‘lajak yuristlar & Talabalar',
+    badge: 'Faol tizim · 1-bosqich',
     badgeColor: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20',
     icon: GraduationCap,
     description:
@@ -68,21 +44,23 @@ const AUDIENCES = [
     primaryAction: {
       label: 'Virtual Sudga kirish',
       href: '/signin',
+      disabled: false,
     },
     secondaryAction: {
       label: 'Kazus yechish',
       href: '/signin',
+      disabled: false,
     },
-    border: 'border-blue-200 dark:border-blue-800/40',
+    border: 'border-blue-500 dark:border-blue-500 ring-2 ring-blue-500/20 shadow-md',
   },
   {
     id: 'advocate',
     title: 'Professional advokatlar',
-    badge: 'Raqamli ish muhiti',
-    badgeColor: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
+    badge: 'Tez kunda · 2-bosqich',
+    badgeColor: 'bg-slate-500/10 text-slate-500 dark:text-slate-400 border-slate-300 dark:border-slate-700',
     icon: Briefcase,
     description:
-      'Advokatlik amaliyotini avtomatlashtiring, yangi mijozlar oqimiga ega bo‘ling, yosh kadrlarga ustozlik qiling va nufuzli obro‘ profilini yarating.',
+      'Advokatlik amaliyotini avtomatlashtirish, yangi mijozlar oqimi va nufuzli obro‘ profilini yaratish uchun raqamli ish muhiti.',
     features: [
       'Fuqarolardan to‘g‘ridan-to‘g‘ri murojaatlar va ishlarni qabul qilish',
       'Shogirdlar tayyorlash va mentorlik tizimi (shogird biriktirish)',
@@ -90,14 +68,42 @@ const AUDIENCES = [
       'Shaxsiy advokatlik profili, mijozlar sharhlari va reytingi',
     ],
     primaryAction: {
-      label: 'Advokat kabineti',
-      href: '/signin',
+      label: 'Tez kunda (2-bosqich)',
+      href: '#',
+      disabled: true,
     },
     secondaryAction: {
-      label: 'Mentorlik dasturi',
-      href: '/signin',
+      label: 'Kengayish bosqichida',
+      href: '#',
+      disabled: true,
     },
-    border: 'border-amber-200 dark:border-amber-800/40',
+    border: 'border-slate-200 dark:border-slate-800 opacity-60',
+  },
+  {
+    id: 'citizen',
+    title: 'Fuqarolar uchun yordam',
+    badge: 'Tez kunda · 3-bosqich',
+    badgeColor: 'bg-slate-500/10 text-slate-500 dark:text-slate-400 border-slate-300 dark:border-slate-700',
+    icon: UserCheck,
+    description:
+      'Kundalik hayotdagi huquqiy savollarga tushunarli javob olish va litsenziyalangan advokatlar yordamidan foydalanish ekotizimi.',
+    features: [
+      '24/7 AI konsultatsiya — qonunchilik asosida dastlabki yo‘nalish',
+      'Malakali va litsenziyaga ega advokatlar katalogi',
+      'Rasmiy arizalar, daʼvo va shartnomalar konstruktori',
+      'Huquqiy xavflarni oldindan baholash (Risk Assessment)',
+    ],
+    primaryAction: {
+      label: 'Tez kunda (3-bosqich)',
+      href: '#',
+      disabled: true,
+    },
+    secondaryAction: {
+      label: 'Kengayish bosqichida',
+      href: '#',
+      disabled: true,
+    },
+    border: 'border-slate-200 dark:border-slate-800 opacity-60',
   },
 ]
 
@@ -291,8 +297,7 @@ export default function LandingPage() {
 
             {/* Description */}
             <p className="text-lg sm:text-xl text-slate-600 dark:text-slate-300 mb-10 max-w-3xl mx-auto leading-relaxed">
-              Juristiv — fuqarolar uchun huquqiy yordam, yosh huquqshunoslar uchun amaliy ta’lim va
-              advokatlar uchun zamonaviy raqamli ish muhitini birlashtiruvchi platforma.
+              Juristiv — bo‘lajak yuristlar va talabalar uchun O‘zbekistondagi 1-raqamli interaktiv AI amaliyot simulyatori (Moot Court & IRAC).
             </p>
 
             {/* Action Buttons - All Route to /signin */}
@@ -390,21 +395,34 @@ export default function LandingPage() {
                     ))}
                   </div>
 
-                  {/* Action CTAs - All point to /signin */}
+                  {/* Action CTAs */}
                   <div className="space-y-2.5 pt-4 border-t border-slate-100 dark:border-slate-800">
-                    <Link
-                      href="/signin"
-                      className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors shadow-sm"
-                    >
-                      {aud.primaryAction.label}
-                      <ArrowRight className="w-4 h-4" />
-                    </Link>
-                    <Link
-                      href="/signin"
-                      className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-750 rounded-xl transition-colors"
-                    >
-                      {aud.secondaryAction.label}
-                    </Link>
+                    {aud.primaryAction.disabled ? (
+                      <div className="w-full text-center py-2.5 text-xs font-semibold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800/60 rounded-xl select-none">
+                        {aud.primaryAction.label}
+                      </div>
+                    ) : (
+                      <Link
+                        href={aud.primaryAction.href}
+                        className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors shadow-sm"
+                      >
+                        {aud.primaryAction.label}
+                        <ArrowRight className="w-4 h-4" />
+                      </Link>
+                    )}
+
+                    {aud.secondaryAction.disabled ? (
+                      <div className="w-full text-center py-1.5 text-xs text-slate-400 dark:text-slate-500 select-none">
+                        {aud.secondaryAction.label}
+                      </div>
+                    ) : (
+                      <Link
+                        href={aud.secondaryAction.href}
+                        className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-750 rounded-xl transition-colors"
+                      >
+                        {aud.secondaryAction.label}
+                      </Link>
+                    )}
                   </div>
                 </div>
               )

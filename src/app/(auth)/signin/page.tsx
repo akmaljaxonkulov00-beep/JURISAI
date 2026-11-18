@@ -235,6 +235,8 @@ function SignInContent() {
           return
         }
 
+        // Vaqtinchalik faqat talabalar tizimi faol (tekshiruvlar saqlab qo'yildi):
+        /*
         if (selectedRole === 'citizen') {
           if (!city.trim()) {
             setError('Shahar yoki viloyatingizni kiriting')
@@ -263,6 +265,7 @@ function SignInContent() {
             return
           }
         }
+        */
 
         const result = await authService.signUp(email, password, name, selectedRole, {
           licenseNumber,
@@ -798,69 +801,33 @@ function SignInContent() {
                 <>
                   <div className="space-y-1.5 pb-1">
                     <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
-                      Platformadagi rolingizni tanlang:
+                      Platformadagi rolingiz:
                     </label>
-                    <div className="grid grid-cols-2 gap-2 text-xs">
-                      <button
-                        type="button"
-                        onClick={() => setSelectedRole('student')}
-                        className={`p-2.5 rounded-xl border text-left transition-all ${
-                          selectedRole === 'student'
-                            ? 'border-indigo-600 bg-indigo-50/80 dark:bg-indigo-950/40 text-indigo-900 dark:text-indigo-200 ring-2 ring-indigo-500/20'
-                            : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 text-slate-700 dark:text-slate-300'
-                        }`}
-                      >
-                        <div className="font-semibold text-xs flex items-center gap-1.5">
-                          <span>🎓</span> Talaba
+                    <div className="p-3 rounded-xl border-2 border-indigo-600 bg-indigo-50/80 dark:bg-indigo-950/40 text-indigo-900 dark:text-indigo-200 ring-2 ring-indigo-500/20 flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <span className="text-2xl">🎓</span>
+                        <div>
+                          <div className="font-bold text-xs flex items-center gap-1.5">
+                            Yurisprudensiya & Huquq Talabasi
+                            <span className="text-[10px] px-2 py-0.2 rounded-full bg-indigo-600 text-white font-semibold">
+                              Faol tizim
+                            </span>
+                          </div>
+                          <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
+                            Virtual Sud, IRAC kazus tahlili & amaliyot
+                          </div>
                         </div>
-                        <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">Ta&apos;lim, testlar & kazuslar</div>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => setSelectedRole('citizen')}
-                        className={`p-2.5 rounded-xl border text-left transition-all ${
-                          selectedRole === 'citizen'
-                            ? 'border-blue-600 bg-blue-50/80 dark:bg-blue-950/40 text-blue-900 dark:text-blue-200 ring-2 ring-blue-500/20'
-                            : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 text-slate-700 dark:text-slate-300'
-                        }`}
-                      >
-                        <div className="font-semibold text-xs flex items-center gap-1.5">
-                          <span>🏛️</span> Fuqaro
-                        </div>
-                        <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">Yuridik yordam oluvchi</div>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => setSelectedRole('law_student')}
-                        className={`p-2.5 rounded-xl border text-left transition-all ${
-                          selectedRole === 'law_student'
-                            ? 'border-purple-600 bg-purple-50/80 dark:bg-purple-950/40 text-purple-900 dark:text-purple-200 ring-2 ring-purple-500/20'
-                            : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 text-slate-700 dark:text-slate-300'
-                        }`}
-                      >
-                        <div className="font-semibold text-xs flex items-center gap-1.5">
-                          <span>⚖️🎓</span> Yosh Advokat
-                        </div>
-                        <div className="text-[10px] text-purple-600 dark:text-purple-400 font-bold mt-0.5">Faqat maxsus parol bilan</div>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => setSelectedRole('advocate')}
-                        className={`p-2.5 rounded-xl border text-left transition-all ${
-                          selectedRole === 'advocate'
-                            ? 'border-emerald-600 bg-emerald-50/80 dark:bg-emerald-950/40 text-emerald-900 dark:text-emerald-200 ring-2 ring-emerald-500/20'
-                            : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 text-slate-700 dark:text-slate-300'
-                        }`}
-                      >
-                        <div className="font-semibold text-xs flex items-center gap-1.5">
-                          <span>⚖️</span> Advokat
-                        </div>
-                        <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold mt-0.5">Litsenziyali himoyachi</div>
-                      </button>
+                      </div>
                     </div>
+
+                    {/* Vaqtinchalik to'xtatildi (Kelgusi bosqichlar uchun saqlab qo'yildi):
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <button onClick={() => setSelectedRole('student')}>Talaba</button>
+                      <button onClick={() => setSelectedRole('citizen')}>Fuqaro</button>
+                      <button onClick={() => setSelectedRole('law_student')}>Yosh Advokat</button>
+                      <button onClick={() => setSelectedRole('advocate')}>Advokat</button>
+                    </div>
+                    */}
                   </div>
 
                   {/* Advokat uchun maxsus litsenziya xabarnomasi va maydonlari */}
