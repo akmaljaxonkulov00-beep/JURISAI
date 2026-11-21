@@ -356,3 +356,27 @@ export const ROLE_PERMISSIONS: Record<
     canRaiseObjection: false,
   },
 }
+
+/**
+ * Xona sig‘imiga (maxParticipants) mos keladigan rasmiy sud rollari ro‘yxatini qaytaradi.
+ * Masalan: 2 kishilik xonada 7 ta rol emas, faqat 2 ta zarur sud roli bo‘ladi.
+ */
+export function getActiveRolesForCapacity(maxParticipants: number = 8): MultiplayerRole[] {
+  if (maxParticipants <= 2) {
+    return ['SUDYA', 'ADVOKAT']
+  }
+  if (maxParticipants === 3) {
+    return ['SUDYA', 'PROKUROR', 'ADVOKAT']
+  }
+  if (maxParticipants === 4) {
+    return ['SUDYA', 'PROKUROR', 'ADVOKAT', 'KOTIB']
+  }
+  if (maxParticipants === 5) {
+    return ['SUDYA', 'PROKUROR', 'ADVOKAT', 'AYBLANUVCHI', 'KOTIB']
+  }
+  if (maxParticipants === 6) {
+    return ['SUDYA', 'PROKUROR', 'ADVOKAT', 'AYBLANUVCHI', 'KOTIB', 'GUVOH']
+  }
+  return ['SUDYA', 'PROKUROR', 'ADVOKAT', 'AYBLANUVCHI', 'KOTIB', 'GUVOH', 'EKSPERT']
+}
+

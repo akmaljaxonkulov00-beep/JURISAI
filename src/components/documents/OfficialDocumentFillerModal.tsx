@@ -101,6 +101,19 @@ export default function OfficialDocumentFillerModal({
     printWindow.document.close()
   }
 
+  const handleDownloadDoc = () => {
+    const header = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+    <head><meta charset='utf-8'><title>${doc.documentName}</title><style>body { font-family: 'Times New Roman', serif; font-size: 14pt; line-height: 1.5; }</style></head>
+    <body><pre style="font-family: inherit; white-space: pre-wrap;">${renderedContent}</pre></body></html>`
+    const blob = new Blob(['\ufeff', header], { type: 'application/msword' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${doc.documentName.replace(/\s+/g, '_')}.doc`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   const handleDownloadPdf = async () => {
     setDownloadingPdf(true)
     try {
@@ -365,6 +378,15 @@ export default function OfficialDocumentFillerModal({
                   >
                     <Printer className="w-4 h-4" />
                     <span>Chop etish</span>
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    onClick={handleDownloadDoc}
+                    className="rounded-xl flex items-center gap-1.5"
+                  >
+                    <FileText className="w-4 h-4 text-blue-600" />
+                    <span>Word (.doc)</span>
                   </Button>
 
                   <Button

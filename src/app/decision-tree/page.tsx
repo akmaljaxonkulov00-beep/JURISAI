@@ -43,6 +43,10 @@ import LimitExceededModal from '@/components/ai/LimitExceededModal'
 import { useLimitModal } from '@/hooks/useLimitModal'
 import GuidedDecisionFlow from '@/components/decision-tree/GuidedDecisionFlow'
 import {
+  convertGuidedScenarioToDecisionCase,
+  GUIDED_SCENARIOS,
+} from '@/lib/decision-tree/guided-scenarios-data'
+import {
   DecisionCase,
   DecisionNode,
   TreeStatistics,
@@ -133,6 +137,14 @@ export default function DecisionTreePage() {
   const showToast = (msg: string) => {
     setSuccessToast(msg)
     setTimeout(() => setSuccessToast(null), 3500)
+  }
+
+  const handleSwitchToVisual = (scenarioId?: string) => {
+    const targetCase = convertGuidedScenarioToDecisionCase(scenarioId || 'civil-debt')
+    setCurrentCase(targetCase)
+    setSelectedNode(targetCase.tree)
+    setViewMode('visual')
+    showToast(`"${targetCase.name}" grafik daraxti ochildi`)
   }
 
   // 1. Fetch saved cases from backend API on mount
@@ -604,7 +616,13 @@ export default function DecisionTreePage() {
               <span>Yo‘l ko‘rsatuvchi</span>
             </button>
             <button
-              onClick={() => setViewMode('visual')}
+              onClick={() => {
+                if (!currentCase) {
+                  handleSwitchToVisual('civil-debt')
+                } else {
+                  setViewMode('visual')
+                }
+              }}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
                 viewMode === 'visual'
                   ? 'bg-white dark:bg-zinc-900 text-blue-600 dark:text-blue-400 shadow-sm'
@@ -615,6 +633,22 @@ export default function DecisionTreePage() {
               <span>Grafik Daraxt</span>
             </button>
           </div>
+
+          {/* Quick Scenario Selector when in Visual Mode */}
+          {viewMode === 'visual' && (
+            <select
+              value={currentCase?.id?.replace('case_', '') || ''}
+              onChange={(e) => handleSwitchToVisual(e.target.value)}
+              className="text-xs px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-slate-700 dark:text-zinc-200 font-medium focus:ring-1 focus:ring-blue-500"
+            >
+              <option value="" disabled>Namuna tanlang...</option>
+              {GUIDED_SCENARIOS.map((sc) => (
+                <option key={sc.id} value={sc.id}>
+                  {sc.icon} {sc.title}
+                </option>
+              ))}
+            </select>
+          )}
 
           <button
             onClick={() => setIsHistoryOpen(true)}
@@ -728,7 +762,7 @@ export default function DecisionTreePage() {
 
       {viewMode === 'guided' ? (
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
-          <GuidedDecisionFlow onSwitchToVisual={() => setViewMode('visual')} />
+          <GuidedDecisionFlow onSwitchToVisual={handleSwitchToVisual} />
         </div>
       ) : (
         <>

@@ -2,7 +2,12 @@
 
 import React, { useState, useEffect } from 'react'
 import { LogIn, X, AlertTriangle, Shield, CheckCircle, Lock, Users } from 'lucide-react'
-import { MultiplayerRole, ROLE_LABELS, MultiplayerRoom } from '@/lib/court/multiplayer-types'
+import {
+  MultiplayerRole,
+  ROLE_LABELS,
+  MultiplayerRoom,
+  getActiveRolesForCapacity,
+} from '@/lib/court/multiplayer-types'
 
 interface JoinRoomModalProps {
   isOpen: boolean
@@ -226,9 +231,19 @@ export default function JoinRoomModal({
 
           {/* Role Selection with Occupied Badges */}
           <div>
-            <label className="text-zinc-300 font-bold block mb-1.5">Sud rolini tanlang:</label>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-zinc-300 font-bold block">Sud rolini tanlang:</label>
+              {roomDetails?.maxParticipants && (
+                <span className="text-[10px] text-blue-400 font-mono">
+                  {roomDetails.maxParticipants} kishilik xona uchun saralangan rollar
+                </span>
+              )}
+            </div>
             <div className="grid grid-cols-2 gap-2">
-              {ALL_ROLES.map(r => {
+              {(roomDetails?.maxParticipants
+                ? Array.from(new Set([...getActiveRolesForCapacity(roomDetails.maxParticipants), 'KUZATUVCHI' as MultiplayerRole]))
+                : ALL_ROLES
+              ).map(r => {
                 const def = ROLE_LABELS[r]
                 const isOccupied = UNIQUE_ROLES.includes(r) && !!occupiedRoles[r]
                 const occupiedName = occupiedRoles[r]

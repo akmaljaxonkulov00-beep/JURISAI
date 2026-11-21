@@ -668,6 +668,159 @@ export const GUIDED_SCENARIOS: GuidedScenario[] = [
   },
 ]
 
+import { DecisionCase, DecisionNode, ApplicableLawRef } from '@/types/decision-tree'
+
 export function getScenarioById(id: string): GuidedScenario | undefined {
   return GUIDED_SCENARIOS.find((s) => s.id === id)
 }
+
+/**
+ * Guided ssenariyni to‘liq grafik daraxt (DecisionCase) ga aylantiradi.
+ * Grafik Daraxtda to‘liq tugunlar iyerarxiyasi, moddalar va yutish ehtimollari aks etadi.
+ */
+export function convertGuidedScenarioToDecisionCase(scenarioId: string): DecisionCase {
+  const scenario = getScenarioById(scenarioId) || GUIDED_SCENARIOS[0]
+
+  function buildQuestionNode(qId: string, visited: Set<string> = new Set()): DecisionNode {
+    if (visited.has(qId)) {
+      return {
+        id: `node_cycle_${qId}`,
+        type: 'ACTION',
+        title: 'Qayta tekshirish',
+        risk_level: 'medium',
+      }
+    }
+    visited.add(qId)
+
+    const q = scenario.questions[qId]
+    if (!q) {
+      return {
+        id: `node_missing_${qId}`,
+        type: 'ACTION',
+        title: 'Qo‘shimcha surishtiruv',
+        risk_level: 'medium',
+      }
+    }
+
+    const laws: ApplicableLawRef[] = [
+      {
+        code_id: q.legalBasis.code,
+        code_name: q.legalBasis.code,
+        article_number: q.legalBasis.article,
+        title: q.legalBasis.title,
+      },
+    ]
+
+    const childOptions: DecisionNode[] = q.options.map((opt, idx) => {
+      let outcomeChild: DecisionNode[] = []
+
+      if (opt.terminalResultId && scenario.results[opt.terminalResultId]) {
+        const res = scenario.results[opt.terminalResultId]
+        const resLaws: ApplicableLawRef[] = res.applicableLaws.map((al) => ({
+          code_id: al.code,
+          code_name: al.code,
+          article_number: al.article,
+          title: al.title,
+        }))
+
+        outcomeChild = [
+          {
+            id: `res_${res.id}_${idx}`,
+            type: res.probabilityLevel === 'high' ? 'SUCCESS' : res.probabilityLevel === 'low' ? 'FAILURE' : 'OUTCOME',
+            title: res.title,
+            description: res.summary,
+            risk_level: res.probabilityLevel,
+            probability: res.winProbability,
+            confidence: 90,
+            evidence_required: res.requiredEvidence,
+            next_steps: res.recommendedSteps,
+            applicable_laws: resLaws,
+            estimated_duration: res.probabilityLevel === 'high' ? '1-2 oy' : '3-6 oy',
+            status: res.probabilityLevel === 'high' ? 'optimal' : res.probabilityLevel === 'low' ? 'risk' : 'neutral',
+          },
+        ]
+      } else if (opt.nextQuestionId && scenario.questions[opt.nextQuestionId]) {
+        outcomeChild = [buildQuestionNode(opt.nextQuestionId, new Set(visited))]
+      }
+
+      return {
+        id: `opt_${opt.id}_${idx}`,
+        type: 'DECISION',
+        title: opt.label,
+        description: opt.hint || 'Tanlangan holat bo‘yicha harakat',
+        risk_level: opt.winProbabilityChange > 0 ? 'low' : opt.winProbabilityChange < -20 ? 'high' : 'medium',
+        probability: Math.min(100, Math.max(10, 50 + opt.winProbabilityChange)),
+        children: outcomeChild,
+      }
+    })
+
+    return {
+      id: `q_${q.id}`,
+      type: 'QUESTION',
+      title: q.question,
+      description: q.explanation,
+      legal_basis: `${q.legalBasis.code} ${q.legalBasis.article}`,
+      applicable_laws: laws,
+      risk_level: 'medium',
+      confidence: 85,
+      children: childOptions,
+    }
+  }
+
+  const rootNode: DecisionNode = {
+    id: `root_${scenario.id}`,
+    type: 'ROOT',
+    title: scenario.title,
+    description: scenario.description,
+    risk_level: 'low',
+    confidence: 90,
+    children: [buildQuestionNode(scenario.initialQuestionId)],
+  }
+
+  const topResult = Object.values(scenario.results)[0]
+
+  return {
+    id: `case_${scenario.id}`,
+    name: scenario.title,
+    case_type: scenario.categoryNameUz,
+    user_role: 'Da’vogar / Murojaatchi',
+    objectives: 'Qonuniy manfaatlarni sud orqali himoya qilish va zararni undirish',
+    known_facts: scenario.description,
+    opposing_party: 'Nizoli tomon / Javobgar',
+    tree: rootNode,
+    analysis: {
+      case_summary: topResult?.summary || scenario.description,
+      legal_domain: scenario.categoryNameUz,
+      user_role: 'Da’vogar / Murojaatchi',
+      objectives: 'Qonuniy manfaatlarni sud orqali himoya qilish va zararni undirish',
+      key_facts: [scenario.description],
+      missing_facts: [],
+      legal_issues: [
+        'Shartnoma yoki majburiyatning buzilganligi',
+        'Zarur yozma va moddiy dalillarning yetarliligi',
+        'Sudga murojaat qilish muddatlariga rioya etilganligi',
+      ],
+      applicable_laws: (topResult?.applicableLaws || []).map((l) => ({
+        code_id: l.code,
+        code_name: l.code,
+        article_number: l.article,
+        title: l.title,
+      })),
+      evidence: topResult?.requiredEvidence || [],
+      assumptions: ['Yozma hujjatlarning haqiqiyligi'],
+      decision_points: ['Sudga da’vo arizasi kiritish'],
+      possible_strategies: ['Sudgacha da’vo qilish (Pretenziya)', 'Sud orqali undirish'],
+      risks: (topResult?.risks || []).map((r) => ({
+        title: r,
+        level: 'medium',
+        basis: 'Sud amaliyoti',
+      })),
+      opportunities: ['Davlat bojini javobgarga yuklash', 'Penyani undirish'],
+      recommended_next_steps: topResult?.recommendedSteps || ['Sudga murojaat qilish'],
+    },
+    status: 'active',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  }
+}
+

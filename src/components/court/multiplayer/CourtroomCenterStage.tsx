@@ -26,6 +26,7 @@ import {
   MultiplayerParticipant,
   ROLE_LABELS,
   MultiplayerRole,
+  getActiveRolesForCapacity,
 } from '@/lib/court/multiplayer-types'
 import { TRIAL_STAGES } from '@/lib/court/stage-machine'
 
@@ -74,10 +75,11 @@ function ParticipantMediaTile({
   const roleDef = participant ? ROLE_LABELS[participant.role] : undefined
 
   useEffect(() => {
-    if (videoRef.current && mediaStream) {
+    if (videoRef.current && mediaStream && isVideoActive) {
       videoRef.current.srcObject = mediaStream
+      videoRef.current.play().catch(e => console.warn('Video play error:', e))
     }
-  }, [mediaStream])
+  }, [mediaStream, isVideoActive])
 
   if (!participant) {
     return (
@@ -329,29 +331,39 @@ export default function CourtroomCenterStage({
               </span>
             </h2>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            <div className={`grid gap-2.5 ${
+              (room.maxParticipants || 8) <= 2
+                ? 'grid-cols-2'
+                : (room.maxParticipants || 8) === 3
+                  ? 'grid-cols-3'
+                  : 'grid-cols-2 sm:grid-cols-4'
+            }`}>
               {[
-                { role: 'SUDYA', user: judge, label: 'Sud Raisi' },
-                { role: 'PROKUROR', user: prosecutor, label: 'Prokuror' },
-                { role: 'ADVOKAT', user: lawyer, label: 'Himoyachi' },
-                { role: 'AYBLANUVCHI', user: defendant, label: 'Sudlanuvchi' },
-              ].map(slot => (
-                <div
-                  key={slot.role}
-                  className={`p-3 rounded-xl border text-xs transition-all ${
-                    slot.user
-                      ? 'bg-blue-950/20 border-blue-500/40 text-blue-200'
-                      : 'bg-zinc-900/50 border-zinc-800 border-dashed text-zinc-500'
-                  }`}
-                >
-                  <span className="font-bold block text-[11px] uppercase text-zinc-400">
-                    {slot.label}
-                  </span>
-                  <span className="text-sm font-bold text-white truncate block mt-0.5">
-                    {slot.user ? slot.user.userName : 'Vakant (bo‘sh)'}
-                  </span>
-                </div>
-              ))}
+                { role: 'SUDYA' as MultiplayerRole, user: judge, label: 'Sud Raisi' },
+                { role: 'PROKUROR' as MultiplayerRole, user: prosecutor, label: 'Prokuror' },
+                { role: 'ADVOKAT' as MultiplayerRole, user: lawyer, label: 'Himoyachi' },
+                { role: 'AYBLANUVCHI' as MultiplayerRole, user: defendant, label: 'Sudlanuvchi' },
+                { role: 'KOTIB' as MultiplayerRole, user: clerk, label: 'Sud Kotibi' },
+                { role: 'GUVOH' as MultiplayerRole, user: witness, label: 'Guvoh' },
+              ]
+                .filter(slot => getActiveRolesForCapacity(room.maxParticipants).includes(slot.role))
+                .map(slot => (
+                  <div
+                    key={slot.role}
+                    className={`p-3 rounded-xl border text-xs transition-all ${
+                      slot.user
+                        ? 'bg-blue-950/20 border-blue-500/40 text-blue-200'
+                        : 'bg-zinc-900/50 border-zinc-800 border-dashed text-zinc-500'
+                    }`}
+                  >
+                    <span className="font-bold block text-[11px] uppercase text-zinc-400">
+                      {slot.label}
+                    </span>
+                    <span className="text-sm font-bold text-white truncate block mt-0.5">
+                      {slot.user ? slot.user.userName : 'Vakant (bo‘sh)'}
+                    </span>
+                  </div>
+                ))}
             </div>
           </div>
 
@@ -614,87 +626,119 @@ export default function CourtroomCenterStage({
               </div>
             </div>
 
-            {/* Middle: Prosecution (Left) & Defense (Right) */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Prosecutor */}
-              <div>
-                <ParticipantMediaTile
-                  participant={prosecutor}
-                  isCurrentSpeaker={currentSpeaker?.role === 'PROKUROR'}
-                  isAudioSpeaking={prosecutor ? speakingParticipants.has(prosecutor.userId) : false}
-                  isVideoActive={prosecutor ? videoEnabledUserIds.has(prosecutor.userId) : false}
-                  mediaStream={getMediaForUser(prosecutor?.userId)}
-                  isLocal={prosecutor?.userId === myParticipant?.userId}
-                  customHeight="h-40 sm:h-44"
-                  canGrantSpeech={isJudge && room.status === 'in_progress'}
-                  onGrantSpeech={() =>
-                    onGrantSpeaking?.(
-                      currentSpeaker?.userId === prosecutor?.userId ? null : prosecutor?.userId || null
-                    )
-                  }
-                />
+            {/* Middle: Prosecution (Left) & Defense (Right) — or Single Opponent for 2-person room */}
+            {(room.maxParticipants || 8) <= 2 ? (
+              <div className="flex justify-center">
+                <div className="max-w-md w-full">
+                  <ParticipantMediaTile
+                    participant={lawyer || prosecutor}
+                    isCurrentSpeaker={currentSpeaker?.role === 'ADVOKAT' || currentSpeaker?.role === 'PROKUROR'}
+                    isAudioSpeaking={
+                      (lawyer && speakingParticipants.has(lawyer.userId)) ||
+                      (prosecutor && speakingParticipants.has(prosecutor.userId)) || false
+                    }
+                    isVideoActive={
+                      (lawyer && videoEnabledUserIds.has(lawyer.userId)) ||
+                      (prosecutor && videoEnabledUserIds.has(prosecutor.userId)) || false
+                    }
+                    mediaStream={getMediaForUser(lawyer?.userId || prosecutor?.userId)}
+                    isLocal={(lawyer?.userId || prosecutor?.userId) === myParticipant?.userId}
+                    customHeight="h-44 sm:h-52"
+                    canGrantSpeech={isJudge && room.status === 'in_progress'}
+                    onGrantSpeech={() =>
+                      onGrantSpeaking?.(
+                        currentSpeaker?.userId === (lawyer?.userId || prosecutor?.userId)
+                          ? null
+                          : (lawyer?.userId || prosecutor?.userId) || null
+                      )
+                    }
+                  />
+                </div>
               </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Prosecutor */}
+                <div>
+                  <ParticipantMediaTile
+                    participant={prosecutor}
+                    isCurrentSpeaker={currentSpeaker?.role === 'PROKUROR'}
+                    isAudioSpeaking={prosecutor ? speakingParticipants.has(prosecutor.userId) : false}
+                    isVideoActive={prosecutor ? videoEnabledUserIds.has(prosecutor.userId) : false}
+                    mediaStream={getMediaForUser(prosecutor?.userId)}
+                    isLocal={prosecutor?.userId === myParticipant?.userId}
+                    customHeight="h-40 sm:h-44"
+                    canGrantSpeech={isJudge && room.status === 'in_progress'}
+                    onGrantSpeech={() =>
+                      onGrantSpeaking?.(
+                        currentSpeaker?.userId === prosecutor?.userId ? null : prosecutor?.userId || null
+                      )
+                    }
+                  />
+                </div>
 
-              {/* Defense Lawyer */}
-              <div>
-                <ParticipantMediaTile
-                  participant={lawyer}
-                  isCurrentSpeaker={currentSpeaker?.role === 'ADVOKAT'}
-                  isAudioSpeaking={lawyer ? speakingParticipants.has(lawyer.userId) : false}
-                  isVideoActive={lawyer ? videoEnabledUserIds.has(lawyer.userId) : false}
-                  mediaStream={getMediaForUser(lawyer?.userId)}
-                  isLocal={lawyer?.userId === myParticipant?.userId}
-                  customHeight="h-40 sm:h-44"
-                  canGrantSpeech={isJudge && room.status === 'in_progress'}
-                  onGrantSpeech={() =>
-                    onGrantSpeaking?.(
-                      currentSpeaker?.userId === lawyer?.userId ? null : lawyer?.userId || null
-                    )
-                  }
-                />
+                {/* Defense Lawyer */}
+                <div>
+                  <ParticipantMediaTile
+                    participant={lawyer}
+                    isCurrentSpeaker={currentSpeaker?.role === 'ADVOKAT'}
+                    isAudioSpeaking={lawyer ? speakingParticipants.has(lawyer.userId) : false}
+                    isVideoActive={lawyer ? videoEnabledUserIds.has(lawyer.userId) : false}
+                    mediaStream={getMediaForUser(lawyer?.userId)}
+                    isLocal={lawyer?.userId === myParticipant?.userId}
+                    customHeight="h-40 sm:h-44"
+                    canGrantSpeech={isJudge && room.status === 'in_progress'}
+                    onGrantSpeech={() =>
+                      onGrantSpeaking?.(
+                        currentSpeaker?.userId === lawyer?.userId ? null : lawyer?.userId || null
+                      )
+                    }
+                  />
+                </div>
               </div>
-            </div>
+            )}
 
-            {/* Bottom: Witness Stand & Accused Bench */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Witness */}
-              <div>
-                <ParticipantMediaTile
-                  participant={witness}
-                  isCurrentSpeaker={currentSpeaker?.role === 'GUVOH'}
-                  isAudioSpeaking={witness ? speakingParticipants.has(witness.userId) : false}
-                  isVideoActive={witness ? videoEnabledUserIds.has(witness.userId) : false}
-                  mediaStream={getMediaForUser(witness?.userId)}
-                  isLocal={witness?.userId === myParticipant?.userId}
-                  customHeight="h-36 sm:h-40"
-                  canGrantSpeech={isJudge && room.status === 'in_progress'}
-                  onGrantSpeech={() =>
-                    onGrantSpeaking?.(
-                      currentSpeaker?.userId === witness?.userId ? null : witness?.userId || null
-                    )
-                  }
-                />
-              </div>
+            {/* Bottom: Witness Stand & Accused Bench (Only for rooms with capacity >= 5 or if present) */}
+            {((room.maxParticipants || 8) >= 5 || witness || defendant) && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Witness */}
+                <div>
+                  <ParticipantMediaTile
+                    participant={witness}
+                    isCurrentSpeaker={currentSpeaker?.role === 'GUVOH'}
+                    isAudioSpeaking={witness ? speakingParticipants.has(witness.userId) : false}
+                    isVideoActive={witness ? videoEnabledUserIds.has(witness.userId) : false}
+                    mediaStream={getMediaForUser(witness?.userId)}
+                    isLocal={witness?.userId === myParticipant?.userId}
+                    customHeight="h-36 sm:h-40"
+                    canGrantSpeech={isJudge && room.status === 'in_progress'}
+                    onGrantSpeech={() =>
+                      onGrantSpeaking?.(
+                        currentSpeaker?.userId === witness?.userId ? null : witness?.userId || null
+                      )
+                    }
+                  />
+                </div>
 
-              {/* Defendant */}
-              <div>
-                <ParticipantMediaTile
-                  participant={defendant}
-                  isCurrentSpeaker={currentSpeaker?.role === 'AYBLANUVCHI'}
-                  isAudioSpeaking={defendant ? speakingParticipants.has(defendant.userId) : false}
-                  isVideoActive={defendant ? videoEnabledUserIds.has(defendant.userId) : false}
-                  mediaStream={getMediaForUser(defendant?.userId)}
-                  isLocal={defendant?.userId === myParticipant?.userId}
-                  customHeight="h-36 sm:h-40"
-                  canGrantSpeech={isJudge && room.status === 'in_progress'}
-                  onGrantSpeech={() =>
-                    onGrantSpeaking?.(
-                      currentSpeaker?.userId === defendant?.userId ? null : defendant?.userId || null
-                    )
-                  }
-                />
+                {/* Defendant */}
+                <div>
+                  <ParticipantMediaTile
+                    participant={defendant}
+                    isCurrentSpeaker={currentSpeaker?.role === 'AYBLANUVCHI'}
+                    isAudioSpeaking={defendant ? speakingParticipants.has(defendant.userId) : false}
+                    isVideoActive={defendant ? videoEnabledUserIds.has(defendant.userId) : false}
+                    mediaStream={getMediaForUser(defendant?.userId)}
+                    isLocal={defendant?.userId === myParticipant?.userId}
+                    customHeight="h-36 sm:h-40"
+                    canGrantSpeech={isJudge && room.status === 'in_progress'}
+                    onGrantSpeech={() =>
+                      onGrantSpeaking?.(
+                        currentSpeaker?.userId === defendant?.userId ? null : defendant?.userId || null
+                      )
+                    }
+                  />
+                </div>
               </div>
-            </div>
+            )}
           </div>
         ) : (
           /* ── GALLERY / VIDEO GRID VIEW ── */

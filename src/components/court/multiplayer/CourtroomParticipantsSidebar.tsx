@@ -21,6 +21,7 @@ import {
   MultiplayerParticipant,
   MultiplayerRole,
   ROLE_LABELS,
+  getActiveRolesForCapacity,
 } from '@/lib/court/multiplayer-types'
 
 interface CourtroomParticipantsSidebarProps {
@@ -95,10 +96,16 @@ export default function CourtroomParticipantsSidebar({
       {/* Grouped Participants List */}
       <div className="flex-1 overflow-y-auto p-3 space-y-4 scrollbar-thin">
         {ROLE_GROUPS.map(group => {
+          const allowedRoles = getActiveRolesForCapacity(room.maxParticipants)
           const groupParticipants = room.participants.filter(p => group.roles.includes(p.role))
           const missingKeyRoles = group.roles.filter(
-            r => r !== 'KUZATUVCHI' && !room.participants.some(p => p.role === r)
+            r => r !== 'KUZATUVCHI' && allowedRoles.includes(r) && !room.participants.some(p => p.role === r)
           )
+
+          // Agar guruhda na qatnashchi va na ushbu xona sig'imi uchun bo'sh rol bo'lmasa, uni ko'rsatmaymiz
+          if (groupParticipants.length === 0 && missingKeyRoles.length === 0) {
+            return null
+          }
 
           return (
             <div key={group.key} className="space-y-1.5">
