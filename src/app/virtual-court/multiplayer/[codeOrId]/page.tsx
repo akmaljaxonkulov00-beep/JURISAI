@@ -73,6 +73,8 @@ export default function MultiplayerCourtroomPage() {
     submitEvidence,
     ruleOnEvidence,
     issueVerdict,
+    endSession,
+    cancelSession,
     kick,
     leave,
   } = useMultiplayerCourt({
@@ -86,6 +88,8 @@ export default function MultiplayerCourtroomPage() {
   >('stage')
   const [showVerdictModal, setShowVerdictModal] = useState(false)
   const [centerSubTab, setCenterSubTab] = useState<'arena' | 'evidence'>('arena')
+  const [leftPanelOpen, setLeftPanelOpen] = useState(true)
+  const [rightPanelOpen, setRightPanelOpen] = useState(true)
 
   const handleLeaveRoom = async () => {
     try {
@@ -174,6 +178,7 @@ export default function MultiplayerCourtroomPage() {
       <CourtroomTopBar
         room={room}
         myParticipant={myParticipant}
+        isJudge={isJudge}
         connected={connected}
         connectionState={connectionState}
         onlineCount={onlineUserIds.size || 1}
@@ -189,6 +194,7 @@ export default function MultiplayerCourtroomPage() {
         onToggleSoundEffects={() => setSoundEffectsEnabled(!soundEffectsEnabled)}
         onUnlockAudio={unlockAudio}
         onLeave={handleLeaveRoom}
+        onEndSession={endSession}
       />
 
       {/* 2. Trial Stage Stepper */}
@@ -201,44 +207,63 @@ export default function MultiplayerCourtroomPage() {
 
       {/* 3. Main Split View: Left (Participants), Center (Arena/Evidence), Right (Chat/Log) */}
       <div className="flex-1 flex overflow-hidden relative">
+        {/* Left Sidebar Toggle Button (Desktop) */}
+        <button
+          onClick={() => setLeftPanelOpen(!leftPanelOpen)}
+          className={`hidden lg:flex absolute left-0 top-1/2 -translate-y-1/2 z-20 w-4 h-12 bg-slate-800 hover:bg-slate-700 text-slate-300 items-center justify-center rounded-r-md border-y border-r border-slate-700 transition-all ${
+            leftPanelOpen ? 'left-[288px]' : 'left-0'
+          }`}
+          title={leftPanelOpen ? 'Ishtirokchilar panelini yashirish' : 'Ishtirokchilar panelini ko‘rsatish'}
+        >
+          <span className="text-[10px] font-bold">{leftPanelOpen ? '◀' : '▶'}</span>
+        </button>
+
         {/* Left Sidebar: Participants (Desktop) */}
-        <div className="hidden lg:flex">
-          <CourtroomParticipantsSidebar
-            room={room}
-            myParticipant={myParticipant}
-            onlineUserIds={onlineUserIds}
-            speakingParticipants={speakingParticipants}
-            isHost={isHost}
-            isJudge={isJudge}
-            onAssignRole={assignRole}
-            onKick={kick}
-          />
-        </div>
+        {leftPanelOpen && (
+          <div className="hidden lg:flex transition-all">
+            <CourtroomParticipantsSidebar
+              room={room}
+              myParticipant={myParticipant}
+              onlineUserIds={onlineUserIds}
+              speakingParticipants={speakingParticipants}
+              isHost={isHost}
+              isJudge={isJudge}
+              onAssignRole={assignRole}
+              onKick={kick}
+            />
+          </div>
+        )}
 
         {/* Center Panel (Desktop and Mobile) */}
-        <div className="flex-1 flex flex-col min-w-0 bg-zinc-950 overflow-hidden">
+        <div className="flex-1 flex flex-col min-w-0 bg-slate-950 overflow-hidden relative">
           {/* Sub-tab switcher for Arena vs Evidence */}
-          <div className="hidden sm:flex items-center gap-2 px-6 py-2 bg-zinc-900/40 border-b border-zinc-800/60 text-xs">
-            <button
-              onClick={() => setCenterSubTab('arena')}
-              className={`px-3 py-1 rounded-xl font-bold transition-colors ${
-                centerSubTab === 'arena'
-                  ? 'bg-blue-600 text-white'
-                  : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
-              }`}
-            >
-              Sud Majlisi Arenasi
-            </button>
-            <button
-              onClick={() => setCenterSubTab('evidence')}
-              className={`px-3 py-1 rounded-xl font-bold transition-colors ${
-                centerSubTab === 'evidence'
-                  ? 'bg-blue-600 text-white'
-                  : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
-              }`}
-            >
-              Dalillar ({room.evidence.length})
-            </button>
+          <div className="hidden sm:flex items-center justify-between px-6 py-2 bg-slate-900/60 border-b border-slate-800/80 text-xs">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCenterSubTab('arena')}
+                className={`px-3 py-1 rounded-xl font-bold transition-colors ${
+                  centerSubTab === 'arena'
+                    ? 'bg-blue-600 text-white'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                }`}
+              >
+                Sud Zali Arenasi
+              </button>
+              <button
+                onClick={() => setCenterSubTab('evidence')}
+                className={`px-3 py-1 rounded-xl font-bold transition-colors ${
+                  centerSubTab === 'evidence'
+                    ? 'bg-blue-600 text-white'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                }`}
+              >
+                Dalillar ({room.evidence.length})
+              </button>
+            </div>
+
+            <div className="flex items-center gap-2 text-slate-400 font-mono text-[11px]">
+              <span>JPK & FPK Protsessual Simulyator</span>
+            </div>
           </div>
 
           {/* Desktop Content */}
@@ -342,16 +367,29 @@ export default function MultiplayerCourtroomPage() {
           />
         </div>
 
+        {/* Right Sidebar Toggle Button (Desktop) */}
+        <button
+          onClick={() => setRightPanelOpen(!rightPanelOpen)}
+          className={`hidden lg:flex absolute right-0 top-1/2 -translate-y-1/2 z-20 w-4 h-12 bg-slate-800 hover:bg-slate-700 text-slate-300 items-center justify-center rounded-l-md border-y border-l border-slate-700 transition-all ${
+            rightPanelOpen ? 'right-[320px]' : 'right-0'
+          }`}
+          title={rightPanelOpen ? 'Chat va ma’lumotlar panelini yashirish' : 'Chat va ma’lumotlar panelini ko‘rsatish'}
+        >
+          <span className="text-[10px] font-bold">{rightPanelOpen ? '▶' : '◀'}</span>
+        </button>
+
         {/* Right Sidebar: Chat & Log (Desktop) */}
-        <div className="hidden lg:flex">
-          <CourtroomChatSidebar
-            room={room}
-            myParticipant={myParticipant}
-            isJudge={isJudge}
-            onGrantSpeaking={grantSpeaking}
-            onRequestSpeaking={requestSpeaking}
-          />
-        </div>
+        {rightPanelOpen && (
+          <div className="hidden lg:flex transition-all">
+            <CourtroomChatSidebar
+              room={room}
+              myParticipant={myParticipant}
+              isJudge={isJudge}
+              onGrantSpeaking={grantSpeaking}
+              onRequestSpeaking={requestSpeaking}
+            />
+          </div>
+        )}
       </div>
 
       {/* Mobile Bottom Navigation Bar */}

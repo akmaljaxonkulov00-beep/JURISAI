@@ -1,16 +1,38 @@
 /**
- * multiplayer-types.ts — JURISTIV Ko'p foydalanuvchili Virtual Sud tiplari
+ * multiplayer-types.ts — JURISTIV Enterprise Multiplayer Virtual Court tiplari
  * O'zbekiston protsessual qonunchiligi (JPK, FPK, BSK, MK, FK) asosida.
  */
 
 import type { EvidenceType, EvidenceVisibility, CourtRole } from './court-types'
 
 export type MultiplayerRole =
-  'SUDYA' | 'ADVOKAT' | 'PROKUROR' | 'GUVOH' | 'AYBLANUVCHI' | 'KOTIB' | 'KUZATUVCHI'
+  | 'SUDYA'
+  | 'ADVOKAT'
+  | 'PROKUROR'
+  | 'GUVOH'
+  | 'AYBLANUVCHI'
+  | 'EKSPERT'
+  | 'KOTIB'
+  | 'KUZATUVCHI'
 
-export type MultiplayerRoomStatus = 'waiting' | 'in_progress' | 'completed' | 'cancelled'
+export type MultiplayerRoomStatus =
+  | 'waiting'
+  | 'ready'
+  | 'in_progress'
+  | 'paused'
+  | 'completed'
+  | 'cancelled'
+  | 'expired'
+  | 'abandoned'
 
 export type MultiplayerCaseCategory = 'criminal' | 'civil' | 'labor' | 'administrative' | 'economic'
+
+export interface RoomSettings {
+  allowGuests: boolean
+  aiAssistantEnabled: boolean
+  strictProceduralRules: boolean
+  maxDurationMinutes?: number
+}
 
 export interface MultiplayerParticipant {
   id: string
@@ -95,7 +117,12 @@ export interface ParticipantScore {
 
 export interface MultiplayerVerdict {
   verdictDecision:
-    'aybdor' | 'aybsiz' | 'qanoatlantirildi' | 'rad_etildi' | 'qisman_qanoatlantirildi' | 'kelishuv'
+    | 'aybdor'
+    | 'aybsiz'
+    | 'qanoatlantirildi'
+    | 'rad_etildi'
+    | 'qisman_qanoatlantirildi'
+    | 'kelishuv'
   title: string
   summary: string
   legalReasoning: string
@@ -111,6 +138,7 @@ export interface SpeakingQueueItem {
   userName: string
   role: MultiplayerRole
   requestedAt: string
+  approvedAt?: string
 }
 
 export interface MultiplayerRoom {
@@ -123,6 +151,7 @@ export interface MultiplayerRoom {
   scenarioData: any
   hostId: string
   hostName: string
+  creatorId?: string
   isPublic: boolean
   aiEnabled: boolean
   voiceEnabled: boolean
@@ -141,6 +170,9 @@ export interface MultiplayerRoom {
   startedAt?: string
   completedAt?: string
   durationSeconds?: number
+  expiresAt?: string
+  lastActivityAt?: string
+  settings?: RoomSettings
   createdAt: string
   updatedAt: string
 }
@@ -154,6 +186,7 @@ export interface CreateRoomInput {
   isPublic?: boolean
   aiEnabled?: boolean
   voiceEnabled?: boolean
+  settings?: Partial<RoomSettings>
 }
 
 export const ROLE_LABELS: Record<
@@ -179,10 +212,16 @@ export const ROLE_LABELS: Record<
     icon: '🛡️',
   },
   GUVOH: {
-    title: 'Guvoh / Mutaxassis',
-    desc: 'Ish bo‘yicha ma’lum faktlarni qasamyod ostida xolis bayon qiladi va savollarga javob beradi.',
+    title: 'Guvoh',
+    desc: 'Ish bo‘yicha o‘ziga ma’lum faktlarni qasamyod ostida xolis bayon qiladi va savollarga javob beradi.',
     color: 'from-emerald-600 to-teal-700 border-emerald-500/40 text-emerald-300',
     icon: '👁️',
+  },
+  EKSPERT: {
+    title: 'Sud eksperti / Mutaxassis',
+    desc: 'O‘z maxsus bilim va malakasi doirasida xulosa beradi va ekspertiza savollariga oydinlik kiritadi.',
+    color: 'from-teal-600 to-cyan-700 border-teal-500/40 text-teal-300',
+    icon: '🔬',
   },
   AYBLANUVCHI: {
     title: 'Sudlanuvchi / Javobgar',
@@ -201,5 +240,119 @@ export const ROLE_LABELS: Record<
     desc: 'Sud majlisini ochiq tartibda kuzatadi, dalillar va muzokaralarni real vaqtda ko‘rib boradi.',
     color: 'from-zinc-600 to-slate-700 border-zinc-600/40 text-zinc-300',
     icon: '👥',
+  },
+}
+
+// ── Role Permissions Matrix ──
+export const ROLE_PERMISSIONS: Record<
+  MultiplayerRole,
+  {
+    canStartTrial: boolean
+    canAdvanceStage: boolean
+    canGrantSpeech: boolean
+    canRuleObjection: boolean
+    canRuleEvidence: boolean
+    canIssueVerdict: boolean
+    canPauseTrial: boolean
+    canSpeakWithoutTurn: boolean
+    canSubmitEvidence: boolean
+    canRaiseObjection: boolean
+  }
+> = {
+  SUDYA: {
+    canStartTrial: true,
+    canAdvanceStage: true,
+    canGrantSpeech: true,
+    canRuleObjection: true,
+    canRuleEvidence: true,
+    canIssueVerdict: true,
+    canPauseTrial: true,
+    canSpeakWithoutTurn: true,
+    canSubmitEvidence: false,
+    canRaiseObjection: false,
+  },
+  PROKUROR: {
+    canStartTrial: false,
+    canAdvanceStage: false,
+    canGrantSpeech: false,
+    canRuleObjection: false,
+    canRuleEvidence: false,
+    canIssueVerdict: false,
+    canPauseTrial: false,
+    canSpeakWithoutTurn: false,
+    canSubmitEvidence: true,
+    canRaiseObjection: true,
+  },
+  ADVOKAT: {
+    canStartTrial: false,
+    canAdvanceStage: false,
+    canGrantSpeech: false,
+    canRuleObjection: false,
+    canRuleEvidence: false,
+    canIssueVerdict: false,
+    canPauseTrial: false,
+    canSpeakWithoutTurn: false,
+    canSubmitEvidence: true,
+    canRaiseObjection: true,
+  },
+  GUVOH: {
+    canStartTrial: false,
+    canAdvanceStage: false,
+    canGrantSpeech: false,
+    canRuleObjection: false,
+    canRuleEvidence: false,
+    canIssueVerdict: false,
+    canPauseTrial: false,
+    canSpeakWithoutTurn: false,
+    canSubmitEvidence: false,
+    canRaiseObjection: false,
+  },
+  EKSPERT: {
+    canStartTrial: false,
+    canAdvanceStage: false,
+    canGrantSpeech: false,
+    canRuleObjection: false,
+    canRuleEvidence: false,
+    canIssueVerdict: false,
+    canPauseTrial: false,
+    canSpeakWithoutTurn: false,
+    canSubmitEvidence: true,
+    canRaiseObjection: false,
+  },
+  AYBLANUVCHI: {
+    canStartTrial: false,
+    canAdvanceStage: false,
+    canGrantSpeech: false,
+    canRuleObjection: false,
+    canRuleEvidence: false,
+    canIssueVerdict: false,
+    canPauseTrial: false,
+    canSpeakWithoutTurn: false,
+    canSubmitEvidence: false,
+    canRaiseObjection: false,
+  },
+  KOTIB: {
+    canStartTrial: false,
+    canAdvanceStage: false,
+    canGrantSpeech: false,
+    canRuleObjection: false,
+    canRuleEvidence: false,
+    canIssueVerdict: false,
+    canPauseTrial: false,
+    canSpeakWithoutTurn: true,
+    canSubmitEvidence: false,
+    canRaiseObjection: false,
+  },
+  KUZATUVCHI: {
+    canStartTrial: false,
+    canAdvanceStage: false,
+    canGrantSpeech: false,
+    canRuleObjection: false,
+    canRuleEvidence: false,
+    canIssueVerdict: false,
+    canPauseTrial: false,
+    canSpeakWithoutTurn: false,
+    canSubmitEvidence: false,
+    canRaiseObjection: false,
   },
 }

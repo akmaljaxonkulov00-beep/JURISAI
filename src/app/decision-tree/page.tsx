@@ -41,6 +41,7 @@ import CaseHistoryDrawer from '@/components/decision-tree/CaseHistoryDrawer'
 import { generateDecisionTreePdf } from '@/components/decision-tree/PdfExportHelper'
 import LimitExceededModal from '@/components/ai/LimitExceededModal'
 import { useLimitModal } from '@/hooks/useLimitModal'
+import GuidedDecisionFlow from '@/components/decision-tree/GuidedDecisionFlow'
 import {
   DecisionCase,
   DecisionNode,
@@ -106,6 +107,7 @@ export default function DecisionTreePage() {
   const { modalProps, checkLimitError } = useLimitModal()
 
   // Case State
+  const [viewMode, setViewMode] = useState<'guided' | 'visual'>('guided')
   const [currentCase, setCurrentCase] = useState<DecisionCase | null>(null)
   const [savedCases, setSavedCases] = useState<DecisionCase[]>([])
   const [activeTab, setActiveTab] = useState<'details' | 'evidence'>('details')
@@ -588,6 +590,32 @@ export default function DecisionTreePage() {
 
         {/* Top Header Actions */}
         <div className="flex items-center gap-2">
+          {/* Mode Switcher */}
+          <div className="flex items-center p-1 bg-slate-100 dark:bg-zinc-800 rounded-xl mr-2">
+            <button
+              onClick={() => setViewMode('guided')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+                viewMode === 'guided'
+                  ? 'bg-white dark:bg-zinc-900 text-blue-600 dark:text-blue-400 shadow-sm'
+                  : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900'
+              }`}
+            >
+              <HelpCircle className="w-3.5 h-3.5" />
+              <span>Yo‘l ko‘rsatuvchi</span>
+            </button>
+            <button
+              onClick={() => setViewMode('visual')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+                viewMode === 'visual'
+                  ? 'bg-white dark:bg-zinc-900 text-blue-600 dark:text-blue-400 shadow-sm'
+                  : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900'
+              }`}
+            >
+              <GitBranch className="w-3.5 h-3.5" />
+              <span>Grafik Daraxt</span>
+            </button>
+          </div>
+
           <button
             onClick={() => setIsHistoryOpen(true)}
             className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-zinc-200 bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 rounded-xl transition-colors"
@@ -698,8 +726,14 @@ export default function DecisionTreePage() {
         </div>
       )}
 
-      {/* Mobile Workspace Tabs Switcher */}
-      <div className="lg:hidden flex items-center bg-white dark:bg-zinc-900 border-b border-slate-200 dark:border-zinc-800 p-1.5 gap-1 text-xs z-10 sticky top-16 shadow-xs">
+      {viewMode === 'guided' ? (
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
+          <GuidedDecisionFlow onSwitchToVisual={() => setViewMode('visual')} />
+        </div>
+      ) : (
+        <>
+          {/* Mobile Workspace Tabs Switcher */}
+          <div className="lg:hidden flex items-center bg-white dark:bg-zinc-900 border-b border-slate-200 dark:border-zinc-800 p-1.5 gap-1 text-xs z-10 sticky top-16 shadow-xs">
         <button
           onClick={() => setMobileTab('graph')}
           className={`flex-1 py-2 rounded-xl font-bold flex items-center justify-center gap-1.5 transition-all ${
@@ -970,6 +1004,8 @@ export default function DecisionTreePage() {
           )}
         </div>
       </div>
+        </>
+      )}
 
       {/* New Case Creation Modal */}
       <NewCaseModal

@@ -424,8 +424,74 @@ export async function getCourtRoom(codeOrId: string): Promise<MultiplayerRoom | 
   return await loadRoomFromDb(codeOrId)
 }
 
+// ── Authoritative Cleanup Worker: Expired & Abandoned Rooms ──
+export async function cleanupExpiredRooms(): Promise<{ expired: number; abandoned: number }> {
+  let expiredCount = 0
+  let abandonedCount = 0
+  const now = Date.now()
+
+  try {
+    const admin = getSupabaseAdmin()
+
+    // 1. Database-level cleanup via SQL function if available
+    try {
+      await admin.rpc('cleanup_expired_court_rooms')
+    } catch {
+      // Fallback to direct queries
+      const staleWaitingCutoff = new Date(now - 45 * 60 * 1000).toISOString()
+      const staleProgressCutoff = new Date(now - 90 * 60 * 1000).toISOString()
+
+      const { data: expiredRows } = await admin
+        .from('court_multiplayer_rooms')
+        .update({ status: 'expired', updated_at: new Date().toISOString() })
+        .eq('status', 'waiting')
+        .lt('created_at', staleWaitingCutoff)
+        .select('id')
+
+      if (expiredRows) expiredCount = expiredRows.length
+
+      const { data: abandonedRows } = await admin
+        .from('court_multiplayer_rooms')
+        .update({ status: 'abandoned', updated_at: new Date().toISOString() })
+        .eq('status', 'in_progress')
+        .lt('updated_at', staleProgressCutoff)
+        .select('id')
+
+      if (abandonedRows) abandonedCount = abandonedRows.length
+    }
+
+    // 2. Memory-level cleanup
+    for (const [id, room] of roomsMap.entries()) {
+      const roomAgeMs = now - new Date(room.createdAt).getTime()
+      const lastUpdateMs = now - new Date(room.updatedAt || room.createdAt).getTime()
+
+      // Waiting room older than 45 mins -> expired
+      if (room.status === 'waiting' && roomAgeMs > 45 * 60 * 1000) {
+        room.status = 'expired'
+        room.updatedAt = new Date().toISOString()
+      }
+      // In-progress room with no activity for 90 mins -> abandoned
+      else if (room.status === 'in_progress' && lastUpdateMs > 90 * 60 * 1000) {
+        room.status = 'abandoned'
+        room.updatedAt = new Date().toISOString()
+      }
+      // Older than 12 hours -> remove from active memory
+      else if (roomAgeMs > 12 * 60 * 60 * 1000) {
+        if (room.status === 'waiting') room.status = 'expired'
+        else if (room.status === 'in_progress') room.status = 'abandoned'
+      }
+    }
+  } catch (err) {
+    console.warn('cleanupExpiredRooms warning:', err)
+  }
+
+  return { expired: expiredCount, abandoned: abandonedCount }
+}
+
 /**
  * 3. Ochiq zallar ro‘yxati (List Public Rooms)
+ * Enterprise filtr: Faqat haqiqiy faol xonalar (waiting, ready, in_progress, paused)
+ * 30-45 minutdan eski yoki barcha ishtirokchilari chiqib ketgan xonalar chiqarilmaydi!
  */
 export async function listPublicCourtRooms(): Promise<
   Array<{
@@ -444,18 +510,21 @@ export async function listPublicCourtRooms(): Promise<
     createdAt: string
   }>
 > {
-  // Sync from database so active public rooms show across serverless instances
+  // Avval eski va muddati o'tgan xonalarni tozalaymiz (Idempotent cleanup)
+  await cleanupExpiredRooms()
+
   try {
     const admin = getSupabaseAdmin()
+    const activeCutoff = new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString()
 
-    // 1. Check dedicated court_multiplayer_rooms first
+    // 1. Check dedicated court_multiplayer_rooms
     try {
       const { data: dbRooms } = await admin
         .from('court_multiplayer_rooms')
         .select('*')
         .eq('is_public', true)
-        .neq('status', 'completed')
-        .neq('status', 'cancelled')
+        .in('status', ['waiting', 'ready', 'in_progress', 'paused'])
+        .gt('created_at', activeCutoff)
         .order('created_at', { ascending: false })
         .limit(20)
 
@@ -465,8 +534,7 @@ export async function listPublicCourtRooms(): Promise<
             await loadRoomFromDb(row.id)
           } else {
             const r = roomsMap.get(row.id)!
-            // Monotonic lifecycle: NEVER regress in_progress to waiting!
-            if (row.status === 'completed' || row.status === 'cancelled') {
+            if (row.status === 'completed' || row.status === 'cancelled' || row.status === 'expired' || row.status === 'abandoned') {
               r.status = row.status
             } else if (row.status === 'in_progress' && r.status === 'waiting') {
               r.status = 'in_progress'
@@ -486,15 +554,15 @@ export async function listPublicCourtRooms(): Promise<
     // 2. Check court_sessions table for active multiplayer rooms
     const syncPromise = admin
       .from('court_sessions')
-      .select('id, evaluation, status')
+      .select('id, evaluation, status, updated_at')
       .ilike('title', '[MULTIPLAYER]%')
-      .neq('status', 'completed')
+      .eq('status', 'active')
+      .gt('updated_at', activeCutoff)
       .order('updated_at', { ascending: false })
-      .limit(15)
+      .limit(10)
 
-    // Abort DB sync if it takes > 3000ms to keep API ultra-responsive
     const timeoutPromise = new Promise<{ data: null }>(resolve =>
-      setTimeout(() => resolve({ data: null }), 3000)
+      setTimeout(() => resolve({ data: null }), 2000)
     )
 
     const res: any = await Promise.race([syncPromise, timeoutPromise])
@@ -504,7 +572,12 @@ export async function listPublicCourtRooms(): Promise<
       for (const row of dbSessions) {
         if (row.evaluation?.is_multiplayer && row.evaluation?.room_data) {
           const room = row.evaluation.room_data as MultiplayerRoom
-          if (room.status !== 'completed' && room.status !== 'cancelled') {
+          if (
+            room.status === 'waiting' ||
+            room.status === 'ready' ||
+            room.status === 'in_progress' ||
+            room.status === 'paused'
+          ) {
             if (!roomsMap.has(room.id)) {
               roomsMap.set(room.id, room)
               roomsMap.set(room.code, room)
@@ -517,12 +590,13 @@ export async function listPublicCourtRooms(): Promise<
     console.warn('listPublicCourtRooms db sync warning:', err)
   }
 
-  // Filter in-memory map: strictly exclude completed or cancelled rooms
+  // Filter in-memory map: strictly ALLOW ONLY active statuses and not stale
+  const twelveHoursAgo = Date.now() - 12 * 60 * 60 * 1000
   const activeRooms = Array.from(roomsMap.values()).filter(
     (r, idx, self) =>
       r.isPublic &&
-      r.status !== 'completed' &&
-      r.status !== 'cancelled' &&
+      (r.status === 'waiting' || r.status === 'ready' || r.status === 'in_progress' || r.status === 'paused') &&
+      new Date(r.createdAt).getTime() > twelveHoursAgo &&
       self.findIndex(o => o.id === r.id) === idx
   )
 
@@ -531,6 +605,7 @@ export async function listPublicCourtRooms(): Promise<
     'PROKUROR',
     'ADVOKAT',
     'GUVOH',
+    'EKSPERT',
     'AYBLANUVCHI',
     'KOTIB',
     'KUZATUVCHI',
@@ -572,14 +647,17 @@ export async function joinCourtRoom(
     throw new Error('Ko‘rsatilgan xona kodi bo‘yicha sud zali topilmadi.')
   }
 
-  if (room.status === 'completed') {
+  if (
+    room.status === 'completed' ||
+    room.status === 'cancelled' ||
+    room.status === 'expired' ||
+    room.status === 'abandoned'
+  ) {
     throw new Error(
-      'Ushbu sud majlisi yakunlangan. Yakunlangan sud ishlarini tegishli bo‘limda ko‘rishingiz mumkin.'
+      room.status === 'completed'
+        ? 'Ushbu sud majlisi yakunlangan. Natijalarni yakunlangan ishlar bo‘limida ko‘rishingiz mumkin.'
+        : 'Ushbu sud zali muddati tugagan yoki faoliyatsizlik tufayli yopilgan.'
     )
-  }
-
-  if (room.status === 'cancelled') {
-    throw new Error('Ushbu sud zali yopilgan yoki bekor qilingan.')
   }
 
   // Check if participant already exists in room
@@ -1419,6 +1497,74 @@ function generateRoleFeedback(
         grade,
       }
   }
+}
+
+/**
+ * 15b. Sud majlisini yakunlash (End Court Session - Authoritative & Idempotent)
+ * Faqat Sudya yoki Xona egasi uchun.
+ */
+export async function endCourtSession(
+  codeOrId: string,
+  userId: string,
+  options?: { reason?: string; cancel?: boolean }
+): Promise<MultiplayerRoom> {
+  const room = await getCourtRoom(codeOrId)
+  if (!room) throw new Error('Sud zali topilmadi.')
+
+  const participant = room.participants.find(p => p.userId === userId)
+  const isJudge = participant?.role === 'SUDYA'
+  const isHost = room.hostId === userId || participant?.isHost
+
+  if (!isJudge && !isHost) {
+    throw new Error('Faqat Sudya yoki xona egasi majlisni yakunlash vakolatiga ega.')
+  }
+
+  // Idempotent: agar allaqachon completed yoki cancelled bo'lsa, qaytariladi
+  if (room.status === 'completed' || room.status === 'cancelled') {
+    return room
+  }
+
+  const now = new Date().toISOString()
+  room.status = options?.cancel ? 'cancelled' : 'completed'
+  room.completedAt = now
+
+  const startMs = room.startedAt
+    ? new Date(room.startedAt).getTime()
+    : new Date(room.createdAt).getTime()
+  room.durationSeconds = Math.max(0, Math.floor((new Date(now).getTime() - startMs) / 1000))
+
+  // Agar hukm chiqarilmagan bo'lsa, default yakuniy xulosa shakllantiriladi
+  if (!room.verdictData && !options?.cancel) {
+    room.verdictData = {
+      verdictDecision: room.caseCategory === 'criminal' ? 'kelishuv' : 'qanoatlantirildi',
+      title: 'Sud Majlisi Bayonnomasi va Yakuniy Qarori',
+      summary: options?.reason || 'Sud majlisi yakunlandi. Taraflar vajlari tinglandi.',
+      legalReasoning: 'O‘zbekiston protsessual qonunchiligi talablari asosida.',
+      penaltyOrRemedy: 'Sud majlisi yopildi.',
+      judgedAt: now,
+      judgedByName: participant?.userName || 'Sud Raisi',
+      judgedById: userId,
+      scores: {},
+    }
+  }
+
+  room.messages.push({
+    id: crypto.randomUUID(),
+    roomId: room.id,
+    userId: 'system',
+    userName: 'Sud Kotibi',
+    role: 'KOTIB',
+    messageType: 'system',
+    content: options?.cancel
+      ? `⚠️ Sud majlisi bekor qilindi (${options?.reason || 'Boshqaruvchi tomonidan'}).`
+      : `🏛️ Sud majlisi rasman yakunlandi. Natijalar hisoblandi.`,
+    stageId: room.currentStageId,
+    createdAt: now,
+  })
+
+  room.updatedAt = now
+  await persistRoomToDb(room)
+  return room
 }
 
 /**

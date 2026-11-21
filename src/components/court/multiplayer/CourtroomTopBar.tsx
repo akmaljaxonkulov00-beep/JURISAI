@@ -23,6 +23,7 @@ import type { MultiplayerRoom, MultiplayerParticipant } from '@/lib/court/multip
 interface CourtroomTopBarProps {
   room: MultiplayerRoom
   myParticipant?: MultiplayerParticipant
+  isJudge?: boolean
   connected: boolean
   connectionState?: 'connecting' | 'connected' | 'reconnecting' | 'disconnected' | 'error'
   onlineCount: number
@@ -38,11 +39,13 @@ interface CourtroomTopBarProps {
   onToggleSoundEffects?: () => void
   onUnlockAudio?: () => void
   onLeave: () => void
+  onEndSession?: () => void
 }
 
 export default function CourtroomTopBar({
   room,
   myParticipant,
+  isJudge = false,
   connected,
   connectionState = connected ? 'connected' : 'connecting',
   onlineCount,
@@ -58,10 +61,12 @@ export default function CourtroomTopBar({
   onToggleSoundEffects,
   onUnlockAudio,
   onLeave,
+  onEndSession,
 }: CourtroomTopBarProps) {
   const [copiedCode, setCopiedCode] = useState(false)
   const [copiedLink, setCopiedLink] = useState(false)
   const [showConfirmLeave, setShowConfirmLeave] = useState(false)
+  const [showConfirmEndSession, setShowConfirmEndSession] = useState(false)
 
   const copyCode = () => {
     navigator.clipboard.writeText(room.code)
@@ -269,11 +274,23 @@ export default function CourtroomTopBar({
         {/* Leave Room Button */}
         <button
           onClick={() => setShowConfirmLeave(true)}
-          className="p-2 rounded-xl bg-zinc-800 hover:bg-red-500/20 text-zinc-400 hover:text-red-400 border border-zinc-700 hover:border-red-500/30 transition-colors"
-          title="Zalni tark etish"
+          className="p-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-zinc-200 border border-zinc-700 transition-colors"
+          title="Zalni tark etish (Faqat siz chiqasiz)"
         >
           <LogOut className="w-4 h-4" />
         </button>
+
+        {/* Judge: End Trial Button (Direct Action) */}
+        {isJudge && onEndSession && room.status !== 'completed' && (
+          <button
+            onClick={() => setShowConfirmEndSession(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 transition-colors"
+            title="Sud majlisini rasman yakunlash va natijalarni hisoblash"
+          >
+            <Gavel className="w-3.5 h-3.5" />
+            <span className="hidden lg:inline">Sudni yakunlash</span>
+          </button>
+        )}
       </div>
 
       {/* Media Error Toast Banner */}
@@ -281,6 +298,42 @@ export default function CourtroomTopBar({
         <div className="absolute top-full left-0 right-0 bg-red-950/90 border-b border-red-500/40 p-2 text-center text-xs text-red-200 flex items-center justify-center gap-2 backdrop-blur-md z-30">
           <Shield className="w-4 h-4 text-red-400 flex-shrink-0" />
           <span>{mediaError}</span>
+        </div>
+      )}
+
+      {/* End Session Confirmation Modal (Judge Only) */}
+      {showConfirmEndSession && onEndSession && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-zinc-900 border border-amber-500/40 rounded-3xl max-w-sm w-full p-6 space-y-4 shadow-2xl animate-fade-in">
+            <div className="w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center mx-auto border border-amber-500/30">
+              <Gavel className="w-6 h-6" />
+            </div>
+
+            <div className="text-center space-y-1">
+              <h3 className="text-base font-bold text-white">Sud majlisini yakunlaysizmi?</h3>
+              <p className="text-xs text-zinc-400">
+                Majlis rasman yakunlanadi, barcha ishtirokchilar nutqlari va xatolari baholanib, natijalar sahifasi ochiladi.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 pt-2">
+              <button
+                onClick={() => setShowConfirmEndSession(false)}
+                className="flex-1 py-2.5 rounded-xl text-xs font-bold bg-zinc-800 hover:bg-zinc-700 text-zinc-300 transition-colors"
+              >
+                Davom ettirish
+              </button>
+              <button
+                onClick={() => {
+                  setShowConfirmEndSession(false)
+                  onEndSession()
+                }}
+                className="flex-1 py-2.5 rounded-xl text-xs font-bold bg-amber-600 hover:bg-amber-500 text-white transition-colors shadow-lg shadow-amber-500/20"
+              >
+                Ha, yakunlash
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

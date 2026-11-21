@@ -952,6 +952,8 @@ export function useMultiplayerCourt({ codeOrId, currentUser }: UseMultiplayerCou
     legalReasoning: string
     penaltyOrRemedy: string
   }) => performAction('issue_verdict', data)
+  const endSession = (reason?: string) => performAction('end_session', { reason })
+  const cancelSession = (reason?: string) => performAction('cancel_session', { reason })
   const kick = (targetUserId: string) => performAction('kick', { targetUserId })
   const leave = () => performAction('leave')
 
@@ -1000,6 +1002,8 @@ export function useMultiplayerCourt({ codeOrId, currentUser }: UseMultiplayerCou
     submitEvidence,
     ruleOnEvidence,
     issueVerdict,
+    endSession,
+    cancelSession,
     kick,
     leave,
   }

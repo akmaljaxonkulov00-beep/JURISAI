@@ -14,6 +14,7 @@ import {
   submitEvidence,
   ruleOnEvidence,
   issueVerdict,
+  endCourtSession,
   kickParticipant,
   leaveCourtRoom,
 } from '@/lib/court/multiplayer-db'
@@ -209,6 +210,18 @@ export async function POST(
           legalReasoning: legalReasoning || '',
           penaltyOrRemedy: penaltyOrRemedy || '',
         })
+        break
+      }
+
+      case 'end_session': {
+        const { reason } = body
+        updatedRoom = await endCourtSession(codeOrId, user.id, { reason, cancel: false })
+        break
+      }
+
+      case 'cancel_session': {
+        const { reason } = body
+        updatedRoom = await endCourtSession(codeOrId, user.id, { reason, cancel: true })
         break
       }
 
