@@ -82,6 +82,26 @@ const MODULES: PracticeModule[] = [
     statsLabel: 'Vizual tahlil',
   },
   {
+    id: 'document-generator',
+    title: 'Hujjatlar Konstruktori',
+    subtitle: 'Rasmiy Yuridik Hujjatlar Kutubxonasi',
+    description:
+      'LexUZ, Oliy Sud va Adliya vazirligi tomonidan tasdiqlangan rasmiy blanklar asosida yuridik da’vo, shartnoma va arizalarni xatosiz to‘ldiring va yuklab oling.',
+    href: '/document-generator',
+    icon: FileText,
+    badge: 'Rasmiy Blanklar',
+    badgeColor:
+      'bg-indigo-100 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800',
+    gradient: 'from-indigo-600/10 via-blue-600/5 to-transparent hover:border-indigo-500/50',
+    features: [
+      '10 ta huquqiy kategoriya bo‘yicha rasmiy blanklar',
+      'Bosqichma-bosqich qulay to‘ldirish (Wizard uslubida)',
+      'SHA-256 yaxlitlik xesh tekshiruvi',
+      'Word (.doc) va PDF formatlarida eksport',
+    ],
+    statsLabel: 'Rasmiy namunalar: 20+',
+  },
+  {
     id: 'virtual-court',
     title: 'Virtual Sud Simulyatsiyasi',
     subtitle: 'Jonli Protsessual Majlis',

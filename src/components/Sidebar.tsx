@@ -18,6 +18,7 @@ import {
   Shield,
   LogOut,
   Award,
+  FileText,
 } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/app/providers'
@@ -50,6 +51,12 @@ export default function Sidebar({ currentPage = 'home' }: SidebarProps) {
           label: t('navDecisionTree', 'Qarorlar Daraxti'),
           icon: GitBranch,
           href: '/decision-tree',
+        },
+        {
+          id: 'document-generator',
+          label: t('navDocumentGenerator', 'Hujjatlar Konstruktori'),
+          icon: FileText,
+          href: '/document-generator',
         },
         {
           id: 'virtual-court',

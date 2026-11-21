@@ -29,6 +29,7 @@ export const ru = {
   navDashboard: 'Панель управления',
   navCaseSolver: 'Решение казусов (IRAC)',
   navDecisionTree: 'Дерево решений',
+  navDocumentGenerator: 'Конструктор документов',
   navVirtualCourt: 'Виртуальный суд',
   navScenarioGen: 'Генератор сценариев',
   navLegalDatabase: 'База законов',

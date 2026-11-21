@@ -348,7 +348,7 @@ export default function OfficialDocumentFillerModal({
 
                 <div className="mt-8 pt-4 border-t border-slate-200 flex items-center justify-between text-[11px] text-slate-400 font-sans">
                   <span>SHA-256 xesh: {doc.sha256Checksum.slice(0, 32)}...</span>
-                  <span>Juristiv.uz Yuridik Hujjatlar Tizimi 2.0</span>
+                  <span>Juristiv.uz Yuridik Hujjatlar Tizimi</span>
                 </div>
               </div>
 

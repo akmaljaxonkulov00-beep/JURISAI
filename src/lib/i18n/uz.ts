@@ -29,6 +29,7 @@ export const uz = {
   navDashboard: 'Asosiy panel',
   navCaseSolver: 'Kazus Yechish (IRAC)',
   navDecisionTree: 'Qarorlar Daraxti',
+  navDocumentGenerator: 'Hujjatlar Konstruktori',
   navVirtualCourt: 'Virtual Sud',
   navScenarioGen: 'Senariy Generator',
   navLegalDatabase: 'Qonunlar bazasi',

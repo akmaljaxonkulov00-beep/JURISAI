@@ -13,6 +13,7 @@ import {
   LogOut,
   Clapperboard,
   Award,
+  FileText,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
@@ -64,6 +65,14 @@ export const NAV_GROUPS: NavGroup[] = [
         name: 'Qarorlar Daraxti',
         href: '/decision-tree',
         icon: GitBranch,
+        requiresAuth: true,
+        badge: null,
+      },
+      {
+        id: 'document-generator',
+        name: 'Hujjatlar Konstruktori',
+        href: '/document-generator',
+        icon: FileText,
         requiresAuth: true,
         badge: null,
       },
@@ -208,6 +217,7 @@ export const NAV_GROUP_KEYS: Record<string, string> = {
 export const NAV_ITEM_KEYS: Record<string, string> = {
   'case-solver': 'navCaseSolver',
   'decision-tree': 'navDecisionTree',
+  'document-generator': 'navDocumentGenerator',
   'virtual-court': 'navVirtualCourt',
   'scenario-generator': 'navScenarioGen',
   'legal-database': 'navLegalDatabase',

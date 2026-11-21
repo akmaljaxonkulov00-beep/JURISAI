@@ -26,7 +26,6 @@ import {
   OfficialLegalDocument,
 } from '@/lib/documents/official-documents-data'
 import OfficialDocumentFillerModal from './OfficialDocumentFillerModal'
-import AdminDocumentImportModal from './AdminDocumentImportModal'
 
 const CATEGORIES = [
   { id: 'all', label: 'Barchasi', icon: '📚' },
@@ -50,7 +49,6 @@ export default function OfficialDocumentsCatalog() {
   const [filterTab, setFilterTab] = useState<'all' | 'popular' | 'sources'>('all')
   const [selectedSource, setSelectedSource] = useState('Barchasi')
   const [activeModalDoc, setActiveModalDoc] = useState<OfficialLegalDocument | null>(null)
-  const [isAdminOpen, setIsAdminOpen] = useState(false)
   const [documents, setDocuments] = useState<OfficialLegalDocument[]>(OFFICIAL_DOCUMENTS_REGISTRY)
 
   // Filtered documents
@@ -77,10 +75,6 @@ export default function OfficialDocumentsCatalog() {
     })
   }, [documents, selectedCategory, searchQuery, selectedSource, filterTab])
 
-  const handleAdminSuccess = (newDoc: any) => {
-    setDocuments((prev) => [newDoc, ...prev])
-  }
-
   return (
     <div className="space-y-6">
       {/* Top Banner: Authentic Guarantee */}
@@ -91,7 +85,7 @@ export default function OfficialDocumentsCatalog() {
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" /> Rasmiy Davlat Manbalari Asosida
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-              Hujjatlar Konstruktori 2.0
+              Hujjatlar Konstruktori
             </h1>
             <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
               LexUZ, Oliy Sud (my.sud.uz) va Adliya vazirligi tomonidan tasdiqlangan rasmiy yuridik blanklar elektron kutubxonasi. AI qonunlarni o‘ylab topmaydi — faqat tasdiqlangan talablar bo‘yicha to‘ldiriladi.
@@ -109,14 +103,6 @@ export default function OfficialDocumentsCatalog() {
               </span>
             </div>
           </div>
-
-          <Button
-            onClick={() => setIsAdminOpen(true)}
-            className="shrink-0 bg-white hover:bg-slate-100 text-indigo-950 font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-lg"
-          >
-            <Plus className="w-4 h-4 text-indigo-600" />
-            <span>Rasmiy Blank Yuklash (Admin)</span>
-          </Button>
         </div>
       </div>
 
@@ -318,13 +304,6 @@ export default function OfficialDocumentsCatalog() {
           onClose={() => setActiveModalDoc(null)}
         />
       )}
-
-      {/* Admin Import Modal */}
-      <AdminDocumentImportModal
-        isOpen={isAdminOpen}
-        onClose={() => setIsAdminOpen(false)}
-        onSuccess={handleAdminSuccess}
-      />
     </div>
   )
 }

@@ -18,7 +18,7 @@ export default function DocumentGeneratorPage() {
           <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
             <div>
               <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">
-                Hujjatlar Konstruktori 2.0
+                Hujjatlar Konstruktori
               </h1>
               <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
                 O‘zbekiston Respublikasining rasmiy blanklari va yuridik hujjatlar tizimi

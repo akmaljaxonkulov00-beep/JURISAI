@@ -29,6 +29,7 @@ export const en = {
   navDashboard: 'Dashboard',
   navCaseSolver: 'Case Solver (IRAC)',
   navDecisionTree: 'Decision Tree',
+  navDocumentGenerator: 'Document Generator',
   navVirtualCourt: 'Virtual Court',
   navScenarioGen: 'Scenario Generator',
   navLegalDatabase: 'Legal Database',

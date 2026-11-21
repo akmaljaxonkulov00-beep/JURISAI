@@ -114,7 +114,7 @@ export default function GuidedDecisionFlow({
 
       const blob = await generateLegalPdf({
         title: `Yuridik Xulosa - ${selectedScenario.title}`,
-        subtitle: 'Juristiv Qarorlar Daraxti 2.0',
+        subtitle: 'Juristiv Qarorlar Daraxti',
         content,
         date: new Date().toLocaleDateString('uz-UZ'),
         author: 'AI Yuridik Tahlil Tizimi',
@@ -140,7 +140,7 @@ export default function GuidedDecisionFlow({
           <div className="bg-gradient-to-r from-indigo-900 via-slate-900 to-indigo-950 p-6 sm:p-8 rounded-2xl text-white border border-indigo-800/40 shadow-xl">
             <div className="max-w-2xl space-y-3">
               <Badge variant="outline" className="bg-indigo-500/20 text-indigo-300 border-indigo-400 text-xs">
-                ✨ Intellektual Yo‘l Ko‘rsatuvchi 2.0
+                ✨ Intellektual Yo‘l Ko‘rsatuvchi
               </Badge>
               <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
                 Qarorlar Daraxti — Qanday Foydalaniladi?

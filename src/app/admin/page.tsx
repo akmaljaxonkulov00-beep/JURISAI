@@ -36,6 +36,7 @@ import {
   Search,
   Download,
   FileText,
+  FileCheck,
   BookOpen,
   Mail,
   Scale,
@@ -46,6 +47,7 @@ import {
 import { authService, type AuthUser } from '@/services/supabase-auth'
 import MonitoringDashboard from '@/components/admin/MonitoringDashboard'
 import AdminTemplateManager from '@/components/admin/AdminTemplateManager'
+import AdminOfficialDocumentsManager from '@/components/admin/AdminOfficialDocumentsManager'
 import AdminCommunityManager from '@/components/admin/AdminCommunityManager'
 import AdminLegalManager from '@/components/admin/AdminLegalManager'
 import AdminCourtScenarioManager from '@/components/admin/AdminCourtScenarioManager'
@@ -878,6 +880,7 @@ export default function AdminDashboard() {
       badge: realtime.newConsultationsCount > 0 ? realtime.newConsultationsCount : undefined,
     },
     { id: 'templates', label: 'Namunalar', icon: FileText },
+    { id: 'official_documents', label: 'Rasmiy Blankalar', icon: FileCheck },
     { id: 'settings', label: 'Sozlamalar', icon: Settings },
   ]
 
@@ -2171,6 +2174,9 @@ export default function AdminDashboard() {
 
         {/* ===== TEMPLATES ===== */}
         {activeTab === 'templates' && <AdminTemplateManager />}
+
+        {/* ===== OFFICIAL BLANKS & DOCUMENTS ===== */}
+        {activeTab === 'official_documents' && <AdminOfficialDocumentsManager />}
 
         {/* ===== SETTINGS ===== */}
         {activeTab === 'settings' && (

@@ -53,6 +53,7 @@ export default function PageHeader({
     const sectionMap: Record<string, string> = {
       'case-solver': t('navCaseSolver', 'Kazus Yechish (IRAC)'),
       'decision-tree': t('navDecisionTree', 'Qarorlar Daraxti'),
+      'document-generator': t('navDocumentGenerator', 'Hujjatlar Konstruktori'),
       'virtual-court': t('navVirtualCourt', 'Virtual Sud'),
       'scenario-generator': t('navScenarioGen', 'Senariy Generator'),
       'legal-database': t('navLegalDatabase', 'Qonunlar bazasi'),
