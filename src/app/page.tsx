@@ -855,7 +855,7 @@ export default function LandingPage() {
               Bepul ro‘yxatdan o‘tish
             </Link>
             <Link
-              href="/virtual-court"
+              href="/signin"
               className="w-full sm:w-auto px-8 py-4 text-base font-semibold text-white border border-white/30 hover:bg-white/10 rounded-xl transition-colors"
             >
               Virtual Sudni sinab ko‘rish
@@ -885,27 +885,27 @@ export default function LandingPage() {
               <h3 className="font-semibold mb-3 text-sm text-slate-200">Asosiy modullar</h3>
               <ul className="space-y-2 text-xs sm:text-sm text-slate-400">
                 <li>
-                  <Link href="/virtual-court" className="hover:text-white transition-colors">
+                  <Link href="/signin" className="hover:text-white transition-colors">
                     Virtual Sud & Multiplayer
                   </Link>
                 </li>
                 <li>
-                  <Link href="/document-generator" className="hover:text-white transition-colors">
+                  <Link href="/signin" className="hover:text-white transition-colors">
                     Hujjatlar Konstruktori
                   </Link>
                 </li>
                 <li>
-                  <Link href="/decision-tree" className="hover:text-white transition-colors">
+                  <Link href="/signin" className="hover:text-white transition-colors">
                     Qarorlar Daraxti
                   </Link>
                 </li>
                 <li>
-                  <Link href="/case-solver" className="hover:text-white transition-colors">
+                  <Link href="/signin" className="hover:text-white transition-colors">
                     Kazus Yechish / IRAC
                   </Link>
                 </li>
                 <li>
-                  <Link href="/ai-chat" className="hover:text-white transition-colors">
+                  <Link href="/signin" className="hover:text-white transition-colors">
                     AI Yuridik Maslahatchi
                   </Link>
                 </li>
@@ -915,22 +915,22 @@ export default function LandingPage() {
               <h3 className="font-semibold mb-3 text-sm text-slate-200">Qonunchilik & Amaliyot</h3>
               <ul className="space-y-2 text-xs sm:text-sm text-slate-400">
                 <li>
-                  <Link href="/legal-database" className="hover:text-white transition-colors">
+                  <Link href="/signin" className="hover:text-white transition-colors">
                     Kodekslar va Qonunlar
                   </Link>
                 </li>
                 <li>
-                  <Link href="/professional-tools" className="hover:text-white transition-colors">
+                  <Link href="/signin" className="hover:text-white transition-colors">
                     Oliy Sud Plenum Amaliyoti
                   </Link>
                 </li>
                 <li>
-                  <Link href="/statistics" className="hover:text-white transition-colors">
+                  <Link href="/signin" className="hover:text-white transition-colors">
                     Reyting va Haftalik XP
                   </Link>
                 </li>
                 <li>
-                  <Link href="/amaliyot" className="hover:text-white transition-colors">
+                  <Link href="/signin" className="hover:text-white transition-colors">
                     Yuridik Amaliyot
                   </Link>
                 </li>
