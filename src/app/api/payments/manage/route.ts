@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
     if (!auth.ok) return auth.response
 
     const body = await request.json()
-    const { paymentId, action, reason } = body
+    const { paymentId, action, reason, duration, planId } = body
 
     if (!paymentId || !action) {
       return NextResponse.json(
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
 
     const result =
       action === 'approve'
-        ? await approvePayment(supabase, paymentId, auth.user.id)
+        ? await approvePayment(supabase, paymentId, auth.user.id, { duration, planId })
         : await rejectPayment(supabase, paymentId, auth.user.id, reason)
 
     await logAdminAction({
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
       action: action === 'approve' ? 'payment_approve' : 'payment_reject',
       targetType: 'payment',
       targetId: paymentId,
-      details: { paymentId, action, reason: reason || '' },
+      details: { paymentId, action, reason: reason || '', duration, planId },
       success: result.ok,
     })
 

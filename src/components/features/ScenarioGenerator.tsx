@@ -23,6 +23,8 @@ import {
   ExternalLink,
   Loader2,
   Download,
+  Trash2,
+  Filter,
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import {
@@ -66,6 +68,7 @@ export default function ScenarioGenerator() {
   const [genError, setGenError] = useState<string | null>(null)
   const [currentScenario, setCurrentScenario] = useState<ScenarioData | null>(null)
   const [currentStep, setCurrentStep] = useState(1)
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null)
   const [actionLogs, setActionLogs] = useState<UserActionLog[]>([])
   const [evaluation, setEvaluation] = useState<ScenarioEvaluation | null>(null)
   const [isEvaluating, setIsEvaluating] = useState(false)
@@ -76,8 +79,10 @@ export default function ScenarioGenerator() {
 
   // History & Templates State
   const [templates, setTemplates] = useState<ScenarioData[]>([])
+  const [templateDomainFilter, setTemplateDomainFilter] = useState<string>('all')
   const [sessions, setSessions] = useState<ScenarioSession[]>([])
   const [loadingHistory, setLoadingHistory] = useState(false)
+  const [deletingSessionId, setDeletingSessionId] = useState<string | null>(null)
   const [historyTotal, setHistoryTotal] = useState(0)
 
   const loadTemplates = useCallback(async () => {
@@ -101,7 +106,7 @@ export default function ScenarioGenerator() {
     setLoadingHistory(true)
     try {
       const headers = await getAuthHeaders()
-      const res = await fetch('/api/scenario-generator/sessions?limit=20', { headers })
+      const res = await fetch('/api/scenario-generator/sessions?limit=50', { headers })
       if (res.ok) {
         const data = await res.json()
         if (data.sessions) {
@@ -179,7 +184,7 @@ export default function ScenarioGenerator() {
   }
 
   // Start Simulation with a chosen scenario
-  const startSimulation = (scenario: ScenarioData) => {
+  const startSimulation = async (scenario: ScenarioData, existingSessionId?: string) => {
     setCurrentScenario(scenario)
     setCurrentStep(1)
     setActionLogs([])
@@ -187,7 +192,31 @@ export default function ScenarioGenerator() {
     setSelectedOptionId(null)
     setCustomActionText('')
     setShowCustomInput(false)
+    setCurrentSessionId(existingSessionId || null)
     setActiveTab('simulation')
+
+    // Agar yangi sessiya bo'lsa va foydalanuvchi tizimga kirgan bo'lsa — bazada faol sessiya ochish
+    if (!existingSessionId && user) {
+      try {
+        const headers = await getAuthHeaders()
+        const res = await fetch('/api/scenario-generator/sessions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...headers,
+          },
+          body: JSON.stringify({ scenario }),
+        })
+        if (res.ok) {
+          const data = await res.json()
+          if (data.session_id) {
+            setCurrentSessionId(data.session_id)
+          }
+        }
+      } catch (err) {
+        console.warn('Failed to auto-create session row:', err)
+      }
+    }
   }
 
   // Resume or view session from history
@@ -196,6 +225,7 @@ export default function ScenarioGenerator() {
     setCurrentStep(sess.current_step || sess.total_steps || 1)
     setActionLogs(sess.user_actions || [])
     setEvaluation(sess.evaluation || null)
+    setCurrentSessionId(sess.id)
     setActiveTab('simulation')
   }
 
@@ -207,7 +237,30 @@ export default function ScenarioGenerator() {
     setSelectedOptionId(null)
     setCustomActionText('')
     setShowCustomInput(false)
+    setCurrentSessionId(sess.id)
     setActiveTab('simulation')
+  }
+
+  // Delete session from history
+  const handleDeleteSession = async (sessionId: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (!confirm("Haqiqatan ham ushbu simulyatsiya tarixini o'chirmoqchimisiz?")) return
+    setDeletingSessionId(sessionId)
+    try {
+      const headers = await getAuthHeaders()
+      const res = await fetch(`/api/scenario-generator/sessions?id=${sessionId}`, {
+        method: 'DELETE',
+        headers,
+      })
+      if (res.ok) {
+        setSessions(prev => prev.filter(s => s.id !== sessionId))
+        setHistoryTotal(prev => Math.max(0, prev - 1))
+      }
+    } catch (err) {
+      console.error('Delete session error:', err)
+    } finally {
+      setDeletingSessionId(null)
+    }
   }
 
   // Export Scenario Report (Senariy Tahlili va Natijasi)
@@ -313,6 +366,24 @@ export default function ScenarioGenerator() {
           finishSimulation(updatedLogs)
         } else {
           setCurrentStep(data.next_step)
+          // Faol sessiyani DB da yangilash
+          if (currentSessionId && user) {
+            getAuthHeaders().then(authHeaders => {
+              fetch('/api/scenario-generator/sessions', {
+                method: 'PATCH',
+                headers: {
+                  'Content-Type': 'application/json',
+                  ...authHeaders,
+                },
+                body: JSON.stringify({
+                  session_id: currentSessionId,
+                  current_step: data.next_step,
+                  user_actions: updatedLogs,
+                  status: 'active',
+                }),
+              }).catch(() => {})
+            })
+          }
         }
       }
     } catch (err) {
@@ -338,6 +409,7 @@ export default function ScenarioGenerator() {
         body: JSON.stringify({
           scenario: currentScenario,
           action_logs: finalLogs,
+          session_id: currentSessionId || undefined,
         }),
       })
 
@@ -392,7 +464,10 @@ export default function ScenarioGenerator() {
           </button>
 
           <button
-            onClick={() => setActiveTab('templates')}
+            onClick={() => {
+              setActiveTab('templates')
+              loadTemplates()
+            }}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
               activeTab === 'templates'
                 ? 'bg-blue-600 text-white shadow-xs'
@@ -404,7 +479,10 @@ export default function ScenarioGenerator() {
           </button>
 
           <button
-            onClick={() => setActiveTab('history')}
+            onClick={() => {
+              setActiveTab('history')
+              loadHistory()
+            }}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
               activeTab === 'history'
                 ? 'bg-blue-600 text-white shadow-xs'
@@ -981,9 +1059,33 @@ export default function ScenarioGenerator() {
                     )}
                   </div>
                 ) : (
-                  <div className="text-center py-12 bg-white dark:bg-zinc-900 rounded-3xl border border-gray-200 dark:border-zinc-800">
-                    <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-2" />
-                    <p className="text-xs text-gray-500">Natijalar hisoblanmoqda...</p>
+                  <div className="text-center py-12 bg-white dark:bg-zinc-900 rounded-3xl border border-gray-200 dark:border-zinc-800 space-y-4">
+                    <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto" />
+                    <div>
+                      <h4 className="text-sm font-bold text-gray-900 dark:text-white">
+                        Barcha belgilangan bosqichlar yakunlandi
+                      </h4>
+                      <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1">
+                        Yakuniy tahlil va O‘zbekiston qonunchiligi bo‘yicha baholashni olish uchun quyidagi tugmani bosing.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => finishSimulation(actionLogs)}
+                      disabled={isEvaluating}
+                      className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer inline-flex items-center gap-2"
+                    >
+                      {isEvaluating ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <span>Baholanmoqda...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Award className="w-4 h-4" />
+                          <span>Natijani hisoblash & Baholash</span>
+                        </>
+                      )}
+                    </button>
                   </div>
                 )}
               </div>
@@ -994,34 +1096,70 @@ export default function ScenarioGenerator() {
 
       {/* ── 3. TEMPLATES TAB ── */}
       {activeTab === 'templates' && (
-        <div className="space-y-4">
+        <div className="space-y-5">
+          {/* Domain Filter Pills */}
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1">
+            <span className="text-xs font-bold text-gray-400 uppercase mr-1 flex items-center gap-1">
+              <Filter className="w-3.5 h-3.5" /> Soha:
+            </span>
+            {[
+              { id: 'all', label: 'Barchasi' },
+              { id: 'contract', label: 'Shartnoma' },
+              { id: 'labor', label: 'Mehnat' },
+              { id: 'family', label: 'Oila' },
+              { id: 'criminal', label: 'Jinoyat' },
+              { id: 'property', label: 'Ijara & Mulk' },
+              { id: 'civil', label: 'Fuqarolik' },
+            ].map(f => (
+              <button
+                key={f.id}
+                onClick={() => setTemplateDomainFilter(f.id)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                  templateDomainFilter === f.id
+                    ? 'bg-blue-600 text-white shadow-xs'
+                    : 'bg-white dark:bg-zinc-800 text-gray-600 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-700 border border-gray-200/80 dark:border-zinc-700'
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {templates.map(tmpl => (
+            {(templateDomainFilter === 'all'
+              ? templates
+              : templates.filter(t => t.legal_domain === templateDomainFilter)
+            ).map(tmpl => (
               <div
                 key={tmpl.id}
-                className="bg-white dark:bg-zinc-900 border border-gray-200/80 dark:border-zinc-800 rounded-3xl p-6 shadow-xs flex flex-col justify-between hover:border-blue-400 dark:hover:border-blue-700 transition-all"
+                className="bg-white dark:bg-zinc-900 border border-gray-200/80 dark:border-zinc-800 rounded-3xl p-6 shadow-xs flex flex-col justify-between hover:border-blue-400 dark:hover:border-blue-700 transition-all group"
               >
                 <div>
                   <div className="flex items-center justify-between gap-2 mb-2">
                     <span className="px-2.5 py-0.5 rounded-md text-[11px] font-bold uppercase bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300">
                       {tmpl.legal_domain}
                     </span>
-                    <span className="text-xs font-semibold text-gray-400">
-                      Qiyinlik: {tmpl.difficulty}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-semibold text-gray-400">
+                        {tmpl.decision_points?.length || 2} bosqich
+                      </span>
+                      <span className="text-xs font-semibold text-gray-400">
+                        • {tmpl.difficulty}
+                      </span>
+                    </div>
                   </div>
 
-                  <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-2">
+                  <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                     {tmpl.title}
                   </h3>
-                  <p className="text-xs text-gray-500 dark:text-zinc-400 line-clamp-3 mb-4">
+                  <p className="text-xs text-gray-500 dark:text-zinc-400 line-clamp-3 mb-4 leading-relaxed">
                     {tmpl.background}
                   </p>
                 </div>
 
                 <div className="pt-4 border-t border-gray-100 dark:border-zinc-800 flex items-center justify-between">
-                  <span className="text-xs text-gray-400 flex items-center gap-1">
-                    <Scale className="w-3.5 h-3.5" /> 2026 Tasdiqlangan
+                  <span className="text-xs text-gray-400 flex items-center gap-1 font-medium">
+                    <Scale className="w-3.5 h-3.5 text-blue-500" /> 2026 Tasdiqlangan
                   </span>
                   <button
                     onClick={() => startSimulation(tmpl)}
@@ -1049,14 +1187,14 @@ export default function ScenarioGenerator() {
             <div className="text-center py-16 bg-white dark:bg-zinc-900 rounded-3xl border border-gray-200/80 dark:border-zinc-800">
               <History className="w-10 h-10 text-gray-300 dark:text-zinc-600 mx-auto mb-3" />
               <h3 className="text-sm font-semibold text-gray-700 dark:text-zinc-300">
-                Hali yakunlangan simulyatsiyalar yo‘q
+                Hali saqlangan simulyatsiyalar yo‘q
               </h3>
               <p className="text-xs text-gray-400 dark:text-zinc-500 mt-1 mb-4">
-                Yangi senariy yaratib yoki shablonlardan birini tanlab amaliyotni boshlang.
+                Yangi senariy yaratib yoki shablonlardan birini tanlab amaliyotni boshlang. Barcha natijalar profilingizda avtomatik saqlanadi.
               </p>
               <button
                 onClick={() => setActiveTab('create')}
-                className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all"
+                className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs"
               >
                 Senariy Yaratish
               </button>
@@ -1068,7 +1206,7 @@ export default function ScenarioGenerator() {
                   key={sess.id}
                   className="bg-white dark:bg-zinc-900 border border-gray-200/80 dark:border-zinc-800 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs"
                 >
-                  <div>
+                  <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300">
                         {sess.scenario_data?.legal_domain || 'Huquqiy'}
@@ -1076,15 +1214,20 @@ export default function ScenarioGenerator() {
                       <span className="text-xs text-gray-400">
                         {new Date(sess.created_at).toLocaleDateString()}
                       </span>
+                      {sess.status === 'active' && (
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300">
+                          Jarayonda ({sess.current_step || 1}-bosqich)
+                        </span>
+                      )}
                     </div>
-                    <h4 className="text-sm font-bold text-gray-900 dark:text-white">
+                    <h4 className="text-sm font-bold text-gray-900 dark:text-white truncate">
                       {sess.scenario_data?.title || 'Yuridik Simulyatsiya'}
                     </h4>
                   </div>
 
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
                     {sess.score != null && (
-                      <div className="text-right">
+                      <div className="text-right mr-2">
                         <span className="text-[10px] text-gray-400 block uppercase">Natija</span>
                         <span className="text-sm font-bold text-blue-600 dark:text-blue-400">
                           {sess.score}/100 (+{sess.xp_awarded || 0} XP)
@@ -1100,7 +1243,7 @@ export default function ScenarioGenerator() {
                         <Award className="w-3.5 h-3.5" />
                         <span>Natijani ko‘rish</span>
                       </button>
-                    ) : sess.status === 'active' && (sess.current_step || 1) > 1 ? (
+                    ) : sess.status === 'active' ? (
                       <button
                         onClick={() => handleResumeSimulation(sess)}
                         className="px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
@@ -1112,9 +1255,23 @@ export default function ScenarioGenerator() {
 
                     <button
                       onClick={() => startSimulation(sess.scenario_data)}
-                      className="px-3.5 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-700 dark:text-zinc-300 rounded-xl text-xs font-semibold transition-all cursor-pointer"
+                      className="px-3 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-700 dark:text-zinc-300 rounded-xl text-xs font-semibold transition-all cursor-pointer"
+                      title="Qayta o‘ynash"
                     >
-                      Qayta o‘ynash
+                      <RotateCcw className="w-3.5 h-3.5" />
+                    </button>
+
+                    <button
+                      onClick={e => handleDeleteSession(sess.id, e)}
+                      disabled={deletingSessionId === sess.id}
+                      className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl transition-all cursor-pointer disabled:opacity-50"
+                      title="Tarixdan o‘chirish"
+                    >
+                      {deletingSessionId === sess.id ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <Trash2 className="w-3.5 h-3.5" />
+                      )}
                     </button>
                   </div>
                 </div>

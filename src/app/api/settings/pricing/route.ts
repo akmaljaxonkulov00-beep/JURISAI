@@ -125,34 +125,59 @@ export async function GET() {
         rawPlans = DEFAULT_PLANS
       }
     } else {
-      // Missing price tekshiruvi: faqat narx belgilanmagan bo'lsa default'dan olish
+      // Auto-heal: barcha tariflar (free, standart, pro) uchun narx, features va limitlar to'liq va sinxron bo'lishini ta'minlash
       let needsDbUpdate = false
       rawPlans = rawPlans.map((p: any) => {
+        const def = DEFAULT_PLANS.find(d => d.id === p.id)
+        if (!def) return p
+
+        let changed = false
+        const updated = { ...p }
+
+        // 1. Narx tekshiruvi
         if (p.id === 'free' && p.price !== 0) {
-          needsDbUpdate = true
-          return {
-            ...p,
-            price: 0,
-            features: p.features || DEFAULT_PLANS.find(d => d.id === 'free')?.features,
-            limits:
-              p.limits && Object.keys(p.limits).length > 0
-                ? p.limits
-                : DEFAULT_PLANS.find(d => d.id === 'free')?.limits,
-          }
+          updated.price = 0
+          changed = true
+        } else if (p.price === undefined || p.price === null || isNaN(Number(p.price))) {
+          updated.price = def.price
+          changed = true
         }
-        if (p.price === undefined || p.price === null || isNaN(Number(p.price))) {
-          needsDbUpdate = true
-          const def = DEFAULT_PLANS.find(d => d.id === p.id)
-          return {
-            ...p,
-            price: def ? def.price : 0,
-            features: p.features || def?.features || [],
-            limits:
-              p.limits && Object.keys(p.limits).length > 0
-                ? p.limits
-                : def?.limits || {},
-          }
+
+        // 2. Features tekshiruvi: agar xususiyatlar eskirgan yoki bo'sh bo'lsa
+        const hasOutdatedFeatures =
+          !Array.isArray(p.features) ||
+          p.features.length === 0 ||
+          (p.id === 'free' && p.features.some((f: string) => f.includes('10 ta AI chat') || f.includes('3 ta IRAC'))) ||
+          (p.id === 'standart' && p.features.length < 5) ||
+          (p.id === 'pro' && p.features.length < 5)
+
+        if (hasOutdatedFeatures) {
+          updated.features = def.features
+          changed = true
         }
+
+        // 3. Limits tekshiruvi: agar limitlar to'liq bo'lmasa yoki eskirgan bo'lsa
+        if (!p.limits || typeof p.limits !== 'object' || Object.keys(p.limits).length < 5) {
+          updated.limits = def.limits
+          changed = true
+        } else {
+          // Muhim limitlar borligini tekshirish (masalan: scenario, speech_stt, virtual_court)
+          const mergedLimits = { ...def.limits, ...(p.limits || {}) }
+          // Har bir kalit bo'yicha normallashtirish
+          for (const key of Object.keys(def.limits)) {
+            if (mergedLimits[key] === undefined) {
+              mergedLimits[key] = (def.limits as any)[key]
+              changed = true
+            }
+          }
+          if (changed) updated.limits = mergedLimits
+        }
+
+        if (changed) {
+          needsDbUpdate = true
+          return updated
+        }
+
         return p
       })
 

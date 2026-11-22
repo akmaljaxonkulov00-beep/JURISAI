@@ -64,7 +64,7 @@ export async function PATCH(request: NextRequest) {
     if (!auth.ok) return auth.response
 
     const body = await request.json()
-    const { paymentId, action, reason } = body
+    const { paymentId, action, reason, duration, planId } = body
 
     if (!paymentId || !action) {
       return NextResponse.json(
@@ -81,7 +81,7 @@ export async function PATCH(request: NextRequest) {
     // Status/balans/admin tekshiruvi yagona payment-admin mantiqidan
     const result =
       action === 'approve'
-        ? await approvePayment(supabase, paymentId, auth.user.id)
+        ? await approvePayment(supabase, paymentId, auth.user.id, { duration, planId })
         : action === 'reject'
           ? await rejectPayment(supabase, paymentId, auth.user.id, reason)
           : {
@@ -96,7 +96,7 @@ export async function PATCH(request: NextRequest) {
         action: action === 'approve' ? 'payment_approve' : 'payment_reject',
         targetType: 'payment',
         targetId: paymentId,
-        details: { paymentId, action, reason: reason || '' },
+        details: { paymentId, action, reason: reason || '', duration, planId },
         success: result.ok,
       })
     }

@@ -42,6 +42,9 @@ import {
   Scale,
   Award,
   GraduationCap,
+  CheckCircle2,
+  RefreshCw,
+  AlertCircle,
   type LucideIcon,
 } from 'lucide-react'
 import { authService, type AuthUser } from '@/services/supabase-auth'
@@ -280,6 +283,18 @@ export default function AdminDashboard() {
   // Payments
   const [paymentRequests, setPaymentRequests] = useState<PaymentRequest[]>([])
   const [lightboxImage, setLightboxImage] = useState<string | null>(null)
+  const [approvingPayment, setApprovingPayment] = useState<PaymentRequest | null>(null)
+  const [selectedDuration, setSelectedDuration] = useState<
+    'weekly' | 'monthly' | '3_months' | '6_months' | 'yearly'
+  >('monthly')
+  const [selectedPlanForApproval, setSelectedPlanForApproval] = useState<string>('standart')
+  const [rejectingPayment, setRejectingPayment] = useState<PaymentRequest | null>(null)
+  const [rejectReason, setRejectReason] = useState<string>('')
+  const [paymentStatusFilter, setPaymentStatusFilter] = useState<
+    'all' | 'pending' | 'approved' | 'rejected'
+  >('pending')
+  const [paymentSearchQuery, setPaymentSearchQuery] = useState<string>('')
+  const [isProcessingPayment, setIsProcessingPayment] = useState<boolean>(false)
 
   // Users
   const [allUsers, setAllUsers] = useState<AdminUser[]>([])
@@ -724,12 +739,23 @@ export default function AdminDashboard() {
   }
 
   // ===== PAYMENT MANAGEMENT =====
-  const approvePayment = async (paymentId: string) => {
+  const openApproveModal = (payment: PaymentRequest) => {
+    setApprovingPayment(payment)
+    setSelectedPlanForApproval(payment.plan?.toLowerCase() === 'pro' ? 'pro' : 'standart')
+    setSelectedDuration('monthly')
+  }
+
+  const handleConfirmApproval = async () => {
+    if (!approvingPayment || isProcessingPayment) return
+    setIsProcessingPayment(true)
+
+    const paymentId = approvingPayment.id
+    const plan = selectedPlanForApproval === 'pro' ? 'pro' : 'standart'
+    const duration = selectedDuration
+
     // Update local state immediately
     const updated = paymentRequests.map(p => {
       if (p.id === paymentId) {
-        // Update user session with subscription + balance
-        const plan = p.plan === 'pro' ? 'pro' : 'standart'
         updateUserSubscription(p.userId, plan)
         try {
           const storedUser =
@@ -741,27 +767,36 @@ export default function AdminDashboard() {
               const updatedUser = {
                 ...userData,
                 subscription_plan: plan,
-                subscription_expires_at: new Date(Date.now() + 365 * 86400000).toISOString(),
                 balance: currentBalance + (p.amount || 0),
               }
-              // Session updated via Supabase auth — no localStorage override
             }
           }
         } catch {}
-        return { ...p, status: 'approved' as const }
+        return { ...p, status: 'approved' as const, plan }
       }
       return p
     })
     setPaymentRequests(updated)
 
-    // Sync to Supabase (PRIMARY)
-    await syncApprovePayment(paymentId)
+    // Sync to Supabase (PRIMARY) with duration and plan
+    await syncApprovePayment(paymentId, { duration, planId: plan })
 
     // DB is source of truth — refresh from API
     realtime.refreshPayments()
+    setIsProcessingPayment(false)
+    setApprovingPayment(null)
   }
 
-  const rejectPayment = async (paymentId: string) => {
+  const openRejectModal = (payment: PaymentRequest) => {
+    setRejectingPayment(payment)
+    setRejectReason('')
+  }
+
+  const handleConfirmReject = async () => {
+    if (!rejectingPayment || isProcessingPayment) return
+    setIsProcessingPayment(true)
+
+    const paymentId = rejectingPayment.id
     const updated = paymentRequests.map(p => {
       if (p.id === paymentId) return { ...p, status: 'rejected' as const }
       return p
@@ -769,10 +804,24 @@ export default function AdminDashboard() {
     setPaymentRequests(updated)
 
     // Sync to Supabase (PRIMARY)
-    await syncRejectPayment(paymentId)
+    await syncRejectPayment(paymentId, rejectReason || undefined)
 
     // DB is source of truth — refresh from API
     realtime.refreshPayments()
+    setIsProcessingPayment(false)
+    setRejectingPayment(null)
+    setRejectReason('')
+  }
+
+  // Legacy direct calls fallback
+  const approvePayment = async (paymentId: string) => {
+    const p = paymentRequests.find(req => req.id === paymentId)
+    if (p) openApproveModal(p)
+  }
+
+  const rejectPayment = async (paymentId: string) => {
+    const p = paymentRequests.find(req => req.id === paymentId)
+    if (p) openRejectModal(p)
   }
 
   // ===== PRICING MANAGEMENT =====
@@ -1719,115 +1768,256 @@ export default function AdminDashboard() {
 
         {/* ===== PAYMENTS ===== */}
         {activeTab === 'payments' && (
-          <div className="space-y-4">
-            <Card className="card-default rounded-2xl">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-2 text-gray-800 dark:text-white">
-                    <CreditCard className="w-5 h-5 text-blue-500" />
-                    To'lov so'rovlarini boshqarish
-                  </CardTitle>
+          <div className="space-y-6">
+            {/* Payment Summary Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+              <div className="bg-white dark:bg-zinc-900 border border-gray-200/80 dark:border-zinc-800 rounded-2xl p-4 shadow-xs">
+                <span className="text-xs font-semibold text-gray-500 dark:text-zinc-400 block mb-1">
+                  Jami so‘rovlar
+                </span>
+                <span className="text-2xl font-black text-gray-900 dark:text-white">
+                  {paymentRequests.length}
+                </span>
+              </div>
+
+              <div className="bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200/60 dark:border-amber-900/40 rounded-2xl p-4 shadow-xs">
+                <span className="text-xs font-semibold text-amber-700 dark:text-amber-400 block mb-1">
+                  Kutilayotgan
+                </span>
+                <span className="text-2xl font-black text-amber-600 dark:text-amber-400">
+                  {paymentRequests.filter(p => p.status === 'pending').length}
+                </span>
+              </div>
+
+              <div className="bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-200/60 dark:border-emerald-900/40 rounded-2xl p-4 shadow-xs">
+                <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 block mb-1">
+                  Tasdiqlangan
+                </span>
+                <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400">
+                  {paymentRequests.filter(p => p.status === 'approved').length}
+                </span>
+              </div>
+
+              <div className="bg-rose-50/60 dark:bg-rose-950/20 border border-rose-200/60 dark:border-rose-900/40 rounded-2xl p-4 shadow-xs">
+                <span className="text-xs font-semibold text-rose-700 dark:text-rose-400 block mb-1">
+                  Rad etilgan
+                </span>
+                <span className="text-2xl font-black text-rose-600 dark:text-rose-400">
+                  {paymentRequests.filter(p => p.status === 'rejected').length}
+                </span>
+              </div>
+            </div>
+
+            <Card className="card-default rounded-3xl border border-gray-200/80 dark:border-zinc-800 shadow-sm overflow-hidden">
+              <CardHeader className="border-b border-gray-100 dark:border-zinc-800 pb-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <CardTitle className="flex items-center gap-2 text-base sm:text-lg font-bold text-gray-900 dark:text-white">
+                      <CreditCard className="w-5 h-5 text-blue-600" />
+                      To‘lov so‘rovlarini boshqarish
+                    </CardTitle>
+                    <p className="text-xs text-gray-500 dark:text-zinc-400 mt-0.5">
+                      Foydalanuvchilar yuborgan to‘lov cheklarini ko‘rib chiqish va tariflarni faollashtirish
+                    </p>
+                  </div>
                   <button
                     onClick={realtime.refreshPayments}
-                    className="px-3 py-1.5 text-xs font-medium rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-all flex items-center gap-1"
+                    className="px-3.5 py-2 text-xs font-semibold rounded-xl bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-zinc-300 hover:bg-gray-200 dark:hover:bg-zinc-700 transition-all flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
                   >
-                    <svg
-                      className="w-3.5 h-3.5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                      />
-                    </svg>
-                    Yangilash
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    <span>Yangilash</span>
                   </button>
                 </div>
-              </CardHeader>
-              <CardContent>
-                {paymentRequests.length === 0 ? (
-                  <div className="text-center py-10 text-secondary">
-                    <CreditCard className="w-12 h-12 mx-auto mb-3 opacity-40" />
-                    <p>Hali to'lov so'rovlari yo'q</p>
-                  </div>
-                ) : (
-                  <div className="space-y-3 max-h-[600px] overflow-y-auto pr-1">
-                    {paymentRequests.map(p => (
-                      <div
-                        key={p.id}
-                        className="p-4 rounded-xl bg-gray-50 dark:bg-zinc-800/50 border border-gray-100 dark:border-zinc-700"
+
+                {/* Filter Tabs & Search Bar */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-4">
+                  <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+                    {[
+                      { id: 'all', label: 'Barchasi', count: paymentRequests.length },
+                      {
+                        id: 'pending',
+                        label: 'Kutilayotgan',
+                        count: paymentRequests.filter(p => p.status === 'pending').length,
+                      },
+                      {
+                        id: 'approved',
+                        label: 'Tasdiqlangan',
+                        count: paymentRequests.filter(p => p.status === 'approved').length,
+                      },
+                      {
+                        id: 'rejected',
+                        label: 'Rad etilgan',
+                        count: paymentRequests.filter(p => p.status === 'rejected').length,
+                      },
+                    ].map(tab => (
+                      <button
+                        key={tab.id}
+                        onClick={() => setPaymentStatusFilter(tab.id as any)}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+                          paymentStatusFilter === tab.id
+                            ? 'bg-blue-600 text-white shadow-xs'
+                            : 'bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-300 hover:bg-gray-200 dark:hover:bg-zinc-700'
+                        }`}
                       >
-                        <div className="flex items-center justify-between mb-3">
-                          <div>
-                            <p className="font-medium text-sm text-gray-800 dark:text-white">
-                              {p.userName || p.userEmail}
-                            </p>
-                            <p className="text-xs text-secondary">
-                              {p.userEmail} • {p.plan}
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Badge
-                              className={
-                                p.status === 'approved'
-                                  ? 'bg-green-100 text-green-800'
-                                  : p.status === 'rejected'
-                                    ? 'bg-red-100 text-red-800'
-                                    : 'bg-yellow-100 text-yellow-800'
-                              }
-                            >
-                              {p.status === 'approved'
-                                ? 'Tasdiqlangan'
-                                : p.status === 'rejected'
-                                  ? 'Rad etilgan'
-                                  : 'Kutilmoqda'}
-                            </Badge>
-                            <span className="font-bold text-sm text-gray-800 dark:text-white">
-                              {p.amount.toLocaleString()} UZS
-                            </span>
-                          </div>
-                        </div>
-                        {p.receiptImage && (
-                          <div className="mb-3">
-                            <button
-                              onClick={() => setLightboxImage(p.receiptImage)}
-                              className="w-full max-w-xs block"
-                            >
-                              <img
-                                src={p.receiptImage}
-                                alt="Chek"
-                                className="w-full rounded-lg border dark:border-zinc-700 hover:opacity-90 transition-opacity cursor-pointer"
-                              />
-                            </button>
-                          </div>
+                        <span>{tab.label}</span>
+                        {tab.count > 0 && (
+                          <span
+                            className={`px-1.5 py-0.2 rounded-md text-[10px] ${
+                              paymentStatusFilter === tab.id
+                                ? 'bg-white/20 text-white'
+                                : 'bg-gray-200 dark:bg-zinc-700 text-gray-700 dark:text-zinc-300'
+                            }`}
+                          >
+                            {tab.count}
+                          </span>
                         )}
-                        {p.status === 'pending' && (
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => approvePayment(p.id)}
-                              className="px-4 py-1.5 bg-green-600 text-white text-xs font-medium rounded-lg hover:bg-green-700 transition-colors flex items-center gap-1"
-                            >
-                              <CheckCircle size={14} /> Tasdiqlash
-                            </button>
-                            <button
-                              onClick={() => rejectPayment(p.id)}
-                              className="px-4 py-1.5 bg-red-600 text-white text-xs font-medium rounded-lg hover:bg-red-700 transition-colors flex items-center gap-1"
-                            >
-                              <X size={14} /> Rad etish
-                            </button>
-                          </div>
-                        )}
-                        <p className="text-xs text-secondary mt-2">
-                          {new Date(p.createdAt).toLocaleString('uz-UZ')}
-                        </p>
-                      </div>
+                      </button>
                     ))}
                   </div>
-                )}
+
+                  {/* Search Input */}
+                  <div className="relative w-full sm:w-64">
+                    <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      placeholder="Email yoki ism bo‘yicha..."
+                      value={paymentSearchQuery}
+                      onChange={e => setPaymentSearchQuery(e.target.value)}
+                      className="w-full pl-9 pr-3 py-1.5 text-xs bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+              </CardHeader>
+
+              <CardContent className="p-4 sm:p-6">
+                {(() => {
+                  const filtered = paymentRequests.filter(p => {
+                    const matchesStatus =
+                      paymentStatusFilter === 'all' || p.status === paymentStatusFilter
+                    const matchesSearch =
+                      !paymentSearchQuery ||
+                      (p.userName || '').toLowerCase().includes(paymentSearchQuery.toLowerCase()) ||
+                      (p.userEmail || '').toLowerCase().includes(paymentSearchQuery.toLowerCase())
+                    return matchesStatus && matchesSearch
+                  })
+
+                  if (filtered.length === 0) {
+                    return (
+                      <div className="text-center py-16 text-secondary">
+                        <CreditCard className="w-12 h-12 mx-auto mb-3 opacity-30 text-gray-400" />
+                        <p className="text-sm font-medium text-gray-600 dark:text-zinc-400">
+                          {paymentSearchQuery || paymentStatusFilter !== 'all'
+                            ? 'Qidiruv bo‘yicha to‘lov so‘rovlari topilmadi'
+                            : 'Hozircha to‘lov so‘rovlari mavjud emas'}
+                        </p>
+                      </div>
+                    )
+                  }
+
+                  return (
+                    <div className="space-y-3.5">
+                      {filtered.map(p => (
+                        <div
+                          key={p.id}
+                          className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-zinc-900 border border-gray-200/80 dark:border-zinc-800 hover:border-blue-300 dark:hover:border-zinc-700 transition-all shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4"
+                        >
+                          <div className="flex items-start gap-4 flex-1 min-w-0">
+                            {/* Receipt thumbnail */}
+                            {p.receiptImage ? (
+                              <button
+                                type="button"
+                                onClick={() => setLightboxImage(p.receiptImage)}
+                                className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden border border-gray-200 dark:border-zinc-700 flex-shrink-0 relative group cursor-pointer bg-gray-100"
+                                title="Chekni kattalashtirib ko‘rish"
+                              >
+                                <img
+                                  src={p.receiptImage}
+                                  alt="Chek"
+                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                                />
+                                <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-[10px] font-bold">
+                                  Ko‘rish
+                                </div>
+                              </button>
+                            ) : (
+                              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-gray-100 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 flex items-center justify-center flex-shrink-0 text-gray-400">
+                                <FileText className="w-6 h-6 opacity-40" />
+                              </div>
+                            )}
+
+                            {/* Info */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex flex-wrap items-center gap-2 mb-1">
+                                <h4 className="font-bold text-sm text-gray-900 dark:text-white truncate">
+                                  {p.userName || p.userEmail}
+                                </h4>
+                                <Badge
+                                  className={`text-[10px] font-bold uppercase ${
+                                    p.status === 'approved'
+                                      ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300'
+                                      : p.status === 'rejected'
+                                        ? 'bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300'
+                                        : 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300'
+                                  }`}
+                                >
+                                  {p.status === 'approved'
+                                    ? 'Tasdiqlangan'
+                                    : p.status === 'rejected'
+                                      ? 'Rad etilgan'
+                                      : 'Kutilmoqda'}
+                                </Badge>
+                                <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300">
+                                  {p.plan || 'Standart'}
+                                </span>
+                              </div>
+
+                              <p className="text-xs text-gray-500 dark:text-zinc-400 truncate mb-1">
+                                {p.userEmail}
+                              </p>
+
+                              <div className="flex items-center gap-3 text-xs text-gray-400">
+                                <span>{new Date(p.createdAt).toLocaleString('uz-UZ')}</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Right: Amount & Actions */}
+                          <div className="flex items-center justify-between md:justify-end gap-3 pt-3 md:pt-0 border-t md:border-t-0 border-gray-100 dark:border-zinc-800">
+                            <div className="text-left md:text-right">
+                              <span className="text-[10px] uppercase font-bold text-gray-400 block">
+                                To‘lov summasi
+                              </span>
+                              <span className="text-base font-black text-gray-900 dark:text-white">
+                                {Number(p.amount || 0).toLocaleString()} UZS
+                              </span>
+                            </div>
+
+                            {p.status === 'pending' && (
+                              <div className="flex items-center gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => openApproveModal(p)}
+                                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+                                >
+                                  <CheckCircle2 className="w-4 h-4" />
+                                  <span>Tasdiqlash</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => openRejectModal(p)}
+                                  className="px-3.5 py-2 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/60 text-rose-600 dark:text-rose-400 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
+                                >
+                                  <X className="w-4 h-4" />
+                                  <span>Rad etish</span>
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )
+                })()}
               </CardContent>
             </Card>
           </div>
@@ -2316,6 +2506,312 @@ export default function AdminDashboard() {
           </div>
         )}
       </div>
+
+      {/* Payment Approval Modal */}
+      {approvingPayment && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="w-full max-w-lg bg-white dark:bg-zinc-900 rounded-3xl border border-gray-200 dark:border-zinc-800 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-150">
+            {/* Header */}
+            <div className="p-5 border-b border-gray-100 dark:border-zinc-800 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                  <CheckCircle2 className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-base text-gray-900 dark:text-white">
+                    To‘lovni tasdiqlash
+                  </h3>
+                  <p className="text-xs text-gray-500 dark:text-zinc-400">
+                    Tarif va amal qilish muddatini belgilash
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setApprovingPayment(null)}
+                className="w-8 h-8 rounded-xl bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 text-gray-500 flex items-center justify-center transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="p-5 space-y-4 max-h-[75vh] overflow-y-auto">
+              {/* User and Payment Details Summary */}
+              <div className="p-4 rounded-2xl bg-gray-50 dark:bg-zinc-800/50 border border-gray-100 dark:border-zinc-800 flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <span className="text-[10px] uppercase font-bold text-gray-400 block">
+                    Foydalanuvchi
+                  </span>
+                  <p className="text-sm font-bold text-gray-900 dark:text-white truncate">
+                    {approvingPayment.userName || 'Nomaʼlum'}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-zinc-400 truncate">
+                    {approvingPayment.userEmail}
+                  </p>
+                </div>
+                <div className="text-right flex-shrink-0">
+                  <span className="text-[10px] uppercase font-bold text-gray-400 block">
+                    Yuborilgan summa
+                  </span>
+                  <span className="text-sm font-black text-emerald-600 dark:text-emerald-400">
+                    {Number(approvingPayment.amount || 0).toLocaleString()} UZS
+                  </span>
+                  {approvingPayment.receiptImage && (
+                    <button
+                      type="button"
+                      onClick={() => setLightboxImage(approvingPayment.receiptImage)}
+                      className="block text-[11px] font-semibold text-blue-600 dark:text-blue-400 hover:underline mt-0.5 cursor-pointer"
+                    >
+                      Chekni ko‘rish
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Plan Selection */}
+              <div>
+                <label className="block text-xs font-bold text-gray-700 dark:text-zinc-300 uppercase tracking-wider mb-2">
+                  Tarif rejasi
+                </label>
+                <div className="grid grid-cols-2 gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedPlanForApproval('standart')}
+                    className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+                      selectedPlanForApproval === 'standart'
+                        ? 'border-blue-600 bg-blue-50/60 dark:bg-blue-950/30 text-blue-900 dark:text-blue-200 ring-2 ring-blue-600/20'
+                        : 'border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-800 hover:border-gray-300 text-gray-700 dark:text-zinc-300'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-bold text-xs uppercase">Standart</span>
+                      {selectedPlanForApproval === 'standart' && (
+                        <CheckCircle2 className="w-3.5 h-3.5 text-blue-600" />
+                      )}
+                    </div>
+                    <p className="text-[11px] text-gray-500 dark:text-zinc-400 line-clamp-1">
+                      Kengaytirilgan huquqiy yordamchi
+                    </p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setSelectedPlanForApproval('pro')}
+                    className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+                      selectedPlanForApproval === 'pro'
+                        ? 'border-purple-600 bg-purple-50/60 dark:bg-purple-950/30 text-purple-900 dark:text-purple-200 ring-2 ring-purple-600/20'
+                        : 'border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-800 hover:border-gray-300 text-gray-700 dark:text-zinc-300'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-bold text-xs uppercase text-purple-700 dark:text-purple-400">Pro</span>
+                      {selectedPlanForApproval === 'pro' && (
+                        <CheckCircle2 className="w-3.5 h-3.5 text-purple-600" />
+                      )}
+                    </div>
+                    <p className="text-[11px] text-gray-500 dark:text-zinc-400 line-clamp-1">
+                      Professional advokatlar uchun
+                    </p>
+                  </button>
+                </div>
+              </div>
+
+              {/* Subscription Duration Selection */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-xs font-bold text-gray-700 dark:text-zinc-300 uppercase tracking-wider">
+                    Amal qilish muddati
+                  </label>
+                  <span className="text-[11px] text-gray-400">
+                    Haftalik yoki oylik muddat
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {[
+                    { id: 'weekly', label: '1 Haftalik', sub: '7 kun' },
+                    { id: 'monthly', label: '1 Oylik', sub: '30 kun' },
+                    { id: '3_months', label: '3 Oylik', sub: '90 kun' },
+                    { id: '6_months', label: '6 Oylik', sub: '180 kun' },
+                    { id: 'yearly', label: '1 Yillik', sub: '365 kun' },
+                  ].map(dur => (
+                    <button
+                      key={dur.id}
+                      type="button"
+                      onClick={() => setSelectedDuration(dur.id as any)}
+                      className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer ${
+                        selectedDuration === dur.id
+                          ? 'border-emerald-600 bg-emerald-50/60 dark:bg-emerald-950/30 text-emerald-900 dark:text-emerald-200 font-bold ring-2 ring-emerald-600/20'
+                          : 'border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-800 hover:border-gray-300 text-gray-700 dark:text-zinc-300'
+                      }`}
+                    >
+                      <span className="block text-xs font-bold">{dur.label}</span>
+                      <span className="block text-[10px] text-gray-400 mt-0.5">{dur.sub}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Expiration Summary Box */}
+              <div className="p-3.5 rounded-2xl bg-blue-50/70 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/50 flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <Clock className="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-blue-600 dark:text-blue-400 block">
+                      Yangi obuna muddati
+                    </span>
+                    <span className="text-xs font-semibold text-gray-800 dark:text-zinc-200">
+                      {(() => {
+                        const d = new Date()
+                        if (selectedDuration === 'weekly') d.setDate(d.getDate() + 7)
+                        else if (selectedDuration === '3_months') d.setDate(d.getDate() + 90)
+                        else if (selectedDuration === '6_months') d.setDate(d.getDate() + 180)
+                        else if (selectedDuration === 'yearly') d.setFullYear(d.getFullYear() + 1)
+                        else d.setDate(d.getDate() + 30)
+                        return d.toLocaleDateString('uz-UZ', { day: '2-digit', month: 'long', year: 'numeric' })
+                      })()} gacha
+                    </span>
+                  </div>
+                </div>
+                <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase bg-blue-600 text-white">
+                  {selectedPlanForApproval}
+                </span>
+              </div>
+            </div>
+
+            {/* Footer Actions */}
+            <div className="p-4 sm:p-5 border-t border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/30 flex items-center justify-end gap-2.5">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setApprovingPayment(null)}
+                disabled={isProcessingPayment}
+                className="text-xs"
+              >
+                Bekor qilish
+              </Button>
+              <Button
+                type="button"
+                onClick={handleConfirmApproval}
+                disabled={isProcessingPayment}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold gap-1.5"
+              >
+                {isProcessingPayment ? (
+                  <>
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    <span>Faollashtirilmoqda...</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>Tasdiqlash & Faollashtirish</span>
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Payment Rejection Modal */}
+      {rejectingPayment && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-3xl border border-gray-200 dark:border-zinc-800 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-150">
+            {/* Header */}
+            <div className="p-5 border-b border-gray-100 dark:border-zinc-800 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center">
+                  <AlertCircle className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-base text-gray-900 dark:text-white">
+                    To‘lovni rad etish
+                  </h3>
+                  <p className="text-xs text-gray-500 dark:text-zinc-400">
+                    Foydalanuvchi so‘rovi rad etiladi
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setRejectingPayment(null)}
+                className="w-8 h-8 rounded-xl bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 text-gray-500 flex items-center justify-center transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="p-5 space-y-4">
+              <p className="text-xs text-gray-600 dark:text-zinc-300">
+                <span className="font-semibold text-gray-900 dark:text-white">{rejectingPayment.userName || rejectingPayment.userEmail}</span> tomonidan yuborilgan to‘lov so‘rovini rad etmoqchimisiz?
+              </p>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 dark:text-zinc-300 mb-1.5">
+                  Rad etish sababi (ixtiyoriy)
+                </label>
+                <div className="flex flex-wrap gap-1.5 mb-2.5">
+                  {[
+                    'Chek xira yoki noaniq',
+                    'Mablag‘ hisobga kelib tushmadi',
+                    'Noto‘g‘ri to‘lov summasi',
+                  ].map(reason => (
+                    <button
+                      key={reason}
+                      type="button"
+                      onClick={() => setRejectReason(reason)}
+                      className={`px-2.5 py-1 text-[11px] rounded-lg transition-colors cursor-pointer ${
+                        rejectReason === reason
+                          ? 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300 font-semibold'
+                          : 'bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-400 hover:bg-gray-200'
+                      }`}
+                    >
+                      {reason}
+                    </button>
+                  ))}
+                </div>
+                <textarea
+                  value={rejectReason}
+                  onChange={e => setRejectReason(e.target.value)}
+                  placeholder="Foydalanuvchiga sababni tushuntiring..."
+                  className="w-full p-3 text-xs rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-rose-500 resize-none"
+                  rows={3}
+                />
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="p-4 border-t border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/30 flex items-center justify-end gap-2.5">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setRejectingPayment(null)}
+                disabled={isProcessingPayment}
+                className="text-xs"
+              >
+                Bekor qilish
+              </Button>
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={handleConfirmReject}
+                disabled={isProcessingPayment}
+                className="text-xs font-bold gap-1.5"
+              >
+                {isProcessingPayment ? (
+                  <>
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    <span>Rad etilmoqda...</span>
+                  </>
+                ) : (
+                  <span>Rad etish</span>
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Lightbox for receipt images */}
       <ImageLightbox image={lightboxImage} onClose={() => setLightboxImage(null)} />

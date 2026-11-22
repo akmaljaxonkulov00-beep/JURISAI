@@ -305,13 +305,21 @@ export async function submitPaymentRequest(
   }
 }
 
-export async function approvePayment(paymentId: string): Promise<boolean> {
+export async function approvePayment(
+  paymentId: string,
+  options?: { duration?: string; planId?: string }
+): Promise<boolean> {
   try {
     const authHeaders = await getAuthHeaders()
     const res = await fetch('/api/payments/manage', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...authHeaders },
-      body: JSON.stringify({ paymentId, action: 'approve' }),
+      body: JSON.stringify({
+        paymentId,
+        action: 'approve',
+        duration: options?.duration,
+        planId: options?.planId,
+      }),
     })
     const result = await res.json()
     if (!result.success) {

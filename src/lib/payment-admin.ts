@@ -82,16 +82,56 @@ export async function resolvePlan(
   return (byName.data as ServerPlan) || null
 }
 
-/** Subskriptiya muddati — monthly → +1 oy, yearly → +1 yil. */
-export function computeSubscriptionEnd(plan: ServerPlan, now: Date = new Date()): string {
+export type SubscriptionDuration =
+  | 'weekly'
+  | 'monthly'
+  | '3_months'
+  | '6_months'
+  | 'yearly'
+  | number
+
+/** Subskriptiya muddati — haftalik (+7 kun), oylik (+1 oy), yillik (+1 yil) va h.k. */
+export function computeSubscriptionEnd(
+  plan: ServerPlan,
+  duration?: SubscriptionDuration,
+  now: Date = new Date()
+): { expiresAt: string; durationLabel: string } {
   const end = new Date(now.getTime())
-  const cycle = String(plan?.billing_cycle || 'monthly').toLowerCase()
-  if (cycle === 'year' || cycle === 'yearly') {
-    end.setFullYear(end.getFullYear() + 1)
-  } else {
+  let durationLabel = '1 oylik'
+
+  if (duration === 'weekly') {
+    end.setDate(end.getDate() + 7)
+    durationLabel = '1 haftalik'
+  } else if (duration === 'monthly') {
     end.setMonth(end.getMonth() + 1)
+    durationLabel = '1 oylik'
+  } else if (duration === '3_months') {
+    end.setMonth(end.getMonth() + 3)
+    durationLabel = '3 oylik'
+  } else if (duration === '6_months') {
+    end.setMonth(end.getMonth() + 6)
+    durationLabel = '6 oylik'
+  } else if (duration === 'yearly') {
+    end.setFullYear(end.getFullYear() + 1)
+    durationLabel = '1 yillik'
+  } else if (typeof duration === 'number' && duration > 0) {
+    end.setDate(end.getDate() + duration)
+    durationLabel = `${duration} kunlik`
+  } else {
+    const cycle = String(plan?.billing_cycle || 'monthly').toLowerCase()
+    if (cycle === 'weekly' || cycle === 'week') {
+      end.setDate(end.getDate() + 7)
+      durationLabel = '1 haftalik'
+    } else if (cycle === 'year' || cycle === 'yearly') {
+      end.setFullYear(end.getFullYear() + 1)
+      durationLabel = '1 yillik'
+    } else {
+      end.setMonth(end.getMonth() + 1)
+      durationLabel = '1 oylik'
+    }
   }
-  return end.toISOString()
+
+  return { expiresAt: end.toISOString(), durationLabel }
 }
 
 /**
@@ -127,7 +167,11 @@ async function findRegisteredUser(
 export async function approvePayment(
   supabase: SupabaseClient,
   paymentId: string,
-  adminId: string
+  adminId: string,
+  options?: {
+    duration?: SubscriptionDuration
+    planId?: string
+  }
 ): Promise<PaymentActionResult> {
   const { data, error } = await supabase
     .from('payment_requests')
@@ -154,18 +198,19 @@ export async function approvePayment(
     }
   }
 
-  // Tarif va narx — faqat server tomondagi pricing_plans'dan
-  const plan = await resolvePlan(supabase, payment.plan || payment.plan_id || '')
+  // Tarif va narx — faqat server tomondagi pricing_plans'dan (options.planId ustuvor)
+  const chosenPlanKey = options?.planId || payment.plan || payment.plan_id || ''
+  const plan = await resolvePlan(supabase, chosenPlanKey)
   if (!plan || Number(plan.price) <= 0) {
     return {
       ok: false,
       status: 400,
-      message: `Tarif topilmadi: ${payment.plan || payment.plan_id}`,
+      message: `Tarif topilmadi: ${chosenPlanKey}`,
     }
   }
 
   const amount = Number(payment.amount != null ? payment.amount : plan.price)
-  const expiresAt = computeSubscriptionEnd(plan)
+  const { expiresAt, durationLabel } = computeSubscriptionEnd(plan, options?.duration)
   const now = new Date().toISOString()
 
   const { error: updateError } = await supabase
@@ -219,7 +264,7 @@ export async function approvePayment(
         type: 'success',
         category: 'payment',
         title: "To'lov tasdiqlandi ✅",
-        message: `"${plan.name}" tarifi faollashtirildi. ${amount.toLocaleString()} so'm to'lov muvaffaqiyatli tasdiqlandi.`,
+        message: `"${plan.name}" tarifi (${durationLabel}) faollashtirildi. ${amount.toLocaleString()} so'm to'lov muvaffaqiyatli tasdiqlandi. Amal qilish muddati: ${new Date(expiresAt).toLocaleDateString('uz-UZ')}`,
         action_url: '/dashboard',
         action_text: "Dashboardga o'tish",
       })
@@ -228,7 +273,7 @@ export async function approvePayment(
     }
   }
 
-  return { ok: true, message: "To'lov tasdiqlandi", payment }
+  return { ok: true, message: `To'lov tasdiqlandi (${plan.name} - ${durationLabel})`, payment }
 }
 
 /** To'lovni rad etish. Faqat pending → rejected. Takroriy chaqiruv idempotent. */
