@@ -1,6 +1,6 @@
 'use client'
 
-import { ReactNode, createContext, useContext, useState, useEffect } from 'react'
+import { ReactNode, createContext, useContext, useState, useEffect, useCallback } from 'react'
 import { ThemeProvider } from '@/context/ThemeContext'
 import { LanguageProvider } from '@/context/LanguageContext'
 import { authService } from '@/services/supabase-auth'
@@ -23,6 +23,7 @@ interface AuthContextType {
   logout: () => Promise<void>
   updateProfile: (updates: Partial<AuthUser>) => Promise<{ success: boolean; error?: string }>
   setUser: (user: AuthUser | null) => void
+  refreshUser: () => Promise<AuthUser | null>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -139,6 +140,77 @@ function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  const refreshUser = useCallback(async (): Promise<AuthUser | null> => {
+    try {
+      const { getAuthHeaders } = await import('@/lib/api-auth-client')
+      const headers = await getAuthHeaders()
+      if (!headers.Authorization) return null
+
+      const res = await fetch('/api/auth/user-role', { headers, cache: 'no-cache' })
+      if (!res.ok) return null
+      const json = await res.json()
+      if (json.success && json.data) {
+        const d = json.data
+        let updated: AuthUser | null = null
+        setUser(prev => {
+          if (!prev) return null
+          const effectiveRole = d.role
+            ? d.role.toUpperCase() === 'ADMIN'
+              ? 'ADMIN'
+              : 'USER'
+            : prev.role
+          updated = {
+            ...prev,
+            role: effectiveRole,
+            subscription_plan: d.subscription_plan || prev.subscription_plan || 'free',
+            subscription_expires_at:
+              d.subscription_expires_at !== undefined
+                ? d.subscription_expires_at
+                : prev.subscription_expires_at,
+            name: d.name || prev.name,
+          }
+          try {
+            sessionStorage.setItem('juristiv_user', JSON.stringify(updated))
+            sessionStorage.setItem('auth_user', JSON.stringify(updated))
+          } catch {}
+          return updated
+        })
+        return updated || (d as AuthUser)
+      }
+      return null
+    } catch {
+      return null
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!isAuthenticated) return
+
+    // Run soft background refresh
+    refreshUser()
+
+    const handleSyncEvent = () => {
+      refreshUser()
+    }
+
+    window.addEventListener('juristiv_subscription_updated', handleSyncEvent)
+    window.addEventListener('focus', handleSyncEvent)
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') handleSyncEvent()
+    }
+    window.addEventListener('visibilitychange', handleVisibility)
+
+    // Periodic soft background refresh every 20 seconds
+    const timer = setInterval(handleSyncEvent, 20_000)
+
+    return () => {
+      window.removeEventListener('juristiv_subscription_updated', handleSyncEvent)
+      window.removeEventListener('focus', handleSyncEvent)
+      window.removeEventListener('visibilitychange', handleVisibility)
+      clearInterval(timer)
+    }
+  }, [isAuthenticated, refreshUser])
+
   const value: AuthContextType = {
     user,
     isAuthenticated,
@@ -151,6 +223,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
     logout,
     updateProfile,
     setUser,
+    refreshUser,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

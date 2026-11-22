@@ -108,6 +108,9 @@ export function useSettingsSync(): SettingsState {
         case 'payments': {
           const payments = data as PaymentRequest[]
           setPaymentRequests(payments)
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('juristiv_subscription_updated'))
+          }
           break
         }
         case 'announcements':
@@ -129,7 +132,7 @@ export function useSettingsSync(): SettingsState {
 
     // 2. Supabase Realtime subscriptions (instant!)
     const tables = [
-      { name: 'payments', key: 'payments' },
+      { name: 'payment_requests', key: 'payments' },
       { name: 'site_settings', key: 'settings' },
       { name: 'pricing_plans', key: 'pricing' },
       { name: 'announcements', key: 'announcements' },

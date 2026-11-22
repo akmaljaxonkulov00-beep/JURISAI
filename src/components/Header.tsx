@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react'
 import SiteLogo from '@/components/SiteLogo'
+import NotificationBell from '@/components/features/NotificationBell'
 import { Search, Bell, Globe, User, LogOut, Settings, Crown, ChevronDown } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/app/providers'
@@ -71,13 +72,9 @@ export default function Header({
         <div className="flex items-center justify-end gap-2 sm:gap-3">
           {/* Notifications */}
           {showNotifications && (
-            <Link
-              href="/settings?tab=notifications"
-              className="p-2 text-gray-600 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl transition-colors relative"
-              title={t('settingsTabNotifications', 'Bildirishnomalar')}
-            >
-              <Bell className="w-5 h-5" />
-            </Link>
+            <div className="flex items-center">
+              <NotificationBell />
+            </div>
           )}
 
           {/* Language Selector Dropdown */}
@@ -150,10 +147,17 @@ export default function Header({
                   onClick={() => setUserMenuOpen(false)}
                 >
                   <div className="px-4 py-2 border-b border-gray-100 dark:border-zinc-800 mb-1">
-                    <p className="text-xs font-bold text-gray-900 dark:text-white truncate">
-                      {displayName}
-                    </p>
-                    <p className="text-[11px] text-gray-400 dark:text-zinc-500 truncate">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-xs font-bold text-gray-900 dark:text-white truncate">
+                        {displayName}
+                      </p>
+                      {user?.subscription_plan && user.subscription_plan !== 'free' && (
+                        <span className="px-1.5 py-0.5 rounded text-[10px] font-black uppercase bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300">
+                          {user.subscription_plan}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-gray-400 dark:text-zinc-500 truncate mt-0.5">
                       {user?.email}
                     </p>
                   </div>

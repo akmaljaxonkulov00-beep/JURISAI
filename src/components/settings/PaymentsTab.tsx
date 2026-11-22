@@ -33,35 +33,46 @@ interface PaymentRecord {
 
 export default function PaymentsTab() {
   const { t } = useLanguage()
-  const { user } = useAuth()
+  const { user, refreshUser } = useAuth()
 
   const [payments, setPayments] = useState<PaymentRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedReceipt, setSelectedReceipt] = useState<string | null>(null)
 
-  useEffect(() => {
-    async function loadPayments() {
-      setLoading(true)
-      try {
-        const res = await fetch('/api/payments', { cache: 'no-cache' })
-        if (res.ok) {
-          const json = await res.json()
-          if (json.success && json.data?.payments) {
-            setPayments(json.data.payments)
-          }
+  const loadPayments = async () => {
+    try {
+      const res = await fetch('/api/payments', { cache: 'no-cache' })
+      if (res.ok) {
+        const json = await res.json()
+        if (json.success && json.data?.payments) {
+          setPayments(json.data.payments)
         }
-      } catch (err) {
-        console.error('Failed to load payments history:', err)
-      } finally {
-        setLoading(false)
       }
+    } catch (err) {
+      console.error('Failed to load payments history:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    setLoading(true)
+    loadPayments()
+    refreshUser?.().catch(() => {})
+
+    const handleUpdate = () => {
+      refreshUser?.().catch(() => {})
+      loadPayments()
     }
 
-    loadPayments()
-  }, [])
+    window.addEventListener('juristiv_subscription_updated', handleUpdate)
+    return () => window.removeEventListener('juristiv_subscription_updated', handleUpdate)
+  }, [refreshUser])
 
-  const currentPlan = user?.subscription_plan || 'free'
-  const isPro = currentPlan.toLowerCase() === 'pro'
+  const currentPlan = (user?.subscription_plan || 'free').toLowerCase()
+  const isPro = currentPlan === 'pro'
+  const isStandart = currentPlan === 'standart'
+  const isPaid = isPro || isStandart
   const expiresAt = user?.subscription_expires_at
 
   const approvedPayments = payments.filter(p => p.status === 'approved')
@@ -100,24 +111,38 @@ export default function PaymentsTab() {
       {/* Plan & Balance Status Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Current Plan Card */}
-        <div className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-2xl p-5 shadow-sm relative overflow-hidden">
+        <div
+          className={`text-white rounded-2xl p-5 shadow-sm relative overflow-hidden ${
+            isPro
+              ? 'bg-gradient-to-br from-purple-600 via-indigo-600 to-indigo-800'
+              : isStandart
+                ? 'bg-gradient-to-br from-blue-600 via-blue-700 to-emerald-600'
+                : 'bg-gradient-to-br from-slate-600 to-zinc-700'
+          }`}
+        >
           <div className="absolute top-0 right-0 p-4 opacity-10">
-            <Crown className="w-24 h-24" />
+            {isPro ? <Crown className="w-24 h-24" /> : <ShieldCheck className="w-24 h-24" />}
           </div>
           <span className="text-xs uppercase tracking-wider text-blue-100 font-semibold block mb-1">
             {t('currentPlan', 'Joriy tarif')}
           </span>
           <div className="flex items-center gap-2 mb-3">
             <h3 className="text-2xl font-bold capitalize">
-              {isPro ? t('planPro', 'Professional (Pro)') : t('planFree', 'Bepul (Free)')}
+              {isPro
+                ? t('planPro', 'Professional (Pro)')
+                : isStandart
+                  ? 'Standart'
+                  : t('planFree', 'Bepul (Free)')}
             </h3>
-            {isPro && <ShieldCheck className="w-5 h-5 text-amber-300" />}
+            {isPaid && <ShieldCheck className="w-5 h-5 text-amber-300" />}
           </div>
           <p className="text-xs text-blue-100 flex items-center gap-1.5">
             <Calendar className="w-3.5 h-3.5" />
-            {expiresAt
+            {expiresAt && isPaid
               ? `${t('planExpiresOn', 'Amal qilish muddati')}: ${new Date(expiresAt).toLocaleDateString()}`
-              : t('planActive', 'Cheksiz davom etuvchi')}
+              : isPaid
+                ? 'Faol obuna'
+                : t('planActive', 'Cheksiz davom etuvchi')}
           </p>
         </div>
 

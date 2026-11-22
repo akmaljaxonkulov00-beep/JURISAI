@@ -95,6 +95,12 @@ export default function ProfileOverviewTab({ onGoToPersonal }: ProfileOverviewTa
     }
 
     loadData()
+
+    const handleSync = () => {
+      loadData()
+    }
+    window.addEventListener('juristiv_subscription_updated', handleSync)
+    return () => window.removeEventListener('juristiv_subscription_updated', handleSync)
   }, [])
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -153,8 +159,10 @@ export default function ProfileOverviewTab({ onGoToPersonal }: ProfileOverviewTa
     user?.name ||
     profile?.email?.split('@')[0] ||
     t('profileRoleUser', 'Foydalanuvchi')
-  const isPro =
-    (profile?.subscriptionPlan || user?.subscription_plan || 'free').toLowerCase() === 'pro'
+  const rawPlan = (profile?.subscriptionPlan || user?.subscription_plan || 'free').toLowerCase()
+  const isPro = rawPlan === 'pro'
+  const isStandart = rawPlan === 'standart'
+  const isPaid = isPro || isStandart
   const isAdmin = (profile?.role || user?.role || 'USER').toUpperCase() === 'ADMIN'
 
   return (
@@ -220,6 +228,10 @@ export default function ProfileOverviewTab({ onGoToPersonal }: ProfileOverviewTa
               {isPro ? (
                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
                   <Crown className="w-3 h-3" /> Pro
+                </span>
+              ) : isStandart ? (
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                  <CheckCircle2 className="w-3 h-3" /> Standart
                 </span>
               ) : (
                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-400">

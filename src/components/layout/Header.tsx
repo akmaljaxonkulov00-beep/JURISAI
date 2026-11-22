@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import SiteLogo from '@/components/SiteLogo'
+import NotificationBell from '@/components/features/NotificationBell'
 import {
   Button,
   Avatar,
@@ -83,7 +84,8 @@ const Header: React.FC<HeaderProps> = ({ user, className }) => {
           </nav>
 
           {/* User Menu */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-3 sm:space-x-4">
+            <NotificationBell />
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
