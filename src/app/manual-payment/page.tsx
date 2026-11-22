@@ -59,9 +59,9 @@ function PaymentContent() {
         const latest = reqs[0]
         if (latest.status === 'approved') {
           setCheckStatus('approved')
-          // NOTE: Tarif localStorage orqali override QILINMAYDI — yagona
-          // manba registered_users. To'lov tasdiqlanganda admin uni plan
-          // yangilash orqali tasdiqlaydi, user keyingi fetch/login da oladi.
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('juristiv_subscription_updated'))
+          }
         } else if (latest.status === 'rejected') {
           setCheckStatus('rejected')
         }

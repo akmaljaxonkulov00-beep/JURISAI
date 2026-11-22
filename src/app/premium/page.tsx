@@ -19,6 +19,7 @@ import {
 import Link from 'next/link'
 import { getPricingPlans, type PricingPlan } from '@/lib/settings-sync'
 import { usePricingRealtime } from '@/hooks/usePricingRealtime'
+import { useAuth } from '@/app/providers'
 
 // Har bir funksiya bo'yicha tarif limitlari (Premium matritsasi uchun)
 const FEATURE_MATRIX: { key: string; label: string }[] = [
@@ -119,31 +120,52 @@ export default function Premium() {
       caseLimit: -1,
     },
   ])
+  const { user, refreshUser } = useAuth()
   const [loading, setLoading] = useState(true)
   const [matrixLimits, setMatrixLimits] =
     useState<Record<string, Record<string, number>>>(DEFAULT_MATRIX_LIMITS)
-  const [currentUserPlan, setCurrentUserPlan] = useState<string>('free')
-
-  useEffect(() => {
-    loadPricingPlans()
-    loadUserPlan()
-  }, [])
+  const [currentUserPlan, setCurrentUserPlan] = useState<string>(
+    (user?.subscription_plan || 'free').toLowerCase()
+  )
 
   const loadUserPlan = async () => {
     try {
+      if (user?.subscription_plan) {
+        setCurrentUserPlan(user.subscription_plan.toLowerCase())
+      }
       const authHeaders = await getAuthHeaders()
+      if (!authHeaders.Authorization) return
+
       const res = await fetch('/api/user/profile-full', {
         headers: { ...authHeaders },
         cache: 'no-cache',
       })
       const result = await res.json()
-      if (result.success && result.data?.plan) {
-        setCurrentUserPlan(String(result.data.plan).toLowerCase())
+      if (result.success && result.data) {
+        const planKey =
+          result.data.subscriptionPlan ||
+          result.data.subscription_plan ||
+          result.data.plan ||
+          'free'
+        setCurrentUserPlan(String(planKey).toLowerCase())
       }
     } catch {
       // Offline yoki mehmon
     }
   }
+
+  useEffect(() => {
+    loadPricingPlans()
+    loadUserPlan()
+    refreshUser?.().catch(() => {})
+
+    const handleSync = () => {
+      refreshUser?.().catch(() => {})
+      loadUserPlan()
+    }
+    window.addEventListener('juristiv_subscription_updated', handleSync)
+    return () => window.removeEventListener('juristiv_subscription_updated', handleSync)
+  }, [user?.subscription_plan, refreshUser])
 
   const loadPricingPlans = async () => {
     try {
@@ -240,7 +262,8 @@ export default function Premium() {
             const finalPriceFormatted = finalPrice.toLocaleString() + ' UZS'
             const isPopular = index === 1 // Standart is popular
             const isFree = plan.price === 0
-            const isCurrentPlan = currentUserPlan === plan.id.toLowerCase()
+            const effectiveUserPlan = (currentUserPlan || user?.subscription_plan || 'free').toLowerCase()
+            const isCurrentPlan = effectiveUserPlan === plan.id.toLowerCase()
             return (
               <Card
                 key={index}
