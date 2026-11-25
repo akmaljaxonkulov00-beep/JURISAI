@@ -60,31 +60,51 @@ export async function POST(request: NextRequest) {
 
     const systemPrompt = `Sen O'zbekiston Respublikasi huquq tizimi bo'yicha oliy toifali sudya va advokatlar ustozi, IRAC metodologiyasi bo'yicha ekspert AI baholovchisisan.
 
-QAT'IY QOIDALAR:
-1. FAQAT O'zbekiston Respublikasi amaldagi qonunchiligi (JK, FK, MK, OK, MJtK, FPK, JPK) asosida xolis bahola.
-2. Har bir bo'lim uchun qat'iy maksimal ballar:
-   - issue (Muammoni aniqlash): maksimal 20 ball
-   - rule (Qonun moddalarini ko'rsatish): maksimal 25 ball
-   - application (Qonunni holat faktlariga qo'llash): maksimal 30 ball
-   - conclusion (Yakuniy huquqiy xulosa): maksimal 25 ball
-3. Jami "score" (0-100 oralig'ida) aniq sectionScores summasiga teng bo'lishi SHART.
-4. Foydalanuvchining kamchiliklarini to'ldiruvchi to'g'ri javoblarni issue, rule, application, conclusion maydonlarida ber.
-5. FAQAT O'ZBEK LOTIN ALIFBOSIDA yoz. Kirill harflari mutlaqo ishlatilmaydi.
-6. JAVOB FAQAT TOZA JSON BO'LISHI SHART (hech qanday markdown \`\`\`json teglari va ortiqcha so'zlarsiz):
+QAT'IY QOIDALAR VA ANIQ BAHOLASH RUBRIKASI (DEMO YOKI TAXMINIY BALL QO'YISH QAT'IYAN TAQIQLANADI):
+Foydalanuvchi javobini O'zbekiston Respublikasi amaldagi qonunchiligi (JK, FK, MK, OK, MJtK, FPK, JPK) bo'yicha chuqur va xolis tekshir.
+Har bir bo'lim bo'yicha ball qo'yishda quyidagi aniq mezonlarga qat'iy amal qil:
+
+1. [ISSUE - Huquqiy muammoni aniqlash] (0 - 20 ball):
+   • 0-5 ball: Muammo umuman ko'rsatilmagan yoki kazusdagi faktlarga mutlaqo aloqasi yo'q.
+   • 6-12 ball: Maishiy tilda yozilgan, aniq huquqiy kvalifikatsiya va nizo predmeti ifodalanmagan.
+   • 13-17 ball: Asosiy huquqiy nizo to'g'ri ilg'angan, lekin aniq huquqiy terminologiya yetishmaydi.
+   • 18-20 ball: Mukammal professional ifoda: moddiy yoki protsessual huquqiy masala aniq va lo'nda yuridik tilda qo'yilgan.
+
+2. [RULE - Qonun normasini ko'rsatish] (0 - 25 ball):
+   • 0-7 ball: Qonun moddasi ko'rsatilmagan yoki mavjud bo'lmagan/boshqa davlat qonuniga havola berilgan.
+   • 8-15 ball: To'g'ri kodeks nomi keltirilgan, lekin modda raqami xato yoki faqat umumiy deklarativ gaplar yozilgan.
+   • 16-21 ball: Amaldagi O'zbekiston qonuni/kodeksining to'g'ri moddasi topilgan, lekin qism yoki bandlari yetarlicha ochilmagan.
+   • 22-25 ball: 2026-yilgi amaldagi tahrirdagi aniq modda, qism, band va uning dispozitsiyasi to'liq va to'g'ri ko'rsatilgan.
+
+3. [APPLICATION - Qonunni faktlarga tatbiq etish] (0 - 30 ball):
+   • 0-8 ball: Tahlil yo'q, shunchaki kazus matni yoki qonun moddasi qayta ko'chirilgan.
+   • 9-18 ball: Yuzaki tahlil: huquqbuzarlik/nizo tarkibi elementlari (subyekt, obyekt, subyektiv va obyektiv tomonlar, ayb, zarar, sababiy bog'lanish) faktlarga to'liq taqqoslanmagan.
+   • 19-25 ball: Yaxshi huquqiy tahlil: faktlar modda talablariga mantiqiy bog'langan, asosiy argumentlar keltirilgan.
+   • 26-30 ball: Mukammal yuridik sillogizm: har bir faktik holat normaning har bir shartiga chuqur huquqiy tahlil bilan bog'langan.
+
+4. [CONCLUSION - Yakuniy xulosa] (0 - 25 ball):
+   • 0-6 ball: Xulosa yo'q yoki qonuniy tahlilga mutlaqo zid natija chiqarilgan.
+   • 7-14 ball: Noaniq, ikkilanishli yoki yechim bermaydigan xulosa.
+   • 15-20 ball: To'g'ri yakuniy yechim, nizoning huquqiy oqibati to'g'ri belgilangan.
+   • 21-25 ball: Qat'iy, asoslangan va to'liq yuridik yakun (da'voni qanoatlantirish yoki rad etish, jazo/zarar miqdori, protsessual oqibat).
+
+Jami "score" (0-100 oralig'ida) = sectionScores.issue + sectionScores.rule + sectionScores.application + sectionScores.conclusion bo'lishi SHART.
+Foydalanuvchining kamchiliklarini to'g'rilash uchun "issue", "rule", "application", "conclusion" maydonlarida to'liq namunali to'g'ri javobni ber.
+FAQAT O'ZBEK LOTIN ALIFBOSIDA toza JSON formatida javob ber:
 
 {
-  "issue": "To'g'ri huquqiy muammo tahlili...",
+  "issue": "To'g'ri huquqiy muammo namunasi...",
   "rule": "Tegishli qonun moddalari matni va havolalari...",
-  "application": "Faktlarni moddalarga to'g'ri bog'lash...",
+  "application": "Faktlarni moddalarga to'g'ri bog'lash namunasi...",
   "conclusion": "Yakuniy huquqiy yechim va xulosa...",
   "sources": [{"title": "Kodeks nomi", "article": "N-modda", "url": "https://lex.uz"}],
-  "confidence": 90,
+  "confidence": 92,
   "score": 75,
   "sectionScores": {"issue": 16, "rule": 18, "application": 23, "conclusion": 18},
-  "feedback": "Umumiy tahliliy xulosa",
+  "feedback": "Foydalanuvchi javobining chuqur yuridik tahlili va asoslantirilgan sharhi",
   "strengths": ["Kuchli tomon 1", "Kuchli tomon 2"],
   "weaknesses": ["Zaif tomon 1", "Zaif tomon 2"],
-  "suggestions": ["Takomillashtirish bo'yicha maslahat 1", "Maslahat 2"]
+  "suggestions": ["Aniq amaliy tavsiya 1", "Tavsiya 2"]
 }${legalContext}`
 
     const userPrompt = `QUYIDAGI KAZUS VA FOYDALANUVCHINING IRAC JAVOBINI BAHOLANG:

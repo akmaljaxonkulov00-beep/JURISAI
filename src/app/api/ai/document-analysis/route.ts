@@ -90,42 +90,43 @@ export async function POST(req: NextRequest) {
     }
 
     // ── 2. Zaxira: Groq API ──
+    if (!analysisText && GROQ_API_KEY) {
+      const CANDIDATE_MODELS = ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant']
+      for (const model of CANDIDATE_MODELS) {
+        try {
+          const response = await fetch(GROQ_API_URL, {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${GROQ_API_KEY}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model,
+              messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: documentText },
+              ],
+              temperature: 0.1,
+              max_tokens: 2048,
+            }),
+          })
+
+          if (response.ok) {
+            const data = await response.json()
+            const rawText = data.choices?.[0]?.message?.content
+            if (rawText && rawText.trim()) {
+              analysisText = ensureUzbekLatin(rawText.trim())
+              break
+            }
+          }
+        } catch (err) {
+          console.warn(`Groq document-analysis error with ${model}:`, err)
+        }
+      }
+    }
+
     if (!analysisText) {
-      let response: Response
-      try {
-        response = await fetch(GROQ_API_URL, {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${GROQ_API_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: 'openai/gpt-oss-120b',
-            messages: [
-              { role: 'system', content: systemPrompt },
-              { role: 'user', content: documentText },
-            ],
-            temperature: 0.1,
-            max_tokens: 2048,
-          }),
-        })
-      } catch (err) {
-        console.error('Groq document-analysis fetch error:', err)
-        return NextResponse.json({ error: 'AI xizmatida xatolik yuz berdi' }, { status: 502 })
-      }
-
-      // Provider xatosi — fake muvaffaqiyat QAYTARILMAYDI
-      if (!response.ok) {
-        console.error('Groq document-analysis error:', response.status, await response.text())
-        return NextResponse.json({ error: 'AI xizmatida xatolik yuz berdi' }, { status: 502 })
-      }
-
-      const data = await response.json()
-      const rawText = data.choices[0]?.message?.content
-      if (!rawText) {
-        return NextResponse.json({ error: 'AI javob olinmadi' }, { status: 502 })
-      }
-      analysisText = ensureUzbekLatin(rawText)
+      return NextResponse.json({ error: 'AI xizmatida xatolik yuz berdi' }, { status: 502 })
     }
 
     // ── Lotin alifbosi kafolati ──

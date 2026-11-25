@@ -25,7 +25,83 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Senariy maʼlumotlari talab qilinadi' }, { status: 400 })
     }
 
-    const evaluation = evaluateScenarioPerformance(scenario, action_logs)
+    let evaluation = evaluateScenarioPerformance(scenario, action_logs)
+
+    // AI orqali chuqurlashtirilgan xolis tahlil (Gemini / Groq)
+    if (process.env.NODE_ENV !== 'test' && (process.env.GEMINI_API_KEY || process.env.GROQ_API_KEY)) {
+      try {
+        const aiPrompt = `Sen O'zbekiston Respublikasi yuridik amaliyoti va advokatura bo'yicha ekspert-baholovchisisan.
+Quyidagi yuridik keys simulyatsiyasida foydalanuvchining bajargan harakatlarini chuqur, xolis va haqqoniy bahola (demo yoki soxta ball berma).
+
+SENARIY:
+- Nomi: "${scenario.title}"
+- Soha: ${scenario.legal_domain} (${scenario.difficulty})
+- Faktlar: ${scenario.facts?.join('; ')}
+- Qonuniy asoslar: ${scenario.sources?.map(s => `${s.title} (${s.article})`).join(', ')}
+
+FOYDALANUVCHINING BOSQICHMA-BOSQICH QARORLARI:
+${action_logs.map(l => `${l.step_number}-bosqich: "${l.action_title}" (${l.action_type}). Oqibat: ${l.consequence}. Fikr: ${l.feedback}`).join('\n')}
+
+QAT'IY BAHOLASH RUBRIKASI:
+1. total_score (0-100): Qarorlarning qonuniyligi, taktika va dalillar bilan ishlashning umumiy yuridik sifati.
+2. decision_quality_score (0-100): Tanlangan variantlarning O'zbekiston qonunchiligiga muvofiqligi.
+3. legal_analysis_score (0-100): Tegishli moddalarga tayanish darajasi.
+4. evidence_usage_score (0-100): Dalillar bazasidan to'g'ri foydalanish.
+5. strategy_score (0-100): Sudgacha yoki sud jarayonidagi umumiy strategiya.
+6. mistakes: Haqiqiy yuridik xatolar ro'yxati (har bir xatoda O'zbekiston qonunchiligi nuqtai nazaridan nima xato bo'lgani aniq ko'rsatilsin).
+7. missed_opportunities: Foydalanuvchi foydalanmagan huquqiy imkoniyatlar yoki moddalar.
+8. recommendations: Amaliyotni yaxshilash uchun 2-3 ta aniq amaliy tavsiya.
+
+Javobni FAQAT toza JSON formatida ber:
+{
+  "total_score": 85,
+  "decision_quality_score": 88,
+  "legal_analysis_score": 82,
+  "evidence_usage_score": 80,
+  "strategy_score": 85,
+  "mistakes": ["Xato 1..."],
+  "missed_opportunities": ["Qo'ldan boy berilgan imkoniyat 1..."],
+  "recommendations": ["Tavsiya 1...", "Tavsiya 2..."]
+}`
+
+        let aiRaw = ''
+        if (process.env.GEMINI_API_KEY) {
+          const { callGemini } = await import('@/lib/gemini')
+          aiRaw = await callGemini(aiPrompt, { temperature: 0.15, maxTokens: 2000, responseJson: true })
+        } else if (process.env.GROQ_API_KEY) {
+          const { aiClient } = await import('@/lib/ai-client')
+          const groqRes = await aiClient.chat({ prompt: aiPrompt, temperature: 0.15, maxTokens: 2000 })
+          aiRaw = groqRes.text
+        }
+
+        if (aiRaw) {
+          let clean = aiRaw.trim()
+          if (clean.startsWith('```json')) clean = clean.slice(7)
+          else if (clean.startsWith('```')) clean = clean.slice(3)
+          if (clean.endsWith('```')) clean = clean.slice(0, -3)
+          clean = clean.trim()
+
+          const aiEval = JSON.parse(clean)
+          if (aiEval && typeof aiEval.total_score === 'number') {
+            evaluation = {
+              total_score: Math.min(100, Math.max(10, Math.round(aiEval.total_score))),
+              xp_awarded: Math.round(Math.min(100, Math.max(10, Math.round(aiEval.total_score))) * 1.5 + (evaluation.xp_awarded || 0)),
+              decision_quality_score: Math.min(100, Math.max(0, Math.round(aiEval.decision_quality_score || evaluation.decision_quality_score))),
+              legal_analysis_score: Math.min(100, Math.max(0, Math.round(aiEval.legal_analysis_score || evaluation.legal_analysis_score))),
+              evidence_usage_score: Math.min(100, Math.max(0, Math.round(aiEval.evidence_usage_score || evaluation.evidence_usage_score))),
+              strategy_score: Math.min(100, Math.max(0, Math.round(aiEval.strategy_score || evaluation.strategy_score))),
+              mistakes: Array.isArray(aiEval.mistakes) && aiEval.mistakes.length > 0 ? aiEval.mistakes : evaluation.mistakes,
+              missed_opportunities: Array.isArray(aiEval.missed_opportunities) && aiEval.missed_opportunities.length > 0 ? aiEval.missed_opportunities : evaluation.missed_opportunities,
+              recommendations: Array.isArray(aiEval.recommendations) && aiEval.recommendations.length > 0 ? aiEval.recommendations : evaluation.recommendations,
+              completed_at: new Date().toISOString(),
+            }
+          }
+        }
+      } catch (evalErr) {
+        console.warn('AI scenario evaluation error, falling back to base:', evalErr)
+      }
+    }
+
     const supabase = getSupabaseAdmin()
 
     // 1. Save / Update session in Supabase database

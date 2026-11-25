@@ -19,7 +19,7 @@ import {
   canTransitionToNextStage,
 } from '@/lib/court/stage-machine'
 import { generateCourtAiTurn } from '@/lib/court/ai-engine'
-import { calculateSessionScore } from '@/lib/court/scoring-engine'
+import { calculateSessionScore, evaluateCourtSessionWithAi } from '@/lib/court/scoring-engine'
 import { awardUserXP } from '@/lib/xp-engine'
 
 // ── Database Session Helper ────────────────────────────────────────────────
@@ -714,7 +714,19 @@ export async function POST(request: NextRequest) {
       const scenario = (await getScenarioById(state.scenario_id)) || SEED_SCENARIOS[0]
 
       state.completed = true
-      const scoringResult = calculateSessionScore(state, scenario)
+
+      let messages: Array<{ speaker: string; role: string; content: string }> = []
+      try {
+        const admin = getSupabaseAdmin()
+        const { data: msgRows } = await admin
+          .from('court_messages')
+          .select('speaker, role, content')
+          .eq('session_id', simulationId)
+          .order('created_at', { ascending: true })
+        messages = (msgRows as any) || []
+      } catch {}
+
+      const scoringResult = await evaluateCourtSessionWithAi(state, scenario, messages)
 
       await persistSessionState(
         simulationId,

@@ -3,6 +3,7 @@ import { requireUser } from '@/lib/server-auth'
 import { checkAndIncrement, usageMessage } from '@/lib/usage-limits'
 import { groundPrompt, validateCitations, appendCitationNote } from '@/lib/legal-rag'
 import { ensureUzbekLatin } from '@/lib/uz-latin'
+import { callGemini } from '@/lib/gemini'
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
@@ -42,7 +43,7 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
-    if (!GROQ_API_KEY) {
+    if (!GROQ_API_KEY && !process.env.GEMINI_API_KEY) {
       return NextResponse.json({ error: 'AI xizmati sozlanmagan' }, { status: 503 })
     }
 
@@ -63,47 +64,73 @@ export async function POST(request: NextRequest) {
     }
 
     // RAG: hujjat turi va ma'lumotlariga mos REAL qonun moddalari bazadan olinadi
-    // va AI faqat shu moddalarga asoslanib hujjat yozadi (to'qima modda yo'q).
     const question = `${templateName || templateId}: ${String(documentData).slice(0, 600)}`
     const { prompt } = await groundPrompt(question, SYSTEM_PROMPT, 4)
 
-    // Call Groq for document generation
-    const response = await fetch(GROQ_API_URL, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${GROQ_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'openai/gpt-oss-120b',
-        messages: [
-          { role: 'system', content: prompt },
-          {
-            role: 'user',
-            content:
-              'Template: ' +
-              (templateName || templateId) +
-              '\nData: ' +
-              JSON.stringify(documentData) +
-              '\nFormat: ' +
-              (outputFormat || 'docx'),
-          },
-        ],
-        temperature: 0.1,
-        max_tokens: 2048,
-      }),
-    })
+    const userPrompt =
+      'Template: ' +
+      (templateName || templateId) +
+      '\nData: ' +
+      JSON.stringify(documentData) +
+      '\nFormat: ' +
+      (outputFormat || 'docx')
 
-    // Provider xatosi — fake muvaffaqiyat QAYTARILMAYDI
-    if (!response.ok) {
-      console.error('Groq document-generate error:', response.status, await response.text())
-      return NextResponse.json({ error: 'AI xizmatida xatolik yuz berdi' }, { status: 502 })
+    let documentContent = ''
+
+    // 1. Google Gemini (birlamchi)
+    if (process.env.GEMINI_API_KEY) {
+      try {
+        const geminiRes = await callGemini(userPrompt, {
+          systemInstruction: prompt,
+          temperature: 0.1,
+          maxTokens: 2500,
+        })
+        if (geminiRes && geminiRes.trim()) {
+          documentContent = ensureUzbekLatin(geminiRes)
+        }
+      } catch (gemErr) {
+        console.warn('Gemini document-generate error, falling back to Groq:', gemErr)
+      }
     }
 
-    const data = await response.json()
-    const documentContent = ensureUzbekLatin(data.choices[0]?.message?.content || '')
+    // 2. Groq (zaxira)
+    if (!documentContent && GROQ_API_KEY) {
+      const CANDIDATE_MODELS = ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant']
+      for (const model of CANDIDATE_MODELS) {
+        try {
+          const response = await fetch(GROQ_API_URL, {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${GROQ_API_KEY}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model,
+              messages: [
+                { role: 'system', content: prompt },
+                { role: 'user', content: userPrompt },
+              ],
+              temperature: 0.1,
+              max_tokens: 2048,
+            }),
+          })
+
+          if (response.ok) {
+            const data = await response.json()
+            const text = data.choices?.[0]?.message?.content || ''
+            if (text.trim()) {
+              documentContent = ensureUzbekLatin(text.trim())
+              break
+            }
+          }
+        } catch (err) {
+          console.warn(`Groq document-generate error with ${model}:`, err)
+        }
+      }
+    }
+
     if (!documentContent) {
-      return NextResponse.json({ error: 'AI javob olinmadi' }, { status: 502 })
+      return NextResponse.json({ error: 'AI xizmatida xatolik yuz berdi' }, { status: 502 })
     }
 
     // AI javobidagi modda iqtiboslari bazaga mosligini tekshiramiz —

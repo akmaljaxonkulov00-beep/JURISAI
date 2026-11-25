@@ -271,10 +271,10 @@ JSON SCHEMA:
   },
   "user_feedback": {
     "valid_procedural_move": true,
-    "critique": "Foydalanuvchining so'nggi harakati bo'yicha qisqa huquqiy tahlil",
-    "etiquette_score_delta": 0,
-    "argument_score_delta": 5,
-    "evidence_score_delta": 0
+    "critique": "Foydalanuvchining so'nggi harakati va nutqi bo'yicha chuqur yuridik tahlil (nima to'g'ri, nima xato bo'ldi)",
+    "etiquette_score_delta": 5, // Sud etikasiga rioya uchun (+5 dan +10 gacha; tartibbuzarlik uchun -5 dan -20 gacha)
+    "argument_score_delta": 10, // Kuchli qonuniy argument va modda keltirsa (+5 dan +15 gacha; asossiz bo'lsa -5 dan -10 gacha)
+    "evidence_score_delta": 10 // Dalillarga tayansa (+5 dan +20 gacha; dalillarsiz bo'lsa 0)
   },
   "suggested_actions": [
     {

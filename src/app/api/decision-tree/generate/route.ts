@@ -3,6 +3,7 @@ import { requireUser } from '@/lib/server-auth'
 import { checkAndIncrement, usageMessage } from '@/lib/usage-limits'
 import { groundPrompt } from '@/lib/legal-rag'
 import { ensureUzbekLatin } from '@/lib/uz-latin'
+import { callGemini } from '@/lib/gemini'
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
@@ -117,37 +118,69 @@ QAT'IY QOIDALAR:
     // ── RAG: ish tavsifiga mos moddalarni qonunchilik bazasidan qidirish ──
     const { prompt: systemPrompt } = await groundPrompt(scenario, basePrompt, 6)
 
-    const response = await fetch(GROQ_API_URL, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${GROQ_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'openai/gpt-oss-120b',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          {
-            role: 'user',
-            content: `Mening ishim: ${scenario}. Yuqoridagi qoidalarga amal qilib qarorlar daraxtini yarat.`,
-          },
-        ],
-        temperature: 0.3,
-        max_tokens: 3000,
-      }),
-    })
+    const userContent = `Mening ishim: ${scenario}. Yuqoridagi qoidalarga amal qilib qarorlar daraxtini yarat.`
+    let raw = ''
 
-    if (!response.ok) {
-      const errorText = await response.text()
-      console.error('Groq decision-tree error:', errorText)
-      return NextResponse.json(
-        { success: false, error: 'AI xizmati xatosi' },
-        { status: response.status }
-      )
+    // 1. Google Gemini (birlamchi)
+    if (process.env.GEMINI_API_KEY) {
+      try {
+        const geminiRes = await callGemini(userContent, {
+          systemInstruction: systemPrompt,
+          temperature: 0.2,
+          maxTokens: 3000,
+          responseJson: true,
+        })
+        if (geminiRes && geminiRes.trim()) {
+          raw = ensureUzbekLatin(geminiRes)
+        }
+      } catch (gemErr) {
+        console.warn('Gemini decision-tree generate error:', gemErr)
+      }
     }
 
-    const data = await response.json()
-    const raw = ensureUzbekLatin(data.choices[0]?.message?.content || '')
+    // 2. Groq (zaxira)
+    if (!raw && GROQ_API_KEY) {
+      const CANDIDATE_MODELS = ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant']
+      for (const model of CANDIDATE_MODELS) {
+        try {
+          const response = await fetch(GROQ_API_URL, {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${GROQ_API_KEY}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model,
+              messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: userContent },
+              ],
+              temperature: 0.2,
+              max_tokens: 3000,
+              response_format: { type: 'json_object' },
+            }),
+          })
+
+          if (response.ok) {
+            const data = await response.json()
+            const text = data.choices?.[0]?.message?.content || ''
+            if (text.trim()) {
+              raw = ensureUzbekLatin(text)
+              break
+            }
+          }
+        } catch (err) {
+          console.warn(`Groq decision-tree error with ${model}:`, err)
+        }
+      }
+    }
+
+    if (!raw) {
+      return NextResponse.json(
+        { success: false, error: 'AI xizmati xatosi' },
+        { status: 502 }
+      )
+    }
 
     // JSON ni matndan ajratib olish (ba'zi modellar ```json blok qaytaradi)
     const jsonMatch = raw.match(/\{[\s\S]*\}/)

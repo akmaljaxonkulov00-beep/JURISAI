@@ -199,3 +199,131 @@ export function calculateSessionScore(
     improvements,
   }
 }
+
+/**
+ * Sud sessiyasini AI orqali har tomonlama yuridik baholash (Oliy toifali sudya va protsessual ekspert rubrikasi).
+ */
+export async function evaluateCourtSessionWithAi(
+  session: CourtSessionState,
+  scenario: CourtScenario,
+  messageHistory?: Array<{ speaker: string; role: string; content: string }>
+): Promise<ScoringResult> {
+  const baseResult = calculateSessionScore(session, scenario)
+
+  // Test muhitida yoki API kaliti bo'lmaganda tezkor deterministik natija
+  if (process.env.NODE_ENV === 'test' || (!process.env.GEMINI_API_KEY && !process.env.GROQ_API_KEY)) {
+    return baseResult
+  }
+
+  try {
+    const userSpeeches = (messageHistory || [])
+      .filter(m => m.role === session.selected_role)
+      .map(m => m.content)
+      .join('\n')
+
+    const userActions = session.events
+      .filter(e => e.role === session.selected_role)
+      .map(e => `[${e.eventType}]: ${e.content}`)
+      .join('\n')
+
+    const prompt = `Sen O‘zbekiston Respublikasi Oliy Sudi Malaka Hay’ati va Oliy Sudyalar Kengashi ekspert-baholovchisisan.
+Quyidagi virtual sud simulyatsiyasi bo‘yicha ishtirokchining (${session.selected_role} roli) yuridik mahoratini, protsessual qonunchilikka (JPK/FPK/MShtK) va moddiy huquq normalariga (JK/FK/MK) rioya etganligini CHUQUR VA HAQQONIY BAHOLA (hech qanday demo yoki soxta ball qo'yma).
+
+ISH MA’LUMOTLARI:
+- Nomi: "${scenario.title}"
+- Soha: ${scenario.category} (${scenario.procedure_type})
+- Faktlar: ${scenario.facts}
+- Qonuniy asoslar: ${scenario.legal_basis.map(l => `${l.code} ${l.article}: ${l.title}`).join(', ')}
+
+ISHTIROKCHINING RO‘LI VA NATIJALARI:
+- Roli: ${session.selected_role}
+- Amalga oshirilgan harakatlar: ${session.events.length} ta
+- Protsessual qoidabuzarliklar: ${session.procedural_violations.length > 0 ? session.procedural_violations.join('; ') : "Qoidabuzarlik yo'q"}
+
+ISHTIROKCHINING NUTQI VA BAYONOTLARI:
+${userSpeeches || userActions || "Ishtirokchi nutqi saqlanmagan"}
+
+QAT'IY BAHOLASH MEZONLARI (0-100 shkalada):
+1. legalReasoning (0-100): O'zbekiston amaldagi moddiy huquq normalarini to'g'ri qo'llay olishi va dispozitsiya bilan faktlarni bog'lashi.
+2. argumentQuality (0-100): Mantiqiy izchillik, nutq madaniyati va ritorika, raddiyalarning asosliligi.
+3. evidenceUsage (0-100): Ish materiallaridagi dalillardan foydalanish, ularning maqbulligi va ishonchliligini baholash.
+4. proceduralCorrectness (0-100): Protsessual bosqichlar tartibiga rioya qilish, sud etikasiga sodiqlik.
+5. strategy (0-100): Sud taktikasi, o'z pozitsiyasini mustahkamlash usullari.
+${session.selected_role === 'SUDYA' ? '6. impartiality (0-100): Sudyaning xolisligi, taraflarga teng sharoit yaratishi.' : ''}
+
+Javobni FAQAT toza JSON formatida ber:
+{
+  "legalReasoning": 85,
+  "argumentQuality": 80,
+  "evidenceUsage": 75,
+  "proceduralCorrectness": 90,
+  "strategy": 80,
+  ${session.selected_role === 'SUDYA' ? '"impartiality": 88,' : ''}
+  "totalScore": 82,
+  "feedbackSummary": "Sud Hay'atining batafsil rasmiy xulosasi (2-3 jumla)",
+  "detailedCritique": [
+    "1-muhim protsessual harakat tahlili",
+    "2-dalillar bilan ishlash tahlili",
+    "3-qonuniy normalarni qo'llash tahlili"
+  ],
+  "strengths": ["Kuchli jihat 1", "Kuchli jihat 2"],
+  "improvements": ["Kamchilik yoki tavsiya 1", "Tavsiya 2"]
+}`
+
+    let aiRaw = ''
+    if (process.env.GEMINI_API_KEY) {
+      try {
+        const { callGemini } = await import('@/lib/gemini')
+        aiRaw = await callGemini(prompt, { temperature: 0.15, maxTokens: 2000, responseJson: true })
+      } catch (gemErr) {
+        console.warn('Gemini court evaluation failed:', gemErr)
+      }
+    }
+
+    if (!aiRaw && process.env.GROQ_API_KEY) {
+      const { aiClient } = await import('@/lib/ai-client')
+      const groqRes = await aiClient.chat({ prompt, temperature: 0.15, maxTokens: 2000 })
+      aiRaw = groqRes.text
+    }
+
+    if (aiRaw) {
+      let clean = aiRaw.trim()
+      if (clean.startsWith('```json')) clean = clean.slice(7)
+      else if (clean.startsWith('```')) clean = clean.slice(3)
+      if (clean.endsWith('```')) clean = clean.slice(0, -3)
+      clean = clean.trim()
+
+      const parsed = JSON.parse(clean)
+      if (parsed && typeof parsed.totalScore === 'number') {
+        const total = Math.min(100, Math.max(10, Math.round(parsed.totalScore)))
+        const achievements: string[] = []
+        if (total >= 85) achievements.push('Oliy Mahorat')
+        if ((parsed.proceduralCorrectness || 0) >= 85) achievements.push('Qonun Posboni')
+        if ((parsed.evidenceUsage || 0) >= 80) achievements.push('Dalil Ustasi')
+        if ((parsed.argumentQuality || 0) >= 80) achievements.push('Notiq')
+        if (session.procedural_violations.length === 0) achievements.push('Benuqson Tartib')
+        if (session.selected_role === 'SUDYA' && (parsed.impartiality || 0) >= 80) achievements.push('Xolis Hakam')
+
+        return {
+          legalReasoning: Math.min(100, Math.max(0, Math.round(parsed.legalReasoning || baseResult.legalReasoning))),
+          argumentQuality: Math.min(100, Math.max(0, Math.round(parsed.argumentQuality || baseResult.argumentQuality))),
+          evidenceUsage: Math.min(100, Math.max(0, Math.round(parsed.evidenceUsage || baseResult.evidenceUsage))),
+          proceduralCorrectness: Math.min(100, Math.max(0, Math.round(parsed.proceduralCorrectness || baseResult.proceduralCorrectness))),
+          strategy: Math.min(100, Math.max(0, Math.round(parsed.strategy || baseResult.strategy))),
+          impartiality: session.selected_role === 'SUDYA' ? Math.min(100, Math.max(0, Math.round(parsed.impartiality || 80))) : undefined,
+          totalScore: total,
+          xpEarned: Math.round(total * 1.8 + baseResult.xpEarned),
+          achievements,
+          feedbackSummary: parsed.feedbackSummary || baseResult.feedbackSummary,
+          detailedCritique: Array.isArray(parsed.detailedCritique) && parsed.detailedCritique.length > 0 ? parsed.detailedCritique : baseResult.detailedCritique,
+          strengths: Array.isArray(parsed.strengths) && parsed.strengths.length > 0 ? parsed.strengths : baseResult.strengths,
+          improvements: Array.isArray(parsed.improvements) && parsed.improvements.length > 0 ? parsed.improvements : baseResult.improvements,
+        }
+      }
+    }
+  } catch (evalErr) {
+    console.warn('evaluateCourtSessionWithAi error, falling back to base calculation:', evalErr)
+  }
+
+  return baseResult
+}
