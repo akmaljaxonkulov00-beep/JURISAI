@@ -11,17 +11,24 @@ const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { caseText } = body
+    const {
+      caseText,
+      caseTitle = '',
+      lawReferences = [],
+      keyQuestions = [],
+      category = '',
+      difficulty = '',
+    } = body
 
-    if (!caseText || caseText.trim().length < 50) {
+    if (!caseText || typeof caseText !== 'string' || caseText.trim().length < 30) {
       return NextResponse.json(
-        { error: "Holat matni kamida 50 ta belgidan iborat bo'lishi kerak" },
+        { error: "Holat matni kamida 30 ta belgidan iborat bo'lishi kerak" },
         { status: 400 }
       )
     }
-    if (caseText.length > 20000) {
+    if (caseText.length > 25000) {
       return NextResponse.json(
-        { error: 'Holat matni juda uzun — maksimal 20 000 belgi' },
+        { error: 'Holat matni juda uzun — maksimal 25 000 belgi' },
         { status: 400 }
       )
     }
@@ -37,7 +44,7 @@ export async function POST(request: NextRequest) {
     const usage = await checkAndIncrement({
       ...identity,
       feature: 'irac',
-      metadata: { text_length: caseText.length },
+      metadata: { text_length: caseText.length, case_title: caseTitle || 'Custom case' },
     })
     if (!usage.allowed) {
       return NextResponse.json(
@@ -46,59 +53,78 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const BASE_SYSTEM_PROMPT = `Sen Juristiv IRAC — O'zbekiston Respublikasi qonunchiligi bo'yicha professional huquqiy tahlil tizimisan.
+    const BASE_SYSTEM_PROMPT = `Sen Juristiv IRAC — O'zbekiston Respublikasi qonunchiligi bo'yicha professional oliy toifali sudya va advokatlar tahlil tizimisan.
 
 QAT'IY QOIDALAR:
-1. HUQUQIY ASOSLAR: Keltiriladigan moddalar O'zbekiston Respublikasining amaldagi qonunchiligiga qat'iy asoslanishi shart. Baza ma'lumotlaridan va O'zbekiston qonunlaridan to'liq foydalaning. Mavjud bo'lmagan moddalar to'qilmasin.
-2. TIL: Faqat o'zbek tilida, FAQAT LOTIN ALIFBOSIDA javob ber. Kirill harflari ishlatilmaydi.
-3. FORMAT: Javobni ANIQ quyidagi formatda ber — boshqa format ishlatma:
+1. HUQUQIY ASOSLAR: Keltiriladigan moddalar O'zbekiston Respublikasining amaldagi qonunchiligiga (Fuqarolik kodeksi, Jinoyat kodeksi, Mehnat kodeksi, Oila kodeksi, Ma'muriy javobgarlik to'g'risidagi kodeks va boshqalar) qat'iy asoslanishi shart. Mavjud bo'lmagan moddalar mutlaqo to'qilmasin.
+2. TIL: Faqat o'zbek tilida, FAQAT LOTIN ALIFBOSIDA yoz. Kirill harflari mutlaqo ishlatilmaydi.
+3. IRAC METODOLOGIYASI:
+   - issue (Muammo): Huquqiy nizo mohiyatini 1-2 ta aniq, professional jumlada ifodalang.
+   - rule (Qoida): Tegishli amaldagi qonun moddalarini to'liq ko'rsating (masalan: "O'zbekiston Respublikasi Fuqarolik kodeksining 113, 116-moddalari"). Moddaning tegishli qismi va qoidasini aniq bayon qiling.
+   - application (Qo'llash): Kazusdagi aniq faktlarni moddalarga birma-bir bog'lab, yuridik mantiq asosida chuqur tahlil qiling.
+   - conclusion (Xulosa): Yakuniy huquqiy yechim, tarafning huquqlari va sudga yoki amaliyotga oid aniq tavsiyalarni bering.
+4. JAVOB FORMATI: Javobni FAQAT toza JSON formatida qaytar (hech qanday markdown \`\`\`json teglari va ortiqcha kirish so'zlarsiz):
 
-## Muammo (Issue)
-(Bu bo'limda huquqiy masalani 1-2 jumlada aniqlang. Asosiy huquqiy nizo nimadan iborat ekanini tushuntiring.)
+{
+  "issue": "Muammo matni...",
+  "rule": "Qonun moddalari matni...",
+  "application": "Vaziyatga qo'llash tahlili...",
+  "conclusion": "Yakuniy xulosa va amaliy tavsiya...",
+  "sources": [
+    { "title": "Kodeks yoki Qonun nomi", "article": "N-modda", "url": "https://lex.uz" }
+  ],
+  "confidence": 92
+}`
 
-## Qoida (Rule)
-(Bu bo'limda tegishli qonun moddalarini keltiring. Har bir moddani "Kodeks nomi, N-modda" formatida yoz. Modda matnini qisqacha keltiring.)
+    // ── RAG: ish matni va modda havolalariga mos normalarni bazadan qidirish ──
+    const searchContext = [
+      caseTitle,
+      caseText,
+      Array.isArray(lawReferences) ? lawReferences.join(' ') : '',
+      Array.isArray(keyQuestions) ? keyQuestions.join(' ') : '',
+      category,
+    ]
+      .filter(Boolean)
+      .join('\n')
 
-## Qo'llash (Application)
-(Bu bo'limda qonunni shu holatga qo'llang. Faktlarni moddalarga bog'lang.)
+    const { prompt: systemPrompt, articles } = await groundPrompt(searchContext, BASE_SYSTEM_PROMPT, 8)
 
-## Xulosa (Conclusion)
-(Yakuniy huquqiy pozitsiyani va amaliy tavsiyalarni bering.)
+    const userPrompt = `QUYIDAGI HUQUQIY HOLATNI IRAC METODOLOGIYASI BO'YICHA TAHLIL QILING:
 
-HAR BIR BO'LIM AJRATILGAN BO'LISHI SHART — ularni aralashtirma yoki birlashtirma.`
+${caseTitle ? `KAZUS NOMI: ${caseTitle}\n` : ''}${category ? `SOHA: ${category}\n` : ''}${difficulty ? `DARAJA: ${difficulty}\n` : ''}${Array.isArray(lawReferences) && lawReferences.length > 0 ? `QONUNCHILIK ASOSLARI: ${lawReferences.join(', ')}\n` : ''}${Array.isArray(keyQuestions) && keyQuestions.length > 0 ? `HAL QILINISHI KERAK BO'LGAN ASOSIY SAVOLLAR:\n${keyQuestions.map((q: string, i: number) => `${i + 1}. ${q}`).join('\n')}\n` : ''}
+KAZUS MATNI:
+${caseText}
 
-    // ── RAG: ish matniga mos moddalarni qonunchilik bazasidan qidirish ──
-    const { prompt: systemPrompt, articles } = await groundPrompt(caseText, BASE_SYSTEM_PROMPT, 8)
+Iltimos, O'zbekiston Respublikasi amaldagi qonunchiligi asosida har bir bo'limni to'liq, mukammal va professional tarzda yuqoridagi JSON formatida qaytaring.`
 
-    const CANDIDATE_MODELS = ['qwen/qwen3.8-27b', 'openai/gpt-oss-120b']
+    const CANDIDATE_MODELS = ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant']
 
     let analysisText = ''
     let lastError = ''
 
-    // ── 1. Google Gemini orqali tahlil (Birlamchi va bepul) ──
+    // ── 1. Google Gemini orqali tahlil (Birlamchi) ──
     if (process.env.GEMINI_API_KEY) {
       try {
-        const geminiRes = await callGemini(
-          `Quyidagi huquqiy holatni IRAC metodologiyasi bo'yicha tahlil qiling:\n\n${caseText}`,
-          {
-            systemInstruction: systemPrompt,
-            temperature: 0.1,
-            maxTokens: 2500,
-          }
-        )
+        const geminiRes = await callGemini(userPrompt, {
+          systemInstruction: systemPrompt,
+          temperature: 0.1,
+          maxTokens: 3000,
+          responseJson: true,
+        })
         if (geminiRes && geminiRes.trim()) {
           analysisText = ensureUzbekLatin(geminiRes)
         }
       } catch (geminiErr: any) {
         console.warn('Gemini IRAC urinishi xatoligi, Groq’ga o‘tilmoqda:', geminiErr.message)
+        lastError = geminiErr.message
       }
     }
 
     // ── 2. Zaxira: Groq API ──
-    if (!analysisText) {
+    if (!analysisText && GROQ_API_KEY) {
       for (const model of CANDIDATE_MODELS) {
         const controller = new AbortController()
-        const timeoutId = setTimeout(() => controller.abort(), 18000)
+        const timeoutId = setTimeout(() => controller.abort(), 20000)
 
         try {
           const response = await fetch(GROQ_API_URL, {
@@ -111,13 +137,11 @@ HAR BIR BO'LIM AJRATILGAN BO'LISHI SHART — ularni aralashtirma yoki birlashtir
               model,
               messages: [
                 { role: 'system', content: systemPrompt },
-                {
-                  role: 'user',
-                  content: `Quyidagi huquqiy holatni IRAC metodologiyasi bo'yicha tahlil qiling:\n\n${caseText}`,
-                },
+                { role: 'user', content: userPrompt },
               ],
               temperature: 0.1,
-              max_tokens: 2048,
+              max_tokens: 2500,
+              response_format: { type: 'json_object' },
             }),
             signal: controller.signal,
           })
@@ -138,7 +162,7 @@ HAR BIR BO'LIM AJRATILGAN BO'LISHI SHART — ularni aralashtirma yoki birlashtir
           }
         } catch (e: any) {
           clearTimeout(timeoutId)
-          lastError = e.name === 'AbortError' ? 'AI timeout (25s)' : e.message
+          lastError = e.name === 'AbortError' ? 'AI timeout (20s)' : e.message
           console.warn(`Groq IRAC error with ${model}:`, lastError)
         }
       }
@@ -151,148 +175,159 @@ HAR BIR BO'LIM AJRATILGAN BO'LISHI SHART — ularni aralashtirma yoki birlashtir
       )
     }
 
-    // ── IRAC bo'limlarini ajratib olish (kengaytirilgan regex + fallback) ──
-    const extractSection = (text: string, ...names: string[]): string => {
-      for (const name of names) {
-        // Pattern 1: ## Nom (English) yoki ## Nom
-        const patterns = [
-          new RegExp(
-            `##\\s*${name}\\s*(?:\\([^)]*\\))?\\s*\\n([\\s\\S]*?)(?=\\n##\\s|\\n\\*\\*|$)`,
-            'i'
-          ),
-          new RegExp(`\\*\\*${name}\\*\\*:?\\s*\\n([\\s\\S]*?)(?=\\n\\*\\*|\\n##\\s|$)`, 'i'),
-          new RegExp(`#{1,3}\\s*${name}[^\\n]*\\n([\\s\\S]*?)(?=\\n#{1,3}\\s|\\n\\*\\*|$)`, 'i'),
-        ]
-        for (const pattern of patterns) {
-          const match = text.match(pattern)
-          if (match && match[1].trim().length > 5) return match[1].trim()
+    // ── JSON parse yoki fallback extraction ──
+    let parsed: any = null
+    try {
+      let cleanText = analysisText.trim()
+      if (cleanText.startsWith('```json')) cleanText = cleanText.slice(7)
+      else if (cleanText.startsWith('```')) cleanText = cleanText.slice(3)
+      if (cleanText.endsWith('```')) cleanText = cleanText.slice(0, -3)
+      parsed = JSON.parse(cleanText.trim())
+    } catch {
+      const jsonMatch = analysisText.match(/\{[\s\S]*\}/)
+      if (jsonMatch) {
+        try {
+          parsed = JSON.parse(jsonMatch[0])
+        } catch {}
+      }
+    }
+
+    let finalIssue = ''
+    let finalRule = ''
+    let finalApplication = ''
+    let finalConclusion = ''
+    let sources: Array<{ title: string; article: string; url: string }> = []
+    let confidence = 90
+
+    if (parsed && typeof parsed === 'object') {
+      finalIssue = parsed.issue || ''
+      finalRule = parsed.rule || ''
+      finalApplication = parsed.application || ''
+      finalConclusion = parsed.conclusion || ''
+      if (Array.isArray(parsed.sources)) sources = parsed.sources
+      if (typeof parsed.confidence === 'number') confidence = parsed.confidence
+    }
+
+    // Agar JSON bo'lmasa yoki maydonlar yetishmasa, xavfsiz matn tahlili
+    if (!finalIssue || !finalRule || !finalApplication || !finalConclusion) {
+      const extractSection = (text: string, ...names: string[]): string => {
+        for (const name of names) {
+          const patterns = [
+            new RegExp(
+              `(?:##+|\\*\\*)\\s*(?:\\d+[.\\s-]*)?${name}\\b[^\\n]*\\n([\\s\\S]*?)(?=(?:\\n##+|\\n\\*\\*\\s*(?:\\d+[.\\s-]*)?(?:Muammo|Qoida|Qo['\`]llash|Xulosa|Issue|Rule|Application|Conclusion)|$)`,
+              'i'
+            ),
+            new RegExp(
+              `\\b${name}\\s*(?:\\([^)]*\\))?:?\\s*\\n([\\s\\S]*?)(?=\\n(?:Qoida|Qo['\`]llash|Xulosa|Rule|Application|Conclusion)\\b|$)`,
+              'i'
+            ),
+          ]
+          for (const pattern of patterns) {
+            const match = text.match(pattern)
+            if (match && match[1].trim().length > 5) return match[1].trim()
+          }
         }
+        return ''
       }
-      return ''
-    }
 
-    const issue = extractSection(analysisText, 'Muammo', 'Issue')
-    const rule = extractSection(analysisText, 'Qoida', 'Rule')
-    const application = extractSection(analysisText, "Qo'llash", 'Application', 'Qo`llash')
-    const conclusion = extractSection(analysisText, 'Xulosa', 'Conclusion')
+      finalIssue = finalIssue || extractSection(analysisText, 'Muammo', 'Issue')
+      finalRule = finalRule || extractSection(analysisText, 'Qoida', 'Rule')
+      finalApplication =
+        finalApplication ||
+        extractSection(analysisText, "Qo'llash", 'Application', 'Qo`llash', 'Qollash')
+      finalConclusion = finalConclusion || extractSection(analysisText, 'Xulosa', 'Conclusion')
 
-    // Fallback: agar hech qanday bo'lim topilmasa, matnni 4 ga bo'lish
-    let finalIssue = issue
-    let finalRule = rule
-    let finalApplication = application
-    let finalConclusion = conclusion
-
-    if (!issue && !rule && !application && !conclusion && analysisText.length > 100) {
-      // Matnni paragraflar bo'yicha ajratish
-      const paragraphs = analysisText.split(/\n\s*\n/).filter(p => p.trim().length > 20)
-      if (paragraphs.length >= 4) {
-        finalIssue = paragraphs[0].trim()
-        finalRule = paragraphs[1].trim()
-        finalApplication = paragraphs[2].trim()
-        finalConclusion = paragraphs[3].trim()
-      } else if (paragraphs.length > 0) {
-        // Kamida 1 bo'lim bo'lsa — qolganiga umumiy matn
-        finalIssue = paragraphs[0]?.trim() || analysisText
-        finalRule = paragraphs[1]?.trim() || analysisText
-        finalApplication = paragraphs[2]?.trim() || analysisText
-        finalConclusion = paragraphs[3]?.trim() || analysisText
-      }
-    }
-
-    // ── Manbalarni ajratib olish (kengaytirilgan) ──
-    const sources: Array<{ title: string; article: string; url: string }> = []
-
-    // Pattern 1: To'liq kodeks nomi
-    const sourcePatterns = [
-      /(O'zbekiston Respublikasi\s+[A-Za-z\u00C0-\u024F\u0400-\u04FF\s]+?kodeks[i]?)\s+(\d+[\s-]*(?:modda|moddasi)?)/gi,
-      // Pattern 2: Qisqartmalar (JK, FK, MK, OK, SK, JPK, GPK, MJtK, IPK, MSIYtK, JIK, YeK, BK, HK, UJK, etc.)
-      /\b(JK|FK|MK|OK|SK|JPK|GPK|MJtK|FPK|IPK|MSIYtK|JIK|YeK|BK|HK|UJK|ShK|TK)\s*(?:kodeksi(?:ning)?)?\s*(?:\d+[-]?\s*(?:modda|moddasi))?\s*(\d{1,4}(?:-\d+)?)\s*[-]?\s*(?:modda|moddasi)/gi,
-      // Pattern 3: Oddiy "N-modda" format
-      /(\d{1,4}(?:-\d+)?)\s*[-–—]?\s*(?:modda|moddasi)/g,
-    ]
-
-    const codeMap: Record<string, string> = {
-      JK: 'Jinoyat kodeksi',
-      FK: 'Fuqarolik kodeksi',
-      MK: 'Mehnat kodeksi',
-      OK: 'Oila kodeksi',
-      SK: 'Soliq kodeksi',
-      JPK: 'Jinoyat-protsessual kodeksi',
-      GPK: 'Fuqarolik protsessual kodeksi',
-      FPK: 'Fuqarolik protsessual kodeksi',
-      MJtK: "Ma'muriy javobgarlik to'g'risidagi kodeks",
-      IPK: 'Iqtisodiy protsessual kodeksi',
-      MSIYtK: 'Maʼmuriy sud ishlarini yuritish toʻgʻrisidagi kodeks',
-      JIK: 'Jinoyat-ijroiya kodeksi',
-      YeK: 'Yer kodeksi',
-      BK: 'Bojxona kodeksi',
-      HK: 'Havo kodeksi',
-      UJK: 'Uy-joy kodeksi',
-      ShK: 'Shaharsozlik kodeksi',
-      TK: 'Tadbirkorlik kodeksi',
-    }
-
-    for (const pattern of sourcePatterns) {
-      let match
-      while ((match = pattern.exec(analysisText)) !== null) {
-        const fullMatch = match[0].trim()
-        if (Array.isArray(sources) && sources.some(s => s.article === fullMatch)) continue
-
-        if (codeMap[match[1]?.toUpperCase()]) {
-          sources.push({
-            title: codeMap[match[1].toUpperCase()],
-            article: fullMatch,
-            url: 'https://lex.uz',
-          })
-        } else if (match[1]) {
-          sources.push({
-            title: match[1].trim(),
-            article: fullMatch,
-            url: 'https://lex.uz',
-          })
-        } else if (match[0]) {
-          sources.push({
-            title: 'Qonun',
-            article: fullMatch,
-            url: 'https://lex.uz',
-          })
+      if (!finalIssue && !finalRule && !finalApplication && !finalConclusion) {
+        const paragraphs = analysisText.split(/\n\s*\n/).filter(p => p.trim().length > 20)
+        if (paragraphs.length >= 4) {
+          finalIssue = paragraphs[0].trim()
+          finalRule = paragraphs[1].trim()
+          finalApplication = paragraphs[2].trim()
+          finalConclusion = paragraphs[3].trim()
+        } else {
+          finalIssue = analysisText.slice(0, 300)
+          finalRule = "O'zbekiston Respublikasi amaldagi qonunchiligi"
+          finalApplication = analysisText
+          finalConclusion = 'Tahlil yakunlandi.'
         }
       }
     }
 
-    // RAG'dan topilgan moddalarni ham manbalar sifatida qo'shish
-    if (articles && articles.length > 0) {
-      for (const art of articles.slice(0, 5)) {
-        const artRef = `${art.code_name}, ${art.article_number}-modda`
-        if (!Array.isArray(sources) || !sources.some(s => s.article.includes(art.article_number))) {
+    // Manbalarni tahlil qilish (agar bo'sh bo'lsa matndan qidirish)
+    if (sources.length === 0) {
+      const codeMap: Record<string, string> = {
+        JK: 'Jinoyat kodeksi',
+        FK: 'Fuqarolik kodeksi',
+        MK: 'Mehnat kodeksi',
+        OK: 'Oila kodeksi',
+        SK: 'Soliq kodeksi',
+        JPK: 'Jinoyat-protsessual kodeksi',
+        GPK: 'Fuqarolik protsessual kodeksi',
+        FPK: 'Fuqarolik protsessual kodeksi',
+        MJtK: "Ma'muriy javobgarlik to'g'risidagi kodeks",
+        IPK: 'Iqtisodiy protsessual kodeksi',
+        MSIYtK: 'Maʼmuriy sud ishlarini yuritish toʻgʻrisidagi kodeks',
+        JIK: 'Jinoyat-ijroiya kodeksi',
+        YeK: 'Yer kodeksi',
+        BK: 'Bojxona kodeksi',
+      }
+
+      const refPattern =
+        /\b(JK|FK|MK|OK|SK|JPK|GPK|FPK|MJtK|IPK|MSIYtK)\s*(?:kodeksi)?\s*(?:ning)?\s*(\d{1,4}(?:-\d+)?)\s*[-–—]?\s*(?:modda[si]*)?/gi
+      let m
+      const fullAnalysis = `${finalRule} ${finalApplication} ${finalConclusion}`
+      while ((m = refPattern.exec(fullAnalysis)) !== null) {
+        const codeKey = m[1].toUpperCase()
+        const articleNum = m[2]
+        const articleStr = `${codeKey} ${articleNum}-modda`
+        if (!sources.some(s => s.article === articleStr)) {
           sources.push({
-            title: art.code_name,
-            article: `${art.article_number}-modda — ${art.title || ''}`,
+            title: codeMap[codeKey] || `${codeKey} kodeksi`,
+            article: articleStr,
             url: 'https://lex.uz',
           })
         }
       }
-    }
 
-    // ── Ishonchlilik hisobi ──
-    let confidence = 40
-    if (finalIssue && finalIssue.length > 20) confidence += 12
-    if (finalRule && finalRule.length > 20) confidence += 15
-    if (finalApplication && finalApplication.length > 20) confidence += 15
-    if (finalConclusion && finalConclusion.length > 20) confidence += 10
-    if (sources.length > 0) confidence += 8
-    confidence = Math.min(confidence, 95)
+      if (sources.length === 0 && Array.isArray(lawReferences)) {
+        lawReferences.forEach(ref => {
+          sources.push({
+            title: String(ref),
+            article: String(ref),
+            url: 'https://lex.uz',
+          })
+        })
+      }
+
+      // RAG'dan topilgan moddalarni ham qo'shish
+      if (articles && articles.length > 0) {
+        for (const art of articles.slice(0, 5)) {
+          const artRef = `${art.article_number}-modda`
+          if (!sources.some(s => s.article.includes(art.article_number))) {
+            sources.push({
+              title: art.code_name,
+              article: `${art.article_number}-modda — ${art.title || ''}`,
+              url: 'https://lex.uz',
+            })
+          }
+        }
+      }
+    }
 
     return NextResponse.json({
-      issue: finalIssue || analysisText.substring(0, 500),
-      rule: finalRule || analysisText.substring(0, 500),
-      application: finalApplication || analysisText.substring(0, 500),
-      conclusion: finalConclusion || analysisText.substring(0, 500),
-      sources: sources.slice(0, 8),
+      success: true,
+      issue: finalIssue,
+      rule: finalRule,
+      application: finalApplication,
+      conclusion: finalConclusion,
+      sources: sources.slice(0, 10),
       confidence,
     })
-  } catch (error) {
-    console.error('IRAC analysis error:', error)
-    return NextResponse.json({ error: 'Tahlil qilishda xatolik yuz berdi' }, { status: 500 })
+  } catch (error: any) {
+    console.error('IRAC analyze API error:', error)
+    return NextResponse.json(
+      { error: error?.message || 'Tahlil jarayonida kutilmagan xatolik yuz berdi' },
+      { status: 500 }
+    )
   }
 }

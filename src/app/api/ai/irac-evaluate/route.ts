@@ -133,11 +133,11 @@ Iltimos, har bir bo'limni xolisona tekshirib, ko'rsatilgan JSON formatida javob 
 
     // ── 2. Zaxira: Groq API ──
     if (!aiContent && GROQ_API_KEY) {
-      const CANDIDATE_MODELS = ['qwen/qwen3.8-27b', 'openai/gpt-oss-120b']
+      const CANDIDATE_MODELS = ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant']
 
       for (const model of CANDIDATE_MODELS) {
         const controller = new AbortController()
-        const timeoutId = setTimeout(() => controller.abort(), 15000)
+        const timeoutId = setTimeout(() => controller.abort(), 20000)
 
         try {
           const response = await fetch(GROQ_API_URL, {
@@ -174,7 +174,7 @@ Iltimos, har bir bo'limni xolisona tekshirib, ko'rsatilgan JSON formatida javob 
           }
         } catch (e: any) {
           clearTimeout(timeoutId)
-          lastError = e.name === 'AbortError' ? 'AI timeout (15s)' : e.message
+          lastError = e.name === 'AbortError' ? 'AI timeout (20s)' : e.message
         }
       }
     }
@@ -188,7 +188,11 @@ Iltimos, har bir bo'limni xolisona tekshirib, ko'rsatilgan JSON formatida javob 
 
     let parsed: any = null
     try {
-      parsed = JSON.parse(aiContent)
+      let cleanText = aiContent.trim()
+      if (cleanText.startsWith('```json')) cleanText = cleanText.slice(7)
+      else if (cleanText.startsWith('```')) cleanText = cleanText.slice(3)
+      if (cleanText.endsWith('```')) cleanText = cleanText.slice(0, -3)
+      parsed = JSON.parse(cleanText.trim())
     } catch {
       const jsonMatch = aiContent.match(/\{[\s\S]*\}/)
       if (jsonMatch) {

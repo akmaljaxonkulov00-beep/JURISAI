@@ -438,10 +438,23 @@ export default function CaseSolver() {
     setError(null)
     setSaved(false)
     try {
+      const caseTitle = currentCase?.title || (useCustomCase ? customCaseText.trim().split('\n')[0].slice(0, 80) : '')
+      const lawReferences = currentCase?.law_references || []
+      const keyQuestions = currentCase?.key_questions || []
+      const caseCat = currentCase?.category || (category !== 'all' ? category : '')
+      const caseDiff = currentCase?.difficulty || (difficulty !== 'all' ? difficulty : '')
+
       const res = await fetch('/api/ai/irac-analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...(await getAuthHeaders()) },
-        body: JSON.stringify({ caseText }),
+        body: JSON.stringify({
+          caseText,
+          caseTitle,
+          lawReferences,
+          keyQuestions,
+          category: caseCat,
+          difficulty: caseDiff,
+        }),
       })
       const data = await res.json()
       if (!res.ok) {

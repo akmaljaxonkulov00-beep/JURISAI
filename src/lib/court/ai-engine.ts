@@ -12,7 +12,7 @@ import { callGemini } from '@/lib/gemini'
 
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
 
-const CANDIDATE_MODELS = ['qwen/qwen3.8-27b', 'openai/gpt-oss-120b']
+const CANDIDATE_MODELS = ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant']
 
 /**
  * Universal Court AI: Google Gemini birlamchi, Groq zaxira.

@@ -3,6 +3,7 @@ import { requireUser } from '@/lib/server-auth'
 import { checkAndIncrement, usageMessage } from '@/lib/usage-limits'
 import { groundPrompt } from '@/lib/legal-rag'
 import { ensureUzbekLatin } from '@/lib/uz-latin'
+import { callGemini } from '@/lib/gemini'
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
@@ -37,7 +38,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (!GROQ_API_KEY) {
+    if (!GROQ_API_KEY && !process.env.GEMINI_API_KEY) {
       return NextResponse.json({ error: 'AI xizmati sozlanmagan' }, { status: 500 })
     }
 
@@ -94,31 +95,56 @@ ${caseText.slice(0, 6000)}
 
 Yuqoridagi formatda JSON qaytaring.`
 
-    const response = await fetch(GROQ_API_URL, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${GROQ_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'openai/gpt-oss-120b',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt },
-        ],
-        temperature: 0.1,
-        max_tokens: 2048,
-      }),
-    })
+    let raw = ''
 
-    if (!response.ok) {
-      const errorText = await response.text()
-      console.error('Groq API error (irac-real):', errorText)
-      return NextResponse.json({ error: 'AI tahlil xatosi' }, { status: response.status })
+    // 1. Google Gemini
+    if (process.env.GEMINI_API_KEY) {
+      try {
+        const geminiRes = await callGemini(userPrompt, {
+          systemInstruction: systemPrompt,
+          temperature: 0.1,
+          maxTokens: 2048,
+          responseJson: true,
+        })
+        if (geminiRes && geminiRes.trim()) {
+          raw = ensureUzbekLatin(geminiRes)
+        }
+      } catch (err: any) {
+        console.warn('Gemini IRAC real error:', err.message)
+      }
     }
 
-    const data = await response.json()
-    const raw = ensureUzbekLatin(data.choices?.[0]?.message?.content || '')
+    // 2. Groq fallback
+    if (!raw && GROQ_API_KEY) {
+      const CANDIDATE_MODELS = ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant']
+      for (const model of CANDIDATE_MODELS) {
+        try {
+          const response = await fetch(GROQ_API_URL, {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${GROQ_API_KEY}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model,
+              messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: userPrompt },
+              ],
+              temperature: 0.1,
+              max_tokens: 2048,
+              response_format: { type: 'json_object' },
+            }),
+          })
+
+          if (response.ok) {
+            const data = await response.json()
+            raw = ensureUzbekLatin(data.choices?.[0]?.message?.content || '')
+            if (raw.trim()) break
+          }
+        } catch {}
+      }
+    }
 
     // AI javobidan JSON ni ajratib olish
     const jsonMatch = raw.match(/\{[\s\S]*\}/)

@@ -7,6 +7,8 @@ import { getSupabaseAdmin } from '@/lib/supabase-admin'
 import { getScenarioById, SEED_SCENARIOS } from './scenario-db'
 import { TRIAL_STAGES, getNextStage } from './stage-machine'
 import { awardUserXP } from '@/lib/xp-engine'
+import { generateCourtAiTurn } from './ai-engine'
+import type { CourtSessionState } from './court-types'
 import { ROLE_LABELS } from './multiplayer-types'
 import type {
   MultiplayerRoom,
@@ -367,6 +369,28 @@ export async function createCourtRoom(
     createdAt: now,
   }
 
+  const participantsList: MultiplayerParticipant[] = [hostParticipant]
+  if (input.aiEnabled && Array.isArray(scenario.participants)) {
+    for (const sp of scenario.participants) {
+      if (sp.role === hostParticipant.role) continue
+      participantsList.push({
+        id: crypto.randomUUID(),
+        roomId,
+        userId: `ai_${sp.role.toLowerCase()}_${roomId.slice(0, 8)}`,
+        userName: `${sp.name} (AI)`,
+        avatarUrl: '',
+        role: sp.role as MultiplayerRole,
+        isHost: false,
+        isAi: true,
+        isReady: true,
+        canSpeak: false,
+        connectionStatus: 'online',
+        lastSeenAt: now,
+        joinedAt: now,
+      })
+    }
+  }
+
   const room: MultiplayerRoom = {
     id: roomId,
     code,
@@ -395,7 +419,7 @@ export async function createCourtRoom(
     speakingQueue: [],
     pendingObjection: null,
     verdictData: null,
-    participants: [hostParticipant],
+    participants: participantsList,
     evidence: initialEvidence,
     messages: [welcomeMessage],
     createdAt: now,
@@ -809,7 +833,132 @@ export async function assignParticipantRole(
   room.updatedAt = now
 
   await persistRoomToDb(room)
+
+  if (room.aiEnabled) {
+    await triggerMultiplayerAiTurn(room, { stageChanged: true })
+  }
+
   return room
+}
+
+/**
+ * 5.5. AI Ishtirokchilarning reaktsiyasi (Multiplayer AI Turn Trigger)
+ */
+export async function triggerMultiplayerAiTurn(
+  room: MultiplayerRoom,
+  options?: {
+    stageChanged?: boolean
+    userSpeech?: { role: MultiplayerRole; text: string; userName: string }
+  }
+): Promise<void> {
+  if (!room.aiEnabled) return
+  const aiParticipants = room.participants.filter(p => p.isAi)
+  if (aiParticipants.length === 0) return
+
+  try {
+    const scenario = room.scenarioData || SEED_SCENARIOS[0]
+    const stage = TRIAL_STAGES.find(s => s.id === room.currentStageId) || TRIAL_STAGES[0]
+
+    let targetAi: MultiplayerParticipant | undefined
+    if (options?.stageChanged) {
+      if (room.currentStageId === 'open_hearing' || room.currentStageId === 'verdict_review') {
+        targetAi = aiParticipants.find(p => p.role === 'SUDYA') || aiParticipants[0]
+      } else if (room.currentStageId === 'judicial_pleadings') {
+        targetAi =
+          aiParticipants.find(p => p.role === 'PROKUROR') ||
+          aiParticipants.find(p => p.role === 'ADVOKAT') ||
+          aiParticipants[0]
+      } else {
+        targetAi = aiParticipants[0]
+      }
+    } else if (options?.userSpeech) {
+      if (options.userSpeech.role === 'ADVOKAT') {
+        targetAi =
+          aiParticipants.find(p => p.role === 'PROKUROR') ||
+          aiParticipants.find(p => p.role === 'SUDYA') ||
+          aiParticipants[0]
+      } else if (options.userSpeech.role === 'PROKUROR') {
+        targetAi =
+          aiParticipants.find(p => p.role === 'ADVOKAT') ||
+          aiParticipants.find(p => p.role === 'SUDYA') ||
+          aiParticipants[0]
+      } else if (options.userSpeech.role === 'SUDYA') {
+        targetAi =
+          aiParticipants.find(p => p.role === 'PROKUROR') ||
+          aiParticipants.find(p => p.role === 'ADVOKAT') ||
+          aiParticipants[0]
+      } else {
+        targetAi = aiParticipants[0]
+      }
+    }
+
+    if (!targetAi) return
+
+    const sessionState: CourtSessionState = {
+      scenario_id: scenario.id,
+      selected_role: (options?.userSpeech?.role as any) || (targetAi.role === 'SUDYA' ? 'ADVOKAT' : 'SUDYA'),
+      procedure_type: scenario.procedure_type,
+      current_stage: stage.id,
+      stage_order: stage.order,
+      total_stages: TRIAL_STAGES.length,
+      current_speaker: targetAi.role as any,
+      participant_state: scenario.participants,
+      evidence_state: scenario.evidence,
+      events: room.messages.map(m => ({
+        id: m.id,
+        timestamp: m.createdAt,
+        stageId: m.stageId || stage.id,
+        eventType: 'participant_spoke',
+        speaker: m.userName,
+        role: m.role as any,
+        content: m.content,
+      })),
+      scoring: {
+        etiquette: 90,
+        argument: 80,
+        evidence: 80,
+        proceduralCorrectness: 90,
+        legalReasoning: 85,
+        violationsCount: 0,
+      },
+      procedural_violations: [],
+      completed: room.status === 'completed',
+    }
+
+    const aiRes = await generateCourtAiTurn({
+      scenario,
+      stage,
+      userRole: (options?.userSpeech?.role as any) || (targetAi.role === 'SUDYA' ? 'ADVOKAT' : 'SUDYA'),
+      userName: options?.userSpeech?.userName || 'Sud Ishtirokchisi',
+      session: sessionState,
+      userAction: options?.userSpeech
+        ? { type: 'speak', role: options.userSpeech.role as any, text: options.userSpeech.text }
+        : undefined,
+      isOpening: options?.stageChanged && stage.id === 'open_hearing',
+    })
+
+    if (aiRes && Array.isArray(aiRes.speakers) && aiRes.speakers.length > 0) {
+      for (const spk of aiRes.speakers.slice(0, 2)) {
+        const matchingAi = aiParticipants.find(p => p.role === spk.role) || targetAi
+        const now = new Date().toISOString()
+        room.messages.push({
+          id: crypto.randomUUID(),
+          roomId: room.id,
+          userId: matchingAi.userId,
+          userName: matchingAi.userName,
+          role: matchingAi.role,
+          messageType: 'speech',
+          content: spk.message,
+          stageId: stage.id,
+          createdAt: now,
+        })
+      }
+      room.updatedAt = new Date().toISOString()
+      await persistRoomToDb(room)
+    }
+  } catch (aiErr) {
+    console.warn('triggerMultiplayerAiTurn warning:', aiErr)
+  }
 }
 
 /**
@@ -834,6 +983,29 @@ export async function startTrial(codeOrId: string, actorUserId: string): Promise
   room.currentStageId = 'open_hearing'
   room.currentStageOrder = 1
 
+  // If AI enabled, ensure critical roles exist
+  if (room.aiEnabled && Array.isArray(room.scenarioData?.participants)) {
+    for (const sp of room.scenarioData.participants) {
+      if (!room.participants.some(p => p.role === sp.role)) {
+        room.participants.push({
+          id: crypto.randomUUID(),
+          roomId: room.id,
+          userId: `ai_${sp.role.toLowerCase()}_${room.id.slice(0, 8)}`,
+          userName: `${sp.name} (AI)`,
+          avatarUrl: '',
+          role: sp.role as MultiplayerRole,
+          isHost: false,
+          isAi: true,
+          isReady: true,
+          canSpeak: false,
+          connectionStatus: 'online',
+          lastSeenAt: now,
+          joinedAt: now,
+        })
+      }
+    }
+  }
+
   // SUDYA has the floor at opening
   const judge = room.participants.find(p => p.role === 'SUDYA') || actor
   room.currentSpeakerId = judge.userId
@@ -853,6 +1025,12 @@ export async function startTrial(codeOrId: string, actorUserId: string): Promise
   room.updatedAt = now
 
   await persistRoomToDb(room)
+
+  // Trigger opening AI reaction if judge is AI
+  if (judge.isAi) {
+    await triggerMultiplayerAiTurn(room, { stageChanged: true })
+  }
+
   return room
 }
 
@@ -903,6 +1081,11 @@ export async function advanceTrialStage(
   room.updatedAt = now
 
   await persistRoomToDb(room)
+
+  if (room.aiEnabled) {
+    await triggerMultiplayerAiTurn(room, { stageChanged: true })
+  }
+
   return room
 }
 
@@ -1000,6 +1183,7 @@ export async function grantSpeakingTurn(
 
   room.updatedAt = now
   await persistRoomToDb(room)
+
   return room
 }
 
@@ -1048,6 +1232,7 @@ export async function raiseObjection(
 
   room.updatedAt = now
   await persistRoomToDb(room)
+
   return room
 }
 
@@ -1098,6 +1283,7 @@ export async function ruleOnObjection(
   room.pendingObjection = null
   room.updatedAt = now
   await persistRoomToDb(room)
+
   return room
 }
 
@@ -1144,6 +1330,13 @@ export async function sendCourtMessage(
 
   room.updatedAt = now
   await persistRoomToDb(room)
+
+  if (room.aiEnabled && !p.isAi) {
+    await triggerMultiplayerAiTurn(room, {
+      userSpeech: { role: p.role, text: cleanText, userName: p.userName },
+    })
+  }
+
   return room
 }
 
@@ -1208,6 +1401,7 @@ export async function submitEvidence(
 
   room.updatedAt = now
   await persistRoomToDb(room)
+
   return room
 }
 
@@ -1257,6 +1451,7 @@ export async function ruleOnEvidence(
 
   room.updatedAt = now
   await persistRoomToDb(room)
+
   return room
 }
 
@@ -1564,6 +1759,7 @@ export async function endCourtSession(
 
   room.updatedAt = now
   await persistRoomToDb(room)
+
   return room
 }
 
@@ -1726,6 +1922,7 @@ export async function issueVerdict(
 
   room.updatedAt = now
   await persistRoomToDb(room)
+
   return room
 }
 
@@ -1788,6 +1985,7 @@ export async function leaveCourtRoom(
 
   room.updatedAt = now
   await persistRoomToDb(room)
+
   return room
 }
 
@@ -1833,6 +2031,7 @@ export async function kickParticipant(
 
   room.updatedAt = now
   await persistRoomToDb(room)
+
   return room
 }
 
@@ -1905,8 +2104,9 @@ export async function getUserCompletedTrials(
   }
 
   // 2. Query Supabase database
-  try {
-    const admin = getSupabaseAdmin()
+  if (process.env.NODE_ENV !== 'test') {
+    try {
+      const admin = getSupabaseAdmin()
 
     // 2a. Check court_multiplayer_participants
     try {
@@ -2074,6 +2274,7 @@ export async function getUserCompletedTrials(
   } catch (err) {
     console.warn('getUserCompletedTrials db query warning:', err)
   }
+}
 
   // 3. Convert to formatted items
   let items: UserCompletedTrialItem[] = Array.from(candidateRoomsMap.values()).map(

@@ -71,15 +71,7 @@ export async function GET(request: NextRequest) {
         }
 
         if (dbTemplates.length > 0) {
-          // Birlashgan ro'yxat (DB shablonlari va verified shablonlar id bo'yicha birlashtiriladi)
-          const map = new Map<string, ScenarioData>()
-          for (const vt of VERIFIED_SCENARIO_TEMPLATES) {
-            map.set(vt.id, vt)
-          }
-          for (const dt of dbTemplates) {
-            map.set(dt.id, dt)
-          }
-          templates = Array.from(map.values())
+          templates = dbTemplates
         }
       }
     } catch (dbErr) {

@@ -44,14 +44,14 @@ export function calculateSessionScore(
 
   // 2. Bazaviy ballarni shakllantirish (haqqoniy va xolis mezonlar asosida)
   const participationFactor =
-    userActionsCount === 0
-      ? 0.1
-      : userActionsCount === 1
-        ? 0.35
-        : userActionsCount === 2
-          ? 0.6
-          : userActionsCount === 3
-            ? 0.8
+    session.completed || userActionsCount >= 3
+      ? 1.0
+      : userActionsCount === 0
+        ? 0.1
+        : userActionsCount === 1
+          ? 0.4
+          : userActionsCount === 2
+            ? 0.75
             : 1.0
 
   let legalReasoning = Math.min(
@@ -170,9 +170,9 @@ export function calculateSessionScore(
   }
 
   const feedbackSummary =
-    totalScore >= 80
+    totalScore >= 75
       ? `Ajoyib natija! Siz ${selected_role} rolida O'zbekiston protsessual qonunchiligiga to'la mos, professional tarzda ishtirok etdingiz.`
-      : totalScore >= 60
+      : totalScore >= 55
         ? `Yaxshi urinish! Asosiy protsessual talablarga amal qilindi, lekin argumentatsiya va dalillarni taqdim etishda chuqurroq tahlil talab etiladi.`
         : `Boshlang‘ich daraja. Qonun moddalari va sud bosqichlari qoidalarini qayta takrorlash tavsiya etiladi.`
 

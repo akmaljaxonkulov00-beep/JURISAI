@@ -80,24 +80,20 @@ export function isStudentRole(role?: string | null): boolean {
 export function resolvePlatformRole(role?: string | null): PlatformRole {
   if (!role) return 'student'
   if (isAdminRole(role)) return 'admin'
-  // Vaqtinchalik faqat talabalar tizimi faol (Kelgusi bosqichlar uchun saqlab qo'yildi):
-  // if (isCitizenRole(role)) return 'citizen'
-  // if (isLawStudentRole(role)) return 'law_student'
-  // if (isAdvocateRole(role)) return 'advocate'
+  if (isCitizenRole(role)) return 'citizen'
+  if (isLawStudentRole(role)) return 'law_student'
+  if (isAdvocateRole(role)) return 'advocate'
   return 'student'
 }
 
 /**
  * Rolga mos bosh sahifa yo'nalishini (Dashboard URL) qaytaradi.
- * Vaqtinchalik faqat talabalar tizimi faol: admin bo'lmagan barcha foydalanuvchilar /dashboard ga boradi.
  */
 export function getRoleDashboardPath(role?: string | null): string {
   const resolved = resolvePlatformRole(role)
   if (resolved === 'admin') {
     return '/admin'
   }
-  // Vaqtinchalik faqat talabalar tizimi (/dashboard) faol:
-  /*
   switch (resolved) {
     case 'citizen':
       return '/citizen'
@@ -105,9 +101,9 @@ export function getRoleDashboardPath(role?: string | null): string {
       return '/law-student'
     case 'advocate':
       return '/advocate'
+    default:
+      return '/dashboard'
   }
-  */
-  return '/dashboard'
 }
 
 /**
