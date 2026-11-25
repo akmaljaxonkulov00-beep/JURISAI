@@ -582,7 +582,7 @@ function scoreRow(
  *     va foydalanuvchi yozuv xatolari uchun ishonchli natija beradi.
  */
 export async function retrieveLegalArticles(message: string, limit = 6): Promise<RAGArticle[]> {
-  // 1. Zudlik bilan xotiradagi (4407 ta O'zbekiston qonun moddalari) bazadan tezkor qidiruv (1-2 ms):
+  // 1. Zudlik bilan xotiradagi (7201 ta O'zbekiston qonun moddalari) bazadan tezkor qidiruv (1-2 ms):
   try {
     const localMatches = searchLocalArticles(message, limit)
     if (localMatches && localMatches.length > 0) {
@@ -962,7 +962,7 @@ export async function validateCitations(text: string): Promise<CitationValidatio
         }
       }
 
-      // 2. Mahalliy 4407 ta moddadan tekshiramiz (ishlab chiqarishda tezkor):
+      // 2. Mahalliy 7201 ta moddadan tekshiramiz (ishlab chiqarishda tezkor):
       if (!isTest && localArticles.length > 0) {
         const localHit = localArticles.find(a => {
           const numMatch = a.article_number === String(ref.article)

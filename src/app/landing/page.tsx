@@ -4,7 +4,7 @@ import { useLanguage } from '@/context/LanguageContext'
 import ContactSection from '@/components/landing/ContactSection'
 import SiteLogo from '@/components/SiteLogo'
 
-import React, { useMemo } from 'react'
+import React, { useMemo, useState, useEffect } from 'react'
 import Link from 'next/link'
 import {
   Scale,
@@ -24,6 +24,18 @@ import {
 
 export default function LandingPage() {
   const { t } = useLanguage()
+  const [liveArticlesCount, setLiveArticlesCount] = useState<number>(7201)
+
+  useEffect(() => {
+    fetch('/api/platform/public-stats')
+      .then(res => res.json())
+      .then(data => {
+        if (data?.success && data?.stats?.total_articles) {
+          setLiveArticlesCount(data.stats.total_articles)
+        }
+      })
+      .catch(() => {})
+  }, [])
 
   const SERVICES = useMemo(
     () => [
@@ -81,12 +93,12 @@ export default function LandingPage() {
 
   const STATS = useMemo(
     () => [
-      { value: '4,400+', label: 'Qonun moddalari' },
+      { value: `${liveArticlesCount.toLocaleString()}+`, label: 'Qonun moddalari' },
       { value: '21 ta', label: 'Amaldagi kodekslar' },
       { value: '100%', label: 'O‘zbekiston qonunchiligi' },
       { value: '24/7', label: 'Tezkor AI ko‘mak' },
     ],
-    []
+    [liveArticlesCount]
   )
 
   const ADVANTAGES = useMemo(

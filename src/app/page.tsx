@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import SiteLogo from '@/components/SiteLogo'
 import ContactSection from '@/components/landing/ContactSection'
@@ -132,7 +132,7 @@ const CORE_MODULES = [
     description:
       'O‘zbekiston Respublikasi qonunlari, Oliy Sud Plenum qarorlari va sud amaliyotining tahliliy elektron bazasi bir joyda.',
     highlights: [
-      '4,400+ tizimlashtirilgan kodeks va qonun moddalari',
+      '7,200+ tizimlashtirilgan kodeks va qonun moddalari',
       'Oliy Sud Plenumining amaliyotni birxillashtiruvchi tushuntirishlari',
       'Yuridik kalit so‘zlar va moddalar bo‘yicha qulay tezkor qidiruv',
       'Reyting va haftalik XP to‘plash orqali bilimni oshirish',
@@ -144,7 +144,7 @@ const CORE_MODULES = [
 
 // Real statistika
 const STATS = [
-  { value: '4,400+', label: 'Qonun va kodeks moddalari' },
+  { value: '7,200+', label: 'Qonun va kodeks moddalari' },
   { value: '7 Bosqich', label: 'Rasmiy sud jarayoni simulyatori' },
   { value: 'WebRTC & AI', label: 'Jonli ovozli multiplayer sud' },
   { value: '100%', label: 'O‘zbekiston qonunchiligiga mos' },
@@ -287,6 +287,18 @@ const FAQS = [
 export default function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0)
+  const [articlesCount, setArticlesCount] = useState<number>(7201)
+
+  useEffect(() => {
+    fetch('/api/platform/public-stats')
+      .then(res => res.json())
+      .then(data => {
+        if (data?.success && data?.stats?.total_articles) {
+          setArticlesCount(data.stats.total_articles)
+        }
+      })
+      .catch(() => {})
+  }, [])
 
   return (
     <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 selection:bg-blue-500 selection:text-white">
@@ -566,7 +578,12 @@ export default function LandingPage() {
       <section className="border-y border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-            {STATS.map(stat => (
+            {[
+              { value: `${articlesCount.toLocaleString()}+`, label: 'Qonun va kodeks moddalari' },
+              { value: '7 Bosqich', label: 'Rasmiy sud jarayoni simulyatori' },
+              { value: 'WebRTC & AI', label: 'Jonli ovozli multiplayer sud' },
+              { value: '100%', label: 'O‘zbekiston qonunchiligiga mos' },
+            ].map(stat => (
               <div key={stat.label} className="p-2">
                 <div className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-blue-600 dark:text-blue-400">
                   {stat.value}
