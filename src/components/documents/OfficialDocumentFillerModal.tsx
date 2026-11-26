@@ -210,372 +210,290 @@ export default function OfficialDocumentFillerModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-900/80 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-5xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-7xl h-[95vh] flex flex-col shadow-2xl overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50">
+        <div className="flex flex-wrap items-center justify-between px-5 py-3 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+            <div className="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-md">
               <FileText className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="font-bold text-slate-900 dark:text-white text-base sm:text-lg line-clamp-1">
+                <h3 className="font-bold text-slate-900 dark:text-white text-sm sm:text-base line-clamp-1">
                   {doc.documentName}
                 </h3>
-                <Badge variant="outline" className="bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border-emerald-300">
-                  <ShieldCheck className="w-3.5 h-3.5 mr-1 inline" /> Rasmiy Tasdiqlangan
+                <Badge variant="outline" className="bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border-emerald-300 text-[10px] hidden sm:inline-flex">
+                  <ShieldCheck className="w-3 h-3 mr-1 inline" /> {doc.officialSourceName} Rasmiy Andozasi
                 </Badge>
               </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                Manba: <span className="font-medium text-slate-700 dark:text-slate-300">{doc.officialSourceName}</span> · {doc.issuingAuthority}
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                O‘zbekiston sud amaliyoti talablariga mos haqiqiy sud hujjati
               </p>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
 
-        {/* Tab Controls */}
-        <div className="flex items-center justify-between px-6 py-2 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-sm">
-          <div className="flex gap-2">
-            <button
-              onClick={() => setActiveStep('fill')}
-              className={`px-4 py-1.5 rounded-lg font-medium transition ${
-                activeStep === 'fill'
-                  ? 'bg-indigo-600 text-white shadow'
-                  : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
-              }`}
+          {/* Action Buttons Top Bar */}
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleDownloadDoc(true)}
+              className="rounded-xl flex items-center gap-1 text-xs border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/40"
+              title="To'ldirilmagan rasmiy bo'sh blankni yuklab olish"
             >
-              1. Rekvizitlarni to‘ldirish
-            </button>
-            <button
-              onClick={validateAndPreview}
-              className={`px-4 py-1.5 rounded-lg font-medium transition ${
-                activeStep === 'preview'
-                  ? 'bg-indigo-600 text-white shadow'
-                  : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
-              }`}
+              <Download className="w-3.5 h-3.5 text-amber-600" />
+              <span className="hidden md:inline">Bo‘sh</span> Blank (.doc)
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleDownloadDoc(false)}
+              className="rounded-xl flex items-center gap-1 text-xs"
+              title="To'ldirilgan hujjatni Word formatida yuklab olish"
             >
-              2. Rasmiy hujjat ko‘rinishi & Eksport
+              <FileText className="w-3.5 h-3.5 text-blue-600" />
+              <span className="hidden sm:inline">Word</span> (.doc)
+            </Button>
+
+            <Button
+              size="sm"
+              onClick={() => handleDownloadPdf(false)}
+              disabled={downloadingPdf}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl flex items-center gap-1 text-xs shadow-sm"
+              title="A4 formatidagi rasmiy sud PDF faylini yuklab olish"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>{downloadingPdf ? '...' : 'Rasmiy PDF'}</span>
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handlePrint}
+              className="rounded-xl flex items-center gap-1 text-xs hidden sm:flex"
+              title="To'g'ridan-to'g'ri chop etish"
+            >
+              <Printer className="w-3.5 h-3.5" />
+              <span>Chop etish</span>
+            </Button>
+
+            <button
+              onClick={onClose}
+              className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 ml-1"
+            >
+              <X className="w-5 h-5" />
             </button>
           </div>
-
-          <a
-            href={doc.officialSourceUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1"
-          >
-            <ExternalLink className="w-3.5 h-3.5" /> LexUZ asl manbasi
-          </a>
         </div>
 
-        {/* Modal Body */}
-        <div className="flex-1 overflow-y-auto p-6">
-          {activeStep === 'fill' ? (
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-              {/* Left Column: Form Fields */}
-              <div className="lg:col-span-7 space-y-4">
-                {validationError && (
-                  <div className="p-3 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 rounded-xl text-xs text-red-600 dark:text-red-400 flex items-center gap-2">
-                    <AlertCircle className="w-4 h-4 shrink-0" />
-                    <span>{validationError}</span>
-                  </div>
-                )}
+        {/* Mobile View Switcher */}
+        <div className="lg:hidden flex items-center justify-center p-2 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs">
+          <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+            <button
+              onClick={() => setActiveStep('fill')}
+              className={`px-3 py-1 rounded-lg font-semibold transition ${
+                activeStep === 'fill' ? 'bg-white dark:bg-slate-900 text-indigo-600 shadow-sm' : 'text-slate-500'
+              }`}
+            >
+              Rekvizitlarni kiritish
+            </button>
+            <button
+              onClick={() => setActiveStep('preview')}
+              className={`px-3 py-1 rounded-lg font-semibold transition ${
+                activeStep === 'preview' ? 'bg-white dark:bg-slate-900 text-indigo-600 shadow-sm' : 'text-slate-500'
+              }`}
+            >
+              Haqiqiy Hujjat (A4)
+            </button>
+          </div>
+        </div>
 
-                <div className="bg-slate-50 dark:bg-slate-800/40 p-4 rounded-xl border border-slate-200 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-300 space-y-1">
-                  <div className="flex items-center gap-1.5 font-semibold text-slate-800 dark:text-slate-200">
-                    <Info className="w-4 h-4 text-indigo-500" /> Rasmiy to‘ldirish qoidasi:
-                  </div>
-                  <p>
-                    Quyidagi ma’lumotlarni shaxsingizni tasdiqlovchi hujjat (pasport yoki ID-karta) va rasmiy shartnomadagi yozuvlarga qat’iy mos holda kiriting.
-                  </p>
-                </div>
-
-                <div className="space-y-4">
-                  {doc.fields.map((field) => (
-                    <div key={field.id} className="space-y-1.5">
-                      <div className="flex items-center justify-between">
-                        <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                          {field.label} {field.required && <span className="text-red-500">*</span>}
-                        </label>
-                        {field.legalContext && (
-                          <span className="text-[11px] text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/40 px-2 py-0.5 rounded">
-                            {field.legalContext}
-                          </span>
-                        )}
-                      </div>
-
-                      {field.type === 'textarea' ? (
-                        <textarea
-                          rows={3}
-                          value={formData[field.name] || ''}
-                          onChange={(e) => handleInputChange(field.name, e.target.value)}
-                          placeholder={field.placeholder}
-                          className="w-full text-sm px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                        />
-                      ) : field.type === 'select' && field.options ? (
-                        <select
-                          value={formData[field.name] || ''}
-                          onChange={(e) => handleInputChange(field.name, e.target.value)}
-                          className="w-full text-sm px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                        >
-                          <option value="">Tanlang...</option>
-                          {field.options.map((opt) => (
-                            <option key={opt} value={opt}>
-                              {opt}
-                            </option>
-                          ))}
-                        </select>
-                      ) : (
-                        <Input
-                          type={field.type}
-                          value={formData[field.name] || ''}
-                          onChange={(e) => handleInputChange(field.name, e.target.value)}
-                          placeholder={field.placeholder}
-                          className="text-sm rounded-xl"
-                        />
-                      )}
-
-                      {field.description && (
-                        <p className="text-[11px] text-slate-400">{field.description}</p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-
-                <div className="pt-4 flex justify-end">
-                  <Button onClick={validateAndPreview} className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl">
-                    Hujjatni shakllantirish va ko‘rish →
-                  </Button>
-                </div>
-              </div>
-
-              {/* Right Column: Legal Citations & Fast Preview */}
-              <div className="lg:col-span-5 space-y-4">
-                <div className="p-4 bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 rounded-xl space-y-3">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                    Huquqiy Asoslar (Lex.uz)
-                  </h4>
-                  <div className="space-y-2">
-                    {doc.legalBasis.map((lb, idx) => (
-                      <div key={idx} className="p-2.5 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400">
-                            {lb.code} {lb.article}
-                          </span>
-                          <a
-                            href={lb.officialUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-[11px] text-slate-400 hover:text-indigo-500 flex items-center gap-0.5"
-                          >
-                            LexUZ <ExternalLink className="w-2.5 h-2.5" />
-                          </a>
-                        </div>
-                        <p className="text-xs font-medium text-slate-800 dark:text-slate-200">{lb.title}</p>
-                        <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">{lb.description}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Live Mini Preview Box */}
-                <div className="p-4 bg-slate-900 text-slate-200 rounded-xl space-y-2">
-                  <div className="flex items-center justify-between text-xs text-slate-400">
-                    <span>Jonli ko‘rinish (Matn):</span>
-                    <span className="text-[11px] text-emerald-400">● Avtomatik yangilanadi</span>
-                  </div>
-                  <pre className="text-xs font-mono max-h-56 overflow-y-auto whitespace-pre-wrap leading-relaxed opacity-90 p-2 bg-slate-950 rounded-lg border border-slate-800">
-                    {renderedContent}
-                  </pre>
-                </div>
-              </div>
+        {/* Main Body: Split Screen Studio */}
+        <div className="flex-1 overflow-hidden grid grid-cols-1 lg:grid-cols-12 bg-slate-100 dark:bg-slate-950">
+          {/* Left Column: Form Inputs (40% on Desktop) */}
+          <div
+            className={`lg:col-span-5 h-full overflow-y-auto p-4 sm:p-5 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 space-y-4 ${
+              activeStep === 'preview' ? 'hidden lg:block' : 'block'
+            }`}
+          >
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                Hujjat Rekvizitlari
+              </h4>
+              <span className="text-[11px] text-indigo-600 dark:text-indigo-400 font-medium">
+                ● Jonli o‘ng tomonda yangilanadi
+              </span>
             </div>
-          ) : (
-            /* Preview and Export View: Haqiqiy A4 oq qog'ozdagi sud hujjati */
-            <div className="space-y-6 max-w-4xl mx-auto">
-              {/* Yuqori bildirishnoma: 100% rasmiy andoza */}
-              <div className="flex items-center justify-between px-4 py-2 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-xl text-xs text-emerald-800 dark:text-emerald-300">
-                <span className="flex items-center gap-1.5 font-medium">
-                  <ShieldCheck className="w-4 h-4 text-emerald-500" />
-                  Ushbu hujjat {doc.officialSourceName} va amaldagi protsessual qonunchilik talablariga 100% mos rasmiy shaklda tayyorlandi.
-                </span>
-                <span className="text-[11px] text-emerald-600 dark:text-emerald-400">
-                  Sud qabuli uchun tayyor
-                </span>
-              </div>
 
-              {/* A4 Formatidagi Oq Qog'oz Hujjat */}
-              <div className="p-8 sm:p-12 bg-white text-black border border-slate-300 shadow-2xl rounded-sm font-serif min-h-[700px]">
-                {(() => {
-                  const paragraphs = renderedContent.split('\n')
-                  let inHeader = true
-                  return (
-                    <div className="space-y-1">
-                      {paragraphs.map((p, idx) => {
-                        const trimmed = p.trim()
-                        if (!trimmed) {
-                          return <div key={idx} className="h-3" />
-                        }
+            <div className="space-y-3.5">
+              {doc.fields.map((field) => (
+                <div key={field.id} className="space-y-1">
+                  <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center justify-between">
+                    <span>
+                      {field.label} {field.required && <span className="text-red-500">*</span>}
+                    </span>
+                  </label>
 
-                        // Sarlavhani aniqlash
-                        const isMainTitle =
-                          trimmed.match(/^DA['']?VO\s+ARIZA/i) ||
-                          trimmed.match(/^SUD\s+BUYRUG['']?I/i) ||
-                          trimmed.match(/^TURAR\s+JOY/i) ||
-                          trimmed.match(/^QARZ\s+SHARTNOMASI/i) ||
-                          trimmed.match(/^ILTIMOSNOMA/i) ||
-                          trimmed.match(/^SHIKOYAT/i) ||
-                          trimmed.match(/^KO['']?CHMAS\s+MULK/i) ||
-                          trimmed.match(/^NOTARIAL/i)
-                        const isSubTitle = trimmed.startsWith('(') && trimmed.endsWith(')')
+                  {field.type === 'textarea' ? (
+                    <textarea
+                      rows={2}
+                      value={formData[field.name] || ''}
+                      onChange={(e) => handleInputChange(field.name, e.target.value)}
+                      placeholder={field.placeholder}
+                      className="w-full text-xs sm:text-sm px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    />
+                  ) : field.type === 'select' && field.options ? (
+                    <select
+                      value={formData[field.name] || ''}
+                      onChange={(e) => handleInputChange(field.name, e.target.value)}
+                      className="w-full text-xs sm:text-sm px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    >
+                      <option value="">Tanlang...</option>
+                      {field.options.map((opt) => (
+                        <option key={opt} value={opt}>
+                          {opt}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <Input
+                      type={field.type}
+                      value={formData[field.name] || ''}
+                      onChange={(e) => handleInputChange(field.name, e.target.value)}
+                      placeholder={field.placeholder}
+                      className="text-xs sm:text-sm rounded-xl bg-slate-50 dark:bg-slate-800"
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
 
-                        if (isMainTitle) {
-                          inHeader = false
-                          return (
-                            <div key={idx} className="text-center font-bold text-base sm:text-lg pt-4 pb-1 tracking-wide">
-                              {trimmed}
-                            </div>
-                          )
-                        }
+            <div className="pt-3">
+              <Button
+                onClick={() => handleDownloadPdf(false)}
+                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs py-2.5 shadow-md flex items-center justify-center gap-1.5"
+              >
+                <Download className="w-4 h-4" />
+                <span>Rasmiy Sud PDF Hujjatini Yuklab Olish</span>
+              </Button>
+            </div>
+          </div>
 
-                        if (isSubTitle) {
-                          inHeader = false
-                          return (
-                            <div key={idx} className="text-center italic text-xs sm:text-sm pb-4 text-slate-800">
-                              {trimmed}
-                            </div>
-                          )
-                        }
+          {/* Right Column: Authentic Live A4 Paper Sheet (60% on Desktop) */}
+          <div
+            className={`lg:col-span-7 h-full overflow-y-auto p-4 sm:p-6 lg:p-8 flex justify-center ${
+              activeStep === 'fill' ? 'hidden lg:flex' : 'flex'
+            }`}
+          >
+            <div className="w-full max-w-[720px] bg-white text-black p-8 sm:p-12 shadow-xl border border-slate-200 rounded-sm font-serif min-h-[820px] leading-relaxed self-start">
+              {(() => {
+                const paragraphs = renderedContent.split('\n')
+                let inHeader = true
 
-                        if (inHeader) {
-                          const isBoldHeader =
-                            trimmed.startsWith('Fuqarolik') ||
-                            trimmed.startsWith('Da‘vogar:') ||
-                            trimmed.startsWith("Da'vogar:") ||
-                            trimmed.startsWith('Javobgar:') ||
-                            trimmed.startsWith('Da‘vo mazmuni:') ||
-                            trimmed.startsWith("Da'vo mazmuni:")
-                          return (
-                            <div key={idx} className="flex justify-end">
-                              <div className={`w-full max-w-[320px] sm:max-w-[380px] text-xs sm:text-sm leading-snug ${isBoldHeader ? 'font-bold' : ''}`}>
-                                {trimmed}
-                              </div>
-                            </div>
-                          )
-                        }
+                return (
+                  <div className="space-y-1">
+                    {paragraphs.map((p, idx) => {
+                      const trimmed = p.trim()
+                      if (!trimmed) {
+                        return <div key={idx} className="h-2.5" />
+                      }
 
-                        const isSection =
-                          trimmed.startsWith('SO‘RAYMAN') ||
-                          trimmed.startsWith("SO'RAYMAN") ||
-                          trimmed.startsWith('So‘rayman') ||
-                          trimmed.startsWith("So'rayman") ||
-                          trimmed.startsWith('ILTIMOS QILAMAN') ||
-                          trimmed.startsWith('Ilova') ||
-                          trimmed.startsWith('1.') ||
-                          trimmed.startsWith('2.') ||
-                          trimmed.startsWith('3.')
+                      // Sarlavhani aniqlash
+                      const isMainTitle =
+                        trimmed.match(/^DA['']?VO\s+ARIZA/i) ||
+                        trimmed.match(/^SUD\s+BUYRUG['']?I/i) ||
+                        trimmed.match(/^TURAR\s+JOY/i) ||
+                        trimmed.match(/^QARZ\s+SHARTNOMASI/i) ||
+                        trimmed.match(/^ILTIMOSNOMA/i) ||
+                        trimmed.match(/^SHIKOYAT/i) ||
+                        trimmed.match(/^KO['']?CHMAS\s+MULK/i) ||
+                        trimmed.match(/^NOTARIAL/i)
+                      const isSubTitle = trimmed.startsWith('(') && trimmed.endsWith(')')
 
-                        const isSignature =
+                      if (isMainTitle) {
+                        inHeader = false
+                        return (
+                          <div key={idx} className="text-center font-bold text-sm sm:text-base pt-3 pb-0.5 tracking-wide uppercase">
+                            {trimmed}
+                          </div>
+                        )
+                      }
+
+                      if (isSubTitle) {
+                        inHeader = false
+                        return (
+                          <div key={idx} className="text-center italic text-xs sm:text-sm pb-3 text-slate-800">
+                            {trimmed}
+                          </div>
+                        )
+                      }
+
+                      if (inHeader) {
+                        const isBoldHeader =
+                          trimmed.startsWith('Fuqarolik') ||
                           trimmed.startsWith('Da‘vogar:') ||
                           trimmed.startsWith("Da'vogar:") ||
-                          trimmed.startsWith('Arizachi:') ||
-                          trimmed.startsWith('Sotuvchi:') ||
-                          trimmed.startsWith('Ijaraga beruvchi:')
-
-                        if (isSignature) {
-                          return (
-                            <div key={idx} className="pt-8 flex items-center justify-between text-xs sm:text-sm font-bold">
-                              <span>{trimmed}</span>
-                            </div>
-                          )
-                        }
-
-                        if (isSection) {
-                          return (
-                            <div key={idx} className="font-bold text-xs sm:text-sm pt-2 pb-1">
+                          trimmed.startsWith('Javobgar:') ||
+                          trimmed.startsWith('Da‘vo mazmuni:') ||
+                          trimmed.startsWith("Da'vo mazmuni:")
+                        return (
+                          <div key={idx} className="flex justify-end">
+                            <div className={`w-full max-w-[280px] sm:max-w-[340px] text-xs sm:text-[13px] leading-snug ${isBoldHeader ? 'font-bold' : ''}`}>
                               {trimmed}
                             </div>
-                          )
-                        }
-
-                        return (
-                          <p key={idx} className="text-xs sm:text-sm text-justify indent-6 sm:indent-8 leading-relaxed mb-2">
-                            {trimmed}
-                          </p>
+                          </div>
                         )
-                      })}
-                    </div>
-                  )
-                })()}
-              </div>
+                      }
 
-              {/* Tugmalar paneli */}
-              <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setActiveStep('fill')}
-                  className="rounded-xl text-xs"
-                >
-                  ← Qayta tahrirlash
-                </Button>
+                      const isSection =
+                        trimmed.startsWith('SO‘RAYMAN') ||
+                        trimmed.startsWith("SO'RAYMAN") ||
+                        trimmed.startsWith('So‘rayman') ||
+                        trimmed.startsWith("So'rayman") ||
+                        trimmed.startsWith('ILTIMOS QILAMAN') ||
+                        trimmed.startsWith('Ilova') ||
+                        trimmed.startsWith('1.') ||
+                        trimmed.startsWith('2.') ||
+                        trimmed.startsWith('3.') ||
+                        trimmed.startsWith('4.') ||
+                        trimmed.startsWith('5.')
 
-                <div className="flex flex-wrap items-center gap-2">
-                  <Button
-                    variant="outline"
-                    onClick={handleCopy}
-                    className="rounded-xl flex items-center gap-1.5 text-xs"
-                  >
-                    {copied ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
-                    <span>{copied ? 'Nusxalandi!' : 'Matnni nusxalash'}</span>
-                  </Button>
+                      const isSignature =
+                        trimmed.startsWith('Da‘vogar:') ||
+                        trimmed.startsWith("Da'vogar:") ||
+                        trimmed.startsWith('Arizachi:') ||
+                        trimmed.startsWith('Sotuvchi:') ||
+                        trimmed.startsWith('Ijaraga beruvchi:')
 
-                  <Button
-                    variant="outline"
-                    onClick={handlePrint}
-                    className="rounded-xl flex items-center gap-1.5 text-xs"
-                  >
-                    <Printer className="w-3.5 h-3.5" />
-                    <span>Chop etish</span>
-                  </Button>
+                      if (isSignature) {
+                        return (
+                          <div key={idx} className="pt-6 flex items-center justify-between text-xs sm:text-[13px] font-bold border-t border-slate-200 mt-4">
+                            <span>{trimmed}</span>
+                          </div>
+                        )
+                      }
 
-                  <Button
-                    variant="outline"
-                    onClick={() => handleDownloadDoc(true)}
-                    className="rounded-xl flex items-center gap-1.5 text-xs border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-300 hover:bg-amber-50"
-                    title="Sud blankasining asl to'ldirilmagan namunasini yuklab olish"
-                  >
-                    <FileText className="w-3.5 h-3.5 text-amber-600" />
-                    <span>Bo‘sh Asl Blank (.doc)</span>
-                  </Button>
+                      if (isSection) {
+                        return (
+                          <div key={idx} className="font-bold text-xs sm:text-[13px] pt-1.5 pb-0.5">
+                            {trimmed}
+                          </div>
+                        )
+                      }
 
-                  <Button
-                    variant="outline"
-                    onClick={() => handleDownloadDoc(false)}
-                    className="rounded-xl flex items-center gap-1.5 text-xs"
-                  >
-                    <FileText className="w-3.5 h-3.5 text-blue-600" />
-                    <span>To‘ldirilgan Word (.doc)</span>
-                  </Button>
-
-                  <Button
-                    onClick={() => handleDownloadPdf(false)}
-                    disabled={downloadingPdf}
-                    className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl flex items-center gap-1.5 text-xs shadow-md"
-                  >
-                    <Download className="w-3.5 h-3.5" />
-                    <span>{downloadingPdf ? 'Tayyorlanmoqda...' : 'Rasmiy PDF yuklab olish'}</span>
-                  </Button>
-                </div>
-              </div>
+                      return (
+                        <p key={idx} className="text-xs sm:text-[13px] text-justify indent-6 sm:indent-8 leading-relaxed mb-1.5">
+                          {trimmed}
+                        </p>
+                      )
+                    })}
+                  </div>
+                )
+              })()}
             </div>
-          )}
+          </div>
         </div>
       </div>
     </div>
