@@ -11,10 +11,11 @@ const apiKey = process.env.GEMINI_API_KEY;
 const GEMINI_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/models'
 
 const CANDIDATE_GEMINI_MODELS = [
-  'gemini-flash-lite-latest',
   'gemini-3.5-flash-lite',
+  'gemini-flash-lite-latest',
   'gemini-3.5-flash',
   'gemini-3-flash-preview',
+  'gemini-flash-latest',
 ]
 
 /**
@@ -95,8 +96,8 @@ async function postJson(url: string, bodyObj: any): Promise<any> {
       })
     })
 
-    req.setTimeout(8000, () => {
-      req.destroy(new Error('Gemini so‘rov vaqti tugadi (8s timeout)'))
+    req.setTimeout(25000, () => {
+      req.destroy(new Error('Gemini so‘rov vaqti tugadi (25s timeout)'))
     })
 
     req.on('error', (err: Error) => reject(err))

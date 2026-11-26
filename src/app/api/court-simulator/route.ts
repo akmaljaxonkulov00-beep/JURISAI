@@ -248,7 +248,7 @@ export async function POST(request: NextRequest) {
           argument: 0,
           evidence: 0,
           proceduralCorrectness: 100,
-          legalReasoning: 60,
+          legalReasoning: 0,
           violationsCount: 0,
         },
         procedural_violations: [],
@@ -364,9 +364,6 @@ export async function POST(request: NextRequest) {
         if (validation.reason) {
           state.procedural_violations.push(validation.reason)
         }
-      } else {
-        state.scoring.argument = Math.min(100, state.scoring.argument + 10)
-        state.scoring.legalReasoning = Math.min(100, state.scoring.legalReasoning + 5)
       }
 
       // Agar dalil taqdim etilayotgan bo'lsa, statusini 'submitted' ga o'zgartirish
@@ -444,6 +441,12 @@ export async function POST(request: NextRequest) {
           0,
           Math.min(100, state.scoring.evidence + fb.evidence_score_delta)
         )
+        if (fb.valid_procedural_move && fb.argument_score_delta > 0) {
+          state.scoring.legalReasoning = Math.max(
+            0,
+            Math.min(100, state.scoring.legalReasoning + Math.round(fb.argument_score_delta * 0.8))
+          )
+        }
       }
 
       await persistSessionState(simulationId, userId, state)
@@ -504,13 +507,23 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
       }
       const { state } = dbSession
-      // Verdict based on legalReasoning score
-      const legalScore = state.scoring?.legalReasoning ?? 60
+      const scenarioObj = (await getScenarioById(state.scenario_id)) || SEED_SCENARIOS[0]
+      let messages: Array<{ speaker: string; role: string; content: string }> = []
+      try {
+        const admin = getSupabaseAdmin()
+        const { data: msgRows } = await admin
+          .from('court_messages')
+          .select('speaker, role, content')
+          .eq('session_id', simulationId)
+          .order('created_at', { ascending: true })
+        messages = (msgRows as any) || []
+      } catch {}
+
+      const scoreResult = await evaluateCourtSessionWithAi(state, scenarioObj, messages)
+      const score = typeof scoreResult?.totalScore === 'number' ? scoreResult.totalScore : 0
+      const legalScore = scoreResult?.legalReasoning ?? state.scoring?.legalReasoning ?? 0
       const verdict =
         legalScore >= 80 ? 'favourable' : legalScore >= 50 ? 'neutral' : 'unfavourable'
-      const scenarioObj = (await getScenarioById(state.scenario_id)) || SEED_SCENARIOS[0]
-      const scoreResult = calculateSessionScore(state, scenarioObj)
-      const score = typeof scoreResult?.totalScore === 'number' ? scoreResult.totalScore : 85
       const outcome = `Yakunlangan — Ball: ${score}`
       await persistSessionState(simulationId, userId, state, 'completed', score, outcome)
 

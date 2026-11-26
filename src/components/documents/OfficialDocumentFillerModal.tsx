@@ -79,19 +79,54 @@ export default function OfficialDocumentFillerModal({
   const handlePrint = () => {
     const printWindow = window.open('', '_blank')
     if (!printWindow) return
+
+    // Matnni sud standarti bo'yicha HTML ga o'tkazamiz
+    const paragraphs = renderedContent.split('\n')
+    let htmlContent = ''
+    let inHeader = true
+
+    for (const p of paragraphs) {
+      const trimmed = p.trim()
+      if (!trimmed) {
+        htmlContent += '<div style="height: 10px;"></div>'
+        continue
+      }
+      if (trimmed.match(/^DA['']?VO\s+ARIZA/i) || trimmed.match(/^SUD\s+BUYRUG['']?I/i) || trimmed.match(/^TURAR\s+JOY/i) || trimmed.match(/^QARZ\s+SHARTNOMASI/i) || trimmed.match(/^ILTIMOSNOMA/i) || trimmed.match(/^SHIKOYAT/i) || trimmed.match(/^KO['']?CHMAS\s+MULK/i) || trimmed.match(/^NOTARIAL/i)) {
+        inHeader = false
+        htmlContent += `<div style="text-align: center; font-weight: bold; font-size: 14pt; margin: 20px 0 5px 0;">${trimmed}</div>`
+        continue
+      }
+      if (trimmed.startsWith('(') && trimmed.endsWith(')')) {
+        inHeader = false
+        htmlContent += `<div style="text-align: center; font-size: 12pt; margin-bottom: 20px;">${trimmed}</div>`
+        continue
+      }
+      if (inHeader) {
+        htmlContent += `<div style="width: 52%; margin-left: 48%; line-height: 1.25; margin-bottom: 4px;">${trimmed}</div>`
+      } else {
+        const isBold = trimmed.startsWith('So‘rayman') || trimmed.startsWith("So'rayman") || trimmed.startsWith('SO‘RAYMAN') || trimmed.startsWith("SO'RAYMAN") || trimmed.startsWith('ILTIMOS QILAMAN') || trimmed.startsWith('Ilova')
+        const isSign = trimmed.startsWith('Da‘vogar:') || trimmed.startsWith("Da'vogar:") || trimmed.startsWith('Arizachi:')
+        if (isSign) {
+          htmlContent += `<div style="margin-top: 35px; display: flex; justify-content: space-between; font-weight: bold;">${trimmed}</div>`
+        } else if (isBold) {
+          htmlContent += `<div style="font-weight: bold; margin-top: 15px; margin-bottom: 8px;">${trimmed}</div>`
+        } else {
+          htmlContent += `<div style="text-indent: 1.25cm; text-align: justify; margin-bottom: 10px; line-height: 1.3;">${trimmed}</div>`
+        }
+      }
+    }
+
     printWindow.document.write(`
       <html>
         <head>
           <title>${doc.documentName}</title>
           <style>
-            body { font-family: 'Times New Roman', serif; font-size: 14pt; line-height: 1.5; padding: 40px; color: #000; }
-            pre { white-space: pre-wrap; font-family: inherit; }
-            .header { text-align: right; margin-bottom: 30px; font-weight: bold; }
-            .stamp { border: 2px dashed #000; padding: 10px; margin-top: 40px; font-size: 10pt; }
+            @page { size: A4; margin: 20mm 15mm 20mm 25mm; }
+            body { font-family: 'Times New Roman', serif; font-size: 13pt; line-height: 1.3; padding: 25px; color: #000; }
           </style>
         </head>
         <body>
-          <pre>${renderedContent}</pre>
+          ${htmlContent}
           <script>
             window.onload = function() { window.print(); window.close(); }
           </script>
@@ -101,34 +136,74 @@ export default function OfficialDocumentFillerModal({
     printWindow.document.close()
   }
 
-  const handleDownloadDoc = () => {
+  const handleDownloadDoc = (isBlank = false) => {
+    const contentToUse = isBlank ? renderOfficialDocumentText(doc, {}) : renderedContent
+    const paragraphs = contentToUse.split('\n')
+    let bodyHtml = ''
+    let inHeader = true
+
+    for (const p of paragraphs) {
+      const trimmed = p.trim()
+      if (!trimmed) {
+        bodyHtml += '<p style="margin: 4pt 0; font-size: 6pt;">&nbsp;</p>'
+        continue
+      }
+      if (trimmed.match(/^DA['']?VO\s+ARIZA/i) || trimmed.match(/^SUD\s+BUYRUG['']?I/i) || trimmed.match(/^TURAR\s+JOY/i) || trimmed.match(/^QARZ\s+SHARTNOMASI/i) || trimmed.match(/^ILTIMOSNOMA/i) || trimmed.match(/^SHIKOYAT/i) || trimmed.match(/^KO['']?CHMAS\s+MULK/i) || trimmed.match(/^NOTARIAL/i)) {
+        inHeader = false
+        bodyHtml += `<p style="text-align: center; font-weight: bold; font-size: 14pt; margin: 18pt 0 4pt 0;">${trimmed}</p>`
+        continue
+      }
+      if (trimmed.startsWith('(') && trimmed.endsWith(')')) {
+        inHeader = false
+        bodyHtml += `<p style="text-align: center; font-size: 12pt; margin-bottom: 16pt;">${trimmed}</p>`
+        continue
+      }
+      if (inHeader) {
+        bodyHtml += `<p style="margin-left: 48%; text-align: left; margin-bottom: 3pt; font-size: 12pt; line-height: 1.15;">${trimmed}</p>`
+      } else {
+        const isBold = trimmed.startsWith('So‘rayman') || trimmed.startsWith("So'rayman") || trimmed.startsWith('SO‘RAYMAN') || trimmed.startsWith("SO'RAYMAN") || trimmed.startsWith('ILTIMOS QILAMAN') || trimmed.startsWith('Ilova')
+        const isSign = trimmed.startsWith('Da‘vogar:') || trimmed.startsWith("Da'vogar:") || trimmed.startsWith('Arizachi:')
+        if (isSign) {
+          bodyHtml += `<p style="margin-top: 30pt; font-weight: bold; font-size: 12pt;">${trimmed}</p>`
+        } else if (isBold) {
+          bodyHtml += `<p style="font-weight: bold; margin-top: 14pt; margin-bottom: 6pt; font-size: 12pt;">${trimmed}</p>`
+        } else {
+          bodyHtml += `<p style="text-indent: 1.25cm; text-align: justify; margin-bottom: 8pt; font-size: 12pt; line-height: 1.25;">${trimmed}</p>`
+        }
+      }
+    }
+
     const header = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-    <head><meta charset='utf-8'><title>${doc.documentName}</title><style>body { font-family: 'Times New Roman', serif; font-size: 14pt; line-height: 1.5; }</style></head>
-    <body><pre style="font-family: inherit; white-space: pre-wrap;">${renderedContent}</pre></body></html>`
+    <head><meta charset='utf-8'><title>${doc.documentName}</title>
+    <style>
+      @page { size: 21cm 29.7cm; margin: 2cm 1.5cm 2cm 2.5cm; }
+      body { font-family: 'Times New Roman', serif; font-size: 12pt; color: #000; }
+    </style></head>
+    <body>${bodyHtml}</body></html>`
     const blob = new Blob(['\ufeff', header], { type: 'application/msword' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `${doc.documentName.replace(/\s+/g, '_')}.doc`
+    const prefix = isBlank ? 'Bosh_Rasmiy_Blank_' : ''
+    a.download = `${prefix}${doc.documentName.replace(/\s+/g, '_')}.doc`
     a.click()
     URL.revokeObjectURL(url)
   }
 
-  const handleDownloadPdf = async () => {
+  const handleDownloadPdf = async (isBlank = false) => {
     setDownloadingPdf(true)
     try {
+      const contentToUse = isBlank ? renderOfficialDocumentText(doc, {}) : renderedContent
       const blob = await generateLegalPdf({
         title: doc.documentName,
-        subtitle: `Rasmiy blank: ${doc.officialSourceName} (${doc.issuingAuthority})`,
-        content: renderedContent,
-        date: new Date().toLocaleDateString('uz-UZ'),
-        author: doc.officialSourceName,
-        legalBasis: doc.legalBasis.map((l) => `${l.code} ${l.article}`).join(', '),
+        content: contentToUse,
+        isCourtDocument: true,
       })
-      downloadPdfBlob(blob, `${doc.documentName.replace(/\s+/g, '_')}.pdf`)
+      const prefix = isBlank ? 'Bosh_Rasmiy_Blank_' : ''
+      downloadPdfBlob(blob, `${prefix}${doc.documentName.replace(/\s+/g, '_')}.pdf`)
     } catch (e) {
       console.error(e)
-      alert('PDF yaratishda xatolik yuz berdi. Matn nusxasini nusxalab olishingiz mumkin.')
+      alert('PDF yaratishda xatolik yuz berdi. Word (.doc) shaklida yuklab olishingiz mumkin.')
     } finally {
       setDownloadingPdf(false)
     }
@@ -323,78 +398,178 @@ export default function OfficialDocumentFillerModal({
               </div>
             </div>
           ) : (
-            /* Preview and Export View */
-            <div className="space-y-6 max-w-3xl mx-auto">
-              <div className="p-8 bg-white border border-slate-300 shadow-lg rounded-xl text-slate-900 font-serif leading-relaxed text-sm">
-                <div className="border-b-2 border-slate-800 pb-4 mb-6 flex items-start justify-between">
-                  <div>
-                    <h2 className="text-lg font-bold uppercase tracking-wide">
-                      O‘zbekiston Respublikasi Rasmiy Yuridik Hujjati
-                    </h2>
-                    <p className="text-xs text-slate-500">
-                      Vakolatli organ tasdiqlagan elektron namuna · ID: {doc.id}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <Badge variant="outline" className="bg-emerald-50 text-emerald-800 border-emerald-400 font-sans text-xs">
-                      ✓ Rasmiyblank
-                    </Badge>
-                  </div>
-                </div>
-
-                <pre className="whitespace-pre-wrap font-serif text-sm leading-relaxed text-slate-800">
-                  {renderedContent}
-                </pre>
-
-                <div className="mt-8 pt-4 border-t border-slate-200 flex items-center justify-between text-[11px] text-slate-400 font-sans">
-                  <span>SHA-256 xesh: {doc.sha256Checksum.slice(0, 32)}...</span>
-                  <span>Juristiv.uz Yuridik Hujjatlar Tizimi</span>
-                </div>
+            /* Preview and Export View: Haqiqiy A4 oq qog'ozdagi sud hujjati */
+            <div className="space-y-6 max-w-4xl mx-auto">
+              {/* Yuqori bildirishnoma: 100% rasmiy andoza */}
+              <div className="flex items-center justify-between px-4 py-2 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-xl text-xs text-emerald-800 dark:text-emerald-300">
+                <span className="flex items-center gap-1.5 font-medium">
+                  <ShieldCheck className="w-4 h-4 text-emerald-500" />
+                  Ushbu hujjat {doc.officialSourceName} va amaldagi protsessual qonunchilik talablariga 100% mos rasmiy shaklda tayyorlandi.
+                </span>
+                <span className="text-[11px] text-emerald-600 dark:text-emerald-400">
+                  Sud qabuli uchun tayyor
+                </span>
               </div>
 
+              {/* A4 Formatidagi Oq Qog'oz Hujjat */}
+              <div className="p-8 sm:p-12 bg-white text-black border border-slate-300 shadow-2xl rounded-sm font-serif min-h-[700px]">
+                {(() => {
+                  const paragraphs = renderedContent.split('\n')
+                  let inHeader = true
+                  return (
+                    <div className="space-y-1">
+                      {paragraphs.map((p, idx) => {
+                        const trimmed = p.trim()
+                        if (!trimmed) {
+                          return <div key={idx} className="h-3" />
+                        }
+
+                        // Sarlavhani aniqlash
+                        const isMainTitle =
+                          trimmed.match(/^DA['']?VO\s+ARIZA/i) ||
+                          trimmed.match(/^SUD\s+BUYRUG['']?I/i) ||
+                          trimmed.match(/^TURAR\s+JOY/i) ||
+                          trimmed.match(/^QARZ\s+SHARTNOMASI/i) ||
+                          trimmed.match(/^ILTIMOSNOMA/i) ||
+                          trimmed.match(/^SHIKOYAT/i) ||
+                          trimmed.match(/^KO['']?CHMAS\s+MULK/i) ||
+                          trimmed.match(/^NOTARIAL/i)
+                        const isSubTitle = trimmed.startsWith('(') && trimmed.endsWith(')')
+
+                        if (isMainTitle) {
+                          inHeader = false
+                          return (
+                            <div key={idx} className="text-center font-bold text-base sm:text-lg pt-4 pb-1 tracking-wide">
+                              {trimmed}
+                            </div>
+                          )
+                        }
+
+                        if (isSubTitle) {
+                          inHeader = false
+                          return (
+                            <div key={idx} className="text-center italic text-xs sm:text-sm pb-4 text-slate-800">
+                              {trimmed}
+                            </div>
+                          )
+                        }
+
+                        if (inHeader) {
+                          const isBoldHeader =
+                            trimmed.startsWith('Fuqarolik') ||
+                            trimmed.startsWith('Da‘vogar:') ||
+                            trimmed.startsWith("Da'vogar:") ||
+                            trimmed.startsWith('Javobgar:') ||
+                            trimmed.startsWith('Da‘vo mazmuni:') ||
+                            trimmed.startsWith("Da'vo mazmuni:")
+                          return (
+                            <div key={idx} className="flex justify-end">
+                              <div className={`w-full max-w-[320px] sm:max-w-[380px] text-xs sm:text-sm leading-snug ${isBoldHeader ? 'font-bold' : ''}`}>
+                                {trimmed}
+                              </div>
+                            </div>
+                          )
+                        }
+
+                        const isSection =
+                          trimmed.startsWith('SO‘RAYMAN') ||
+                          trimmed.startsWith("SO'RAYMAN") ||
+                          trimmed.startsWith('So‘rayman') ||
+                          trimmed.startsWith("So'rayman") ||
+                          trimmed.startsWith('ILTIMOS QILAMAN') ||
+                          trimmed.startsWith('Ilova') ||
+                          trimmed.startsWith('1.') ||
+                          trimmed.startsWith('2.') ||
+                          trimmed.startsWith('3.')
+
+                        const isSignature =
+                          trimmed.startsWith('Da‘vogar:') ||
+                          trimmed.startsWith("Da'vogar:") ||
+                          trimmed.startsWith('Arizachi:') ||
+                          trimmed.startsWith('Sotuvchi:') ||
+                          trimmed.startsWith('Ijaraga beruvchi:')
+
+                        if (isSignature) {
+                          return (
+                            <div key={idx} className="pt-8 flex items-center justify-between text-xs sm:text-sm font-bold">
+                              <span>{trimmed}</span>
+                            </div>
+                          )
+                        }
+
+                        if (isSection) {
+                          return (
+                            <div key={idx} className="font-bold text-xs sm:text-sm pt-2 pb-1">
+                              {trimmed}
+                            </div>
+                          )
+                        }
+
+                        return (
+                          <p key={idx} className="text-xs sm:text-sm text-justify indent-6 sm:indent-8 leading-relaxed mb-2">
+                            {trimmed}
+                          </p>
+                        )
+                      })}
+                    </div>
+                  )
+                })()}
+              </div>
+
+              {/* Tugmalar paneli */}
               <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
                 <Button
                   variant="outline"
                   onClick={() => setActiveStep('fill')}
-                  className="rounded-xl"
+                  className="rounded-xl text-xs"
                 >
                   ← Qayta tahrirlash
                 </Button>
 
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <Button
                     variant="outline"
                     onClick={handleCopy}
-                    className="rounded-xl flex items-center gap-1.5"
+                    className="rounded-xl flex items-center gap-1.5 text-xs"
                   >
-                    {copied ? <CheckCircle2 className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
+                    {copied ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
                     <span>{copied ? 'Nusxalandi!' : 'Matnni nusxalash'}</span>
                   </Button>
 
                   <Button
                     variant="outline"
                     onClick={handlePrint}
-                    className="rounded-xl flex items-center gap-1.5"
+                    className="rounded-xl flex items-center gap-1.5 text-xs"
                   >
-                    <Printer className="w-4 h-4" />
+                    <Printer className="w-3.5 h-3.5" />
                     <span>Chop etish</span>
                   </Button>
 
                   <Button
                     variant="outline"
-                    onClick={handleDownloadDoc}
-                    className="rounded-xl flex items-center gap-1.5"
+                    onClick={() => handleDownloadDoc(true)}
+                    className="rounded-xl flex items-center gap-1.5 text-xs border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-300 hover:bg-amber-50"
+                    title="Sud blankasining asl to'ldirilmagan namunasini yuklab olish"
                   >
-                    <FileText className="w-4 h-4 text-blue-600" />
-                    <span>Word (.doc)</span>
+                    <FileText className="w-3.5 h-3.5 text-amber-600" />
+                    <span>Bo‘sh Asl Blank (.doc)</span>
                   </Button>
 
                   <Button
-                    onClick={handleDownloadPdf}
-                    disabled={downloadingPdf}
-                    className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl flex items-center gap-1.5 shadow"
+                    variant="outline"
+                    onClick={() => handleDownloadDoc(false)}
+                    className="rounded-xl flex items-center gap-1.5 text-xs"
                   >
-                    <Download className="w-4 h-4" />
+                    <FileText className="w-3.5 h-3.5 text-blue-600" />
+                    <span>To‘ldirilgan Word (.doc)</span>
+                  </Button>
+
+                  <Button
+                    onClick={() => handleDownloadPdf(false)}
+                    disabled={downloadingPdf}
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl flex items-center gap-1.5 text-xs shadow-md"
+                  >
+                    <Download className="w-3.5 h-3.5" />
                     <span>{downloadingPdf ? 'Tayyorlanmoqda...' : 'Rasmiy PDF yuklab olish'}</span>
                   </Button>
                 </div>

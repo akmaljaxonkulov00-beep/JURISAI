@@ -116,7 +116,7 @@ Yuqoridagi formatda JSON qaytaring.`
 
     // 2. Groq fallback
     if (!raw && GROQ_API_KEY) {
-      const CANDIDATE_MODELS = ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant']
+      const CANDIDATE_MODELS = ['qwen/qwen3.8-27b', 'openai/gpt-oss-120b', 'openai/gpt-oss-20b']
       for (const model of CANDIDATE_MODELS) {
         try {
           const response = await fetch(GROQ_API_URL, {
@@ -144,6 +144,13 @@ Yuqoridagi formatda JSON qaytaring.`
           }
         } catch {}
       }
+    }
+
+    if (!raw) {
+      return NextResponse.json(
+        { error: 'AI baholash xizmati vaqtincha band. Iltimos, qayta urinib ko‘ring.' },
+        { status: 503 }
+      )
     }
 
     // AI javobidan JSON ni ajratib olish

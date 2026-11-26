@@ -217,9 +217,9 @@ export default function AdminOfficialDocumentsManager() {
                       <div className="font-semibold text-slate-800 dark:text-slate-200">
                         {doc.officialSourceName}
                       </div>
-                      {doc.sourceUrl && (
+                      {doc.officialSourceUrl && (
                         <a
-                          href={doc.sourceUrl}
+                          href={doc.officialSourceUrl}
                           target="_blank"
                           rel="noreferrer"
                           className="inline-flex items-center gap-1 text-[11px] text-blue-600 dark:text-blue-400 hover:underline mt-0.5"

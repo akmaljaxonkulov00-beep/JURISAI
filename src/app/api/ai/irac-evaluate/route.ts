@@ -153,11 +153,11 @@ Iltimos, har bir bo'limni xolisona tekshirib, ko'rsatilgan JSON formatida javob 
 
     // ── 2. Zaxira: Groq API ──
     if (!aiContent && GROQ_API_KEY) {
-      const CANDIDATE_MODELS = ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant']
+      const CANDIDATE_MODELS = ['qwen/qwen3.8-27b', 'openai/gpt-oss-120b', 'openai/gpt-oss-20b']
 
       for (const model of CANDIDATE_MODELS) {
         const controller = new AbortController()
-        const timeoutId = setTimeout(() => controller.abort(), 20000)
+        const timeoutId = setTimeout(() => controller.abort(), 25000)
 
         try {
           const response = await fetch(GROQ_API_URL, {
@@ -241,8 +241,7 @@ Iltimos, har bir bo'limni xolisona tekshirib, ko'rsatilgan JSON formatida javob 
       sectionScores.rule +
       sectionScores.application +
       sectionScores.conclusion
-    const totalScore =
-      typeof parsed.score === 'number' ? Math.min(100, Math.max(0, parsed.score)) : computedScore
+    const totalScore = computedScore
 
     return NextResponse.json({
       success: true,

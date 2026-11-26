@@ -143,7 +143,7 @@ SENING HUQUQIY BILIM DOIRANG VA VAZIFALARING:
 ${legalContext ? `\nQO‘SHIMCHA MA'LUMOTLAR BAZASI MANBALARI (QAT'IY AMALDAGI QONUN HUJJATLARI):\n${legalContext}\n\nQAT'IY TALAB: Yuqoridagi BAZA MA'LUMOTLARI blokidagi rasmiy modda nomi va matniga so'zsiz amal qil!` : ''}`
 
     // Call Gemini (primary) with Groq fallback
-    const CANDIDATE_MODELS = ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant']
+    const CANDIDATE_MODELS = ['openai/gpt-oss-120b', 'qwen/qwen3.8-27b', 'openai/gpt-oss-20b']
 
     const apiMessages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
       { role: 'system', content: systemPrompt },

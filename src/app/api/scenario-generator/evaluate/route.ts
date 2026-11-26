@@ -37,7 +37,7 @@ SENARIY:
 - Nomi: "${scenario.title}"
 - Soha: ${scenario.legal_domain} (${scenario.difficulty})
 - Faktlar: ${scenario.facts?.join('; ')}
-- Qonuniy asoslar: ${scenario.sources?.map(s => `${s.title} (${s.article})`).join(', ')}
+- Qonuniy asoslar: ${scenario.sources?.map((s: any) => `${s.title || s.name || ''} (${s.article || s.number || ''})`).join(', ')}
 
 FOYDALANUVCHINING BOSQICHMA-BOSQICH QARORLARI:
 ${action_logs.map(l => `${l.step_number}-bosqich: "${l.action_title}" (${l.action_type}). Oqibat: ${l.consequence}. Fikr: ${l.feedback}`).join('\n')}

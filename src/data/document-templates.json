@@ -2,77 +2,112 @@
   "templates": [
     {
       "id": "davvo_ariza",
-      "name": "Da'vo arizasi",
+      "name": "Qarz undirish to‘g‘risida da‘vo arizasi",
       "category": "sud",
-      "description": "Fuqarolik ishlari bo'yicha da'vo arizasi — O'zbekiston Respublikasi Fuqarolik protsessual kodeksiga muvofiq",
-      "legal_basis": "FPK 135-moddasi",
-      "source": "O'zbekiston Respublikasi Fuqarolik protsessual kodeksi",
+      "description": "Fuqarolik ishlari bo‘yicha qarz shartnomasi va bank foizini undirish to‘g‘risida rasmiy da‘vo arizasi",
+      "legal_basis": "FK 324, 734, 735-moddalari; FPK 188, 189-moddalari",
+      "source": "O‘zbekiston Respublikasi Oliy Sudi sud amaliyoti",
       "fields": [
         {
           "name": "sud_nomi",
-          "label": "Sud nomi",
+          "label": "Fuqarolik ishlari bo‘yicha sud nomi",
           "type": "text",
           "required": true,
-          "placeholder": "Masalan: Toshkent shahar Mirzo Ulug'bek tumanlararo fuqarolik ishlari bo'yicha sudi"
+          "placeholder": "Masalan: Mirzo Ulug‘bek tumanlararo"
         },
         {
-          "name": "ariza_beruvchi_fio",
-          "label": "Ariza beruvchi (F.I.SH.)",
+          "name": "davogar_fio",
+          "label": "Da‘vogarning F.I.Sh.",
           "type": "text",
           "required": true,
-          "placeholder": "To'liq ism familiya sharifingiz"
+          "placeholder": "Abdullayev Jasur Rustamovich"
         },
         {
-          "name": "ariza_beruvchi_manzil",
-          "label": "Ariza beruvchi manzili",
+          "name": "davogar_manzili",
+          "label": "Da‘vogar yashash manzili",
           "type": "text",
           "required": true,
-          "placeholder": "Yashash manzilingiz"
+          "placeholder": "Toshkent sh., Yunusobod tumani, 4-mavze, 12-uy"
         },
         {
-          "name": "ariza_beruvchi_telefon",
-          "label": "Telefon raqami",
+          "name": "davogar_telefon",
+          "label": "Da‘vogar telefon raqami",
           "type": "tel",
-          "required": true,
-          "placeholder": "+998 XX XXX XX XX"
+          "required": false,
+          "placeholder": "+998 90 123 45 67"
         },
         {
-          "name": "davolangan_fio",
-          "label": "Da'vogar (F.I.SH.)",
+          "name": "davogar_email",
+          "label": "Da‘vogar elektron pochta manzili",
+          "type": "text",
+          "required": false,
+          "placeholder": "davogar@mail.uz"
+        },
+        {
+          "name": "javobgar_fio",
+          "label": "Javobgarning F.I.Sh.",
           "type": "text",
           "required": true,
-          "placeholder": "Da'vo qilingan shaxsning to'liq ismi"
+          "placeholder": "Karimov Sanjar Anvarovich"
         },
         {
-          "name": "davolangan_manzil",
-          "label": "Da'vogar manzili",
+          "name": "javobgar_manzili",
+          "label": "Javobgar yashash manzili",
           "type": "text",
           "required": true,
-          "placeholder": "Da'vogarning manzili"
+          "placeholder": "Toshkent sh., Mirzo Ulug‘bek tumani, 5-uy"
         },
         {
-          "name": "da'vo_mazmuni",
-          "label": "Da'vo mazmuni",
-          "type": "textarea",
+          "name": "javobgar_telefon",
+          "label": "Javobgar telefon raqami",
+          "type": "tel",
+          "required": false,
+          "placeholder": "+998 91 123 45 67"
+        },
+        {
+          "name": "javobgar_email",
+          "label": "Javobgar elektron pochta manzili",
+          "type": "text",
+          "required": false,
+          "placeholder": "javobgar@mail.uz"
+        },
+        {
+          "name": "qarz_sanasi",
+          "label": "Qarz berilgan sana",
+          "type": "text",
           "required": true,
-          "placeholder": "Qanday huquq buzilganini va nimani talab qilayotganingizni batafsil yozing"
+          "placeholder": "2024-yil 15-mart"
         },
         {
-          "name": "da'vo_summasi",
-          "label": "Da'vo summasi (so'mda)",
-          "type": "number",
-          "required": false,
-          "placeholder": "Agar pul da'vo qilsangiz"
+          "name": "qarz_summasi",
+          "label": "Qarz summasi (so‘m)",
+          "type": "text",
+          "required": true,
+          "placeholder": "25000000"
         },
         {
-          "name": "dalillar",
-          "label": "Dalillar",
-          "type": "textarea",
+          "name": "qaytarish_sanasi",
+          "label": "Qarz qaytarilishi kerak bo‘lgan sana",
+          "type": "text",
+          "required": true,
+          "placeholder": "2024-yil 1-sentabr"
+        },
+        {
+          "name": "bank_foizi",
+          "label": "Bank foizi / penya summasi (so‘m)",
+          "type": "text",
           "required": false,
-          "placeholder": "Qaysi hujjatlar dalil sifatida ko'rsatiladi"
+          "placeholder": "2500000"
+        },
+        {
+          "name": "sana",
+          "label": "Ariza sanasi",
+          "type": "text",
+          "required": false,
+          "placeholder": "2026-yil 26-noyabr"
         }
       ],
-      "body_template": "MUHIM HUJJAT — DA'VO ARIZASI\n\n{sud_nomi}\n\nAriza beruvchi: {ariza_beruvchi_fio}\nManzil: {ariza_beruvchi_manzil}\nTelefon: {ariza_beruvchi_telefon}\n\nDa'vogar: {davolangan_fio}\nManzil: {davolangan_manzil}\n\nDA'VO ARIZASI\n\n{da'vo_mazmuni}\n\nDa'vo summasi: {da'vo_summasi} so'm\n\nDalillar: {dalillar}\n\nFPK 135-moddasi asosida da'vo arizasini ko'rib chiqishni so'rayman.\n\nImzo: ________________\nSana: ________________"
+      "body_template": "Fuqarolik ishlari bo‘yicha {sud_nomi}\nsudiga\n\nDa‘vogar: {davogar_manzili}da yashovchi\n{davogar_fio}\nTelefon: {davogar_telefon}\nElektron pochta manzili: {davogar_email}\n\nJavobgar: {javobgar_manzili}da yashovchi\n{javobgar_fio}\nTelefon: {javobgar_telefon}\nElektron pochta manzili: {javobgar_email}\n\nDa‘vo mazmuni: {javobgar_fio}dan {qarz_summasi} so‘m\nqarzdorlikni undirish to‘g‘risida\n\n\nDA‘VO ARIZA\n(Qarz shartnomasi bo‘yicha qarzdorlikni undirish to‘g‘risida)\n\nIsh bo‘yicha javobgar {javobgar_fio} {qarz_sanasi}da mening oldimga kelib qarz so‘radi. Shundan so‘ng men javobgarga o‘zaro tilxat asosida {qarz_summasi} so‘m miqdorida qarz berdim. Javobgar {qarz_summasi} so‘mni {qaytarish_sanasi}ga qadar qaytarishi lozim edi, shunday bo‘lsa-da javobgar {qarz_summasi} so‘m qarzni qaytarmasdan kelayapti. Shu kunga qadar javobgarga bir necha bor qarzni qaytarishni so‘rab murojaat qildim, lekin javobgar turli xil bahonalar bilan qarzni qaytarmasdan kelmoqda.\n\nO‘zbekiston Respublikasining Fuqarolik kodeksi 324-moddasiga ko‘ra, qarzdor majburiyatni bajarmaganligi yoki lozim darajada bajarmaganligi tufayli kreditorga yetkazilgan zararni to‘lashi shart.\nAgar qonunchilikda yoki shartnomada o‘zgacha tartib nazarda tutilgan bo‘lmasa, zararni aniqlashda majburiyat bajarilishi kerak bo‘lgan joyda, qarzdor kreditorning talablarini ixtiyoriy qanoatlantirgan kunda, bordi-yu, talab ixtiyoriy qanoatlantirilgan bo‘lmasa, — da‘vo qo‘zg‘atilgan kunda mavjud bo‘lgan narxlar e‘tiborga olinadi. Sud vaziyatga qarab, zararni to‘lash haqidagi talabni qaror chiqarilgan kunda mavjud bo‘lgan narxlarni e‘tiborga olgan holda qanoatlantirishi mumkin.\n\nFuqarolik kodeksi 734-moddasida, agar qonunda yoki qarz shartnomasida boshqacha tartib nazarda tutilgan bo‘lmasa, qarz beruvchi (yuridik shaxs yoki fuqaro) qarz oluvchidan qarz summasiga shartnomada belgilangan miqdorda va tartibda foizlar olish huquqiga ega bo‘ladi.\nAgar qarz shartnomasi bo‘yicha qarz oluvchiga turga xos alomatlari bilan belgilangan ashyolar topshirilsa, ularning miqdori va shakli (pul yoki natura holidagi) shartnomada ko‘zda tutilgan hollarda foizlar to‘lanishi kerak.\nFoizlar to‘lash tartibi va muddatlari qarz shartnomasi bilan belgilanadi. Agar foizlar to‘lash tartibi va muddatlari shartnomada belgilangan bo‘lmasa, ular asosiy qarzni qaytarish uchun shartnomada nazarda tutilgan tartibda va muddatlarda to‘lanadi.\n\nFuqarolik kodeksining 735-moddasida esa qarz oluvchi olingan qarz summasini qarz shartnomasida nazarda tutilgan muddatda va tartibda qarz beruvchiga qaytarishi shart.\n\nYuqoridagilardan kelib chiqqan holda ushbu davrda javobgar qarzni qaytarmaganligi sababli {bank_foizi} so‘m miqdorida bank foizi ham undirish lozim deb hisoblayman.\n\nYuqoridagilardan kelib chiqib, O‘zbekiston Respublikasi Fuqarolik kodeksining 324, 734-735 moddalariga hamda FPKning 188, 189, 191-moddalariga asosan suddan,\n\nSo‘rayman:\n\n{javobgar_fio}dan mening foydamga {qarz_summasi} so‘m asosiy qarz hamda qarzni o‘z vaqtida qaytarmaganligi sababli {bank_foizi} so‘m miqdorida bank foizi undirib berishingizni.\n\nIlova qilingan hujjatlar:\n1. Da‘vo arizasi nusxasi;\n2. Qarz tilxati (shartnomasi) nusxasi;\n3. Davlat boji to‘langanligi to‘g‘risida kvitansiya;\n4. Pochta xarajatlari kvitansiyasi;\n5. Da‘vogar pasporti nusxasi.\n\nDa‘vogar: {davogar_fio}        ___________        {sana}"
     },
     {
       "id": "shartnoma",

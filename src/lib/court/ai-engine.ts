@@ -12,7 +12,7 @@ import { callGemini } from '@/lib/gemini'
 
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
 
-const CANDIDATE_MODELS = ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant']
+const CANDIDATE_MODELS = ['qwen/qwen3.8-27b', 'openai/gpt-oss-120b', 'openai/gpt-oss-20b']
 
 /**
  * Universal Court AI: Google Gemini birlamchi, Groq zaxira.
@@ -51,12 +51,15 @@ async function callGroqJson(
   userPrompt: string,
   maxTokens = 2500
 ): Promise<string> {
-  const apiKey = process.env.GROQ_API_KEY || 'test-groq-key'
+  const apiKey = process.env.GROQ_API_KEY
+  if (!apiKey) {
+    throw new Error('GROQ_API_KEY sozlanmagan')
+  }
 
   let lastError = ''
   for (const model of CANDIDATE_MODELS) {
     const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 18000)
+    const timeoutId = setTimeout(() => controller.abort(), 25000)
 
     try {
       const res = await fetch(GROQ_API_URL, {
@@ -73,6 +76,7 @@ async function callGroqJson(
           ],
           temperature: 0.2,
           max_tokens: maxTokens,
+          response_format: { type: 'json_object' },
         }),
         signal: controller.signal,
       })
@@ -111,7 +115,15 @@ function safeParseAiResponse(raw: string, userRole: CourtRole): StructuredAiResp
     if (cleanRaw.endsWith('```')) cleanRaw = cleanRaw.slice(0, -3)
     cleanRaw = cleanRaw.trim()
 
-    const parsed = JSON.parse(cleanRaw)
+    let parsed: any = null
+    try {
+      parsed = JSON.parse(cleanRaw)
+    } catch {
+      const jsonMatch = cleanRaw.match(/\{[\s\S]*\}/)
+      if (jsonMatch) {
+        parsed = JSON.parse(jsonMatch[0])
+      }
+    }
     if (parsed && Array.isArray(parsed.speakers) && parsed.speakers.length > 0) {
       return {
         speakers: parsed.speakers.map((s: any) => ({
@@ -176,7 +188,7 @@ function safeParseAiResponse(raw: string, userRole: CourtRole): StructuredAiResp
       valid_procedural_move: true,
       critique: 'Sud majlisi rasmiy ochildi va protsessual navbat sizga berildi.',
       etiquette_score_delta: 0,
-      argument_score_delta: 5,
+      argument_score_delta: 0,
       evidence_score_delta: 0,
     },
   }

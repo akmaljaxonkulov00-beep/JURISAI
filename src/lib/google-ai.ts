@@ -44,9 +44,9 @@ class GoogleAIService {
 
   constructor() {
     // Initialize model names
-    this.model = 'llama-3.3-70b-versatile'
-    this.legalModel = 'llama-3.3-70b-versatile'
-    console.log('Groq models initialized successfully with llama-3.3-70b-versatile')
+    this.model = 'openai/gpt-oss-120b'
+    this.legalModel = 'openai/gpt-oss-120b'
+    console.log('Groq models initialized successfully with openai/gpt-oss-120b')
   }
 
   async generateLegalResponse(request: LegalAnalysisRequest): Promise<AIResponse> {

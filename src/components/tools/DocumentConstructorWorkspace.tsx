@@ -41,37 +41,52 @@ export const VERIFIED_PRACTICE_DOCUMENTS: PracticeDocument[] = [
     codeRef: 'FK 732, 735, 736-moddalari; FPK 188, 189-moddalari',
     description:
       'Qarz shartnomasi yoki tilxat bo‘yicha qaytarilmagan asosiy qarz summasi, muddati o‘tgan kunlar uchun penya va davlat bojini javobgardan undirish namunasi.',
-    placeholders: ['Sud nomi', 'Da‘vogar F.I.Sh.', 'Da‘vogar manzili', 'Javobgar F.I.Sh.', 'Javobgar manzili', 'Qarz summasi', 'Shartnoma sanasi'],
+    placeholders: ['Sud nomi', 'Da‘vogar F.I.Sh.', 'Da‘vogar manzili', 'Telefon', 'Elektron pochta', 'Javobgar F.I.Sh.', 'Javobgar manzili', 'Qarz summasi', 'Shartnoma sanasi', 'Qaytarish sanasi', 'Bank foizi'],
     proceduralContent: `FUQAROLIK ISHLARI BO‘YICHA [Sud nomi] SUDIGA
 
-Da‘vogar: [Da‘vogar F.I.Sh.]
-Yashash manzili: [Da‘vogar manzili], Tel: [Telefon raqami]
-Javobgar: [Javobgar F.I.Sh.]
-Yashash manzili: [Javobgar manzili], Tel: [Javobgar telefoni]
-Da‘vo bahosi: [Qarz summasi] so‘m
-Davlat boji: [Davlat boji summasi] so‘m
+Da‘vogar: [Da‘vogar manzili]da yashovchi
+[Da‘vogar F.I.Sh.]
+Telefon: [Telefon]
+Elektron pochta manzili: [Elektron pochta]
 
-DA‘VO ARIZASI
-(Qarz summasi va penya undirish to‘g‘risida)
+Javobgar: [Javobgar manzili]da yashovchi
+[Javobgar F.I.Sh.]
+Telefon: [Javobgar telefoni]
+Elektron pochta manzili: [Javobgar elektron pochtasi]
 
-[Shartnoma sanasi] yilda men va javobgar [Javobgar F.I.Sh.] o‘rtasida qarz shartnomasi (tilxat) tuzilgan. Mazkur kelishuvga binoan, men javobgarga [Qarz summasi] so‘m miqdoridagi pul mablag‘ini [Qaytarish sanasi] gacha qaytarish sharti bilan berganman.
+Da‘vo mazmuni: [Javobgar F.I.Sh.]dan [Qarz summasi] so‘m
+qarzdorlikni undirish to‘g‘risida
 
-Biroq, javobgar majburiyatini o‘z vaqtida bajarmasdan, belgilangan muddat o‘tgan bo‘lsa-da, qarz mablag‘ini qaytarishdan bo‘yin tovlab kelmoqda. Mening takroriy og‘zaki va yozma talablarim e‘tiborsiz qoldirildi.
 
-O‘zbekiston Respublikasi Fuqarolik Kodeksining 236-moddasiga asosan majburiyatlar tegishli tartibda bajarilishi shart. FKning 732, 735-moddalariga muvofiq, qarz oluvchi qarz beruvchiga olingan qarz summasini shartnomada kelishilgan muddatda va tartibda qaytarishi shart.
+DA‘VO ARIZA
+(Qarz shartnomasi bo‘yicha qarzdorlikni undirish to‘g‘risida)
 
-Yuqoridagilarga ko‘ra, O‘zbekiston Respublikasi FPKning 188, 189-moddalariga asosan,
+Ish bo‘yicha javobgar [Javobgar F.I.Sh.] [Shartnoma sanasi]da mening oldimga kelib qarz so‘radi. Shundan so‘ng men javobgarga o‘zaro tilxat asosida [Qarz summasi] so‘m miqdorida qarz berdim. Javobgar [Qarz summasi] so‘mni [Qaytarish sanasi]ga qadar qaytarishi lozim edi, shunday bo‘lsa-da javobgar [Qarz summasi] so‘m qarzni qaytarmasdan kelayapti. Shu kunga qadar javobgarga bir necha bor qarzni qaytarishni so‘rab murojaat qildim, lekin javobgar turli xil bahonalar bilan qarzni qaytarmasdan kelmoqda.
+
+O‘zbekiston Respublikasining Fuqarolik kodeksi 324-moddasiga ko‘ra, qarzdor majburiyatni bajarmaganligi yoki lozim darajada bajarmaganligi tufayli kreditorga yetkazilgan zararni to‘lashi shart.
+Agar qonunchilikda yoki shartnomada o‘zgacha tartib nazarda tutilgan bo‘lmasa, zararni aniqlashda majburiyat bajarilishi kerak bo‘lgan joyda, qarzdor kreditorning talablarini ixtiyoriy qanoatlantirgan kunda, bordi-yu, talab ixtiyoriy qanoatlantirilgan bo‘lmasa, — da‘vo qo‘zg‘atilgan kunda mavjud bo‘lgan narxlar e‘tiborga olinadi. Sud vaziyatga qarab, zararni to‘lash haqidagi talabni qaror chiqarilgan kunda mavjud bo‘lgan narxlarni e‘tiborga olgan holda qanoatlantirishi mumkin.
+
+Fuqarolik kodeksi 734-moddasida, agar qonunda yoki qarz shartnomasida boshqacha tartib nazarda tutilgan bo‘lmasa, qarz beruvchi (yuridik shaxs yoki fuqaro) qarz oluvchidan qarz summasiga shartnomada belgilangan miqdorda va tartibda foizlar olish huquqiga ega bo‘ladi.
+Agar qarz shartnomasi bo‘yicha qarz oluvchiga turga xos alomatlari bilan belgilangan ashyolar topshirilsa, ularning miqdori va shakli (pul yoki natura holidagi) shartnomada ko‘zda tutilgan hollarda foizlar to‘lanishi kerak.
+Foizlar to‘lash tartibi va muddatlari qarz shartnomasi bilan belgilanadi. Agar foizlar to‘lash tartibi va muddatlari shartnomada belgilangan bo‘lmasa, ular asosiy qarzni qaytarish uchun shartnomada nazarda tutilgan tartibda va muddatlarda to‘lanadi.
+
+Fuqarolik kodeksining 735-moddasida esa qarz oluvchi olingan qarz summasini qarz shartnomasida nazarda tutilgan muddatda va tartibda qarz beruvchiga qaytarishi shart.
+
+Yuqoridagilardan kelib chiqqan holda ushbu davrda javobgar qarzni qaytarmaganligi sababli [Bank foizi] so‘m miqdorida bank foizi ham undirish lozim deb hisoblayman.
+
+Yuqoridagilardan kelib chiqib, O‘zbekiston Respublikasi Fuqarolik kodeksining 324, 734-735 moddalariga hamda FPKning 188, 189, 191-moddalariga asosan suddan,
 
 SO‘RAYMAN:
-1. Javobgar [Javobgar F.I.Sh.] dan mening foydamga [Qarz summasi] so‘m asosiy qarz summasini undirishingizni;
-2. Majburiyat kechiktirilganligi uchun [Penya summasi] so‘m miqdorida penya undirishingizni;
-3. Da‘vo arizasi uchun to‘langan [Davlat boji summasi] so‘m davlat boji va pochta xarajatlarini javobgardan undirib berishingizni.
+1. Javobgar [Javobgar F.I.Sh.]dan mening foydamga [Qarz summasi] so‘m asosiy qarz summasini undirishingizni;
+2. Majburiyat kechiktirilganligi uchun [Bank foizi] so‘m miqdorida bank foizini undirishingizni;
+3. Da‘vo arizasi uchun to‘langan davlat boji va pochta xarajatlarini javobgardan undirib berishingizni.
 
-Ilova:
+Ilova qilingan hujjatlar:
 1. Da‘vo arizasi nusxasi;
 2. Qarz shartnomasi (yoki tilxat) nusxasi;
 3. Davlat boji to‘langanligi to‘g‘risida kvitansiya;
-4. Pasport nusxasi.
+4. Pochta xarajatlari to‘langanligi kvitansiyasi;
+5. Da‘vogar pasport nusxasi.
 
 Da‘vogar: ____________________ [Da‘vogar F.I.Sh.]
 Sana: 2026-yil "___" ____________`,

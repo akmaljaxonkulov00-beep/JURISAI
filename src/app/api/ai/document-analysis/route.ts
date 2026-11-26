@@ -91,7 +91,7 @@ export async function POST(req: NextRequest) {
 
     // ── 2. Zaxira: Groq API ──
     if (!analysisText && GROQ_API_KEY) {
-      const CANDIDATE_MODELS = ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant']
+      const CANDIDATE_MODELS = ['openai/gpt-oss-120b', 'qwen/qwen3.8-27b', 'openai/gpt-oss-20b']
       for (const model of CANDIDATE_MODELS) {
         try {
           const response = await fetch(GROQ_API_URL, {

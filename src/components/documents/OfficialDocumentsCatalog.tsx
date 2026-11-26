@@ -24,7 +24,9 @@ import { Button } from '@/components/ui/Button'
 import {
   OFFICIAL_DOCUMENTS_REGISTRY,
   OfficialLegalDocument,
+  renderOfficialDocumentText,
 } from '@/lib/documents/official-documents-data'
+import { Download } from 'lucide-react'
 import OfficialDocumentFillerModal from './OfficialDocumentFillerModal'
 
 const CATEGORIES = [
@@ -50,6 +52,21 @@ export default function OfficialDocumentsCatalog() {
   const [selectedSource, setSelectedSource] = useState('Barchasi')
   const [activeModalDoc, setActiveModalDoc] = useState<OfficialLegalDocument | null>(null)
   const [documents, setDocuments] = useState<OfficialLegalDocument[]>(OFFICIAL_DOCUMENTS_REGISTRY)
+
+  const downloadBlankDoc = (doc: OfficialLegalDocument, e: React.MouseEvent) => {
+    e.stopPropagation()
+    const content = renderOfficialDocumentText(doc, {})
+    const header = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+    <head><meta charset='utf-8'><title>${doc.documentName}</title><style>@page { size: 21cm 29.7cm; margin: 2cm 1.5cm 2cm 2.5cm; } body { font-family: 'Times New Roman', serif; font-size: 12pt; }</style></head>
+    <body><pre style="font-family: inherit; white-space: pre-wrap;">${content}</pre></body></html>`
+    const blob = new Blob(['\ufeff', header], { type: 'application/msword' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `Asl_Blank_${doc.documentName.replace(/\s+/g, '_')}.doc`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
 
   // Filtered documents
   const filteredDocs = useMemo(() => {
@@ -254,10 +271,15 @@ export default function OfficialDocumentsCatalog() {
             </div>
 
             {/* Bottom Actions */}
-            <div className="pt-5 mt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-              <span className="text-[11px] text-slate-400">
-                v{doc.versionNumber} · {doc.fields.length} ta rekvizit
-              </span>
+            <div className="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+              <button
+                onClick={(e) => downloadBlankDoc(doc, e)}
+                className="text-[11px] font-medium text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 flex items-center gap-1 transition"
+                title="Rasmiy sud blankining asl nusxasini yuklab olish"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Asl blank (.doc)</span>
+              </button>
 
               <Button
                 onClick={() => setActiveModalDoc(doc)}

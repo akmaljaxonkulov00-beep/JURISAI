@@ -135,7 +135,8 @@ export class AIClient {
     if (request.systemPrompt) {
       messages.push({ role: 'system', content: request.systemPrompt })
     }
-    const CANDIDATE_MODELS = ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant']
+    messages.push({ role: 'user', content: request.prompt })
+    const CANDIDATE_MODELS = ['qwen/qwen3.8-27b', 'openai/gpt-oss-120b', 'openai/gpt-oss-20b']
 
     let responseText = ''
     let usageData = { promptTokens: 0, completionTokens: 0, totalTokens: 0 }

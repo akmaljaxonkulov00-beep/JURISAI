@@ -97,7 +97,7 @@ ${caseText}
 
 Iltimos, O'zbekiston Respublikasi amaldagi qonunchiligi asosida har bir bo'limni to'liq, mukammal va professional tarzda yuqoridagi JSON formatida qaytaring.`
 
-    const CANDIDATE_MODELS = ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant']
+    const CANDIDATE_MODELS = ['qwen/qwen3.8-27b', 'openai/gpt-oss-120b', 'openai/gpt-oss-20b']
 
     let analysisText = ''
     let lastError = ''
@@ -124,7 +124,7 @@ Iltimos, O'zbekiston Respublikasi amaldagi qonunchiligi asosida har bir bo'limni
     if (!analysisText && GROQ_API_KEY) {
       for (const model of CANDIDATE_MODELS) {
         const controller = new AbortController()
-        const timeoutId = setTimeout(() => controller.abort(), 20000)
+        const timeoutId = setTimeout(() => controller.abort(), 25000)
 
         try {
           const response = await fetch(GROQ_API_URL, {

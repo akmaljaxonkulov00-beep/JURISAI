@@ -175,6 +175,7 @@ type TabType =
   | 'court_scenarios'
   | 'community'
   | 'templates'
+  | 'official_documents'
   | 'settings'
 
 export default function AdminDashboard() {

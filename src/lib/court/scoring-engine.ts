@@ -293,26 +293,44 @@ Javobni FAQAT toza JSON formatida ber:
       if (clean.endsWith('```')) clean = clean.slice(0, -3)
       clean = clean.trim()
 
-      const parsed = JSON.parse(clean)
+      let parsed: any = null
+      try {
+        parsed = JSON.parse(clean)
+      } catch {
+        const jsonMatch = clean.match(/\{[\s\S]*\}/)
+        if (jsonMatch) {
+          parsed = JSON.parse(jsonMatch[0])
+        }
+      }
+
       if (parsed && typeof parsed.totalScore === 'number') {
-        const total = Math.min(100, Math.max(10, Math.round(parsed.totalScore)))
+        const legalReasoning = Math.min(100, Math.max(0, Math.round(Number(parsed.legalReasoning) || 0)))
+        const argumentQuality = Math.min(100, Math.max(0, Math.round(Number(parsed.argumentQuality) || 0)))
+        const evidenceUsage = Math.min(100, Math.max(0, Math.round(Number(parsed.evidenceUsage) || 0)))
+        const proceduralCorrectness = Math.min(100, Math.max(0, Math.round(Number(parsed.proceduralCorrectness) || 0)))
+        const strategy = Math.min(100, Math.max(0, Math.round(Number(parsed.strategy) || 0)))
+        const impartiality =
+          session.selected_role === 'SUDYA'
+            ? Math.min(100, Math.max(0, Math.round(Number(parsed.impartiality) || 0)))
+            : undefined
+        const total = Math.min(100, Math.max(0, Math.round(parsed.totalScore)))
         const achievements: string[] = []
         if (total >= 85) achievements.push('Oliy Mahorat')
-        if ((parsed.proceduralCorrectness || 0) >= 85) achievements.push('Qonun Posboni')
-        if ((parsed.evidenceUsage || 0) >= 80) achievements.push('Dalil Ustasi')
-        if ((parsed.argumentQuality || 0) >= 80) achievements.push('Notiq')
-        if (session.procedural_violations.length === 0) achievements.push('Benuqson Tartib')
-        if (session.selected_role === 'SUDYA' && (parsed.impartiality || 0) >= 80) achievements.push('Xolis Hakam')
+        if (proceduralCorrectness >= 85) achievements.push('Qonun Posboni')
+        if (evidenceUsage >= 80) achievements.push('Dalil Ustasi')
+        if (argumentQuality >= 80) achievements.push('Notiq')
+        if (session.procedural_violations.length === 0 && total >= 60) achievements.push('Benuqson Tartib')
+        if (session.selected_role === 'SUDYA' && (impartiality || 0) >= 80) achievements.push('Xolis Hakam')
 
         return {
-          legalReasoning: Math.min(100, Math.max(0, Math.round(parsed.legalReasoning || baseResult.legalReasoning))),
-          argumentQuality: Math.min(100, Math.max(0, Math.round(parsed.argumentQuality || baseResult.argumentQuality))),
-          evidenceUsage: Math.min(100, Math.max(0, Math.round(parsed.evidenceUsage || baseResult.evidenceUsage))),
-          proceduralCorrectness: Math.min(100, Math.max(0, Math.round(parsed.proceduralCorrectness || baseResult.proceduralCorrectness))),
-          strategy: Math.min(100, Math.max(0, Math.round(parsed.strategy || baseResult.strategy))),
-          impartiality: session.selected_role === 'SUDYA' ? Math.min(100, Math.max(0, Math.round(parsed.impartiality || 80))) : undefined,
+          legalReasoning,
+          argumentQuality,
+          evidenceUsage,
+          proceduralCorrectness,
+          strategy,
+          impartiality,
           totalScore: total,
-          xpEarned: Math.round(total * 1.8 + baseResult.xpEarned),
+          xpEarned: Math.round(total * 1.8),
           achievements,
           feedbackSummary: parsed.feedbackSummary || baseResult.feedbackSummary,
           detailedCritique: Array.isArray(parsed.detailedCritique) && parsed.detailedCritique.length > 0 ? parsed.detailedCritique : baseResult.detailedCritique,
