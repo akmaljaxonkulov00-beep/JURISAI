@@ -210,12 +210,56 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      // Ishtirokchilar holatini sozlash (foydalanuvchi belgisini qo'yish)
-      const participants = scenario.participants.map((p: ParticipantPersona) => ({
-        ...p,
-        isUser: p.role === roleUpper,
-        statementsMade: [],
-      }))
+      // Ishtirokchilar holatini sozlash (foydalanuvchi roli va haqiqiy ismini aniq biriktirish)
+      const displayUserName =
+        (typeof userName === 'string' && userName.trim()) ||
+        auth.user.email?.split('@')[0] ||
+        'Foydalanuvchi'
+
+      const isDefenseOrPlaintiff = ['ADVOKAT', 'DAVOGAR', 'VAKIL', 'ARIZACHI'].includes(roleUpper)
+      const isProsecutionOrDefendant = ['PROKUROR', 'JAVOBGAR', 'JAVOBGAR_ORGAN'].includes(roleUpper)
+
+      let assignedUser = false
+      const participants = scenario.participants.map((p: ParticipantPersona) => {
+        const pRole = (p.role || '').toUpperCase()
+        const exactMatch = pRole === roleUpper
+        const adaptiveMatch =
+          !assignedUser &&
+          ((isDefenseOrPlaintiff && ['ADVOKAT', "DA'VOGAR", 'DAVOGAR', 'ARIZACHI'].includes(pRole)) ||
+            (isProsecutionOrDefendant && ['PROKUROR', 'JAVOBGAR', 'JAVOBGAR_ORGAN'].includes(pRole)))
+
+        if (!assignedUser && (exactMatch || adaptiveMatch)) {
+          assignedUser = true
+          return {
+            ...p,
+            role: roleUpper,
+            name: displayUserName,
+            title: `${roleUpper} (${p.title})`,
+            isUser: true,
+            statementsMade: [],
+          }
+        }
+        return {
+          ...p,
+          isUser: false,
+          statementsMade: [],
+        }
+      })
+
+      if (!assignedUser) {
+        participants.push({
+          id: `part_user_${Date.now()}`,
+          role: roleUpper,
+          title: `${roleUpper} (Siz)`,
+          name: displayUserName,
+          avatarIcon: roleUpper === 'SUDYA' ? '⚖️' : '👤',
+          isUser: true,
+          objective: `${roleUpper} sifatida protsessual pozitsiyani asoslash`,
+          allowedKnowledge: ['umumiy_ish_materiallari'],
+          communicationStyle: 'formal',
+          statementsMade: [],
+        })
+      }
 
       // Boshlang'ich bosqich
       const initialStage = scenario.stages[0]

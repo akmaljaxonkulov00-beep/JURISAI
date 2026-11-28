@@ -688,172 +688,170 @@ export default function DecisionTreePage() {
     <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 text-slate-900 dark:text-zinc-100 flex flex-col select-none">
       <FeatureInstructions featureName="Qarorlar Daraxti" steps={INSTRUCTIONS} tips={TIPS} />
 
-      {/* Top Application Bar */}
-      <header className="h-16 px-4 sm:px-6 bg-white dark:bg-zinc-900 border-b border-slate-200 dark:border-zinc-800 flex items-center justify-between z-20">
-        <div className="flex items-center gap-3">
+      {/* Top Application Bar — Mobile-first responsive */}
+      <header className="px-3 sm:px-6 py-2.5 bg-white dark:bg-zinc-900 border-b border-slate-200 dark:border-zinc-800 flex flex-wrap items-center justify-between gap-2 z-20">
+        <div className="flex items-center gap-2.5 min-w-0">
           <button
             onClick={() => router.push('/dashboard')}
-            className="p-2 text-slate-500 hover:text-slate-800 dark:hover:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-xl transition-colors"
+            className="p-2 text-slate-500 hover:text-slate-800 dark:hover:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-xl transition-colors shrink-0"
             title="Bosh sahifaga qaytish"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <div className="flex items-center gap-2">
-            <div className="w-9 h-9 rounded-xl bg-blue-600/10 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400 flex items-center justify-center font-bold">
-              <GitBranch className="w-5 h-5" />
-            </div>
-            <div>
-              <h1 className="text-sm sm:text-base font-bold text-slate-800 dark:text-zinc-100 flex items-center gap-2">
-                {currentCase?.name || 'Qarorlar Daraxti'}
-                {currentCase?.case_type && (
-                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 uppercase">
-                    {currentCase.case_type}
-                  </span>
-                )}
-              </h1>
-              <p className="text-[11px] text-slate-500 dark:text-zinc-400">
-                Oʻzbekiston qonunchiligiga asoslangan interaktiv qaror qabul qilish simulyatori
-              </p>
-            </div>
+          <div className="w-9 h-9 rounded-xl bg-blue-600/10 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400 flex items-center justify-center font-bold shrink-0">
+            <GitBranch className="w-5 h-5" />
+          </div>
+          <div className="min-w-0">
+            <h1 className="text-sm sm:text-base font-bold text-slate-800 dark:text-zinc-100 flex items-center gap-2 truncate">
+              <span className="truncate">{currentCase?.name || 'Qarorlar Daraxti'}</span>
+              {currentCase?.case_type && (
+                <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 uppercase shrink-0">
+                  {currentCase.case_type}
+                </span>
+              )}
+            </h1>
+            <p className="text-[11px] text-slate-500 dark:text-zinc-400 hidden sm:block">
+              Sodda vizual huquqiy qarorlar konstruktori (If / Then / Else)
+            </p>
           </div>
         </div>
 
-        {/* Top Header Actions */}
-        <div className="flex items-center gap-2">
-          {/* Mode Switcher */}
-          <div className="flex items-center p-1 bg-slate-100 dark:bg-zinc-800 rounded-xl mr-2">
+        {/* Mode Switcher + Primary Actions */}
+        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 w-full sm:w-auto justify-between sm:justify-end">
+          <div className="flex items-center p-1 bg-slate-100 dark:bg-zinc-800 rounded-xl">
             <button
-              onClick={() => setViewMode('guided')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
-                viewMode === 'guided'
-                  ? 'bg-white dark:bg-zinc-900 text-blue-600 dark:text-blue-400 shadow-sm'
-                  : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900'
-              }`}
-            >
-              <HelpCircle className="w-3.5 h-3.5" />
-              <span>Yo‘l ko‘rsatuvchi</span>
-            </button>
-            <button
-              onClick={() => {
-                if (!currentCase) {
-                  handleSwitchToVisual('civil-debt')
-                } else {
-                  setViewMode('visual')
-                }
-              }}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+              onClick={() => setViewMode('visual')}
+              className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
                 viewMode === 'visual'
                   ? 'bg-white dark:bg-zinc-900 text-blue-600 dark:text-blue-400 shadow-sm'
                   : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900'
               }`}
             >
               <GitBranch className="w-3.5 h-3.5" />
-              <span>Grafik Daraxt</span>
+              <span>Konstruktor</span>
+            </button>
+            <button
+              onClick={() => setViewMode('guided')}
+              className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+                viewMode === 'guided'
+                  ? 'bg-white dark:bg-zinc-900 text-blue-600 dark:text-blue-400 shadow-sm'
+                  : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900'
+              }`}
+            >
+              <HelpCircle className="w-3.5 h-3.5" />
+              <span>Qo‘llanma</span>
             </button>
           </div>
 
-          {/* Quick Scenario Selector & Blank Builder when in Visual Mode */}
-          {viewMode === 'visual' && (
-            <div className="hidden md:flex items-center gap-1.5">
-              <button
-                onClick={handleCreateBlankTree}
-                className="text-xs px-2.5 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 font-semibold hover:bg-indigo-100 transition-colors"
-              >
-                + Noldan qurish
-              </button>
-              <button
-                onClick={handleUndo}
-                disabled={undoStack.length === 0}
-                title="Bekor qilish (Undo)"
-                className="p-1.5 rounded-lg border border-slate-200 dark:border-zinc-700 text-slate-600 dark:text-zinc-300 disabled:opacity-40"
-              >
-                <Undo2 className="w-3.5 h-3.5" />
-              </button>
-              <button
-                onClick={handleRedo}
-                disabled={redoStack.length === 0}
-                title="Qaytarish (Redo)"
-                className="p-1.5 rounded-lg border border-slate-200 dark:border-zinc-700 text-slate-600 dark:text-zinc-300 disabled:opacity-40"
-              >
-                <Redo2 className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          )}
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => setIsHistoryOpen(true)}
+              className="flex items-center gap-1 px-2.5 py-2 text-xs font-semibold text-slate-700 dark:text-zinc-200 bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 rounded-xl transition-colors"
+              title="Saqlangan ishlar tarixi"
+            >
+              <FolderOpen className="w-4 h-4 text-blue-600" />
+              <span>Tarix ({savedCases.length})</span>
+            </button>
 
-          {/* Quick Scenario Selector when in Visual Mode */}
-          {viewMode === 'visual' && (
+            <button
+              onClick={() => saveCaseToDb()}
+              disabled={!currentCase || saving}
+              className="flex items-center gap-1 px-2.5 py-2 text-xs font-semibold text-slate-700 dark:text-zinc-200 bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 disabled:opacity-50 rounded-xl transition-all"
+              title="Daraxtni saqlash"
+            >
+              <Save className="w-4 h-4" />
+              <span className="hidden sm:inline">{saving ? '...' : 'Saqlash'}</span>
+            </button>
+
+            <button
+              onClick={handleExportPdf}
+              disabled={!currentCase}
+              className="flex items-center gap-1 px-2.5 py-2 text-xs font-semibold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/30 hover:bg-rose-100 disabled:opacity-40 rounded-xl transition-colors"
+              title="PDF hisobot"
+            >
+              <FileDown className="w-4 h-4" />
+              <span className="hidden sm:inline">PDF</span>
+            </button>
+
+            <button
+              onClick={() => setIsNewCaseOpen(true)}
+              className="flex items-center gap-1 px-3 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-sm transition-all"
+            >
+              <Plus className="w-4 h-4" />
+              <span>AI Yaratish</span>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* Always-Visible Builder Toolbar in Visual Mode (Mobile + Desktop) */}
+      {viewMode === 'visual' && (
+        <div className="px-3 sm:px-6 py-2 bg-slate-50 dark:bg-zinc-900/70 border-b border-slate-200 dark:border-zinc-800 flex flex-wrap items-center justify-between gap-2 z-10">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <button
+              onClick={handleCreateBlankTree}
+              className="text-xs px-3 py-1.5 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition-colors flex items-center gap-1 shadow-xs"
+            >
+              <Plus className="w-3.5 h-3.5" /> Noldan qurish
+            </button>
+            <button
+              onClick={handleUndo}
+              disabled={undoStack.length === 0}
+              className="text-xs px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-slate-700 dark:text-zinc-200 disabled:opacity-40 flex items-center gap-1"
+            >
+              <Undo2 className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Ortga</span>
+            </button>
+            <button
+              onClick={handleRedo}
+              disabled={redoStack.length === 0}
+              className="text-xs px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-slate-700 dark:text-zinc-200 disabled:opacity-40 flex items-center gap-1"
+            >
+              <Redo2 className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Oldinga</span>
+            </button>
+            {logicValidation && (
+              <button
+                onClick={() => {
+                  setSelectedNode(null)
+                  setMobileTab('stats')
+                }}
+                className={`text-xs px-2.5 py-1.5 rounded-xl font-semibold border flex items-center gap-1 ${
+                  logicValidation.isValid && logicValidation.issues.length === 0
+                    ? 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300'
+                    : 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300'
+                }`}
+              >
+                <AlertTriangle className="w-3.5 h-3.5" />
+                <span>Tekshiruv: {logicValidation.score}/100</span>
+              </button>
+            )}
+          </div>
+
+          <div className="flex items-center gap-1.5 w-full sm:w-auto">
             <select
               value={currentCase?.id?.replace('case_', '') || ''}
               onChange={(e) => handleSwitchToVisual(e.target.value)}
-              className="text-xs px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-slate-700 dark:text-zinc-200 font-medium focus:ring-1 focus:ring-blue-500"
+              className="flex-1 sm:flex-none text-xs px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-slate-700 dark:text-zinc-200 font-medium"
             >
-              <option value="" disabled>Namuna tanlang...</option>
+              <option value="" disabled>Tayyor namuna tanlang...</option>
               {GUIDED_SCENARIOS.map((sc) => (
                 <option key={sc.id} value={sc.id}>
                   {sc.icon} {sc.title}
                 </option>
               ))}
             </select>
-          )}
-
-          <button
-            onClick={() => setIsHistoryOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-zinc-200 bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 rounded-xl transition-colors"
-            title="Saqlangan ishlar tarixi"
-          >
-            <FolderOpen className="w-4 h-4 text-blue-600" />
-            <span className="hidden sm:inline">Tarix ({savedCases.length})</span>
-          </button>
-
-          <button
-            onClick={() => setIsComparisonOpen(true)}
-            disabled={!currentCase || comparisonVariants.length === 0}
-            className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-zinc-200 bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 disabled:opacity-40 rounded-xl transition-colors"
-            title="Variantlarni taqqoslash"
-          >
-            <Scale className="w-4 h-4 text-indigo-600" />
-            <span className="hidden sm:inline">Taqqoslash</span>
-          </button>
-
-          <button
-            onClick={handleExportPdf}
-            disabled={!currentCase}
-            className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/30 hover:bg-rose-100 dark:hover:bg-rose-950/50 disabled:opacity-40 rounded-xl transition-colors"
-            title="PDF hisobot"
-          >
-            <FileDown className="w-4 h-4" />
-            <span className="hidden sm:inline">PDF</span>
-          </button>
-
-          <button
-            onClick={() => saveCaseToDb()}
-            disabled={!currentCase || saving}
-            className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-zinc-200 bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 disabled:opacity-50 rounded-xl transition-all"
-            title="Daraxtni saqlash"
-          >
-            <Save className="w-4 h-4" />
-            <span className="hidden sm:inline">{saving ? 'Saqlanmoqda...' : 'Saqlash'}</span>
-          </button>
-
-          <button
-            onClick={() => handleCompleteCase()}
-            disabled={!currentCase || saving || currentCase.status === 'completed'}
-            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 rounded-xl shadow-sm shadow-blue-500/20 transition-all"
-            title="Daraxtni yakunlash va XP olish"
-          >
-            <CheckCircle2 className="w-4 h-4" />
-            <span>{currentCase?.status === 'completed' ? 'Yakunlangan' : 'Yakunlash'}</span>
-          </button>
-
-          <button
-            onClick={() => setIsNewCaseOpen(true)}
-            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-sm shadow-emerald-500/20 transition-all"
-          >
-            <Plus className="w-4 h-4" />
-            <span className="hidden md:inline">Yangi Ish</span>
-          </button>
+            <button
+              onClick={() => handleCompleteCase()}
+              disabled={!currentCase || saving || currentCase.status === 'completed'}
+              className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 rounded-xl"
+            >
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              <span>{currentCase?.status === 'completed' ? 'Yakunlangan' : 'Yakunlash'}</span>
+            </button>
+          </div>
         </div>
-      </header>
+      )}
 
       {/* Toast Notification */}
       {successToast && (
@@ -1076,14 +1074,19 @@ export default function DecisionTreePage() {
 
         {/* CENTER PANE (Interactive Decision Tree Graph) */}
         <div
-          className={`lg:col-span-6 h-full p-2 sm:p-4 flex-col bg-slate-100/60 dark:bg-zinc-950 overflow-hidden ${mobileTab === 'graph' ? 'flex' : 'hidden lg:flex'}`}
+          className={`lg:col-span-6 h-full min-h-[420px] p-2 sm:p-4 flex-col bg-slate-100/60 dark:bg-zinc-950 overflow-hidden ${mobileTab === 'graph' ? 'flex' : 'hidden lg:flex'}`}
         >
           {currentCase?.tree ? (
             <DecisionTreeGraph
               tree={currentCase.tree}
               selectedNodeId={selectedNode?.id || null}
               activePathIds={activePathIds}
-              onSelectNode={node => setSelectedNode(node)}
+              onSelectNode={node => {
+                setSelectedNode(node)
+                if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+                  setMobileTab('stats')
+                }
+              }}
               onToggleCollapse={handleToggleCollapse}
               onAddChildNode={handleAddChildNode}
             />

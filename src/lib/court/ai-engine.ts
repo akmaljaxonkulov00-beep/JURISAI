@@ -107,7 +107,11 @@ async function callGroqJson(
 /**
  * AI javobini JSON sifatida parse qiladi, buzilgan bo'lsa xavfsiz tuzatadi.
  */
-function safeParseAiResponse(raw: string, userRole: CourtRole): StructuredAiResponse {
+function safeParseAiResponse(
+  raw: string,
+  userRole: CourtRole,
+  fallbackAiSpeaker?: { name: string; role: string }
+): StructuredAiResponse {
   try {
     let cleanRaw = raw.trim()
     if (cleanRaw.startsWith('```json')) cleanRaw = cleanRaw.slice(7)
@@ -125,15 +129,37 @@ function safeParseAiResponse(raw: string, userRole: CourtRole): StructuredAiResp
       }
     }
     if (parsed && Array.isArray(parsed.speakers) && parsed.speakers.length > 0) {
-      return {
-        speakers: parsed.speakers.map((s: any) => ({
+      // Strictly exclude speakers matching the user's selected role so AI never impersonates the user
+      const filteredSpeakers = parsed.speakers
+        .filter((s: any) => String(s.role || '').toUpperCase().trim() !== userRole)
+        .map((s: any) => ({
           speaker: ensureUzbekLatin(s.speaker || 'Ishtirokchi'),
-          role: s.role || 'SUDYA',
+          role: String(s.role || fallbackAiSpeaker?.role || 'SUDYA').toUpperCase(),
           message: ensureUzbekLatin(s.message || ''),
           action: s.action || 'speak',
           evidence_reference: Array.isArray(s.evidence_reference) ? s.evidence_reference : [],
           reaction_to_user: s.reaction_to_user ? ensureUzbekLatin(s.reaction_to_user) : undefined,
-        })),
+        }))
+        .filter((s: any) => s.message.length > 0)
+
+      const safeSpeakers =
+        filteredSpeakers.length > 0
+          ? filteredSpeakers
+          : [
+              {
+                speaker: fallbackAiSpeaker?.name || (userRole === 'SUDYA' ? 'Sud kotibi' : 'Sud raisi'),
+                role: fallbackAiSpeaker?.role || (userRole === 'SUDYA' ? 'KOTIB' : 'SUDYA'),
+                message:
+                  userRole === 'SUDYA'
+                    ? 'Muhtaram Sudya, taraflar sizning protsessual qaroringizni kutmoqda.'
+                    : `Rahmat. ${userRole}ning bayonoti qayd etildi. Endi qarshi taraf yoki sud fikri tinglanadi.`,
+                action: 'speak',
+                evidence_reference: [],
+              },
+            ]
+
+      return {
+        speakers: safeSpeakers,
         stage_update: parsed.stage_update,
         user_feedback: parsed.user_feedback
           ? {
@@ -208,8 +234,14 @@ export async function generateCourtAiTurn(params: {
 }): Promise<StructuredAiResponse> {
   const { scenario, stage, userRole, userName, session, userAction, isOpening } = params
 
-  // 1. AI boshqaradigan participantlar (userdan tashqari barcha)
-  const aiParticipants = scenario.participants.filter(p => p.role !== userRole)
+  // 1. AI boshqaradigan participantlar (userdan tashqari barcha, session.participant_state asosida)
+  const sourceParticipants =
+    session.participant_state && session.participant_state.length > 0
+      ? session.participant_state
+      : scenario.participants
+  const aiParticipants = sourceParticipants.filter(
+    p => !p.isUser && (p.role || '').toUpperCase() !== userRole
+  )
 
   // 2. Xotira: oldingi ko'rsatmalar
   const statementsSummary = session.participant_state
@@ -313,14 +345,14 @@ Birinchi bo‘lib Kotiba (Sud kotibi) so‘zlasin:
 "Barcha o‘rnidan tursin, sud kelmoqda! Jinoyat ishlari bo‘yicha sud zaliga raislik qiluvchi sudya ${userName} tashrif buyurdi. Zalda barcha chaqirilgan ishtirokchilar hozir."
 So‘ng Sudya ${userName}ga sud majlisini rasman ochiq deb e’lon qilish va taraflar shaxsini tekshirish uchun navbat berilsin.`
     } else {
-      userPrompt = `Sud majlisini O‘zbekiston Respublikasi protsessual qonunchiligi (JPK 394–400 yoki FPK 180–188) talablariga binoan rasman OCHING.
-Foydalanuvchi ${userName} "${userRole}" (${userRole === 'ADVOKAT' ? 'Himoyachi advokat' : 'Davlat ayblovchisi'}) rolida hozir bo‘lib turibdi.
+      userPrompt = `Sud majlisini O‘zbekiston Respublikasi protsessual qonunchiligi (JPK, FPK, IPK yoki MSIYuK) talablariga binoan rasman OCHING.
+Foydalanuvchi ${userName} "${userRole}" rolida ishtirok etmoqda.
 
 Birinchi navbatda Sud Raisi (SUDYA) quyidagi ketma-ketlikda gapirishi SHART:
-1. "O‘zbekiston Respublikasi nomidan! Jinoyat ishlari bo‘yicha ... sudi ... jinoyat ishini ochiq sud majlisida ko‘rib chiqishni OCHIQ deb e’lon qiladi!"
-2. Ishtirokchilarning hozirligini tekshirsin: Davlat ayblovchisi, Himoyachi advokat ${userName}, Sudlanuvchi.
-3. JPK 397–399-moddalariga binoan taraflarga o‘z protsessual huquqlarini, sud tarkibini rad qilish (otvod) huquqini tushuntirsin.
-4. "Sud tarkibiga rad etish (otvod) yoki ish boshlanishidan avval dastlabki iltimosnomalar bormi?" deb so‘rasin va so‘z navbatini foydalanuvchi ${userName} (${userRole})ga bersin.`
+1. "O‘zbekiston Respublikasi nomidan! Sud majlisi ochiq deb e’lon qilinadi!"
+2. Ishtirokchilarning hozirligini tekshirsin, jumladan foydalanuvchi ${userName} (${userRole}) hozirligini qayd etsin.
+3. Taraflarga o‘z protsessual huquqlari va rad etish (otvod) huquqini tushuntirsin.
+4. Dastlabki iltimosnomalar bor-yo‘qligini so‘rasin va so‘z navbatini foydalanuvchi ${userName} (${userRole})ga bersin.`
     }
   } else if (userAction) {
     userPrompt = `Foydalanuvchi (${userName}, roli: ${userRole}) quyidagi protsessual harakatni amalga oshirdi:
@@ -349,7 +381,10 @@ Ushbu harakatga AI ishtirokchilari nomidan munosib protsessual reaksiya bering.`
     rawJson = await callCourtAiJson(SYSTEM_PROMPT, userPrompt)
   }
 
-  const parsed = safeParseAiResponse(rawJson, userRole)
+  const fallbackAiSpeaker = aiParticipants[0]
+    ? { name: aiParticipants[0].name, role: aiParticipants[0].role }
+    : undefined
+  const parsed = safeParseAiResponse(rawJson, userRole, fallbackAiSpeaker)
 
   // Validate legal citations in AI courtroom speeches
   try {

@@ -772,9 +772,39 @@ export default function ScenarioGenerator() {
             <h1 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-2">
               {currentScenario.title}
             </h1>
-            <p className="text-xs sm:text-sm text-gray-600 dark:text-zinc-300 leading-relaxed">
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-zinc-300 leading-relaxed mb-4">
               {currentScenario.background}
             </p>
+
+            {/* Always-visible Cross-Feature Quick Transfers */}
+            <div className="pt-3 border-t border-gray-100 dark:border-zinc-800 flex flex-wrap items-center justify-between gap-2">
+              <span className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
+                <Shield className="w-3.5 h-3.5" /> Server himoyalangan baholash • Yashirin dalillar dinamik ochiladi
+              </span>
+              <div className="flex flex-wrap gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => handleTransferToCaseSolver(currentScenario)}
+                  className="px-2.5 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 text-[11px] font-semibold flex items-center gap-1 transition cursor-pointer"
+                >
+                  <Scale className="w-3.5 h-3.5" /> Kazus Yechish
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleTransferToDecisionTree(currentScenario)}
+                  className="px-2.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-[11px] font-semibold flex items-center gap-1 transition cursor-pointer"
+                >
+                  <Layers className="w-3.5 h-3.5" /> Qarorlar Daraxti
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleTransferToVirtualCourt(currentScenario)}
+                  className="px-2.5 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300 text-[11px] font-semibold flex items-center gap-1 transition cursor-pointer"
+                >
+                  <Play className="w-3.5 h-3.5" /> Virtual Sud
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* Evaluation Modal / Screen if completed */}

@@ -446,13 +446,17 @@ function VirtualCourtContent() {
     setLoadingText('AI ishtirokchilari fikrlamoqda...')
     setErrorBanner(null)
 
-    // Append user message immediately
-    const userRoleTitle =
-      selectedRole === 'SUDYA'
-        ? 'Sud Raisi (Siz)'
-        : selectedRole === 'PROKUROR'
-          ? 'Davlat Ayblovchisi (Siz)'
-          : 'Himoyachi Advokat (Siz)'
+    const ROLE_DISPLAY: Record<string, string> = {
+      SUDYA: 'Sud Raisi',
+      PROKUROR: 'Davlat Ayblovchisi',
+      ADVOKAT: 'Himoyachi Advokat',
+      DAVOGAR: 'Da’vogar',
+      JAVOBGAR: 'Javobgar',
+      VAKIL: 'Vakil (Advokat)',
+      ARIZACHI: 'Arizachi',
+      JAVOBGAR_ORGAN: 'Javobgar Organ Vakili',
+    }
+    const userRoleTitle = `${userName} (${ROLE_DISPLAY[selectedRole] || selectedRole})`
 
     setMessages(prev => [
       ...prev,
