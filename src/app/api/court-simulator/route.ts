@@ -216,6 +216,18 @@ export async function POST(request: NextRequest) {
         auth.user.email?.split('@')[0] ||
         'Foydalanuvchi'
 
+      const ROLE_TITLE_MAP: Record<string, string> = {
+        ADVOKAT: 'Himoyachi Advokat',
+        SUDYA: 'Sud Raisi',
+        PROKUROR: 'Davlat Ayblovchisi',
+        DAVOGAR: 'Da’vogar',
+        JAVOBGAR: 'Javobgar',
+        VAKIL: 'Vakil (Advokat)',
+        ARIZACHI: 'Arizachi',
+        JAVOBGAR_ORGAN: 'Javobgar Organ Vakili',
+      }
+      const userFriendlyTitle = ROLE_TITLE_MAP[roleUpper] || roleUpper
+
       const isDefenseOrPlaintiff = ['ADVOKAT', 'DAVOGAR', 'VAKIL', 'ARIZACHI'].includes(roleUpper)
       const isProsecutionOrDefendant = ['PROKUROR', 'JAVOBGAR', 'JAVOBGAR_ORGAN'].includes(roleUpper)
 
@@ -234,7 +246,7 @@ export async function POST(request: NextRequest) {
             ...p,
             role: roleUpper,
             name: displayUserName,
-            title: `${roleUpper} (${p.title})`,
+            title: `${userFriendlyTitle} (Siz)`,
             isUser: true,
             statementsMade: [],
           }
@@ -250,7 +262,7 @@ export async function POST(request: NextRequest) {
         participants.push({
           id: `part_user_${Date.now()}`,
           role: roleUpper,
-          title: `${roleUpper} (Siz)`,
+          title: `${userFriendlyTitle} (Siz)`,
           name: displayUserName,
           avatarIcon: roleUpper === 'SUDYA' ? '⚖️' : '👤',
           isUser: true,

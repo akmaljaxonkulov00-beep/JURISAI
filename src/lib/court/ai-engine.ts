@@ -110,7 +110,8 @@ async function callGroqJson(
 function safeParseAiResponse(
   raw: string,
   userRole: CourtRole,
-  fallbackAiSpeaker?: { name: string; role: string }
+  fallbackAiSpeaker?: { name: string; role: string },
+  isOpening = false
 ): StructuredAiResponse {
   try {
     let cleanRaw = raw.trim()
@@ -152,7 +153,7 @@ function safeParseAiResponse(
                 message:
                   userRole === 'SUDYA'
                     ? 'Muhtaram Sudya, taraflar sizning protsessual qaroringizni kutmoqda.'
-                    : `Rahmat. ${userRole}ning bayonoti qayd etildi. Endi qarshi taraf yoki sud fikri tinglanadi.`,
+                    : `Rahmat. ${userRole}ning bayonoti qayd etildi. Endi sud yoki qarshi taraf fikri tinglanadi.`,
                 action: 'speak',
                 evidence_reference: [],
               },
@@ -183,36 +184,45 @@ function safeParseAiResponse(
     console.warn('AI JSON parse warning, attempting fallback extraction:', e)
   }
 
-  // Fallback: Agar JSON buzilgan bo'lsa yoki bo'sh bo'lsa, xavfsiz va protsessual haqiqiy ochilish/javob yaratamiz
+  // Fallback: Agar JSON buzilgan bo'lsa yoki bo'sh bo'lsa
   const cleanText = ensureUzbekLatin(raw.replace(/[{}\[\]"]/g, '').trim())
   const fallbackSpeaker = userRole === 'SUDYA' ? 'PROKUROR' : 'SUDYA'
   
   let fallbackMessage = cleanText.slice(0, 600)
   if (!fallbackMessage || fallbackMessage.length < 20) {
-    if (userRole === 'ADVOKAT') {
-      fallbackMessage =
-        'O‘zbekiston Respublikasi nomidan! Sud majlisi ochiq deb e’lon qilinadi. Raislik qiluvchi: Farhod Ergashev. Zalda davlat ayblovchisi, himoyachi advokat va sudlanuvchi hozir. JPK 394–399-moddalariga muvofiq taraflarga o‘z protsessual huquq va majburiyatlari tushuntiriladi. Sud tarkibiga rad etish (otvod) yoki ish bo‘yicha dastlabki iltimosnomalar bormi? So‘z himoyachi advokatga beriladi.'
-    } else if (userRole === 'PROKUROR') {
-      fallbackMessage =
-        'O‘zbekiston Respublikasi nomidan! Sud majlisi ochiq deb e’lon qilinadi. Ish materiallari va taraflarning hozirligi tekshirildi. JPK talablariga muvofiq taraflarga huquqlari tushuntirildi. Ish bo‘yicha dastlabki iltimosnomalar bormi? So‘z davlat ayblovchisiga beriladi.'
+    if (isOpening) {
+      if (userRole === 'ADVOKAT') {
+        fallbackMessage =
+          'O‘zbekiston Respublikasi nomidan! Sud majlisi ochiq deb e’lon qilinadi. Raislik qiluvchi: Farhod Ergashev. Zalda davlat ayblovchisi, himoyachi advokat va sudlanuvchi hozir. JPK talablariga muvofiq taraflarga o‘z protsessual huquq va majburiyatlari tushuntiriladi. Dastlabki iltimosnomalar bormi? So‘z himoyachi advokatga beriladi.'
+      } else if (userRole === 'PROKUROR') {
+        fallbackMessage =
+          'O‘zbekiston Respublikasi nomidan! Sud majlisi ochiq deb e’lon qilinadi. Ish materiallari va taraflarning hozirligi tekshirildi. JPK talablariga muvofiq taraflarga huquqlari tushuntirildi. Ish bo‘yicha dastlabki iltimosnomalar bormi? So‘z davlat ayblovchisiga beriladi.'
+      } else {
+        fallbackMessage =
+          'Barcha o‘rnidan tursin, sud kelmoqda! Jinoyat ishlari bo‘yicha sud zaliga raislik qiluvchi sudya tashrif buyurdi. Barcha chaqirilgan ishtirokchilar zalda hozir. Muhtaram Sudya, marhamat, sud majlisini ochiq deb e’lon qiling.'
+      }
     } else {
-      fallbackMessage =
-        'Barcha o‘rnidan tursin, sud kelmoqda! Jinoyat ishlari bo‘yicha sud zaliga raislik qiluvchi sudya tashrif buyurdi. Barcha chaqirilgan ishtirokchilar zalda hozir. Muhtaram Sudya, marhamat, sud majlisini ochiq deb e’lon qiling.'
+      // In-session fallback: NEVER re-open hearing!
+      if (userRole === 'SUDYA') {
+        fallbackMessage = 'Muhtaram Sudya, taraflar navbatdagi protsessual ajrimingizni yoki savolingizni kutmoqda.'
+      } else {
+        fallbackMessage = 'Vajlaringiz sud tomonidan qabul qilindi va majlis bayonnomasiga kiritildi. Ish bo‘yicha keyingi protsessual masalaga o‘tamiz.'
+      }
     }
   }
 
   return {
     speakers: [
       {
-        speaker: fallbackSpeaker === 'SUDYA' ? 'Sud raisi' : 'Sud kotibi',
-        role: fallbackSpeaker === 'SUDYA' ? 'SUDYA' : 'KOTIB',
+        speaker: fallbackSpeaker === 'SUDYA' ? 'Sud raisi' : 'Davlat ayblovchisi',
+        role: fallbackSpeaker === 'SUDYA' ? 'SUDYA' : 'PROKUROR',
         message: fallbackMessage,
         action: 'speak',
       },
     ],
     user_feedback: {
       valid_procedural_move: true,
-      critique: 'Sud majlisi rasmiy ochildi va protsessual navbat sizga berildi.',
+      critique: isOpening ? 'Sud majlisi rasmiy ochildi.' : 'Bildirilgan fikr protsessual tartibda eshitildi.',
       etiquette_score_delta: 0,
       argument_score_delta: 0,
       evidence_score_delta: 0,
@@ -240,7 +250,10 @@ export async function generateCourtAiTurn(params: {
       ? session.participant_state
       : scenario.participants
   const aiParticipants = sourceParticipants.filter(
-    p => !p.isUser && (p.role || '').toUpperCase() !== userRole
+    p =>
+      !p.isUser &&
+      (p.role || '').toUpperCase() !== userRole &&
+      (isOpening || (p.role || '').toUpperCase() !== 'KOTIB')
   )
 
   // 2. Xotira: oldingi ko'rsatmalar
@@ -290,12 +303,18 @@ ${personasPrompt}
 
 QAT'IY PROTSESSUAL VA FORMAT QOIDALARI:
 1. FAQAT va FAQAT to'g'ri JSON formatida javob ber. Hech qanday markdown prefiks yoki tashqi matn yozma.
-2. Har bir burilishda (turn) 1 tadan 3 tagacha eng mantiqiy va mos AI ishtirokchisi gapirsin (barcha rollar birdaniga gapirmasin).
-3. Qatnashchilar O'Z BILIMIDAN TASHQARIDAGI maxfiy ma'lumotlarni bilmaydi.
-4. Qatnashchilar oldingi aytgan gaplariga zid gapirmasligi (xotira izchilligi) SHART.
-5. Har bir AI javobi professional, rasmiy sud tilida, O'zbekiston sud amaliyotiga mos bo'lsin.
-6. Til: Faqat lotin alifbosidagi o'zbek tili.
-7. Yolg'on yoki mavjud bo'lmagan qonun moddalarini to'qima (taxmin qilmang), faqat BAZA MA'LUMOTLARI va amaldagi O'zbekiston qonunchiligiga tayan.
+2. Har bir burilishda (turn) 1 tadan 2 tagacha eng mantiqiy va mos AI ishtirokchisi gapirsin.
+3. ${
+    !isOpening
+      ? `DIQQAT: Sud majlisi ALLAQACHON OCHILGAN VA TARAFLAR SHAXSI TEKSHIRILGAN! "Sud majlisini ochiq deb e'lon qilaman", "O'zbekiston Respublikasi nomidan majlis ochiq", "Ishtirokchilarning hozirligini tekshirishga o'tamiz", "bayonnoma yuritishga tayyorman" kabi ochilish jumlalarini QAYTA AYTISH QAT'IYAN TAQIQLANADI! AI ishtirokchisi foydalanuvchining so'nggi aytgan gapiga bevosita yuridik javob bersin va protsessni oldinga siljitsin.`
+      : ''
+  }
+4. Sud kotibi (KOTIB) majlis ochilgach jim turadi, har replikada aralashmaydi.
+5. Qatnashchilar O'Z BILIMIDAN TASHQARIDAGI maxfiy ma'lumotlarni bilmaydi.
+6. Qatnashchilar oldingi aytgan gaplariga zid gapirmasligi (xotira izchilligi) SHART.
+7. Har bir AI javobi professional, rasmiy sud tilida, O'zbekiston sud amaliyotiga mos bo'lsin.
+8. Til: Faqat lotin alifbosidagi o'zbek tili.
+9. Yolg'on yoki mavjud bo'lmagan qonun moddalarini to'qima (taxmin qilmang), faqat BAZA MA'LUMOTLARI va amaldagi O'zbekiston qonunchiligiga tayan.
 
 JSON SCHEMA:
 {
@@ -355,19 +374,23 @@ Birinchi navbatda Sud Raisi (SUDYA) quyidagi ketma-ketlikda gapirishi SHART:
 4. Dastlabki iltimosnomalar bor-yo‘qligini so‘rasin va so‘z navbatini foydalanuvchi ${userName} (${userRole})ga bersin.`
     }
   } else if (userAction) {
-    userPrompt = `Foydalanuvchi (${userName}, roli: ${userRole}) quyidagi protsessual harakatni amalga oshirdi:
+    userPrompt = `DIQQAT: Sud majlisi allaqachon ochiq deb e'lon qilingan va davom etmoqda!
+Majlisni qayta ochish yoki ishtirokchilar ro'yxatini qayta tekshirish QAT'IYAN TAQIQLANADI!
+
+Foydalanuvchi (${userName}, roli: ${userRole}) sudda quyidagi protsessual bayonot/harakatni bildirdi:
 Turi: ${userAction.type}
 Matn: "${userAction.text}"
 ${userAction.targetRole ? `Murojaat qilingan shaxs: ${userAction.targetRole}` : ''}
 ${userAction.evidenceId ? `Taqdim etilgan dalil ID: ${userAction.evidenceId}` : ''}
 
+Hozirgi bosqich: "${stage.title}".
 Mavjud dalillar holati:
 ${evidenceSummary}
 
 Oldingi ko'rsatmalar:
 ${statementsSummary || "Hali ko'rsatmalar berilmagan."}
 
-Ushbu harakatga AI ishtirokchilari nomidan munosib protsessual reaksiya bering.`
+AI ishtirokchilari (sudya yoki qarshi taraf) foydalanuvchining bu gapiga mantiqan va qonunan bevosita javob qaytarsin. Agar foydalanuvchi shaxsini tasdiqlagan bo'lsa ("tasdiqlayman"), sudya buni qabul qilib, ish bo'yicha e'tiroz yoki dastlabki iltimosnomalar borligini so'rasin.`
   } else {
     userPrompt = `Hozirgi bosqich: "${stage.title}". Jarayonni protsessual qonunchilikka binoan davom ettiring.`
   }
@@ -384,7 +407,7 @@ Ushbu harakatga AI ishtirokchilari nomidan munosib protsessual reaksiya bering.`
   const fallbackAiSpeaker = aiParticipants[0]
     ? { name: aiParticipants[0].name, role: aiParticipants[0].role }
     : undefined
-  const parsed = safeParseAiResponse(rawJson, userRole, fallbackAiSpeaker)
+  const parsed = safeParseAiResponse(rawJson, userRole, fallbackAiSpeaker, isOpening)
 
   // Validate legal citations in AI courtroom speeches
   try {

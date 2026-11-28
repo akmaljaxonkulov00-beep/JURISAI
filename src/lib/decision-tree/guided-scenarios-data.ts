@@ -711,6 +711,10 @@ export function convertGuidedScenarioToDecisionCase(scenarioId: string): Decisio
       },
     ]
 
+    const optCount = q.options.length || 1
+    const baseShare = Math.floor(100 / optCount)
+    const remainder = 100 - baseShare * optCount
+
     const childOptions: DecisionNode[] = q.options.map((opt, idx) => {
       let outcomeChild: DecisionNode[] = []
 
@@ -743,13 +747,17 @@ export function convertGuidedScenarioToDecisionCase(scenarioId: string): Decisio
         outcomeChild = [buildQuestionNode(opt.nextQuestionId, new Set(visited))]
       }
 
+      const assignedProb = idx === 0 ? baseShare + remainder : baseShare
+
       return {
         id: `opt_${opt.id}_${idx}`,
         type: 'DECISION',
         title: opt.label,
         description: opt.hint || 'Tanlangan holat bo‘yicha harakat',
+        condition_if: opt.hint || opt.label,
         risk_level: opt.winProbabilityChange > 0 ? 'low' : opt.winProbabilityChange < -20 ? 'high' : 'medium',
-        probability: Math.min(100, Math.max(10, 50 + opt.winProbabilityChange)),
+        probability: assignedProb,
+        confidence: Math.min(100, Math.max(10, 50 + opt.winProbabilityChange)),
         children: outcomeChild,
       }
     })

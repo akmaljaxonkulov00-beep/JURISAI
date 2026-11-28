@@ -460,7 +460,12 @@ export function validateDecisionTreeLogic(root: DecisionNode): {
     }
 
     // Condition check on DECISION / QUESTION nodes
-    if ((node.type === 'DECISION' || node.type === 'QUESTION') && !node.condition_if && !node.question) {
+    if (
+      (node.type === 'DECISION' || node.type === 'QUESTION') &&
+      !node.condition_if &&
+      !node.question &&
+      !node.description
+    ) {
       issues.push({
         severity: 'warning',
         code: 'MISSING_CONDITION',
@@ -475,6 +480,7 @@ export function validateDecisionTreeLogic(root: DecisionNode): {
     // Missing legal basis on DECISION / OUTCOME nodes
     if (
       node.type !== 'ROOT' &&
+      node.type !== 'DECISION' &&
       !node.legal_basis?.trim() &&
       (!node.applicable_laws || node.applicable_laws.length === 0)
     ) {

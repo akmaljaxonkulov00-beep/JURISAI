@@ -1535,6 +1535,15 @@ function VirtualCourtContent() {
                       ⚠️ E'tiroz bildirish
                     </button>
                   )}
+                  <button
+                    disabled={loading}
+                    onClick={handleNextStage}
+                    className="flex-shrink-0 px-3 py-1 text-xs font-semibold rounded-lg bg-blue-600 hover:bg-blue-500 text-white transition flex items-center gap-1 shadow-sm ml-auto"
+                    title="Keyingi protsessual bosqichga o‘tish"
+                  >
+                    <span>Keyingi Bosqich</span>
+                    <ArrowRight size={12} />
+                  </button>
                 </div>
               )}
 
