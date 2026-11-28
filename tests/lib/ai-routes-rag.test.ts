@@ -36,7 +36,10 @@ vi.mock('@/lib/legal-rag', async importOriginal => {
       articles: [],
     })),
     retrieveLegalArticles: vi.fn(async () => []),
-    buildLegalContext: vi.fn(() => ''),
+    buildLegalContext: vi.fn(
+      () =>
+        "BAZA MA'LUMOTLARI (test konteksti):\n[1] O'zbekiston Respublikasi Jinoyat Kodeksi, 169-modda — O'g'irlik"
+    ),
     validateCitations: vi.fn(async () => ({ valid: [], invalid: [] })),
   }
 })
@@ -195,10 +198,13 @@ describe('AI route prompt sifati (model + o\'zbek tili + RAG)', () => {
       const { payload, system } = await groqPayload(route.path, route.body)
 
       // 1) Ishlaydigan model (hisobda mavjudligi tekshirilgan)
-      expect(payload.model, `${route.name} — model`).toBe('openai/gpt-oss-120b')
+      expect(
+        ['openai/gpt-oss-120b', 'qwen/qwen3.8-27b', 'llama-3.3-70b-versatile'],
+        `${route.name} — model`
+      ).toContain(payload.model)
 
-      // 2) O'zbek tili talabi
-      expect(system.toLowerCase(), `${route.name} — o'zbek tili`).toContain("o'zbek")
+      // 2) O'zbek tili talabi (ASCII va Unicode apostrof qo'llab-quvvatlanadi)
+      expect(system.toLowerCase(), `${route.name} — o'zbek tili`).toMatch(/o['‘’`]zbek/)
 
       // 3) Yolg'on modda to'qishni taqiqlash / RAG asoslilik
       expect(

@@ -35,8 +35,13 @@ import {
   Check,
   AlertTriangle,
   Download,
+  Clock,
+  Eye,
+  EyeOff,
+  Columns2,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase-browser'
+import { generateLegalPdf, downloadPdfBlob } from '@/lib/pdf-generator'
 
 /* ═══════════════════════════════════════════════════════════════════════════
    TYPES
@@ -53,8 +58,12 @@ interface IracResult {
   feedback?: string
   strengths?: string[]
   weaknesses?: string[]
+  missingArguments?: string[]
+  reasoningDifferences?: string[]
+  incorrectReferences?: string[]
   suggestions?: string[]
   sectionScores?: { issue?: number; rule?: number; application?: number; conclusion?: number }
+  citationValidation?: { valid?: Array<{ codeName?: string; article?: number }>; invalid?: Array<{ code?: string | null; article?: number }> }
 }
 
 interface IracCase {
@@ -98,7 +107,7 @@ interface HistoryData {
   overall: { solved: number; avgScore: number }
 }
 
-type Mode = 'ai_solves' | 'user_solves'
+type Mode = 'user_solves' | 'exam' | 'ai_solves'
 type Screen = 'home' | 'library' | 'results'
 
 const SECTIONS: IracSection[] = [
@@ -218,8 +227,13 @@ export default function CaseSolver() {
   const router = useRouter()
 
   // ── Mode / screen ──
-  const [mode, setMode] = useState<Mode>('ai_solves')
+  const [mode, setMode] = useState<Mode>('user_solves')
   const [screen, setScreen] = useState<Screen>('home')
+  const [hintLevel, setHintLevel] = useState<number>(0)
+  const [examMinutes, setExamMinutes] = useState<number>(15)
+  const [examSecondsLeft, setExamSecondsLeft] = useState<number>(0)
+  const [examActive, setExamActive] = useState<boolean>(false)
+  const [exportingPdf, setExportingPdf] = useState<boolean>(false)
 
   // ── Kazuslar ──
   const [cases, setCases] = useState<IracCase[]>([])
@@ -419,9 +433,67 @@ export default function CaseSolver() {
     setEvaluation(null)
     setError(null)
     setSaved(false)
-    setUserAnswers({ issue: '', rule: '', application: '', conclusion: '' })
+    setHintLevel(0)
+    // Restore autosaved draft if available (only in practice mode)
+    let restored = { issue: '', rule: '', application: '', conclusion: '' }
+    if (mode !== 'exam') {
+      try {
+        const draftRaw = localStorage.getItem(`irac_draft_${c.id}`)
+        if (draftRaw) {
+          const parsed = JSON.parse(draftRaw)
+          if (parsed && typeof parsed === 'object') {
+            restored = {
+              issue: String(parsed.issue || ''),
+              rule: String(parsed.rule || ''),
+              application: String(parsed.application || ''),
+              conclusion: String(parsed.conclusion || ''),
+            }
+          }
+        }
+      } catch {}
+    }
+    setUserAnswers(restored)
+    if (mode === 'exam') {
+      setExamSecondsLeft(examMinutes * 60)
+      setExamActive(true)
+    } else {
+      setExamActive(false)
+    }
     setScreen('home')
   }
+
+  // Cross-feature Scenario Engine transfer listener
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem('juristiv_transfer_case')
+      if (raw) {
+        sessionStorage.removeItem('juristiv_transfer_case')
+        const transferred = JSON.parse(raw)
+        if (transferred?.title && transferred?.description) {
+          setMode('user_solves')
+          startCase({
+            id: String(transferred.id || `sc_${Date.now()}`),
+            title: String(transferred.title),
+            description: String(transferred.description),
+            category: String(transferred.category || 'fuqarolik'),
+            difficulty: String(transferred.difficulty || 'medium'),
+            law_references: Array.isArray(transferred.law_references) ? transferred.law_references : [],
+            key_questions: Array.isArray(transferred.key_questions) ? transferred.key_questions : [],
+            is_active: true,
+          })
+        }
+      }
+    } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Autosave student IRAC draft
+  useEffect(() => {
+    if (!currentCase || mode === 'ai_solves' || evaluation) return
+    try {
+      localStorage.setItem(`irac_draft_${currentCase.id}`, JSON.stringify(userAnswers))
+    } catch {}
+  }, [userAnswers, currentCase, mode, evaluation])
 
   /* ── AI tahlil (AI yechishi rejimi) ── */
   const analyzeWithAI = async () => {
@@ -484,7 +556,11 @@ export default function CaseSolver() {
 
   /* ── Natijani DB'ga saqlash (progress statistikasi uchun) ── */
   const persistResult = useCallback(
-    async (score: number, analysis: Record<string, string>) => {
+    async (
+      score: number,
+      analysis: Record<string, string>,
+      evalMeta?: Partial<IracResult>
+    ) => {
       const caseTitle =
         currentCase?.title ||
         customCaseText.trim().split('\n')[0].slice(0, 80) ||
@@ -508,6 +584,11 @@ export default function CaseSolver() {
               conclusion: analysis.conclusion || '',
             },
             total_score: Math.min(100, Math.max(0, Math.round(score))),
+            feedback: evalMeta?.feedback,
+            strengths: evalMeta?.strengths,
+            weaknesses: evalMeta?.weaknesses,
+            suggestions: evalMeta?.suggestions,
+            section_scores: evalMeta?.sectionScores,
             completed_at: new Date().toISOString(),
           }),
         })
@@ -523,82 +604,120 @@ export default function CaseSolver() {
     [currentCase, customCaseText, category, difficulty, loadHistory]
   )
 
-  /* ── AI baholash (foydalanuvchi yechishi rejimi) ── */
-  const evaluateWithAI = async () => {
-    const caseTitle =
-      currentCase?.title ||
-      (useCustomCase && customCaseText.trim()
-        ? customCaseText.trim().split('\n')[0].slice(0, 80)
-        : '')
-    const caseText = currentCase
-      ? `${currentCase.title}\n\n${currentCase.description}`
-      : customCaseText.trim()
+  /* ── AI baholash (foydalanuvchi yechishi va imtihon rejimi) ── */
+  const evaluateWithAI = useCallback(
+    async (isAutoSubmit = false) => {
+      const caseTitle =
+        currentCase?.title ||
+        (useCustomCase && customCaseText.trim()
+          ? customCaseText.trim().split('\n')[0].slice(0, 80)
+          : '')
+      const caseText = currentCase
+        ? `${currentCase.title}\n\n${currentCase.description}`
+        : customCaseText.trim()
 
-    if (!caseText) {
-      setError('Kazus tanlanmagan yoki kazus matni kiritilmagan.')
-      return
-    }
-
-    const allEmpty = Object.values(userAnswers).every(v => v.trim().length === 0)
-    if (allEmpty) {
-      setError("Kamida bitta bo'limni to'ldiring.")
-      return
-    }
-
-    setEvalLoading(true)
-    setError(null)
-    try {
-      const authHeaders = await getAuthHeaders()
-      const res = await fetch('/api/ai/irac-evaluate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...authHeaders },
-        body: JSON.stringify({
-          caseTitle,
-          caseText,
-          lawReferences: currentCase?.law_references || [],
-          userAnswers,
-        }),
-      })
-
-      const data = await res.json()
-      if (!res.ok) {
-        if (res.status === 429 && data.error === 'limit_reached') {
-          checkLimitError(data)
-        } else {
-          setError(data.error || 'Baholashda xatolik yuz berdi.')
-        }
+      if (!caseText) {
+        setError('Kazus tanlanmagan yoki kazus matni kiritilmagan.')
         return
       }
 
-      const evaluationResult: IracResult = {
-        issue: data.issue || '',
-        rule: data.rule || '',
-        application: data.application || '',
-        conclusion: data.conclusion || '',
-        sources: Array.isArray(data.sources) ? data.sources : [],
-        confidence: typeof data.confidence === 'number' ? data.confidence : 85,
-        score: typeof data.score === 'number' ? data.score : 70,
-        sectionScores: data.sectionScores || {
-          issue: 15,
-          rule: 18,
-          application: 22,
-          conclusion: 15,
-        },
-        feedback: data.feedback || '',
-        strengths: Array.isArray(data.strengths) ? data.strengths : [],
-        weaknesses: Array.isArray(data.weaknesses) ? data.weaknesses : [],
-        suggestions: Array.isArray(data.suggestions) ? data.suggestions : [],
+      const allEmpty = Object.values(userAnswers).every(v => v.trim().length === 0)
+      if (allEmpty && !isAutoSubmit) {
+        setError("Kamida bitta bo'limni to'ldiring.")
+        return
+      }
+      if (allEmpty && isAutoSubmit) {
+        setExamActive(false)
+        setError('Imtihon vaqti tugadi. Hech qanday javob kiritilmadi.')
+        return
       }
 
-      setEvaluation(evaluationResult)
-      const finalScore = evaluationResult.score ?? 70
-      persistResult(finalScore, userAnswers)
-    } catch {
-      setError('Baholashda xatolik yuz berdi. Iltimos qayta urinib ko‘ring.')
-    } finally {
-      setEvalLoading(false)
+      setExamActive(false)
+      setEvalLoading(true)
+      setError(null)
+      try {
+        const authHeaders = await getAuthHeaders()
+        const res = await fetch('/api/ai/irac-evaluate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...authHeaders },
+          body: JSON.stringify({
+            caseTitle,
+            caseText,
+            lawReferences: currentCase?.law_references || [],
+            userAnswers,
+            hintsUsed: mode === 'exam' ? 0 : hintLevel,
+            examMode: mode === 'exam',
+          }),
+        })
+
+        const data = await res.json()
+        if (!res.ok) {
+          if (res.status === 429 && data.error === 'limit_reached') {
+            checkLimitError(data)
+          } else {
+            setError(data.error || 'Baholashda xatolik yuz berdi.')
+          }
+          return
+        }
+
+        const evaluationResult: IracResult = {
+          issue: data.issue || '',
+          rule: data.rule || '',
+          application: data.application || '',
+          conclusion: data.conclusion || '',
+          sources: Array.isArray(data.sources) ? data.sources : [],
+          confidence: typeof data.confidence === 'number' ? data.confidence : 85,
+          score: typeof data.score === 'number' ? data.score : 70,
+          sectionScores: data.sectionScores || {
+            issue: 15,
+            rule: 18,
+            application: 22,
+            conclusion: 15,
+          },
+          feedback: data.feedback || '',
+          strengths: Array.isArray(data.strengths) ? data.strengths : [],
+          weaknesses: Array.isArray(data.weaknesses) ? data.weaknesses : [],
+          missingArguments: Array.isArray(data.missingArguments) ? data.missingArguments : [],
+          reasoningDifferences: Array.isArray(data.reasoningDifferences)
+            ? data.reasoningDifferences
+            : [],
+          incorrectReferences: Array.isArray(data.incorrectReferences)
+            ? data.incorrectReferences
+            : [],
+          suggestions: Array.isArray(data.suggestions) ? data.suggestions : [],
+          citationValidation: data.citationValidation,
+        }
+
+        if (currentCase) {
+          try {
+            localStorage.removeItem(`irac_draft_${currentCase.id}`)
+          } catch {}
+        }
+
+        setEvaluation(evaluationResult)
+        const finalScore = evaluationResult.score ?? 70
+        persistResult(finalScore, userAnswers, evaluationResult)
+      } catch {
+        setError('Baholashda xatolik yuz berdi. Iltimos qayta urinib ko‘ring.')
+      } finally {
+        setEvalLoading(false)
+      }
+    },
+    [currentCase, useCustomCase, customCaseText, userAnswers, mode, hintLevel, checkLimitError, persistResult]
+  )
+
+  // Exam countdown timer
+  useEffect(() => {
+    if (!examActive || mode !== 'exam' || evaluation) return
+    if (examSecondsLeft <= 0) {
+      evaluateWithAI(true)
+      return
     }
-  }
+    const timer = setInterval(() => {
+      setExamSecondsLeft(prev => Math.max(0, prev - 1))
+    }, 1000)
+    return () => clearInterval(timer)
+  }, [examActive, mode, examSecondsLeft, evaluation, evaluateWithAI])
 
   /* ── Saqlash (AI rejimi) ── */
   const saveAnalysis = async () => {
@@ -611,79 +730,81 @@ export default function CaseSolver() {
     })
   }
 
-  /* ── IRAC Tahlilini yuklab olish (Eksport) ── */
-  const handleExportIracReport = (dataToExport: IracResult, isUserEvaluation = false) => {
+  /* ── IRAC Tahlilini PDF (yoki zaxira TXT) formatida yuklab olish ── */
+  const handleExportIracReport = async (dataToExport: IracResult, isUserEvaluation = false) => {
     const caseTitle =
       currentCase?.title ||
       customCaseText.trim().split('\n')[0].slice(0, 80) ||
       'Yuridik Kazus Tahlili'
     const caseCategory = currentCase?.category || (category !== 'all' ? category : 'umumiy')
 
-    let text = `=================================================================\n`
-    text += `          JURISTIV — IRAC YURIDIK TAHLIL HISOBOTI (2026)\n`
-    text += `=================================================================\n\n`
-    text += `Kazus nomi: ${caseTitle}\n`
-    text += `Huquq sohasi: ${caseCategory}\n`
-    text += `Sana: ${new Date().toLocaleDateString('uz-UZ')} ${new Date().toLocaleTimeString('uz-UZ')}\n`
+    let text = `Kazus nomi: ${caseTitle}\n`
+    text += `Huquq sohasi: ${categoryLabel(caseCategory)}\n`
+    text += `Rejim: ${mode === 'exam' ? 'Imtihon rejimi' : mode === 'user_solves' ? 'Mustaqil yechish (IRAC)' : 'AI Namuna'}\n`
+    text += `Sana: ${new Date().toLocaleDateString('uz-UZ')} ${new Date().toLocaleTimeString('uz-UZ')}\n\n`
+
     if (isUserEvaluation && dataToExport.score != null) {
-      text += `Umumiy natija: ${dataToExport.score} / 100 ball\n`
+      text += `UMUMIY NATIJA: ${dataToExport.score} / 100 ball\n`
       if (dataToExport.sectionScores) {
-        text += ` • Issue (Muammo): ${dataToExport.sectionScores.issue ?? 0} / 20 ball\n`
-        text += ` • Rule (Norma): ${dataToExport.sectionScores.rule ?? 0} / 25 ball\n`
-        text += ` • Application (Qo'llash): ${dataToExport.sectionScores.application ?? 0} / 30 ball\n`
-        text += ` • Conclusion (Xulosa): ${dataToExport.sectionScores.conclusion ?? 0} / 25 ball\n`
+        text += ` - Issue (Muammo): ${dataToExport.sectionScores.issue ?? 0} / 20 ball\n`
+        text += ` - Rule (Norma): ${dataToExport.sectionScores.rule ?? 0} / 25 ball\n`
+        text += ` - Application (Qo'llash): ${dataToExport.sectionScores.application ?? 0} / 30 ball\n`
+        text += ` - Conclusion (Xulosa): ${dataToExport.sectionScores.conclusion ?? 0} / 25 ball\n`
       }
+      text += `\n--- SIZNING JAVOBINGIZ ---\n`
+      text += `[ISSUE]: ${userAnswers.issue || '-'}\n\n`
+      text += `[RULE]: ${userAnswers.rule || '-'}\n\n`
+      text += `[APPLICATION]: ${userAnswers.application || '-'}\n\n`
+      text += `[CONCLUSION]: ${userAnswers.conclusion || '-'}\n\n`
     }
-    text += `\n-----------------------------------------------------------------\n`
-    text += `                      IRAC TAHLILI MAZMUNI\n`
-    text += `-----------------------------------------------------------------\n\n`
-    text += `[1. ISSUE - HUQUQIY MUAMMO]:\n${dataToExport.issue || '-'}\n\n`
-    text += `[2. RULE - QO'LLANILUVCHI QONUN NORMASI]:\n${dataToExport.rule || '-'}\n\n`
-    text += `[3. APPLICATION - HUQUQIY TAHLIL VA QO'LLASH]:\n${dataToExport.application || '-'}\n\n`
-    text += `[4. CONCLUSION - YAKUNIY XULOSA]:\n${dataToExport.conclusion || '-'}\n\n`
+
+    text += `--- ${isUserEvaluation ? 'AI TAVSIYA ETGAN NAMUNAVIY TAHLIL' : 'IRAC TAHLILI MAZMUNI'} ---\n`
+    text += `[1. ISSUE]: ${dataToExport.issue || '-'}\n\n`
+    text += `[2. RULE]: ${dataToExport.rule || '-'}\n\n`
+    text += `[3. APPLICATION]: ${dataToExport.application || '-'}\n\n`
+    text += `[4. CONCLUSION]: ${dataToExport.conclusion || '-'}\n\n`
 
     if (dataToExport.sources && dataToExport.sources.length > 0) {
-      text += `-----------------------------------------------------------------\n`
-      text += `                 TEGISHLI QONUN MODDALARI (RAG)\n`
-      text += `-----------------------------------------------------------------\n`
+      text += `--- TEGISHLI QONUN MODDALARI ---\n`
       dataToExport.sources.forEach(src => {
-        text += ` • ${src.title}${src.article ? ` (${src.article})` : ''}\n`
+        text += ` * ${src.title}${src.article ? ` (${src.article})` : ''}\n`
       })
       text += `\n`
     }
 
     if (isUserEvaluation) {
-      if (dataToExport.feedback) {
-        text += `XULOSA VA TAVSIYA:\n${dataToExport.feedback}\n\n`
+      if (dataToExport.feedback) text += `SHARH VA XULOSA:\n${dataToExport.feedback}\n\n`
+      if (dataToExport.strengths?.length) {
+        text += `Kuchli tomonlar:\n${dataToExport.strengths.map(s => ` + ${s}`).join('\n')}\n\n`
       }
-      if (dataToExport.strengths && dataToExport.strengths.length > 0) {
-        text += `Kuchli tomonlar:\n`
-        dataToExport.strengths.forEach(s => {
-          text += ` + ${s}\n`
-        })
-        text += `\n`
-      }
-      if (dataToExport.weaknesses && dataToExport.weaknesses.length > 0) {
-        text += `E'tibor berish lozim bo'lgan kamchiliklar:\n`
-        dataToExport.weaknesses.forEach(w => {
-          text += ` - ${w}\n`
-        })
-        text += `\n`
+      if (dataToExport.weaknesses?.length) {
+        text += `Kamchiliklar:\n${dataToExport.weaknesses.map(w => ` - ${w}`).join('\n')}\n\n`
       }
     }
 
-    text += `=================================================================\n`
-    text += `Hujjat: JuristAI IRAC Kazus Yechish Tizimi orqali yaratildi\n`
-
-    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `IRAC_Tahlil_${Date.now()}.txt`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
+    setExportingPdf(true)
+    try {
+      const blob = await generateLegalPdf({
+        title: `IRAC Hisoboti — ${caseTitle}`,
+        subtitle: "JURISTIV Yuridik Ta'lim Platformasi",
+        content: text,
+        date: new Date().toLocaleDateString('uz-UZ'),
+        legalBasis: (dataToExport.sources || []).map(s => `${s.title} ${s.article || ''}`).join(', '),
+      })
+      downloadPdfBlob(blob, `JURISTIV_IRAC_${Date.now()}.pdf`)
+    } catch {
+      const blob = new Blob([text], { type: 'text/plain;charset=utf-8' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `IRAC_Tahlil_${Date.now()}.txt`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    } finally {
+      setExportingPdf(false)
+    }
   }
 
   /* ── Admin: yangi kazus qo'shish ── */
@@ -808,7 +929,69 @@ export default function CaseSolver() {
         <h2 className="text-sm font-semibold text-gray-500 dark:text-zinc-400 uppercase tracking-wider mb-3">
           Rejimni tanlang
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <button
+            onClick={() => setMode('user_solves')}
+            className={`p-5 rounded-2xl border-2 text-left transition-all ${
+              mode === 'user_solves'
+                ? 'border-emerald-600 bg-emerald-50 dark:bg-emerald-950/30'
+                : 'border-gray-200 dark:border-zinc-700 hover:border-emerald-300'
+            }`}
+          >
+            <div className="flex items-center gap-3 mb-2">
+              <div
+                className={`p-2 rounded-xl ${
+                  mode === 'user_solves'
+                    ? 'bg-emerald-600 text-white'
+                    : 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600'
+                }`}
+              >
+                <PenTool className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-bold text-gray-800 dark:text-zinc-100 text-sm">
+                  Mustaqil Yechish
+                </h3>
+                <span className="text-[10px] font-semibold text-emerald-600 uppercase">
+                  Tavsiya etiladi
+                </span>
+              </div>
+            </div>
+            <p className="text-xs text-gray-500 dark:text-zinc-400 leading-relaxed">
+              IRAC bo‘yicha o‘zingiz yechasiz, bosqichma-bosqich maslahat olishingiz mumkin, AI baholaydi.
+            </p>
+          </button>
+
+          <button
+            onClick={() => {
+              setMode('exam')
+              setUseCustomCase(false)
+            }}
+            className={`p-5 rounded-2xl border-2 text-left transition-all ${
+              mode === 'exam'
+                ? 'border-amber-500 bg-amber-50 dark:bg-amber-950/30'
+                : 'border-gray-200 dark:border-zinc-700 hover:border-amber-300'
+            }`}
+          >
+            <div className="flex items-center gap-3 mb-2">
+              <div
+                className={`p-2 rounded-xl ${
+                  mode === 'exam'
+                    ? 'bg-amber-600 text-white'
+                    : 'bg-amber-100 dark:bg-amber-900/30 text-amber-600'
+                }`}
+              >
+                <Clock className="w-5 h-5" />
+              </div>
+              <h3 className="font-bold text-gray-800 dark:text-zinc-100 text-sm">
+                Imtihon Rejimi
+              </h3>
+            </div>
+            <p className="text-xs text-gray-500 dark:text-zinc-400 leading-relaxed">
+              Vaqt cheklangan (taymer), maslahatlarsiz va qonun havolalarisiz haqiqiy imtihon mashqi.
+            </p>
+          </button>
+
           <button
             onClick={() => setMode('ai_solves')}
             className={`p-5 rounded-2xl border-2 text-left transition-all ${
@@ -827,43 +1010,40 @@ export default function CaseSolver() {
               >
                 <Brain className="w-5 h-5" />
               </div>
-              <h3 className="font-bold text-gray-800 dark:text-zinc-100">AI Kazus Yechishi</h3>
+              <h3 className="font-bold text-gray-800 dark:text-zinc-100 text-sm">
+                AI Namuna Tahlili
+              </h3>
             </div>
             <p className="text-xs text-gray-500 dark:text-zinc-400 leading-relaxed">
-              AI kazusni o'zi IRAC bo'yicha to'liq tahlil qiladi va tegishli qonun moddalarini
-              ko'rsatadi.
-            </p>
-          </button>
-
-          <button
-            onClick={() => setMode('user_solves')}
-            className={`p-5 rounded-2xl border-2 text-left transition-all ${
-              mode === 'user_solves'
-                ? 'border-green-500 bg-green-50 dark:bg-green-950/30'
-                : 'border-gray-200 dark:border-zinc-700 hover:border-green-300'
-            }`}
-          >
-            <div className="flex items-center gap-3 mb-2">
-              <div
-                className={`p-2 rounded-xl ${
-                  mode === 'user_solves'
-                    ? 'bg-green-600 text-white'
-                    : 'bg-green-100 dark:bg-green-900/30 text-green-600'
-                }`}
-              >
-                <PenTool className="w-5 h-5" />
-              </div>
-              <h3 className="font-bold text-gray-800 dark:text-zinc-100">Kazus Baholash</h3>
-            </div>
-            <p className="text-xs text-gray-500 dark:text-zinc-400 leading-relaxed">
-              Siz kazusni IRAC bo'yicha yechasiz, AI javobingizni ball bilan baholaydi.
+              AI kazusni o‘zi IRAC bo‘yicha tahlil qilib ko‘rsatadi (o‘rganish uchun namuna).
             </p>
           </button>
         </div>
       </section>
 
-      {/* ═══ KAZUS TURI (faqat AI rejimida) ═══ */}
-      {mode === 'ai_solves' && (
+      {/* ═══ IMTIHON VAQTI (faqat Imtihon rejimida) ═══ */}
+      {mode === 'exam' && (
+        <section className="bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/50 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-amber-800 dark:text-amber-300 text-sm font-semibold">
+            <Clock className="w-4 h-4" />
+            Imtihon davomiyligi:
+          </div>
+          <div className="flex gap-2">
+            {[10, 15, 20].map(mins => (
+              <button
+                key={mins}
+                onClick={() => setExamMinutes(mins)}
+                className={chip(examMinutes === mins)}
+              >
+                {mins} daqiqa
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* ═══ KAZUS TURI (AI yoki Mustaqil rejimda) ═══ */}
+      {mode !== 'exam' && (
         <section>
           <h2 className="text-sm font-semibold text-gray-500 dark:text-zinc-400 uppercase tracking-wider mb-3">
             Kazus turi
@@ -1496,15 +1676,32 @@ export default function CaseSolver() {
 
       {/* KAZUS */}
       <div className="bg-white dark:bg-zinc-900 rounded-2xl p-5 sm:p-6 shadow-sm border border-gray-100 dark:border-zinc-800">
-        <div className="flex flex-wrap items-center gap-2 mb-3">
-          <span className="text-xs px-2.5 py-1 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded-full font-medium">
-            {categoryLabel(currentCase!.category)}
-          </span>
-          <span
-            className={`text-xs px-2.5 py-1 rounded-full font-medium ${difficultyColor(currentCase!.difficulty)}`}
-          >
-            {difficultyLabel(currentCase!.difficulty)}
-          </span>
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs px-2.5 py-1 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded-full font-medium">
+              {categoryLabel(currentCase!.category)}
+            </span>
+            <span
+              className={`text-xs px-2.5 py-1 rounded-full font-medium ${difficultyColor(currentCase!.difficulty)}`}
+            >
+              {difficultyLabel(currentCase!.difficulty)}
+            </span>
+          </div>
+          {mode === 'exam' && (
+            <div
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
+                examSecondsLeft <= 120
+                  ? 'bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-400 animate-pulse'
+                  : 'bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300'
+              }`}
+            >
+              <Clock className="w-3.5 h-3.5" />
+              <span>
+                {Math.floor(examSecondsLeft / 60)}:
+                {String(examSecondsLeft % 60).padStart(2, '0')}
+              </span>
+            </div>
+          )}
         </div>
         <h2 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-zinc-100 mb-3">
           {currentCase!.title}
@@ -1514,19 +1711,76 @@ export default function CaseSolver() {
             {currentCase!.description}
           </p>
         </div>
-        {currentCase!.law_references && currentCase!.law_references.length > 0 && (
-          <div className="mt-3 flex flex-wrap gap-2">
-            <span className="text-xs text-gray-500 dark:text-zinc-400">Tegishli:</span>
-            {currentCase!.law_references.map((ref, i) => (
-              <span
-                key={i}
-                className="text-xs px-2 py-0.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full"
-              >
-                {ref}
+
+        {/* Progressive Legal Hints (only in user_solves practice mode; hidden in exam mode) */}
+        {mode === 'user_solves' && (
+          <div className="mt-4 p-4 rounded-xl border border-indigo-100 dark:border-indigo-900/40 bg-indigo-50/40 dark:bg-indigo-950/20 space-y-2.5">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <span className="text-xs font-semibold text-indigo-700 dark:text-indigo-300 flex items-center gap-1.5">
+                <Lightbulb className="w-4 h-4" />
+                Bosqichma-bosqich maslahatlar ({hintLevel}/3 ochilgan)
               </span>
-            ))}
+              {hintLevel < 3 && (
+                <button
+                  type="button"
+                  onClick={() => setHintLevel(prev => Math.min(3, prev + 1))}
+                  className="text-xs font-semibold px-3 py-1 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition-colors"
+                >
+                  {hintLevel === 0 ? '1-maslahatni ochish' : `${hintLevel + 1}-maslahatni ochish`}
+                </button>
+              )}
+            </div>
+            {hintLevel >= 1 && (
+              <p className="text-xs text-slate-700 dark:text-zinc-300">
+                <strong>1. Yo‘nalish:</strong> Ushbu ish{' '}
+                <span className="font-semibold">{categoryLabel(currentCase!.category)}</span>{' '}
+                doirasida ko‘rib chiqiladi. Avval taraflar o‘rtasidagi asosiy huquqiy munosabatni aniqlang.
+              </p>
+            )}
+            {hintLevel >= 2 && (
+              <p className="text-xs text-slate-700 dark:text-zinc-300">
+                <strong>2. Asosiy masala:</strong>{' '}
+                {currentCase!.key_questions && currentCase!.key_questions.length > 0
+                  ? currentCase!.key_questions[0]
+                  : 'Subyektlar harakatida qonun buzilishi yoki majburiyat buzilishi tarkibi mavjudligini tekshiring.'}
+              </p>
+            )}
+            {hintLevel >= 3 && (
+              <div className="text-xs text-slate-700 dark:text-zinc-300 flex flex-wrap items-center gap-1.5">
+                <strong>3. Tegishli qonun asoslari:</strong>
+                {currentCase!.law_references && currentCase!.law_references.length > 0 ? (
+                  currentCase!.law_references.map((ref, i) => (
+                    <span
+                      key={i}
+                      className="px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 rounded-full"
+                    >
+                      {ref}
+                    </span>
+                  ))
+                ) : (
+                  <span>Tegishli kodeks moddalarini mustaqil tanlang.</span>
+                )}
+              </div>
+            )}
           </div>
         )}
+
+        {/* Law references shown directly only in ai_solves mode (never leaked pre-submit in user_solves/exam) */}
+        {mode === 'ai_solves' &&
+          currentCase!.law_references &&
+          currentCase!.law_references.length > 0 && (
+            <div className="mt-3 flex flex-wrap gap-2">
+              <span className="text-xs text-gray-500 dark:text-zinc-400">Tegishli:</span>
+              {currentCase!.law_references.map((ref, i) => (
+                <span
+                  key={i}
+                  className="text-xs px-2 py-0.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full"
+                >
+                  {ref}
+                </span>
+              ))}
+            </div>
+          )}
 
         {/* SAVOL */}
         <div className="mt-5 p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/60 rounded-xl">
@@ -1576,12 +1830,21 @@ export default function CaseSolver() {
         </div>
       )}
 
-      {/* USER REJIMI */}
-      {mode === 'user_solves' && (
+      {/* USER / EXAM REJIMI */}
+      {(mode === 'user_solves' || mode === 'exam') && (
         <div className="bg-white dark:bg-zinc-900 rounded-2xl p-5 sm:p-6 shadow-sm border border-gray-100 dark:border-zinc-800">
-          <h3 className="font-bold text-gray-800 dark:text-zinc-100 mb-1">Sizning tahlilingiz</h3>
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
+            <h3 className="font-bold text-gray-800 dark:text-zinc-100">
+              {mode === 'exam' ? 'Imtihon javob varaqasi' : 'Sizning IRAC tahlilingiz'}
+            </h3>
+            <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+              {SECTIONS.filter(s => userAnswers[s.id].trim().length >= 10).length} / 4 bo‘lim to‘ldirildi
+            </span>
+          </div>
           <p className="text-sm text-gray-600 dark:text-zinc-400 mb-5">
-            IRAC bo'yicha javobingizni yozing — AI ball bilan baholaydi.
+            {mode === 'exam'
+              ? 'Vaqt tugashidan oldin barcha 4 bo‘limni to‘ldirib topshiring. Qoralama faqat amaliyotda saqlanadi.'
+              : 'IRAC bo‘yicha javobingizni yozing (avtomatik saqlanadi) — AI ball va batafsil taqqoslash beradi.'}
           </p>
 
           <div className="space-y-4">
@@ -1613,7 +1876,7 @@ export default function CaseSolver() {
           </div>
 
           <button
-            onClick={evaluateWithAI}
+            onClick={() => evaluateWithAI(false)}
             disabled={evalLoading}
             className="w-full sm:w-auto flex items-center justify-center gap-2 bg-green-600 text-white px-6 py-3 rounded-xl hover:bg-green-700 transition-colors disabled:opacity-60 font-medium mt-5"
           >
@@ -1916,23 +2179,94 @@ export default function CaseSolver() {
           </div>
         )}
 
-        {/* To'g'ri javob */}
-        {SECTIONS.some(s => evaluation![s.id]) && (
-          <div className="bg-white dark:bg-zinc-900 rounded-2xl p-4 sm:p-5 shadow-sm border border-gray-200 dark:border-zinc-700">
-            <h3 className="font-semibold text-gray-800 dark:text-zinc-100 mb-4">To'g'ri javob</h3>
-            <div className="space-y-3">
+        {/* Side-by-Side Answer Comparison: Student vs AI */}
+        {SECTIONS.some(s => evaluation![s.id] || userAnswers[s.id]) && (
+          <div className="bg-white dark:bg-zinc-900 rounded-2xl p-4 sm:p-5 shadow-sm border border-gray-200 dark:border-zinc-700 space-y-4">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <h3 className="font-semibold text-gray-800 dark:text-zinc-100 flex items-center gap-2">
+                <Columns2 className="w-4 h-4 text-blue-600" />
+                Javoblarni yonma-yon taqqoslash
+              </h3>
+              <span className="text-[11px] text-gray-500 dark:text-zinc-400">
+                AI tahlili yagona talqin emas — o‘quv namunasi sifatida berilgan
+              </span>
+            </div>
+
+            {(evaluation!.missingArguments?.length ||
+              evaluation!.reasoningDifferences?.length ||
+              evaluation!.incorrectReferences?.length) ? (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                {evaluation!.missingArguments && evaluation!.missingArguments.length > 0 && (
+                  <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900">
+                    <p className="font-bold text-amber-800 dark:text-amber-300 mb-1">
+                      Qoldirilgan argumentlar:
+                    </p>
+                    <ul className="space-y-1 text-slate-700 dark:text-zinc-300 list-disc pl-4">
+                      {evaluation!.missingArguments.map((m, idx) => (
+                        <li key={idx}>{m}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {evaluation!.reasoningDifferences && evaluation!.reasoningDifferences.length > 0 && (
+                  <div className="p-3 rounded-xl bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900">
+                    <p className="font-bold text-blue-800 dark:text-blue-300 mb-1">
+                      Talqin va mantiq farqlari:
+                    </p>
+                    <ul className="space-y-1 text-slate-700 dark:text-zinc-300 list-disc pl-4">
+                      {evaluation!.reasoningDifferences.map((r, idx) => (
+                        <li key={idx}>{r}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {evaluation!.incorrectReferences && evaluation!.incorrectReferences.length > 0 && (
+                  <div className="p-3 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900">
+                    <p className="font-bold text-red-800 dark:text-red-300 mb-1">
+                      Noto‘g‘ri modda havolalari:
+                    </p>
+                    <ul className="space-y-1 text-slate-700 dark:text-zinc-300 list-disc pl-4">
+                      {evaluation!.incorrectReferences.map((ref, idx) => (
+                        <li key={idx}>{ref}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            ) : null}
+
+            <div className="space-y-4">
               {SECTIONS.map(s => {
-                if (!evaluation![s.id]) return null
                 const styles = COLOR_STYLES[s.color]
                 return (
-                  <div key={s.id} className={`border rounded-xl ${styles.header} p-3`}>
-                    <div className={`flex items-center gap-2 mb-1 ${styles.text}`}>
-                      {s.icon}
-                      <span className="font-semibold text-sm">{s.title}</span>
+                  <div key={s.id} className={`border rounded-xl ${styles.header} p-3 sm:p-4`}>
+                    <div className={`flex items-center justify-between mb-2 ${styles.text}`}>
+                      <div className="flex items-center gap-2">
+                        {s.icon}
+                        <span className="font-semibold text-sm">{s.title}</span>
+                      </div>
+                      <span className="text-xs font-bold">
+                        {evaluation!.sectionScores?.[s.id] ?? '—'} / {s.maxScore} ball
+                      </span>
                     </div>
-                    <p className="text-sm text-gray-700 dark:text-zinc-300 leading-relaxed whitespace-pre-wrap">
-                      {evaluation![s.id]}
-                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="bg-white dark:bg-zinc-900 rounded-lg p-3 border border-gray-200 dark:border-zinc-700">
+                        <p className="text-[11px] font-bold text-gray-500 uppercase mb-1">
+                          Sizning javobingiz
+                        </p>
+                        <p className="text-xs sm:text-sm text-gray-700 dark:text-zinc-300 whitespace-pre-wrap">
+                          {userAnswers[s.id]?.trim() || '(Kiritilmagan)'}
+                        </p>
+                      </div>
+                      <div className="bg-white dark:bg-zinc-900 rounded-lg p-3 border border-emerald-200 dark:border-emerald-900/50">
+                        <p className="text-[11px] font-bold text-emerald-700 dark:text-emerald-400 uppercase mb-1">
+                          AI tavsiya etgan tahlil
+                        </p>
+                        <p className="text-xs sm:text-sm text-gray-700 dark:text-zinc-300 whitespace-pre-wrap">
+                          {evaluation![s.id] || '—'}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 )
               })}
@@ -1944,10 +2278,11 @@ export default function CaseSolver() {
         <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-gray-100 dark:border-zinc-800">
           <button
             onClick={() => handleExportIracReport(evaluation!, true)}
-            className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-slate-800 dark:text-zinc-200 bg-slate-100 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl hover:bg-slate-200 dark:hover:bg-zinc-700 transition-colors cursor-pointer"
+            disabled={exportingPdf}
+            className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-slate-800 dark:text-zinc-200 bg-slate-100 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl hover:bg-slate-200 dark:hover:bg-zinc-700 transition-colors cursor-pointer disabled:opacity-50"
           >
             <Download className="w-4 h-4 text-blue-500" />
-            <span>Tahlil hisobotini yuklab olish</span>
+            <span>{exportingPdf ? 'PDF tayyorlanmoqda...' : 'PDF hisobotni yuklab olish'}</span>
           </button>
 
           <div className="flex items-center gap-2">

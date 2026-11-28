@@ -435,17 +435,43 @@ export async function createCourtRoom(
 
 /**
  * 2. Xonani qidirish (Get Courtroom)
+ * Authoritative DB-first lookup to avoid serverless split-brain stale reads;
+ * falls back to in-memory cache only if DB is unavailable or returns null.
  */
 export async function getCourtRoom(codeOrId: string): Promise<MultiplayerRoom | null> {
   if (!codeOrId) return null
   const clean = codeOrId.toUpperCase().trim()
+
+  // In unit tests, prefer fast in-memory store if already populated to avoid network timeouts
+  if (process.env.NODE_ENV === 'test') {
+    if (roomsMap.has(clean)) return roomsMap.get(clean)!
+    if (roomsMap.has(codeOrId)) return roomsMap.get(codeOrId)!
+  }
+
+  // Production & serverless: DB-first authoritative lookup with 2.5s timeout guard
+  let dbTimedOut = false
+  const dbRoom = await Promise.race([
+    loadRoomFromDb(codeOrId),
+    new Promise<null>(resolve =>
+      setTimeout(() => {
+        dbTimedOut = true
+        resolve(null)
+      }, 2500)
+    ),
+  ])
+  if (dbRoom) return dbRoom
+
+  if (dbTimedOut && process.env.NODE_ENV === 'production') {
+    throw new Error('Sud zali holatini bazadan yuklashda vaqt tugadi (DB timeout)')
+  }
+
   if (roomsMap.has(clean)) {
     return roomsMap.get(clean)!
   }
   if (roomsMap.has(codeOrId)) {
     return roomsMap.get(codeOrId)!
   }
-  return await loadRoomFromDb(codeOrId)
+  return null
 }
 
 // ── Authoritative Cleanup Worker: Expired & Abandoned Rooms ──

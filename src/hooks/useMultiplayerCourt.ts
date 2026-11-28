@@ -23,10 +23,19 @@ interface UseMultiplayerCourtOptions {
   } | null
 }
 
-const ICE_SERVERS = [
+const ICE_SERVERS: RTCIceServer[] = [
   { urls: 'stun:stun.l.google.com:19302' },
   { urls: 'stun:global.stun.twilio.com:3478' },
   { urls: 'stun:stun1.l.google.com:19302' },
+  ...(process.env.NEXT_PUBLIC_TURN_URL
+    ? [
+        {
+          urls: process.env.NEXT_PUBLIC_TURN_URL,
+          username: process.env.NEXT_PUBLIC_TURN_USERNAME || undefined,
+          credential: process.env.NEXT_PUBLIC_TURN_CREDENTIAL || undefined,
+        },
+      ]
+    : []),
 ]
 
 export function useMultiplayerCourt({ codeOrId, currentUser }: UseMultiplayerCourtOptions) {
@@ -114,15 +123,12 @@ export function useMultiplayerCourt({ codeOrId, currentUser }: UseMultiplayerCou
     myIdentityRef.current = identity
   }, [currentUser])
 
-  // Get Custom Request Headers
+  // Get Custom Request Headers (authenticated only — no client-spoofable identity headers)
   const getHeaders = useCallback(async (): Promise<Record<string, string>> => {
     const authHeaders = await getAuthHeaders()
-    const identity = myIdentityRef.current
     return {
       ...authHeaders,
       'Content-Type': 'application/json',
-      'x-guest-id': identity.id,
-      'x-guest-name': encodeURIComponent(identity.name || 'Ishtirokchi'),
     }
   }, [])
 

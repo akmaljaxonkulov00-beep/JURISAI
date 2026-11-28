@@ -62,6 +62,46 @@ export default function ScenarioGenerator() {
   const [topic, setTopic] = useState('')
   const [focusAreas, setFocusAreas] = useState<string[]>([])
   const [additionalReqs, setAdditionalReqs] = useState('')
+  const [dynamicTwist, setDynamicTwist] = useState<string | null>(null)
+
+  const handleTransferToCaseSolver = (scenario: ScenarioData) => {
+    if (typeof window === 'undefined') return
+    const payload = {
+      title: scenario.title,
+      facts: `${scenario.background}\n\nAsosiy faktlar:\n${(scenario.facts || []).map(f => `- ${f.statement}`).join('\n')}`,
+      category: scenario.legal_domain,
+      legal_basis: (scenario.legal_issues || []).flatMap(li => li.applicable_articles || []).join(', '),
+      source: 'scenario-generator',
+    }
+    sessionStorage.setItem('juristiv_transfer_case', JSON.stringify(payload))
+    router.push('/case-solver')
+  }
+
+  const handleTransferToDecisionTree = (scenario: ScenarioData) => {
+    if (typeof window === 'undefined') return
+    const payload = {
+      title: scenario.title,
+      description: scenario.background,
+      domain: scenario.legal_domain,
+      root_question: scenario.legal_issues?.[0]?.question || scenario.title,
+      source: 'scenario-generator',
+    }
+    sessionStorage.setItem('juristiv_transfer_tree', JSON.stringify(payload))
+    router.push('/decision-tree')
+  }
+
+  const handleTransferToVirtualCourt = (scenario: ScenarioData) => {
+    if (typeof window === 'undefined') return
+    const payload = {
+      title: scenario.title,
+      background: scenario.background,
+      domain: scenario.legal_domain,
+      user_role: scenario.user_role,
+      source: 'scenario-generator',
+    }
+    sessionStorage.setItem('juristiv_transfer_court', JSON.stringify(payload))
+    router.push('/virtual-court')
+  }
 
   // Generation & Active Simulation State
   const [isGenerating, setIsGenerating] = useState(false)
@@ -361,6 +401,18 @@ export default function ScenarioGenerator() {
         setSelectedOptionId(null)
         setCustomActionText('')
         setShowCustomInput(false)
+
+        if (Array.isArray(data.revealed_evidence) && data.revealed_evidence.length > 0 && currentScenario) {
+          const existingIds = new Set((currentScenario.evidence || []).map(e => e.id))
+          const newItems = data.revealed_evidence.filter((e: { id: string }) => !existingIds.has(e.id))
+          if (newItems.length > 0) {
+            setCurrentScenario({
+              ...currentScenario,
+              evidence: [...(currentScenario.evidence || []), ...newItems],
+            })
+          }
+        }
+        setDynamicTwist(data.dynamic_twist || null)
 
         if (data.is_completed) {
           finishSimulation(updatedLogs)
@@ -838,6 +890,36 @@ export default function ScenarioGenerator() {
                   <span>Yangi senariy yaratish</span>
                 </button>
               </div>
+
+              {/* Cross-Feature Learning Transfers */}
+              <div className="pt-4 border-t border-gray-100 dark:border-zinc-800">
+                <p className="text-xs font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-wider text-center mb-3">
+                  Keyingi amaliy bosqichga o‘tkazish
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  <button
+                    onClick={() => handleTransferToCaseSolver(currentScenario)}
+                    className="px-4 py-2.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/40 dark:hover:bg-indigo-900/50 border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer"
+                  >
+                    <Scale className="w-4 h-4" />
+                    <span>Kazus Yechishda tahlil</span>
+                  </button>
+                  <button
+                    onClick={() => handleTransferToDecisionTree(currentScenario)}
+                    className="px-4 py-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/50 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer"
+                  >
+                    <Layers className="w-4 h-4" />
+                    <span>Qarorlar Daraxtida tuzish</span>
+                  </button>
+                  <button
+                    onClick={() => handleTransferToVirtualCourt(currentScenario)}
+                    className="px-4 py-2.5 rounded-xl bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/40 dark:hover:bg-amber-900/50 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300 text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer"
+                  >
+                    <Play className="w-4 h-4" />
+                    <span>Virtual Sudda ko‘rish</span>
+                  </button>
+                </div>
+              </div>
             </div>
           ) : (
             /* Active Step Simulation UI */
@@ -902,6 +984,12 @@ export default function ScenarioGenerator() {
 
               {/* Right Column: Decision Point Interactive Area (7 Cols) */}
               <div className="lg:col-span-7 space-y-4">
+                {dynamicTwist && (
+                  <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 flex items-start gap-2.5 text-xs sm:text-sm text-amber-900 dark:text-amber-200">
+                    <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                    <span>{dynamicTwist}</span>
+                  </div>
+                )}
                 {currentDecisionPoint ? (
                   <div className="bg-white dark:bg-zinc-900 border border-blue-200/80 dark:border-blue-900/50 rounded-3xl p-6 sm:p-7 shadow-sm space-y-6">
                     <div>

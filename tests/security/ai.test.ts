@@ -371,10 +371,10 @@ describe('6) Provider failure → 502 (NO fake success)', () => {
     expect(json.error).toBeDefined()
   })
 
-  it('fetch network error → chat 500', async () => {
+  it('fetch network error → chat 503', async () => {
     ;(global.fetch as any).mockRejectedValue(new Error('network down'))
     const res = await chatPOST(mockRequest({ token: USER_TOKEN, body: { message: 'Salom' } }))
-    expect(res.status).toBe(500)
+    expect(res.status).toBe(503)
   })
 })
 

@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
 import {
   CourtRole,
+  ALL_COURT_ROLES,
   CourtSessionState,
   SessionEvent,
   UserActionPayload,
@@ -159,7 +160,7 @@ export async function POST(request: NextRequest) {
       }
 
       const roleUpper = (userRole as string).toUpperCase() as CourtRole
-      if (!['ADVOKAT', 'PROKUROR', 'SUDYA'].includes(roleUpper)) {
+      if (!ALL_COURT_ROLES.includes(roleUpper)) {
         return NextResponse.json({ error: 'Noto‘g‘ri rol tanlandi' }, { status: 400 })
       }
 

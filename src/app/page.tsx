@@ -343,6 +343,12 @@ export default function LandingPage() {
               >
                 Bog‘lanish
               </a>
+              <Link
+                href="/pricing"
+                className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+              >
+                Tariflar
+              </Link>
             </nav>
 
             {/* Desktop Auth Buttons */}
@@ -492,7 +498,7 @@ export default function LandingPage() {
                 <div className="w-3 h-3 rounded-full bg-amber-500/80" />
                 <div className="w-3 h-3 rounded-full bg-emerald-500/80" />
                 <span className="ml-2 font-mono text-[11px] text-slate-400 hidden sm:inline">
-                  jurisai.uz/virtual-court/live-trial
+                  juristiv.uz/virtual-court/live-trial
                 </span>
               </div>
               <div className="flex items-center gap-2">
@@ -975,7 +981,7 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="border-t border-slate-800 pt-8 text-center text-xs text-slate-500">
-            &copy; {new Date().getFullYear()} JURISAI. Barcha huquqlar himoyalangan. O‘zbekiston Respublikasi.
+            &copy; {new Date().getFullYear()} JURISTIV. Barcha huquqlar himoyalangan. O‘zbekiston Respublikasi.
           </div>
         </div>
       </footer>

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
 import { VERIFIED_SCENARIO_TEMPLATES } from '@/lib/scenario-generator-engine'
+import { sanitizeScenarioForClient } from '@/lib/scenario-sanitizer'
 import { ScenarioData } from '@/types/scenario-generator'
 
 /**
@@ -71,7 +72,14 @@ export async function GET(request: NextRequest) {
         }
 
         if (dbTemplates.length > 0) {
-          templates = dbTemplates
+          // Deduplicate templates by normalized title so repeated legacy DB rows never duplicate cards
+          const seenTitles = new Set<string>()
+          templates = dbTemplates.filter(t => {
+            const key = (t.title || '').trim().toLowerCase()
+            if (!key || seenTitles.has(key)) return false
+            seenTitles.add(key)
+            return true
+          })
         }
       }
     } catch (dbErr) {
@@ -89,7 +97,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       templates: templates.map(t => ({
-        ...t,
+        ...sanitizeScenarioForClient(t),
         name: t.title, // backward compatibility
       })),
       total: templates.length,
@@ -99,7 +107,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       templates: VERIFIED_SCENARIO_TEMPLATES.map(t => ({
-        ...t,
+        ...sanitizeScenarioForClient(t),
         name: t.title,
       })),
       total: VERIFIED_SCENARIO_TEMPLATES.length,

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { requireUser } from '@/lib/server-auth'
-import { getSupabaseAdmin } from '@/lib/supabase-admin'
+import { resolveCourtUser } from '@/lib/court/multiplayer-auth'
 import {
   getCourtRoom,
   startTrial,
@@ -20,47 +19,13 @@ import {
 } from '@/lib/court/multiplayer-db'
 import type { MultiplayerRole } from '@/lib/court/multiplayer-types'
 
-async function resolveUser(request: NextRequest): Promise<{ id: string; name: string } | null> {
-  const auth = await requireUser(request)
-  if (auth.ok) {
-    try {
-      const admin = getSupabaseAdmin()
-      const { data } = await admin
-        .from('registered_users')
-        .select('full_name, email')
-        .eq('id', auth.user.id)
-        .maybeSingle()
-      return {
-        id: auth.user.id,
-        name: data?.full_name || auth.user.email.split('@')[0] || 'Foydalanuvchi',
-      }
-    } catch {
-      return {
-        id: auth.user.id,
-        name: auth.user.email.split('@')[0] || 'Foydalanuvchi',
-      }
-    }
-  }
-
-  const guestId = request.headers.get('x-guest-id')
-  const guestName = request.headers.get('x-guest-name')
-  if (guestId && guestId.trim().length > 3) {
-    return {
-      id: guestId.trim(),
-      name: decodeURIComponent(guestName || 'Ishtirokchi').trim(),
-    }
-  }
-
-  return null
-}
-
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ codeOrId: string }> }
 ) {
   try {
     const { codeOrId } = await params
-    const user = await resolveUser(request)
+    const user = await resolveCourtUser(request)
     if (!user) {
       return NextResponse.json(
         { success: false, error: 'Avtorizatsiyadan o‘tilmagan' },
@@ -75,6 +40,26 @@ export async function POST(
       return NextResponse.json(
         { success: false, error: 'Harakat turi (action) ko‘rsatilmadi' },
         { status: 400 }
+      )
+    }
+
+    const existingRoom = await getCourtRoom(codeOrId)
+    if (!existingRoom) {
+      return NextResponse.json(
+        { success: false, error: 'Sud zali topilmadi yoki yopilgan' },
+        { status: 404 }
+      )
+    }
+
+    if (
+      action !== 'leave' &&
+      (existingRoom.status === 'completed' ||
+        existingRoom.status === 'cancelled' ||
+        existingRoom.status === 'expired')
+    ) {
+      return NextResponse.json(
+        { success: false, error: 'Sud majlisi yakunlangan, o‘zgartirish kiritib bo‘lmaydi' },
+        { status: 409 }
       )
     }
 

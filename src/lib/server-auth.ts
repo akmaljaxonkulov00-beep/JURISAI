@@ -101,7 +101,10 @@ export function getRequestToken(request: NextRequest): string | null {
  * token imzosini o'zi tasdiqlaydi). Faqat tasdiqlangan user qaytariladi.
  */
 async function verifyUser(token: string): Promise<SessionUser | null> {
-  if (token.startsWith('demo-token-')) {
+  // Demo tokens are strictly disabled in production and require explicit opt-in in non-prod
+  const allowDemoAuth =
+    process.env.NODE_ENV !== 'production' && process.env.ALLOW_DEMO_AUTH === 'true'
+  if (allowDemoAuth && token.startsWith('demo-token-')) {
     if (token === 'demo-token-citizen') {
       return { id: 'demo-citizen-id', email: 'fuqaro@juristiv.uz' }
     }

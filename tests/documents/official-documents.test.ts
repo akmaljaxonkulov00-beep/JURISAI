@@ -80,12 +80,12 @@ describe('Hujjatlar Konstruktori 2.0 — Official Documents Registry & Engine', 
     }
 
     const rendered = renderOfficialDocumentText(doc, mockValues)
-    expect(rendered).toContain('DA’VO ARIZASI')
+    expect(rendered).toContain('DA‘VO ARIZA')
     expect(rendered).toContain('Karimov Rustam Aliyevich')
     expect(rendered).toContain('Rahimov Botir Shuhratovich')
     expect(rendered).toMatch(/35[\s\u00a0,.]000[\s\u00a0,.]000/)
-    expect(rendered).toContain('Fuqarolik kodeksining 732-moddasi')
-    expect(rendered).toContain('Fuqarolik protsessual kodeksining 188, 189')
+    expect(rendered).toContain('Fuqarolik kodeksining 324, 734-735 moddalariga')
+    expect(rendered).toContain('FPKning 188, 189, 191-moddalariga')
 
     const hash = crypto.createHash('sha256').update(rendered).digest('hex')
     expect(hash.length).toBe(64)

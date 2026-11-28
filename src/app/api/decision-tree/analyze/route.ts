@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireUser } from '@/lib/server-auth'
 import { checkAndIncrement, usageMessage } from '@/lib/usage-limits'
-import { retrieveLegalArticles, buildLegalContext, RAGArticle } from '@/lib/legal-rag'
+import { retrieveLegalArticles, buildLegalContext, validateCitations, RAGArticle } from '@/lib/legal-rag'
 import { ensureUzbekLatin } from '@/lib/uz-latin'
 import { callGemini } from '@/lib/gemini'
 import { DecisionNode, CaseAnalysis, ApplicableLawRef } from '@/types/decision-tree'
@@ -410,11 +410,37 @@ Ushbu ishni to'liq tahlil qilib, belgilangan JSON schema formatida qaytaring.
       }
     }
 
+    // Validate all legal_basis / applicable_laws citations against verified corpus
+    let citationValidation: { valid: unknown[]; invalid: unknown[] } = { valid: [], invalid: [] }
+    try {
+      const collectNodeCitations = (n: DecisionNode): string[] => {
+        const list: string[] = []
+        if (n.legal_basis) list.push(n.legal_basis)
+        if (Array.isArray(n.children)) {
+          for (const c of n.children) list.push(...collectNodeCitations(c))
+        }
+        return list
+      }
+      const lawsText = [
+        ...collectNodeCitations(parsedResult.tree),
+        ...(parsedResult.analysis.applicable_laws || []).map(
+          l => `${l.code_name || l.code_id || ''} ${l.article_number || ''}-modda`
+        ),
+      ].join('\n')
+      if (lawsText.trim()) {
+        const citeResult = await validateCitations(lawsText)
+        citationValidation = { valid: citeResult.valid, invalid: citeResult.invalid }
+      }
+    } catch {
+      // Non-blocking citation check
+    }
+
     return NextResponse.json({
       success: true,
       analysis: parsedResult.analysis,
       tree: parsedResult.tree,
       rag_articles_count: articles.length,
+      citationValidation,
     })
   } catch (error) {
     console.error('Decision tree analyze error:', error)

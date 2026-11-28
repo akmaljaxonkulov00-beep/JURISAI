@@ -28,6 +28,7 @@ import {
   type LegalCode,
   type LegalArticle as HookLegalArticle,
 } from '@/hooks/useLegalDatabase'
+import { useAuth } from '@/app/providers'
 import { getDisplayNameFromCodeId } from '@/lib/utils/code-mapper'
 
 // ── Kodekslararo havolalar (cross-reference) ───────────────────────────────
@@ -135,6 +136,7 @@ interface DisplayCategory {
 }
 
 export default function LegalDatabase() {
+  const { isAuthenticated } = useAuth()
   const { codes, loading, fromSupabase, search: searchCodes, getCode, refresh } = useLegalCodes()
   const [activeTab, setActiveTab] = useState<'search' | 'categories' | 'bookmarks'>('categories')
   const [searchQuery, setSearchQuery] = useState('')
@@ -151,6 +153,7 @@ export default function LegalDatabase() {
 
   // Xatcho'plar — Supabase (yagona tizim). localStorage ishlatilmaydi.
   useEffect(() => {
+    if (!isAuthenticated) return
     let cancelled = false
     fetch('/api/legal/database/bookmarks', { cache: 'no-cache' })
       .then(res => (res.ok ? res.json() : null))
@@ -161,7 +164,7 @@ export default function LegalDatabase() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [isAuthenticated])
 
   const handleSearch = () => {
     if (!searchQuery.trim()) return

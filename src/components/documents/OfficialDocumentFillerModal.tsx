@@ -13,6 +13,12 @@ import {
   ShieldCheck,
   Sparkles,
   Info,
+  BookOpen,
+  ChevronDown,
+  ChevronUp,
+  Save,
+  Loader2,
+  Check,
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
@@ -22,6 +28,8 @@ import {
   renderOfficialDocumentText,
 } from '@/lib/documents/official-documents-data'
 import { generateLegalPdf, downloadPdfBlob } from '@/lib/pdf-generator'
+import { generateLegalDocx, downloadDocxBlob } from '@/lib/docx-generator'
+import { getAuthHeaders } from '@/lib/api-auth-client'
 
 interface Props {
   document: OfficialLegalDocument
@@ -39,6 +47,14 @@ export default function OfficialDocumentFillerModal({
   const [renderedContent, setRenderedContent] = useState<string>('')
   const [copied, setCopied] = useState(false)
   const [downloadingPdf, setDownloadingPdf] = useState(false)
+  const [downloadingDocx, setDownloadingDocx] = useState(false)
+  const [savingDoc, setSavingDoc] = useState(false)
+  const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+  const [showEduGuide, setShowEduGuide] = useState(true)
+  const [aiReviewing, setAiReviewing] = useState(false)
+  const [aiReviewText, setAiReviewText] = useState<string | null>(null)
+  const [aiReviewError, setAiReviewError] = useState<string | null>(null)
+  const [aiSuggestionApplied, setAiSuggestionApplied] = useState(false)
   const [validationError, setValidationError] = useState<string | null>(null)
 
   // Auto-render on change
@@ -136,58 +152,89 @@ export default function OfficialDocumentFillerModal({
     printWindow.document.close()
   }
 
-  const handleDownloadDoc = (isBlank = false) => {
-    const contentToUse = isBlank ? renderOfficialDocumentText(doc, {}) : renderedContent
-    const paragraphs = contentToUse.split('\n')
-    let bodyHtml = ''
-    let inHeader = true
-
-    for (const p of paragraphs) {
-      const trimmed = p.trim()
-      if (!trimmed) {
-        bodyHtml += '<p style="margin: 4pt 0; font-size: 6pt;">&nbsp;</p>'
-        continue
-      }
-      if (trimmed.match(/^DA['']?VO\s+ARIZA/i) || trimmed.match(/^SUD\s+BUYRUG['']?I/i) || trimmed.match(/^TURAR\s+JOY/i) || trimmed.match(/^QARZ\s+SHARTNOMASI/i) || trimmed.match(/^ILTIMOSNOMA/i) || trimmed.match(/^SHIKOYAT/i) || trimmed.match(/^KO['']?CHMAS\s+MULK/i) || trimmed.match(/^NOTARIAL/i)) {
-        inHeader = false
-        bodyHtml += `<p style="text-align: center; font-weight: bold; font-size: 14pt; margin: 18pt 0 4pt 0;">${trimmed}</p>`
-        continue
-      }
-      if (trimmed.startsWith('(') && trimmed.endsWith(')')) {
-        inHeader = false
-        bodyHtml += `<p style="text-align: center; font-size: 12pt; margin-bottom: 16pt;">${trimmed}</p>`
-        continue
-      }
-      if (inHeader) {
-        bodyHtml += `<p style="margin-left: 48%; text-align: left; margin-bottom: 3pt; font-size: 12pt; line-height: 1.15;">${trimmed}</p>`
-      } else {
-        const isBold = trimmed.startsWith('So‘rayman') || trimmed.startsWith("So'rayman") || trimmed.startsWith('SO‘RAYMAN') || trimmed.startsWith("SO'RAYMAN") || trimmed.startsWith('ILTIMOS QILAMAN') || trimmed.startsWith('Ilova')
-        const isSign = trimmed.startsWith('Da‘vogar:') || trimmed.startsWith("Da'vogar:") || trimmed.startsWith('Arizachi:')
-        if (isSign) {
-          bodyHtml += `<p style="margin-top: 30pt; font-weight: bold; font-size: 12pt;">${trimmed}</p>`
-        } else if (isBold) {
-          bodyHtml += `<p style="font-weight: bold; margin-top: 14pt; margin-bottom: 6pt; font-size: 12pt;">${trimmed}</p>`
-        } else {
-          bodyHtml += `<p style="text-indent: 1.25cm; text-align: justify; margin-bottom: 8pt; font-size: 12pt; line-height: 1.25;">${trimmed}</p>`
-        }
-      }
+  const handleDownloadDoc = async (isBlank = false) => {
+    setDownloadingDocx(true)
+    try {
+      const contentToUse = isBlank ? renderOfficialDocumentText(doc, {}) : renderedContent
+      const blob = await generateLegalDocx({
+        title: doc.documentName,
+        content: contentToUse,
+        legalBasis: doc.officialSourceName,
+        isCourtDocument: true,
+      })
+      const prefix = isBlank ? 'Bosh_Rasmiy_Blank_' : ''
+      downloadDocxBlob(blob, `${prefix}${doc.documentName.replace(/\s+/g, '_')}.docx`)
+    } catch (e) {
+      console.error('DOCX generation error:', e)
+      alert('Word (.docx) faylini yaratishda xatolik yuz berdi.')
+    } finally {
+      setDownloadingDocx(false)
     }
+  }
 
-    const header = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-    <head><meta charset='utf-8'><title>${doc.documentName}</title>
-    <style>
-      @page { size: 21cm 29.7cm; margin: 2cm 1.5cm 2cm 2.5cm; }
-      body { font-family: 'Times New Roman', serif; font-size: 12pt; color: #000; }
-    </style></head>
-    <body>${bodyHtml}</body></html>`
-    const blob = new Blob(['\ufeff', header], { type: 'application/msword' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    const prefix = isBlank ? 'Bosh_Rasmiy_Blank_' : ''
-    a.download = `${prefix}${doc.documentName.replace(/\s+/g, '_')}.doc`
-    a.click()
-    URL.revokeObjectURL(url)
+  const handleSaveOfficialDocument = async () => {
+    setSavingDoc(true)
+    setSaveMessage(null)
+    try {
+      const headers = await getAuthHeaders()
+      const res = await fetch(`/api/official-documents/${doc.id}/fill`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...headers,
+        },
+        body: JSON.stringify({ values: formData }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setSaveMessage({
+          type: 'error',
+          text: data.error || 'Hujjatni saqlash uchun tizimga kiring.',
+        })
+        return
+      }
+      setSaveMessage({
+        type: 'success',
+        text: 'Hujjat shaxsiy kabinetingizga muvaffaqiyatli saqlandi!',
+      })
+    } catch {
+      setSaveMessage({
+        type: 'error',
+        text: 'Server bilan bog‘lanishda xatolik yuz berdi.',
+      })
+    } finally {
+      setSavingDoc(false)
+    }
+  }
+
+  const handleAiDraftingCoach = async () => {
+    setAiReviewing(true)
+    setAiReviewError(null)
+    setAiSuggestionApplied(false)
+    try {
+      const headers = await getAuthHeaders()
+      const res = await fetch('/api/ai/document-analysis', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...headers,
+        },
+        body: JSON.stringify({
+          documentText: renderedContent,
+          documentType: doc.documentName,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setAiReviewError(data.error || 'AI tahlilini olishda xatolik yuz berdi.')
+        return
+      }
+      setAiReviewText(data.analysis || 'Tahlil natijasi topilmadi.')
+    } catch {
+      setAiReviewError('AI Drafting Coach bilan bog‘lanishda xatolik yuz berdi.')
+    } finally {
+      setAiReviewing(false)
+    }
   }
 
   const handleDownloadPdf = async (isBlank = false) => {
@@ -239,22 +286,36 @@ export default function OfficialDocumentFillerModal({
               variant="outline"
               size="sm"
               onClick={() => handleDownloadDoc(true)}
+              disabled={downloadingDocx}
               className="rounded-xl flex items-center gap-1 text-xs border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/40"
-              title="To'ldirilmagan rasmiy bo'sh blankni yuklab olish"
+              title="To'ldirilmagan rasmiy bo'sh blankni haqiqiy .docx formatida yuklab olish"
             >
               <Download className="w-3.5 h-3.5 text-amber-600" />
-              <span className="hidden md:inline">Bo‘sh</span> Blank (.doc)
+              <span className="hidden md:inline">Bo‘sh</span> Blank (.docx)
             </Button>
 
             <Button
               variant="outline"
               size="sm"
               onClick={() => handleDownloadDoc(false)}
+              disabled={downloadingDocx}
               className="rounded-xl flex items-center gap-1 text-xs"
-              title="To'ldirilgan hujjatni Word formatida yuklab olish"
+              title="To'ldirilgan hujjatni haqiqiy Word (.docx) formatida yuklab olish"
             >
               <FileText className="w-3.5 h-3.5 text-blue-600" />
-              <span className="hidden sm:inline">Word</span> (.doc)
+              <span className="hidden sm:inline">Word</span> (.docx)
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSaveOfficialDocument}
+              disabled={savingDoc}
+              className="rounded-xl flex items-center gap-1 text-xs border-emerald-300 dark:border-emerald-700 text-emerald-700 dark:text-emerald-300"
+              title="Hujjatni shaxsiy kabinetga saqlash"
+            >
+              {savingDoc ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+              <span className="hidden sm:inline">Saqlash</span>
             </Button>
 
             <Button
@@ -327,6 +388,49 @@ export default function OfficialDocumentFillerModal({
               </span>
             </div>
 
+            {saveMessage && (
+              <div
+                className={`p-2.5 rounded-xl text-xs border ${
+                  saveMessage.type === 'success'
+                    ? 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300'
+                    : 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800 text-red-700 dark:text-red-300'
+                }`}
+              >
+                {saveMessage.text}
+              </div>
+            )}
+
+            {/* Educational Guide */}
+            <div className="rounded-xl border border-indigo-200 dark:border-indigo-800/50 bg-indigo-50/70 dark:bg-indigo-950/30 overflow-hidden">
+              <button
+                type="button"
+                onClick={() => setShowEduGuide((prev) => !prev)}
+                className="w-full px-3 py-2 flex items-center justify-between text-xs font-semibold text-indigo-900 dark:text-indigo-200"
+              >
+                <span className="flex items-center gap-1.5">
+                  <BookOpen className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                  O‘quv qo‘llanma: Hujjat tuzilishi va ilovalar
+                </span>
+                {showEduGuide ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+              </button>
+              {showEduGuide && (
+                <div className="px-3 pb-3 pt-1 text-[11px] text-slate-700 dark:text-slate-300 space-y-1.5 border-t border-indigo-100 dark:border-indigo-900/50">
+                  <p>
+                    <strong>Maqsadi:</strong> {doc.description || doc.documentName}
+                  </p>
+                  <p>
+                    <strong>Kim tayyorlaydi:</strong> Manfaatdor taraf (da’vogar, arizachi yoki uning vakili/advokati).
+                  </p>
+                  <p>
+                    <strong>Huquqiy asos:</strong> {doc.legalBasis?.join(', ') || doc.officialSourceName}
+                  </p>
+                  <p>
+                    <strong>Majburiy ilovalar:</strong> Shaxsni tasdiqlovchi hujjat nusxasi, davlat boji to‘langanligi kvitansiyasi va da’vo talabini tasdiqlovchi dalillar.
+                  </p>
+                </div>
+              )}
+            </div>
+
             <div className="space-y-3.5">
               {doc.fields.map((field) => (
                 <div key={field.id} className="space-y-1">
@@ -370,7 +474,68 @@ export default function OfficialDocumentFillerModal({
               ))}
             </div>
 
-            <div className="pt-3">
+            <div className="pt-3 space-y-2.5">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleAiDraftingCoach}
+                disabled={aiReviewing}
+                className="w-full border-purple-300 dark:border-purple-700 text-purple-700 dark:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-950/30 rounded-xl text-xs py-2 flex items-center justify-center gap-1.5"
+              >
+                {aiReviewing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                <span>{aiReviewing ? 'AI Drafting Coach tekshirmoqda...' : 'AI Drafting Coach: Hujjatni tekshirish'}</span>
+              </Button>
+
+              {aiReviewError && (
+                <div className="p-2.5 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 text-[11px] text-red-700 dark:text-red-300">
+                  {aiReviewError}
+                </div>
+              )}
+
+              {aiReviewText && (
+                <div className="p-3 rounded-xl bg-purple-50/70 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-purple-900 dark:text-purple-200 flex items-center gap-1">
+                      <Sparkles className="w-3.5 h-3.5" /> AI Drafting Coach tavsiyasi
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setAiReviewText(null)}
+                      className="text-[11px] text-slate-500 hover:text-slate-700"
+                    >
+                      Yopish
+                    </button>
+                  </div>
+                  <div className="text-[11px] text-slate-700 dark:text-slate-300 whitespace-pre-wrap max-h-48 overflow-y-auto">
+                    {aiReviewText}
+                  </div>
+                  <div className="flex items-center gap-2 pt-1">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setAiSuggestionApplied(true)}
+                      className="text-[11px] h-7 border-emerald-400 text-emerald-700 dark:text-emerald-300"
+                    >
+                      <Check className="w-3 h-3 mr-1" />
+                      {aiSuggestionApplied ? 'Qabul qilindi' : 'Tavsiyani belgilash'}
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setAiReviewText(null)
+                        setAiSuggestionApplied(false)
+                      }}
+                      className="text-[11px] h-7"
+                    >
+                      Rad etish
+                    </Button>
+                  </div>
+                </div>
+              )}
+
               <Button
                 onClick={() => handleDownloadPdf(false)}
                 className="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs py-2.5 shadow-md flex items-center justify-center gap-1.5"

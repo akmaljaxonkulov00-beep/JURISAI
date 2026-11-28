@@ -35,6 +35,10 @@ export interface DecisionNode {
   description?: string
   question?: string
   action?: string
+  branch_label?: string
+  condition_if?: string
+  condition_then?: string
+  condition_else?: string
   legal_basis?: string
   applicable_laws?: ApplicableLawRef[]
   consequences?: string

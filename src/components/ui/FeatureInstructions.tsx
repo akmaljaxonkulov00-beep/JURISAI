@@ -56,7 +56,7 @@ export default function FeatureInstructions({
         onClick={() => setIsOpen(!isOpen)}
         title={`${featureName} — Yordam`}
         aria-label={`${featureName} yordam`}
-        className="fixed bottom-20 right-4 z-[9998] flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-blue-600 text-white shadow-lg hover:bg-blue-700 hover:shadow-xl transition-all duration-200 hover:scale-110 cursor-pointer print:hidden"
+        className="fixed top-20 right-4 z-[9998] flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-blue-600 text-white shadow-lg hover:bg-blue-700 hover:shadow-xl transition-all duration-200 hover:scale-110 cursor-pointer print:hidden"
       >
         <HelpCircle size={20} />
       </button>

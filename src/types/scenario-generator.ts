@@ -98,10 +98,10 @@ export interface ScenarioOption {
   label: string
   action_type: ActionType
   description: string
-  consequence: string
-  xp: number
-  is_optimal: boolean
-  feedback: string
+  consequence?: string
+  xp?: number
+  is_optimal?: boolean
+  feedback?: string
 }
 
 export interface ScenarioDecisionPoint {
@@ -136,6 +136,7 @@ export interface ScenarioData {
   learning_outcomes: string[]
   sources: Array<{ name: string; url: string; number: string }>
   validation: ScenarioValidation
+  server_state_token?: string
 }
 
 export interface UserActionLog {

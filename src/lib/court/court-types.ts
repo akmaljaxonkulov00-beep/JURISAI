@@ -3,7 +3,95 @@
  * O'zbekiston protsessual qonunchiligi (JPK, FPK, BSK, MK, FK) asosida.
  */
 
-export type CourtRole = 'ADVOKAT' | 'PROKUROR' | 'SUDYA'
+export type CourtRole =
+  | 'ADVOKAT'
+  | 'PROKUROR'
+  | 'SUDYA'
+  | 'DAVOGAR'
+  | 'JAVOBGAR'
+  | 'VAKIL'
+  | 'ARIZACHI'
+  | 'JAVOBGAR_ORGAN'
+
+export const ALL_COURT_ROLES: CourtRole[] = [
+  'ADVOKAT',
+  'PROKUROR',
+  'SUDYA',
+  'DAVOGAR',
+  'JAVOBGAR',
+  'VAKIL',
+  'ARIZACHI',
+  'JAVOBGAR_ORGAN',
+]
+
+export interface CourtRoleOption {
+  id: CourtRole
+  title: string
+  desc: string
+}
+
+export function getRolesForCategory(category?: CaseCategory | string): CourtRoleOption[] {
+  if (category === 'administrative') {
+    return [
+      {
+        id: 'ARIZACHI',
+        title: 'Arizachi (Fuqaro / Tadbirkor)',
+        desc: 'Davlat organi qarori yoki harakatini haqiqiy emas deb topishni talab qilish (Ma’muriy sud)',
+      },
+      {
+        id: 'JAVOBGAR_ORGAN',
+        title: 'Javobgar Organ Vakili',
+        desc: 'Davlat organi qarorining qonuniyligi va asosliligini protsessual tartibda himoya qilish',
+      },
+      {
+        id: 'SUDYA',
+        title: 'Sud Raisi (Ma’muriy Sudya)',
+        desc: 'Majlisni boshqarish, dalillarni baholash va ma’muriy ish bo‘yicha hal qiluv qarori chiqarish',
+      },
+    ]
+  }
+  if (category === 'civil' || category === 'labor' || category === 'family' || category === 'economic') {
+    return [
+      {
+        id: 'DAVOGAR',
+        title: 'Da’vogar',
+        desc: 'Da’vo talabini asoslash, dalillar taqdim etish va buzilgan huquqni tiklashni so‘rash',
+      },
+      {
+        id: 'JAVOBGAR',
+        title: 'Javobgar',
+        desc: 'Da’voga e’tiroz bildirish, qarshi dalillar keltirish yoki kelishuv bitimi taklif etish',
+      },
+      {
+        id: 'VAKIL',
+        title: 'Vakil (Advokat)',
+        desc: 'Ishonch bildiruvchining manfaatlarini fuqarolik/iqtisodiy sudda professional himoya qilish',
+      },
+      {
+        id: 'SUDYA',
+        title: 'Sud Raisi (Sudya)',
+        desc: 'Taraflarni tinglash, dalillarni qabul qilish va adolatli hal qiluv qarori chiqarish',
+      },
+    ]
+  }
+  return [
+    {
+      id: 'ADVOKAT',
+      title: 'Advokat (Himoyachi)',
+      desc: 'Mijoz huquqlarini himoya qilish, dalillarga e’tiroz bildirish va oqlov/yengillik so‘rash',
+    },
+    {
+      id: 'PROKUROR',
+      title: 'Prokuror (Ayblovchi)',
+      desc: 'Davlat ayblovini qo‘llab-quvvatlash, dalillarni isbotlash va qat’iy jazo talab qilish',
+    },
+    {
+      id: 'SUDYA',
+      title: 'Sud Raisi (Sudya)',
+      desc: 'Majlisni boshqarish, iltimosnomalarni hal etish, dalillarni qabul qilish va Hukm chiqarish',
+    },
+  ]
+}
 
 export type ProcedureType = 'trial' | 'negotiation' | 'investigation'
 

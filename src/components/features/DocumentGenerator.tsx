@@ -6,8 +6,9 @@ import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
-import { FileText, ArrowLeft, Download, Edit3, Plus, Clock, FileDown, X } from 'lucide-react'
+import { FileText, ArrowLeft, Download, Edit3, Plus, Clock, FileDown, X, Sparkles, BookOpen, AlertTriangle, CheckCircle2, Loader2, Check } from 'lucide-react'
 import { generateLegalPdf, downloadPdfBlob } from '@/lib/pdf-generator'
+import { generateLegalDocx, downloadDocxBlob } from '@/lib/docx-generator'
 import { getAuthHeaders } from '@/lib/api-auth-client'
 
 import documentTemplatesData from '@/data/document-templates.json'
@@ -39,13 +40,18 @@ interface GeneratedDocument {
 }
 
 export default function DocumentGenerator() {
-  const [activeTab, setActiveTab] = useState<'templates' | 'generator' | 'history'>('templates')
+  const [activeTab, setActiveTab] = useState<'templates' | 'generator' | 'history' | 'comparison'>('templates')
   const [selectedTemplate, setSelectedTemplate] = useState<DocumentTemplate | null>(null)
   const [templates, setTemplates] = useState<DocumentTemplate[]>([])
   const [formData, setFormData] = useState<Record<string, string>>({})
   const [generatedDocuments, setGeneratedDocuments] = useState<GeneratedDocument[]>([])
   const [loading, setLoading] = useState(false)
   const [downloadingPdf, setDownloadingPdf] = useState(false)
+  const [downloadingDocx, setDownloadingDocx] = useState(false)
+  const [aiReviewing, setAiReviewing] = useState(false)
+  const [aiReviewText, setAiReviewText] = useState<string | null>(null)
+  const [aiReviewError, setAiReviewError] = useState<string | null>(null)
+  const [aiAccepted, setAiAccepted] = useState(false)
   const [currentDocument, setCurrentDocument] = useState<GeneratedDocument | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -271,6 +277,53 @@ export default function DocumentGenerator() {
       alert('PDF yaratishda xatolik yuz berdi')
     } finally {
       setDownloadingPdf(false)
+    }
+  }
+
+  const handleDownloadDocx = async (document: GeneratedDocument) => {
+    setDownloadingDocx(true)
+    try {
+      const blob = await generateLegalDocx({
+        title: document.title,
+        content: document.content,
+        isEducationalSample: true,
+      })
+      downloadDocxBlob(blob, `${document.title.replace(/\s+/g, '_')}.docx`)
+    } catch (error) {
+      console.error('Error downloading DOCX:', error)
+      alert('DOCX yaratishda xatolik yuz berdi')
+    } finally {
+      setDownloadingDocx(false)
+    }
+  }
+
+  const handleAiReview = async (document: GeneratedDocument) => {
+    setAiReviewing(true)
+    setAiReviewError(null)
+    setAiAccepted(false)
+    try {
+      const headers = await getAuthHeaders()
+      const res = await fetch('/api/ai/document-analysis', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...headers,
+        },
+        body: JSON.stringify({
+          documentText: document.content,
+          documentType: document.title,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setAiReviewError(data.error || 'AI tahlilini olishda xatolik yuz berdi')
+        return
+      }
+      setAiReviewText(data.analysis || 'Tahlil topilmadi')
+    } catch {
+      setAiReviewError('AI Drafting Coach bilan bog‘lanishda xatolik yuz berdi')
+    } finally {
+      setAiReviewing(false)
     }
   }
 
@@ -538,6 +591,24 @@ export default function DocumentGenerator() {
                 <div className="flex flex-wrap gap-2">
                   <Button
                     variant="outline"
+                    className="border-purple-600 text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20"
+                    onClick={() => handleAiReview(currentDocument)}
+                    disabled={aiReviewing}
+                  >
+                    {aiReviewing ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Sparkles className="w-4 h-4 mr-2" />}
+                    AI Drafting Coach
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="border-indigo-600 text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20"
+                    onClick={() => handleDownloadDocx(currentDocument)}
+                    disabled={downloadingDocx}
+                  >
+                    <FileText className="w-4 h-4 mr-2" />
+                    {downloadingDocx ? 'DOCX...' : 'Word (.docx)'}
+                  </Button>
+                  <Button
+                    variant="outline"
                     className="border-red-600 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
                     onClick={() => handleDownloadPdf(currentDocument)}
                     disabled={downloadingPdf}
@@ -568,6 +639,45 @@ export default function DocumentGenerator() {
                   </Button>
                 </div>
               </div>
+              {aiReviewError && (
+                <div className="p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-sm text-red-700 dark:text-red-300">
+                  {aiReviewError}
+                </div>
+              )}
+              {aiReviewText && (
+                <div className="p-4 rounded-xl bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold text-sm text-purple-900 dark:text-purple-200 flex items-center gap-1.5">
+                      <Sparkles className="w-4 h-4" /> AI Drafting Coach tahlili
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setAiAccepted(true)}
+                        className="text-xs border-emerald-500 text-emerald-700 dark:text-emerald-300"
+                      >
+                        <Check className="w-3.5 h-3.5 mr-1" />
+                        {aiAccepted ? 'Qabul qilindi' : 'Tavsiyani qabul qilish'}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => { setAiReviewText(null); setAiAccepted(false) }}
+                        className="text-xs"
+                      >
+                        Yopish
+                      </Button>
+                    </div>
+                  </div>
+                  <pre className="whitespace-pre-wrap text-xs sm:text-sm text-gray-700 dark:text-gray-300">{aiReviewText}</pre>
+                </div>
+              )}
+              <div className="mb-2">
+                <Badge className="bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300">
+                  O‘quv namunasi (Rasmiy blank emas)
+                </Badge>
+              </div>
               <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-6 border border-gray-100 dark:border-gray-700">
                 <pre className="whitespace-pre-wrap text-gray-700 dark:text-gray-300">
                   {currentDocument.content}
@@ -583,6 +693,42 @@ export default function DocumentGenerator() {
     </div>
   )
 
+  const renderComparisonTab = () => (
+    <div className="space-y-6">
+      <Card className="card-default rounded-2xl">
+        <CardHeader>
+          <CardTitle className="text-gray-800 dark:text-white flex items-center gap-2">
+            <BookOpen className="w-5 h-5 text-indigo-500" /> Hujjat tuzishda ko‘p uchraydigan xatolar va to‘g‘ri tuzilma
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="p-4 rounded-xl bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800/40 space-y-2">
+            <h4 className="font-semibold text-sm text-red-800 dark:text-red-300 flex items-center gap-1.5">
+              <AlertTriangle className="w-4 h-4" /> Noto‘g‘ri yondashuv (Xatolar)
+            </h4>
+            <ul className="text-xs sm:text-sm text-red-700 dark:text-red-300 space-y-1.5 list-disc pl-4">
+              <li>Sud nomi va tomonlarning to‘liq rekvizitlari (F.I.Sh., manzil, STIR/JShShIR) ko‘rsatilmasligi.</li>
+              <li>Da’vo talabi aniq modda va faktlar bilan asoslanmasligi (umumiy shikoyat uslubi).</li>
+              <li>&ldquo;SO‘RAYMAN&rdquo; qismida aniq summa yoki protsessual talabning yozilmasligi.</li>
+              <li>Ilova qilinadigan hujjatlar ro‘yxati va davlat boji kvitansiyasining unutilishi.</li>
+            </ul>
+          </div>
+          <div className="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/40 space-y-2">
+            <h4 className="font-semibold text-sm text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5">
+              <CheckCircle2 className="w-4 h-4" /> To‘g‘ri protsessual tuzilma (O‘zR FPK / IPK)
+            </h4>
+            <ul className="text-xs sm:text-sm text-emerald-700 dark:text-emerald-300 space-y-1.5 list-disc pl-4">
+              <li>Yuqori o‘ng burchakda sud nomi, da’vogar va javobgar rekvizitlari, da’vo bahosi.</li>
+              <li>Markazda hujjat nomi (DA’VO ARIZASI) va qisqa predmeti.</li>
+              <li>Asosiy matnda xronologik faktlar + aniq kodeks moddalari (FK, FPK, MK).</li>
+              <li>&ldquo;SO‘RAYMAN:&rdquo; bandida raqamlangan aniq talablar, ilovalar ro‘yxati, sana va imzo.</li>
+            </ul>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  )
+
   return (
     <div className="min-h-screen bg-page-custom p-6">
       <div className="max-w-7xl mx-auto">
@@ -593,11 +739,16 @@ export default function DocumentGenerator() {
           >
             <ArrowLeft className="w-4 h-4" /> <span className="text-sm font-medium">Orqaga</span>
           </a>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Document Generator</h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400 dark:text-zinc-500">
-              Huquqiy hujjatlar avtomatik generatsiyasi
-            </p>
+          <div className="flex flex-wrap items-center gap-3">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Document Generator</h1>
+              <p className="text-sm text-gray-500 dark:text-gray-400 dark:text-zinc-500">
+                Huquqiy hujjatlar avtomatik generatsiyasi
+              </p>
+            </div>
+            <Badge className="bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300">
+              O‘quv namunasi (Rasmiy blank emas)
+            </Badge>
           </div>
         </div>
 
@@ -619,12 +770,13 @@ export default function DocumentGenerator() {
             { id: 'templates', label: 'Shablonlar', icon: FileText },
             { id: 'generator', label: 'Generator', icon: Plus },
             { id: 'history', label: 'Tarix', icon: Clock },
+            { id: 'comparison', label: 'O‘quv taqqoslash', icon: BookOpen },
           ].map(tab => {
             const Icon = tab.icon
             return (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as 'templates' | 'generator' | 'history')}
+                onClick={() => setActiveTab(tab.id as 'templates' | 'generator' | 'history' | 'comparison')}
                 className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg transition-all text-sm font-medium ${
                   activeTab === tab.id
                     ? 'nav-item-active'
@@ -642,6 +794,7 @@ export default function DocumentGenerator() {
         {activeTab === 'templates' && renderTemplatesTab()}
         {activeTab === 'generator' && renderGeneratorTab()}
         {activeTab === 'history' && renderHistoryTab()}
+        {activeTab === 'comparison' && renderComparisonTab()}
       </div>
     </div>
   )

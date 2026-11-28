@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
     const case_title: string = String(body.case_title || '').trim()
     const case_category: string = String(body.case_category || 'general').slice(0, 50)
     const case_difficulty: string = String(body.case_difficulty || 'medium').slice(0, 50)
-    const analysis: IracInput =
+    const analysis: IracInput & { section_scores?: Record<string, number> } =
       body.irac_analysis && typeof body.irac_analysis === 'object' ? body.irac_analysis : {}
     const total_score: number =
       typeof body.total_score === 'number'
@@ -35,12 +35,28 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Deterministik baholash
+    // Preserve AI-generated feedback/rubric when provided; fall back to deterministic builder
     const grade = getGrade(total_score)
-    const feedback = buildFeedback(total_score, analysis)
-    const suggestions = buildSuggestions(analysis)
-    const strengths = buildStrengths(analysis)
-    const weaknesses = buildWeaknesses(analysis)
+    const feedback =
+      typeof body.feedback === 'string' && body.feedback.trim()
+        ? body.feedback.trim()
+        : buildFeedback(total_score, analysis)
+    const suggestions =
+      Array.isArray(body.suggestions) && body.suggestions.length > 0
+        ? body.suggestions.map(String)
+        : buildSuggestions(analysis)
+    const strengths =
+      Array.isArray(body.strengths) && body.strengths.length > 0
+        ? body.strengths.map(String)
+        : buildStrengths(analysis)
+    const weaknesses =
+      Array.isArray(body.weaknesses) && body.weaknesses.length > 0
+        ? body.weaknesses.map(String)
+        : buildWeaknesses(analysis)
+
+    if (body.section_scores && typeof body.section_scores === 'object') {
+      analysis.section_scores = body.section_scores
+    }
 
     const supabase = getSupabaseAdmin()
 

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireUser } from '@/lib/server-auth'
 import { checkAndIncrement, usageMessage } from '@/lib/usage-limits'
-import { groundPrompt } from '@/lib/legal-rag'
+import { groundPrompt, validateCitations, appendCitationNote } from '@/lib/legal-rag'
 import { ensureUzbekLatin } from '@/lib/uz-latin'
 import { callGemini } from '@/lib/gemini'
 
@@ -214,7 +214,7 @@ Iltimos, O'zbekiston Respublikasi amaldagi qonunchiligi asosida har bir bo'limni
         for (const name of names) {
           const patterns = [
             new RegExp(
-              `(?:##+|\\*\\*)\\s*(?:\\d+[.\\s-]*)?${name}\\b[^\\n]*\\n([\\s\\S]*?)(?=(?:\\n##+|\\n\\*\\*\\s*(?:\\d+[.\\s-]*)?(?:Muammo|Qoida|Qo['\`]llash|Xulosa|Issue|Rule|Application|Conclusion)|$)`,
+              `(?:##+|\\*\\*)\\s*(?:\\d+[.\\s-]*)?${name}\\b[^\\n]*\\n([\\s\\S]*?)(?=(?:\\n##+|\\n\\*\\*\\s*(?:\\d+[.\\s-]*)?(?:Muammo|Qoida|Qo['\`]llash|Xulosa|Issue|Rule|Application|Conclusion)|$))`,
               'i'
             ),
             new RegExp(
@@ -314,6 +314,18 @@ Iltimos, O'zbekiston Respublikasi amaldagi qonunchiligi asosida har bir bo'limni
       }
     }
 
+    // Citation validation against verified Uzbekistan legal corpus
+    let citationValidation: { valid: unknown[]; invalid: unknown[] } = { valid: [], invalid: [] }
+    try {
+      const citeResult = await validateCitations(`${finalRule}\n${finalApplication}\n${finalConclusion}`)
+      citationValidation = { valid: citeResult.valid, invalid: citeResult.invalid }
+      if (citeResult.invalid.length > 0) {
+        finalRule = appendCitationNote(finalRule, citeResult)
+      }
+    } catch {
+      // Non-blocking citation check
+    }
+
     return NextResponse.json({
       success: true,
       issue: finalIssue,
@@ -322,6 +334,7 @@ Iltimos, O'zbekiston Respublikasi amaldagi qonunchiligi asosida har bir bo'limni
       conclusion: finalConclusion,
       sources: sources.slice(0, 10),
       confidence,
+      citationValidation,
     })
   } catch (error: any) {
     console.error('IRAC analyze API error:', error)

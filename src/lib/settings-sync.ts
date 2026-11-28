@@ -112,6 +112,9 @@ export async function getPricingPlans(): Promise<PricingPlan[]> {
         "30 ta AI chat so'rovi / oy",
         '10 ta IRAC tahlili / oy',
         '10 ta hujjat generator / oy',
+        '2 ta AI Drafting Coach tahlili / oy',
+        '2 ta virtual sud sessiyasi / oy',
+        '2 ta qarorlar daraxti (AI) / oy',
         '10 ta ovozli yozuv (STT) / oy',
         '5 ta senariy generator / oy',
         'Asboblar, jamiyat, statistika — cheksiz',
@@ -140,14 +143,14 @@ export async function getPricingPlans(): Promise<PricingPlan[]> {
       price: 79000,
       features: [
         "AI chat so'rovlari — Fair Use",
-        'IRAC — Fair Use',
-        'Hujjat — Fair Use',
-        'Daraxt — Fair Use',
-        'Senariy — Fair Use',
+        'IRAC va Imtihon rejimi — Fair Use',
+        'Hujjat va AI Drafting Coach — Fair Use',
+        'Qarorlar daraxti — Fair Use',
+        'Senariy generator — Fair Use',
         'Ovozli yozuv (STT) — Fair Use',
         '50 ta virtual sud sessiyasi / oy',
-        'Shaxsiy maslahatchi',
-        'Ekspert konsultatsiyasi',
+        'Rasmiy .docx va sud PDF eksport',
+        'Ustuvor tezkor AI tahlil',
       ],
       caseLimit: -1,
     },
@@ -194,9 +197,15 @@ export async function getPaymentRequests(): Promise<PaymentRequest[]> {
       /* ignore */
     }
 
+    const authHeaders = await getAuthHeaders()
+    const hasAuthCookie =
+      typeof document !== 'undefined' && document.cookie.includes('juristiv_auth=1')
+    if (!authHeaders.Authorization && !hasAuthCookie) {
+      return []
+    }
+
     // Admin bo'lmasa — faqat o'z to'lovlarini olish (admin API 403 qaytaradi)
     const endpoint = isAdmin ? '/api/admin/analytics?type=payments' : '/api/payments'
-    const authHeaders = await getAuthHeaders()
 
     const res = await fetch(endpoint, {
       cache: 'no-cache',

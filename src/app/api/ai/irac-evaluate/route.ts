@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireUser } from '@/lib/server-auth'
 import { checkAndIncrement, usageMessage } from '@/lib/usage-limits'
-import { retrieveLegalArticles, buildLegalContext } from '@/lib/legal-rag'
+import {
+  retrieveLegalArticles,
+  buildLegalContext,
+  validateCitations,
+  appendCitationNote,
+} from '@/lib/legal-rag'
 import { ensureUzbekLatin } from '@/lib/uz-latin'
 import { callGemini } from '@/lib/gemini'
 
@@ -11,7 +16,14 @@ const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { caseTitle, caseText, lawReferences = [], userAnswers } = body
+    const {
+      caseTitle,
+      caseText,
+      lawReferences = [],
+      userAnswers,
+      hintsUsed = 0,
+      examMode = false,
+    } = body
 
     if (!caseText || typeof caseText !== 'string' || caseText.trim().length < 20) {
       return NextResponse.json(
@@ -44,7 +56,11 @@ export async function POST(request: NextRequest) {
     const usage = await checkAndIncrement({
       ...identity,
       feature: 'irac',
-      metadata: { case_title: caseTitle || 'Custom case' },
+      metadata: {
+        case_title: caseTitle || 'Custom case',
+        hints_used: Number(hintsUsed) || 0,
+        exam_mode: Boolean(examMode),
+      },
     })
     if (!usage.allowed) {
       return NextResponse.json(
@@ -89,7 +105,10 @@ Har bir bo'lim bo'yicha ball qo'yishda quyidagi aniq mezonlarga qat'iy amal qil:
    • 21-25 ball: Qat'iy, asoslangan va to'liq yuridik yakun (da'voni qanoatlantirish yoki rad etish, jazo/zarar miqdori, protsessual oqibat).
 
 Jami "score" (0-100 oralig'ida) = sectionScores.issue + sectionScores.rule + sectionScores.application + sectionScores.conclusion bo'lishi SHART.
-Foydalanuvchining kamchiliklarini to'g'rilash uchun "issue", "rule", "application", "conclusion" maydonlarida to'liq namunali to'g'ri javobni ber.
+MUHIM BAHOLASH PRINSIPLARI:
+- Javob uzunligi uchungina yuqori ball qo'yma; yuridik aniqlik, subsumpsiya va mantiqni bahola.
+- Faktik xatolarni muqobil asosli huquqiy talqin (alternative legal reasoning) dan farqla; asosli muqobil yondashuvni asossiz jazolama.
+- Foydalanuvchining kamchiliklarini to'g'rilash uchun "issue", "rule", "application", "conclusion" maydonlarida to'liq namunali to'g'ri javobni ber.
 FAQAT O'ZBEK LOTIN ALIFBOSIDA toza JSON formatida javob ber:
 
 {
@@ -104,6 +123,9 @@ FAQAT O'ZBEK LOTIN ALIFBOSIDA toza JSON formatida javob ber:
   "feedback": "Foydalanuvchi javobining chuqur yuridik tahlili va asoslantirilgan sharhi",
   "strengths": ["Kuchli tomon 1", "Kuchli tomon 2"],
   "weaknesses": ["Zaif tomon 1", "Zaif tomon 2"],
+  "missingArguments": ["E'tibordan chetda qolgan huquqiy argument 1"],
+  "reasoningDifferences": ["Faktik xato yoki muqobil talqin farqi"],
+  "incorrectReferences": ["Noto'g'ri yoki noto'liq keltirilgan modda (agar bo'lsa)"],
   "suggestions": ["Aniq amaliy tavsiya 1", "Tavsiya 2"]
 }${legalContext}`
 
@@ -243,10 +265,24 @@ Iltimos, har bir bo'limni xolisona tekshirib, ko'rsatilgan JSON formatida javob 
       sectionScores.conclusion
     const totalScore = computedScore
 
+    let validatedRule = parsed.rule || ''
+    let citationValidation: { valid: unknown[]; invalid: unknown[] } = { valid: [], invalid: [] }
+    try {
+      const citeResult = await validateCitations(
+        `${validatedRule}\n${parsed.application || ''}\n${parsed.conclusion || ''}`
+      )
+      citationValidation = { valid: citeResult.valid, invalid: citeResult.invalid }
+      if (citeResult.invalid.length > 0) {
+        validatedRule = appendCitationNote(validatedRule, citeResult)
+      }
+    } catch {
+      // Non-blocking citation check
+    }
+
     return NextResponse.json({
       success: true,
       issue: parsed.issue || '',
-      rule: parsed.rule || '',
+      rule: validatedRule,
       application: parsed.application || '',
       conclusion: parsed.conclusion || '',
       sources: Array.isArray(parsed.sources) ? parsed.sources : [],
@@ -256,7 +292,17 @@ Iltimos, har bir bo'limni xolisona tekshirib, ko'rsatilgan JSON formatida javob 
       feedback: parsed.feedback || "Javobingiz IRAC metodikasi bo'yicha tahlil qilindi.",
       strengths: Array.isArray(parsed.strengths) ? parsed.strengths : [],
       weaknesses: Array.isArray(parsed.weaknesses) ? parsed.weaknesses : [],
+      missingArguments: Array.isArray(parsed.missingArguments) ? parsed.missingArguments : [],
+      reasoningDifferences: Array.isArray(parsed.reasoningDifferences)
+        ? parsed.reasoningDifferences
+        : [],
+      incorrectReferences: Array.isArray(parsed.incorrectReferences)
+        ? parsed.incorrectReferences
+        : [],
       suggestions: Array.isArray(parsed.suggestions) ? parsed.suggestions : [],
+      citationValidation,
+      hintsUsed: Number(hintsUsed) || 0,
+      examMode: Boolean(examMode),
     })
   } catch (error: any) {
     console.error('IRAC evaluate API error:', error)

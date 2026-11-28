@@ -28,6 +28,9 @@ import {
   GitBranch,
   X,
   RefreshCw,
+  Undo2,
+  Redo2,
+  AlertTriangle,
 } from 'lucide-react'
 import AppSidebar from '@/components/layout/AppSidebar'
 import FeatureInstructions from '@/components/ui/FeatureInstructions'
@@ -59,6 +62,7 @@ import {
   findPathToNode,
   findNodeById,
   formatCurrencySom,
+  validateDecisionTreeLogic,
 } from '@/lib/decision-tree-engine'
 import { getAuthHeaders } from '@/lib/api-auth-client'
 
@@ -111,11 +115,13 @@ export default function DecisionTreePage() {
   const { modalProps, checkLimitError } = useLimitModal()
 
   // Case State
-  const [viewMode, setViewMode] = useState<'guided' | 'visual'>('guided')
+  const [viewMode, setViewMode] = useState<'guided' | 'visual'>('visual')
   const [currentCase, setCurrentCase] = useState<DecisionCase | null>(null)
   const [savedCases, setSavedCases] = useState<DecisionCase[]>([])
   const [activeTab, setActiveTab] = useState<'details' | 'evidence'>('details')
   const [mobileTab, setMobileTab] = useState<'graph' | 'details' | 'stats'>('graph')
+  const [undoStack, setUndoStack] = useState<DecisionNode[]>([])
+  const [redoStack, setRedoStack] = useState<DecisionNode[]>([])
 
   // Graph & Node Selection State
   const [selectedNode, setSelectedNode] = useState<DecisionNode | null>(null)
@@ -215,6 +221,88 @@ export default function DecisionTreePage() {
     if (!currentCase?.tree) return []
     return buildComparisonVariants(currentCase.tree)
   }, [currentCase?.tree])
+
+  // Deterministic Logic & Contradiction Validation
+  const logicValidation = useMemo(() => {
+    if (!currentCase?.tree) return null
+    return validateDecisionTreeLogic(currentCase.tree)
+  }, [currentCase?.tree])
+
+  // Cross-feature Scenario Engine transfer listener
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem('juristiv_transfer_tree')
+      if (raw) {
+        sessionStorage.removeItem('juristiv_transfer_tree')
+        const transferred = JSON.parse(raw)
+        if (transferred?.tree) {
+          setCurrentCase(transferred)
+          setSelectedNode(transferred.tree)
+          setViewMode('visual')
+          showToast(`"${transferred.name}" senariysi Qarorlar Daraxtiga o‘tkazildi`)
+        }
+      }
+    } catch {}
+  }, [])
+
+  // Helper to mutate tree with Undo/Redo support
+  const applyTreeChange = (newTree: DecisionNode) => {
+    if (!currentCase) return
+    setUndoStack(prev => [...prev.slice(-19), currentCase.tree])
+    setRedoStack([])
+    setCurrentCase({ ...currentCase, tree: newTree })
+  }
+
+  const handleUndo = () => {
+    if (!currentCase || undoStack.length === 0) return
+    const prevTree = undoStack[undoStack.length - 1]
+    setUndoStack(prev => prev.slice(0, -1))
+    setRedoStack(prev => [...prev, currentCase.tree])
+    setCurrentCase({ ...currentCase, tree: prevTree })
+    setSelectedNode(prevTree)
+  }
+
+  const handleRedo = () => {
+    if (!currentCase || redoStack.length === 0) return
+    const nextTree = redoStack[redoStack.length - 1]
+    setRedoStack(prev => prev.slice(0, -1))
+    setUndoStack(prev => [...prev, currentCase.tree])
+    setCurrentCase({ ...currentCase, tree: nextTree })
+    setSelectedNode(nextTree)
+  }
+
+  // Create blank tree from scratch for independent student modeling
+  const handleCreateBlankTree = () => {
+    const blankRoot: DecisionNode = {
+      id: 'root',
+      type: 'ROOT',
+      title: 'Yangi Huquqiy Masala (Noldan)',
+      description: 'Shox qo‘shish tugmasi orqali AGAR / UNDA shartlarini va yakuniy natijalarni qo‘shing.',
+      risk_level: 'low',
+      confidence: 80,
+      children: [],
+    }
+    const blankCase: DecisionCase = {
+      id: `case_${Date.now()}`,
+      name: 'Mustaqil Qarorlar Daraxti',
+      case_type: 'fuqarolik',
+      user_role: 'talaba',
+      objectives: 'Huquqiy shartlar va oqibatlarni mustaqil modellashtirish',
+      tree: blankRoot,
+      selected_path: [],
+      evidence_state: {},
+      status: 'active',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }
+    setUndoStack([])
+    setRedoStack([])
+    setCurrentCase(blankCase)
+    setSelectedNode(blankRoot)
+    setSimulatedNodeId(null)
+    setViewMode('visual')
+    showToast('Bo‘sh daraxt yaratildi — tugunlarni qo‘shib boravering!')
+  }
 
   // Handle New Case Submission (AI Analysis)
   const handleCreateCase = async (formData: NewCaseFormData) => {
@@ -417,10 +505,40 @@ export default function DecisionTreePage() {
     }
 
     const updatedTree = update(currentCase.tree)
-    setCurrentCase({ ...currentCase, tree: updatedTree })
+    applyTreeChange(updatedTree)
     if (selectedNode && selectedNode.id === nodeId) {
       setSelectedNode({ ...selectedNode, ...patch })
     }
+  }
+
+  // Duplicate Node
+  const handleDuplicateNode = (nodeId: string) => {
+    if (!currentCase?.tree || nodeId === 'root') return
+    const target = findNodeById(currentCase.tree, nodeId)
+    if (!target) return
+
+    const cloneWithNewIds = (n: DecisionNode): DecisionNode => ({
+      ...n,
+      id: `node_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+      title: n.id === nodeId ? `${n.title} (Nusxa)` : n.title,
+      children: Array.isArray(n.children) ? n.children.map(cloneWithNewIds) : undefined,
+    })
+
+    const cloned = cloneWithNewIds(target)
+    function insertAfter(n: DecisionNode): DecisionNode {
+      if (!Array.isArray(n.children)) return n
+      const idx = n.children.findIndex(c => c.id === nodeId)
+      if (idx !== -1) {
+        const nextChildren = [...n.children]
+        nextChildren.splice(idx + 1, 0, cloned)
+        return { ...n, children: nextChildren }
+      }
+      return { ...n, children: n.children.map(insertAfter) }
+    }
+
+    const updatedTree = insertAfter(currentCase.tree)
+    applyTreeChange(updatedTree)
+    setSelectedNode(cloned)
   }
 
   // Add Child Node
@@ -457,7 +575,7 @@ export default function DecisionTreePage() {
     }
 
     const updatedTree = add(currentCase.tree)
-    setCurrentCase({ ...currentCase, tree: updatedTree })
+    applyTreeChange(updatedTree)
     setSelectedNode(newNode)
   }
 
@@ -478,7 +596,7 @@ export default function DecisionTreePage() {
 
     const updatedTree = remove(currentCase.tree)
     if (updatedTree) {
-      setCurrentCase({ ...currentCase, tree: updatedTree })
+      applyTreeChange(updatedTree)
       if (selectedNode?.id === nodeId) {
         setSelectedNode(updatedTree)
       }
@@ -633,6 +751,34 @@ export default function DecisionTreePage() {
               <span>Grafik Daraxt</span>
             </button>
           </div>
+
+          {/* Quick Scenario Selector & Blank Builder when in Visual Mode */}
+          {viewMode === 'visual' && (
+            <div className="hidden md:flex items-center gap-1.5">
+              <button
+                onClick={handleCreateBlankTree}
+                className="text-xs px-2.5 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 font-semibold hover:bg-indigo-100 transition-colors"
+              >
+                + Noldan qurish
+              </button>
+              <button
+                onClick={handleUndo}
+                disabled={undoStack.length === 0}
+                title="Bekor qilish (Undo)"
+                className="p-1.5 rounded-lg border border-slate-200 dark:border-zinc-700 text-slate-600 dark:text-zinc-300 disabled:opacity-40"
+              >
+                <Undo2 className="w-3.5 h-3.5" />
+              </button>
+              <button
+                onClick={handleRedo}
+                disabled={redoStack.length === 0}
+                title="Qaytarish (Redo)"
+                className="p-1.5 rounded-lg border border-slate-200 dark:border-zinc-700 text-slate-600 dark:text-zinc-300 disabled:opacity-40"
+              >
+                <Redo2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
 
           {/* Quick Scenario Selector when in Visual Mode */}
           {viewMode === 'visual' && (
@@ -953,12 +1099,20 @@ export default function DecisionTreePage() {
                 Oʻzbekiston qonunlariga asoslangan real huquqiy strategiya tahlilini olish uchun
                 yangi ish yarating
               </p>
-              <button
-                onClick={() => setIsNewCaseOpen(true)}
-                className="flex items-center gap-2 px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm shadow-md shadow-blue-500/20 transition-all"
-              >
-                <Plus className="w-4 h-4" /> Yangi Ish Yaratish
-              </button>
+              <div className="flex flex-wrap gap-3 justify-center">
+                <button
+                  onClick={handleCreateBlankTree}
+                  className="flex items-center gap-2 px-5 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm shadow-md transition-all"
+                >
+                  <Plus className="w-4 h-4" /> Noldan Daraxt Qurish
+                </button>
+                <button
+                  onClick={() => setIsNewCaseOpen(true)}
+                  className="flex items-center gap-2 px-5 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm shadow-md shadow-blue-500/20 transition-all"
+                >
+                  <Sparkles className="w-4 h-4" /> AI Bilan Yaratish
+                </button>
+              </div>
             </div>
           )}
         </div>
@@ -973,6 +1127,7 @@ export default function DecisionTreePage() {
               onClose={() => setSelectedNode(null)}
               onSimulatePath={nodeId => setSimulatedNodeId(nodeId)}
               onAddChildNode={handleAddChildNode}
+              onDuplicateNode={handleDuplicateNode}
               onDeleteNode={handleDeleteNode}
               onUpdateNode={handleUpdateNode}
               evidenceState={evidenceState}
@@ -980,6 +1135,48 @@ export default function DecisionTreePage() {
             />
           ) : (
             <div className="p-4 space-y-4 overflow-y-auto">
+              {logicValidation && (
+                <div
+                  className={`p-3.5 rounded-2xl border text-xs space-y-2 ${
+                    logicValidation.isValid && logicValidation.issues.length === 0
+                      ? 'bg-emerald-50/70 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900'
+                      : 'bg-amber-50/70 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900'
+                  }`}
+                >
+                  <div className="flex items-center justify-between font-bold">
+                    <span className="flex items-center gap-1.5">
+                      <AlertTriangle className="w-4 h-4 text-amber-600" />
+                      Mantiqiy Tekshiruv
+                    </span>
+                    <span>{logicValidation.score}/100</span>
+                  </div>
+                  {logicValidation.issues.length === 0 ? (
+                    <p className="text-emerald-700 dark:text-emerald-300">
+                      Daraxt tuzilmasi mantiqan izchil va barcha shoxchalar yakunlangan.
+                    </p>
+                  ) : (
+                    <ul className="space-y-1.5 max-h-40 overflow-y-auto">
+                      {logicValidation.issues.slice(0, 6).map((iss, idx) => (
+                        <li
+                          key={idx}
+                          onClick={() => {
+                            const found = currentCase?.tree && findNodeById(currentCase.tree, iss.nodeId)
+                            if (found) setSelectedNode(found)
+                          }}
+                          className="cursor-pointer p-2 rounded-lg bg-white/80 dark:bg-zinc-900/60 border border-amber-200/60 dark:border-amber-900/40"
+                        >
+                          <p className="font-semibold text-slate-800 dark:text-zinc-200">
+                            {iss.severity === 'error' ? '❌' : '⚠️'} {iss.message}
+                          </p>
+                          <p className="text-[11px] text-slate-500 dark:text-zinc-400 mt-0.5">
+                            {iss.explanation}
+                          </p>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
               <div className="p-4 rounded-2xl bg-slate-50 dark:bg-zinc-800/40 border border-slate-200/80 dark:border-zinc-800">
                 <h3 className="font-bold text-slate-800 dark:text-zinc-100 text-xs mb-3 flex items-center gap-2">
                   <BarChart3 className="w-4 h-4 text-blue-600" />

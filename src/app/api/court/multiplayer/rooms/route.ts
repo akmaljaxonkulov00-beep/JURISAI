@@ -1,48 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { requireUser } from '@/lib/server-auth'
-import { getSupabaseAdmin } from '@/lib/supabase-admin'
+import { resolveCourtUser } from '@/lib/court/multiplayer-auth'
 import { createCourtRoom, listPublicCourtRooms } from '@/lib/court/multiplayer-db'
 import type { CreateRoomInput } from '@/lib/court/multiplayer-types'
-
-async function resolveUser(
-  request: NextRequest
-): Promise<{ id: string; name: string; email: string } | null> {
-  const auth = await requireUser(request)
-  if (auth.ok) {
-    try {
-      const admin = getSupabaseAdmin()
-      const { data } = await admin
-        .from('registered_users')
-        .select('full_name, email')
-        .eq('id', auth.user.id)
-        .maybeSingle()
-      return {
-        id: auth.user.id,
-        name: data?.full_name || auth.user.email.split('@')[0] || 'Foydalanuvchi',
-        email: auth.user.email,
-      }
-    } catch {
-      return {
-        id: auth.user.id,
-        name: auth.user.email.split('@')[0] || 'Foydalanuvchi',
-        email: auth.user.email,
-      }
-    }
-  }
-
-  // Guest fallback for dual-browser simulation & guests
-  const guestId = request.headers.get('x-guest-id')
-  const guestName = request.headers.get('x-guest-name')
-  if (guestId && guestId.trim().length > 3) {
-    return {
-      id: guestId.trim(),
-      name: decodeURIComponent(guestName || 'Mehmon ishtirokchi').trim(),
-      email: 'guest@juristiv.uz',
-    }
-  }
-
-  return null
-}
 
 // GET: Ochiq zallar ro‘yxati (List public rooms)
 export async function GET() {
@@ -61,10 +20,10 @@ export async function GET() {
 // POST: Yangi sud zali yaratish (Create courtroom)
 export async function POST(request: NextRequest) {
   try {
-    const user = await resolveUser(request)
+    const user = await resolveCourtUser(request)
     if (!user) {
       return NextResponse.json(
-        { success: false, error: 'Xona yaratish uchun tizimga kirish yoki ism ko‘rsatish lozim' },
+        { success: false, error: 'Xona yaratish uchun tizimga kirish talab qilinadi' },
         { status: 401 }
       )
     }

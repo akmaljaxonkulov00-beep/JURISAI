@@ -205,6 +205,18 @@ export default function MultiplayerCourtroomPage() {
         onAdvanceStage={advanceStage}
       />
 
+      {/* Text-Mode Fallback Banner when WebRTC audio/video is unavailable */}
+      {(mediaError || connectionState === 'error' || connectionState === 'disconnected') && (
+        <div className="px-4 py-2 bg-amber-950/70 border-b border-amber-700/50 text-amber-200 text-xs flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+            <span>
+              <strong>Matnli rejim (Text-Mode Fallback):</strong> Audio/video aloqa vaqtincha cheklangan ({mediaError || connectionState}). Barcha sud nutqlari, dalillar va protsessual harakatlarni matnli chat orqali davom ettirishingiz mumkin.
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* 3. Main Split View: Left (Participants), Center (Arena/Evidence), Right (Chat/Log) */}
       <div className="flex-1 flex overflow-hidden relative">
         {/* Left Sidebar Toggle Button (Desktop) */}

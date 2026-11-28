@@ -20,12 +20,15 @@ const googleSans = Poppins({
   weight: ['300', '400', '500', '600', '700'],
 })
 
-export const metadata: Metadata = generateSEOMetadata({
-  title: 'Bosh Sahifa',
-  description:
-    "JURISTIV - O'zbekistonning yetakchi yuridik AI platformasi. IRAC tahlili, hujjat generatsiyasi, qonunlar bazasi va professional maslahat.",
-  keywords: ['yuridik ai', 'huquqiy yordamchi', "o'zbekiston qonunlari", 'irac tahlili'],
-})
+export const metadata: Metadata = {
+  metadataBase: new URL('https://www.juristiv.uz'),
+  ...generateSEOMetadata({
+    title: 'Bosh Sahifa',
+    description:
+      "JURISTIV - O'zbekistonning yetakchi yuridik AI platformasi. IRAC tahlili, hujjat generatsiyasi, qonunlar bazasi va professional maslahat.",
+    keywords: ['yuridik ai', 'huquqiy yordamchi', "o'zbekiston qonunlari", 'irac tahlili'],
+  }),
+}
 
 export default function RootLayout({
   children,

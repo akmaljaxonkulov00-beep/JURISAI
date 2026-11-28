@@ -523,8 +523,19 @@ export function validateProceduralAction(
   action: UserActionPayload,
   availableEvidence: EvidenceItem[]
 ): { valid: boolean; penalty: number; reason?: string; hint?: string } {
+  // Map procedure-adaptive roles (DAVOGAR, JAVOBGAR, VAKIL, ARIZACHI, JAVOBGAR_ORGAN)
+  // to equivalent adversarial speaking rights when stage allows ADVOKAT / PROKUROR
+  const effectiveAllowed = new Set<string>(stage.allowedRoles)
+  if (effectiveAllowed.has('ADVOKAT') || effectiveAllowed.has('PROKUROR')) {
+    effectiveAllowed.add('DAVOGAR')
+    effectiveAllowed.add('JAVOBGAR')
+    effectiveAllowed.add('VAKIL')
+    effectiveAllowed.add('ARIZACHI')
+    effectiveAllowed.add('JAVOBGAR_ORGAN')
+  }
+
   // 1. Rolga ruxsat bormi?
-  if (!stage.allowedRoles.includes(role)) {
+  if (!effectiveAllowed.has(role)) {
     return {
       valid: false,
       penalty: 15,

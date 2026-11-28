@@ -21,6 +21,7 @@ const PROTECTED_PREFIXES = [
   '/ai-chat',
   '/decision-tree',
   '/document-generator',
+  '/scenario-generator',
   '/settings',
   '/profile',
   '/community',

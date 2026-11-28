@@ -35,11 +35,21 @@ const PricingSection: React.FC<PricingSectionProps> = ({ className }) => {
       const result = await res.json()
       if (result.success && Array.isArray(result.data)) {
         const map: Record<string, { price: number | null; features: string[] }> = {}
+        const PAUSED_CLAIMS = ['shaxsiy maslahatchi', 'ekspert konsultatsiyasi']
         for (const p of result.data) {
           if (p.id) {
+            const rawFeatures: string[] =
+              Array.isArray(p.features) && p.features.length > 0 ? p.features : []
+            const sanitizedFeatures = rawFeatures.filter(
+              f => !PAUSED_CLAIMS.some(c => f.toLowerCase().includes(c))
+            )
+            // If pre-migration DB free plan lacks P1-6 trial items, fall back to updated BASE_PLANS features
+            const isPreMigrationFree =
+              p.id === 'free' &&
+              !sanitizedFeatures.some(f => f.toLowerCase().includes('virtual sud'))
             map[p.id] = {
               price: typeof p.price === 'number' ? p.price : 0,
-              features: Array.isArray(p.features) && p.features.length > 0 ? p.features : [],
+              features: isPreMigrationFree ? [] : sanitizedFeatures,
             }
           }
         }
@@ -68,6 +78,9 @@ const PricingSection: React.FC<PricingSectionProps> = ({ className }) => {
         "30 ta AI chat so'rovi / oy",
         '10 ta IRAC tahlili / oy',
         '10 ta hujjat generator / oy',
+        '2 ta AI Drafting Coach tahlili / oy',
+        '2 ta virtual sud sessiyasi / oy',
+        '2 ta qarorlar daraxti (AI) / oy',
         '10 ta ovozli yozuv (STT) / oy',
         '5 ta senariy generator / oy',
         'Asboblar, jamiyat, statistika — cheksiz',
@@ -123,14 +136,14 @@ const PricingSection: React.FC<PricingSectionProps> = ({ className }) => {
       description: 'Professional huquqshunoslar va advokatlar uchun',
       features: [
         "AI chat so'rovlari — Fair Use",
-        'IRAC — Fair Use',
-        'Hujjat — Fair Use',
-        'Daraxt — Fair Use',
-        'Senariy — Fair Use',
+        'IRAC va Imtihon rejimi — Fair Use',
+        'Hujjat va AI Drafting Coach — Fair Use',
+        'Qarorlar daraxti — Fair Use',
+        'Senariy generator — Fair Use',
         'Ovozli yozuv (STT) — Fair Use',
         '50 ta virtual sud sessiyasi / oy',
-        'Shaxsiy maslahatchi',
-        'Ekspert konsultatsiyasi',
+        'Rasmiy .docx va sud PDF eksport',
+        'Ustuvor tezkor AI tahlil',
       ],
       cta: 'Tanlash',
       ctaVariant: 'outline',
@@ -174,7 +187,10 @@ const PricingSection: React.FC<PricingSectionProps> = ({ className }) => {
 
   const formatPrice = (price: number | null) => {
     if (price === null) return 'Custom'
-    return `${price.toLocaleString('uz-UZ')} so'm`
+    const formatted = Math.round(price)
+      .toString()
+      .replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
+    return `${formatted} so'm`
   }
 
   return (
@@ -183,7 +199,7 @@ const PricingSection: React.FC<PricingSectionProps> = ({ className }) => {
         {/* Section Header */}
         <div className="text-center mb-16">
           <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-zinc-100 mb-4">
-            Siz uchun <span className="text-emerald-600">to\'g\'ri tarif</span>
+            Siz uchun <span className="text-emerald-600">to‘g‘ri tarif</span>
           </h2>
           <p className="text-xl text-gray-600 dark:text-zinc-400 max-w-3xl mx-auto mb-8">
             Har bir huquqshunos uchun mos variant - talabadan professionalgacha
@@ -202,6 +218,8 @@ const PricingSection: React.FC<PricingSectionProps> = ({ className }) => {
               Oylik
             </span>
             <button
+              type="button"
+              aria-label="Oylik yoki yillik to'lov davrini tanlash"
               onClick={() => setBillingCycle(billingCycle === 'monthly' ? 'yearly' : 'monthly')}
               className="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
             >

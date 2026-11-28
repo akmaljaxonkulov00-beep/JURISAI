@@ -36,17 +36,16 @@ export async function POST(request: NextRequest) {
       type: 'consultation_payment',
       provider: payProvider,
       provider_transaction_id: txId,
-      status: 'completed', // In real webhook this completes on provider callback
+      status: 'pending',
       advocate_share: advocateShare,
       platform_share: platformShare,
     })
 
-    // Update appointment payment status
+    // Keep appointment pending until provider webhook confirms payment
     await platformDb.updateAppointment(consultationId, {
-      payment_status: 'paid',
+      payment_status: 'pending',
       payment_method: payProvider,
       payment_reference: txId,
-      status: 'confirmed',
     })
 
     // Prepare Click / Payme checkout redirect URL or receipt

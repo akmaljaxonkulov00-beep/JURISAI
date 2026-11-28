@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { resolveCourtUser } from '@/lib/court/multiplayer-auth'
 import { getCourtRoom } from '@/lib/court/multiplayer-db'
 
 export async function GET(
@@ -6,6 +7,14 @@ export async function GET(
   { params }: { params: Promise<{ codeOrId: string }> }
 ) {
   try {
+    const user = await resolveCourtUser(request)
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: 'Sud zalini ko‘rish uchun tizimga kirish talab qilinadi' },
+        { status: 401 }
+      )
+    }
+
     const { codeOrId } = await params
     if (!codeOrId) {
       return NextResponse.json(
@@ -19,6 +28,14 @@ export async function GET(
       return NextResponse.json(
         { success: false, error: 'Sud zali topilmadi yoki yopilgan' },
         { status: 404 }
+      )
+    }
+
+    const isParticipant = room.participants.some(p => p.userId === user.id)
+    if (!room.isPublic && room.hostId !== user.id && !isParticipant) {
+      return NextResponse.json(
+        { success: false, error: 'Bu yopiq sud zaliga kirish huquqingiz yo‘q' },
+        { status: 403 }
       )
     }
 

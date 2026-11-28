@@ -17,8 +17,10 @@ import {
   FileCheck,
   AlertTriangle,
   Play,
+  Copy,
+  GitBranch,
 } from 'lucide-react'
-import { DecisionNode, ApplicableLawRef } from '@/types/decision-tree'
+import { DecisionNode, ApplicableLawRef, NodeType } from '@/types/decision-tree'
 import { formatCurrencySom } from '@/lib/decision-tree-engine'
 
 interface NodeDetailPanelProps {
@@ -26,6 +28,7 @@ interface NodeDetailPanelProps {
   onClose: () => void
   onSimulatePath: (nodeId: string) => void
   onAddChildNode?: (parentId: string) => void
+  onDuplicateNode?: (nodeId: string) => void
   onDeleteNode?: (nodeId: string) => void
   onUpdateNode?: (nodeId: string, patch: Partial<DecisionNode>) => void
   evidenceState?: Record<string, boolean>
@@ -37,6 +40,7 @@ export default function NodeDetailPanel({
   onClose,
   onSimulatePath,
   onAddChildNode,
+  onDuplicateNode,
   onDeleteNode,
   onUpdateNode,
   evidenceState = {},
@@ -44,7 +48,13 @@ export default function NodeDetailPanel({
 }: NodeDetailPanelProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [editTitle, setEditTitle] = useState('')
+  const [editType, setEditType] = useState<NodeType>('DECISION')
   const [editDesc, setEditDesc] = useState('')
+  const [editBranchLabel, setEditBranchLabel] = useState('')
+  const [editCondIf, setEditCondIf] = useState('')
+  const [editCondThen, setEditCondThen] = useState('')
+  const [editCondElse, setEditCondElse] = useState('')
+  const [editLegalBasis, setEditLegalBasis] = useState('')
   const [editProb, setEditProb] = useState('')
   const [editCost, setEditCost] = useState('')
   const [editDuration, setEditDuration] = useState('')
@@ -53,7 +63,13 @@ export default function NodeDetailPanel({
 
   const handleStartEdit = () => {
     setEditTitle(node.title)
+    setEditType(node.type)
     setEditDesc(node.description || '')
+    setEditBranchLabel(node.branch_label || '')
+    setEditCondIf(node.condition_if || '')
+    setEditCondThen(node.condition_then || '')
+    setEditCondElse(node.condition_else || '')
+    setEditLegalBasis(node.legal_basis || '')
     setEditProb(node.probability != null ? String(node.probability) : '')
     setEditCost(node.estimated_cost != null ? String(node.estimated_cost) : '')
     setEditDuration(node.estimated_duration || '')
@@ -64,7 +80,13 @@ export default function NodeDetailPanel({
     if (!onUpdateNode) return
     const patch: Partial<DecisionNode> = {
       title: editTitle.trim() || node.title,
+      type: node.id === 'root' ? 'ROOT' : editType,
       description: editDesc.trim() || undefined,
+      branch_label: editBranchLabel.trim() || undefined,
+      condition_if: editCondIf.trim() || undefined,
+      condition_then: editCondThen.trim() || undefined,
+      condition_else: editCondElse.trim() || undefined,
+      legal_basis: editLegalBasis.trim() || undefined,
       probability: editProb ? Math.min(100, Math.max(0, parseInt(editProb, 10))) : undefined,
       estimated_cost: editCost ? parseInt(editCost.replace(/[^\d]/g, ''), 10) : undefined,
       estimated_duration: editDuration.trim() || undefined,
@@ -162,6 +184,35 @@ export default function NodeDetailPanel({
             <p className="text-slate-600 dark:text-zinc-400 leading-relaxed bg-slate-50 dark:bg-zinc-800/40 p-2.5 rounded-xl border border-slate-100 dark:border-zinc-800">
               {node.description}
             </p>
+          </div>
+        )}
+
+        {/* 1.5 If / Then / Otherwise Condition Logic */}
+        {(node.condition_if || node.condition_then || node.condition_else || node.branch_label) && (
+          <div className="p-3 rounded-xl bg-indigo-50/60 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-900/50 space-y-1.5">
+            <h4 className="font-bold text-indigo-800 dark:text-indigo-300 uppercase tracking-wider text-[10px] flex items-center gap-1">
+              <GitBranch className="w-3.5 h-3.5" /> Mantiqiy Shart (AGAR / UNDA)
+            </h4>
+            {node.branch_label && (
+              <p className="text-[11px] text-indigo-700 dark:text-indigo-300">
+                <strong>Shoxcha:</strong> {node.branch_label}
+              </p>
+            )}
+            {node.condition_if && (
+              <p className="text-[11px] text-slate-700 dark:text-zinc-300">
+                <strong className="text-indigo-600">AGAR (IF):</strong> {node.condition_if}
+              </p>
+            )}
+            {node.condition_then && (
+              <p className="text-[11px] text-slate-700 dark:text-zinc-300">
+                <strong className="text-emerald-600">UNDA (THEN):</strong> {node.condition_then}
+              </p>
+            )}
+            {node.condition_else && (
+              <p className="text-[11px] text-slate-700 dark:text-zinc-300">
+                <strong className="text-amber-600">AKS HOLDA (ELSE):</strong> {node.condition_else}
+              </p>
+            )}
           </div>
         )}
 
@@ -304,6 +355,16 @@ export default function NodeDetailPanel({
               <Edit3 className="w-3.5 h-3.5" /> Tahrirlash
             </button>
           )}
+
+          {node.id !== 'root' && onDuplicateNode && (
+            <button
+              onClick={() => onDuplicateNode(node.id)}
+              className="p-1.5 rounded-lg bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-300 hover:bg-slate-200 transition-colors"
+              title="Nusxalash"
+            >
+              <Copy className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
 
         {node.id !== 'root' && onDeleteNode && (
@@ -320,21 +381,43 @@ export default function NodeDetailPanel({
       {/* Edit Node Modal Overlay */}
       {isEditing && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-          <div className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl p-5 border border-slate-200 dark:border-zinc-800 space-y-3">
+          <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl p-5 border border-slate-200 dark:border-zinc-800 space-y-3">
             <h4 className="text-sm font-bold text-slate-800 dark:text-zinc-100">
-              Tugunni tahrirlash
+              Tugun va Shartni Tahrirlash (If / Then)
             </h4>
 
-            <div>
-              <label className="block text-[10px] font-bold text-slate-600 dark:text-zinc-400 mb-1">
-                Tugun nomi
-              </label>
-              <input
-                type="text"
-                value={editTitle}
-                onChange={e => setEditTitle(e.target.value)}
-                className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg text-slate-800 dark:text-zinc-100"
-              />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div>
+                <label className="block text-[10px] font-bold text-slate-600 dark:text-zinc-400 mb-1">
+                  Tugun nomi
+                </label>
+                <input
+                  type="text"
+                  value={editTitle}
+                  onChange={e => setEditTitle(e.target.value)}
+                  className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg text-slate-800 dark:text-zinc-100"
+                />
+              </div>
+              {node.id !== 'root' && (
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-600 dark:text-zinc-400 mb-1">
+                    Tugun turi
+                  </label>
+                  <select
+                    value={editType}
+                    onChange={e => setEditType(e.target.value as NodeType)}
+                    className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg text-slate-800 dark:text-zinc-100"
+                  >
+                    <option value="FACT">Fakt (FACT)</option>
+                    <option value="QUESTION">Huquqiy savol (QUESTION)</option>
+                    <option value="DECISION">Qaror / Shoxcha (DECISION)</option>
+                    <option value="ACTION">Protsessual harakat (ACTION)</option>
+                    <option value="OUTCOME">Oqibat (OUTCOME)</option>
+                    <option value="SUCCESS">Ijobiy yakun (SUCCESS)</option>
+                    <option value="FAILURE">Salbiy yakun (FAILURE)</option>
+                  </select>
+                </div>
+              )}
             </div>
 
             <div>
@@ -346,6 +429,53 @@ export default function NodeDetailPanel({
                 value={editDesc}
                 onChange={e => setEditDesc(e.target.value)}
                 className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg text-slate-800 dark:text-zinc-100"
+              />
+            </div>
+
+            <div className="p-3 rounded-xl bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-900/40 space-y-2">
+              <p className="text-[10px] font-bold text-indigo-700 dark:text-indigo-300 uppercase">
+                If / Then Mantiqiy Shart Muharriri
+              </p>
+              <input
+                type="text"
+                value={editBranchLabel}
+                onChange={e => setEditBranchLabel(e.target.value)}
+                placeholder="Shoxcha yorlig‘i (masalan: Ha / Shartnoma tuzilgan)"
+                className="w-full px-2.5 py-1.5 text-xs bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg"
+              />
+              <input
+                type="text"
+                value={editCondIf}
+                onChange={e => setEditCondIf(e.target.value)}
+                placeholder="AGAR (IF): masalan, shartnoma yozma shaklda tuzilgan bo‘lsa..."
+                className="w-full px-2.5 py-1.5 text-xs bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg"
+              />
+              <input
+                type="text"
+                value={editCondThen}
+                onChange={e => setEditCondThen(e.target.value)}
+                placeholder="UNDA (THEN): majburiyat bajarilishini tekshirish..."
+                className="w-full px-2.5 py-1.5 text-xs bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg"
+              />
+              <input
+                type="text"
+                value={editCondElse}
+                onChange={e => setEditCondElse(e.target.value)}
+                placeholder="AKS HOLDA (ELSE): bitimning haqiqiy emasligini baholash..."
+                className="w-full px-2.5 py-1.5 text-xs bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[10px] font-bold text-slate-600 dark:text-zinc-400 mb-1">
+                Qonun moddasi (masalan: FK 732-modda)
+              </label>
+              <input
+                type="text"
+                value={editLegalBasis}
+                onChange={e => setEditLegalBasis(e.target.value)}
+                placeholder="FK 732-modda, FPK 189-modda"
+                className="w-full px-3 py-1.5 text-xs bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg"
               />
             </div>
 

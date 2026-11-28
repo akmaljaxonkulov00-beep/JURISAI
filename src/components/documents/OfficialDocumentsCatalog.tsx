@@ -27,6 +27,7 @@ import {
   renderOfficialDocumentText,
 } from '@/lib/documents/official-documents-data'
 import { Download } from 'lucide-react'
+import { generateLegalDocx, downloadDocxBlob } from '@/lib/docx-generator'
 import OfficialDocumentFillerModal from './OfficialDocumentFillerModal'
 
 const CATEGORIES = [
@@ -53,19 +54,21 @@ export default function OfficialDocumentsCatalog() {
   const [activeModalDoc, setActiveModalDoc] = useState<OfficialLegalDocument | null>(null)
   const [documents, setDocuments] = useState<OfficialLegalDocument[]>(OFFICIAL_DOCUMENTS_REGISTRY)
 
-  const downloadBlankDoc = (doc: OfficialLegalDocument, e: React.MouseEvent) => {
+  const downloadBlankDoc = async (doc: OfficialLegalDocument, e: React.MouseEvent) => {
     e.stopPropagation()
-    const content = renderOfficialDocumentText(doc, {})
-    const header = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-    <head><meta charset='utf-8'><title>${doc.documentName}</title><style>@page { size: 21cm 29.7cm; margin: 2cm 1.5cm 2cm 2.5cm; } body { font-family: 'Times New Roman', serif; font-size: 12pt; }</style></head>
-    <body><pre style="font-family: inherit; white-space: pre-wrap;">${content}</pre></body></html>`
-    const blob = new Blob(['\ufeff', header], { type: 'application/msword' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `Asl_Blank_${doc.documentName.replace(/\s+/g, '_')}.doc`
-    a.click()
-    URL.revokeObjectURL(url)
+    try {
+      const content = renderOfficialDocumentText(doc, {})
+      const blob = await generateLegalDocx({
+        title: doc.documentName,
+        content,
+        legalBasis: doc.officialSourceName,
+        isCourtDocument: true,
+      })
+      downloadDocxBlob(blob, `Asl_Blank_${doc.documentName.replace(/\s+/g, '_')}.docx`)
+    } catch (err) {
+      console.error('DOCX yaratishda xatolik:', err)
+      alert('DOCX faylni yaratishda xatolik yuz berdi.')
+    }
   }
 
   // Filtered documents
@@ -275,10 +278,10 @@ export default function OfficialDocumentsCatalog() {
               <button
                 onClick={(e) => downloadBlankDoc(doc, e)}
                 className="text-[11px] font-medium text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 flex items-center gap-1 transition"
-                title="Rasmiy sud blankining asl nusxasini yuklab olish"
+                title="Rasmiy sud blankining haqiqiy .docx nusxasini yuklab olish"
               >
                 <Download className="w-3.5 h-3.5" />
-                <span>Asl blank (.doc)</span>
+                <span>Asl blank (.docx)</span>
               </button>
 
               <Button

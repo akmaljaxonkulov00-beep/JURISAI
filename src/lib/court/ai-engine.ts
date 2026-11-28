@@ -6,7 +6,7 @@ import {
   StructuredAiResponse,
   UserActionPayload,
 } from './court-types'
-import { groundPrompt } from '@/lib/legal-rag'
+import { groundPrompt, validateCitations, appendCitationNote } from '@/lib/legal-rag'
 import { ensureUzbekLatin } from '@/lib/uz-latin'
 import { callGemini } from '@/lib/gemini'
 
@@ -349,5 +349,21 @@ Ushbu harakatga AI ishtirokchilari nomidan munosib protsessual reaksiya bering.`
     rawJson = await callCourtAiJson(SYSTEM_PROMPT, userPrompt)
   }
 
-  return safeParseAiResponse(rawJson, userRole)
+  const parsed = safeParseAiResponse(rawJson, userRole)
+
+  // Validate legal citations in AI courtroom speeches
+  try {
+    for (const spk of parsed.speakers) {
+      if (spk.message) {
+        const citeResult = await validateCitations(spk.message)
+        if (citeResult.invalid.length > 0) {
+          spk.message = appendCitationNote(spk.message, citeResult)
+        }
+      }
+    }
+  } catch {
+    // Non-blocking citation check
+  }
+
+  return parsed
 }

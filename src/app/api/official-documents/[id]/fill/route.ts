@@ -3,7 +3,8 @@ import {
   getOfficialDocumentById,
   renderOfficialDocumentText,
 } from '@/lib/documents/official-documents-data'
-import { supabaseServer } from '@/lib/supabase'
+import { requireUser } from '@/lib/server-auth'
+import { getSupabaseAdmin } from '@/lib/supabase-admin'
 import crypto from 'crypto'
 
 export async function POST(
@@ -11,6 +12,9 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const auth = await requireUser(request)
+    if (!auth.ok) return auth.response
+
     const { id } = await params
     const body = await request.json().catch(() => ({}))
     const values: Record<string, string> = body.values || {}
@@ -46,33 +50,67 @@ export async function POST(
     const renderedText = renderOfficialDocumentText(doc, values)
     const contentHash = crypto.createHash('sha256').update(renderedText).digest('hex')
 
-    // Optional save to Supabase user_filled_documents
-    let savedId = null
+    // Persist to authenticated user's Supabase records
+    let savedId: string | null = null
+    let persistenceWarning: string | null = null
     try {
-      const supabase = supabaseServer
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
+      const admin = getSupabaseAdmin()
+      const title = `${doc.documentName} - ${new Date().toLocaleDateString('uz-UZ')}`
 
-      if (user) {
-        const { data: savedRecord } = await supabase
+      // Look up official_legal_documents UUID by filename if seeded
+      const { data: dbDoc } = await admin
+        .from('official_legal_documents')
+        .select('id')
+        .eq('original_filename', doc.originalFilename)
+        .maybeSingle()
+
+      if (dbDoc?.id) {
+        const { data: savedRecord, error: fillErr } = await admin
           .from('user_filled_documents')
           .insert({
-            user_id: user.id,
-            official_document_id: doc.id,
-            title: `${doc.documentName} - ${new Date().toLocaleDateString('uz-UZ')}`,
-            filled_values: values,
+            user_id: auth.user.id,
+            document_id: dbDoc.id,
+            title,
+            filled_data: values,
             status: 'completed',
           })
           .select('id')
           .single()
 
-        if (savedRecord) {
+        if (fillErr) {
+          persistenceWarning = fillErr.message
+        } else if (savedRecord?.id) {
           savedId = savedRecord.id
         }
+      } else {
+        // Fallback to generated_documents using its exact schema (document_data + generated_content)
+        const { data: genRecord, error: genErr } = await admin
+          .from('generated_documents')
+          .insert({
+            user_id: auth.user.id,
+            template_id: doc.id,
+            document_data: {
+              title,
+              status: 'completed',
+              form_data: values,
+              official_source: doc.officialSourceName,
+            },
+            generated_content: renderedText,
+            output_format: 'pdf',
+            language: 'uz',
+          })
+          .select('id')
+          .single()
+
+        if (genErr) {
+          persistenceWarning = genErr.message
+        } else if (genRecord?.id) {
+          savedId = genRecord.id
+        }
       }
-    } catch {
-      // Non-blocking if offline or guest
+    } catch (saveErr: any) {
+      persistenceWarning = saveErr?.message || 'Hujjatni bazaga saqlashda xatolik'
+      console.warn('[official-documents/fill] Persist warning:', saveErr)
     }
 
     return NextResponse.json({
@@ -82,6 +120,7 @@ export async function POST(
       renderedText,
       sha256Checksum: contentHash,
       savedId,
+      ...(persistenceWarning ? { persistenceWarning } : {}),
       officialSource: {
         name: doc.officialSourceName,
         url: doc.officialSourceUrl,

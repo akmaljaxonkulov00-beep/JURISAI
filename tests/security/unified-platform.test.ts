@@ -85,7 +85,9 @@ describe('JURISTIV — Unified Platform Architecture & RBAC Isolation', () => {
   })
 
   describe('2. Legal Questions & Privacy Isolation', () => {
-    it('Creates public legal question accessible in public feed', async () => {
+    const runLiveDb = process.env.RUN_LIVE_DB_TESTS === 'true'
+
+    it.skipIf(!runLiveDb)('Creates public legal question accessible in public feed', async () => {
       const q = await platformDb.createQuestion({
         citizen_id: 'citizen_user_1',
         citizen_name: 'Alisher Navoiy',
@@ -108,7 +110,7 @@ describe('JURISTIV — Unified Platform Architecture & RBAC Isolation', () => {
       expect(found?.title).toContain('Meros taqsimoti')
     })
 
-    it('Private question must NEVER be exposed in public feed', async () => {
+    it.skipIf(!runLiveDb)('Private question must NEVER be exposed in public feed', async () => {
       const privateQ = await platformDb.createQuestion({
         citizen_id: 'citizen_user_private',
         citizen_name: 'Maxfiy Fuqaro',

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireUser } from '@/lib/server-auth'
 import { checkAndIncrement, usageMessage } from '@/lib/usage-limits'
-import { groundPrompt } from '@/lib/legal-rag'
+import { groundPrompt, validateCitations } from '@/lib/legal-rag'
 import { ensureUzbekLatin } from '@/lib/uz-latin'
 import { callGemini } from '@/lib/gemini'
 import { CreateScenarioFormInput, ScenarioData } from '@/types/scenario-generator'
@@ -9,6 +9,7 @@ import {
   validateScenarioLegalIntegrity,
   VERIFIED_SCENARIO_TEMPLATES,
 } from '@/lib/scenario-generator-engine'
+import { sanitizeScenarioForClient } from '@/lib/scenario-sanitizer'
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
@@ -335,18 +336,46 @@ Bo‘limlarni ixcham, tizimli va to‘liq JSON ko‘rinishida tuz.`
       }))
     }
 
-    // Apply strict legal integrity validation
+    // Apply strict legal integrity validation + real corpus citation check
     const validation = validateScenarioLegalIntegrity(scenarioData)
+    let citationNotes: string[] = []
+    let checkedArticles: string[] = scenarioData.validation?.checked_articles || []
+    try {
+      const citationText = [
+        scenarioData.background || '',
+        ...(scenarioData.legal_issues || []).flatMap(li => li.applicable_articles || []),
+        ...(scenarioData.evidence || []).map(ev => ev.legal_basis || ''),
+      ].join('\n')
+      const citeResult = await validateCitations(citationText)
+      if (citeResult.valid.length > 0) {
+        checkedArticles = [
+          ...new Set([
+            ...checkedArticles,
+            ...citeResult.valid.map(v => `${v.codeName} ${v.article}-modda`),
+          ]),
+        ]
+      }
+      if (citeResult.invalid.length > 0) {
+        const invalidList = citeResult.invalid.map(
+          i => `${i.code ? i.code + ' ' : ''}${i.article}-modda`
+        )
+        citationNotes.push(`Tasdiqlanmagan modda havolalari aniqlandi: ${invalidList.join(', ')}`)
+      }
+    } catch {
+      // Non-blocking citation check
+    }
+
+    const penalty = citationNotes.length > 0 ? 15 : 0
     scenarioData.validation = {
-      is_valid: validation.isValid,
-      checked_articles: scenarioData.validation?.checked_articles || [],
-      legal_consistency_score: validation.score,
-      notes: validation.notes,
+      is_valid: validation.isValid && citationNotes.length === 0,
+      checked_articles: checkedArticles,
+      legal_consistency_score: Math.max(0, validation.score - penalty),
+      notes: [...validation.notes, ...citationNotes],
     }
 
     return NextResponse.json({
       success: true,
-      scenario: scenarioData,
+      scenario: sanitizeScenarioForClient(scenarioData),
     })
   } catch (error) {
     console.error('Scenario generation API error:', error)

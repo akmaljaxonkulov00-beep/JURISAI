@@ -394,3 +394,166 @@ export function formatCurrencySom(amount?: number | null): string {
   if (amount == null || amount === 0) return '0 soʻm'
   return amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' soʻm'
 }
+
+export interface TreeLogicIssue {
+  severity: 'error' | 'warning'
+  code:
+    | 'CIRCULAR_OR_DUPLICATE_ID'
+    | 'MISSING_FINAL_OUTCOME'
+    | 'DEAD_END_BRANCH'
+    | 'MISSING_CONDITION'
+    | 'CONTRADICTORY_OR_DUPLICATE_BRANCH'
+    | 'PROBABILITY_OVERFLOW'
+    | 'MISSING_LEGAL_BASIS'
+  nodeId: string
+  nodeTitle: string
+  message: string
+  explanation: string
+}
+
+/**
+ * Deterministic legal logic & structural consistency validator for Decision Trees.
+ */
+export function validateDecisionTreeLogic(root: DecisionNode): {
+  isValid: boolean
+  score: number
+  issues: TreeLogicIssue[]
+} {
+  const issues: TreeLogicIssue[] = []
+  const seenIds = new Set<string>()
+  const outcomeTypes = new Set(['OUTCOME', 'SUCCESS', 'FAILURE'])
+  let outcomeCount = 0
+  let totalNodes = 0
+
+  function walk(node: DecisionNode) {
+    totalNodes++
+    if (seenIds.has(node.id)) {
+      issues.push({
+        severity: 'error',
+        code: 'CIRCULAR_OR_DUPLICATE_ID',
+        nodeId: node.id,
+        nodeTitle: node.title,
+        message: `Takroriy yoki halqasimon tugun ID: "${node.title}"`,
+        explanation: 'Daraxt tuzilmasi yo‘naltirilgan tsiklsiz (DAG/Tree) bo‘lishi shart.',
+      })
+      return
+    }
+    seenIds.add(node.id)
+
+    if (outcomeTypes.has(node.type)) {
+      outcomeCount++
+    }
+
+    const children = Array.isArray(node.children) ? node.children : []
+
+    // Non-outcome leaf node (dead-end)
+    if (children.length === 0 && !outcomeTypes.has(node.type) && node.type !== 'ROOT') {
+      issues.push({
+        severity: 'warning',
+        code: 'DEAD_END_BRANCH',
+        nodeId: node.id,
+        nodeTitle: node.title,
+        message: `"${node.title}" shoxchasi yakuniy natijasiz tugagan`,
+        explanation:
+          'Har bir qaror yoki savol tarmog‘i kamida bitta yakuniy huquqiy oqibat (OUTCOME/SUCCESS/FAILURE) bilan tugashi kerak.',
+      })
+    }
+
+    // Condition check on DECISION / QUESTION nodes
+    if ((node.type === 'DECISION' || node.type === 'QUESTION') && !node.condition_if && !node.question) {
+      issues.push({
+        severity: 'warning',
+        code: 'MISSING_CONDITION',
+        nodeId: node.id,
+        nodeTitle: node.title,
+        message: `"${node.title}" uchun AGAR (IF) sharti kiritilmagan`,
+        explanation:
+          'Qaror nuqtasida qaysi yuridik shart tekshirilayotgani (AGAR ... BO‘LSA) aniq ko‘rsatilishi lozim.',
+      })
+    }
+
+    // Missing legal basis on DECISION / OUTCOME nodes
+    if (
+      node.type !== 'ROOT' &&
+      !node.legal_basis?.trim() &&
+      (!node.applicable_laws || node.applicable_laws.length === 0)
+    ) {
+      issues.push({
+        severity: 'warning',
+        code: 'MISSING_LEGAL_BASIS',
+        nodeId: node.id,
+        nodeTitle: node.title,
+        message: `"${node.title}" tugunida qonun moddasi ko‘rsatilmagan`,
+        explanation:
+          'Har bir huquqiy qaror va oqibat tegishli O‘zbekiston kodeksi moddasiga asoslanishi kerak.',
+      })
+    }
+
+    // Sibling duplicate/contradictory branch labels & probability overflow
+    if (children.length > 1) {
+      const siblingLabels = new Set<string>()
+      let probSum = 0
+      let probCount = 0
+
+      for (const child of children) {
+        const key = (child.branch_label || child.title || '').trim().toLowerCase()
+        if (key && siblingLabels.has(key)) {
+          issues.push({
+            severity: 'error',
+            code: 'CONTRADICTORY_OR_DUPLICATE_BRANCH',
+            nodeId: child.id,
+            nodeTitle: child.title,
+            message: `Bir xil nomdagi takroriy shoxcha: "${child.title}"`,
+            explanation:
+              'Bir tugundan chiqadigan muqobil shoxchalar bir-biridan farqli va o‘zaro ziddiyatsiz bo‘lishi shart.',
+          })
+        }
+        if (key) siblingLabels.add(key)
+
+        if (typeof child.probability === 'number') {
+          probSum += child.probability
+          probCount++
+        }
+      }
+
+      if (probCount >= 2 && probSum > 100) {
+        issues.push({
+          severity: 'error',
+          code: 'PROBABILITY_OVERFLOW',
+          nodeId: node.id,
+          nodeTitle: node.title,
+          message: `"${node.title}" ostidagi ehtimolliklar yig‘indisi 100% dan oshib ketdi (${probSum}%)`,
+          explanation:
+            'O‘zaro istisno qiluvchi muqobil natijalar ehtimolligi yig‘indisi 100% dan oshmasligi kerak.',
+        })
+      }
+    }
+
+    for (const child of children) {
+      walk(child)
+    }
+  }
+
+  walk(root)
+
+  if (totalNodes > 1 && outcomeCount === 0) {
+    issues.push({
+      severity: 'error',
+      code: 'MISSING_FINAL_OUTCOME',
+      nodeId: root.id,
+      nodeTitle: root.title,
+      message: 'Daraxtda birorta ham yakuniy natija (OUTCOME/SUCCESS/FAILURE) mavjud emas',
+      explanation: 'Talaba qaror daraxtini kamida bitta yakuniy huquqiy oqibat bilan yakunlashi kerak.',
+    })
+  }
+
+  const errorCount = issues.filter(i => i.severity === 'error').length
+  const warningCount = issues.filter(i => i.severity === 'warning').length
+  const score = Math.max(0, 100 - errorCount * 20 - warningCount * 8)
+
+  return {
+    isValid: errorCount === 0,
+    score,
+    issues,
+  }
+}

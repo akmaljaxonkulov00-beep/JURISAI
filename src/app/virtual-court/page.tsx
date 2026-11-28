@@ -41,17 +41,19 @@ import {
   VolumeX,
   Download,
 } from 'lucide-react'
-import type {
-  CourtRole,
-  CourtScenario,
-  CourtSessionState,
-  CourtStage,
-  EvidenceItem,
-  ParticipantPersona,
-  ProcedureType,
-  ScoringResult,
-  SessionEvent,
+import {
+  getRolesForCategory,
+  type CourtRole,
+  type CourtScenario,
+  type CourtSessionState,
+  type CourtStage,
+  type EvidenceItem,
+  type ParticipantPersona,
+  type ProcedureType,
+  type ScoringResult,
+  type SessionEvent,
 } from '@/lib/court/court-types'
+import { generateLegalPdf, downloadPdfBlob } from '@/lib/pdf-generator'
 
 // SpeechRecognition tipi
 interface SpeechRecognitionLike {
@@ -84,6 +86,38 @@ function VirtualCourtContent() {
   const [selectedProcedure, setSelectedProcedure] = useState<ProcedureType>('trial')
   const [categoryFilter, setCategoryFilter] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
+  const [transferBanner, setTransferBanner] = useState<string | null>(null)
+
+  const adaptiveRoles = useMemo(
+    () => getRolesForCategory(selectedScenario?.category || (categoryFilter !== 'all' ? categoryFilter : 'criminal')),
+    [selectedScenario?.category, categoryFilter]
+  )
+
+  useEffect(() => {
+    if (!adaptiveRoles.some(r => r.id === selectedRole) && adaptiveRoles.length > 0) {
+      setSelectedRole(adaptiveRoles[0].id)
+    }
+  }, [adaptiveRoles, selectedRole])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    try {
+      const raw = sessionStorage.getItem('juristiv_transfer_court')
+      if (raw) {
+        const parsed = JSON.parse(raw)
+        sessionStorage.removeItem('juristiv_transfer_court')
+        if (parsed.domain) {
+          setCategoryFilter(parsed.domain)
+        }
+        if (parsed.title) {
+          setSearchQuery(parsed.title)
+          setTransferBanner(`Senariy Generator'dan o‘tkazilgan ish: "${parsed.title}". Mos ssenariyni tanlab sudni boshlang.`)
+        }
+      }
+    } catch {
+      // ignore invalid transfer payload
+    }
+  }, [])
 
   // ── Active Session State ──
   const [simulationId, setSimulationId] = useState<string>('')
@@ -260,44 +294,48 @@ function VirtualCourtContent() {
     }
   }
 
-  // ── Export Court Transcript (Sud Bayonnomasi) ──
-  const handleExportTranscript = () => {
+  // ── Export Court Transcript (Sud Bayonnomasi PDF) ──
+  const handleExportTranscript = async () => {
     if (!messages.length && !sessionState) return
     const title = selectedScenario?.title || 'Virtual Sud Majlisi'
-    let text = `=================================================================\n`
-    text += `       O'ZBEKISTON RESPUBLIKASI VIRTUAL SUD MAJLISI BAYONNOMASI\n`
-    text += `=================================================================\n\n`
+    let text = `O‘QUV SIMULYATSIYA BAYONNOMASI (HAQIQIY SUD HUJJATI EMAS)\n\n`
     text += `Ish nomi: ${title}\n`
     text += `Huquq sohasi: ${selectedScenario?.category || 'Umumiy'}\n`
     text += `Sizning rolingiz: ${selectedRole}\n`
     text += `Sana va vaqt: ${new Date().toLocaleDateString('uz-UZ')} ${new Date().toLocaleTimeString('uz-UZ')}\n`
     text += `Jarayon holati: ${sessionState?.completed ? 'Yakunlangan' : 'Jarayonda'}\n`
     if (scoringResults) {
-      text += `Yakuniy natija: ${scoringResults.totalScore} / 100 ball\n`
+      text += `\nYakuniy natija: ${scoringResults.totalScore} / 100 ball\n`
       text += `Qonuniy asoslar: ${scoringResults.legalReasoning}%\n`
       text += `Argumentatsiya: ${scoringResults.argumentQuality}%\n`
       text += `Dalillar bilan ishlash: ${scoringResults.evidenceUsage}%\n`
       text += `Protsessual tartib: ${scoringResults.proceduralCorrectness}%\n`
       text += `Xulosa: ${scoringResults.feedbackSummary}\n`
     }
-    text += `\n-----------------------------------------------------------------\n`
-    text += `                     MAJLIS BAYONI VA REPLIKALAR\n`
-    text += `-----------------------------------------------------------------\n\n`
+    text += `\nMAJLIS BAYONI VA REPLIKALAR:\n\n`
     messages.forEach(m => {
       text += `[${m.time}] ${m.speaker} (${m.role}):\n${m.text}\n\n`
     })
-    text += `=================================================================\n`
-    text += `Hujjat: JuristAI Virtual Sud Simulyatori orqali shakllantirildi\n`
 
-    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `Sud_Bayonnomasi_${Date.now()}.txt`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
+    try {
+      const pdfBytes = await generateLegalPdf({
+        title: `VIRTUAL SUD BAYONNOMASI — ${title}`,
+        subtitle: "O'quv simulyatsiya bayonnomasi (haqiqiy sud hujjati emas)",
+        content: text,
+        isCourtDocument: false,
+      })
+      downloadPdfBlob(pdfBytes, `Sud_Bayonnomasi_${Date.now()}.pdf`)
+    } catch {
+      const blob = new Blob([text], { type: 'text/plain;charset=utf-8' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `Sud_Bayonnomasi_${Date.now()}.txt`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    }
   }
 
   // ── Audio / TTS Narration ──
@@ -886,33 +924,20 @@ function VirtualCourtContent() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {[
-                  {
-                    id: 'ADVOKAT' as CourtRole,
-                    title: 'Advokat (Himoyachi)',
-                    desc: 'Mijoz huquqlarini himoya qilish, dalillarga e’tiroz bildirish va oqlov/yengillik so‘rash',
-                    icon: Shield,
-                    color: 'text-amber-400',
-                    border: 'border-amber-500/50 bg-amber-950/20 shadow-amber-500/10',
-                  },
-                  {
-                    id: 'PROKUROR' as CourtRole,
-                    title: 'Prokuror (Ayblovchi)',
-                    desc: 'Davlat ayblovini qo‘llab-quvvatlash, dalillarni isbotlash va qat’iy jazo talab qilish',
-                    icon: Gavel,
-                    color: 'text-rose-400',
-                    border: 'border-rose-500/50 bg-rose-950/20 shadow-rose-500/10',
-                  },
-                  {
-                    id: 'SUDYA' as CourtRole,
-                    title: 'Sud Raisi (Sudya)',
-                    desc: 'Majlisni boshqarish, iltimosnomalarni hal etish, dalillarni qabul qilish va Hukm chiqarish',
-                    icon: Scale,
-                    color: 'text-blue-400',
-                    border: 'border-blue-500/50 bg-blue-950/20 shadow-blue-500/10',
-                  },
-                ].map(r => {
-                  const Icon = r.icon
+                {adaptiveRoles.map(r => {
+                  const Icon = r.id === 'SUDYA' ? Scale : r.id === 'PROKUROR' || r.id === 'JAVOBGAR_ORGAN' ? Gavel : Shield
+                  const color =
+                    r.id === 'SUDYA'
+                      ? 'text-blue-400'
+                      : r.id === 'PROKUROR' || r.id === 'JAVOBGAR' || r.id === 'JAVOBGAR_ORGAN'
+                        ? 'text-rose-400'
+                        : 'text-amber-400'
+                  const border =
+                    r.id === 'SUDYA'
+                      ? 'border-blue-500/50 bg-blue-950/20 shadow-blue-500/10'
+                      : r.id === 'PROKUROR' || r.id === 'JAVOBGAR' || r.id === 'JAVOBGAR_ORGAN'
+                        ? 'border-rose-500/50 bg-rose-950/20 shadow-rose-500/10'
+                        : 'border-amber-500/50 bg-amber-950/20 shadow-amber-500/10'
                   const isSelected = selectedRole === r.id
                   return (
                     <button
@@ -920,13 +945,13 @@ function VirtualCourtContent() {
                       onClick={() => setSelectedRole(r.id)}
                       className={`p-5 rounded-2xl border text-left transition-all flex flex-col justify-between ${
                         isSelected
-                          ? `border-2 ${r.border} shadow-lg`
+                          ? `border-2 ${border} shadow-lg`
                           : 'border-slate-800 bg-slate-900/40 hover:border-slate-700'
                       }`}
                     >
                       <div className="flex items-center justify-between mb-3">
                         <div
-                          className={`w-10 h-10 rounded-xl bg-slate-800/80 flex items-center justify-center ${r.color}`}
+                          className={`w-10 h-10 rounded-xl bg-slate-800/80 flex items-center justify-center ${color}`}
                         >
                           <Icon size={20} />
                         </div>
